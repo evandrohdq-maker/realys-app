@@ -28,6 +28,8 @@ As respostas saem do **cadastro que cada prestador faz** (funções e valores). 
 - Usuário: `admin`
 - Senha: `Realys@2026`
 
+Na aba **Sistema**, o administrador vê o **mapa de todo o app**: cada tela, o que ela faz e a situação (funciona na demo, só visual ou precisa de servidor), com o botão **Abrir tela**. Em qualquer tela aparece o **botão dourado de lápis** para anotar o que deve mudar ali; as anotações ficam salvas no celular, podem ser marcadas como feitas e enviadas pelo WhatsApp ou e-mail pelo botão **Enviar**. O botão dourado de baixo volta para o mapa do sistema.
+
 O administrador vê a visão geral da plataforma (usuários, empresas, receita), modera denúncias e alertas da IA (bloquear conta, remover post) e aprova ou recusa cadastros de empresas, prestadores e fornecedores. Ele também pode trocar para os outros perfis.
 
 > A senha acima é só da demonstração e fica visível no código. Na versão real, o login de administrador fica no servidor, com senha criptografada e verificação em duas etapas.

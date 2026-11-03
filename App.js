@@ -23,11 +23,13 @@ import SupplierScreen from './src/screens/fornecedor/SupplierScreen';
 import { AdminOverview, AdminModeration, AdminSignups } from './src/screens/admin/AdminScreens';
 import CategoryMenu from './src/components/CategoryMenu';
 import UpdateChecker from './src/components/UpdateChecker';
+import { AdminSystem, NoteModal, SYSTEM_MAP } from './src/screens/admin/AdminSystem';
 
 // Cada perfil enxerga abas diferentes dentro do MESMO app.
 const TABS = {
   admin: [
     { key: 'geral', label: 'Geral', icon: 'shield-checkmark-outline', Comp: AdminOverview },
+    { key: 'sistema', label: 'Sistema', icon: 'git-network-outline', Comp: AdminSystem },
     { key: 'moderacao', label: 'Moderação', icon: 'flag-outline', Comp: AdminModeration },
     { key: 'cadastros', label: 'Cadastros', icon: 'checkmark-done-outline', Comp: AdminSignups },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
@@ -65,6 +67,8 @@ function Shell() {
   const [voice, setVoice] = useState(false);
   const [menu, setMenu] = useState(false);
   const [explore, setExplore] = useState(null);
+  const [noting, setNoting] = useState(false);
+  const isAdmin = state.user.roles.includes('admin');
   const pendingTab = useRef(null);
   const insets = useSafeAreaInsets();
 
@@ -79,6 +83,16 @@ function Shell() {
     const r = state.user.roles;
     dispatch({ type: 'SET_ROLE', role: r[(r.indexOf(state.activeRole) + 1) % r.length] });
   };
+
+  // Administrador abrindo qualquer tela pelo mapa do sistema.
+  const openArea = (role, tabKey, top) => {
+    setExplore({ tab: tabKey, top, at: Date.now() });
+    if (role === state.activeRole) return setTab(tabKey);
+    pendingTab.current = tabKey;
+    dispatch({ type: 'SET_ROLE', role });
+  };
+  const mapped = SYSTEM_MAP.flatMap((g) => g.items).filter((i) => i.role === state.activeRole && i.tab === current.key);
+  const where = mapped.length === 1 ? mapped[0].name : `${ROLE_LABELS[state.activeRole]} › ${current.label}`;
 
   // Escolha feita no menu ⋮: vai para a aba certa (trocando de perfil se precisar).
   const pick = (go) => {
@@ -126,7 +140,7 @@ function Shell() {
       </View>
 
       <View style={{ flex: 1 }}>
-        <Comp goTo={setTab} openVoice={() => setVoice(true)} explore={explore} />
+        <Comp goTo={setTab} openVoice={() => setVoice(true)} explore={explore} openArea={openArea} />
       </View>
 
       <TouchableOpacity
@@ -137,6 +151,23 @@ function Shell() {
       >
         <Ionicons name="mic" size={26} color={colors.primary} />
       </TouchableOpacity>
+
+      {isAdmin ? (
+        <View style={[styles.adminTools, { bottom: 90 + insets.bottom }]}>
+          <TouchableOpacity style={styles.adminBtn} onPress={() => setNoting(true)} accessibilityLabel="Anotar mudança nesta tela">
+            <Ionicons name="create-outline" size={20} color={colors.onPrimary} />
+          </TouchableOpacity>
+          {state.activeRole !== 'admin' ? (
+            <TouchableOpacity
+              style={[styles.adminBtn, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.accent, marginTop: 8 }]}
+              onPress={() => openArea('admin', 'sistema')}
+              accessibilityLabel="Voltar ao mapa do sistema"
+            >
+              <Ionicons name="git-network-outline" size={19} color={colors.accent} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      ) : null}
 
       <View style={[styles.tabbar, { paddingBottom: 10 + insets.bottom }]}>
         {tabs.map((t) => {
@@ -152,6 +183,7 @@ function Shell() {
 
       <VoiceAssistant visible={voice} onClose={() => setVoice(false)} />
       <CategoryMenu visible={menu} onClose={() => setMenu(false)} onPick={pick} />
+      {isAdmin ? <NoteModal visible={noting} where={where} onClose={() => setNoting(false)} /> : null}
     </View>
   );
 }
@@ -249,6 +281,20 @@ const styles = StyleSheet.create({
   },
   tab: { flex: 1, alignItems: 'center' },
   tabLabel: { fontSize: 11, color: colors.muted, marginTop: 3 },
+  adminTools: { position: 'absolute', left: 18, alignItems: 'center' },
+  adminBtn: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 8,
+    shadowColor: colors.accent,
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 0 },
+  },
   fab: {
     position: 'absolute',
     right: 18,

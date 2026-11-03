@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "*",
+    "@react-native-async-storage/async-storage": "*",
     "expo": "~56.0.0",
     "expo-intent-launcher": "*",
     "expo-local-authentication": "*",

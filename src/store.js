@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as D from './data';
 import { brl } from './theme';
 
@@ -35,6 +36,7 @@ const initialState = {
   reports: D.reports,
   signups: D.pendingSignups,
   blocked: [],
+  notes: [], // anotações do administrador sobre o que mudar em cada tela (ficam salvas no celular)
 };
 
 // Quando uma proposta B2B é fechada: o estoque da empresa sobe e a saída entra no financeiro.
@@ -78,7 +80,15 @@ function reducer(state, a) {
     case 'LOGIN':
       return { ...state, user: a.user, activeRole: a.user.roles[0] };
     case 'LOGOUT':
-      return { ...initialState };
+      return { ...initialState, notes: state.notes };
+    case 'LOAD_NOTES':
+      return { ...state, notes: a.notes };
+    case 'ADD_NOTE':
+      return { ...state, notes: [{ id: 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), done: false, at: new Date().toISOString(), ...a.note }, ...state.notes] };
+    case 'TOGGLE_NOTE':
+      return { ...state, notes: state.notes.map((n) => (n.id === a.id ? { ...n, done: !n.done } : n)) };
+    case 'DELETE_NOTE':
+      return { ...state, notes: state.notes.filter((n) => n.id !== a.id) };
     case 'RESOLVE_REPORT':
       return {
         ...state,
@@ -239,8 +249,21 @@ function reducer(state, a) {
   }
 }
 
+const NOTES_KEY = 'realys.admin.notes';
+
 export function StoreProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const loaded = useRef(false);
+  // Anotações do administrador: carrega ao abrir e salva a cada mudança.
+  useEffect(() => {
+    AsyncStorage.getItem(NOTES_KEY)
+      .then((raw) => raw && dispatch({ type: 'LOAD_NOTES', notes: JSON.parse(raw) }))
+      .catch(() => {})
+      .finally(() => (loaded.current = true));
+  }, []);
+  useEffect(() => {
+    if (loaded.current) AsyncStorage.setItem(NOTES_KEY, JSON.stringify(state.notes)).catch(() => {});
+  }, [state.notes]);
   return <StoreContext.Provider value={{ state, dispatch }}>{children}</StoreContext.Provider>;
 }
 
