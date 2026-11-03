@@ -112,6 +112,7 @@ export default function LoginScreen() {
             <Ionicons name="cube-outline" size={30} color={colors.primary} />
           </View>
           <Text style={styles.logo}>REALYS</Text>
+          <Text style={styles.headline}>Você no comando.</Text>
           <Text style={styles.tagline}>Pessoas reais. Negócios reais.</Text>
         </View>
 
@@ -178,7 +179,8 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   logo: { fontSize: 36, fontWeight: '800', color: colors.text, letterSpacing: 8 },
-  tagline: { fontSize: 17, color: colors.accent, fontWeight: '700', marginTop: 8 },
+  headline: { fontSize: 30, color: colors.text, fontWeight: '900', marginTop: 18, letterSpacing: -0.5, textAlign: 'center' },
+  tagline: { fontSize: 17, color: colors.accent, fontWeight: '700', marginTop: 6 },
   panel: {
     backgroundColor: colors.card,
     borderRadius: 24,

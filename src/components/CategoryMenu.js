@@ -37,17 +37,40 @@ export const CATEGORIES = [
       { label: 'Mercado', hint: 'Compras do dia', icon: 'cart-outline', go: { tab: 'loja', cat: 'Mercado', q: '' } },
       { label: 'Moda', hint: 'Roupas e calçados', icon: 'shirt-outline', go: { tab: 'loja', cat: 'Roupas', q: '' } },
       { label: 'Eletrônicos', hint: 'Celulares e acessórios', icon: 'phone-portrait-outline', go: { tab: 'loja', cat: 'Eletrônicos', q: '' } },
+      { label: 'Promoções', hint: 'Ofertas relâmpago', icon: 'pricetags-outline', go: { tab: 'home', top: 'promo' } },
       { label: 'Ver todas', hint: 'Todas as lojas', icon: 'storefront-outline', go: { tab: 'loja', cat: 'Todos', q: '' } },
     ],
   },
   {
+    key: 'imoveis',
+    title: 'Imóveis',
+    hint: 'Venda e locação',
+    icon: 'business-outline',
+    subs: [
+      { label: 'Comprar', hint: 'Imóveis à venda', icon: 'home-outline', go: { tab: 'home', top: 'anuncios', kind: 'imovel-venda' } },
+      { label: 'Alugar', hint: 'Imóveis para locação', icon: 'key-outline', go: { tab: 'home', top: 'anuncios', kind: 'imovel-aluguel' } },
+    ],
+  },
+  {
+    key: 'locacao',
+    title: 'Aluguel de veículos e máquinas',
+    hint: 'Carros, vans, máquinas e equipamentos',
+    icon: 'car-sport-outline',
+    subs: [
+      { label: 'Carros e vans', hint: 'Por dia ou por semana', icon: 'car-sport-outline', go: { tab: 'home', top: 'anuncios', kind: 'carro-aluguel' } },
+      { label: 'Máquinas e equipamentos', hint: 'Obra, terraplanagem, andaimes', icon: 'construct-outline', go: { tab: 'home', top: 'anuncios', kind: 'maquina-aluguel' } },
+    ],
+  },
+  {
     key: 'social',
-    title: 'Social',
-    hint: 'Feed, vídeos curtos e amigos',
+    title: 'Comunidade e lives',
+    hint: 'Posts, mensagens, vídeo e lives',
     icon: 'people-outline',
     subs: [
-      { label: 'Feed', hint: 'Pessoas reais', icon: 'images-outline', go: { tab: 'inicio' } },
-      { label: 'Vídeos curtos', hint: 'Em breve', icon: 'play-circle-outline', soon: true, go: { tab: 'inicio' } },
+      { label: 'Comunidade', hint: 'Posts de pessoas reais', icon: 'chatbox-ellipses-outline', go: { tab: 'home', top: 'comunidade', seg: 'posts' } },
+      { label: 'Mensagens', hint: 'Conversas e chamadas de vídeo', icon: 'mail-outline', go: { tab: 'home', top: 'comunidade', seg: 'msgs' } },
+      { label: 'Contatos', hint: 'Sua lista de contatos', icon: 'person-add-outline', go: { tab: 'home', top: 'comunidade', seg: 'contatos' } },
+      { label: 'Lives', hint: 'Assista ou abra a sua', icon: 'radio-outline', go: { tab: 'home', top: 'lives' } },
     ],
   },
   {
@@ -82,6 +105,7 @@ export default function CategoryMenu({ visible, onClose, onPick }) {
                   <Ionicons name="close" size={18} color={colors.text} />
                 </TouchableOpacity>
               </View>
+              <ScrollView style={{ maxHeight: 520 }}>
               {CATEGORIES.map((c) => (
                 <TouchableOpacity key={c.key} style={styles.row} onPress={() => setCat(c)} activeOpacity={0.8}>
                   <View style={styles.rowIcon}>
@@ -94,6 +118,7 @@ export default function CategoryMenu({ visible, onClose, onPick }) {
                   <Ionicons name="chevron-forward" size={18} color={colors.muted} />
                 </TouchableOpacity>
               ))}
+              </ScrollView>
             </>
           ) : (
             <>

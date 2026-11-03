@@ -1,0 +1,681 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useStore, storeOf } from '../../../store';
+import { colors, brl } from '../../../theme';
+import { Screen, Photo, ProductThumb, Badge } from '../../../components/ui';
+import { promos, listings, LISTING_KINDS, communityPosts, contacts, conversations as initialConversations, lives } from '../../../homeData';
+import { ChatModal, VideoCallModal, LiveModal } from './Social';
+
+// As 5 abas do topo do Início do cliente.
+const TOP = [
+  { key: 'shop', label: 'Shop', icon: 'bag-handle-outline' },
+  { key: 'promo', label: 'Promoções', icon: 'pricetags-outline' },
+  { key: 'anuncios', label: 'Anúncios', icon: 'megaphone-outline' },
+  { key: 'comunidade', label: 'Comunidade', icon: 'people-outline' },
+  { key: 'lives', label: 'Lives', icon: 'radio-outline' },
+];
+
+export default function HomeScreen({ goTo, explore }) {
+  const { state } = useStore();
+  const [top, setTop] = useState('shop');
+  const [kind, setKind] = useState('todos');
+  const [seg, setSeg] = useState('posts');
+  const [convs, setConvs] = useState(initialConversations);
+  const [chatWith, setChatWith] = useState(null);
+  const [videoWith, setVideoWith] = useState(null);
+  const [live, setLive] = useState(null); // { live, mine }
+
+  // Veio do menu ⋮ (ex.: Imóveis → Alugar)
+  useEffect(() => {
+    if (!explore || !explore.top) return;
+    setTop(explore.top);
+    if (explore.kind) setKind(explore.kind);
+    if (explore.seg) setSeg(explore.seg);
+  }, [explore]);
+
+  const contactOf = (id) => contacts.find((c) => c.id === id);
+  const openChat = (contact) => {
+    if (!convs.find((c) => c.contactId === contact.id)) {
+      setConvs((cs) => [{ id: 'm' + Date.now(), contactId: contact.id, unread: 0, messages: [], extra: contact }, ...cs]);
+    }
+    setConvs((cs) => cs.map((c) => (c.contactId === contact.id ? { ...c, unread: 0 } : c)));
+    setChatWith(contact);
+  };
+  const sendTo = (contactId, msg) =>
+    setConvs((cs) => cs.map((c) => (c.contactId === contactId ? { ...c, messages: [...c.messages, msg] } : c)));
+  // Anunciante vira um contato para a conversa sobre o anúncio.
+  const contactAdvertiser = (l) =>
+    openChat({ id: 'adv-' + l.who, name: l.who, status: 'anunciante verificado', photo: `https://picsum.photos/seed/${encodeURIComponent(l.who)}/200/200` });
+  const anyContact = (id) => contactOf(id) || (convs.find((c) => c.contactId === id) || {}).extra;
+
+  const chatConv = chatWith ? convs.find((c) => c.contactId === chatWith.id) : null;
+
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <View style={styles.topTabs}>
+        {TOP.map((t) => {
+          const on = t.key === top;
+          return (
+            <TouchableOpacity key={t.key} style={[styles.topTab, on && styles.topTabOn]} onPress={() => setTop(t.key)}>
+              <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={19} color={on ? colors.onPrimary : colors.primary} />
+              <Text numberOfLines={1} style={[styles.topTabText, on && { color: colors.onPrimary }]}>
+                {t.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      <View style={{ flex: 1 }}>
+        {top === 'shop' ? <ShopTab goTo={goTo} /> : null}
+        {top === 'promo' ? <PromoTab /> : null}
+        {top === 'anuncios' ? <AdsTab kind={kind} setKind={setKind} onContact={contactAdvertiser} /> : null}
+        {top === 'comunidade' ? (
+          <CommunityTab
+            seg={seg}
+            setSeg={setSeg}
+            convs={convs}
+            contactOf={anyContact}
+            onChat={openChat}
+            onVideo={(c) => setVideoWith(c)}
+            onGoLive={() => setLive({ live: null, mine: true })}
+            userName={state.user ? state.user.name : 'Você'}
+          />
+        ) : null}
+        {top === 'lives' ? <LivesTab onWatch={(l) => setLive({ live: l, mine: false })} onGoLive={() => setLive({ live: null, mine: true })} /> : null}
+      </View>
+
+      <ChatModal
+        contact={chatWith}
+        visible={!!chatWith}
+        messages={chatConv ? chatConv.messages : []}
+        onClose={() => setChatWith(null)}
+        onSend={(msg) => sendTo(chatWith.id, msg)}
+        onVideo={() => setVideoWith(chatWith)}
+      />
+      <VideoCallModal contact={videoWith} visible={!!videoWith} onClose={() => setVideoWith(null)} />
+      <LiveModal
+        live={live && live.live}
+        mine={!!(live && live.mine)}
+        visible={!!live}
+        onClose={() => setLive(null)}
+        userName={state.user ? state.user.name : 'Você'}
+      />
+    </View>
+  );
+}
+
+function Hero() {
+  return (
+    <View style={styles.hero}>
+      <Text style={styles.heroTitle}>Você no comando.</Text>
+      <Text style={styles.heroSub}>Compre, contrate, anuncie e converse com pessoas reais, tudo num app só.</Text>
+    </View>
+  );
+}
+
+function ShopTab({ goTo }) {
+  const { state, dispatch } = useStore();
+  const featured = state.products.filter((p) => p.featured);
+  const stores = [...state.stores].sort((a, b) => b.sponsored - a.sponsored || b.recommended - a.recommended || b.rating - a.rating);
+  return (
+    <Screen>
+      <Hero />
+      <SectionHead title="Destaques para você" action="Ver loja" onAction={() => goTo('loja')} />
+      <View style={styles.grid}>
+        {featured.map((p) => (
+          <View key={p.id} style={styles.prod}>
+            <ProductThumb product={p} size={86} />
+            <Text numberOfLines={2} style={styles.prodName}>
+              {p.name}
+            </Text>
+            <Text style={styles.prodStore}>{(storeOf(state, p.storeId) || {}).name}</Text>
+            <Text style={styles.prodPrice}>{brl(p.price)}</Text>
+            <TouchableOpacity style={styles.addBtn} onPress={() => dispatch({ type: 'ADD_TO_CART', productId: p.id })}>
+              <Ionicons name="add" size={16} color={colors.onPrimary} />
+              <Text style={styles.addText}>Carrinho</Text>
+            </TouchableOpacity>
+          </View>
+        ))}
+      </View>
+      <SectionHead title="Lojas em destaque" />
+      {stores.map((s) => (
+        <TouchableOpacity key={s.id} style={styles.storeRow} onPress={() => goTo('loja')} activeOpacity={0.85}>
+          <View style={styles.storeLogo}>
+            <Text style={{ color: colors.text, fontSize: 22 }}>{s.logo}</Text>
+          </View>
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <Text style={styles.storeName}>{s.name}</Text>
+            <Text style={styles.storeMeta}>
+              {s.category} · <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {s.rating}</Text>
+              {s.shipsBrazil ? ' · envia p/ todo o Brasil' : ''}
+            </Text>
+          </View>
+          {s.sponsored ? <Badge label="Patrocinado" color={colors.sponsored} /> : null}
+        </TouchableOpacity>
+      ))}
+    </Screen>
+  );
+}
+
+function PromoTab() {
+  const { state, dispatch } = useStore();
+  const items = promos.map((pr) => ({ ...pr, p: state.products.find((x) => x.id === pr.productId) })).filter((x) => x.p);
+  return (
+    <Screen>
+      <View style={styles.promoBanner}>
+        <Ionicons name="flash" size={22} color={colors.onPrimary} />
+        <View style={{ flex: 1, marginLeft: 10 }}>
+          <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 16 }}>Ofertas relâmpago</Text>
+          <Text style={{ color: colors.onPrimary, fontSize: 12 }}>Preços exclusivos para quem compra pelo Realys</Text>
+        </View>
+      </View>
+      {items.map(({ p, off, until }) => {
+        const from = p.price / (1 - off / 100);
+        return (
+          <View key={p.id} style={styles.promo}>
+            <View>
+              <ProductThumb product={p} size={74} />
+              <View style={styles.offBadge}>
+                <Text style={styles.offText}>-{off}%</Text>
+              </View>
+            </View>
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={styles.prodName} numberOfLines={2}>
+                {p.name}
+              </Text>
+              <Text style={styles.prodStore}>{(storeOf(state, p.storeId) || {}).name}</Text>
+              <Text style={{ color: colors.muted, fontSize: 12, textDecorationLine: 'line-through', marginTop: 4 }}>de {brl(from)}</Text>
+              <Text style={styles.promoPrice}>por {brl(p.price)}</Text>
+              <Text style={{ color: colors.accent, fontSize: 11, marginTop: 2 }}>
+                <Ionicons name="time-outline" size={11} color={colors.accent} /> {until}
+              </Text>
+            </View>
+            <TouchableOpacity style={styles.addRound} onPress={() => dispatch({ type: 'ADD_TO_CART', productId: p.id })} accessibilityLabel="Adicionar ao carrinho">
+              <Ionicons name="cart" size={18} color={colors.onPrimary} />
+            </TouchableOpacity>
+          </View>
+        );
+      })}
+    </Screen>
+  );
+}
+
+function AdsTab({ kind, setKind, onContact }) {
+  const list = listings
+    .filter((l) => kind === 'todos' || l.kind === kind)
+    .sort((a, b) => b.sponsored - a.sponsored);
+  const cta = (l) =>
+    l.kind.startsWith('imovel') ? 'Agendar visita' : 'Reservar';
+  return (
+    <Screen>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 12 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
+        {LISTING_KINDS.map((k) => {
+          const on = k.key === kind;
+          return (
+            <TouchableOpacity key={k.key} style={[styles.chip, on && styles.chipOn]} onPress={() => setKind(k.key)}>
+              <Ionicons name={k.icon} size={15} color={on ? colors.onPrimary : colors.primary} />
+              <Text style={[styles.chipText, on && { color: colors.onPrimary }]}>{k.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
+      <TouchableOpacity
+        style={styles.announce}
+        onPress={() => Alert.alert('Anunciar no Realys', 'Imóveis, veículos, máquinas e produtos. Pessoas verificadas por biometria veem o seu anúncio.')}
+      >
+        <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
+        <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>Criar anúncio</Text>
+      </TouchableOpacity>
+
+      {list.map((l) => (
+        <View key={l.id} style={styles.ad}>
+          <View>
+            <Photo uri={l.photo} style={styles.adPhoto} fallback="🏠" />
+            <View style={styles.adKind}>
+              <Text style={{ color: colors.text, fontSize: 11, fontWeight: '700' }}>{LISTING_KINDS.find((k) => k.key === l.kind).label}</Text>
+            </View>
+            {l.sponsored ? (
+              <View style={styles.adSponsored}>
+                <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '800' }}>PATROCINADO</Text>
+              </View>
+            ) : null}
+          </View>
+          <View style={{ padding: 12 }}>
+            <Text style={styles.adPrice}>{l.price}</Text>
+            <Text style={styles.adTitle}>{l.title}</Text>
+            <Text style={styles.adDetail}>{l.detail}</Text>
+            <Text style={styles.adPlace}>
+              <Ionicons name="location-outline" size={12} color={colors.muted} /> {l.place}
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+              <Ionicons name="shield-checkmark" size={13} color={colors.primary} />
+              <Text style={{ color: colors.text, fontSize: 12, marginLeft: 5 }}>{l.who}</Text>
+            </View>
+            <View style={{ flexDirection: 'row', marginTop: 12 }}>
+              <TouchableOpacity style={[styles.adBtn, styles.adBtnMain]} onPress={() => onContact(l)}>
+                <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Tenho interesse</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.adBtn, { marginRight: 0 }]}
+                onPress={() => Alert.alert(cta(l), `Pedido enviado para ${l.who}. A confirmação chega nas suas mensagens.`)}
+              >
+                <Text style={{ color: colors.text, fontWeight: '600' }}>{cta(l)}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      ))}
+    </Screen>
+  );
+}
+
+function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive, userName }) {
+  const { state } = useStore();
+  const [posts, setPosts] = useState(communityPosts);
+  const [draft, setDraft] = useState('');
+  const [liked, setLiked] = useState({});
+  const ads = useMemo(() => state.posts.filter((p) => p.sponsored), [state.posts]);
+
+  const publish = () => {
+    if (!draft.trim()) return;
+    setPosts([{ id: 'n' + Date.now(), author: userName, text: draft.trim(), image: null, likes: 0, comments: 0, time: 'agora' }, ...posts]);
+    setDraft('');
+  };
+
+  // A cada 2 posts da comunidade entra 1 anúncio: é aqui que a publicidade chega ao usuário.
+  const feed = [];
+  posts.forEach((p, i) => {
+    feed.push({ type: 'post', p });
+    if (i % 2 === 1 && ads.length) feed.push({ type: 'ad', p: ads[Math.floor(i / 2) % ads.length] });
+  });
+
+  return (
+    <View style={{ flex: 1 }}>
+      <View style={styles.segRow}>
+        {[
+          ['posts', 'Posts', 'chatbox-ellipses-outline'],
+          ['msgs', 'Mensagens', 'mail-outline'],
+          ['contatos', 'Contatos', 'person-add-outline'],
+        ].map(([k, label, icon]) => {
+          const on = k === seg;
+          const unread = k === 'msgs' ? convs.reduce((s, c) => s + c.unread, 0) : 0;
+          return (
+            <TouchableOpacity key={k} style={[styles.seg, on && styles.segOn]} onPress={() => setSeg(k)}>
+              <Ionicons name={icon} size={16} color={on ? colors.primary : colors.muted} />
+              <Text style={[styles.segText, on && { color: colors.primary }]}>{label}</Text>
+              {unread ? (
+                <View style={styles.unread}>
+                  <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '800' }}>{unread}</Text>
+                </View>
+              ) : null}
+            </TouchableOpacity>
+          );
+        })}
+        <TouchableOpacity style={styles.liveBtn} onPress={onGoLive} accessibilityLabel="Abrir live">
+          <Ionicons name="radio" size={15} color="#fff" />
+          <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12, marginLeft: 4 }}>Live</Text>
+        </TouchableOpacity>
+      </View>
+
+      {seg === 'posts' ? (
+        <Screen>
+          <View style={styles.composer}>
+            <TextInput
+              style={styles.composerInput}
+              placeholder="Compartilhe algo com a comunidade…"
+              placeholderTextColor={colors.muted}
+              value={draft}
+              onChangeText={setDraft}
+              multiline
+            />
+            <TouchableOpacity style={styles.publish} onPress={publish}>
+              <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Publicar</Text>
+            </TouchableOpacity>
+          </View>
+          {feed.map((it, idx) =>
+            it.type === 'post' ? (
+              <View key={it.p.id} style={styles.post}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <View style={styles.avatar}>
+                    <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>{it.p.author[0]}</Text>
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 10 }}>
+                    <Text style={{ color: colors.text, fontWeight: '700' }}>
+                      {it.p.author} <Ionicons name="shield-checkmark" size={12} color={colors.primary} />
+                    </Text>
+                    <Text style={{ color: colors.muted, fontSize: 11 }}>{it.p.time}</Text>
+                  </View>
+                </View>
+                <Text style={{ color: colors.text, marginTop: 10, lineHeight: 20 }}>{it.p.text}</Text>
+                {it.p.image ? <Photo uri={it.p.image} style={styles.postImg} /> : null}
+                <View style={{ flexDirection: 'row', marginTop: 10 }}>
+                  <TouchableOpacity style={styles.postAct} onPress={() => setLiked({ ...liked, [it.p.id]: !liked[it.p.id] })}>
+                    <Ionicons name={liked[it.p.id] ? 'heart' : 'heart-outline'} size={18} color={liked[it.p.id] ? '#FF5A7A' : colors.muted} />
+                    <Text style={styles.postActText}>{it.p.likes + (liked[it.p.id] ? 1 : 0)}</Text>
+                  </TouchableOpacity>
+                  <View style={styles.postAct}>
+                    <Ionicons name="chatbubble-outline" size={17} color={colors.muted} />
+                    <Text style={styles.postActText}>{it.p.comments}</Text>
+                  </View>
+                  <View style={styles.postAct}>
+                    <Ionicons name="share-social-outline" size={17} color={colors.muted} />
+                    <Text style={styles.postActText}>Compartilhar</Text>
+                  </View>
+                </View>
+              </View>
+            ) : (
+              <View key={'ad' + idx} style={[styles.post, { borderColor: 'rgba(179,168,255,0.45)' }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Text style={{ color: colors.text, fontWeight: '700' }}>{it.p.author}</Text>
+                  <Badge label="Patrocinado" color={colors.sponsored} />
+                </View>
+                <Photo uri={it.p.image} style={styles.postImg} />
+                <Text style={{ color: colors.text, marginTop: 8 }}>{it.p.text}</Text>
+              </View>
+            )
+          )}
+        </Screen>
+      ) : null}
+
+      {seg === 'msgs' ? (
+        <Screen>
+          {convs.map((c) => {
+            const ct = contactOf(c.contactId);
+            if (!ct) return null;
+            const last = c.messages[c.messages.length - 1];
+            return (
+              <TouchableOpacity key={c.id} style={styles.convRow} onPress={() => onChat(ct)} activeOpacity={0.85}>
+                <Photo uri={ct.photo} style={styles.convAvatar} fallback="🙂" />
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={{ color: colors.text, fontWeight: '700' }}>{ct.name}</Text>
+                  <Text numberOfLines={1} style={{ color: c.unread ? colors.text : colors.muted, fontSize: 13, marginTop: 2 }}>
+                    {last ? (last.from === 'me' ? 'Você: ' : '') + last.text : 'Nova conversa'}
+                  </Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={{ color: colors.muted, fontSize: 11 }}>{last ? last.time : ''}</Text>
+                  {c.unread ? (
+                    <View style={[styles.unread, { marginTop: 4, marginLeft: 0 }]}>
+                      <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '800' }}>{c.unread}</Text>
+                    </View>
+                  ) : null}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </Screen>
+      ) : null}
+
+      {seg === 'contatos' ? (
+        <Screen>
+          <TouchableOpacity
+            style={styles.announce}
+            onPress={() => Alert.alert('Convidar amigos', 'Mande o convite: quem entra no Realys passa pela verificação por biometria.')}
+          >
+            <Ionicons name="person-add-outline" size={18} color={colors.primary} />
+            <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>Convidar para o Realys</Text>
+          </TouchableOpacity>
+          {contacts.map((ct) => (
+            <View key={ct.id} style={styles.convRow}>
+              <View>
+                <Photo uri={ct.photo} style={styles.convAvatar} fallback="🙂" />
+                {ct.status === 'online' ? <View style={styles.onlineDot} /> : null}
+              </View>
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={{ color: colors.text, fontWeight: '700' }}>{ct.name}</Text>
+                <Text style={{ color: ct.status === 'online' ? colors.success : colors.muted, fontSize: 12 }}>{ct.status}</Text>
+              </View>
+              <TouchableOpacity style={styles.roundSm} onPress={() => onChat(ct)} accessibilityLabel={`Mensagem para ${ct.name}`}>
+                <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.roundSm, { marginLeft: 8 }]} onPress={() => onVideo(ct)} accessibilityLabel={`Chamada de vídeo com ${ct.name}`}>
+                <Ionicons name="videocam-outline" size={18} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </Screen>
+      ) : null}
+    </View>
+  );
+}
+
+function LivesTab({ onWatch, onGoLive }) {
+  const list = [...lives].sort((a, b) => b.sponsored - a.sponsored || b.viewers - a.viewers);
+  return (
+    <Screen>
+      <TouchableOpacity style={styles.goLiveCard} onPress={onGoLive} activeOpacity={0.9}>
+        <View style={styles.goLiveIcon}>
+          <Ionicons name="radio" size={24} color="#fff" />
+        </View>
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>Abrir minha live</Text>
+          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Mostre seus produtos ou converse com a comunidade</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+      </TouchableOpacity>
+
+      <SectionHead title="Ao vivo agora" />
+      {list.map((l) => (
+        <TouchableOpacity key={l.id} style={styles.liveCard} onPress={() => onWatch(l)} activeOpacity={0.9}>
+          <Photo uri={l.photo} style={styles.livePhoto} fallback="🎥" />
+          <View style={styles.liveOverlay}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={styles.liveTag}>
+                <Text style={{ color: '#fff', fontWeight: '800', fontSize: 11 }}>AO VIVO</Text>
+              </View>
+              <View style={styles.liveViewers}>
+                <Ionicons name="eye" size={12} color="#fff" />
+                <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700', marginLeft: 4 }}>{l.viewers.toLocaleString('pt-BR')}</Text>
+              </View>
+              {l.sponsored ? (
+                <View style={[styles.liveViewers, { backgroundColor: colors.sponsored }]}>
+                  <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '800' }}>PATROCINADO</Text>
+                </View>
+              ) : null}
+            </View>
+          </View>
+          <View style={{ padding: 12 }}>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{l.title}</Text>
+            <Text style={{ color: colors.muted, fontSize: 12, marginTop: 3 }}>
+              {l.host} · {l.tag}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      ))}
+    </Screen>
+  );
+}
+
+function SectionHead({ title, action, onAction }) {
+  return (
+    <View style={styles.sectionHead}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {action ? (
+        <TouchableOpacity onPress={onAction}>
+          <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 13 }}>{action}</Text>
+        </TouchableOpacity>
+      ) : null}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  topTabs: {
+    flexDirection: 'row',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  topTab: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 7,
+    marginHorizontal: 3,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+  },
+  topTabOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  topTabText: { color: colors.text, fontSize: 10, fontWeight: '700', marginTop: 3 },
+  hero: {
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(59,232,255,0.35)',
+    backgroundColor: '#0D1726',
+    padding: 18,
+    marginBottom: 18,
+  },
+  heroTitle: { color: colors.text, fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
+  heroSub: { color: colors.muted, fontSize: 13, marginTop: 6, lineHeight: 18 },
+  sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, marginTop: 4 },
+  sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '800' },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 10 },
+  prod: {
+    width: '48.5%',
+    backgroundColor: colors.card,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 10,
+    marginBottom: 10,
+  },
+  prodName: { color: colors.text, fontWeight: '700', fontSize: 13, marginTop: 8 },
+  prodStore: { color: colors.muted, fontSize: 11, marginTop: 2 },
+  prodPrice: { color: colors.primary, fontWeight: '800', fontSize: 15, marginTop: 4 },
+  addBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 36,
+    borderRadius: 11,
+    backgroundColor: colors.primary,
+    marginTop: 8,
+  },
+  addText: { color: colors.onPrimary, fontWeight: '800', fontSize: 12, marginLeft: 2 },
+  storeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 12,
+    marginBottom: 8,
+  },
+  storeLogo: { width: 44, height: 44, borderRadius: 13, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
+  storeName: { color: colors.text, fontWeight: '700' },
+  storeMeta: { color: colors.muted, fontSize: 12, marginTop: 2 },
+  promoBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.accent,
+    borderRadius: 18,
+    padding: 14,
+    marginBottom: 14,
+  },
+  promo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 12,
+    marginBottom: 10,
+  },
+  offBadge: { position: 'absolute', top: -6, left: -6, backgroundColor: '#FF3B5C', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 },
+  offText: { color: '#fff', fontWeight: '800', fontSize: 11 },
+  promoPrice: { color: colors.accent, fontWeight: '900', fontSize: 17 },
+  addRound: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 38,
+    paddingHorizontal: 12,
+    borderRadius: 19,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+    marginRight: 8,
+  },
+  chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipText: { color: colors.text, fontWeight: '600', fontSize: 12, marginLeft: 6 },
+  announce: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 46,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(59,232,255,0.5)',
+    marginBottom: 12,
+  },
+  ad: { backgroundColor: colors.card, borderRadius: 20, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', marginBottom: 14 },
+  adPhoto: { width: '100%', height: 170 },
+  adKind: { position: 'absolute', left: 10, top: 10, backgroundColor: 'rgba(7,10,18,0.85)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
+  adSponsored: { position: 'absolute', right: 10, top: 10, backgroundColor: colors.sponsored, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
+  adPrice: { color: colors.accent, fontSize: 20, fontWeight: '900' },
+  adTitle: { color: colors.text, fontWeight: '700', fontSize: 15, marginTop: 2 },
+  adDetail: { color: colors.muted, fontSize: 12, marginTop: 2 },
+  adPlace: { color: colors.muted, fontSize: 12, marginTop: 4 },
+  adBtn: { flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: '#2A3650', alignItems: 'center', justifyContent: 'center', marginRight: 8 },
+  adBtnMain: { backgroundColor: colors.primary, borderColor: colors.primary },
+  segRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 10 },
+  seg: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 36,
+    paddingHorizontal: 10,
+    borderRadius: 18,
+    marginRight: 6,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  segOn: { borderColor: colors.primary, backgroundColor: 'rgba(59,232,255,0.1)' },
+  segText: { color: colors.muted, fontWeight: '700', fontSize: 12, marginLeft: 5 },
+  unread: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginLeft: 5, paddingHorizontal: 4 },
+  liveBtn: { flexDirection: 'row', alignItems: 'center', height: 32, paddingHorizontal: 10, borderRadius: 16, backgroundColor: '#FF3B5C', marginLeft: 'auto' },
+  composer: { backgroundColor: colors.card, borderRadius: 18, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 12 },
+  composerInput: { color: colors.text, fontSize: 15, minHeight: 44, textAlignVertical: 'top' },
+  publish: { alignSelf: 'flex-end', height: 36, paddingHorizontal: 16, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
+  post: { backgroundColor: colors.card, borderRadius: 18, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 12 },
+  avatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  postImg: { width: '100%', height: 200, borderRadius: 14, marginTop: 10 },
+  postAct: { flexDirection: 'row', alignItems: 'center', marginRight: 18 },
+  postActText: { color: colors.muted, fontSize: 12, marginLeft: 5 },
+  convRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 12,
+    marginBottom: 8,
+  },
+  convAvatar: { width: 46, height: 46, borderRadius: 23 },
+  onlineDot: { position: 'absolute', right: 0, bottom: 0, width: 12, height: 12, borderRadius: 6, backgroundColor: colors.success, borderWidth: 2, borderColor: colors.card },
+  roundSm: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(59,232,255,0.45)', alignItems: 'center', justifyContent: 'center' },
+  goLiveCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,59,92,0.5)',
+    padding: 14,
+    marginBottom: 16,
+  },
+  goLiveIcon: { width: 48, height: 48, borderRadius: 16, backgroundColor: '#FF3B5C', alignItems: 'center', justifyContent: 'center' },
+  liveCard: { backgroundColor: colors.card, borderRadius: 20, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', marginBottom: 14 },
+  livePhoto: { width: '100%', height: 180 },
+  liveOverlay: { position: 'absolute', left: 10, top: 10, right: 10 },
+  liveTag: { backgroundColor: '#FF3B5C', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  liveViewers: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(3,5,10,0.65)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, marginLeft: 6 },
+});

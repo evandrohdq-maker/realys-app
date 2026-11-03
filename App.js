@@ -10,6 +10,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import VoiceAssistant from './src/screens/VoiceAssistant';
 import FeedScreen from './src/screens/cliente/FeedScreen';
+import HomeScreen from './src/screens/cliente/home/HomeScreen';
 import StoreScreen from './src/screens/cliente/StoreScreen';
 import ServicesScreen from './src/screens/cliente/ServicesScreen';
 import OrdersScreen from './src/screens/cliente/OrdersScreen';
@@ -32,7 +33,7 @@ const TABS = {
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
   ],
   cliente: [
-    { key: 'inicio', label: 'Início', icon: 'home-outline', Comp: FeedScreen },
+    { key: 'home', label: 'Início', icon: 'home-outline', Comp: HomeScreen },
     { key: 'loja', label: 'Loja', icon: 'bag-handle-outline', Comp: StoreScreen },
     { key: 'servicos', label: 'Serviços', icon: 'construct-outline', Comp: ServicesScreen },
     { key: 'pedidos', label: 'Pedidos', icon: 'receipt-outline', Comp: OrdersScreen },
