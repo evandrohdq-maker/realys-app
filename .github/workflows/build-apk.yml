@@ -37,7 +37,9 @@ jobs:
           npx expo install --fix -- --legacy-peer-deps
 
       - name: Gravar o número da versão no app
-        run: echo "{ \"build\": $BUILD_NUMBER }" > src/build.json
+        run: |
+          echo "{ \"build\": $BUILD_NUMBER }" > src/build.json
+          cat src/build.json
 
       - name: Gerar projeto Android
         run: npx expo prebuild --platform android --no-install
