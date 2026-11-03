@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useStore } from '../store';
+import { ADMIN_LOGIN } from '../data';
 import { colors, ROLE_LABELS } from '../theme';
 import { Button, Input } from '../components/ui';
 
@@ -27,6 +28,20 @@ export default function LoginScreen() {
   const [cnpj, setCnpj] = useState('');
   const [roles, setRoles] = useState(['cliente', 'empresa', 'prestador', 'fornecedor']);
   const [busy, setBusy] = useState(false);
+  const [adminMode, setAdminMode] = useState(false);
+  const [adminUser, setAdminUser] = useState('');
+  const [adminPass, setAdminPass] = useState('');
+
+  const adminLogin = () => {
+    if (adminUser.trim().toLowerCase() === ADMIN_LOGIN.user && adminPass === ADMIN_LOGIN.password) {
+      dispatch({
+        type: 'LOGIN',
+        user: { name: 'Administrador', roles: ['admin', 'cliente', 'empresa', 'prestador', 'fornecedor'], cnpj: '12.345.678/0001-90' },
+      });
+    } else {
+      Alert.alert('Acesso negado', 'Usuário ou senha incorretos.');
+    }
+  };
 
   const needsCnpj = roles.includes('empresa') || roles.includes('fornecedor');
 
@@ -79,7 +94,7 @@ export default function LoginScreen() {
         <Input placeholder="Ex.: Maria Oliveira" value={name} onChangeText={setName} />
 
         <Text style={styles.label}>Como você vai usar o Realys? (pode escolher vários)</Text>
-        {Object.keys(ROLE_LABELS).map((r) => {
+        {Object.keys(ROLE_LABELS).filter((r) => r !== 'admin').map((r) => {
           const on = roles.includes(r);
           return (
             <TouchableOpacity key={r} onPress={() => toggle(r)} style={[styles.role, on && styles.roleOn]}>
@@ -107,6 +122,19 @@ export default function LoginScreen() {
         <Button title={busy ? 'Verificando…' : '🔒  Entrar com biometria'} onPress={enterWithBiometrics} disabled={busy} />
         <Text style={styles.note}>Versão de demonstração: os dados, empresas e produtos são exemplos.</Text>
       </View>
+
+      <TouchableOpacity onPress={() => setAdminMode(!adminMode)} style={{ marginTop: 18, alignSelf: 'center' }}>
+        <Text style={{ color: '#B8C6CF', fontWeight: '700' }}>🛡️ Acesso do administrador</Text>
+      </TouchableOpacity>
+      {adminMode ? (
+        <View style={[styles.panel, { marginTop: 12 }]}>
+          <Text style={styles.label}>Usuário</Text>
+          <Input placeholder="Usuário" autoCapitalize="none" value={adminUser} onChangeText={setAdminUser} />
+          <Text style={styles.label}>Senha</Text>
+          <Input placeholder="Senha" secureTextEntry value={adminPass} onChangeText={setAdminPass} />
+          <Button title="Entrar como administrador" variant="dark" onPress={adminLogin} />
+        </View>
+      ) : null}
     </ScrollView>
   );
 }

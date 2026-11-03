@@ -4,7 +4,7 @@ import { useStore } from '../store';
 import { colors, brl, ROLE_LABELS } from '../theme';
 import { Screen, Title, Card, Row, Button, Badge } from '../components/ui';
 
-const ROLE_ICON = { cliente: '🛍️', empresa: '🏪', prestador: '🛵', fornecedor: '🚚' };
+const ROLE_ICON = { cliente: '🛍️', empresa: '🏪', prestador: '🛵', fornecedor: '🚚', admin: '🛡️' };
 
 export default function ProfileScreen() {
   const { state, dispatch } = useStore();

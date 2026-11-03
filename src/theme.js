@@ -22,4 +22,5 @@ export const ROLE_LABELS = {
   empresa: 'Empresa',
   prestador: 'Prestador',
   fornecedor: 'Fornecedor',
+  admin: 'Administrador',
 };

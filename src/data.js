@@ -226,3 +226,32 @@ export const rideRequests = [
   { id: 'r3', client: 'Cláudia R.', service: 'Eletricista: trocar chuveiro', from: 'Rua Tamandaré, 310', to: null, price: 120, distanceKm: 1.8 },
   { id: 'r4', client: 'Pizzaria da Praça', service: 'Encanador: vazamento na cozinha', from: 'Praça da Sé, 12', to: null, price: 150, distanceKm: 2.9 },
 ];
+
+// ---------- Administração (demonstração) ----------
+// Na versão real, o login de administrador fica no servidor, com senha criptografada e verificação em duas etapas.
+export const ADMIN_LOGIN = { user: 'admin', password: 'Realys@2026' };
+
+export const platformStats = {
+  users: 12840,
+  companies: 486,
+  providers: 1312,
+  suppliers: 74,
+  ordersToday: 1932,
+  gmvToday: 87450.9,
+  revenueMonth: 41280.0,
+  blockedFakes: 213,
+};
+
+export const reports = [
+  { id: 'rp1', kind: 'Fake news', target: 'Perfil "Notícias Já"', detail: 'Post diz que a gasolina vai a R$ 15 amanhã. A IA não achou nenhuma reportagem que confirme.', aiScore: 94, status: 'aberta', count: 37 },
+  { id: 'rp2', kind: 'Golpe', target: 'Loja "iPhone Barato SP"', detail: 'Anuncia iPhone por R$ 900 e pede pagamento fora do Realys.', aiScore: 98, status: 'aberta', count: 12 },
+  { id: 'rp3', kind: 'Prestador', target: 'Rafael Costa (motoboy)', detail: 'Cliente relata atraso de 40 minutos na entrega.', aiScore: 20, status: 'aberta', count: 1 },
+  { id: 'rp4', kind: 'Conteúdo ofensivo', target: 'Comentário em post da Moda Brasil', detail: 'Ofensa a outro usuário.', aiScore: 81, status: 'aberta', count: 4 },
+];
+
+export const pendingSignups = [
+  { id: 'sg1', name: 'Padaria Pão Quente', type: 'Empresa', doc: 'CNPJ 45.987.123/0001-08', biometria: true, receita: 'Ativa', status: 'pendente' },
+  { id: 'sg2', name: 'Gustavo Prado', type: 'Prestador · Eletricista', doc: 'MEI 38.221.904/0001-50', biometria: true, receita: 'Ativa', status: 'pendente' },
+  { id: 'sg3', name: 'Atacado Sul Bebidas', type: 'Fornecedor', doc: 'CNPJ 11.234.567/0001-99', biometria: true, receita: 'Ativa', status: 'pendente' },
+  { id: 'sg4', name: 'Loja Mega Ofertas', type: 'Empresa', doc: 'CNPJ 00.000.000/0000-00', biometria: false, receita: 'Não encontrada', status: 'pendente' },
+];

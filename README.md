@@ -23,6 +23,15 @@
 
 As respostas saem do **cadastro que cada prestador faz** (funções e valores). Teste no perfil Prestador: cadastre-se, fique disponível e pergunte por voz no perfil Cliente.
 
+**Administrador geral:** na tela inicial, toque em **"🛡️ Acesso do administrador"**.
+
+- Usuário: `admin`
+- Senha: `Realys@2026`
+
+O administrador vê a visão geral da plataforma (usuários, empresas, receita), modera denúncias e alertas da IA (bloquear conta, remover post) e aprova ou recusa cadastros de empresas, prestadores e fornecedores. Ele também pode trocar para os outros perfis.
+
+> A senha acima é só da demonstração e fica visível no código. Na versão real, o login de administrador fica no servidor, com senha criptografada e verificação em duas etapas.
+
 **Entrada:** login com a biometria do celular (digital ou rosto). Se o aparelho não tiver biometria cadastrada, o app entra no modo demonstração.
 
 ---

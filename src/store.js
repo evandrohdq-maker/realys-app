@@ -32,6 +32,9 @@ const initialState = {
   myProvider: null, // cadastro profissional de quem usa o perfil Prestador
   cart: [], // [{ productId, qty }]
   liked: {},
+  reports: D.reports,
+  signups: D.pendingSignups,
+  blocked: [],
 };
 
 // Quando uma proposta B2B é fechada: o estoque da empresa sobe e a saída entra no financeiro.
@@ -76,6 +79,16 @@ function reducer(state, a) {
       return { ...state, user: a.user, activeRole: a.user.roles[0] };
     case 'LOGOUT':
       return { ...initialState };
+    case 'RESOLVE_REPORT':
+      return {
+        ...state,
+        reports: state.reports.map((r) => (r.id === a.id ? { ...r, status: a.status } : r)),
+        blocked: a.status === 'bloqueado' ? [...state.blocked, state.reports.find((r) => r.id === a.id).target] : state.blocked,
+      };
+    case 'REVIEW_SIGNUP':
+      return { ...state, signups: state.signups.map((g) => (g.id === a.id ? { ...g, status: a.status } : g)) };
+    case 'UNBLOCK':
+      return { ...state, blocked: state.blocked.filter((b) => b !== a.name) };
     case 'SET_ROLE':
       return { ...state, activeRole: a.role };
 

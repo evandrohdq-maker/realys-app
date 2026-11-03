@@ -18,9 +18,16 @@ import FinanceScreen from './src/screens/empresa/FinanceScreen';
 import B2BScreen from './src/screens/empresa/B2BScreen';
 import DriverScreen from './src/screens/prestador/DriverScreen';
 import SupplierScreen from './src/screens/fornecedor/SupplierScreen';
+import { AdminOverview, AdminModeration, AdminSignups } from './src/screens/admin/AdminScreens';
 
 // Cada perfil enxerga abas diferentes dentro do MESMO app.
 const TABS = {
+  admin: [
+    { key: 'geral', label: 'Geral', icon: '🛡️', Comp: AdminOverview },
+    { key: 'moderacao', label: 'Moderação', icon: '🚩', Comp: AdminModeration },
+    { key: 'cadastros', label: 'Cadastros', icon: '✅', Comp: AdminSignups },
+    { key: 'perfil', label: 'Perfil', icon: '👤', Comp: ProfileScreen },
+  ],
   cliente: [
     { key: 'inicio', label: 'Início', icon: '🏠', Comp: FeedScreen },
     { key: 'loja', label: 'Loja', icon: '🛍️', Comp: StoreScreen },
