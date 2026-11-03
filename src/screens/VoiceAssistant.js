@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, ScrollView, Platform, KeyboardAvoidingView } from 'react-native';
 import * as Speech from 'expo-speech';
 import * as IntentLauncher from 'expo-intent-launcher';
@@ -84,7 +84,7 @@ function interpret(text, state, dispatch, pending) {
   };
 }
 
-export default function VoiceAssistant({ visible, onClose }) {
+export default function VoiceAssistant({ visible, onClose, initialCommand, handsFree }) {
   const { state, dispatch } = useStore();
   const [text, setText] = useState('');
   const [history, setHistory] = useState([]);
@@ -98,8 +98,20 @@ export default function VoiceAssistant({ visible, onClose }) {
     setHistory((h) => [{ q: cmd, ...res }, ...h]);
     setText('');
     Speech.stop();
-    Speech.speak(res.reply, { language: 'pt-BR', rate: 1.0 });
+    Speech.speak(res.reply, {
+      language: 'pt-BR',
+      rate: 1.0,
+      // Mãos livres: se a Realys fez uma pergunta ("quer que eu chame?"), já abre o microfone para a resposta.
+      onDone: () => handsFree && res.pending && listen(),
+    });
   };
+
+  // Aberto pela palavra "Realys": executa o pedido falado ou abre o microfone.
+  useEffect(() => {
+    if (!visible || !initialCommand) return;
+    if (initialCommand.text) run('Realys, ' + initialCommand.text);
+    else listen();
+  }, [visible, initialCommand && initialCommand.at]);
 
   // Usa o reconhecimento de voz nativo do Android (Google).
   const listen = async () => {

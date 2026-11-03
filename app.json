@@ -23,7 +23,14 @@
           "faceIDPermission": "O Realys usa sua biometria para confirmar que você é uma pessoa real."
         }
       ],
-      "expo-status-bar"
+      "expo-status-bar",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "O Realys usa o microfone para ouvir quando você chama \"Realys\".",
+          "speechRecognitionPermission": "O Realys reconhece sua voz para atender seus pedidos."
+        }
+      ]
     ]
   }
 }

@@ -21,6 +21,8 @@
 - *"Realys, preciso de um carro na Rua Augusta, 1200"* → agenda na hora e responde com o tempo de espera, o carro e a placa.
 - *"Realys, chama um encanador"* → chama direto o mais próximo.
 
+**Mãos livres:** em **Perfil → Acionar falando "Realys"**, o app fica ouvindo enquanto está aberto. Basta dizer "Realys, preciso de um eletricista" que o assistente abre e responde, sem tocar na tela e sem "Ok Google". Quando a Realys pergunta algo ("quer que eu chame?"), o microfone abre sozinho para a resposta. Com o celular bloqueado ainda não funciona (próxima etapa).
+
 As respostas saem do **cadastro que cada prestador faz** (funções e valores). Teste no perfil Prestador: cadastre-se, fique disponível e pergunte por voz no perfil Cliente.
 
 **Administrador geral:** na tela de entrada, digite `admin` no campo de acesso; o campo de senha aparece.

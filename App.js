@@ -24,6 +24,7 @@ import { AdminOverview, AdminModeration, AdminSignups } from './src/screens/admi
 import CategoryMenu from './src/components/CategoryMenu';
 import UpdateChecker from './src/components/UpdateChecker';
 import { AdminSystem, NoteModal, SYSTEM_MAP } from './src/screens/admin/AdminSystem';
+import { WakeWordListener } from './src/wakeWord';
 
 // Cada perfil enxerga abas diferentes dentro do MESMO app.
 const TABS = {
@@ -68,6 +69,8 @@ function Shell() {
   const [menu, setMenu] = useState(false);
   const [explore, setExplore] = useState(null);
   const [noting, setNoting] = useState(false);
+  const [wakeCmd, setWakeCmd] = useState(null);
+  const [hearing, setHearing] = useState(false);
   const isAdmin = state.user.roles.includes('admin');
   const pendingTab = useRef(null);
   const insets = useSafeAreaInsets();
@@ -136,6 +139,12 @@ function Shell() {
           <Ionicons name="scan-outline" size={12} color={colors.primary} />
           <Text style={styles.idText}>ID biométrico verificado</Text>
         </View>
+        {state.handsFree ? (
+          <View style={[styles.idPill, { borderColor: hearing ? colors.accent : colors.border }]}>
+            <Ionicons name={hearing ? 'ear' : 'ear-outline'} size={12} color={hearing ? colors.accent : colors.muted} />
+            <Text style={[styles.idText, { color: hearing ? colors.accent : colors.muted }]}>{hearing ? 'Diga "Realys"' : 'Mãos livres'}</Text>
+          </View>
+        ) : null}
         <Text style={styles.wallet}>Saldo {brl(state.wallet)}</Text>
       </View>
 
@@ -181,7 +190,27 @@ function Shell() {
         })}
       </View>
 
-      <VoiceAssistant visible={voice} onClose={() => setVoice(false)} />
+      <VoiceAssistant
+        visible={voice}
+        onClose={() => {
+          setVoice(false);
+          setWakeCmd(null);
+        }}
+        initialCommand={wakeCmd}
+        handsFree={state.handsFree}
+      />
+      <WakeWordListener
+        enabled={state.handsFree && !voice && !menu && !noting}
+        onListening={setHearing}
+        onWake={(text) => {
+          setWakeCmd({ text, at: Date.now() });
+          setVoice(true);
+        }}
+        onFatal={(msg) => {
+          dispatch({ type: 'SET_HANDSFREE', on: false });
+          Alert.alert('Mãos livres desligado', msg);
+        }}
+      />
       <CategoryMenu visible={menu} onClose={() => setMenu(false)} onPick={pick} />
       {isAdmin ? <NoteModal visible={noting} where={where} onClose={() => setNoting(false)} /> : null}
     </View>

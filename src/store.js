@@ -36,6 +36,7 @@ const initialState = {
   reports: D.reports,
   signups: D.pendingSignups,
   blocked: [],
+  handsFree: false, // ouvir a palavra "Realys" para abrir o assistente
   notes: [], // anotações do administrador sobre o que mudar em cada tela (ficam salvas no celular)
 };
 
@@ -80,7 +81,9 @@ function reducer(state, a) {
     case 'LOGIN':
       return { ...state, user: a.user, activeRole: a.user.roles[0] };
     case 'LOGOUT':
-      return { ...initialState, notes: state.notes };
+      return { ...initialState, notes: state.notes, handsFree: state.handsFree };
+    case 'SET_HANDSFREE':
+      return { ...state, handsFree: a.on };
     case 'LOAD_NOTES':
       return { ...state, notes: a.notes };
     case 'ADD_NOTE':
@@ -250,6 +253,7 @@ function reducer(state, a) {
 }
 
 const NOTES_KEY = 'realys.admin.notes';
+const HANDSFREE_KEY = 'realys.handsfree';
 
 export function StoreProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -260,7 +264,15 @@ export function StoreProvider({ children }) {
       .then((raw) => raw && dispatch({ type: 'LOAD_NOTES', notes: JSON.parse(raw) }))
       .catch(() => {})
       .finally(() => (loaded.current = true));
+    AsyncStorage.getItem(HANDSFREE_KEY)
+      .then((v) => v === '1' && dispatch({ type: 'SET_HANDSFREE', on: true }))
+      .catch(() => {});
   }, []);
+  const firstHands = useRef(true);
+  useEffect(() => {
+    if (firstHands.current) return void (firstHands.current = false);
+    AsyncStorage.setItem(HANDSFREE_KEY, state.handsFree ? '1' : '0').catch(() => {});
+  }, [state.handsFree]);
   useEffect(() => {
     if (loaded.current) AsyncStorage.setItem(NOTES_KEY, JSON.stringify(state.notes)).catch(() => {});
   }, [state.notes]);

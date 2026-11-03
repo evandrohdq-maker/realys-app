@@ -15,6 +15,7 @@
     "expo-intent-launcher": "*",
     "expo-local-authentication": "*",
     "expo-speech": "*",
+    "expo-speech-recognition": "*",
     "expo-status-bar": "*",
     "react": "*",
     "react-native": "*",

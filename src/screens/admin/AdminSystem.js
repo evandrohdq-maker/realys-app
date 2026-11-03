@@ -20,7 +20,7 @@ export const SYSTEM_MAP = [
     items: [
       { key: 'login', name: 'Tela de entrada', desc: 'Usuário, CPF ou CNPJ + biometria do celular', status: 'simulado', why: 'Conta e documento ainda não são conferidos num servidor' },
       { key: 'menu', name: 'Menu ⋮ de categorias', desc: 'Classes e sub-abas que levam às telas', status: 'demo', role: 'cliente', tab: 'home' },
-      { key: 'voz', name: 'Assistente de voz "Realys"', desc: 'Pesquisa por voz de prestadores e corridas', status: 'demo', why: 'Palavra-chave com tela bloqueada ainda não existe' },
+      { key: 'voz', name: 'Assistente de voz "Realys"', desc: 'Pesquisa por voz e palavra de ativação "Realys" (Perfil → mãos livres)', status: 'demo', why: 'Com a tela bloqueada ainda não funciona' },
       { key: 'update', name: 'Atualização automática', desc: 'Avisa e baixa o APK novo do GitHub', status: 'demo' },
     ],
   },

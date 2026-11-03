@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Switch, Alert } from 'react-native';
+import { askMicPermission, wakeWordSupported } from '../wakeWord';
 import { useStore } from '../store';
 import { colors, brl, ROLE_LABELS } from '../theme';
 import { Screen, Title, Card, Row, Button, Badge } from '../components/ui';
@@ -65,10 +66,31 @@ export default function ProfileScreen() {
         );
       })}
 
-      <Card style={{ backgroundColor: colors.primaryLight, borderColor: colors.primaryLight, marginTop: 8 }}>
-        <Text style={{ fontWeight: '700', color: colors.primaryDark }}>🎙️ Dica: assistente de voz</Text>
-        <Text style={{ color: colors.text, fontSize: 13, marginTop: 4 }}>
-          Toque no botão do microfone e diga, por exemplo: "Realys, preciso de um carro na Rua Augusta".
+      <Card style={{ backgroundColor: colors.primaryLight, borderColor: 'rgba(59,232,255,0.35)', marginTop: 8 }}>
+        <Row>
+          <View style={{ flex: 1, paddingRight: 10 }}>
+            <Text style={{ fontWeight: '800', color: colors.text, fontSize: 15 }}>Acionar falando "Realys"</Text>
+            <Text style={{ color: colors.muted, fontSize: 12, marginTop: 4 }}>
+              Com o app aberto, diga "Realys, preciso de um eletricista" e a Realys atende, sem tocar na tela e sem "Ok Google".
+            </Text>
+          </View>
+          <Switch
+            value={state.handsFree}
+            onValueChange={async (on) => {
+              if (!on) return dispatch({ type: 'SET_HANDSFREE', on: false });
+              if (!wakeWordSupported()) {
+                return Alert.alert('Não disponível', 'Este celular não tem reconhecimento de voz disponível para o Realys.');
+              }
+              const ok = await askMicPermission();
+              if (!ok) return Alert.alert('Microfone bloqueado', 'Permita o microfone para o Realys nas configurações do celular.');
+              dispatch({ type: 'SET_HANDSFREE', on: true });
+            }}
+            trackColor={{ false: colors.border, true: colors.primary }}
+            thumbColor={state.handsFree ? '#E8FDFF' : colors.muted}
+          />
+        </Row>
+        <Text style={{ color: colors.muted, fontSize: 11, marginTop: 8 }}>
+          Funciona com o Realys aberto e a tela ligada. Com o celular bloqueado será a próxima etapa.
         </Text>
       </Card>
 
