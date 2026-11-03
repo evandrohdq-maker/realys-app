@@ -168,3 +168,17 @@ export const stories = [
 export const STORY_BACKGROUNDS = ['#A8790A', '#2F74D0', '#6C5CE7', '#1E9E63', '#D9534F', '#1F2A44'];
 // Fotos de exemplo para o story (na versão real vem da câmera ou da galeria).
 export const STORY_SAMPLE_PHOTOS = [storyPhoto('realys-st-meu1'), storyPhoto('realys-st-meu2'), storyPhoto('realys-st-meu3')];
+
+// Encontros: pessoas que cruzaram com você (radar com GPS). Tudo fictício.
+// Só aparecem quem aceitou os termos E está com status disponível (solteiro, divorciado, viúvo).
+// As duas pessoas "casada" e "namorando" estão aqui de propósito: o filtro do app tira elas da lista.
+export const encounterPeople = [
+  { id: 'e-1', name: 'Juliana', age: 29, gender: 'f', status: 'solteiro', optIn: true, km: 0.3, place: 'perto do Parque Ibirapuera', when: 'há 5 min', bio: 'Amo trilha, café coado e show ao vivo. Procurando alguém para dividir as aventuras.', tags: ['Trilhas', 'Música ao vivo', 'Café'], looking: 'Namoro', likesYou: true, photo: photo('realys-enc-juliana', 600, 800) },
+  { id: 'e-2', name: 'Rafael', age: 33, gender: 'm', status: 'divorciado', optIn: true, km: 0.6, place: 'perto da Av. Paulista', when: 'há 12 min', bio: 'Pai de pet, cozinheiro de fim de semana e torcedor sofredor.', tags: ['Cozinhar', 'Futebol', 'Cachorros'], looking: 'Relacionamento sério', likesYou: false, photo: photo('realys-enc-rafael', 600, 800) },
+  { id: 'e-3', name: 'Camila', age: 26, gender: 'f', status: 'solteiro', optIn: true, km: 0.9, place: 'no Shopping Center Norte', when: 'há 20 min', bio: 'Fotógrafa, viciada em pôr do sol e em série de suspense.', tags: ['Fotografia', 'Séries', 'Praia'], looking: 'Amizade', likesYou: true, photo: photo('realys-enc-camila', 600, 800) },
+  { id: 'e-4', name: 'Bruno', age: 30, gender: 'm', status: 'solteiro', optIn: true, km: 1.2, place: 'perto do Mercado Municipal', when: 'há 35 min', bio: 'Engenheiro de dia, guitarrista de noite. Bora num samba?', tags: ['Samba', 'Violão', 'Viagens'], looking: 'Namoro', likesYou: true, photo: photo('realys-enc-bruno', 600, 800) },
+  { id: 'e-5', name: 'Patrícia', age: 41, gender: 'f', status: 'viuvo', optIn: true, km: 1.8, place: 'perto da Vila Madalena', when: 'há 1 h', bio: 'Professora, leitora e dançarina de forró nas horas vagas.', tags: ['Forró', 'Livros', 'Teatro'], looking: 'Relacionamento sério', likesYou: false, photo: photo('realys-enc-patricia', 600, 800) },
+  { id: 'e-6', name: 'Lucas', age: 27, gender: 'm', status: 'solteiro', optIn: true, km: 2.4, place: 'perto do Parque Villa-Lobos', when: 'há 1 h', bio: 'Corredor amador e fã de comida japonesa.', tags: ['Corrida', 'Comida japonesa', 'Games'], looking: 'Amizade', likesYou: false, photo: photo('realys-enc-lucas', 600, 800) },
+  { id: 'e-7', name: 'Mariana', age: 35, gender: 'f', status: 'casado', optIn: false, km: 0.4, place: 'perto da Av. Paulista', when: 'há 3 min', bio: '', tags: [], looking: '', likesYou: false, photo: photo('realys-enc-x1', 600, 800) },
+  { id: 'e-8', name: 'Felipe', age: 31, gender: 'm', status: 'namorando', optIn: true, km: 0.7, place: 'perto do Ibirapuera', when: 'há 8 min', bio: '', tags: [], looking: '', likesYou: true, photo: photo('realys-enc-x2', 600, 800) },
+];

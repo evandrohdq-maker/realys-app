@@ -12,6 +12,7 @@ import VoiceAssistant from './src/screens/VoiceAssistant';
 import FeedScreen from './src/screens/cliente/FeedScreen';
 import HomeScreen from './src/screens/cliente/home/HomeScreen';
 import StoriesScreen from './src/screens/StoriesScreen';
+import EncontrosScreen from './src/screens/cliente/EncontrosScreen';
 import StoreScreen from './src/screens/cliente/StoreScreen';
 import ServicesScreen from './src/screens/cliente/ServicesScreen';
 import OrdersScreen from './src/screens/cliente/OrdersScreen';
@@ -39,6 +40,7 @@ const TABS = {
   cliente: [
     { key: 'home', label: 'Início', icon: 'home-outline', Comp: HomeScreen },
     { key: 'stories', label: 'Stories', icon: 'aperture-outline', Comp: StoriesScreen },
+    { key: 'encontros', label: 'Encontros', icon: 'heart-outline', Comp: EncontrosScreen },
     { key: 'loja', label: 'Loja', icon: 'bag-handle-outline', Comp: StoreScreen },
     { key: 'servicos', label: 'Serviços', icon: 'construct-outline', Comp: ServicesScreen },
     { key: 'pedidos', label: 'Pedidos', icon: 'receipt-outline', Comp: OrdersScreen },

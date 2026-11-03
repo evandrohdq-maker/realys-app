@@ -31,6 +31,23 @@ const initialState = {
   conversations: initialConversations, // Comunidade › Mensagens (também recebe respostas de stories)
   storySeen: {},
   myStories: [], // stories que o próprio usuário publicou
+  // Encontros: só funciona depois que a pessoa aceita os termos e informa um status disponível.
+  encontros: {
+    accepted: false,
+    termsVersion: null,
+    status: null, // solteiro, divorciado, viuvo, namorando, uniao, casado
+    looking: 'Namoro',
+    interest: 'todos', // f, m, todos
+    maxKm: 3,
+    bio: '',
+    radar: false, // GPS ligado para encontrar quem passa perto
+    invisible: false,
+    liked: {},
+    passed: {},
+    matches: [], // ids das pessoas
+    chats: {}, // conversas do Encontros ficam só aqui, separadas da Comunidade
+    blocked: {},
+  },
   orders: D.initialOrders,
   rideRequests: D.rideRequests,
   rides: [],
@@ -263,6 +280,44 @@ function reducer(state, a) {
       if (a.answer === 'recusar') return { ...state, offers: state.offers.map((x) => (x.id === a.id ? { ...x, status: 'recusada' } : x)) };
       return { ...state, offers: state.offers.map((x) => (x.id === a.id ? { ...x, status: 'contraproposta', counter: a.counter } : x)) };
     }
+
+    // Encontros
+    case 'ENC_SET':
+      return { ...state, encontros: { ...state.encontros, ...a.patch } };
+    case 'ENC_SET_STATUS': {
+      // Status de relacionamento indisponível desliga tudo: radar, visibilidade e notificações.
+      const off = !a.allowed;
+      return { ...state, encontros: { ...state.encontros, status: a.status, ...(off ? { radar: false, accepted: false } : {}) } };
+    }
+    case 'ENC_LIKE': {
+      const e = state.encontros;
+      const match = a.mutual && !e.matches.includes(a.id);
+      return { ...state, encontros: { ...e, liked: { ...e.liked, [a.id]: true }, matches: match ? [a.id, ...e.matches] : e.matches } };
+    }
+    case 'ENC_PASS':
+      return { ...state, encontros: { ...state.encontros, passed: { ...state.encontros.passed, [a.id]: true } } };
+    case 'ENC_UNMATCH': {
+      const e = state.encontros;
+      return {
+        ...state,
+        encontros: {
+          ...e,
+          matches: e.matches.filter((m) => m !== a.id),
+          chats: { ...e.chats, [a.id]: undefined },
+          blocked: a.block ? { ...e.blocked, [a.id]: true } : e.blocked,
+        },
+      };
+    }
+    case 'ENC_MSG': {
+      const e = state.encontros;
+      return { ...state, encontros: { ...e, chats: { ...e.chats, [a.id]: [...(e.chats[a.id] || []), a.msg] } } };
+    }
+    case 'ENC_LEAVE':
+      // Sair do Encontros apaga perfil, curtidas e matches (como prometido nos termos).
+      return {
+        ...state,
+        encontros: { ...initialState.encontros, status: state.encontros.status },
+      };
 
     // Mensagens e stories (compartilhados entre o Início e a página de Stories).
     case 'UPDATE_CONVS':

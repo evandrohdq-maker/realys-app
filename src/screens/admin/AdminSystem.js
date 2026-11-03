@@ -28,6 +28,7 @@ export const SYSTEM_MAP = [
     group: 'Cliente',
     items: [
       { key: 'c-stories', name: 'Stories', desc: 'Página própria (botão Stories): ver, responder, criar o seu; patrocinados com botão de oferta', status: 'simulado', role: 'cliente', tab: 'stories', why: 'Stories de verdade (foto da câmera, 24 h no ar) precisam de servidor' },
+      { key: 'c-enc', name: 'Encontros', desc: 'Relacionamentos: termos e status (casados não participam), radar por GPS, curtir/passar, match, conversa, denunciar', status: 'simulado', role: 'cliente', tab: 'encontros', why: 'Radar de verdade e notificações precisam do servidor e do GPS em segundo plano' },
       { key: 'c-shop', name: 'Início › Shop', desc: 'Destaques e lojas (patrocinadas primeiro)', status: 'demo', role: 'cliente', tab: 'home', top: 'shop' },
       { key: 'c-promo', name: 'Início › Promoções', desc: 'Ofertas com desconto', status: 'demo', role: 'cliente', tab: 'home', top: 'promo' },
       { key: 'c-ads', name: 'Início › Anúncios', desc: 'Imóveis, aluguel de carros e máquinas, hotéis, festas e noite, cursos e faculdades online', status: 'demo', role: 'cliente', tab: 'home', top: 'anuncios', why: 'Criar anúncio de verdade precisa de servidor' },

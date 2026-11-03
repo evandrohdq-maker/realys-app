@@ -10,7 +10,7 @@
 
 | Perfil | Abas | O que dá para mostrar |
 | --- | --- | --- |
-| **Cliente** | Início, Stories, Loja, Serviços, Pedidos, Perfil | Feed com fotos e vídeos de perfis verificados, loja com destaques e patrocinados no topo, carrinho com pagamento protegido, **qualquer prestador** (eletricista, encanador, mecânico, diarista, pintor, chaveiro, técnico, frete, motoboy, carro) com nota, funções e preço, acompanhar pedidos |
+| **Cliente** | Início, Stories, Encontros, Loja, Serviços, Pedidos, Perfil | Feed com fotos e vídeos de perfis verificados, loja com destaques e patrocinados no topo, carrinho com pagamento protegido, **qualquer prestador** (eletricista, encanador, mecânico, diarista, pintor, chaveiro, técnico, frete, motoboy, carro) com nota, funções e preço, acompanhar pedidos |
 | **Empresa (CNPJ)** | Painel, Estoque, Caixa, Negócios, Perfil | Gráficos de vendas, alertas da IA, estoque ligado à vitrine, venda no balcão, fluxo de caixa com projeção de 30, 60 e 90 dias, compras B2B com propostas de desconto e **propostas recebidas dos fornecedores** (aceitar, recusar ou pedir outro desconto) |
 | **Prestador** | Serviços, Feed, Stories, Perfil | **Cadastro profissional** (tipo de serviço, o que faz e quanto cobra: por hora, serviço, diária, m²…), ligar o GPS para ficar disponível, aceitar pedidos, ver ganhos |
 | **Fornecedor** | Propostas, Feed, Stories, Perfil | **Destacar produtos** (aparecem primeiro no catálogo das empresas), cadastrar produto, **enviar proposta direto para uma ou várias empresas** (quantidade, desconto, validade e mensagem), acompanhar as enviadas e responder as propostas recebidas |
@@ -43,6 +43,8 @@ O administrador vê a visão geral da plataforma (usuários, empresas, receita),
 **Menu ⋮ (três pontinhos):** no topo, abre as classes **Restaurantes, Serviços gerais, Lojas, Social e Área empresarial**. Cada classe abre uma sub-aba para escolher o tipo (ex.: Serviços gerais → Eletricista).
 
 **Stories (botão próprio na barra de baixo):** uma página só para os Stories, como no Instagram, com a faixa de bolinhas no topo e os stories em cartões grandes (Novos e Já vistos): o dia a dia, o lazer e as novidades de pessoas e empresas verificadas. Toque para ver em tela cheia (toque à direita avança, à esquerda volta, segure para pausar), responda (a resposta cai em Comunidade › Mensagens) e, nos stories de empresas, toque no botão da oferta. Em **Seu story** você publica o seu (texto sobre uma cor ou foto de exemplo).
+
+**Encontros (relacionamentos):** área opcional para conhecer pessoas. Só participa quem entra, informa um status disponível (solteiro, divorciado ou viúvo) e aceita os **Termos do Encontros** (proposta para revisão, dentro do app). Quem é casado, está em união estável ou namorando **não aparece e não recebe notificações**. Com o **radar (GPS)** ligado, o app avisa quando alguém do Encontros passa perto; a distância é sempre aproximada. Curtir ou passar; se os dois curtirem, é **match** e a conversa é liberada (separada da Comunidade). Tem denunciar e bloquear, modo invisível, dicas de segurança e "Sair e apagar meus dados". Na demonstração o radar e os avisos são simulados.
 
 **Visual:** tema claro e luminoso, fundo marfim, dourado e azul-céu.
 
