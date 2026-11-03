@@ -227,7 +227,7 @@ export default function ServicesScreen({ explore }) {
         );
       })}
 
-      <Card style={{ backgroundColor: colors.primaryLight, borderColor: 'rgba(59,232,255,0.3)', marginTop: 6 }}>
+      <Card style={{ backgroundColor: colors.primaryLight, borderColor: 'rgba(168,121,10,0.3)', marginTop: 6 }}>
         <Row>
           <Ionicons name="mic-outline" size={18} color={colors.primary} />
           <Text style={{ color: colors.text, fontSize: 13, marginLeft: 8, flex: 1 }}>
@@ -270,14 +270,14 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: '#0B1220',
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
     marginBottom: 12,
   },
-  gridV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(59,232,255,0.06)' },
-  gridH: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: 'rgba(59,232,255,0.06)' },
-  road: { position: 'absolute', left: -30, right: -30, height: 10, backgroundColor: '#152036' },
-  roadV: { position: 'absolute', top: -30, bottom: -30, width: 10, backgroundColor: '#152036' },
+  gridV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(168,121,10,0.06)' },
+  gridH: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: 'rgba(168,121,10,0.06)' },
+  road: { position: 'absolute', left: -30, right: -30, height: 10, backgroundColor: '#F5EFE2' },
+  roadV: { position: 'absolute', top: -30, bottom: -30, width: 10, backgroundColor: '#F5EFE2' },
   me: {
     position: 'absolute',
     left: '50%',
@@ -287,11 +287,11 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: 'rgba(155,140,255,0.2)',
+    backgroundColor: 'rgba(108,92,231,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  meDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#B3A8FF', borderWidth: 2, borderColor: '#070A12' },
+  meDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#6C5CE7', borderWidth: 2, borderColor: colors.bg },
   pin: {
     position: 'absolute',
     marginLeft: -15,
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     marginLeft: -19,
     marginTop: -19,
     backgroundColor: colors.primary,
-    borderColor: '#E8FDFF',
+    borderColor: '#FFFFFF',
     borderWidth: 2,
     shadowColor: colors.primary,
     shadowOpacity: 0.8,
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     bottom: 10,
     color: colors.text,
     fontSize: 11,
-    backgroundColor: 'rgba(7,10,18,0.85)',
+    backgroundColor: 'rgba(255,255,255,0.92)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
   },
   quickRow: { flexDirection: 'row', marginBottom: 12 },
   quickBtn: { flex: 1, height: 50, borderRadius: 15, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
-  quickGhost: { borderWidth: 1, borderColor: 'rgba(59,232,255,0.55)', marginRight: 10 },
+  quickGhost: { borderWidth: 1, borderColor: 'rgba(168,121,10,0.55)', marginRight: 10 },
   quickMain: { backgroundColor: colors.primary, paddingHorizontal: 10 },
   activeCall: {
     flexDirection: 'row',
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 8,
   },
-  sortOn: { borderColor: colors.primary, backgroundColor: 'rgba(59,232,255,0.12)' },
+  sortOn: { borderColor: colors.primary, backgroundColor: 'rgba(168,121,10,0.12)' },
   sortText: { color: colors.text, fontSize: 13, fontWeight: '600' },
   pCard: {
     backgroundColor: colors.card,
@@ -366,12 +366,12 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 10,
   },
-  pCardOn: { borderColor: colors.primary, backgroundColor: '#0F1A2A' },
+  pCardOn: { borderColor: colors.primary, backgroundColor: '#FFFFFF' },
   num: {
     width: 28,
     height: 28,
     borderRadius: 9,
-    backgroundColor: 'rgba(59,232,255,0.12)',
+    backgroundColor: 'rgba(168,121,10,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#2A3650',
+    borderColor: '#EADFC8',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,

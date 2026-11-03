@@ -4,8 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf } from '../../../store';
 import { colors, brl } from '../../../theme';
 import { Screen, Photo, ProductThumb, Badge } from '../../../components/ui';
-import { promos, listings, LISTING_KINDS, LISTING_CTA, communityPosts, contacts, conversations as initialConversations, lives } from '../../../homeData';
+import { promos, listings, LISTING_KINDS, LISTING_CTA, communityPosts, contacts, conversations as initialConversations, lives, stories as initialStories } from '../../../homeData';
 import { ChatModal, VideoCallModal, LiveModal } from './Social';
+import { StoriesBar, StoryViewer, StoryComposer } from './Stories';
 
 // As 5 abas do topo do Início do cliente.
 const TOP = [
@@ -26,6 +27,11 @@ export default function HomeScreen({ goTo, explore }) {
   const [videoWith, setVideoWith] = useState(null);
   const [live, setLive] = useState(null); // { live, mine }
   const [liveFilter, setLiveFilter] = useState('todas');
+  // Stories: os dos outros, o seu, quais já foram vistos e qual está aberto.
+  const [storySeen, setStorySeen] = useState({});
+  const [myStory, setMyStory] = useState({ id: 'mine', mine: true, name: 'Seu story', items: [] });
+  const [storyView, setStoryView] = useState(null); // { groups, start, mine }
+  const [composing, setComposing] = useState(false);
 
   // Veio do menu ⋮ (ex.: Imóveis → Alugar)
   useEffect(() => {
@@ -51,6 +57,32 @@ export default function HomeScreen({ goTo, explore }) {
     openChat({ id: 'adv-' + l.who, name: l.who, status: 'anunciante verificado', photo: `https://picsum.photos/seed/${encodeURIComponent(l.who)}/200/200` });
   const anyContact = (id) => contactOf(id) || (convs.find((c) => c.contactId === id) || {}).extra;
 
+  const userName = state.user ? state.user.name : 'Você';
+  const openStory = (which) =>
+    which === 'mine' ? setStoryView({ groups: [{ ...myStory, name: userName }], start: 0, mine: true }) : setStoryView({ groups: initialStories, start: which, mine: false });
+  // Resposta ao story vira mensagem na conversa com a pessoa (Comunidade › Mensagens).
+  const replyStory = (g, text) => {
+    const contact = contactOf(g.contactId) || { id: g.contactId, name: g.name, status: g.business ? 'empresa verificada' : 'pessoa verificada', photo: g.avatar };
+    const t = new Date();
+    const time = `${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`;
+    const msg = { from: 'me', text: `Respondeu ao seu story: ${text}`, time };
+    setConvs((cs) =>
+      cs.find((c) => c.contactId === contact.id)
+        ? cs.map((c) => (c.contactId === contact.id ? { ...c, messages: [...c.messages, msg] } : c))
+        : [{ id: 'm' + Date.now(), contactId: contact.id, unread: 0, messages: [msg], extra: contact }, ...cs]
+    );
+  };
+  const storyCta = (g) => {
+    setStoryView(null);
+    if (!g.ctaTo) return;
+    setTop(g.ctaTo.top);
+    if (g.ctaTo.kind) setKind(g.ctaTo.kind);
+  };
+  const publishStory = (item) => {
+    setMyStory((m) => ({ ...m, items: [...m.items, item] }));
+    setComposing(false);
+  };
+
   const chatConv = chatWith ? convs.find((c) => c.contactId === chatWith.id) : null;
 
   return (
@@ -70,7 +102,21 @@ export default function HomeScreen({ goTo, explore }) {
       </View>
 
       <View style={{ flex: 1 }}>
-        {top === 'shop' ? <ShopTab goTo={goTo} /> : null}
+        {top === 'shop' ? (
+          <ShopTab
+            goTo={goTo}
+            stories={
+              <StoriesBar
+                groups={initialStories}
+                mine={myStory}
+                seen={storySeen}
+                userName={userName}
+                onOpen={openStory}
+                onCreate={() => setComposing(true)}
+              />
+            }
+          />
+        ) : null}
         {top === 'promo' ? <PromoTab /> : null}
         {top === 'anuncios' ? <AdsTab kind={kind} setKind={setKind} onContact={contactAdvertiser} /> : null}
         {top === 'comunidade' ? (
@@ -96,6 +142,17 @@ export default function HomeScreen({ goTo, explore }) {
         onSend={(msg) => sendTo(chatWith.id, msg)}
         onVideo={() => setVideoWith(chatWith)}
       />
+      <StoryViewer
+        visible={!!storyView}
+        groups={storyView ? storyView.groups : []}
+        start={storyView ? storyView.start : 0}
+        isMine={!!(storyView && storyView.mine)}
+        onClose={() => setStoryView(null)}
+        onSeen={(id) => id !== 'mine' && setStorySeen((s) => (s[id] ? s : { ...s, [id]: true }))}
+        onReply={replyStory}
+        onCta={storyCta}
+      />
+      <StoryComposer visible={composing} onClose={() => setComposing(false)} onPublish={publishStory} />
       <VideoCallModal contact={videoWith} visible={!!videoWith} onClose={() => setVideoWith(null)} />
       <LiveModal
         live={live && live.live}
@@ -108,22 +165,13 @@ export default function HomeScreen({ goTo, explore }) {
   );
 }
 
-function Hero() {
-  return (
-    <View style={styles.hero}>
-      <Text style={styles.heroTitle}>Você no comando.</Text>
-      <Text style={styles.heroSub}>Compre, contrate, anuncie e converse com pessoas reais, tudo num app só.</Text>
-    </View>
-  );
-}
-
-function ShopTab({ goTo }) {
+function ShopTab({ goTo, stories }) {
   const { state, dispatch } = useStore();
   const featured = state.products.filter((p) => p.featured);
   const stores = [...state.stores].sort((a, b) => b.sponsored - a.sponsored || b.recommended - a.recommended || b.rating - a.rating);
   return (
     <Screen>
-      <Hero />
+      {stories}
       <SectionHead title="Destaques para você" action="Ver loja" onAction={() => goTo('loja')} />
       <View style={styles.grid}>
         {featured.map((p) => (
@@ -368,7 +416,7 @@ function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive
                 </View>
               </View>
             ) : (
-              <View key={'ad' + idx} style={[styles.post, { borderColor: 'rgba(179,168,255,0.45)' }]}>
+              <View key={'ad' + idx} style={[styles.post, { borderColor: 'rgba(108,92,231,0.45)' }]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Text style={{ color: colors.text, fontWeight: '700' }}>{it.p.author}</Text>
                   <Badge label="Patrocinado" color={colors.sponsored} />
@@ -547,16 +595,6 @@ const styles = StyleSheet.create({
   },
   topTabOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   topTabText: { color: colors.text, fontSize: 10, fontWeight: '700', marginTop: 3 },
-  hero: {
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: 'rgba(59,232,255,0.35)',
-    backgroundColor: '#0D1726',
-    padding: 18,
-    marginBottom: 18,
-  },
-  heroTitle: { color: colors.text, fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
-  heroSub: { color: colors.muted, fontSize: 13, marginTop: 6, lineHeight: 18 },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, marginTop: 4 },
   sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '800' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 10 },
@@ -638,18 +676,18 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: 'rgba(59,232,255,0.5)',
+    borderColor: 'rgba(168,121,10,0.5)',
     marginBottom: 12,
   },
   ad: { backgroundColor: colors.card, borderRadius: 20, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', marginBottom: 14 },
   adPhoto: { width: '100%', height: 170 },
-  adKind: { position: 'absolute', left: 10, top: 10, backgroundColor: 'rgba(7,10,18,0.85)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
+  adKind: { position: 'absolute', left: 10, top: 10, backgroundColor: 'rgba(255,255,255,0.92)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
   adSponsored: { position: 'absolute', right: 10, top: 10, backgroundColor: colors.sponsored, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
   adPrice: { color: colors.accent, fontSize: 20, fontWeight: '900' },
   adTitle: { color: colors.text, fontWeight: '700', fontSize: 15, marginTop: 2 },
   adDetail: { color: colors.muted, fontSize: 12, marginTop: 2 },
   adPlace: { color: colors.muted, fontSize: 12, marginTop: 4 },
-  adBtn: { flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: '#2A3650', alignItems: 'center', justifyContent: 'center', marginRight: 8 },
+  adBtn: { flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: '#EADFC8', alignItems: 'center', justifyContent: 'center', marginRight: 8 },
   adBtnMain: { backgroundColor: colors.primary, borderColor: colors.primary },
   segRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 10 },
   seg: {
@@ -662,7 +700,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'transparent',
   },
-  segOn: { borderColor: colors.primary, backgroundColor: 'rgba(59,232,255,0.1)' },
+  segOn: { borderColor: colors.primary, backgroundColor: 'rgba(168,121,10,0.1)' },
   segText: { color: colors.muted, fontWeight: '700', fontSize: 12, marginLeft: 5 },
   unread: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginLeft: 5, paddingHorizontal: 4 },
   liveBtn: { flexDirection: 'row', alignItems: 'center', height: 32, paddingHorizontal: 10, borderRadius: 16, backgroundColor: '#FF3B5C', marginLeft: 'auto' },
@@ -686,7 +724,7 @@ const styles = StyleSheet.create({
   },
   convAvatar: { width: 46, height: 46, borderRadius: 23 },
   onlineDot: { position: 'absolute', right: 0, bottom: 0, width: 12, height: 12, borderRadius: 6, backgroundColor: colors.success, borderWidth: 2, borderColor: colors.card },
-  roundSm: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(59,232,255,0.45)', alignItems: 'center', justifyContent: 'center' },
+  roundSm: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(168,121,10,0.45)', alignItems: 'center', justifyContent: 'center' },
   goLiveCard: {
     flexDirection: 'row',
     alignItems: 'center',

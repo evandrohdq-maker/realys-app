@@ -4,8 +4,8 @@
     "slug": "realys",
     "version": "0.4.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "dark",
-    "backgroundColor": "#070A12",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#FBF8F1",
     "android": {
       "package": "com.realys.app",
       "versionCode": 3,

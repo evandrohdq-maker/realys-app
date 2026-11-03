@@ -1,21 +1,22 @@
-// Tema futurista do Realys: fundo escuro, azul neon e detalhes em roxo.
+// Tema claro do Realys: fundo marfim luminoso, dourado de glória e azul-céu.
 export const colors = {
-  primary: '#3BE8FF',
-  primaryDark: '#9AF3FF',
-  primaryLight: '#10303A',
-  onPrimary: '#04121A',
-  accent: '#FFC46B',
-  dark: '#0A0F1A',
-  text: '#E8EEF8',
-  muted: '#8A96AD',
-  border: '#1C2638',
-  bg: '#070A12',
-  card: '#0F1522',
-  cardAlt: '#151D2E',
-  danger: '#FF8A80',
-  success: '#5BE3A0',
-  sponsored: '#B3A8FF',
-  violet: '#9B8CFF',
+  primary: '#A8790A', // dourado
+  primaryDark: '#7A5806',
+  primaryLight: '#FBF1D6',
+  onPrimary: '#FFFFFF',
+  accent: '#2F74D0', // azul-céu
+  dark: '#1F2A44',
+  text: '#1F2A44',
+  muted: '#6E7891',
+  border: '#EADFC8',
+  bg: '#FBF8F1',
+  card: '#FFFFFF',
+  cardAlt: '#F5EFE2',
+  danger: '#D9534F',
+  success: '#1E9E63',
+  sponsored: '#6C5CE7',
+  violet: '#7B6CF6',
+  gold: '#E2B649', // brilho dourado (anéis dos stories, destaques)
 };
 
 export const brl = (v) =>

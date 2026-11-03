@@ -89,12 +89,12 @@ export default function UpdateChecker({ manual = false, onDone }) {
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(3,5,10,0.75)', justifyContent: 'center', padding: 24 },
+  backdrop: { flex: 1, backgroundColor: 'rgba(31,42,68,0.35)', justifyContent: 'center', padding: 24 },
   card: {
-    backgroundColor: '#0D1320',
+    backgroundColor: '#FFFFFF',
     borderRadius: 26,
     borderWidth: 1,
-    borderColor: 'rgba(59,232,255,0.35)',
+    borderColor: 'rgba(168,121,10,0.35)',
     padding: 22,
     alignItems: 'center',
   },
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 20,
-    backgroundColor: 'rgba(59,232,255,0.12)',
+    backgroundColor: 'rgba(168,121,10,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 14,

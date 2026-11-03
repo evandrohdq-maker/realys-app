@@ -190,14 +190,14 @@ export default function CategoryMenu({ visible, onClose, onPick }) {
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(3,5,10,0.7)', alignItems: 'flex-end', paddingTop: 90, paddingHorizontal: 12 },
+  backdrop: { flex: 1, backgroundColor: 'rgba(31,42,68,0.35)', alignItems: 'flex-end', paddingTop: 90, paddingHorizontal: 12 },
   panel: {
     width: '100%',
     maxWidth: 360,
-    backgroundColor: '#0D1320',
+    backgroundColor: '#FFFFFF',
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(59,232,255,0.3)',
+    borderColor: 'rgba(168,121,10,0.3)',
     padding: 14,
     shadowColor: colors.primary,
     shadowOpacity: 0.25,
@@ -214,14 +214,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: '#101828',
+    backgroundColor: '#FFFFFF',
     marginBottom: 8,
   },
   rowIcon: {
     width: 44,
     height: 44,
     borderRadius: 13,
-    backgroundColor: 'rgba(59,232,255,0.1)',
+    backgroundColor: 'rgba(168,121,10,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: '#101828',
+    backgroundColor: '#FFFFFF',
     marginBottom: 8,
   },
   tileTitle: { color: colors.text, fontWeight: '700', fontSize: 13, marginTop: 6 },

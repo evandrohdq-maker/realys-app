@@ -42,6 +42,10 @@ O administrador vê a visão geral da plataforma (usuários, empresas, receita),
 
 **Menu ⋮ (três pontinhos):** no topo, abre as classes **Restaurantes, Serviços gerais, Lojas, Social e Área empresarial**. Cada classe abre uma sub-aba para escolher o tipo (ex.: Serviços gerais → Eletricista).
 
+**Stories (topo do Início):** ao abrir o app, a primeira coisa é a faixa de **Stories** em destaque, como no Instagram: o dia a dia, o lazer e as novidades de pessoas e empresas verificadas. Toque para ver em tela cheia (toque à direita avança, à esquerda volta, segure para pausar), responda (a resposta cai em Comunidade › Mensagens) e, nos stories de empresas, toque no botão da oferta. Em **Seu story** você publica o seu (texto sobre uma cor ou foto de exemplo). Logo abaixo, pequena, a frase *Você no comando.*
+
+**Visual:** tema claro e luminoso, fundo marfim, dourado e azul-céu.
+
 **Início do cliente (abas no topo):** **Shop** (destaques e lojas), **Promoções** (ofertas relâmpago), **Anúncios** (imóveis à venda e para alugar, aluguel de carros, vans, máquinas e equipamentos, hotéis e pousadas, casas noturnas, shows, festas e salões, cursos e faculdades online), **Comunidade** (posts de pessoas reais com anúncios entre eles, mensagens com histórico, contatos e chamada de vídeo) e **Lives** (assistir e abrir a sua: bate-papo, venda ao vivo ou aula ao vivo). Chamadas de vídeo e lives são simuladas na demonstração: a versão real precisa do servidor de vídeo.
 
 **Contratar serviço:** a busca mostra todos os prestadores próximos no mapa, com filtros (mais próximo, melhor avaliado, menor preço). Cada um tem **Contratar**, **Orçamento** e **Ver perfil**; "O mais próximo" é só um atalho. Depois de contratar, a tela de **GPS** mostra o prestador chegando, o tempo de espera e o código de chegada.

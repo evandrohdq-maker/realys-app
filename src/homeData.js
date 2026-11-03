@@ -117,3 +117,54 @@ export const lives = [
 export const liveComments = [
   'Que top! 🔥', 'Tem cupom?', 'Professor, pode repetir?', 'Entendi agora! 🙌', 'Chegou agora, o que perdi?', 'Quero esse!', 'Entrega em Campinas?', 'Muito bom 👏', 'Qual o preço?', 'Já comprei pelo app!',
 ];
+
+// Stories do Início: o dia a dia, o lazer e as novidades de quem está no Realys.
+// Somem em 24 h na versão real. contactId liga o story à conversa (para responder).
+const storyPhoto = (seed) => photo(seed, 720, 1280);
+export const stories = [
+  {
+    id: 's1', contactId: 'u1', name: 'Ana Paula', avatar: photo('realys-u-ana', 200, 200),
+    items: [
+      { id: 's1a', image: storyPhoto('realys-st-praia'), caption: 'Fim de tarde na praia 🌅', time: 'há 20 min' },
+      { id: 's1b', image: storyPhoto('realys-st-acai'), caption: 'Açaí pedido pelo Realys, chegou geladinho 😋', time: 'há 15 min' },
+    ],
+  },
+  {
+    id: 's2', contactId: 'u2', name: 'Diego Santos', avatar: photo('realys-u-diego', 200, 200),
+    items: [
+      { id: 's2a', image: storyPhoto('realys-st-trilha'), caption: 'Trilha de domingo ⛰️', time: 'há 1 h' },
+      { id: 's2b', image: storyPhoto('realys-st-cachoeira'), caption: 'Valeu a caminhada!', time: 'há 50 min' },
+      { id: 's2c', image: storyPhoto('realys-st-churras'), caption: 'E o churrasco depois 🔥', time: 'há 30 min' },
+    ],
+  },
+  {
+    id: 's3', contactId: 'u5', name: 'Pizzaria da Praça', avatar: photo('realys-u-pizza', 200, 200), business: true, sponsored: true,
+    cta: 'Pedir agora', ctaTo: { top: 'promo' },
+    items: [{ id: 's3a', image: storyPhoto('realys-st-pizza'), caption: 'Hoje: pizza grande com 20% off só pelo Realys 🍕', time: 'patrocinado' }],
+  },
+  {
+    id: 's4', contactId: 'u3', name: 'Lívia Martins', avatar: photo('realys-u-livia', 200, 200),
+    items: [{ id: 's4a', image: storyPhoto('realys-st-show'), caption: 'Show incrível ontem 🎶', time: 'há 2 h' }],
+  },
+  {
+    id: 's5', contactId: 'u4', name: 'Rogério Teixeira', avatar: photo('realys-u-rogerio', 200, 200),
+    items: [
+      { id: 's5a', image: storyPhoto('realys-st-pesca'), caption: 'Pescaria com os amigos 🎣', time: 'há 3 h' },
+      { id: 's5b', image: storyPhoto('realys-st-lago'), caption: 'Que paz…', time: 'há 3 h' },
+    ],
+  },
+  {
+    id: 's6', contactId: 'st-club', name: 'Club Neon', avatar: photo('realys-u-club', 200, 200), business: true,
+    cta: 'Comprar ingresso', ctaTo: { top: 'anuncios', kind: 'evento' },
+    items: [{ id: 's6a', image: storyPhoto('realys-st-balada'), caption: 'Sexta tem DJ convidado. Lista VIP pelo app!', time: 'há 4 h' }],
+  },
+  {
+    id: 's7', contactId: 'st-thais', name: 'Thais Personal', avatar: photo('realys-u-thais', 200, 200),
+    items: [{ id: 's7a', image: storyPhoto('realys-st-treino'), caption: 'Treino de hoje concluído 💪', time: 'há 5 h' }],
+  },
+];
+
+// Cores de fundo para quem publica um story só com texto.
+export const STORY_BACKGROUNDS = ['#A8790A', '#2F74D0', '#6C5CE7', '#1E9E63', '#D9534F', '#1F2A44'];
+// Fotos de exemplo para o story (na versão real vem da câmera ou da galeria).
+export const STORY_SAMPLE_PHOTOS = [storyPhoto('realys-st-meu1'), storyPhoto('realys-st-meu2'), storyPhoto('realys-st-meu3')];

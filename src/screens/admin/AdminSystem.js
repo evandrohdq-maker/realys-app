@@ -8,9 +8,9 @@ import { VERSION_LABEL } from '../../updates';
 
 // Situação de cada parte do app na demonstração.
 export const STATUS = {
-  demo: { label: 'Funciona na demo', color: '#5BE3A0' },
-  simulado: { label: 'Só visual (simulado)', color: '#FFC46B' },
-  servidor: { label: 'Precisa de servidor', color: '#FF8A80' },
+  demo: { label: 'Funciona na demo', color: '#1E9E63' },
+  simulado: { label: 'Só visual (simulado)', color: '#C77D12' },
+  servidor: { label: 'Precisa de servidor', color: '#D9534F' },
 };
 
 // Mapa de todo o sistema: perfil, tela, o que faz, situação e para onde ir.
@@ -27,6 +27,7 @@ export const SYSTEM_MAP = [
   {
     group: 'Cliente',
     items: [
+      { key: 'c-stories', name: 'Início › Stories', desc: 'Faixa de stories em destaque: ver, responder, criar o seu; patrocinados com botão de oferta', status: 'simulado', role: 'cliente', tab: 'home', top: 'shop', why: 'Stories de verdade (foto da câmera, 24 h no ar) precisam de servidor' },
       { key: 'c-shop', name: 'Início › Shop', desc: 'Destaques e lojas (patrocinadas primeiro)', status: 'demo', role: 'cliente', tab: 'home', top: 'shop' },
       { key: 'c-promo', name: 'Início › Promoções', desc: 'Ofertas com desconto', status: 'demo', role: 'cliente', tab: 'home', top: 'promo' },
       { key: 'c-ads', name: 'Início › Anúncios', desc: 'Imóveis, aluguel de carros e máquinas, hotéis, festas e noite, cursos e faculdades online', status: 'demo', role: 'cliente', tab: 'home', top: 'anuncios', why: 'Criar anúncio de verdade precisa de servidor' },
@@ -275,7 +276,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: 'rgba(59,232,255,0.45)',
+    borderColor: 'rgba(168,121,10,0.45)',
   },
   note: {
     flexDirection: 'row',
@@ -301,12 +302,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#2A3650',
+    borderColor: '#EADFC8',
     marginRight: 8,
   },
   smallMain: { backgroundColor: colors.primary, borderColor: colors.primary },
-  backdrop: { flex: 1, backgroundColor: 'rgba(3,5,10,0.75)', justifyContent: 'center', padding: 20 },
-  noteCard: { backgroundColor: '#0D1320', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(59,232,255,0.35)', padding: 18 },
+  backdrop: { flex: 1, backgroundColor: 'rgba(31,42,68,0.35)', justifyContent: 'center', padding: 20 },
+  noteCard: { backgroundColor: '#FFFFFF', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)', padding: 18 },
   noteTitle: { color: colors.text, fontSize: 18, fontWeight: '800' },
   wherePill: {
     flexDirection: 'row',
@@ -315,7 +316,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
-    backgroundColor: 'rgba(59,232,255,0.1)',
+    backgroundColor: 'rgba(168,121,10,0.1)',
     marginTop: 8,
     marginBottom: 12,
   },

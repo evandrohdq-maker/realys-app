@@ -64,7 +64,7 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
           {messages.map((m, i) => (
             <View key={i} style={[styles.bubble, m.from === 'me' ? styles.mine : styles.theirs]}>
               <Text style={{ color: m.from === 'me' ? colors.onPrimary : colors.text, fontSize: 15 }}>{m.text}</Text>
-              <Text style={[styles.time, m.from === 'me' && { color: 'rgba(4,18,26,0.6)' }]}>{m.time}</Text>
+              <Text style={[styles.time, m.from === 'me' && { color: 'rgba(255,255,255,0.8)' }]}>{m.time}</Text>
             </View>
           ))}
         </ScrollView>
@@ -148,8 +148,8 @@ export function VideoCallModal({ contact, visible, onClose }) {
 
 function CallBtn({ icon, on, onPress, label }) {
   return (
-    <TouchableOpacity style={[styles.callBtn, on && { backgroundColor: colors.text }]} onPress={onPress} accessibilityLabel={label}>
-      <Ionicons name={icon} size={22} color={on ? colors.bg : colors.text} />
+    <TouchableOpacity style={[styles.callBtn, on && { backgroundColor: "#FFFFFF" }]} onPress={onPress} accessibilityLabel={label}>
+      <Ionicons name={icon} size={22} color={on ? colors.dark : "#FFFFFF"} />
     </TouchableOpacity>
   );
 }
@@ -204,8 +204,8 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
       <View style={{ flex: 1, backgroundColor: '#03050A' }}>
         {live ? <Photo uri={live.photo.replace('800/500', '800/1400')} style={StyleSheet.absoluteFill} fallback="🎥" /> : null}
         {mine ? (
-          <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', backgroundColor: '#0B1220' }]}>
-            <Ionicons name="videocam-outline" size={64} color="rgba(59,232,255,0.35)" />
+          <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', backgroundColor: '#1F2A44' }]}>
+            <Ionicons name="videocam-outline" size={64} color="rgba(168,121,10,0.35)" />
             <Text style={{ color: colors.muted, marginTop: 8 }}>Prévia da sua câmera</Text>
           </View>
         ) : null}
@@ -219,14 +219,14 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
           ) : null}
           {onAir ? (
             <View style={styles.viewers}>
-              <Ionicons name="eye" size={13} color={colors.text} />
-              <Text style={{ color: colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>{viewers.toLocaleString('pt-BR')}</Text>
+              <Ionicons name="eye" size={13} color="#FFFFFF" />
+              <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: '700', marginLeft: 4 }}>{viewers.toLocaleString('pt-BR')}</Text>
             </View>
           ) : null}
-          {onAir && mine ? <Text style={{ color: colors.text, fontWeight: '700', marginLeft: 8 }}>{mmss(secs)}</Text> : null}
+          {onAir && mine ? <Text style={{ color: "#FFFFFF", fontWeight: '700', marginLeft: 8 }}>{mmss(secs)}</Text> : null}
           <View style={{ flex: 1 }} />
           <TouchableOpacity style={styles.iconBtnDark} onPress={onClose} accessibilityLabel="Fechar">
-            <Ionicons name="close" size={22} color={colors.text} />
+            <Ionicons name="close" size={22} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
@@ -281,7 +281,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
             {comments.map((c, i) => (
               <View key={i} style={styles.comment}>
                 <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{c.who} </Text>
-                <Text style={{ color: colors.text, fontSize: 13, flexShrink: 1 }}>{c.what}</Text>
+                <Text style={{ color: "#FFFFFF", fontSize: 13, flexShrink: 1 }}>{c.what}</Text>
               </View>
             ))}
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
@@ -301,7 +301,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
               ) : (
                 <TouchableOpacity style={styles.heart} onPress={() => setLiked(liked + 1)} accessibilityLabel="Curtir">
                   <Ionicons name="heart" size={22} color="#FF5A7A" />
-                  {liked ? <Text style={{ color: colors.text, fontSize: 10, fontWeight: '700' }}>{liked}</Text> : null}
+                  {liked ? <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: '700' }}>{liked}</Text> : null}
                 </TouchableOpacity>
               )}
             </View>
@@ -351,9 +351,9 @@ const styles = StyleSheet.create({
     width: 104,
     height: 150,
     borderRadius: 18,
-    backgroundColor: '#0F1522',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: 'rgba(59,232,255,0.4)',
+    borderColor: 'rgba(168,121,10,0.4)',
     overflow: 'hidden',
   },
   callBar: { position: 'absolute', left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-evenly' },
@@ -379,10 +379,10 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     bottom: 40,
-    backgroundColor: 'rgba(13,19,32,0.96)',
+    backgroundColor: 'rgba(255,255,255,0.97)',
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(59,232,255,0.3)',
+    borderColor: 'rgba(168,121,10,0.3)',
     padding: 18,
   },
   goLiveTitle: { color: colors.text, fontSize: 20, fontWeight: '800', marginBottom: 4 },

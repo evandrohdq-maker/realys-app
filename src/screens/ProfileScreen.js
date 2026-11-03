@@ -66,7 +66,7 @@ export default function ProfileScreen() {
         );
       })}
 
-      <Card style={{ backgroundColor: colors.primaryLight, borderColor: 'rgba(59,232,255,0.35)', marginTop: 8 }}>
+      <Card style={{ backgroundColor: colors.primaryLight, borderColor: 'rgba(168,121,10,0.35)', marginTop: 8 }}>
         <Row>
           <View style={{ flex: 1, paddingRight: 10 }}>
             <Text style={{ fontWeight: '800', color: colors.text, fontSize: 15 }}>Acionar falando "Realys"</Text>
@@ -86,7 +86,7 @@ export default function ProfileScreen() {
               dispatch({ type: 'SET_HANDSFREE', on: true });
             }}
             trackColor={{ false: colors.border, true: colors.primary }}
-            thumbColor={state.handsFree ? '#E8FDFF' : colors.muted}
+            thumbColor={state.handsFree ? '#FFFFFF' : colors.muted}
           />
         </Row>
         <Text style={{ color: colors.muted, fontSize: 11, marginTop: 8 }}>

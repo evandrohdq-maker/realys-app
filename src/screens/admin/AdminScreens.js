@@ -49,7 +49,7 @@ export function AdminOverview() {
         />
       </Card>
 
-      <Card style={{ backgroundColor: '#231C10', borderColor: '#5C4520' }}>
+      <Card style={{ backgroundColor: '#FFF4DC', borderColor: '#E9CF95' }}>
         <Text style={{ color: colors.text, fontWeight: '800', marginBottom: 4 }}>⚠️ Precisa da sua atenção</Text>
         <Text style={{ color: colors.text }}>• {openReports} denúncias abertas (aba Moderação)</Text>
         <Text style={{ color: colors.text }}>• {pending} cadastros aguardando aprovação (aba Cadastros)</Text>

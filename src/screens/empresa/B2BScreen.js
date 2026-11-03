@@ -35,7 +35,7 @@ export default function B2BScreen() {
     <Screen>
       <Title sub="Compre no atacado e negocie descontos com empresas verificadas">Negócios Realys</Title>
 
-      <Card style={{ backgroundColor: '#1A1736', borderColor: '#3A3270' }}>
+      <Card style={{ backgroundColor: '#EFEAFF', borderColor: '#CFC6FF' }}>
         <Text style={{ fontWeight: '800', color: colors.sponsored }}>🤝 Compra coletiva aberta</Text>
         <Text style={{ marginTop: 4, color: colors.text, fontSize: 13 }}>
           7 mercados da sua região estão juntando pedido de Óleo de Soja 900ml para pagar preço de atacado: 380 de 500
@@ -47,7 +47,7 @@ export default function B2BScreen() {
         <Button small title="Participar" variant="dark" onPress={() => Alert.alert('Você entrou na compra coletiva!')} />
       </Card>
 
-      <Card style={{ backgroundColor: '#231C10', borderColor: '#5C4520' }}>
+      <Card style={{ backgroundColor: '#FFF4DC', borderColor: '#E9CF95' }}>
         <Text style={{ fontSize: 13, color: colors.text }}>
           🤖 Você paga {brl(6.1)} no Feijão Carioca. A Distribuidora Real Alimentos, a 92 km, vende por {brl(5.6)} e dá até
           10% em volume.

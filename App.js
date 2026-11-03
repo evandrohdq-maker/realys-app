@@ -221,7 +221,7 @@ function Root() {
   const { state } = useStore();
   return (
     <>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       {state.user ? <Shell key={state.user.name} /> : <LoginScreen />}
       <UpdateChecker />
     </>
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(59,232,255,0.45)',
+    borderColor: 'rgba(168,121,10,0.45)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
@@ -265,8 +265,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(59,232,255,0.45)',
-    backgroundColor: 'rgba(59,232,255,0.08)',
+    borderColor: 'rgba(168,121,10,0.45)',
+    backgroundColor: 'rgba(168,121,10,0.08)',
     marginRight: 8,
   },
   roleChipText: { color: colors.primary, fontWeight: '700', fontSize: 12, marginLeft: 5 },
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dotsOn: { borderColor: colors.primary, backgroundColor: 'rgba(59,232,255,0.14)' },
+  dotsOn: { borderColor: colors.primary, backgroundColor: 'rgba(168,121,10,0.14)' },
   subHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -297,13 +297,13 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(59,232,255,0.3)',
+    borderColor: 'rgba(168,121,10,0.3)',
   },
   idText: { color: colors.primary, fontSize: 11, fontWeight: '600', marginLeft: 5 },
   wallet: { color: colors.muted, fontSize: 12, fontWeight: '600' },
   tabbar: {
     flexDirection: 'row',
-    backgroundColor: '#0A0E18',
+    backgroundColor: colors.card,
     borderTopWidth: 1,
     borderTopColor: colors.border,
     paddingTop: 8,
