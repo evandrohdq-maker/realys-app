@@ -1,14 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useStore } from '../store';
 import { colors, brl, ROLE_LABELS } from '../theme';
 import { Screen, Title, Card, Row, Button, Badge } from '../components/ui';
+import UpdateChecker from '../components/UpdateChecker';
+import { VERSION_LABEL } from '../updates';
 
 const ROLE_ICON = { cliente: '🛍️', empresa: '🏪', prestador: '🛵', fornecedor: '🚚', admin: '🛡️' };
 
 export default function ProfileScreen() {
   const { state, dispatch } = useStore();
   const u = state.user;
+  const [checking, setChecking] = useState(false);
   return (
     <Screen>
       <Title>Meu perfil</Title>
@@ -25,7 +28,7 @@ export default function ProfileScreen() {
               marginRight: 12,
             }}
           >
-            <Text style={{ color: '#fff', fontSize: 24, fontWeight: '900' }}>{u.name[0]}</Text>
+            <Text style={{ color: colors.onPrimary, fontSize: 24, fontWeight: '900' }}>{u.name[0]}</Text>
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontWeight: '800', fontSize: 18 }}>{u.name}</Text>
@@ -65,13 +68,15 @@ export default function ProfileScreen() {
       <Card style={{ backgroundColor: colors.primaryLight, borderColor: colors.primaryLight, marginTop: 8 }}>
         <Text style={{ fontWeight: '700', color: colors.primaryDark }}>🎙️ Dica: assistente de voz</Text>
         <Text style={{ color: colors.text, fontSize: 13, marginTop: 4 }}>
-          Toque no botão verde do microfone e diga, por exemplo: "Realys, preciso de um carro na Rua Augusta".
+          Toque no botão do microfone e diga, por exemplo: "Realys, preciso de um carro na Rua Augusta".
         </Text>
       </Card>
 
       <Button title="Sair" variant="outline" onPress={() => dispatch({ type: 'LOGOUT' })} style={{ marginTop: 10 }} />
+      <Button title="Verificar atualizações" variant="light" onPress={() => setChecking(true)} style={{ marginTop: 10 }} />
+      {checking ? <UpdateChecker manual onDone={() => setChecking(false)} /> : null}
       <Text style={{ textAlign: 'center', color: colors.muted, fontSize: 11, marginTop: 14 }}>
-        Realys v0.1 · versão de demonstração
+        Realys · {VERSION_LABEL} · demonstração
       </Text>
     </Screen>
   );

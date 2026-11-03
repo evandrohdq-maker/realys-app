@@ -15,7 +15,7 @@
 | **Prestador** | Serviços, Feed, Perfil | **Cadastro profissional** (tipo de serviço, o que faz e quanto cobra: por hora, serviço, diária, m²…), ligar o GPS para ficar disponível, aceitar pedidos, ver ganhos |
 | **Fornecedor** | Propostas, Feed, Perfil | Receber propostas das empresas, aceitar, recusar ou mandar contraproposta |
 
-**Em todas as telas:** o botão verde 🎙️ abre o **Assistente Realys**, com pesquisa por voz para qualquer prestador:
+**Em todas as telas:** o botão redondo do microfone abre o **Assistente Realys**, com pesquisa por voz para qualquer prestador:
 
 - *"Realys, preciso de um eletricista. Tem algum perto de mim?"* → a Realys responde por voz quem está perto, a distância, a nota, o que a pessoa faz e quanto cobra (ex.: "R$ 80,00 por hora"), e pergunta se quer chamar. Diga "sim" e ela agenda.
 - *"Realys, preciso de um carro na Rua Augusta, 1200"* → agenda na hora e responde com o tempo de espera, o carro e a placa.
@@ -33,6 +33,22 @@ O administrador vê a visão geral da plataforma (usuários, empresas, receita),
 > A senha acima é só da demonstração e fica visível no código. Na versão real, o login de administrador fica no servidor, com senha criptografada e verificação em duas etapas.
 
 **Entrada:** login com a biometria do celular (digital ou rosto). Se o aparelho não tiver biometria cadastrada, o app entra no modo demonstração.
+
+---
+
+**Menu ⋮ (três pontinhos):** no topo, abre as classes **Restaurantes, Serviços gerais, Lojas, Social e Área empresarial**. Cada classe abre uma sub-aba para escolher o tipo (ex.: Serviços gerais → Eletricista).
+
+**Contratar serviço:** a busca mostra todos os prestadores próximos no mapa, com filtros (mais próximo, melhor avaliado, menor preço). Cada um tem **Contratar**, **Orçamento** e **Ver perfil**; "O mais próximo" é só um atalho. Depois de contratar, a tela de **GPS** mostra o prestador chegando, o tempo de espera e o código de chegada.
+
+---
+
+## Atualização automática do APK
+
+Toda vez que o app abre, ele pergunta ao GitHub se existe uma versão nova em **Releases**. Se existir, aparece o aviso **"Nova versão disponível"** com o botão **Atualizar agora**: o celular baixa o APK novo e, ao tocar na notificação do download, instala por cima, sem perder nada. Também dá para verificar à mão em **Perfil → Verificar atualizações**.
+
+Para publicar uma atualização, basta enviar o código para a branch `main`: o GitHub gera o APK, numera a versão e publica em Releases sozinho.
+
+> Quem tem uma versão antiga (sem esse recurso) precisa instalar uma vez o APK novo pela página de Releases. Daí em diante, os avisos chegam sozinhos.
 
 ---
 

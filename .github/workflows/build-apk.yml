@@ -13,6 +13,9 @@ jobs:
   apk:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      # Número desta versão. O app compara com o do GitHub para saber se há atualização.
+      BUILD_NUMBER: ${{ github.run_number }}
     steps:
       - name: Baixar o código
         uses: actions/checkout@v4
@@ -32,6 +35,9 @@ jobs:
         run: |
           npm install --legacy-peer-deps
           npx expo install --fix -- --legacy-peer-deps
+
+      - name: Gravar o número da versão no app
+        run: echo "{ \"build\": $BUILD_NUMBER }" > src/build.json
 
       - name: Gerar projeto Android
         run: npx expo prebuild --platform android --no-install
@@ -58,5 +64,9 @@ jobs:
         with:
           tag_name: demo-${{ github.run_number }}
           name: Realys demo ${{ github.run_number }}
-          body: APK de demonstração do Realys. Baixe no celular Android e instale.
+          body: |
+            APK de demonstração do Realys (versão ${{ github.run_number }}).
+            Quem já tem o app instalado recebe o aviso de atualização ao abrir.
+            Novidade: ${{ github.event.head_commit.message }}
           files: realys-demo.apk
+          make_latest: true

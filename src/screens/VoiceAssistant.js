@@ -163,7 +163,7 @@ export default function VoiceAssistant({ visible, onClose }) {
             {history.map((h, i) => (
               <View key={i} style={{ marginBottom: 12 }}>
                 <View style={styles.userBubble}>
-                  <Text style={{ color: '#fff' }}>{h.q}</Text>
+                  <Text style={{ color: colors.onPrimary }}>{h.q}</Text>
                 </View>
                 <View style={styles.botBubble}>
                   <Text style={{ color: colors.text }}>🔊 {h.reply}</Text>
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   hint: { textAlign: 'center', color: colors.muted, marginBottom: 12 },
   example: { backgroundColor: colors.primaryLight, padding: 11, borderRadius: 12, marginBottom: 8 },
   userBubble: { alignSelf: 'flex-end', backgroundColor: colors.primary, padding: 10, borderRadius: 14, maxWidth: '85%', marginBottom: 6 },
-  provider: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 10, marginBottom: 6, borderWidth: 1, borderColor: colors.border },
+  provider: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 12, padding: 10, marginBottom: 6, borderWidth: 1, borderColor: colors.border },
   pPhoto: { width: 44, height: 44, borderRadius: 22 },
-  botBubble: { alignSelf: 'flex-start', backgroundColor: '#fff', padding: 10, borderRadius: 14, maxWidth: '90%', borderWidth: 1, borderColor: colors.border, marginBottom: 6 },
+  botBubble: { alignSelf: 'flex-start', backgroundColor: colors.card, padding: 10, borderRadius: 14, maxWidth: '90%', borderWidth: 1, borderColor: colors.border, marginBottom: 6 },
 });

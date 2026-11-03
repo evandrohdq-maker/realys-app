@@ -142,16 +142,16 @@ export const posts = [
 // Tipos de serviço. O assistente de voz reconhece qualquer um pelas palavras-chave.
 // A ordem importa: os mais específicos vêm antes (ex.: "carro quebrou" = mecânico, não corrida).
 export const serviceTypes = [
-  { key: 'mecanico', label: 'Mecânico', icon: '🔧', group: 'Veículos', words: ['mecanico', 'oficina', 'pneu', 'carro quebrou', 'carro nao liga', 'carro parou', 'bateria do carro', 'guincho', 'problema no motor'] },
-  { key: 'eletricista', label: 'Eletricista', icon: '💡', group: 'Casa e reparos', words: ['eletricista', 'eletrica', 'tomada', 'chuveiro', 'disjuntor', 'fiacao', 'curto', 'sem luz'] },
-  { key: 'encanador', label: 'Encanador', icon: '🚰', group: 'Casa e reparos', words: ['encanador', 'vazamento', 'vazando', 'cano', 'torneira', 'esgoto', 'entupi', 'descarga'] },
-  { key: 'diarista', label: 'Diarista', icon: '🧹', group: 'Casa e reparos', words: ['diarista', 'faxina', 'limpeza', 'limpar'] },
-  { key: 'pintor', label: 'Pintor', icon: '🎨', group: 'Casa e reparos', words: ['pintor', 'pintar', 'pintura'] },
-  { key: 'chaveiro', label: 'Chaveiro', icon: '🔑', group: 'Casa e reparos', words: ['chaveiro', 'chave', 'fechadura', 'tranquei'] },
-  { key: 'tecnico', label: 'Técnico de informática', icon: '💻', group: 'Tecnologia', words: ['tecnico', 'computador', 'notebook', 'informatica', 'celular quebrado', 'internet'] },
-  { key: 'frete', label: 'Frete e mudança', icon: '🚚', group: 'Transporte', words: ['frete', 'mudanca', 'carreto'] },
-  { key: 'motoboy', label: 'Motoboy', icon: '🛵', group: 'Transporte', words: ['motoboy', 'moto boy', 'entregador', 'encomenda'] },
-  { key: 'motorista', label: 'Motorista', icon: '🚗', group: 'Transporte', words: ['uber', 'carro', 'motorista', 'corrida', 'taxi', 'carona'] },
+  { key: 'mecanico', label: 'Mecânico', icon: '🔧', ion: 'construct-outline', group: 'Veículos', words: ['mecanico', 'oficina', 'pneu', 'carro quebrou', 'carro nao liga', 'carro parou', 'bateria do carro', 'guincho', 'problema no motor'] },
+  { key: 'eletricista', label: 'Eletricista', icon: '💡', ion: 'flash-outline', group: 'Casa e reparos', words: ['eletricista', 'eletrica', 'tomada', 'chuveiro', 'disjuntor', 'fiacao', 'curto', 'sem luz'] },
+  { key: 'encanador', label: 'Encanador', icon: '🚰', ion: 'water-outline', group: 'Casa e reparos', words: ['encanador', 'vazamento', 'vazando', 'cano', 'torneira', 'esgoto', 'entupi', 'descarga'] },
+  { key: 'diarista', label: 'Diarista', icon: '🧹', ion: 'sparkles-outline', group: 'Casa e reparos', words: ['diarista', 'faxina', 'limpeza', 'limpar'] },
+  { key: 'pintor', label: 'Pintor', icon: '🎨', ion: 'color-palette-outline', group: 'Casa e reparos', words: ['pintor', 'pintar', 'pintura'] },
+  { key: 'chaveiro', label: 'Chaveiro', icon: '🔑', ion: 'key-outline', group: 'Casa e reparos', words: ['chaveiro', 'chave', 'fechadura', 'tranquei'] },
+  { key: 'tecnico', label: 'Técnico de informática', icon: '💻', ion: 'laptop-outline', group: 'Tecnologia', words: ['tecnico', 'computador', 'notebook', 'informatica', 'celular quebrado', 'internet'] },
+  { key: 'frete', label: 'Frete e mudança', icon: '🚚', ion: 'cube-outline', group: 'Transporte', words: ['frete', 'mudanca', 'carreto'] },
+  { key: 'motoboy', label: 'Motoboy', icon: '🛵', ion: 'bicycle-outline', group: 'Transporte', words: ['motoboy', 'moto boy', 'entregador', 'encomenda'] },
+  { key: 'motorista', label: 'Motorista', icon: '🚗', ion: 'car-sport-outline', group: 'Transporte', words: ['uber', 'carro', 'motorista', 'corrida', 'taxi', 'carona'] },
 ];
 
 export const providers = [

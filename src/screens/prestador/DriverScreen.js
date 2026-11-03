@@ -40,7 +40,7 @@ export default function DriverScreen() {
     <Screen>
       <Title sub="Motorista, motoboy, eletricista, mecânico, diarista e qualquer MEI">Painel do prestador</Title>
 
-      <Card style={{ backgroundColor: state.available ? colors.primaryLight : '#fff' }}>
+      <Card style={{ backgroundColor: state.available ? colors.primaryLight : colors.card }}>
         <Row style={{ justifyContent: 'space-between' }}>
           <View style={{ flex: 1 }}>
             <Text style={{ fontWeight: '800', fontSize: 16 }}>

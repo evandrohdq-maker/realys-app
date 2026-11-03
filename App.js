@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, Alert } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
 import { StoreProvider, useStore } from './src/store';
 import { colors, brl, ROLE_LABELS } from './src/theme';
 
@@ -19,38 +20,40 @@ import B2BScreen from './src/screens/empresa/B2BScreen';
 import DriverScreen from './src/screens/prestador/DriverScreen';
 import SupplierScreen from './src/screens/fornecedor/SupplierScreen';
 import { AdminOverview, AdminModeration, AdminSignups } from './src/screens/admin/AdminScreens';
+import CategoryMenu from './src/components/CategoryMenu';
+import UpdateChecker from './src/components/UpdateChecker';
 
 // Cada perfil enxerga abas diferentes dentro do MESMO app.
 const TABS = {
   admin: [
-    { key: 'geral', label: 'Geral', icon: '🛡️', Comp: AdminOverview },
-    { key: 'moderacao', label: 'Moderação', icon: '🚩', Comp: AdminModeration },
-    { key: 'cadastros', label: 'Cadastros', icon: '✅', Comp: AdminSignups },
-    { key: 'perfil', label: 'Perfil', icon: '👤', Comp: ProfileScreen },
+    { key: 'geral', label: 'Geral', icon: 'shield-checkmark-outline', Comp: AdminOverview },
+    { key: 'moderacao', label: 'Moderação', icon: 'flag-outline', Comp: AdminModeration },
+    { key: 'cadastros', label: 'Cadastros', icon: 'checkmark-done-outline', Comp: AdminSignups },
+    { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
   ],
   cliente: [
-    { key: 'inicio', label: 'Início', icon: '🏠', Comp: FeedScreen },
-    { key: 'loja', label: 'Loja', icon: '🛍️', Comp: StoreScreen },
-    { key: 'servicos', label: 'Serviços', icon: '🚗', Comp: ServicesScreen },
-    { key: 'pedidos', label: 'Pedidos', icon: '📦', Comp: OrdersScreen },
-    { key: 'perfil', label: 'Perfil', icon: '👤', Comp: ProfileScreen },
+    { key: 'inicio', label: 'Início', icon: 'home-outline', Comp: FeedScreen },
+    { key: 'loja', label: 'Loja', icon: 'bag-handle-outline', Comp: StoreScreen },
+    { key: 'servicos', label: 'Serviços', icon: 'construct-outline', Comp: ServicesScreen },
+    { key: 'pedidos', label: 'Pedidos', icon: 'receipt-outline', Comp: OrdersScreen },
+    { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
   ],
   empresa: [
-    { key: 'painel', label: 'Painel', icon: '📊', Comp: DashboardScreen },
-    { key: 'estoque', label: 'Estoque', icon: '📦', Comp: InventoryScreen },
-    { key: 'caixa', label: 'Caixa', icon: '💰', Comp: FinanceScreen },
-    { key: 'negocios', label: 'Negócios', icon: '🤝', Comp: B2BScreen },
-    { key: 'perfil', label: 'Perfil', icon: '👤', Comp: ProfileScreen },
+    { key: 'painel', label: 'Painel', icon: 'speedometer-outline', Comp: DashboardScreen },
+    { key: 'estoque', label: 'Estoque', icon: 'file-tray-stacked-outline', Comp: InventoryScreen },
+    { key: 'caixa', label: 'Caixa', icon: 'wallet-outline', Comp: FinanceScreen },
+    { key: 'negocios', label: 'Negócios', icon: 'swap-horizontal-outline', Comp: B2BScreen },
+    { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
   ],
   prestador: [
-    { key: 'servicos', label: 'Serviços', icon: '🧰', Comp: DriverScreen },
-    { key: 'inicio', label: 'Feed', icon: '🏠', Comp: FeedScreen },
-    { key: 'perfil', label: 'Perfil', icon: '👤', Comp: ProfileScreen },
+    { key: 'prestar', label: 'Trabalhar', icon: 'navigate-circle-outline', Comp: DriverScreen },
+    { key: 'inicio', label: 'Feed', icon: 'home-outline', Comp: FeedScreen },
+    { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
   ],
   fornecedor: [
-    { key: 'propostas', label: 'Propostas', icon: '🚚', Comp: SupplierScreen },
-    { key: 'inicio', label: 'Feed', icon: '🏠', Comp: FeedScreen },
-    { key: 'perfil', label: 'Perfil', icon: '👤', Comp: ProfileScreen },
+    { key: 'propostas', label: 'Propostas', icon: 'cube-outline', Comp: SupplierScreen },
+    { key: 'inicio', label: 'Feed', icon: 'home-outline', Comp: FeedScreen },
+    { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
   ],
 };
 
@@ -59,10 +62,14 @@ function Shell() {
   const tabs = TABS[state.activeRole];
   const [tab, setTab] = useState(tabs[0].key);
   const [voice, setVoice] = useState(false);
+  const [menu, setMenu] = useState(false);
+  const [explore, setExplore] = useState(null);
+  const pendingTab = useRef(null);
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    setTab(TABS[state.activeRole][0].key);
+    setTab(pendingTab.current || TABS[state.activeRole][0].key);
+    pendingTab.current = null;
   }, [state.activeRole]);
 
   const current = tabs.find((t) => t.key === tab) || tabs[0];
@@ -72,24 +79,62 @@ function Shell() {
     dispatch({ type: 'SET_ROLE', role: r[(r.indexOf(state.activeRole) + 1) % r.length] });
   };
 
+  // Escolha feita no menu ⋮: vai para a aba certa (trocando de perfil se precisar).
+  const pick = (go) => {
+    setMenu(false);
+    setExplore({ ...go, at: Date.now() });
+    const has = (role) => TABS[role].some((t) => t.key === go.tab);
+    if (has(state.activeRole)) return setTab(go.tab);
+    const role = state.user.roles.find(has);
+    if (!role) {
+      return Alert.alert('Acesso de empresa', 'Essa área é para contas com CNPJ. Cadastre uma empresa no login para acessar.');
+    }
+    pendingTab.current = go.tab;
+    dispatch({ type: 'SET_ROLE', role });
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <Text style={styles.brand}>Realys</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={styles.wallet}>💳 {brl(state.wallet)}</Text>
-          <TouchableOpacity onPress={nextRole} style={styles.roleChip}>
-            <Text style={styles.roleChipText}>{ROLE_LABELS[state.activeRole]} ⇄</Text>
+          <View style={styles.logoMark}>
+            <Ionicons name="cube-outline" size={18} color={colors.primary} />
+          </View>
+          <Text style={styles.brand}>REALYS</Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity onPress={nextRole} style={styles.roleChip} accessibilityLabel="Trocar de perfil">
+            <Ionicons name="swap-horizontal" size={13} color={colors.primary} />
+            <Text style={styles.roleChipText}>{ROLE_LABELS[state.activeRole]}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setMenu(true)}
+            style={[styles.dots, menu && styles.dotsOn]}
+            accessibilityLabel="Abrir menu de categorias"
+          >
+            <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
           </TouchableOpacity>
         </View>
       </View>
-
-      <View style={{ flex: 1 }}>
-        <Comp goTo={setTab} openVoice={() => setVoice(true)} />
+      <View style={styles.subHeader}>
+        <View style={styles.idPill}>
+          <Ionicons name="scan-outline" size={12} color={colors.primary} />
+          <Text style={styles.idText}>ID biométrico verificado</Text>
+        </View>
+        <Text style={styles.wallet}>Saldo {brl(state.wallet)}</Text>
       </View>
 
-      <TouchableOpacity style={[styles.fab, { bottom: 84 + insets.bottom }]} onPress={() => setVoice(true)} activeOpacity={0.85}>
-        <Text style={{ fontSize: 26 }}>🎙️</Text>
+      <View style={{ flex: 1 }}>
+        <Comp goTo={setTab} openVoice={() => setVoice(true)} explore={explore} />
+      </View>
+
+      <TouchableOpacity
+        style={[styles.fab, { bottom: 84 + insets.bottom }]}
+        onPress={() => setVoice(true)}
+        activeOpacity={0.85}
+        accessibilityLabel="Falar com a Realys"
+      >
+        <Ionicons name="mic" size={26} color={colors.primary} />
       </TouchableOpacity>
 
       <View style={[styles.tabbar, { paddingBottom: 10 + insets.bottom }]}>
@@ -97,14 +142,15 @@ function Shell() {
           const on = t.key === current.key;
           return (
             <TouchableOpacity key={t.key} style={styles.tab} onPress={() => setTab(t.key)}>
-              <Text style={{ fontSize: 20, opacity: on ? 1 : 0.55 }}>{t.icon}</Text>
-              <Text style={[styles.tabLabel, on && { color: colors.primary, fontWeight: '800' }]}>{t.label}</Text>
+              <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={22} color={on ? colors.primary : colors.muted} />
+              <Text style={[styles.tabLabel, on && { color: colors.primary, fontWeight: '700' }]}>{t.label}</Text>
             </TouchableOpacity>
           );
         })}
       </View>
 
       <VoiceAssistant visible={voice} onClose={() => setVoice(false)} />
+      <CategoryMenu visible={menu} onClose={() => setMenu(false)} onPick={pick} />
     </View>
   );
 }
@@ -115,6 +161,7 @@ function Root() {
     <>
       <StatusBar style="light" />
       {state.user ? <Shell key={state.user.name} /> : <LoginScreen />}
+      <UpdateChecker />
     </>
   );
 }
@@ -131,40 +178,92 @@ export default function App() {
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: colors.dark,
+    backgroundColor: colors.bg,
     paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingBottom: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  brand: { color: '#fff', fontSize: 24, fontWeight: '900', letterSpacing: -0.5 },
-  wallet: { color: '#B8C6CF', fontSize: 12, marginRight: 10, fontWeight: '600' },
-  roleChip: { backgroundColor: colors.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
-  roleChipText: { color: '#fff', fontWeight: '800', fontSize: 12 },
+  logoMark: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(59,232,255,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  brand: { color: colors.text, fontSize: 19, fontWeight: '800', letterSpacing: 4 },
+  roleChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 36,
+    paddingHorizontal: 12,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(59,232,255,0.45)',
+    backgroundColor: 'rgba(59,232,255,0.08)',
+    marginRight: 8,
+  },
+  roleChipText: { color: colors.primary, fontWeight: '700', fontSize: 12, marginLeft: 5 },
+  dots: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dotsOn: { borderColor: colors.primary, backgroundColor: 'rgba(59,232,255,0.14)' },
+  subHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  idPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(59,232,255,0.3)',
+  },
+  idText: { color: colors.primary, fontSize: 11, fontWeight: '600', marginLeft: 5 },
+  wallet: { color: colors.muted, fontSize: 12, fontWeight: '600' },
   tabbar: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: '#0A0E18',
     borderTopWidth: 1,
     borderTopColor: colors.border,
     paddingTop: 8,
   },
   tab: { flex: 1, alignItems: 'center' },
-  tabLabel: { fontSize: 11, color: colors.muted, marginTop: 2 },
+  tabLabel: { fontSize: 11, color: colors.muted, marginTop: 3 },
   fab: {
     position: 'absolute',
     right: 18,
     bottom: 84,
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: colors.primary,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: colors.bg,
+    borderWidth: 2,
+    borderColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
+    elevation: 10,
+    shadowColor: colors.primary,
+    shadowOpacity: 0.6,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 0 },
   },
 });

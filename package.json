@@ -9,6 +9,7 @@
     "prebuild": "expo prebuild --platform android --clean"
   },
   "dependencies": {
+    "@expo/vector-icons": "*",
     "expo": "~56.0.0",
     "expo-intent-launcher": "*",
     "expo-local-authentication": "*",

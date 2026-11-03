@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useStore, storeOf, cartTotal } from '../../store';
 import { colors, brl } from '../../theme';
@@ -24,10 +24,17 @@ function ProductCard({ p, onAdd, storeName, style }) {
   );
 }
 
-export default function StoreScreen({ openVoice, goTo }) {
+export default function StoreScreen({ openVoice, goTo, explore }) {
   const { state, dispatch } = useStore();
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('Todos');
+
+  // Veio do menu ⋮ (ex.: Restaurantes → Pizzaria)
+  useEffect(() => {
+    if (!explore) return;
+    if (explore.cat) setCat(explore.cat);
+    if (explore.q !== undefined) setQ(explore.q);
+  }, [explore]);
   const [openStore, setOpenStore] = useState(null);
   const [showCart, setShowCart] = useState(false);
 
@@ -217,8 +224,8 @@ export default function StoreScreen({ openVoice, goTo }) {
 function CartBar({ count, total, onPress }) {
   return (
     <TouchableOpacity onPress={onPress} style={styles.cartBar} activeOpacity={0.9}>
-      <Text style={{ color: '#fff', fontWeight: '800' }}>🛍️ Ver carrinho ({count})</Text>
-      <Text style={{ color: '#fff', fontWeight: '800' }}>{brl(total)}</Text>
+      <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>🛍️ Ver carrinho ({count})</Text>
+      <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>{brl(total)}</Text>
     </TouchableOpacity>
   );
 }
@@ -237,7 +244,7 @@ const styles = StyleSheet.create({
   },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   pCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderRadius: 14,
     padding: 10,
     borderWidth: 1,
@@ -249,7 +256,7 @@ const styles = StyleSheet.create({
   pName: { fontWeight: '600', color: colors.text, marginTop: 8, minHeight: 36 },
   pStore: { fontSize: 11, color: colors.muted },
   pPrice: { fontWeight: '800', color: colors.primary, fontSize: 16, marginVertical: 6 },
-  storeCard: { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', marginBottom: 12, borderWidth: 1, borderColor: colors.border },
+  storeCard: { backgroundColor: colors.card, borderRadius: 16, overflow: 'hidden', marginBottom: 12, borderWidth: 1, borderColor: colors.border },
   storeImg: { width: '100%', height: 130 },
   storeName: { fontWeight: '800', fontSize: 16, color: colors.text },
   cover: { width: '100%', height: 170, borderRadius: 16 },

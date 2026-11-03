@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   logo: { fontSize: 46, fontWeight: '900', color: '#fff', letterSpacing: -1 },
   tagline: { fontSize: 18, color: colors.accent, fontWeight: '700', marginTop: 2 },
   desc: { color: '#B8C6CF', fontSize: 14, marginTop: 10, lineHeight: 20 },
-  panel: { backgroundColor: '#fff', borderRadius: 18, padding: 16, marginTop: 24 },
+  panel: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 18, padding: 16, marginTop: 24 },
   label: { fontSize: 13, fontWeight: '700', color: colors.text, marginBottom: 8 },
   role: {
     flexDirection: 'row',
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  checkMark: { color: '#fff', fontWeight: '900', fontSize: 13 },
+  checkMark: { color: colors.onPrimary, fontWeight: '900', fontSize: 13 },
   roleTitle: { fontWeight: '700', color: colors.text },
   roleDesc: { fontSize: 12, color: colors.muted, marginTop: 1 },
   note: { fontSize: 11, color: colors.muted, textAlign: 'center', marginTop: 10 },

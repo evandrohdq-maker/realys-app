@@ -2,19 +2,26 @@
   "expo": {
     "name": "Realys",
     "slug": "realys",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "light",
-    "backgroundColor": "#F4F6F8",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#070A12",
     "android": {
       "package": "com.realys.app",
       "versionCode": 3,
-      "permissions": ["USE_BIOMETRIC", "USE_FINGERPRINT", "RECORD_AUDIO"]
+      "permissions": [
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "RECORD_AUDIO",
+        "INTERNET"
+      ]
     },
     "plugins": [
       [
         "expo-local-authentication",
-        { "faceIDPermission": "O Realys usa sua biometria para confirmar que você é uma pessoa real." }
+        {
+          "faceIDPermission": "O Realys usa sua biometria para confirmar que você é uma pessoa real."
+        }
       ]
     ]
   }

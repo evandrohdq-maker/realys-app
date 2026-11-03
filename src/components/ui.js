@@ -43,11 +43,11 @@ export function Card({ children, style, onPress }) {
 
 export function Button({ title, onPress, variant = 'primary', small, style, disabled }) {
   const v = {
-    primary: { bg: colors.primary, fg: '#fff', bd: colors.primary },
+    primary: { bg: colors.primary, fg: colors.onPrimary, bd: colors.primary },
     outline: { bg: 'transparent', fg: colors.primary, bd: colors.primary },
-    danger: { bg: colors.danger, fg: '#fff', bd: colors.danger },
+    danger: { bg: colors.danger, fg: colors.onPrimary, bd: colors.danger },
     light: { bg: colors.primaryLight, fg: colors.primaryDark, bd: colors.primaryLight },
-    dark: { bg: colors.dark, fg: '#fff', bd: colors.dark },
+    dark: { bg: colors.cardAlt, fg: colors.text, bd: colors.border },
   }[variant];
   return (
     <TouchableOpacity
@@ -130,7 +130,7 @@ export function BarChart({ data, format = (v) => v, height = 140 }) {
 // "Foto" do produto: bloco colorido com ícone. Funciona sem internet.
 export function ProductThumb({ product, size = 64 }) {
   return (
-    <View style={[styles.thumb, { width: size, height: size, backgroundColor: product.tint || '#EEF2F5' }]}>
+    <View style={[styles.thumb, { width: size, height: size, backgroundColor: (product.tint || '#EEF2F5') + '26' }]}>
       <Text style={{ fontSize: size * 0.5 }}>{product.emoji}</Text>
     </View>
   );
@@ -141,17 +141,17 @@ export function Photo({ uri, style, fallback = '🖼️' }) {
   const [failed, setFailed] = useState(false);
   if (failed || !uri)
     return (
-      <View style={[style, { backgroundColor: '#DDE5EA', alignItems: 'center', justifyContent: 'center' }]}>
+      <View style={[style, { backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' }]}>
         <Text style={{ fontSize: 34 }}>{fallback}</Text>
       </View>
     );
-  return <Image source={{ uri }} style={[style, { backgroundColor: '#DDE5EA' }]} onError={() => setFailed(true)} />;
+  return <Image source={{ uri }} style={[style, { backgroundColor: colors.cardAlt }]} onError={() => setFailed(true)} />;
 }
 
 export function Chip({ label, active, onPress }) {
   return (
     <TouchableOpacity onPress={onPress} style={[styles.chip, active && styles.chipActive]}>
-      <Text style={[styles.chipText, active && { color: '#fff' }]}>{label}</Text>
+      <Text style={[styles.chipText, active && { color: colors.onPrimary }]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 17, fontWeight: '700', color: colors.text },
   card: {
     backgroundColor: colors.card,
-    borderRadius: 14,
+    borderRadius: 18,
     padding: 14,
     marginBottom: 10,
     borderWidth: 1,
@@ -178,10 +178,10 @@ const styles = StyleSheet.create({
   btn: { paddingVertical: 13, paddingHorizontal: 18, borderRadius: 12, alignItems: 'center', borderWidth: 1.5 },
   btnSmall: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: 9 },
   btnText: { fontWeight: '700', fontSize: 15 },
-  badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20, alignSelf: 'flex-start' },
+  badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20, alignSelf: 'flex-start', marginRight: 6, marginBottom: 4 },
   badgeText: { fontSize: 11, fontWeight: '700' },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 12,
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   },
   stat: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderRadius: 14,
     padding: 12,
     borderWidth: 1,
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.border,
     marginRight: 8,

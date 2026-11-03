@@ -36,7 +36,7 @@ export default function DashboardScreen() {
         <BarChart data={state.salesByDay} format={(v) => (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : Math.round(v))} />
       </Card>
 
-      <Card style={{ backgroundColor: '#FFF8E8', borderColor: '#F7D58A' }}>
+      <Card style={{ backgroundColor: '#231C10', borderColor: '#5C4520' }}>
         <Text style={{ fontWeight: '800', marginBottom: 6 }}>🤖 Assistente Realys</Text>
         {low.map((p) => (
           <Text key={p.id} style={{ color: colors.text, marginBottom: 4 }}>

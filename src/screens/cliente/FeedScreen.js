@@ -29,7 +29,7 @@ export default function FeedScreen({ goTo }) {
           <View key={p.id} style={styles.post}>
             <Row style={{ padding: 12 }}>
               <View style={styles.avatar}>
-                <Text style={{ color: '#fff', fontWeight: '800' }}>{p.author[0]}</Text>
+                <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>{p.author[0]}</Text>
               </View>
               <View style={{ flex: 1 }}>
                 <Row>
@@ -102,12 +102,12 @@ const styles = StyleSheet.create({
     borderRadius: 31,
     borderWidth: 3,
     borderColor: colors.primary,
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
   storyName: { fontSize: 11, marginTop: 4, color: colors.text },
-  post: { backgroundColor: '#fff', borderRadius: 16, marginBottom: 14, overflow: 'hidden', borderWidth: 1, borderColor: colors.border },
+  post: { backgroundColor: colors.card, borderRadius: 16, marginBottom: 14, overflow: 'hidden', borderWidth: 1, borderColor: colors.border },
   avatar: {
     width: 38,
     height: 38,
