@@ -23,7 +23,7 @@
 
 As respostas saem do **cadastro que cada prestador faz** (funções e valores). Teste no perfil Prestador: cadastre-se, fique disponível e pergunte por voz no perfil Cliente.
 
-**Administrador geral:** na tela inicial, toque em **"🛡️ Acesso do administrador"**.
+**Administrador geral:** na tela de entrada, digite `admin` no campo de acesso; o campo de senha aparece.
 
 - Usuário: `admin`
 - Senha: `Realys@2026`
@@ -32,7 +32,7 @@ O administrador vê a visão geral da plataforma (usuários, empresas, receita),
 
 > A senha acima é só da demonstração e fica visível no código. Na versão real, o login de administrador fica no servidor, com senha criptografada e verificação em duas etapas.
 
-**Entrada:** login com a biometria do celular (digital ou rosto). Se o aparelho não tiver biometria cadastrada, o app entra no modo demonstração.
+**Entrada:** um campo só, **usuário, CPF ou CNPJ**, e login com a biometria do celular (digital ou rosto). O tipo de acesso vem da conta: com CNPJ entram os perfis Empresa e Fornecedor (e Cliente); com CPF ou usuário, Cliente e Prestador. Se o aparelho não tiver biometria cadastrada, o app entra no modo demonstração.
 
 ---
 
@@ -54,7 +54,7 @@ Para publicar uma atualização, basta enviar o código para a branch `main`: o 
 
 ## Roteiro para apresentar a um cliente (5 minutos)
 
-1. **Entrar:** escolha os 4 perfis e toque em "Entrar com biometria". Explique que no Realys não existe perfil falso.
+1. **Entrar:** digite um CNPJ (14 números) e toque em "Entrar com biometria". Explique que no Realys não existe perfil falso.
 2. **Cliente → Início:** mostre o feed com o selo "verificado" e os posts que levam direto para a compra.
 3. **Cliente → Loja:** busque "pizza", mostre os patrocinados primeiro, adicione itens do **Mercadinho Bom Preço** ao carrinho e pague.
 4. **Troque para Empresa** (botão no topo ou na aba Perfil): o **estoque baixou** e a venda **entrou no caixa** e no gráfico.

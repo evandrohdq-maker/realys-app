@@ -1,70 +1,94 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useStore } from '../store';
 import { ADMIN_LOGIN } from '../data';
-import { colors, ROLE_LABELS } from '../theme';
-import { Button, Input } from '../components/ui';
+import { colors } from '../theme';
 
-const ROLE_INFO = {
-  cliente: 'Compro, peço comida e chamo serviços',
-  empresa: 'Tenho uma empresa (CNPJ) e quero vender e gerenciar',
-  prestador: 'Sou motorista, motoboy ou MEI prestador de serviço',
-  fornecedor: 'Vendo no atacado para outras empresas',
-};
+const onlyDigits = (v) => v.replace(/\D/g, '');
 
-const formatCnpj = (v) => {
-  const d = v.replace(/\D/g, '').slice(0, 14);
-  return d
+const formatCpf = (d) =>
+  d
+    .slice(0, 11)
+    .replace(/^(\d{3})(\d)/, '$1.$2')
+    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1-$2');
+
+const formatCnpj = (d) =>
+  d
+    .slice(0, 14)
     .replace(/^(\d{2})(\d)/, '$1.$2')
     .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
     .replace(/\.(\d{3})(\d)/, '.$1/$2')
     .replace(/(\d{4})(\d)/, '$1-$2');
-};
+
+// Um campo só: usuário, CPF ou CNPJ. O tipo de acesso vem da própria conta.
+function detect(value) {
+  const v = value.trim();
+  const d = onlyDigits(v);
+  const numeric = v.length > 0 && /^[\d.\-\/\s]+$/.test(v);
+  if (v.toLowerCase() === ADMIN_LOGIN.user) return { kind: 'admin' };
+  if (numeric && d.length === 14) return { kind: 'cnpj', doc: formatCnpj(d) };
+  if (numeric && d.length === 11) return { kind: 'cpf', doc: formatCpf(d) };
+  if (numeric) return { kind: 'incompleto' };
+  if (v.length >= 3) return { kind: 'usuario' };
+  return { kind: 'vazio' };
+}
+
+// Na demonstração, a conta define os acessos:
+// CNPJ → empresa e fornecedor (e também cliente); CPF ou usuário → cliente e prestador.
+function userFor(value, info) {
+  if (info.kind === 'cnpj') return { name: 'Minha Empresa', roles: ['empresa', 'fornecedor', 'cliente'], cnpj: info.doc };
+  if (info.kind === 'cpf') return { name: 'Cliente Realys', roles: ['cliente', 'prestador'], cpf: info.doc, cnpj: '12.345.678/0001-90' };
+  const name = value.trim().replace(/^@/, '');
+  return { name: name.charAt(0).toUpperCase() + name.slice(1), roles: ['cliente', 'prestador'], cnpj: '12.345.678/0001-90' };
+}
 
 export default function LoginScreen() {
   const { dispatch } = useStore();
-  const [name, setName] = useState('');
-  const [cnpj, setCnpj] = useState('');
-  const [roles, setRoles] = useState(['cliente', 'empresa', 'prestador', 'fornecedor']);
+  const [value, setValue] = useState('');
+  const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
-  const [adminMode, setAdminMode] = useState(false);
-  const [adminUser, setAdminUser] = useState('');
-  const [adminPass, setAdminPass] = useState('');
+  const info = detect(value);
 
-  const adminLogin = () => {
-    if (adminUser.trim().toLowerCase() === ADMIN_LOGIN.user && adminPass === ADMIN_LOGIN.password) {
-      dispatch({
+  const onChange = (v) => {
+    // Se a pessoa digita só números, formata como CPF ou CNPJ automaticamente.
+    if (/^[\d.\-\/\s]*$/.test(v) && onlyDigits(v).length) {
+      const d = onlyDigits(v);
+      setValue(d.length > 11 ? formatCnpj(d) : formatCpf(d));
+    } else setValue(v);
+  };
+
+  const hint = {
+    vazio: '',
+    incompleto: 'Continue digitando: CPF tem 11 números e CNPJ tem 14.',
+    cpf: 'CPF reconhecido',
+    cnpj: 'CNPJ reconhecido · acesso de empresa',
+    usuario: 'Usuário',
+    admin: 'Acesso do administrador',
+  }[info.kind];
+
+  const enter = async () => {
+    if (info.kind === 'vazio' || info.kind === 'incompleto') {
+      return Alert.alert('Confira o acesso', 'Digite seu usuário, CPF ou CNPJ.');
+    }
+    if (info.kind === 'admin') {
+      if (password !== ADMIN_LOGIN.password) return Alert.alert('Acesso negado', 'Senha incorreta.');
+      return dispatch({
         type: 'LOGIN',
         user: { name: 'Administrador', roles: ['admin', 'cliente', 'empresa', 'prestador', 'fornecedor'], cnpj: '12.345.678/0001-90' },
       });
-    } else {
-      Alert.alert('Acesso negado', 'Usuário ou senha incorretos.');
     }
-  };
-
-  const needsCnpj = roles.includes('empresa') || roles.includes('fornecedor');
-
-  const toggle = (r) => setRoles((cur) => (cur.includes(r) ? cur.filter((x) => x !== r) : [...cur, r]));
-
-  const finish = () =>
-    dispatch({
-      type: 'LOGIN',
-      user: { name: name.trim() || 'Visitante', roles, cnpj: cnpj || '12.345.678/0001-90' },
-    });
-
-  const enterWithBiometrics = async () => {
-    if (!roles.length) return Alert.alert('Escolha pelo menos um perfil.');
+    const finish = () => dispatch({ type: 'LOGIN', user: userFor(value, info) });
     setBusy(true);
     try {
       const hasHw = await LocalAuthentication.hasHardwareAsync();
       const enrolled = await LocalAuthentication.isEnrolledAsync();
       if (!hasHw || !enrolled) {
-        Alert.alert(
-          'Biometria não encontrada',
-          'Este aparelho não tem digital ou rosto cadastrado. Entrando no modo demonstração.',
-          [{ text: 'OK', onPress: finish }]
-        );
+        Alert.alert('Biometria não encontrada', 'Este aparelho não tem digital ou rosto cadastrado. Entrando no modo demonstração.', [
+          { text: 'OK', onPress: finish },
+        ]);
         return;
       }
       const res = await LocalAuthentication.authenticateAsync({
@@ -81,94 +105,108 @@ export default function LoginScreen() {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.dark }} contentContainerStyle={styles.wrap}>
-      <Text style={styles.logo}>Realys</Text>
-      <Text style={styles.tagline}>Pessoas reais. Negócios reais.</Text>
-      <Text style={styles.desc}>
-        Rede social, loja, comida, serviços e gestão da sua empresa num só app. Todo mundo aqui é verificado por
-        biometria.
-      </Text>
-
-      <View style={styles.panel}>
-        <Text style={styles.label}>Seu nome</Text>
-        <Input placeholder="Ex.: Maria Oliveira" value={name} onChangeText={setName} />
-
-        <Text style={styles.label}>Como você vai usar o Realys? (pode escolher vários)</Text>
-        {Object.keys(ROLE_LABELS).filter((r) => r !== 'admin').map((r) => {
-          const on = roles.includes(r);
-          return (
-            <TouchableOpacity key={r} onPress={() => toggle(r)} style={[styles.role, on && styles.roleOn]}>
-              <View style={[styles.check, on && styles.checkOn]}>{on ? <Text style={styles.checkMark}>✓</Text> : null}</View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.roleTitle}>{ROLE_LABELS[r]}</Text>
-                <Text style={styles.roleDesc}>{ROLE_INFO[r]}</Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-
-        {needsCnpj ? (
-          <>
-            <Text style={[styles.label, { marginTop: 8 }]}>CNPJ da empresa</Text>
-            <Input
-              placeholder="00.000.000/0000-00 (opcional na demonstração)"
-              keyboardType="number-pad"
-              value={cnpj}
-              onChangeText={(v) => setCnpj(formatCnpj(v))}
-            />
-          </>
-        ) : null}
-
-        <Button title={busy ? 'Verificando…' : '🔒  Entrar com biometria'} onPress={enterWithBiometrics} disabled={busy} />
-        <Text style={styles.note}>Versão de demonstração: os dados, empresas e produtos são exemplos.</Text>
-      </View>
-
-      <TouchableOpacity onPress={() => setAdminMode(!adminMode)} style={{ marginTop: 18, alignSelf: 'center' }}>
-        <Text style={{ color: '#B8C6CF', fontWeight: '700' }}>🛡️ Acesso do administrador</Text>
-      </TouchableOpacity>
-      {adminMode ? (
-        <View style={[styles.panel, { marginTop: 12 }]}>
-          <Text style={styles.label}>Usuário</Text>
-          <Input placeholder="Usuário" autoCapitalize="none" value={adminUser} onChangeText={setAdminUser} />
-          <Text style={styles.label}>Senha</Text>
-          <Input placeholder="Senha" secureTextEntry value={adminPass} onChangeText={setAdminPass} />
-          <Button title="Entrar como administrador" variant="dark" onPress={adminLogin} />
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled">
+        <View style={styles.brandBlock}>
+          <View style={styles.mark}>
+            <Ionicons name="cube-outline" size={30} color={colors.primary} />
+          </View>
+          <Text style={styles.logo}>REALYS</Text>
+          <Text style={styles.tagline}>Pessoas reais. Negócios reais.</Text>
         </View>
-      ) : null}
-    </ScrollView>
+
+        <View style={styles.panel}>
+          <Text style={styles.label}>Usuário, CPF ou CNPJ</Text>
+          <View style={styles.field}>
+            <Ionicons name="person-outline" size={20} color={colors.muted} />
+            <TextInput
+              style={styles.input}
+              placeholder="Digite seu usuário, CPF ou CNPJ"
+              placeholderTextColor={colors.muted}
+              value={value}
+              onChangeText={onChange}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="go"
+              onSubmitEditing={enter}
+            />
+          </View>
+          {hint ? (
+            <Text style={[styles.hint, (info.kind === 'cpf' || info.kind === 'cnpj') && { color: colors.primary }]}>{hint}</Text>
+          ) : null}
+
+          {info.kind === 'admin' ? (
+            <View style={[styles.field, { marginTop: 10 }]}>
+              <Ionicons name="lock-closed-outline" size={20} color={colors.muted} />
+              <TextInput
+                style={styles.input}
+                placeholder="Senha"
+                placeholderTextColor={colors.muted}
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+              />
+            </View>
+          ) : null}
+
+          <TouchableOpacity style={[styles.btn, busy && { opacity: 0.6 }]} onPress={enter} disabled={busy} activeOpacity={0.85}>
+            <Ionicons name={info.kind === 'admin' ? 'log-in-outline' : 'finger-print'} size={20} color={colors.onPrimary} />
+            <Text style={styles.btnText}>{busy ? 'Verificando…' : info.kind === 'admin' ? 'Entrar' : 'Entrar com biometria'}</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: 22, paddingTop: 70, paddingBottom: 40 },
-  logo: { fontSize: 46, fontWeight: '900', color: '#fff', letterSpacing: -1 },
-  tagline: { fontSize: 18, color: colors.accent, fontWeight: '700', marginTop: 2 },
-  desc: { color: '#B8C6CF', fontSize: 14, marginTop: 10, lineHeight: 20 },
-  panel: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 18, padding: 16, marginTop: 24 },
-  label: { fontSize: 13, fontWeight: '700', color: colors.text, marginBottom: 8 },
-  role: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  wrap: { flexGrow: 1, justifyContent: 'center', padding: 24 },
+  brandBlock: { alignItems: 'center', marginBottom: 36 },
+  mark: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: 12,
-    padding: 11,
-    marginBottom: 8,
-  },
-  roleOn: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
-  check: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: colors.border,
-    marginRight: 10,
+    borderColor: 'rgba(59,232,255,0.5)',
+    backgroundColor: 'rgba(59,232,255,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 16,
+    shadowColor: colors.primary,
+    shadowOpacity: 0.5,
+    shadowRadius: 18,
+    elevation: 8,
   },
-  checkOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  checkMark: { color: colors.onPrimary, fontWeight: '900', fontSize: 13 },
-  roleTitle: { fontWeight: '700', color: colors.text },
-  roleDesc: { fontSize: 12, color: colors.muted, marginTop: 1 },
-  note: { fontSize: 11, color: colors.muted, textAlign: 'center', marginTop: 10 },
+  logo: { fontSize: 36, fontWeight: '800', color: colors.text, letterSpacing: 8 },
+  tagline: { fontSize: 17, color: colors.accent, fontWeight: '700', marginTop: 8 },
+  panel: {
+    backgroundColor: colors.card,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(59,232,255,0.25)',
+    padding: 18,
+  },
+  label: { fontSize: 13, fontWeight: '700', color: colors.text, marginBottom: 10 },
+  field: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 54,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bg,
+    paddingHorizontal: 14,
+  },
+  input: { flex: 1, color: colors.text, fontSize: 16, marginLeft: 10, paddingVertical: 0 },
+  hint: { color: colors.muted, fontSize: 12, marginTop: 8 },
+  btn: {
+    height: 54,
+    borderRadius: 16,
+    backgroundColor: colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 18,
+  },
+  btnText: { color: colors.onPrimary, fontWeight: '800', fontSize: 16, marginLeft: 8 },
 });
