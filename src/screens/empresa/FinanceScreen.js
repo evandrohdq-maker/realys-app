@@ -55,7 +55,7 @@ export default function FinanceScreen() {
           <Card key={b.id}>
             <Row style={{ justifyContent: 'space-between' }}>
               <View>
-                <Text style={{ fontWeight: '700' }}>{b.desc}</Text>
+                <Text style={{ color: colors.text, fontWeight: '700' }}>{b.desc}</Text>
                 <Text style={{ color: colors.muted, fontSize: 12 }}>Vence {b.due}</Text>
               </View>
               <Text style={{ fontWeight: '800', color: colors.danger }}>{brl(b.value)}</Text>
@@ -82,7 +82,7 @@ export default function FinanceScreen() {
           <Card key={f.id}>
             <Row style={{ justifyContent: 'space-between' }}>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontWeight: '600' }}>{f.desc}</Text>
+                <Text style={{ color: colors.text, fontWeight: '600' }}>{f.desc}</Text>
                 <Text style={{ color: colors.muted, fontSize: 12 }}>{f.date}</Text>
               </View>
               <Text style={{ fontWeight: '800', color: f.type === 'entrada' ? colors.success : colors.danger }}>

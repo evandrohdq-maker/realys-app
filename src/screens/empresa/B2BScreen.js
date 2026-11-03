@@ -63,11 +63,11 @@ export default function B2BScreen() {
             <Card key={item.id}>
               <TouchableOpacity onPress={() => setOpen(open === item.id ? null : item.id)}>
                 <Row>
-                  <Text style={{ fontSize: 30, marginRight: 10 }}>{item.emoji}</Text>
+                  <Text style={{ color: colors.text, fontSize: 30, marginRight: 10 }}>{item.emoji}</Text>
                   <View style={{ flex: 1 }}>
-                    <Text style={{ fontWeight: '700' }}>{item.name}</Text>
+                    <Text style={{ color: colors.text, fontWeight: '700' }}>{item.name}</Text>
                     <Text style={{ color: colors.muted, fontSize: 12 }}>
-                      {sup.logo} {sup.name} · ⭐ {sup.rating}
+                      {sup.logo} {sup.name} · <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {sup.rating}</Text>
                     </Text>
                     <Text style={{ color: colors.primary, fontWeight: '800' }}>
                       {brl(item.unitPrice)} /un. · mín. {item.minQty}
@@ -104,7 +104,7 @@ export default function B2BScreen() {
           return (
             <Card key={p.id}>
               <Row style={{ justifyContent: 'space-between' }}>
-                <Text style={{ fontWeight: '700', flex: 1 }}>
+                <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>
                   {p.qty}× {item.name}
                 </Text>
                 <Badge label={p.status} color={STATUS_COLOR[p.status]} />
@@ -120,7 +120,7 @@ export default function B2BScreen() {
                   <Button small title="Aceitar contraproposta" style={{ marginTop: 8 }} onPress={() => dispatch({ type: 'BUYER_ACCEPT_COUNTER', id: p.id })} />
                 </>
               ) : (
-                <Text style={{ marginTop: 6, fontWeight: '700' }}>Total: {brl(total)}</Text>
+                <Text style={{ color: colors.text, marginTop: 6, fontWeight: '700' }}>Total: {brl(total)}</Text>
               )}
               {p.status === 'aceita' ? (
                 <Text style={{ fontSize: 12, color: colors.success, marginTop: 4 }}>

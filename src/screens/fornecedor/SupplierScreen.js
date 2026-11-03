@@ -35,10 +35,10 @@ export default function SupplierScreen() {
           return (
             <Card key={p.id}>
               <Row style={{ justifyContent: 'space-between' }}>
-                <Text style={{ fontWeight: '700', flex: 1 }}>{p.buyer}</Text>
+                <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{p.buyer}</Text>
                 <Badge label={p.status} color={STATUS_COLOR[p.status]} />
               </Row>
-              <Text style={{ marginTop: 4 }}>
+              <Text style={{ color: colors.text, marginTop: 4 }}>
                 {p.qty}× {item.name}
               </Text>
               <Text style={{ color: colors.muted, fontSize: 12 }}>
@@ -84,9 +84,9 @@ export default function SupplierScreen() {
         {myItems.map((i) => (
           <Card key={i.id}>
             <Row>
-              <Text style={{ fontSize: 28, marginRight: 10 }}>{i.emoji}</Text>
+              <Text style={{ color: colors.text, fontSize: 28, marginRight: 10 }}>{i.emoji}</Text>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontWeight: '700' }}>{i.name}</Text>
+                <Text style={{ color: colors.text, fontWeight: '700' }}>{i.name}</Text>
                 <Text style={{ color: colors.primary, fontWeight: '800' }}>
                   {brl(i.unitPrice)} /un. · mín. {i.minQty}
                 </Text>

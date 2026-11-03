@@ -103,10 +103,10 @@ export default function StoreScreen({ openVoice, goTo, explore }) {
         <Card>
           <Row style={{ justifyContent: 'space-between' }}>
             <Text style={{ color: colors.muted }}>Seu saldo Realys</Text>
-            <Text style={{ fontWeight: '700' }}>{brl(state.wallet)}</Text>
+            <Text style={{ color: colors.text, fontWeight: '700' }}>{brl(state.wallet)}</Text>
           </Row>
           <Row style={{ justifyContent: 'space-between', marginTop: 6 }}>
-            <Text style={{ fontWeight: '800', fontSize: 16 }}>Total</Text>
+            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>Total</Text>
             <Text style={{ fontWeight: '800', fontSize: 16, color: colors.primary }}>{brl(total)}</Text>
           </Row>
         </Card>
@@ -130,7 +130,7 @@ export default function StoreScreen({ openVoice, goTo, explore }) {
           </Text>
         </Row>
         <Text style={{ color: colors.muted, marginBottom: 6 }}>
-          {s.category} · {s.city} · ⭐ {s.rating}
+          {s.category} · {s.city} · <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {s.rating}</Text>
         </Text>
         <Row style={{ marginBottom: 14 }}>
           <Badge label="CNPJ verificado" />
@@ -156,7 +156,7 @@ export default function StoreScreen({ openVoice, goTo, explore }) {
           style={{ flex: 1, marginBottom: 0 }}
         />
         <TouchableOpacity style={styles.mic} onPress={openVoice}>
-          <Text style={{ fontSize: 20 }}>🎙️</Text>
+          <Text style={{ color: colors.text, fontSize: 20 }}>🎙️</Text>
         </TouchableOpacity>
       </Row>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 12 }}>
@@ -200,7 +200,7 @@ export default function StoreScreen({ openVoice, goTo, explore }) {
                 <Text style={styles.storeName}>
                   {s.logo} {s.name}
                 </Text>
-                <Text style={{ fontWeight: '700' }}>⭐ {s.rating}</Text>
+                <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {s.rating}</Text>
               </Row>
               <Text style={{ color: colors.muted, fontSize: 12, marginVertical: 4 }}>
                 {s.category} · {s.city}

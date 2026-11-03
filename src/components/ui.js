@@ -131,7 +131,7 @@ export function BarChart({ data, format = (v) => v, height = 140 }) {
 export function ProductThumb({ product, size = 64 }) {
   return (
     <View style={[styles.thumb, { width: size, height: size, backgroundColor: (product.tint || '#EEF2F5') + '26' }]}>
-      <Text style={{ fontSize: size * 0.5 }}>{product.emoji}</Text>
+      <Text style={{ color: colors.text, fontSize: size * 0.5 }}>{product.emoji}</Text>
     </View>
   );
 }
@@ -142,7 +142,7 @@ export function Photo({ uri, style, fallback = '🖼️' }) {
   if (failed || !uri)
     return (
       <View style={[style, { backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' }]}>
-        <Text style={{ fontSize: 34 }}>{fallback}</Text>
+        <Text style={{ color: colors.text, fontSize: 34 }}>{fallback}</Text>
       </View>
     );
   return <Image source={{ uri }} style={[style, { backgroundColor: colors.cardAlt }]} onError={() => setFailed(true)} />;

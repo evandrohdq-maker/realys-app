@@ -32,12 +32,12 @@ export default function DashboardScreen() {
       </Row>
 
       <Card>
-        <Text style={{ fontWeight: '800', marginBottom: 10 }}>Faturamento por dia</Text>
+        <Text style={{ color: colors.text, fontWeight: '800', marginBottom: 10 }}>Faturamento por dia</Text>
         <BarChart data={state.salesByDay} format={(v) => (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : Math.round(v))} />
       </Card>
 
       <Card style={{ backgroundColor: '#231C10', borderColor: '#5C4520' }}>
-        <Text style={{ fontWeight: '800', marginBottom: 6 }}>🤖 Assistente Realys</Text>
+        <Text style={{ color: colors.text, fontWeight: '800', marginBottom: 6 }}>🤖 Assistente Realys</Text>
         {low.map((p) => (
           <Text key={p.id} style={{ color: colors.text, marginBottom: 4 }}>
             • Seu estoque de <Text style={{ fontWeight: '700' }}>{p.name}</Text> está baixo ({p.stock} un.). Veja ofertas de
@@ -54,7 +54,7 @@ export default function DashboardScreen() {
             <Row>
               <ProductThumb product={p} size={46} />
               <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={{ fontWeight: '700' }}>{p.name}</Text>
+                <Text style={{ color: colors.text, fontWeight: '700' }}>{p.name}</Text>
                 <Text style={{ color: colors.muted, fontSize: 12 }}>
                   Custo {brl(p.cost)} · Venda {brl(p.price)}
                 </Text>

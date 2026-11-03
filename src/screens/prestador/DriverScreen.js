@@ -43,7 +43,7 @@ export default function DriverScreen() {
       <Card style={{ backgroundColor: state.available ? colors.primaryLight : colors.card }}>
         <Row style={{ justifyContent: 'space-between' }}>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontWeight: '800', fontSize: 16 }}>
+            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>
               {state.available ? '🟢 Disponível (GPS ligado)' : '⚪ Indisponível'}
             </Text>
             <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
@@ -64,20 +64,20 @@ export default function DriverScreen() {
               Essas informações são o que a Realys responde quando um cliente pergunta por voz: "tem eletricista perto
               de mim?".
             </Text>
-            <Text style={{ fontWeight: '700', marginBottom: 6 }}>Tipo de serviço</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Tipo de serviço</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
               {serviceTypes.map((s) => (
                 <Chip key={s.key} label={`${s.icon} ${s.label}`} active={service === s.key} onPress={() => setService(s.key)} />
               ))}
             </ScrollView>
-            <Text style={{ fontWeight: '700', marginBottom: 6 }}>O que você faz (separe por vírgula)</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>O que você faz (separe por vírgula)</Text>
             <Input
               placeholder="Ex.: Instalação de chuveiro, tomadas, quadro de luz"
               value={functions}
               onChangeText={setFunctions}
               multiline
             />
-            <Text style={{ fontWeight: '700', marginBottom: 6 }}>Quanto você cobra</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Quanto você cobra</Text>
             <Input placeholder="Valor em R$" keyboardType="decimal-pad" value={price} onChangeText={setPrice} />
             <Row style={{ flexWrap: 'wrap', marginBottom: 12 }}>
               {UNITS.map((u) => (
@@ -90,7 +90,7 @@ export default function DriverScreen() {
           </Card>
         ) : (
           <Card>
-            <Text style={{ fontWeight: '800', fontSize: 16 }}>
+            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>
               {serviceType(me.service).icon} {serviceType(me.service).label}
             </Text>
             <Text style={{ color: colors.primary, fontWeight: '800', marginTop: 4 }}>{priceText(me)}</Text>
@@ -108,7 +108,7 @@ export default function DriverScreen() {
 
       <Row style={{ marginHorizontal: -4, marginBottom: 14 }}>
         <Stat label="Ganhos hoje" value={brl(86.4 + earnings)} color={colors.success} />
-        <Stat label="Avaliação" value="⭐ 4.9" />
+        <Stat label="Avaliação" value="★ 4,9" color={colors.accent} />
         <Stat label="Serviços" value={String(7 + accepted.length)} />
       </Row>
 
@@ -119,7 +119,7 @@ export default function DriverScreen() {
           state.rideRequests.map((r) => (
             <Card key={r.id}>
               <Row style={{ justifyContent: 'space-between' }}>
-                <Text style={{ fontWeight: '700', flex: 1 }}>{r.client}</Text>
+                <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{r.client}</Text>
                 <Badge label={r.service} color={colors.sponsored} />
               </Row>
               <Text style={{ color: colors.muted, fontSize: 13, marginTop: 4 }}>
@@ -140,7 +140,7 @@ export default function DriverScreen() {
         {accepted.map((r) => (
           <Card key={r.id}>
             <Row style={{ justifyContent: 'space-between' }}>
-              <Text style={{ fontWeight: '700', flex: 1 }}>{r.client}</Text>
+              <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{r.client}</Text>
               <Badge label={r.status} color={colors.accent} />
             </Row>
             <Text style={{ color: colors.muted, fontSize: 13, marginTop: 2 }}>

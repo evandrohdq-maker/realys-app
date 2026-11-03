@@ -134,7 +134,7 @@ export default function VoiceAssistant({ visible, onClose }) {
           </View>
 
           <TouchableOpacity onPress={listen} activeOpacity={0.85} style={[styles.bigMic, listening && { backgroundColor: colors.accent }]}>
-            <Text style={{ fontSize: 40 }}>🎙️</Text>
+            <Text style={{ color: colors.text, fontSize: 40 }}>🎙️</Text>
           </TouchableOpacity>
           <Text style={styles.hint}>{listening ? 'Ouvindo…' : 'Toque e fale: "Realys, preciso de um carro…"'}</Text>
 
@@ -173,8 +173,8 @@ export default function VoiceAssistant({ visible, onClose }) {
                       <View key={p.id} style={styles.provider}>
                         <Photo uri={p.photo} style={styles.pPhoto} fallback="🧑" />
                         <View style={{ flex: 1, marginLeft: 10 }}>
-                          <Text style={{ fontWeight: '700' }}>
-                            {p.name} · ⭐ {p.rating}
+                          <Text style={{ color: colors.text, fontWeight: '700' }}>
+                            {p.name} · <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {p.rating}</Text>
                           </Text>
                           <Text style={{ color: colors.muted, fontSize: 12 }}>
                             {p.distanceKm.toFixed(1)} km · {p.functions.join(', ')}

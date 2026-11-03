@@ -31,7 +31,7 @@ export default function ProfileScreen() {
             <Text style={{ color: colors.onPrimary, fontSize: 24, fontWeight: '900' }}>{u.name[0]}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontWeight: '800', fontSize: 18 }}>{u.name}</Text>
+            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 18 }}>{u.name}</Text>
             <Badge label="✔ Identidade verificada por biometria" />
           </View>
         </Row>
@@ -41,7 +41,7 @@ export default function ProfileScreen() {
         </Row>
       </Card>
 
-      <Text style={{ fontWeight: '800', fontSize: 16, marginVertical: 8 }}>Trocar de perfil</Text>
+      <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16, marginVertical: 8 }}>Trocar de perfil</Text>
       <Text style={{ color: colors.muted, fontSize: 13, marginBottom: 10 }}>
         Uma conta só, com acessos diferentes. Troque para ver o app como cada tipo de usuário.
       </Text>
@@ -51,9 +51,9 @@ export default function ProfileScreen() {
           <TouchableOpacity key={r} onPress={() => dispatch({ type: 'SET_ROLE', role: r })}>
             <Card style={on ? { borderColor: colors.primary, borderWidth: 2, backgroundColor: colors.primaryLight } : null}>
               <Row>
-                <Text style={{ fontSize: 26, marginRight: 12 }}>{ROLE_ICON[r]}</Text>
+                <Text style={{ color: colors.text, fontSize: 26, marginRight: 12 }}>{ROLE_ICON[r]}</Text>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontWeight: '700' }}>{ROLE_LABELS[r]}</Text>
+                  <Text style={{ color: colors.text, fontWeight: '700' }}>{ROLE_LABELS[r]}</Text>
                   {r === 'empresa' || r === 'fornecedor' ? (
                     <Text style={{ color: colors.muted, fontSize: 12 }}>CNPJ {u.cnpj}</Text>
                   ) : null}

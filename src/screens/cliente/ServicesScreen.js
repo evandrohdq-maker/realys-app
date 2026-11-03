@@ -23,7 +23,7 @@ export function ServiceCallCard({ call }) {
         <Photo uri={p.photo} style={styles.avatarSm} fallback="🧑" />
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={{ fontWeight: '700', color: colors.text }}>
-            {p.name} · ★ {ratingText(p.rating)}
+            {p.name} · <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {ratingText(p.rating)}</Text>
           </Text>
           <Text style={{ color: colors.muted, fontSize: 13 }}>
             {call.serviceLabel}
@@ -199,7 +199,7 @@ export default function ServicesScreen({ explore }) {
               <View style={{ flex: 1, marginLeft: 10 }}>
                 <Text style={styles.pName}>{p.name}</Text>
                 <Text style={styles.pMeta}>
-                  ★ {ratingText(p.rating)} ({reviewsCount(p)}) · {kmText(p.distanceKm)} · ~{etaMin(p)} min
+                  <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {ratingText(p.rating)}</Text> ({reviewsCount(p)}) · {kmText(p.distanceKm)} · ~{etaMin(p)} min
                 </Text>
                 <Text style={styles.pPrice}>{priceText(p)}</Text>
               </View>

@@ -146,7 +146,7 @@ export default function TrackingScreen({ call, visible, onClose, onOpenProfile }
                 <Ionicons name="shield-checkmark" size={14} color={colors.primary} style={{ marginLeft: 6 }} />
               </View>
               <Text style={styles.pMeta} numberOfLines={1}>
-                ★ {ratingText(p.rating)} · {call.serviceLabel}
+                <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {ratingText(p.rating)}</Text> · {call.serviceLabel}
                 {p.vehicle ? ` · ${p.vehicle}` : ''}
               </Text>
               {p.plate ? <Text style={styles.plate}>Placa {p.plate}</Text> : null}

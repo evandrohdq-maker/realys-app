@@ -34,7 +34,7 @@ export default function InventoryScreen() {
 
       {adding ? (
         <Card>
-          <Text style={{ fontWeight: '800', marginBottom: 8 }}>Novo produto</Text>
+          <Text style={{ color: colors.text, fontWeight: '800', marginBottom: 8 }}>Novo produto</Text>
           <Button small variant="light" title="📷 Ler código de barras (em breve)" onPress={() => Alert.alert('Em breve', 'A leitura pela câmera entra na próxima versão.')} style={{ marginBottom: 10 }} />
           <Input placeholder="Nome do produto" value={form.name} onChangeText={(name) => setForm({ ...form, name })} />
           <Row>
@@ -58,7 +58,7 @@ export default function InventoryScreen() {
             <Row>
               <ProductThumb product={p} size={52} />
               <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={{ fontWeight: '700' }}>{p.name}</Text>
+                <Text style={{ color: colors.text, fontWeight: '700' }}>{p.name}</Text>
                 <Text style={{ color: colors.muted, fontSize: 12 }}>
                   Venda {brl(p.price)} · Custo {brl(p.cost)}
                 </Text>
@@ -77,7 +77,7 @@ export default function InventoryScreen() {
                   <TouchableOpacity style={styles.qtyBtn} onPress={() => dispatch({ type: 'UPDATE_STOCK', id: p.id, delta: -1 })}>
                     <Text style={styles.qtyTxt}>−</Text>
                   </TouchableOpacity>
-                  <Text style={styles.qty}>{p.stock}</Text>
+                  <Text style={[styles.qty, { color: colors.text }]}>{p.stock}</Text>
                   <TouchableOpacity style={styles.qtyBtn} onPress={() => dispatch({ type: 'UPDATE_STOCK', id: p.id, delta: 1 })}>
                     <Text style={styles.qtyTxt}>+</Text>
                   </TouchableOpacity>

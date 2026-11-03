@@ -13,7 +13,7 @@ export default function FeedScreen({ goTo }) {
         {state.stores.map((s) => (
           <View key={s.id} style={styles.story}>
             <View style={[styles.storyRing, s.sponsored && { borderColor: colors.sponsored }]}>
-              <Text style={{ fontSize: 26 }}>{s.logo}</Text>
+              <Text style={{ color: colors.text, fontSize: 26 }}>{s.logo}</Text>
             </View>
             <Text numberOfLines={1} style={styles.storyName}>
               {s.name.split(' ')[0]}

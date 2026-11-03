@@ -17,7 +17,7 @@ export default function OrdersScreen() {
         return (
           <Card key={o.id}>
             <Row style={{ justifyContent: 'space-between', marginBottom: 6 }}>
-              <Text style={{ fontWeight: '800', flex: 1 }}>{o.store}</Text>
+              <Text style={{ color: colors.text, fontWeight: '800', flex: 1 }}>{o.store}</Text>
               <Badge label={o.status} color={o.status === 'Entregue' ? colors.success : colors.accent} />
             </Row>
             {o.items.map((i) => (
