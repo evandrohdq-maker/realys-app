@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, useRef } from 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as D from './data';
 import { brl } from './theme';
+import { conversations as initialConversations } from './homeData';
 
 const StoreContext = createContext(null);
 
@@ -26,6 +27,10 @@ const initialState = {
   finance: D.finance,
   bills: D.upcomingBills,
   proposals: D.initialProposals,
+  offers: D.initialOffers, // propostas que o fornecedor envia para as empresas
+  conversations: initialConversations, // Comunidade › Mensagens (também recebe respostas de stories)
+  storySeen: {},
+  myStories: [], // stories que o próprio usuário publicou
   orders: D.initialOrders,
   rideRequests: D.rideRequests,
   rides: [],
@@ -40,13 +45,13 @@ const initialState = {
   notes: [], // anotações do administrador sobre o que mudar em cada tela (ficam salvas no celular)
 };
 
-// Quando uma proposta B2B é fechada: o estoque da empresa sobe e a saída entra no financeiro.
-function closeDeal(state, proposal, discount) {
-  const item = state.supplierItems.find((i) => i.id === proposal.itemId);
-  const total = proposal.qty * item.unitPrice * (1 - discount / 100);
+// Compra B2B fechada: o estoque da minha empresa sobe e a saída entra no financeiro.
+function applyPurchase(state, itemId, qty, discount) {
+  const item = state.supplierItems.find((i) => i.id === itemId);
+  const total = qty * item.unitPrice * (1 - discount / 100);
   const existing = state.products.find((p) => p.storeId === D.MY_COMPANY_ID && p.name === item.name);
   const products = existing
-    ? state.products.map((p) => (p.id === existing.id ? { ...p, stock: p.stock + proposal.qty } : p))
+    ? state.products.map((p) => (p.id === existing.id ? { ...p, stock: p.stock + qty } : p))
     : [
         ...state.products,
         {
@@ -55,7 +60,7 @@ function closeDeal(state, proposal, discount) {
           name: item.name,
           price: +(item.unitPrice * 1.4).toFixed(2),
           cost: item.unitPrice,
-          stock: proposal.qty,
+          stock: qty,
           minStock: 10,
           emoji: item.emoji,
           tint: '#EEF2F5',
@@ -70,10 +75,19 @@ function closeDeal(state, proposal, discount) {
       { id: newId('m'), date: today(), desc: `Fornecedor - ${supplier.name} (B2B)`, type: 'saida', value: +total.toFixed(2) },
       ...state.finance,
     ],
-    proposals: state.proposals.map((p) =>
-      p.id === proposal.id ? { ...p, status: 'aceita', discount } : p
-    ),
   };
+}
+
+// Proposta da empresa aceita pelo fornecedor (ou contraproposta aceita pela empresa).
+function closeDeal(state, proposal, discount) {
+  const next = applyPurchase(state, proposal.itemId, proposal.qty, discount);
+  return { ...next, proposals: state.proposals.map((p) => (p.id === proposal.id ? { ...p, status: 'aceita', discount } : p)) };
+}
+
+// Proposta do fornecedor aceita. Se for para a minha empresa, entra no estoque e no caixa.
+function closeOffer(state, offer, discount) {
+  const next = offer.companyId === D.MY_COMPANY_ID ? applyPurchase(state, offer.itemId, offer.qty, discount) : state;
+  return { ...next, offers: state.offers.map((o) => (o.id === offer.id ? { ...o, status: 'aceita', discount } : o)) };
 }
 
 function reducer(state, a) {
@@ -212,6 +226,52 @@ function reducer(state, a) {
         proposals: state.proposals.map((x) => (x.id === a.id ? { ...x, status: 'contraproposta', counter: a.counter } : x)),
       };
     }
+    // Fornecedor: destacar produto, cadastrar produto e enviar proposta direto para empresas.
+    case 'SUPPLIER_TOGGLE_FEATURED':
+      return { ...state, supplierItems: state.supplierItems.map((i) => (i.id === a.id ? { ...i, featured: !i.featured } : i)) };
+    case 'SUPPLIER_ADD_ITEM':
+      return {
+        ...state,
+        supplierItems: [{ id: newId('si'), supplierId: D.MY_SUPPLIER_ID, tiers: [], featured: true, ...a.item }, ...state.supplierItems],
+      };
+    case 'SUPPLIER_SEND_OFFER':
+      return {
+        ...state,
+        offers: [
+          ...a.companyIds.map((companyId) => ({
+            id: newId('of'),
+            itemId: a.itemId,
+            companyId,
+            qty: a.qty,
+            discount: a.discount,
+            note: a.note,
+            validUntil: a.validUntil,
+            status: 'pendente',
+            counter: null,
+            createdAt: 'Agora',
+          })),
+          ...state.offers,
+        ],
+      };
+    case 'SUPPLIER_ACCEPT_COUNTER': {
+      const o = state.offers.find((x) => x.id === a.id);
+      return closeOffer(state, o, o.counter);
+    }
+    case 'COMPANY_RESPOND_OFFER': {
+      const o = state.offers.find((x) => x.id === a.id);
+      if (a.answer === 'aceitar') return closeOffer(state, o, o.discount);
+      if (a.answer === 'recusar') return { ...state, offers: state.offers.map((x) => (x.id === a.id ? { ...x, status: 'recusada' } : x)) };
+      return { ...state, offers: state.offers.map((x) => (x.id === a.id ? { ...x, status: 'contraproposta', counter: a.counter } : x)) };
+    }
+
+    // Mensagens e stories (compartilhados entre o Início e a página de Stories).
+    case 'UPDATE_CONVS':
+      return { ...state, conversations: a.fn(state.conversations) };
+    case 'STORY_SEEN':
+      return state.storySeen[a.id] ? state : { ...state, storySeen: { ...state.storySeen, [a.id]: true } };
+    case 'PUBLISH_STORY':
+      return { ...state, myStories: [...state.myStories, a.item] };
+
     case 'BUYER_ACCEPT_COUNTER': {
       const p = state.proposals.find((x) => x.id === a.id);
       return closeDeal(state, p, p.counter);

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Alert, TouchableOpacity } from 'react-native';
 import { useStore } from '../../store';
+import { MY_COMPANY_ID } from '../../data';
 import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Button, Input, Badge, Section } from '../../components/ui';
 
@@ -19,6 +20,9 @@ export default function B2BScreen() {
   const [open, setOpen] = useState(null);
   const [qty, setQty] = useState('');
   const [disc, setDisc] = useState('');
+  const [counter, setCounter] = useState({});
+  const offers = state.offers.filter((o) => o.companyId === MY_COMPANY_ID);
+  const catalog = [...state.supplierItems].sort((a, b) => !!b.featured - !!a.featured);
 
   const send = (item) => {
     const q = parseInt(qty, 10);
@@ -34,6 +38,65 @@ export default function B2BScreen() {
   return (
     <Screen>
       <Title sub="Compre no atacado e negocie descontos com empresas verificadas">Negócios Realys</Title>
+
+      <Section title="Propostas de fornecedores">
+        {!offers.length ? <Text style={{ color: colors.muted, marginBottom: 8 }}>Nenhuma proposta recebida.</Text> : null}
+        {offers.map((o) => {
+          const item = state.supplierItems.find((i) => i.id === o.itemId);
+          const sup = state.suppliers.find((x) => x.id === item.supplierId);
+          const unit = item.unitPrice * (1 - o.discount / 100);
+          return (
+            <Card key={o.id} style={o.status === 'pendente' ? { borderColor: 'rgba(226,182,73,0.8)', borderWidth: 1.5 } : null}>
+              <Row style={{ justifyContent: 'space-between' }}>
+                <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>
+                  {sup.logo} {sup.name} <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {sup.rating}</Text>
+                </Text>
+                <Badge label={o.status} color={STATUS_COLOR[o.status]} />
+              </Row>
+              <Text style={{ color: colors.text, marginTop: 4 }}>
+                {o.qty}× {item.emoji} {item.name}
+              </Text>
+              <Text style={{ color: colors.primary, fontWeight: '800', marginTop: 2 }}>
+                {brl(unit)}/un. ({o.discount}% off) · total {brl(o.qty * unit)}
+              </Text>
+              <Text style={{ color: colors.muted, fontSize: 12 }}>Válida até {o.validUntil} · {o.createdAt}</Text>
+              {o.note ? <Text style={{ color: colors.muted, fontSize: 12, fontStyle: 'italic', marginTop: 2 }}>“{o.note}”</Text> : null}
+              {o.status === 'pendente' ? (
+                <View style={{ marginTop: 10 }}>
+                  <Row>
+                    <Button small title="Aceitar" style={{ marginRight: 6 }} onPress={() => dispatch({ type: 'COMPANY_RESPOND_OFFER', id: o.id, answer: 'aceitar' })} />
+                    <Button small variant="danger" title="Recusar" onPress={() => dispatch({ type: 'COMPANY_RESPOND_OFFER', id: o.id, answer: 'recusar' })} />
+                  </Row>
+                  <Row style={{ marginTop: 8 }}>
+                    <Input
+                      placeholder="Pedir outro desconto %"
+                      keyboardType="decimal-pad"
+                      value={counter[o.id] || ''}
+                      onChangeText={(v) => setCounter({ ...counter, [o.id]: v })}
+                      style={{ flex: 1, marginBottom: 0, marginRight: 6 }}
+                    />
+                    <Button
+                      small
+                      variant="outline"
+                      title="Enviar"
+                      onPress={() => {
+                        const c = parseFloat((counter[o.id] || '').replace(',', '.'));
+                        if (!isNaN(c)) dispatch({ type: 'COMPANY_RESPOND_OFFER', id: o.id, answer: 'contra', counter: c });
+                      }}
+                    />
+                  </Row>
+                </View>
+              ) : null}
+              {o.status === 'contraproposta' ? (
+                <Text style={{ color: colors.sponsored, marginTop: 6, fontWeight: '600' }}>Você pediu {o.counter}%. Aguardando o fornecedor.</Text>
+              ) : null}
+              {o.status === 'aceita' ? (
+                <Text style={{ fontSize: 12, color: colors.success, marginTop: 4 }}>✓ Entrou no seu estoque e no contas a pagar. Pagamento retido até a entrega.</Text>
+              ) : null}
+            </Card>
+          );
+        })}
+      </Section>
 
       <Card style={{ backgroundColor: '#EFEAFF', borderColor: '#CFC6FF' }}>
         <Text style={{ fontWeight: '800', color: colors.sponsored }}>🤝 Compra coletiva aberta</Text>
@@ -55,7 +118,7 @@ export default function B2BScreen() {
       </Card>
 
       <Section title="Catálogo atacado">
-        {state.supplierItems.map((item) => {
+        {catalog.map((item) => {
           const sup = state.suppliers.find((s) => s.id === item.supplierId);
           const q = parseInt(qty, 10);
           const auto = open === item.id && !isNaN(q) ? autoDiscount(item, q) : 0;
@@ -65,7 +128,14 @@ export default function B2BScreen() {
                 <Row>
                   <Text style={{ color: colors.text, fontSize: 30, marginRight: 10 }}>{item.emoji}</Text>
                   <View style={{ flex: 1 }}>
-                    <Text style={{ color: colors.text, fontWeight: '700' }}>{item.name}</Text>
+                    <Row>
+                      <Text style={{ color: colors.text, fontWeight: '700', flexShrink: 1 }}>{item.name}</Text>
+                      {item.featured ? (
+                        <View style={{ marginLeft: 6 }}>
+                          <Badge label="★ Destaque" color={colors.primary} />
+                        </View>
+                      ) : null}
+                    </Row>
                     <Text style={{ color: colors.muted, fontSize: 12 }}>
                       {sup.logo} {sup.name} · <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {sup.rating}</Text>
                     </Text>
@@ -73,7 +143,7 @@ export default function B2BScreen() {
                       {brl(item.unitPrice)} /un. · mín. {item.minQty}
                     </Text>
                     <Text style={{ fontSize: 11, color: colors.muted }}>
-                      {item.tiers.map((t) => `${t.off}% acima de ${t.qty}`).join(' · ')}
+                      {item.tiers.length ? '' : 'Preço único'}{item.tiers.map((t) => `${t.off}% acima de ${t.qty}`).join(' · ')}
                     </Text>
                   </View>
                 </Row>

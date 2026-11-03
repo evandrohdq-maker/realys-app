@@ -11,6 +11,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import VoiceAssistant from './src/screens/VoiceAssistant';
 import FeedScreen from './src/screens/cliente/FeedScreen';
 import HomeScreen from './src/screens/cliente/home/HomeScreen';
+import StoriesScreen from './src/screens/StoriesScreen';
 import StoreScreen from './src/screens/cliente/StoreScreen';
 import ServicesScreen from './src/screens/cliente/ServicesScreen';
 import OrdersScreen from './src/screens/cliente/OrdersScreen';
@@ -37,6 +38,7 @@ const TABS = {
   ],
   cliente: [
     { key: 'home', label: 'Início', icon: 'home-outline', Comp: HomeScreen },
+    { key: 'stories', label: 'Stories', icon: 'aperture-outline', Comp: StoriesScreen },
     { key: 'loja', label: 'Loja', icon: 'bag-handle-outline', Comp: StoreScreen },
     { key: 'servicos', label: 'Serviços', icon: 'construct-outline', Comp: ServicesScreen },
     { key: 'pedidos', label: 'Pedidos', icon: 'receipt-outline', Comp: OrdersScreen },
@@ -52,11 +54,13 @@ const TABS = {
   prestador: [
     { key: 'prestar', label: 'Trabalhar', icon: 'navigate-circle-outline', Comp: DriverScreen },
     { key: 'inicio', label: 'Feed', icon: 'home-outline', Comp: FeedScreen },
+    { key: 'stories', label: 'Stories', icon: 'aperture-outline', Comp: StoriesScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
   ],
   fornecedor: [
     { key: 'propostas', label: 'Propostas', icon: 'cube-outline', Comp: SupplierScreen },
     { key: 'inicio', label: 'Feed', icon: 'home-outline', Comp: FeedScreen },
+    { key: 'stories', label: 'Stories', icon: 'aperture-outline', Comp: StoriesScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
   ],
 };
@@ -149,7 +153,7 @@ function Shell() {
       </View>
 
       <View style={{ flex: 1 }}>
-        <Comp goTo={setTab} openVoice={() => setVoice(true)} explore={explore} openArea={openArea} />
+        <Comp goTo={setTab} openVoice={() => setVoice(true)} explore={explore} openArea={openArea} navigate={pick} />
       </View>
 
       <TouchableOpacity
@@ -309,7 +313,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   tab: { flex: 1, alignItems: 'center' },
-  tabLabel: { fontSize: 11, color: colors.muted, marginTop: 3 },
+  tabLabel: { fontSize: 10, color: colors.muted, marginTop: 3 },
   adminTools: { position: 'absolute', left: 18, alignItems: 'center' },
   adminBtn: {
     width: 46,

@@ -4,9 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf } from '../../../store';
 import { colors, brl } from '../../../theme';
 import { Screen, Photo, ProductThumb, Badge } from '../../../components/ui';
-import { promos, listings, LISTING_KINDS, LISTING_CTA, communityPosts, contacts, conversations as initialConversations, lives, stories as initialStories } from '../../../homeData';
+import { promos, listings, LISTING_KINDS, LISTING_CTA, communityPosts, contacts, lives } from '../../../homeData';
 import { ChatModal, VideoCallModal, LiveModal } from './Social';
-import { StoriesBar, StoryViewer, StoryComposer } from './Stories';
 
 // As 5 abas do topo do Início do cliente.
 const TOP = [
@@ -18,20 +17,17 @@ const TOP = [
 ];
 
 export default function HomeScreen({ goTo, explore }) {
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
   const [top, setTop] = useState('shop');
   const [kind, setKind] = useState('todos');
   const [seg, setSeg] = useState('posts');
-  const [convs, setConvs] = useState(initialConversations);
+  // Conversas ficam no estado do app (as respostas aos stories também caem aqui).
+  const convs = state.conversations;
+  const setConvs = (fn) => dispatch({ type: 'UPDATE_CONVS', fn: typeof fn === 'function' ? fn : () => fn });
   const [chatWith, setChatWith] = useState(null);
   const [videoWith, setVideoWith] = useState(null);
   const [live, setLive] = useState(null); // { live, mine }
   const [liveFilter, setLiveFilter] = useState('todas');
-  // Stories: os dos outros, o seu, quais já foram vistos e qual está aberto.
-  const [storySeen, setStorySeen] = useState({});
-  const [myStory, setMyStory] = useState({ id: 'mine', mine: true, name: 'Seu story', items: [] });
-  const [storyView, setStoryView] = useState(null); // { groups, start, mine }
-  const [composing, setComposing] = useState(false);
 
   // Veio do menu ⋮ (ex.: Imóveis → Alugar)
   useEffect(() => {
@@ -57,32 +53,6 @@ export default function HomeScreen({ goTo, explore }) {
     openChat({ id: 'adv-' + l.who, name: l.who, status: 'anunciante verificado', photo: `https://picsum.photos/seed/${encodeURIComponent(l.who)}/200/200` });
   const anyContact = (id) => contactOf(id) || (convs.find((c) => c.contactId === id) || {}).extra;
 
-  const userName = state.user ? state.user.name : 'Você';
-  const openStory = (which) =>
-    which === 'mine' ? setStoryView({ groups: [{ ...myStory, name: userName }], start: 0, mine: true }) : setStoryView({ groups: initialStories, start: which, mine: false });
-  // Resposta ao story vira mensagem na conversa com a pessoa (Comunidade › Mensagens).
-  const replyStory = (g, text) => {
-    const contact = contactOf(g.contactId) || { id: g.contactId, name: g.name, status: g.business ? 'empresa verificada' : 'pessoa verificada', photo: g.avatar };
-    const t = new Date();
-    const time = `${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`;
-    const msg = { from: 'me', text: `Respondeu ao seu story: ${text}`, time };
-    setConvs((cs) =>
-      cs.find((c) => c.contactId === contact.id)
-        ? cs.map((c) => (c.contactId === contact.id ? { ...c, messages: [...c.messages, msg] } : c))
-        : [{ id: 'm' + Date.now(), contactId: contact.id, unread: 0, messages: [msg], extra: contact }, ...cs]
-    );
-  };
-  const storyCta = (g) => {
-    setStoryView(null);
-    if (!g.ctaTo) return;
-    setTop(g.ctaTo.top);
-    if (g.ctaTo.kind) setKind(g.ctaTo.kind);
-  };
-  const publishStory = (item) => {
-    setMyStory((m) => ({ ...m, items: [...m.items, item] }));
-    setComposing(false);
-  };
-
   const chatConv = chatWith ? convs.find((c) => c.contactId === chatWith.id) : null;
 
   return (
@@ -102,21 +72,7 @@ export default function HomeScreen({ goTo, explore }) {
       </View>
 
       <View style={{ flex: 1 }}>
-        {top === 'shop' ? (
-          <ShopTab
-            goTo={goTo}
-            stories={
-              <StoriesBar
-                groups={initialStories}
-                mine={myStory}
-                seen={storySeen}
-                userName={userName}
-                onOpen={openStory}
-                onCreate={() => setComposing(true)}
-              />
-            }
-          />
-        ) : null}
+        {top === 'shop' ? <ShopTab goTo={goTo} /> : null}
         {top === 'promo' ? <PromoTab /> : null}
         {top === 'anuncios' ? <AdsTab kind={kind} setKind={setKind} onContact={contactAdvertiser} /> : null}
         {top === 'comunidade' ? (
@@ -142,17 +98,6 @@ export default function HomeScreen({ goTo, explore }) {
         onSend={(msg) => sendTo(chatWith.id, msg)}
         onVideo={() => setVideoWith(chatWith)}
       />
-      <StoryViewer
-        visible={!!storyView}
-        groups={storyView ? storyView.groups : []}
-        start={storyView ? storyView.start : 0}
-        isMine={!!(storyView && storyView.mine)}
-        onClose={() => setStoryView(null)}
-        onSeen={(id) => id !== 'mine' && setStorySeen((s) => (s[id] ? s : { ...s, [id]: true }))}
-        onReply={replyStory}
-        onCta={storyCta}
-      />
-      <StoryComposer visible={composing} onClose={() => setComposing(false)} onPublish={publishStory} />
       <VideoCallModal contact={videoWith} visible={!!videoWith} onClose={() => setVideoWith(null)} />
       <LiveModal
         live={live && live.live}
@@ -165,13 +110,22 @@ export default function HomeScreen({ goTo, explore }) {
   );
 }
 
-function ShopTab({ goTo, stories }) {
+function Hero() {
+  return (
+    <View style={styles.hero}>
+      <Text style={styles.heroTitle}>Você no comando.</Text>
+      <Text style={styles.heroSub}>Compre, contrate, anuncie e converse com pessoas reais, tudo num app só.</Text>
+    </View>
+  );
+}
+
+function ShopTab({ goTo }) {
   const { state, dispatch } = useStore();
   const featured = state.products.filter((p) => p.featured);
   const stores = [...state.stores].sort((a, b) => b.sponsored - a.sponsored || b.recommended - a.recommended || b.rating - a.rating);
   return (
     <Screen>
-      {stories}
+      <Hero />
       <SectionHead title="Destaques para você" action="Ver loja" onAction={() => goTo('loja')} />
       <View style={styles.grid}>
         {featured.map((p) => (
@@ -595,6 +549,16 @@ const styles = StyleSheet.create({
   },
   topTabOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   topTabText: { color: colors.text, fontSize: 10, fontWeight: '700', marginTop: 3 },
+  hero: {
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(226,182,73,0.55)',
+    backgroundColor: colors.primaryLight,
+    padding: 18,
+    marginBottom: 18,
+  },
+  heroTitle: { color: colors.primaryDark, fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
+  heroSub: { color: colors.muted, fontSize: 13, marginTop: 6, lineHeight: 18 },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, marginTop: 4 },
   sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '800' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 10 },

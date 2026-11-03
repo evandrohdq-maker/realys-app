@@ -27,7 +27,7 @@ export const SYSTEM_MAP = [
   {
     group: 'Cliente',
     items: [
-      { key: 'c-stories', name: 'Início › Stories', desc: 'Faixa de stories em destaque: ver, responder, criar o seu; patrocinados com botão de oferta', status: 'simulado', role: 'cliente', tab: 'home', top: 'shop', why: 'Stories de verdade (foto da câmera, 24 h no ar) precisam de servidor' },
+      { key: 'c-stories', name: 'Stories', desc: 'Página própria (botão Stories): ver, responder, criar o seu; patrocinados com botão de oferta', status: 'simulado', role: 'cliente', tab: 'stories', why: 'Stories de verdade (foto da câmera, 24 h no ar) precisam de servidor' },
       { key: 'c-shop', name: 'Início › Shop', desc: 'Destaques e lojas (patrocinadas primeiro)', status: 'demo', role: 'cliente', tab: 'home', top: 'shop' },
       { key: 'c-promo', name: 'Início › Promoções', desc: 'Ofertas com desconto', status: 'demo', role: 'cliente', tab: 'home', top: 'promo' },
       { key: 'c-ads', name: 'Início › Anúncios', desc: 'Imóveis, aluguel de carros e máquinas, hotéis, festas e noite, cursos e faculdades online', status: 'demo', role: 'cliente', tab: 'home', top: 'anuncios', why: 'Criar anúncio de verdade precisa de servidor' },
@@ -44,14 +44,14 @@ export const SYSTEM_MAP = [
       { key: 'e-painel', name: 'Painel', desc: 'Vendas, gráficos e alertas da IA', status: 'demo', role: 'empresa', tab: 'painel' },
       { key: 'e-est', name: 'Estoque', desc: 'Produtos ligados à vitrine e venda no balcão', status: 'demo', role: 'empresa', tab: 'estoque' },
       { key: 'e-caixa', name: 'Fluxo de caixa', desc: 'Entradas, saídas e projeção', status: 'demo', role: 'empresa', tab: 'caixa' },
-      { key: 'e-b2b', name: 'Negócios B2B', desc: 'Compras com proposta de desconto', status: 'demo', role: 'empresa', tab: 'negocios' },
+      { key: 'e-b2b', name: 'Negócios B2B', desc: 'Compras com proposta de desconto e propostas recebidas de fornecedores (aceitar, recusar, contrapropor)', status: 'demo', role: 'empresa', tab: 'negocios' },
     ],
   },
   {
     group: 'Prestador e fornecedor',
     items: [
       { key: 'p-trab', name: 'Prestador › Trabalhar', desc: 'Cadastro de funções e preços, GPS e pedidos', status: 'simulado', role: 'prestador', tab: 'prestar', why: 'GPS ligado não usa a localização real' },
-      { key: 'f-prop', name: 'Fornecedor › Propostas', desc: 'Aceitar, recusar ou contrapropor', status: 'demo', role: 'fornecedor', tab: 'propostas' },
+      { key: 'f-prop', name: 'Fornecedor › Propostas', desc: 'Destacar produtos, cadastrar produto, enviar proposta direto para empresas e responder pedidos', status: 'demo', role: 'fornecedor', tab: 'propostas' },
     ],
   },
   {

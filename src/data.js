@@ -193,9 +193,19 @@ export const suppliers = [
 // Catálogo atacado (B2B). Só empresas com CNPJ verificado veem estes preços.
 export const supplierItems = [
   { id: 'si1', supplierId: 's1', name: 'Feijão Carioca - 1kg', unitPrice: 5.6, minQty: 30, tiers: [{ qty: 50, off: 5 }, { qty: 200, off: 10 }], emoji: '🫘' },
-  { id: 'si2', supplierId: 's1', name: 'Farinha de Trigo 1kg', unitPrice: 3.9, minQty: 20, tiers: [{ qty: 50, off: 5 }, { qty: 200, off: 12 }], emoji: '🌾' },
+  { id: 'si2', supplierId: 's1', name: 'Farinha de Trigo 1kg', unitPrice: 3.9, minQty: 20, tiers: [{ qty: 50, off: 5 }, { qty: 200, off: 12 }], emoji: '🌾', featured: true },
   { id: 'si3', supplierId: 's1', name: 'Arroz Tipo 1 - 5kg', unitPrice: 19.5, minQty: 20, tiers: [{ qty: 100, off: 6 }], emoji: '🍚' },
-  { id: 'si4', supplierId: 's2', name: 'Café Torrado 500g', unitPrice: 12.2, minQty: 24, tiers: [{ qty: 96, off: 8 }], emoji: '☕' },
+  { id: 'si4', supplierId: 's2', name: 'Café Torrado 500g', unitPrice: 12.2, minQty: 24, tiers: [{ qty: 96, off: 8 }], emoji: '☕', featured: true },
+  { id: 'si5', supplierId: 's1', name: 'Óleo de Soja 900ml', unitPrice: 6.8, minQty: 24, tiers: [{ qty: 120, off: 7 }], emoji: '🫗' },
+  { id: 'si6', supplierId: 's1', name: 'Queijo Muçarela (kg)', unitPrice: 32.9, minQty: 10, tiers: [{ qty: 40, off: 6 }], emoji: '🧀' },
+];
+
+// Propostas que o FORNECEDOR envia direto para as empresas (oferta ativa).
+// status: pendente → aceita / recusada / contraproposta (a empresa pede outro desconto).
+export const initialOffers = [
+  { id: 'of1', itemId: 'si4', companyId: 'e1', qty: 48, discount: 10, note: 'Lote novo, torra da semana. Frete grátis acima de 48 un.', validUntil: 'sexta', status: 'pendente', counter: null, createdAt: 'Hoje 10:30' },
+  { id: 'of2', itemId: 'si6', companyId: 'e2', qty: 20, discount: 8, note: 'Muçarela para pizzaria, entrega em 24 h.', validUntil: 'domingo', status: 'aceita', counter: null, createdAt: 'Ontem 14:05' },
+  { id: 'of3', itemId: 'si3', companyId: 'e1', qty: 40, discount: 5, note: 'Preço especial para quem é cliente Realys.', validUntil: 'amanhã', status: 'contraproposta', counter: 9, createdAt: 'Ontem 09:20' },
 ];
 
 export const salesByDay = [

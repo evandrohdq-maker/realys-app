@@ -9,54 +9,6 @@ import { STORY_BACKGROUNDS, STORY_SAMPLE_PHOTOS } from '../../../homeData';
 const STORY_MS = 5000; // tempo de cada story na tela
 const TICK = 50;
 
-// Faixa de stories em destaque no topo do Início (como no Instagram).
-// Logo abaixo, bem pequena, a frase "Você no comando."
-export function StoriesBar({ groups, mine, seen, userName, onOpen, onCreate }) {
-  const hasMine = mine && mine.items.length > 0;
-  return (
-    <View style={styles.bar}>
-      <View style={styles.barHead}>
-        <Text style={styles.barTitle}>Stories</Text>
-        <Text style={styles.barSub}>o que a comunidade está vivendo agora</Text>
-      </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12 }}>
-        <TouchableOpacity style={styles.item} onPress={() => (hasMine ? onOpen('mine') : onCreate())} activeOpacity={0.85} accessibilityLabel="Seu story">
-          <View style={[styles.ring, { borderColor: hasMine ? colors.gold : colors.border }]}>
-            <View style={styles.meAvatar}>
-              <Text style={{ color: colors.onPrimary, fontWeight: '900', fontSize: 22 }}>{(userName || 'V')[0].toUpperCase()}</Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.plus} onPress={onCreate} accessibilityLabel="Criar story">
-            <Ionicons name="add" size={14} color={colors.onPrimary} />
-          </TouchableOpacity>
-          <Text numberOfLines={1} style={styles.name}>Seu story</Text>
-        </TouchableOpacity>
-
-        {groups.map((g, i) => {
-          const isSeen = !!seen[g.id];
-          const ring = isSeen ? colors.border : g.sponsored ? colors.sponsored : colors.gold;
-          return (
-            <TouchableOpacity key={g.id} style={styles.item} onPress={() => onOpen(i)} activeOpacity={0.85} accessibilityLabel={`Story de ${g.name}`}>
-              <View style={[styles.ring, { borderColor: ring, borderWidth: isSeen ? 1.5 : 3 }]}>
-                <Photo uri={g.avatar} style={styles.avatar} fallback="🙂" />
-              </View>
-              {g.business ? (
-                <View style={styles.bizTag}>
-                  <Ionicons name="storefront" size={9} color={colors.onPrimary} />
-                </View>
-              ) : null}
-              <Text numberOfLines={1} style={[styles.name, isSeen && { color: colors.muted }]}>
-                {g.name.split(' ')[0]}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-      <Text style={styles.slogan}>Você no comando.</Text>
-    </View>
-  );
-}
-
 // Tela cheia do story: barrinhas de progresso, toque à direita avança, à esquerda volta,
 // segurar pausa. Dá para responder (vai para Mensagens) e, nos patrocinados, abrir a oferta.
 export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, onCta, isMine }) {
@@ -292,59 +244,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
   );
 }
 
-const AV = 64;
 const styles = StyleSheet.create({
-  bar: {
-    backgroundColor: colors.card,
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: 'rgba(226,182,73,0.55)',
-    paddingTop: 12,
-    paddingBottom: 10,
-    marginHorizontal: -4,
-    marginBottom: 18,
-    shadowColor: colors.gold,
-    shadowOpacity: 0.25,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
-  },
-  barHead: { flexDirection: 'row', alignItems: 'baseline', paddingHorizontal: 14, marginBottom: 10 },
-  barTitle: { color: colors.text, fontSize: 17, fontWeight: '900' },
-  barSub: { color: colors.muted, fontSize: 11, marginLeft: 8, flexShrink: 1 },
-  item: { width: 76, alignItems: 'center', marginRight: 4 },
-  ring: { width: AV + 8, height: AV + 8, borderRadius: (AV + 8) / 2, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
-  avatar: { width: AV, height: AV, borderRadius: AV / 2 },
-  meAvatar: { width: AV, height: AV, borderRadius: AV / 2, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  plus: {
-    position: 'absolute',
-    top: AV - 10,
-    right: 4,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: colors.accent,
-    borderWidth: 2,
-    borderColor: colors.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bizTag: {
-    position: 'absolute',
-    top: AV - 8,
-    right: 6,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: colors.primary,
-    borderWidth: 2,
-    borderColor: colors.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  name: { color: colors.text, fontSize: 11, fontWeight: '600', marginTop: 5, maxWidth: 72 },
-  slogan: { color: colors.primary, fontSize: 10, fontWeight: '700', letterSpacing: 1, textAlign: 'center', marginTop: 8, opacity: 0.85 },
-
   top: { position: 'absolute', left: 0, right: 0, top: 0, paddingHorizontal: 10 },
   bars: { flexDirection: 'row' },
   barTrack: { flex: 1, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.35)', marginHorizontal: 2, overflow: 'hidden' },
