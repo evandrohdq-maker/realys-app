@@ -149,6 +149,12 @@ export const serviceTypes = [
   { key: 'pintor', label: 'Pintor', icon: '🎨', ion: 'color-palette-outline', group: 'Casa e reparos', words: ['pintor', 'pintar', 'pintura'] },
   { key: 'chaveiro', label: 'Chaveiro', icon: '🔑', ion: 'key-outline', group: 'Casa e reparos', words: ['chaveiro', 'chave', 'fechadura', 'tranquei'] },
   { key: 'tecnico', label: 'Técnico de informática', icon: '💻', ion: 'laptop-outline', group: 'Tecnologia', words: ['tecnico', 'computador', 'notebook', 'informatica', 'celular quebrado', 'internet'] },
+  { key: 'dj', label: 'DJ e som', icon: '🎧', ion: 'musical-notes-outline', group: 'Festas e eventos', words: ['dj', 'som para festa', 'musica para festa', 'sonorizacao'] },
+  { key: 'fotografo', label: 'Fotógrafo', icon: '📷', ion: 'camera-outline', group: 'Festas e eventos', words: ['fotografo', 'fotografia', 'filmagem', 'ensaio'] },
+  { key: 'buffet', label: 'Buffet e garçom', icon: '🍽️', ion: 'wine-outline', group: 'Festas e eventos', words: ['buffet', 'garcom', 'salgadinho', 'churrasqueiro', 'bartender'] },
+  { key: 'decoracao', label: 'Decoração de festa', icon: '🎈', ion: 'balloon-outline', group: 'Festas e eventos', words: ['decoracao', 'decorar', 'baloes', 'balao'] },
+  { key: 'professor', label: 'Professor particular', icon: '📚', ion: 'school-outline', group: 'Aulas', words: ['professor', 'aula particular', 'reforco', 'aula de', 'explicador'] },
+  { key: 'personal', label: 'Personal trainer', icon: '🏋️', ion: 'barbell-outline', group: 'Aulas', words: ['personal', 'treino', 'academia', 'treinador'] },
   { key: 'frete', label: 'Frete e mudança', icon: '🚚', ion: 'cube-outline', group: 'Transporte', words: ['frete', 'mudanca', 'carreto'] },
   { key: 'motoboy', label: 'Motoboy', icon: '🛵', ion: 'bicycle-outline', group: 'Transporte', words: ['motoboy', 'moto boy', 'entregador', 'encomenda'] },
   { key: 'motorista', label: 'Motorista', icon: '🚗', ion: 'car-sport-outline', group: 'Transporte', words: ['uber', 'carro', 'motorista', 'corrida', 'taxi', 'carona'] },
@@ -170,6 +176,13 @@ export const providers = [
   { id: 'v10', name: 'Sandra Melo', service: 'chaveiro', rating: 4.9, distanceKm: 1.5, vehicle: 'Moto Honda Biz', plate: 'CHV2A90', functions: ['Abertura de portas', 'Cópia de chaves', 'Troca de fechadura'], price: 60, priceUnit: 'serviço', photo: photo('realys-sandra', 200, 200) },
   { id: 'v11', name: 'Thiago Ramos', service: 'tecnico', rating: 4.8, distanceKm: 3.0, vehicle: null, plate: null, functions: ['Formatação', 'Rede e Wi-Fi', 'Conserto de notebook e celular'], price: 100, priceUnit: 'hora', photo: photo('realys-thiago', 200, 200) },
   { id: 'v12', name: 'José Carreto', service: 'frete', rating: 4.5, distanceKm: 6.1, vehicle: 'Caminhão baú 3/4', plate: 'FRT9J03', functions: ['Fretes', 'Mudanças pequenas', 'Entregas de móveis'], price: 150, priceUnit: 'frete (até 10 km)', photo: photo('realys-jose', 200, 200) },
+  { id: 'v16', name: 'DJ Bruno Beats', service: 'dj', rating: 4.9, distanceKm: 3.2, vehicle: null, plate: null, functions: ['Som e iluminação', 'Casamentos e aniversários', 'Festas em casa noturna'], price: 900, priceUnit: 'evento (até 5h)', photo: photo('realys-dj', 200, 200) },
+  { id: 'v17', name: 'Carla Souza Fotografia', service: 'fotografo', rating: 5.0, distanceKm: 2.8, vehicle: null, plate: null, functions: ['Fotos de eventos', 'Ensaios', 'Filmagem com drone'], price: 250, priceUnit: 'hora', photo: photo('realys-foto', 200, 200) },
+  { id: 'v18', name: 'Buffet Sabor & Festa', service: 'buffet', rating: 4.8, distanceKm: 4.1, vehicle: null, plate: null, functions: ['Salgados e doces', 'Garçons e bartender', 'Churrasco no local'], price: 65, priceUnit: 'convidado', photo: photo('realys-buffet', 200, 200) },
+  { id: 'v19', name: 'Encanto Decorações', service: 'decoracao', rating: 4.7, distanceKm: 5.0, vehicle: null, plate: null, functions: ['Arco de balões', 'Mesa temática', 'Decoração de casamento'], price: 450, priceUnit: 'festa', photo: photo('realys-decor', 200, 200) },
+  { id: 'v20', name: 'Profa. Helena Matos', service: 'professor', rating: 4.9, distanceKm: 1.4, vehicle: null, plate: null, functions: ['Matemática e física', 'Reforço escolar', 'Preparação para o Enem', 'Aula online ou presencial'], price: 70, priceUnit: 'hora', photo: photo('realys-helena', 200, 200) },
+  { id: 'v21', name: 'Prof. Rafael Inglês', service: 'professor', rating: 4.8, distanceKm: 3.6, vehicle: null, plate: null, functions: ['Inglês para conversação', 'Inglês para negócios', 'Aula online ao vivo'], price: 60, priceUnit: 'hora', photo: photo('realys-rafaelp', 200, 200) },
+  { id: 'v22', name: 'Thais Personal', service: 'personal', rating: 4.9, distanceKm: 2.0, vehicle: null, plate: null, functions: ['Treino funcional', 'Emagrecimento', 'Treino em casa ou no parque'], price: 90, priceUnit: 'aula', photo: photo('realys-thais', 200, 200) },
 ];
 
 export const suppliers = [

@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf } from '../../../store';
 import { colors, brl } from '../../../theme';
 import { Screen, Photo, ProductThumb, Badge } from '../../../components/ui';
-import { promos, listings, LISTING_KINDS, communityPosts, contacts, conversations as initialConversations, lives } from '../../../homeData';
+import { promos, listings, LISTING_KINDS, LISTING_CTA, communityPosts, contacts, conversations as initialConversations, lives } from '../../../homeData';
 import { ChatModal, VideoCallModal, LiveModal } from './Social';
 
 // As 5 abas do topo do Início do cliente.
@@ -25,6 +25,7 @@ export default function HomeScreen({ goTo, explore }) {
   const [chatWith, setChatWith] = useState(null);
   const [videoWith, setVideoWith] = useState(null);
   const [live, setLive] = useState(null); // { live, mine }
+  const [liveFilter, setLiveFilter] = useState('todas');
 
   // Veio do menu ⋮ (ex.: Imóveis → Alugar)
   useEffect(() => {
@@ -32,6 +33,7 @@ export default function HomeScreen({ goTo, explore }) {
     setTop(explore.top);
     if (explore.kind) setKind(explore.kind);
     if (explore.seg) setSeg(explore.seg);
+    if (explore.live) setLiveFilter(explore.live);
   }, [explore]);
 
   const contactOf = (id) => contacts.find((c) => c.id === id);
@@ -83,7 +85,7 @@ export default function HomeScreen({ goTo, explore }) {
             userName={state.user ? state.user.name : 'Você'}
           />
         ) : null}
-        {top === 'lives' ? <LivesTab onWatch={(l) => setLive({ live: l, mine: false })} onGoLive={() => setLive({ live: null, mine: true })} /> : null}
+        {top === 'lives' ? <LivesTab filter={liveFilter} setFilter={setLiveFilter} onWatch={(l) => setLive({ live: l, mine: false })} onGoLive={() => setLive({ live: null, mine: true })} /> : null}
       </View>
 
       <ChatModal
@@ -206,8 +208,7 @@ function AdsTab({ kind, setKind, onContact }) {
   const list = listings
     .filter((l) => kind === 'todos' || l.kind === kind)
     .sort((a, b) => b.sponsored - a.sponsored);
-  const cta = (l) =>
-    l.kind.startsWith('imovel') ? 'Agendar visita' : 'Reservar';
+  const cta = (l) => l.cta || LISTING_CTA[l.kind] || 'Reservar';
   return (
     <Screen>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 12 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
@@ -442,8 +443,20 @@ function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive
   );
 }
 
-function LivesTab({ onWatch, onGoLive }) {
-  const list = [...lives].sort((a, b) => b.sponsored - a.sponsored || b.viewers - a.viewers);
+const LIVE_FILTERS = [
+  ['todas', 'Todas', 'radio-outline'],
+  ['aulas', 'Aulas e cursos', 'school-outline'],
+  ['compras', 'Compras ao vivo', 'bag-handle-outline'],
+  ['noite', 'Noite e eventos', 'musical-notes-outline'],
+];
+
+function LivesTab({ filter, setFilter, onWatch, onGoLive }) {
+  const match = (l) =>
+    filter === 'todas' ||
+    (filter === 'aulas' && l.aula) ||
+    (filter === 'compras' && (l.tag === 'Compras ao vivo' || l.tag === 'Gastronomia' || l.tag === 'Imóveis')) ||
+    (filter === 'noite' && l.tag === 'Noite e eventos');
+  const list = lives.filter(match).sort((a, b) => b.sponsored - a.sponsored || b.viewers - a.viewers);
   return (
     <Screen>
       <TouchableOpacity style={styles.goLiveCard} onPress={onGoLive} activeOpacity={0.9}>
@@ -452,12 +465,24 @@ function LivesTab({ onWatch, onGoLive }) {
         </View>
         <View style={{ flex: 1, marginLeft: 12 }}>
           <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>Abrir minha live</Text>
-          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Mostre seus produtos ou converse com a comunidade</Text>
+          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Dê uma aula, mostre seus produtos ou converse com a comunidade</Text>
         </View>
         <Ionicons name="chevron-forward" size={18} color={colors.muted} />
       </TouchableOpacity>
 
-      <SectionHead title="Ao vivo agora" />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 12 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
+        {LIVE_FILTERS.map(([k, label, icon]) => {
+          const on = k === filter;
+          return (
+            <TouchableOpacity key={k} style={[styles.chip, on && styles.chipOn]} onPress={() => setFilter(k)}>
+              <Ionicons name={icon} size={15} color={on ? colors.onPrimary : colors.primary} />
+              <Text style={[styles.chipText, on && { color: colors.onPrimary }]}>{label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
+      <SectionHead title={filter === 'aulas' ? 'Aulas ao vivo agora' : 'Ao vivo agora'} />
       {list.map((l) => (
         <TouchableOpacity key={l.id} style={styles.liveCard} onPress={() => onWatch(l)} activeOpacity={0.9}>
           <Photo uri={l.photo} style={styles.livePhoto} fallback="🎥" />

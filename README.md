@@ -40,7 +40,7 @@ O administrador vê a visão geral da plataforma (usuários, empresas, receita),
 
 **Menu ⋮ (três pontinhos):** no topo, abre as classes **Restaurantes, Serviços gerais, Lojas, Social e Área empresarial**. Cada classe abre uma sub-aba para escolher o tipo (ex.: Serviços gerais → Eletricista).
 
-**Início do cliente (abas no topo):** **Shop** (destaques e lojas), **Promoções** (ofertas relâmpago), **Anúncios** (imóveis à venda e para alugar, aluguel de carros, vans, máquinas e equipamentos), **Comunidade** (posts de pessoas reais com anúncios entre eles, mensagens com histórico, contatos e chamada de vídeo) e **Lives** (assistir e abrir a sua). Chamadas de vídeo e lives são simuladas na demonstração: a versão real precisa do servidor de vídeo.
+**Início do cliente (abas no topo):** **Shop** (destaques e lojas), **Promoções** (ofertas relâmpago), **Anúncios** (imóveis à venda e para alugar, aluguel de carros, vans, máquinas e equipamentos, hotéis e pousadas, casas noturnas, shows, festas e salões, cursos e faculdades online), **Comunidade** (posts de pessoas reais com anúncios entre eles, mensagens com histórico, contatos e chamada de vídeo) e **Lives** (assistir e abrir a sua: bate-papo, venda ao vivo ou aula ao vivo). Chamadas de vídeo e lives são simuladas na demonstração: a versão real precisa do servidor de vídeo.
 
 **Contratar serviço:** a busca mostra todos os prestadores próximos no mapa, com filtros (mais próximo, melhor avaliado, menor preço). Cada um tem **Contratar**, **Orçamento** e **Ver perfil**; "O mais próximo" é só um atalho. Depois de contratar, a tela de **GPS** mostra o prestador chegando, o tempo de espera e o código de chegada.
 

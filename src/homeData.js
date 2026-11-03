@@ -19,7 +19,21 @@ export const LISTING_KINDS = [
   { key: 'imovel-aluguel', label: 'Imóveis para alugar', icon: 'key-outline' },
   { key: 'carro-aluguel', label: 'Aluguel de carros', icon: 'car-sport-outline' },
   { key: 'maquina-aluguel', label: 'Aluguel de máquinas', icon: 'construct-outline' },
+  { key: 'hotel', label: 'Hotéis e pousadas', icon: 'bed-outline' },
+  { key: 'evento', label: 'Festas, eventos e noite', icon: 'musical-notes-outline' },
+  { key: 'curso', label: 'Cursos e faculdades online', icon: 'school-outline' },
 ];
+
+// Texto do botão principal de cada tipo de anúncio.
+export const LISTING_CTA = {
+  'imovel-venda': 'Agendar visita',
+  'imovel-aluguel': 'Agendar visita',
+  'carro-aluguel': 'Reservar',
+  'maquina-aluguel': 'Reservar',
+  hotel: 'Reservar diária',
+  evento: 'Comprar ingresso',
+  curso: 'Inscrever-se',
+};
 
 export const listings = [
   { id: 'l1', kind: 'imovel-venda', title: 'Apartamento 2 quartos com varanda', detail: '68 m² · 1 vaga · condomínio com lazer', price: 'R$ 420.000', place: 'Vila Mariana, São Paulo - SP', who: 'Imobiliária Horizonte', sponsored: true, photo: photo('realys-ap1') },
@@ -34,6 +48,17 @@ export const listings = [
   { id: 'l10', kind: 'maquina-aluguel', title: 'Retroescavadeira com operador', detail: 'Terraplanagem e valas', price: 'R$ 1.400/dia', place: 'Região de Campinas - SP', who: 'Máquinas Forte', sponsored: true, photo: photo('realys-retro') },
   { id: 'l11', kind: 'maquina-aluguel', title: 'Betoneira 400 litros', detail: 'Entrega e retirada na obra', price: 'R$ 90/dia', place: 'São Paulo - SP', who: 'Aluga Obra', sponsored: false, photo: photo('realys-betoneira') },
   { id: 'l12', kind: 'maquina-aluguel', title: 'Andaimes (kit 10 peças)', detail: 'Montagem orientada', price: 'R$ 320/semana', place: 'Osasco - SP', who: 'Aluga Obra', sponsored: false, photo: photo('realys-andaime') },
+  { id: 'l13', kind: 'hotel', title: 'Hotel Vista Mar · quarto casal', detail: 'Café da manhã, piscina e Wi-Fi · check-in 14h', price: 'R$ 380/diária', place: 'Balneário Camboriú - SC', who: 'Hotel Vista Mar', sponsored: true, photo: photo('realys-hotel1') },
+  { id: 'l14', kind: 'hotel', title: 'Pousada Recanto da Serra', detail: 'Chalé com lareira · aceita pet', price: 'R$ 290/diária', place: 'Campos do Jordão - SP', who: 'Pousada Recanto da Serra', sponsored: false, photo: photo('realys-pousada') },
+  { id: 'l15', kind: 'hotel', title: 'Hotel Executivo Centro', detail: 'Perto do metrô · sala de reunião', price: 'R$ 240/diária', place: 'Centro, São Paulo - SP', who: 'Rede Conforto Hotéis', sponsored: false, photo: photo('realys-hotel2') },
+  { id: 'l16', kind: 'evento', title: 'Sexta Eletrônica · Club Neon', detail: 'Casa noturna · DJs convidados · a partir das 23h', price: 'R$ 60 ingresso', cta: 'Comprar ingresso', place: 'Vila Olímpia, São Paulo - SP', who: 'Club Neon', sponsored: true, photo: photo('realys-balada') },
+  { id: 'l17', kind: 'evento', title: 'Samba no Quintal ao vivo', detail: 'Sábado · open bar opcional', price: 'R$ 45 ingresso', cta: 'Comprar ingresso', place: 'Lapa, Rio de Janeiro - RJ', who: 'Quintal do Samba', sponsored: false, photo: photo('realys-samba') },
+  { id: 'l18', kind: 'evento', title: 'Salão de festas para 150 pessoas', detail: 'Cozinha, som e estacionamento', price: 'R$ 2.800/data', cta: 'Reservar data', place: 'Guarulhos - SP', who: 'Espaço Celebrar', sponsored: false, photo: photo('realys-salao') },
+  { id: 'l19', kind: 'evento', title: 'Festival de Food Trucks', detail: 'Domingo · entrada gratuita · música ao vivo', price: 'Grátis', cta: 'Confirmar presença', place: 'Parque Central, Curitiba - PR', who: 'Prefeitura em Movimento', sponsored: false, photo: photo('realys-foodtruck') },
+  { id: 'l20', kind: 'curso', title: 'Excel do básico ao avançado', detail: 'Curso online · 40h · certificado', price: 'R$ 197', place: '100% online', who: 'Escola Digital Pro', sponsored: true, photo: photo('realys-excel') },
+  { id: 'l21', kind: 'curso', title: 'Graduação EAD em Administração', detail: 'Faculdade online · 4 anos · reconhecida pelo MEC', price: 'R$ 249/mês', place: 'Online, com polos presenciais', who: 'Faculdade Horizonte Digital', sponsored: false, photo: photo('realys-faculdade') },
+  { id: 'l22', kind: 'curso', title: 'Pós-graduação em Marketing Digital', detail: 'Online · 12 meses · aulas ao vivo', price: 'R$ 189/mês', place: '100% online', who: 'Faculdade Horizonte Digital', sponsored: false, photo: photo('realys-pos') },
+  { id: 'l23', kind: 'curso', title: 'Inglês conversação em grupo', detail: 'Aulas ao vivo 2x por semana', price: 'R$ 129/mês', place: 'Online ao vivo', who: 'Prof. Rafael Inglês', sponsored: false, photo: photo('realys-ingles') },
 ];
 
 // Comunidade: posts de clientes (pessoas reais, verificadas).
@@ -83,8 +108,12 @@ export const lives = [
   { id: 'v2', title: 'Pizza na pedra: assista a montagem', host: 'Pizzaria da Praça', viewers: 380, sponsored: false, photo: photo('realys-live-pizza', 800, 500), tag: 'Gastronomia' },
   { id: 'v3', title: 'Tour pelo apartamento à venda na Vila Mariana', host: 'Imobiliária Horizonte', viewers: 96, sponsored: false, photo: photo('realys-live-ap', 800, 500), tag: 'Imóveis' },
   { id: 'v4', title: 'Bate-papo: dicas para economizar no mercado', host: 'Ana Paula', viewers: 57, sponsored: false, photo: photo('realys-live-ana', 800, 500), tag: 'Comunidade' },
+  { id: 'v5', title: 'Aula ao vivo: matemática para o Enem', host: 'Profa. Helena Matos', viewers: 412, sponsored: false, photo: photo('realys-live-aula', 800, 500), tag: 'Aula ao vivo', aula: true },
+  { id: 'v6', title: 'Aula aberta: introdução à Administração', host: 'Faculdade Horizonte Digital', viewers: 865, sponsored: true, photo: photo('realys-live-facul', 800, 500), tag: 'Faculdade online', aula: true },
+  { id: 'v7', title: 'Treino funcional em casa (30 min)', host: 'Thais Personal', viewers: 230, sponsored: false, photo: photo('realys-live-treino', 800, 500), tag: 'Aula ao vivo', aula: true },
+  { id: 'v8', title: 'Esquenta de sexta direto do Club Neon', host: 'Club Neon', viewers: 640, sponsored: false, photo: photo('realys-live-balada', 800, 500), tag: 'Noite e eventos' },
 ];
 
 export const liveComments = [
-  'Que top! 🔥', 'Tem cupom?', 'Chegou agora, o que perdi?', 'Quero esse!', 'Entrega em Campinas?', 'Muito bom 👏', 'Qual o preço?', 'Já comprei pelo app!',
+  'Que top! 🔥', 'Tem cupom?', 'Professor, pode repetir?', 'Entendi agora! 🙌', 'Chegou agora, o que perdi?', 'Quero esse!', 'Entrega em Campinas?', 'Muito bom 👏', 'Qual o preço?', 'Já comprei pelo app!',
 ];

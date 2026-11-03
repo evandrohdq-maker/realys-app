@@ -164,6 +164,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
   const [comments, setComments] = useState([]);
   const [text, setText] = useState('');
   const [liked, setLiked] = useState(0);
+  const [type, setType] = useState('papo');
 
   useEffect(() => {
     if (!visible) return;
@@ -240,9 +241,24 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
           <View style={styles.goLive}>
             <Text style={styles.goLiveTitle}>Abrir uma live</Text>
             <Text style={{ color: colors.muted, marginBottom: 12 }}>Seus contatos e seguidores recebem o aviso na hora.</Text>
+            <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+              {[
+                ['papo', 'Bate-papo', 'chatbubbles-outline'],
+                ['aula', 'Aula', 'school-outline'],
+                ['venda', 'Venda ao vivo', 'bag-handle-outline'],
+              ].map(([k, label, icon]) => {
+                const on = type === k;
+                return (
+                  <TouchableOpacity key={k} style={[styles.typeChip, on && styles.typeChipOn]} onPress={() => setType(k)}>
+                    <Ionicons name={icon} size={14} color={on ? colors.onPrimary : colors.primary} />
+                    <Text style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>{label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
             <TextInput
               style={styles.goLiveInput}
-              placeholder="Título da live (ex.: Bate-papo com a comunidade)"
+              placeholder={type === 'aula' ? 'Tema da aula (ex.: Matemática para o Enem)' : type === 'venda' ? 'O que você vai vender (ex.: Coleção de verão)' : 'Título da live (ex.: Bate-papo com a comunidade)'}
               placeholderTextColor={colors.muted}
               value={title}
               onChangeText={setTitle}
@@ -256,7 +272,12 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
 
         {onAir ? (
           <View style={[styles.liveBottom, { paddingBottom: 14 + insets.bottom }]}>
-            {mine && title ? <Text style={styles.liveTitle}>{title}</Text> : null}
+            {mine && title ? (
+              <Text style={styles.liveTitle}>
+                {type === 'aula' ? 'Aula ao vivo · ' : type === 'venda' ? 'Venda ao vivo · ' : ''}
+                {title}
+              </Text>
+            ) : null}
             {comments.map((c, i) => (
               <View key={i} style={styles.comment}>
                 <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{c.who} </Text>
@@ -375,6 +396,17 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 12,
   },
+  typeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 34,
+    paddingHorizontal: 10,
+    borderRadius: 17,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginRight: 6,
+  },
+  typeChipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   goLiveBtn: { height: 52, borderRadius: 16, backgroundColor: '#FF3B5C', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   liveBottom: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 14 },
   comment: {
