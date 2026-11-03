@@ -22,7 +22,8 @@
         {
           "faceIDPermission": "O Realys usa sua biometria para confirmar que você é uma pessoa real."
         }
-      ]
+      ],
+      "expo-status-bar"
     ]
   }
 }
