@@ -1,0 +1,21 @@
+{
+  "name": "realys",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "prebuild": "expo prebuild --platform android --clean"
+  },
+  "dependencies": {
+    "expo": "~56.0.0",
+    "expo-intent-launcher": "*",
+    "expo-local-authentication": "*",
+    "expo-speech": "*",
+    "expo-status-bar": "*",
+    "react": "*",
+    "react-native": "*",
+    "react-native-safe-area-context": "*"
+  }
+}
