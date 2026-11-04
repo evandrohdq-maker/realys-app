@@ -6,6 +6,8 @@ import { colors, brl } from '../../../theme';
 import { Screen, Photo, ProductThumb, Badge } from '../../../components/ui';
 import { promos, listings, LISTING_KINDS, LISTING_CTA, communityPosts, contacts, lives } from '../../../homeData';
 import { ChatModal, VideoCallModal, LiveModal } from './Social';
+import { members, memberByName } from '../../../people';
+import { PeopleSearchModal, PersonRow } from '../../../components/People';
 
 // As 5 abas do topo do Início do cliente.
 const TOP = [
@@ -276,7 +278,18 @@ function AdsTab({ kind, setKind, onContact }) {
 }
 
 function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive, userName }) {
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
+  const [searching, setSearching] = useState(false);
+  // Tocar em quem postou abre o perfil da pessoa (com o botão de amizade).
+  const openAuthor = (name) => {
+    const m = memberByName(name);
+    if (m) dispatch({ type: 'OPEN_PROFILE', id: m.id });
+  };
+  const requests = members.filter((m) => state.friends[m.id] === 'recebido');
+  const friends = members
+    .filter((m) => state.friends[m.id] === 'amigo')
+    .map((m) => ({ ...(contacts.find((c) => c.id === m.id) || { status: 'amigo no Realys' }), id: m.id, name: m.name, photo: m.photo }));
+  const people = [...friends, ...contacts.filter((c) => c.business)];
   const [posts, setPosts] = useState(communityPosts);
   const [draft, setDraft] = useState('');
   const [liked, setLiked] = useState({});
@@ -341,17 +354,26 @@ function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive
           {feed.map((it, idx) =>
             it.type === 'post' ? (
               <View key={it.p.id} style={styles.post}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <View style={styles.avatar}>
-                    <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>{it.p.author[0]}</Text>
-                  </View>
+                <TouchableOpacity
+                  style={{ flexDirection: 'row', alignItems: 'center' }}
+                  activeOpacity={memberByName(it.p.author) ? 0.7 : 1}
+                  onPress={() => openAuthor(it.p.author)}
+                  accessibilityLabel={`Ver perfil de ${it.p.author}`}
+                >
+                  {memberByName(it.p.author) ? (
+                    <Photo uri={memberByName(it.p.author).photo} style={[styles.avatar, { padding: 0 }]} fallback="🙂" />
+                  ) : (
+                    <View style={styles.avatar}>
+                      <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>{it.p.author[0]}</Text>
+                    </View>
+                  )}
                   <View style={{ flex: 1, marginLeft: 10 }}>
                     <Text style={{ color: colors.text, fontWeight: '700' }}>
                       {it.p.author} <Ionicons name="shield-checkmark" size={12} color={colors.primary} />
                     </Text>
                     <Text style={{ color: colors.muted, fontSize: 11 }}>{it.p.time}</Text>
                   </View>
-                </View>
+                </TouchableOpacity>
                 <Text style={{ color: colors.text, marginTop: 10, lineHeight: 20 }}>{it.p.text}</Text>
                 {it.p.image ? <Photo uri={it.p.image} style={styles.postImg} /> : null}
                 <View style={{ flexDirection: 'row', marginTop: 10 }}>
@@ -414,6 +436,20 @@ function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive
 
       {seg === 'contatos' ? (
         <Screen>
+          <TouchableOpacity style={styles.findPeople} onPress={() => setSearching(true)} activeOpacity={0.85}>
+            <Ionicons name="search" size={18} color={colors.muted} />
+            <Text style={{ color: colors.muted, marginLeft: 8, flex: 1 }}>Buscar pessoas por nome ou @usuário</Text>
+            <Ionicons name="person-add-outline" size={18} color={colors.primary} />
+          </TouchableOpacity>
+          {requests.length ? (
+            <>
+              <Text style={styles.contactsTitle}>Pedidos de amizade ({requests.length})</Text>
+              {requests.map((m) => (
+                <PersonRow key={m.id} m={m} onOpen={() => dispatch({ type: 'OPEN_PROFILE', id: m.id })} />
+              ))}
+            </>
+          ) : null}
+          <Text style={styles.contactsTitle}>Amigos e contatos ({people.length})</Text>
           <TouchableOpacity
             style={styles.announce}
             onPress={() => Alert.alert('Convidar amigos', 'Mande o convite: quem entra no Realys passa pela verificação por biometria.')}
@@ -421,8 +457,14 @@ function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive
             <Ionicons name="person-add-outline" size={18} color={colors.primary} />
             <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>Convidar para o Realys</Text>
           </TouchableOpacity>
-          {contacts.map((ct) => (
+          {people.map((ct) => (
             <View key={ct.id} style={styles.convRow}>
+              <TouchableOpacity
+                style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
+                onPress={() => !ct.business && dispatch({ type: 'OPEN_PROFILE', id: ct.id })}
+                activeOpacity={ct.business ? 1 : 0.7}
+                accessibilityLabel={`Ver perfil de ${ct.name}`}
+              >
               <View>
                 <Photo uri={ct.photo} style={styles.convAvatar} fallback="🙂" />
                 {ct.status === 'online' ? <View style={styles.onlineDot} /> : null}
@@ -431,6 +473,7 @@ function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive
                 <Text style={{ color: colors.text, fontWeight: '700' }}>{ct.name}</Text>
                 <Text style={{ color: ct.status === 'online' ? colors.success : colors.muted, fontSize: 12 }}>{ct.status}</Text>
               </View>
+              </TouchableOpacity>
               <TouchableOpacity style={styles.roundSm} onPress={() => onChat(ct)} accessibilityLabel={`Mensagem para ${ct.name}`}>
                 <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.primary} />
               </TouchableOpacity>
@@ -441,6 +484,7 @@ function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive
           ))}
         </Screen>
       ) : null}
+      <PeopleSearchModal visible={searching} onClose={() => setSearching(false)} />
     </View>
   );
 }
@@ -669,6 +713,8 @@ const styles = StyleSheet.create({
   unread: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginLeft: 5, paddingHorizontal: 4 },
   liveBtn: { flexDirection: 'row', alignItems: 'center', height: 32, paddingHorizontal: 10, borderRadius: 16, backgroundColor: '#FF3B5C', marginLeft: 'auto' },
   composer: { backgroundColor: colors.card, borderRadius: 18, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 12 },
+  findPeople: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingHorizontal: 12, height: 46, marginBottom: 6 },
+  contactsTitle: { color: colors.text, fontWeight: '800', fontSize: 15, marginTop: 12, marginBottom: 8 },
   composerInput: { color: colors.text, fontSize: 15, minHeight: 44, textAlignVertical: 'top' },
   publish: { alignSelf: 'flex-end', height: 36, paddingHorizontal: 16, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
   post: { backgroundColor: colors.card, borderRadius: 18, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 12 },

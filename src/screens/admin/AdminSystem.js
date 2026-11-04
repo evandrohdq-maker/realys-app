@@ -21,6 +21,7 @@ export const SYSTEM_MAP = [
       { key: 'login', name: 'Tela de entrada', desc: 'Usuário, CPF ou CNPJ + biometria do celular', status: 'simulado', why: 'Conta e documento ainda não são conferidos num servidor' },
       { key: 'menu', name: 'Menu ⋮ de categorias', desc: 'Classes e sub-abas que levam às telas', status: 'demo', role: 'cliente', tab: 'home' },
       { key: 'voz', name: 'Assistente de voz "Realys"', desc: 'Pesquisa por voz e palavra de ativação "Realys" (Perfil → mãos livres)', status: 'demo', why: 'Com a tela bloqueada ainda não funciona' },
+      { key: 'pessoas', name: 'Buscar pessoas e perfis', desc: 'Lupa no topo: achar usuários por nome ou @usuário; tocar em quem postou abre o perfil com posts, pedir amizade (aceitar, recusar, cancelar) e mensagem', status: 'simulado', role: 'cliente', tab: 'home', top: 'comunidade', why: 'Os membros são de exemplo; pedido de amizade entre pessoas reais precisa de servidor' },
       { key: 'update', name: 'Atualização automática', desc: 'Avisa e baixa o APK novo do GitHub', status: 'demo' },
     ],
   },

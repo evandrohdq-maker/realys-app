@@ -27,6 +27,7 @@ import CategoryMenu from './src/components/CategoryMenu';
 import UpdateChecker from './src/components/UpdateChecker';
 import { AdminSystem, NoteModal, SYSTEM_MAP } from './src/screens/admin/AdminSystem';
 import { WakeWordListener } from './src/wakeWord';
+import { UserProfileModal, PeopleSearchModal } from './src/components/People';
 
 // Cada perfil enxerga abas diferentes dentro do MESMO app.
 const TABS = {
@@ -77,6 +78,7 @@ function Shell() {
   const [noting, setNoting] = useState(false);
   const [wakeCmd, setWakeCmd] = useState(null);
   const [hearing, setHearing] = useState(false);
+  const [searching, setSearching] = useState(false);
   const isAdmin = state.user.roles.includes('admin');
   const pendingTab = useRef(null);
   const insets = useSafeAreaInsets();
@@ -127,9 +129,12 @@ function Shell() {
           <Text style={styles.brand}>REALYS</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity onPress={() => setSearching(true)} style={[styles.dots, { marginRight: 6, width: 40, height: 40 }]} accessibilityLabel="Buscar pessoas na rede Realys">
+            <Ionicons name="search" size={19} color={colors.text} />
+          </TouchableOpacity>
           <TouchableOpacity onPress={nextRole} style={styles.roleChip} accessibilityLabel="Trocar de perfil">
             <Ionicons name="swap-horizontal" size={13} color={colors.primary} />
-            <Text style={styles.roleChipText}>{ROLE_LABELS[state.activeRole]}</Text>
+            <Text numberOfLines={1} style={styles.roleChipText}>{ROLE_LABELS[state.activeRole]}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setMenu(true)}
@@ -206,7 +211,7 @@ function Shell() {
         handsFree={state.handsFree}
       />
       <WakeWordListener
-        enabled={state.handsFree && !voice && !menu && !noting}
+        enabled={state.handsFree && !voice && !menu && !noting && !searching}
         onListening={setHearing}
         onWake={(text) => {
           setWakeCmd({ text, at: Date.now() });
@@ -217,6 +222,8 @@ function Shell() {
           Alert.alert('Mãos livres desligado', msg);
         }}
       />
+      <PeopleSearchModal visible={searching} onClose={() => setSearching(false)} />
+      <UserProfileModal />
       <CategoryMenu visible={menu} onClose={() => setMenu(false)} onPick={pick} />
       {isAdmin ? <NoteModal visible={noting} where={where} onClose={() => setNoting(false)} /> : null}
     </View>
@@ -275,7 +282,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(168,121,10,0.08)',
     marginRight: 8,
   },
-  roleChipText: { color: colors.primary, fontWeight: '700', fontSize: 12, marginLeft: 5 },
+  roleChipText: { color: colors.primary, fontWeight: '700', fontSize: 12, marginLeft: 5, maxWidth: 92 },
   dots: {
     width: 44,
     height: 44,

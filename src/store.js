@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as D from './data';
+import { initialFriends } from './people';
 import { brl } from './theme';
 import { conversations as initialConversations } from './homeData';
 
@@ -30,6 +31,8 @@ const initialState = {
   offers: D.initialOffers, // propostas que o fornecedor envia para as empresas
   conversations: initialConversations, // Comunidade › Mensagens (também recebe respostas de stories)
   storySeen: {},
+  friends: initialFriends, // amizades: { id: 'amigo' | 'enviado' | 'recebido' }
+  viewProfile: null, // id do membro cujo perfil está aberto (abre por cima de qualquer tela)
   myStories: [], // stories que o próprio usuário publicou
   // Encontros: só funciona depois que a pessoa aceita os termos e informa um status disponível.
   encontros: {
@@ -321,6 +324,18 @@ function reducer(state, a) {
         ...state,
         encontros: { ...initialState.encontros, status: state.encontros.status },
       };
+
+    // Amizades e perfil de outros membros.
+    case 'FRIEND': {
+      const friends = { ...state.friends };
+      if (a.status) friends[a.id] = a.status;
+      else delete friends[a.id];
+      return { ...state, friends };
+    }
+    case 'OPEN_PROFILE':
+      return { ...state, viewProfile: a.id };
+    case 'CLOSE_PROFILE':
+      return { ...state, viewProfile: null };
 
     // Mensagens e stories (compartilhados entre o Início e a página de Stories).
     case 'UPDATE_CONVS':

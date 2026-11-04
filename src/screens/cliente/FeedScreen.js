@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { useStore } from '../../store';
 import { colors, brl } from '../../theme';
 import { Screen, Photo, Badge, Row, Button } from '../../components/ui';
+import { memberByName } from '../../people';
 
 export default function FeedScreen({ goTo }) {
   const { state, dispatch } = useStore();
@@ -27,6 +28,14 @@ export default function FeedScreen({ goTo }) {
         const liked = !!state.liked[p.id];
         return (
           <View key={p.id} style={styles.post}>
+            <TouchableOpacity
+              activeOpacity={memberByName(p.author) ? 0.7 : 1}
+              onPress={() => {
+                const m = memberByName(p.author);
+                if (m) dispatch({ type: 'OPEN_PROFILE', id: m.id });
+              }}
+              accessibilityLabel={`Ver perfil de ${p.author}`}
+            >
             <Row style={{ padding: 12 }}>
               <View style={styles.avatar}>
                 <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>{p.author[0]}</Text>
@@ -40,6 +49,7 @@ export default function FeedScreen({ goTo }) {
               </View>
               {p.sponsored ? <Badge label="Patrocinado" color={colors.sponsored} /> : null}
             </Row>
+            </TouchableOpacity>
 
             <View>
               <Photo uri={p.image} style={styles.image} />
