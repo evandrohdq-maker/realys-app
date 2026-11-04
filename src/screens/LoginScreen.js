@@ -1,27 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Alert, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as LocalAuthentication from 'expo-local-authentication';
 import { useStore } from '../store';
 import { ADMIN_LOGIN } from '../data';
 import { colors } from '../theme';
-
-const onlyDigits = (v) => v.replace(/\D/g, '');
-
-const formatCpf = (d) =>
-  d
-    .slice(0, 11)
-    .replace(/^(\d{3})(\d)/, '$1.$2')
-    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
-    .replace(/\.(\d{3})(\d)/, '.$1-$2');
-
-const formatCnpj = (d) =>
-  d
-    .slice(0, 14)
-    .replace(/^(\d{2})(\d)/, '$1.$2')
-    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
-    .replace(/\.(\d{3})(\d)/, '.$1/$2')
-    .replace(/(\d{4})(\d)/, '$1-$2');
+import {
+  onlyDigits,
+  formatCpf,
+  formatCnpj,
+  maskLogin,
+  findAccount,
+  checkPassword,
+  userFromAccount,
+  getSavedUsers,
+  saveUser,
+  touchSavedUser,
+  forgetUser,
+  confirmBiometric,
+} from '../accounts';
+import SignupForm from './SignupForm';
+import { authStyles } from './authStyles';
 
 // Um campo só: usuário, CPF ou CNPJ. O tipo de acesso vem da própria conta.
 function detect(value) {
@@ -36,21 +34,36 @@ function detect(value) {
   return { kind: 'vazio' };
 }
 
-// Na demonstração, a conta define os acessos:
+// Contas de demonstração (não cadastradas neste celular): a conta define os acessos.
 // CNPJ → empresa e fornecedor (e também cliente); CPF ou usuário → cliente e prestador.
-function userFor(value, info) {
+function demoUser(value, info) {
   if (info.kind === 'cnpj') return { name: 'Minha Empresa', roles: ['empresa', 'fornecedor', 'cliente'], cnpj: info.doc };
   if (info.kind === 'cpf') return { name: 'Cliente Realys', roles: ['cliente', 'prestador'], cpf: info.doc, cnpj: '12.345.678/0001-90' };
   const name = value.trim().replace(/^@/, '');
   return { name: name.charAt(0).toUpperCase() + name.slice(1), roles: ['cliente', 'prestador'], cnpj: '12.345.678/0001-90' };
 }
 
+const KIND_ICON = { empresa: 'business-outline', fornecedor: 'cube-outline', cliente: 'person-outline' };
+
 export default function LoginScreen() {
   const { dispatch } = useStore();
+  const [mode, setMode] = useState('entrar'); // entrar | cadastro
+  const [saved, setSaved] = useState([]);
+  const [showForm, setShowForm] = useState(false); // com contas salvas, o formulário fica atrás de "Entrar com outra conta"
   const [value, setValue] = useState('');
   const [password, setPassword] = useState('');
+  const [showPass, setShowPass] = useState(false);
+  const [remember, setRemember] = useState(true);
   const [busy, setBusy] = useState(false);
+  const passRef = useRef(null);
   const info = detect(value);
+
+  useEffect(() => {
+    getSavedUsers().then((list) => {
+      setSaved(list);
+      if (!list.length) setShowForm(true);
+    });
+  }, []);
 
   const onChange = (v) => {
     // Se a pessoa digita só números, formata como CPF ou CNPJ automaticamente.
@@ -69,39 +82,93 @@ export default function LoginScreen() {
     admin: 'Acesso do administrador',
   }[info.kind];
 
+  const login = async (user, loginText, keep) => {
+    if (keep) await saveUser(loginText, user).catch(() => {});
+    dispatch({ type: 'LOGIN', user });
+  };
+
+  // Entrar digitando usuário e senha (e depois a biometria).
   const enter = async () => {
     if (info.kind === 'vazio' || info.kind === 'incompleto') {
       return Alert.alert('Confira o acesso', 'Digite seu usuário, CPF ou CNPJ.');
     }
+    if (!password) {
+      passRef.current && passRef.current.focus();
+      return Alert.alert('Digite sua senha', 'A senha é pedida no primeiro acesso. Depois, se salvar o usuário, você entra só com a biometria.');
+    }
     if (info.kind === 'admin') {
       if (password !== ADMIN_LOGIN.password) return Alert.alert('Acesso negado', 'Senha incorreta.');
+      // O administrador sempre digita a senha: não fica salvo no aparelho.
       return dispatch({
         type: 'LOGIN',
         user: { name: 'Administrador', roles: ['admin', 'cliente', 'empresa', 'prestador', 'fornecedor'], cnpj: '12.345.678/0001-90' },
       });
     }
-    const finish = () => dispatch({ type: 'LOGIN', user: userFor(value, info) });
     setBusy(true);
     try {
-      const hasHw = await LocalAuthentication.hasHardwareAsync();
-      const enrolled = await LocalAuthentication.isEnrolledAsync();
-      if (!hasHw || !enrolled) {
-        Alert.alert('Biometria não encontrada', 'Este aparelho não tem digital ou rosto cadastrado. Entrando no modo demonstração.', [
-          { text: 'OK', onPress: finish },
-        ]);
-        return;
+      const acc = await findAccount(value);
+      let user;
+      if (acc) {
+        if (!(await checkPassword(acc, password))) return Alert.alert('Não foi possível entrar', 'Usuário ou senha incorretos.');
+        user = userFromAccount(acc);
+      } else {
+        user = demoUser(value, info); // conta de demonstração
       }
-      const res = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Confirme que é você para entrar no Realys',
-        cancelLabel: 'Cancelar',
-      });
-      if (res.success) finish();
-      else Alert.alert('Não foi possível confirmar sua identidade.');
-    } catch (e) {
-      finish();
+      const bio = await confirmBiometric();
+      if (bio === 'falhou') return Alert.alert('Não foi possível confirmar sua identidade.');
+      await login(user, value, remember);
     } finally {
       setBusy(false);
     }
+  };
+
+  // Conta salva: um toque e a biometria.
+  const quickEnter = async (s) => {
+    setBusy(true);
+    try {
+      const bio = await confirmBiometric(`Entrar como ${s.user.name}`);
+      if (bio === 'ok') {
+        await touchSavedUser(s.key).catch(() => {});
+        return dispatch({ type: 'LOGIN', user: s.user });
+      }
+      if (bio === 'sem') {
+        // Sem digital ou rosto no aparelho: confirma pela senha.
+        setValue(s.login);
+        setPassword('');
+        setShowForm(true);
+        Alert.alert('Digite sua senha', 'Este celular não tem digital ou rosto cadastrado. Confirme com a sua senha.');
+        setTimeout(() => passRef.current && passRef.current.focus(), 300);
+        return;
+      }
+      Alert.alert('Não foi possível confirmar sua identidade.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const remove = (s) =>
+    Alert.alert('Remover deste aparelho?', `${s.user.name} vai precisar digitar usuário e senha da próxima vez. A conta continua existindo.`, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Remover',
+        style: 'destructive',
+        onPress: async () => {
+          const next = await forgetUser(s.key);
+          setSaved(next);
+          if (!next.length) setShowForm(true);
+        },
+      },
+    ]);
+
+  const openForm = () => {
+    setValue('');
+    setPassword('');
+    setShowForm(true);
+  };
+
+  // Cadastro concluído: confirma a biometria (já feita no cadastro) e entra.
+  const onSignedUp = async (account, keep) => {
+    await login(userFromAccount(account), account.username, keep);
   };
 
   return (
@@ -116,53 +183,128 @@ export default function LoginScreen() {
           <Text style={styles.tagline}>Pessoas reais. Negócios reais.</Text>
         </View>
 
-        <View style={styles.panel}>
-          <Text style={styles.label}>Usuário, CPF ou CNPJ</Text>
-          <View style={styles.field}>
-            <Ionicons name="person-outline" size={20} color={colors.muted} />
-            <TextInput
-              style={styles.input}
-              placeholder="Digite seu usuário, CPF ou CNPJ"
-              placeholderTextColor={colors.muted}
-              value={value}
-              onChangeText={onChange}
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="go"
-              onSubmitEditing={enter}
-            />
-          </View>
-          {hint ? (
-            <Text style={[styles.hint, (info.kind === 'cpf' || info.kind === 'cnpj') && { color: colors.primary }]}>{hint}</Text>
-          ) : null}
+        <View style={styles.tabs}>
+          {[
+            ['entrar', 'Entrar'],
+            ['cadastro', 'Cadastre-se'],
+          ].map(([k, label]) => (
+            <TouchableOpacity key={k} style={[styles.tab, mode === k && styles.tabOn]} onPress={() => setMode(k)} activeOpacity={0.85}>
+              <Text style={[styles.tabText, mode === k && styles.tabTextOn]}>{label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-          {info.kind === 'admin' ? (
-            <View style={[styles.field, { marginTop: 10 }]}>
-              <Ionicons name="lock-closed-outline" size={20} color={colors.muted} />
+        {mode === 'cadastro' ? (
+          <SignupForm onDone={onSignedUp} onGoLogin={() => setMode('entrar')} />
+        ) : !showForm && saved.length ? (
+          <View style={styles.panel}>
+            <Text style={styles.label}>Quem vai usar o Realys?</Text>
+            <Text style={styles.sub}>Contas salvas neste aparelho. Toque e confirme com a biometria.</Text>
+            {saved.map((s) => {
+              const icon = KIND_ICON[s.user.roles[0]] || 'person-outline';
+              return (
+                <TouchableOpacity key={s.key} style={styles.savedRow} onPress={() => quickEnter(s)} disabled={busy} activeOpacity={0.85}>
+                  <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>{(s.user.name || '?')[0].toUpperCase()}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.savedName} numberOfLines={1}>{s.user.name}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                      <Ionicons name={icon} size={12} color={colors.muted} />
+                      <Text style={styles.savedLogin}>{maskLogin(s.login)}</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="finger-print" size={26} color={colors.primary} />
+                  <TouchableOpacity onPress={() => remove(s)} style={styles.trash} hitSlop={8} accessibilityLabel={`Remover ${s.user.name} deste aparelho`}>
+                    <Ionicons name="close" size={18} color={colors.muted} />
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              );
+            })}
+            <TouchableOpacity style={styles.otherBtn} onPress={openForm} activeOpacity={0.85}>
+              <Ionicons name="person-add-outline" size={18} color={colors.primary} />
+              <Text style={styles.otherText}>Entrar com outra conta</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.panel}>
+            <Text style={styles.label}>Usuário, CPF ou CNPJ</Text>
+            <View style={styles.field}>
+              <Ionicons name="person-outline" size={20} color={colors.muted} />
               <TextInput
                 style={styles.input}
-                placeholder="Senha"
+                placeholder="Digite seu usuário, CPF ou CNPJ"
                 placeholderTextColor={colors.muted}
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
+                value={value}
+                onChangeText={onChange}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="username"
+                returnKeyType="next"
+                onSubmitEditing={() => passRef.current && passRef.current.focus()}
               />
             </View>
-          ) : null}
+            {hint ? (
+              <Text style={[styles.hint, (info.kind === 'cpf' || info.kind === 'cnpj') && { color: colors.primary }]}>{hint}</Text>
+            ) : null}
 
-          <TouchableOpacity style={[styles.btn, busy && { opacity: 0.6 }]} onPress={enter} disabled={busy} activeOpacity={0.85}>
-            <Ionicons name={info.kind === 'admin' ? 'log-in-outline' : 'finger-print'} size={20} color={colors.onPrimary} />
-            <Text style={styles.btnText}>{busy ? 'Verificando…' : info.kind === 'admin' ? 'Entrar' : 'Entrar com biometria'}</Text>
-          </TouchableOpacity>
-        </View>
+            <Text style={[styles.label, { marginTop: 14 }]}>Senha</Text>
+            <View style={styles.field}>
+              <Ionicons name="lock-closed-outline" size={20} color={colors.muted} />
+              <TextInput
+                ref={passRef}
+                style={styles.input}
+                placeholder="Sua senha"
+                placeholderTextColor={colors.muted}
+                secureTextEntry={!showPass}
+                value={password}
+                onChangeText={setPassword}
+                autoCapitalize="none"
+                autoComplete="password"
+                returnKeyType="go"
+                onSubmitEditing={enter}
+              />
+              <TouchableOpacity onPress={() => setShowPass(!showPass)} hitSlop={8} accessibilityLabel={showPass ? 'Esconder senha' : 'Mostrar senha'}>
+                <Ionicons name={showPass ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.muted} />
+              </TouchableOpacity>
+            </View>
+
+            {info.kind !== 'admin' ? (
+              <TouchableOpacity style={styles.check} onPress={() => setRemember(!remember)} activeOpacity={0.8}>
+                <Ionicons name={remember ? 'checkbox' : 'square-outline'} size={22} color={remember ? colors.primary : colors.muted} />
+                <View style={{ flex: 1, marginLeft: 8 }}>
+                  <Text style={styles.checkText}>Salvar usuário neste aparelho</Text>
+                  <Text style={styles.checkSub}>Da próxima vez, é só tocar no seu nome e usar a biometria.</Text>
+                </View>
+              </TouchableOpacity>
+            ) : null}
+
+            <TouchableOpacity style={[styles.btn, busy && { opacity: 0.6 }]} onPress={enter} disabled={busy} activeOpacity={0.85}>
+              <Ionicons name={info.kind === 'admin' ? 'log-in-outline' : 'finger-print'} size={20} color={colors.onPrimary} />
+              <Text style={styles.btnText}>{busy ? 'Verificando…' : info.kind === 'admin' ? 'Entrar' : 'Entrar com biometria'}</Text>
+            </TouchableOpacity>
+
+            {saved.length ? (
+              <TouchableOpacity style={styles.link} onPress={() => setShowForm(false)}>
+                <Ionicons name="people-outline" size={16} color={colors.accent} />
+                <Text style={styles.linkText}>Voltar para as contas salvas ({saved.length})</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.link} onPress={() => setMode('cadastro')}>
+                <Text style={styles.linkText}>Ainda não tem conta? Cadastre-se</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  ...authStyles,
   wrap: { flexGrow: 1, justifyContent: 'center', padding: 24 },
-  brandBlock: { alignItems: 'center', marginBottom: 36 },
+  brandBlock: { alignItems: 'center', marginBottom: 28 },
   mark: {
     width: 64,
     height: 64,
@@ -181,34 +323,50 @@ const styles = StyleSheet.create({
   logo: { fontSize: 36, fontWeight: '800', color: colors.text, letterSpacing: 8 },
   headline: { fontSize: 30, color: colors.text, fontWeight: '900', marginTop: 18, letterSpacing: -0.5, textAlign: 'center' },
   tagline: { fontSize: 17, color: colors.accent, fontWeight: '700', marginTop: 6 },
-  panel: {
-    backgroundColor: colors.card,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(168,121,10,0.25)',
-    padding: 18,
+  tabs: {
+    flexDirection: 'row',
+    backgroundColor: colors.cardAlt,
+    borderRadius: 16,
+    padding: 4,
+    marginBottom: 14,
   },
-  label: { fontSize: 13, fontWeight: '700', color: colors.text, marginBottom: 10 },
-  field: {
+  tab: { flex: 1, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  tabOn: { backgroundColor: colors.card, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)' },
+  tabText: { color: colors.muted, fontWeight: '700', fontSize: 15 },
+  tabTextOn: { color: colors.primary },
+  sub: { color: colors.muted, fontSize: 12, marginTop: -4, marginBottom: 12 },
+  savedRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 54,
+    padding: 12,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.bg,
-    paddingHorizontal: 14,
+    marginBottom: 10,
   },
-  input: { flex: 1, color: colors.text, fontSize: 16, marginLeft: 10, paddingVertical: 0 },
-  hint: { color: colors.muted, fontSize: 12, marginTop: 8 },
-  btn: {
-    height: 54,
-    borderRadius: 16,
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  avatarText: { color: colors.onPrimary, fontWeight: '900', fontSize: 18 },
+  savedName: { color: colors.text, fontWeight: '800', fontSize: 16 },
+  savedLogin: { color: colors.muted, fontSize: 12, marginLeft: 4 },
+  trash: { marginLeft: 10, padding: 4 },
+  otherBtn: {
+    height: 50,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 18,
+    marginTop: 6,
   },
-  btnText: { color: colors.onPrimary, fontWeight: '800', fontSize: 16, marginLeft: 8 },
+  otherText: { color: colors.primary, fontWeight: '800', fontSize: 15, marginLeft: 8 },
 });

@@ -7,6 +7,7 @@ import { colors, brl, ROLE_LABELS } from '../theme';
 import { Screen, Title, Card, Row, Button, Badge } from '../components/ui';
 import UpdateChecker from '../components/UpdateChecker';
 import { VERSION_LABEL } from '../updates';
+import { getSavedUsers, forgetUser } from '../accounts';
 
 const ROLE_ICON = { cliente: '🛍️', empresa: '🏪', prestador: '🛵', fornecedor: '🚚', admin: '🛡️' };
 
@@ -14,6 +15,32 @@ export default function ProfileScreen({ navigate }) {
   const { state, dispatch } = useStore();
   const u = state.user;
   const [checking, setChecking] = useState(false);
+
+  // Sai da conta e volta para a tela "Quem vai usar o Realys?".
+  const switchUser = () =>
+    Alert.alert('Trocar usuário', `Sair da conta de ${u.name} para outra pessoa entrar?`, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Trocar', onPress: () => dispatch({ type: 'LOGOUT' }) },
+    ]);
+
+  // Ao sair, pergunta se a conta continua salva neste celular.
+  const logout = async () => {
+    const saved = await getSavedUsers();
+    const mine = saved.find((s) => (u.id && s.user.id === u.id) || (s.user.name === u.name && s.user.cpf === u.cpf && s.user.cnpj === u.cnpj));
+    if (!mine) return dispatch({ type: 'LOGOUT' });
+    Alert.alert('Sair do Realys', 'Sua conta está salva neste aparelho. Quer manter para entrar só com a biometria da próxima vez?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Remover e sair',
+        style: 'destructive',
+        onPress: async () => {
+          await forgetUser(mine.key).catch(() => {});
+          dispatch({ type: 'LOGOUT' });
+        },
+      },
+      { text: 'Manter e sair', onPress: () => dispatch({ type: 'LOGOUT' }) },
+    ]);
+  };
   return (
     <Screen>
       <Title>Meu perfil</Title>
@@ -130,7 +157,20 @@ export default function ProfileScreen({ navigate }) {
         </Text>
       </Card>
 
-      <Button title="Sair" variant="outline" onPress={() => dispatch({ type: 'LOGOUT' })} style={{ marginTop: 10 }} />
+      <Card>
+        <Row>
+          <Ionicons name="people-outline" size={22} color={colors.primary} style={{ marginRight: 10 }} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>Trocar usuário</Text>
+            <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
+              Celular compartilhado (ex.: aparelho da empresa)? Saia da sua conta e outra pessoa entra com a dela. As contas salvas aparecem na entrada.
+            </Text>
+          </View>
+        </Row>
+        <Button title="Trocar usuário" onPress={switchUser} style={{ marginTop: 12 }} />
+      </Card>
+
+      <Button title="Sair" variant="outline" onPress={logout} style={{ marginTop: 10 }} />
       <Button title="Verificar atualizações" variant="light" onPress={() => setChecking(true)} style={{ marginTop: 10 }} />
       {checking ? <UpdateChecker manual onDone={() => setChecking(false)} /> : null}
       <Text style={{ textAlign: 'center', color: colors.muted, fontSize: 11, marginTop: 14 }}>

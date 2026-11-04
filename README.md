@@ -39,7 +39,12 @@ O administrador vê a visão geral da plataforma (usuários, empresas, receita),
 
 > A senha acima é só da demonstração e fica visível no código. Na versão real, o login de administrador fica no servidor, com senha criptografada e verificação em duas etapas.
 
-**Entrada:** um campo só, **usuário, CPF ou CNPJ**, e login com a biometria do celular (digital ou rosto). O tipo de acesso vem da conta: com CNPJ entram os perfis Empresa e Fornecedor (e Cliente); com CPF ou usuário, Cliente e Prestador. Se o aparelho não tiver biometria cadastrada, o app entra no modo demonstração.
+**Entrada e cadastro:** a tela inicial tem duas abas, **Entrar** e **Cadastre-se**.
+
+- **Cadastre-se:** escolha **Pessoa** (CPF: cliente e prestador) ou **Empresa** (CNPJ: loja, fornecedor e cliente) e preencha nome, CPF ou CNPJ (o app confere os dígitos, não aceita número inventado), usuário (@), e-mail, celular e senha (mínimo 8 caracteres, com letras e números). A conta só é criada depois de confirmar a biometria. Na demonstração, as contas ficam guardadas no próprio celular, e a senha é gravada só como hash (SHA-256 com sal), nunca a senha em si.
+- **Entrar:** um campo só, **usuário, CPF ou CNPJ**, mais a **senha**, e depois a biometria do celular (digital ou rosto). O tipo de acesso vem da conta. Um acesso que não foi cadastrado neste celular entra como conta de demonstração (CNPJ: Empresa e Fornecedor; CPF ou usuário: Cliente e Prestador).
+- **Salvar usuário neste aparelho** (marcado por padrão): da próxima vez, a entrada mostra **"Quem vai usar o Realys?"** com as contas salvas. Basta tocar no nome e confirmar a biometria, sem digitar usuário e senha. O X ao lado tira a conta do aparelho. Se o celular não tiver biometria cadastrada, o app pede a senha. A lista fica no cofre seguro do Android (SecureStore) e não guarda senhas. O administrador nunca fica salvo: sempre digita a senha.
+- **Trocar usuário:** em **Perfil → Trocar usuário**, a pessoa sai da conta e o celular volta para a lista de contas salvas, para outra pessoa entrar com a dela (ex.: aparelho da empresa usado por vários funcionários). Ao trocar, nada da conta anterior fica aberto. Em **Sair**, o app pergunta se a conta continua salva no aparelho ou se deve ser removida.
 
 ---
 
