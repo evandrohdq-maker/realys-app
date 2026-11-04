@@ -10,8 +10,8 @@
 
 | Perfil | Abas | O que dá para mostrar |
 | --- | --- | --- |
-| **Cliente** | Início, Stories, Encontros, Loja, Serviços, Pedidos, Perfil | Feed com fotos e vídeos de perfis verificados, loja com destaques e patrocinados no topo, carrinho com pagamento protegido, **qualquer prestador** (eletricista, encanador, mecânico, diarista, pintor, chaveiro, técnico, frete, motoboy, carro) com nota, funções e preço, acompanhar pedidos |
-| **Empresa (CNPJ)** | Painel, Estoque, Caixa, Negócios, Perfil | Gráficos de vendas, alertas da IA, estoque ligado à vitrine, venda no balcão, fluxo de caixa com projeção de 30, 60 e 90 dias, compras B2B com propostas de desconto e **propostas recebidas dos fornecedores** (aceitar, recusar ou pedir outro desconto) |
+| **Cliente** | Início, Stories, Encontros, Loja, Serviços, Pedidos, Perfil | Feed com fotos e vídeos de perfis verificados, loja com destaques e patrocinados no topo, carrinho com pagamento protegido, **qualquer prestador** (eletricista, encanador, mecânico, diarista, pintor, chaveiro, técnico, frete, motoboy, carro, e **hotelaria**: hotéis e pousadas) com nota, funções e preço, acompanhar pedidos. Pelo menu ⋮: **Transporte público** (ônibus e metrô da cidade, linhas entre cidades e entre estados, ônibus acompanhado pelo GPS, passagem com QR), **Socorro e saúde** (botão SOS no topo, SAMU 192, Bombeiros 193, Polícia 190 e outros ligando direto do celular, hospitais mais próximos, especialistas médicos com teleconsulta, ambulâncias particulares), **Artistas** (músicas MP3, vídeos e obras) e a **página de cada empresa** (apresentação, produtos, conteúdos, seguir) |
+| **Empresa (CNPJ)** | Painel, Estoque, Caixa, Negócios, Página, Perfil | Gráficos de vendas, alertas da IA, estoque ligado à vitrine, venda no balcão, fluxo de caixa com projeção de 30, 60 e 90 dias, compras B2B com propostas de desconto e **propostas recebidas dos fornecedores** (aceitar, recusar ou pedir outro desconto), **Página**: editar o perfil público e publicar MP3, vídeos e obras pagando o servidor (por envio ou Plano Artista Pro) |
 | **Prestador** | Serviços, Feed, Stories, Perfil | **Cadastro profissional** (tipo de serviço, o que faz e quanto cobra: por hora, serviço, diária, m²…), ligar o GPS para ficar disponível, aceitar pedidos, ver ganhos |
 | **Fornecedor** | Propostas, Feed, Stories, Perfil | **Destacar produtos** (aparecem primeiro no catálogo das empresas), cadastrar produto, **enviar proposta direto para uma ou várias empresas** (quantidade, desconto, validade e mensagem), acompanhar as enviadas e responder as propostas recebidas |
 
@@ -141,7 +141,9 @@ Para trocar os exemplos (nomes de lojas, produtos, preços, fotos), edite **`src
 - **Servidor na nuvem** com banco de dados e login (contas, produtos e pedidos salvos de verdade)
 - Verificação de identidade com biometria facial ligada a documento, e consulta de CNPJ na Receita
 - Pagamentos reais e a moeda Realys (exige validação jurídica e regras do Banco Central)
-- Mapa e GPS em tempo real para motoristas e entregadores
+- Mapa e GPS em tempo real para motoristas, entregadores e frotas de ônibus (empresas de transporte enviando a posição)
+- Cadastro real de hospitais, médicos (CRM conferido) e ambulâncias, com números verdadeiros
+- Envio e reprodução de verdade de MP3 e vídeos dos artistas (servidor de arquivos e cobrança do espaço)
 - Palavra-chave "Realys" com a tela bloqueada (motor de palavra-chave no próprio celular)
 - IA verificadora de fake news e sistema de denúncias
 - Vídeos curtos de verdade (gravar, enviar, hospedar)

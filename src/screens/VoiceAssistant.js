@@ -8,6 +8,8 @@ import { Input, Button, Row } from '../components/ui';
 import { ServiceCallCard } from './cliente/ServicesScreen';
 import { Photo } from '../components/ui';
 import { searchAll, contentReply, CONTENT_WORDS } from '../search';
+import { emergencyNumbers } from '../extraData';
+import { confirmCall } from '../phone';
 
 const EXAMPLES = [
   'Realys, preciso de um eletricista. Tem algum perto de mim?',
@@ -49,6 +51,16 @@ function interpret(text, state, dispatch, pending) {
   // Resposta "sim" depois de uma pesquisa: chama o prestador sugerido.
   if (pending && YES.test(t) && !detectService(t)) return startCall(pending.serviceKey, pending.providerId);
   if (pending && /^(nao|não|deixa|cancela)/.test(t)) return { reply: 'Tudo bem. Se precisar, é só chamar.' };
+
+  // Emergência: "Realys, liga para o SAMU", "chama os bombeiros", "socorro!".
+  const EM = { samu: /\b(samu|ambulancia)\b/, bombeiros: /\bbombeiros?\b/, policia: /\bpolicia\b(?! rodoviaria)/, prf: /\bpolicia rodoviaria\b/, defesa: /\bdefesa civil\b/, cvv: /\bcvv\b/ };
+  const emKey = Object.keys(EM).find((k) => EM[k].test(t));
+  const wantsCall = /\b(liga|ligue|ligar|chama|chame|chamar|socorro|emergencia|urgente)\b/.test(t);
+  if ((emKey && wantsCall) || /^socorro\b/.test(t)) {
+    const e = emergencyNumbers.find((x) => x.key === (emKey || 'samu'));
+    setTimeout(() => confirmCall(e.label, e.number), 300);
+    return { reply: `Vou ligar para ${e.label}, ${e.number.split('').join(' ')}. Confirme na tela.` };
+  }
 
   // "Alugar um carro", "hotel", "curso"… é busca de conteúdo, não chamada de prestador.
   const contentFirst = CONTENT_WORDS.test(t);
@@ -226,6 +238,9 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
                           Speech.stop();
                           if (r.profileId) {
                             dispatch({ type: 'OPEN_PROFILE', id: r.profileId });
+                            onClose();
+                          } else if (r.companyId) {
+                            dispatch({ type: 'OPEN_COMPANY', id: r.companyId });
                             onClose();
                           } else if (r.go && onNavigate) onNavigate(r.go);
                         }}

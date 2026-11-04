@@ -65,6 +65,13 @@ const initialState = {
   signups: D.pendingSignups,
   blocked: [],
   handsFree: false, // ouvir a palavra "Realys" para abrir o assistente
+  viewCompany: null, // página pública aberta (empresa ou artista)
+  following: {}, // páginas que o cliente segue
+  myPage: {}, // apresentação editada da minha empresa
+  myMedia: [], // músicas, vídeos e obras que a minha empresa/artista publicou
+  mediaPlan: false, // Plano Artista Pro ativo
+  boughtMedia: {}, // faixas e obras compradas pelo cliente
+  tickets: [], // passagens de transporte público
   notes: [], // anotações do administrador sobre o que mudar em cada tela (ficam salvas no celular)
 };
 
@@ -336,6 +343,43 @@ function reducer(state, a) {
       return { ...state, viewProfile: a.id };
     case 'CLOSE_PROFILE':
       return { ...state, viewProfile: null };
+
+    // Páginas de empresas e artistas.
+    case 'OPEN_COMPANY':
+      return { ...state, viewCompany: a.id };
+    case 'CLOSE_COMPANY':
+      return { ...state, viewCompany: null };
+    case 'FOLLOW': {
+      const following = { ...state.following };
+      if (following[a.id]) delete following[a.id];
+      else following[a.id] = true;
+      return { ...state, following };
+    }
+    case 'SET_PAGE':
+      return { ...state, myPage: { ...state.myPage, ...a.page } };
+    case 'BUY_MEDIA':
+      return { ...state, wallet: +(state.wallet - a.price).toFixed(2), boughtMedia: { ...state.boughtMedia, [a.id]: true } };
+    // Artista/empresa sobe um arquivo: paga o servidor e a despesa entra no fluxo de caixa.
+    case 'MEDIA_UPLOAD':
+      return {
+        ...state,
+        wallet: +(state.wallet - a.fee).toFixed(2),
+        myMedia: [a.item, ...state.myMedia],
+        finance: a.fee
+          ? [{ id: newId('m'), date: today(), desc: `Servidor Realys - ${a.item.file}`, type: 'saida', value: a.fee }, ...state.finance]
+          : state.finance,
+      };
+    case 'MEDIA_REMOVE':
+      return { ...state, myMedia: state.myMedia.filter((m) => m.id !== a.id) };
+    case 'MEDIA_PLAN':
+      return {
+        ...state,
+        mediaPlan: true,
+        wallet: +(state.wallet - a.price).toFixed(2),
+        finance: [{ id: newId('m'), date: today(), desc: 'Plano Artista Pro (servidor)', type: 'saida', value: a.price }, ...state.finance],
+      };
+    case 'BUY_TICKET':
+      return { ...state, wallet: +(state.wallet - a.ticket.price).toFixed(2), tickets: [a.ticket, ...state.tickets] };
 
     // Mensagens e stories (compartilhados entre o Início e a página de Stories).
     case 'UPDATE_CONVS':

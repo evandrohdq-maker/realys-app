@@ -45,7 +45,7 @@ const SORTS = [
   ['price', 'Menor preço'],
 ];
 
-export default function ServicesScreen({ explore }) {
+export default function ServicesScreen({ explore, navigate }) {
   const { state, dispatch } = useStore();
   const [address, setAddress] = useState('');
   const [selected, setSelected] = useState('eletricista');
@@ -103,6 +103,11 @@ export default function ServicesScreen({ explore }) {
             </TouchableOpacity>
           );
         })}
+        {/* Hotelaria faz parte da prestação de serviços */}
+        <TouchableOpacity onPress={() => navigate && navigate({ tab: 'home', top: 'anuncios', kind: 'hotel' })} style={styles.typeChip}>
+          <Ionicons name="bed-outline" size={18} color={colors.primary} />
+          <Text style={styles.typeText}>Hotéis e pousadas</Text>
+        </TouchableOpacity>
       </ScrollView>
 
       <Input placeholder="Endereço (opcional): Rua Augusta, 1200" value={address} onChangeText={setAddress} />

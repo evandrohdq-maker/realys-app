@@ -5,6 +5,7 @@
 import { listings, LISTING_KINDS, promos, lives, communityPosts } from './homeData';
 import { serviceTypes } from './data';
 import { members } from './people';
+import { emergencyNumbers, hospitals, specialists, responders, transitLines, trips, transitCompanies, artists, artMedia } from './extraData';
 
 const norm = (s) =>
   String(s || '')
@@ -71,6 +72,24 @@ const SYN = {
   oferta: ['promocao', 'oferta', 'desconto'],
   promocao: ['promocao', 'oferta', 'desconto'],
   desconto: ['promocao', 'desconto'],
+  hospital: ['hospital', 'upa', 'pronto', 'clinica'],
+  upa: ['upa', 'hospital', 'pronto'],
+  ambulancia: ['ambulancia', 'samu', 'remocao', 'uti'],
+  socorro: ['socorro', 'samu', 'emergencia', 'ambulancia'],
+  emergencia: ['emergencia', 'samu', 'socorro', 'bombeiros'],
+  medico: ['medico', 'especialista', 'clinico', 'consulta'],
+  doutor: ['medico', 'especialista', 'consulta'],
+  consulta: ['consulta', 'especialista', 'medico'],
+  onibus: ['onibus', 'linha', 'transporte', 'viagem'],
+  metro: ['metro', 'linha', 'transporte'],
+  passagem: ['passagem', 'viagem', 'onibus'],
+  rodoviaria: ['viagem', 'passagem', 'onibus'],
+  musica: ['musica', 'faixa', 'mp3', 'artista'],
+  cantor: ['artista', 'musica'],
+  banda: ['artista', 'banda', 'musica'],
+  clipe: ['video', 'clipe'],
+  quadro: ['obra', 'pintura'],
+  pintura: ['obra', 'pintura', 'aquarela'],
 };
 
 const variants = (tok) => {
@@ -103,7 +122,7 @@ function buildIndex(state) {
 
   (state.stores || []).forEach((s) =>
     add(
-      { id: 's-' + s.id, section: 'Loja', icon: s.logo, title: s.name, subtitle: `${s.category} · ${s.city} · ★ ${s.rating}`, where: short(s.city), photo: s.cover, sponsored: s.sponsored, go: { tab: 'loja', cat: 'Todos', q: s.name } },
+      { id: 's-' + s.id, section: 'Loja', icon: s.logo, title: s.name, subtitle: `${s.category} · ${s.city} · ★ ${s.rating}`, where: short(s.city), photo: s.cover, sponsored: s.sponsored, go: { tab: 'loja', cat: 'Todos', q: s.name }, companyId: s.id },
       s.name, s.category, s.city, 'loja', s.shipsBrazil ? 'envia para todo o brasil entrega' : ''
     )
   );
@@ -138,6 +157,61 @@ function buildIndex(state) {
       m.name, m.handle, m.city, m.bio, 'pessoa perfil'
     )
   );
+
+  // Socorro e saúde.
+  emergencyNumbers.forEach((e) =>
+    add(
+      { id: 'em-' + e.key, section: 'Emergência', icon: '🚨', title: `${e.label} · ${e.number}`, subtitle: e.hint, where: `ligue ${e.number}`, go: { tab: 'socorro', seg: 'emergencia' } },
+      e.label, e.hint, e.words.join(' '), 'emergencia socorro sos ligar'
+    )
+  );
+  hospitals.forEach((h) =>
+    add(
+      { id: 'h-' + h.id, section: 'Hospital', icon: '🏥', title: h.name, subtitle: `${h.type} · ${h.network} · ${h.distanceKm.toFixed(1).replace('.', ',')} km`, where: `a ${h.distanceKm.toFixed(1).replace('.', ',')} km`, photo: h.photo, go: { tab: 'socorro', seg: 'hospitais' } },
+      h.name, h.type, h.network, 'hospital pronto socorro saude'
+    )
+  );
+  specialists.forEach((d) =>
+    add(
+      { id: 'd-' + d.id, section: d.specialty, icon: '🩺', title: d.name, subtitle: `${d.specialty} · ${d.reg}`, priceValue: d.price, priceUnit: 'consulta', where: `a ${d.distanceKm.toFixed(1).replace('.', ',')} km`, photo: d.photo, go: { tab: 'socorro', seg: 'especialistas', specialty: d.specialty } },
+      d.name, d.specialty, 'medico especialista consulta saude', d.tele ? 'teleconsulta' : ''
+    )
+  );
+  responders.forEach((r) =>
+    add(
+      { id: 'r-' + r.id, section: 'Socorro', icon: '🚑', title: r.name, subtitle: `${r.kind} · ${r.price}`, where: `chega em ${r.etaMin} minutos`, go: { tab: 'socorro', seg: 'socorristas' } },
+      r.name, r.kind, 'socorro emergencia'
+    )
+  );
+
+  // Transporte público.
+  transitLines.forEach((l) =>
+    add(
+      { id: 'tl-' + l.id, section: 'Transporte público', icon: '🚌', title: `${l.code} · ${l.name}`, subtitle: (transitCompanies.find((c) => c.id === l.companyId) || {}).name, priceValue: l.fare, priceUnit: 'passagem', where: 'passa perto de você', go: { tab: 'transporte', scope: 'municipal' } },
+      l.code, l.name, l.stops.join(' '), 'onibus metro linha transporte publico'
+    )
+  );
+  trips.forEach((t) =>
+    add(
+      { id: 'tr-' + t.id, section: t.scope === 'interestadual' ? 'Viagem interestadual' : 'Viagem intermunicipal', icon: '🚍', title: `${t.from.split(' - ')[0]} → ${t.to.split(' - ')[0]} · ${t.depart}`, subtitle: `${(transitCompanies.find((c) => c.id === t.companyId) || {}).name} · ${t.kind}`, priceValue: t.price, priceUnit: 'passagem', where: `saída ${t.depart}`, go: { tab: 'transporte', scope: t.scope } },
+      t.to, t.from, t.kind, 'onibus viagem passagem rodoviaria transporte'
+    )
+  );
+
+  // Artistas e suas músicas, vídeos e obras.
+  artists.forEach((a) =>
+    add(
+      { id: 'a-' + a.id, section: 'Artista', icon: a.logo, title: a.name, subtitle: `${a.genre} · ${a.city}`, where: short(a.city), photo: a.cover, companyId: a.id },
+      a.name, a.genre, a.city, a.bio, 'artista musica'
+    )
+  );
+  artMedia.forEach((m) => {
+    const a = artists.find((x) => x.id === m.ownerId) || {};
+    add(
+      { id: 'am-' + m.id, section: m.kind === 'musica' ? 'Música' : m.kind === 'video' ? 'Vídeo' : 'Obra', icon: m.kind === 'musica' ? '🎵' : m.kind === 'video' ? '🎬' : '🖼️', title: m.title, subtitle: a.name, where: a.name, photo: m.cover, companyId: a.id },
+      m.title, a.name, a.genre, m.kind === 'musica' ? 'musica faixa mp3' : m.kind === 'video' ? 'video clipe' : 'obra pintura arte'
+    );
+  });
 
   communityPosts.forEach((c) =>
     add(
@@ -189,4 +263,4 @@ export function contentReply(results, what) {
 
 // Palavras que indicam claramente busca de conteúdo, não de prestador
 // (ex.: "alugar um carro" é anúncio, não corrida).
-export const CONTENT_WORDS = /\b(hote(l|is)|pousadas?|hospedage(m|ns)|aluga(r|mos)?|aluguel|locacao|imove(l|is)|apartamentos?|ape|kitnet|casas? (a|para) venda|ingressos?|balada|casa noturna|shows?|cursos?|faculdades?|lives?|promocao|promocoes|ofertas?|lojas?|produtos?)\b/;
+export const CONTENT_WORDS = /\b(hote(l|is)|pousadas?|hospedage(m|ns)|aluga(r|mos)?|aluguel|locacao|imove(l|is)|apartamentos?|ape|kitnet|casas? (a|para) venda|ingressos?|balada|casa noturna|shows?|cursos?|faculdades?|lives?|promocao|promocoes|ofertas?|lojas?|produtos?|hospita(l|is)|upa|samu|ambulancias?|medic(o|a|os|as)|especialistas?|consultas?|pediatra|cardiologista|dentista|onibus|metro|passage(m|ns)|rodoviaria|artistas?|clipes?)\b/;

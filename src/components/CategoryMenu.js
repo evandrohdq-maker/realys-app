@@ -23,10 +23,38 @@ export const CATEGORIES = [
   },
   {
     key: 'servicos',
-    title: 'Serviços gerais',
-    hint: 'Profissionais perto de você',
+    title: 'Prestação de serviços',
+    hint: 'Profissionais perto de você e hotelaria',
     icon: 'construct-outline',
-    subs: serviceTypes.map((s) => ({ label: s.label, hint: s.group, icon: s.ion, go: { tab: 'servicos', service: s.key } })),
+    subs: [
+      ...serviceTypes.map((s) => ({ label: s.label, hint: s.group, icon: s.ion, go: { tab: 'servicos', service: s.key } })),
+      // Hotelaria agora faz parte da prestação de serviços.
+      { label: 'Hotéis', hint: 'Hotelaria · reserve a diária', icon: 'bed-outline', go: { tab: 'home', top: 'anuncios', kind: 'hotel' } },
+      { label: 'Pousadas', hint: 'Hotelaria · praia, serra e campo', icon: 'leaf-outline', go: { tab: 'home', top: 'anuncios', kind: 'hotel' } },
+    ],
+  },
+  {
+    key: 'socorro',
+    title: 'Socorro e saúde',
+    hint: 'SOS, hospitais, médicos e ambulâncias',
+    icon: 'medkit-outline',
+    subs: [
+      { label: 'Emergência SOS', hint: 'SAMU 192, Bombeiros 193, Polícia 190', icon: 'alert-circle-outline', go: { tab: 'socorro', seg: 'emergencia' } },
+      { label: 'Hospitais próximos', hint: 'Pronto-socorro, UPA e clínicas', icon: 'business-outline', go: { tab: 'socorro', seg: 'hospitais' } },
+      { label: 'Especialistas médicos', hint: 'Consulta e teleconsulta', icon: 'medkit-outline', go: { tab: 'socorro', seg: 'especialistas' } },
+      { label: 'Ambulâncias e socorristas', hint: 'Particulares com GPS', icon: 'pulse-outline', go: { tab: 'socorro', seg: 'socorristas' } },
+    ],
+  },
+  {
+    key: 'transporte',
+    title: 'Transporte público',
+    hint: 'Ônibus e metrô com GPS, entre cidades e estados',
+    icon: 'bus-outline',
+    subs: [
+      { label: 'Na cidade', hint: 'Ônibus e metrô municipais', icon: 'bus-outline', go: { tab: 'transporte', scope: 'municipal' } },
+      { label: 'Entre cidades', hint: 'Linhas intermunicipais', icon: 'git-compare-outline', go: { tab: 'transporte', scope: 'intermunicipal' } },
+      { label: 'Entre estados', hint: 'Viagens interestaduais', icon: 'map-outline', go: { tab: 'transporte', scope: 'interestadual' } },
+    ],
   },
   {
     key: 'lojas',
@@ -62,16 +90,6 @@ export const CATEGORIES = [
     ],
   },
   {
-    key: 'hotelaria',
-    title: 'Hotelaria',
-    hint: 'Hotéis, pousadas e diárias',
-    icon: 'bed-outline',
-    subs: [
-      { label: 'Hotéis', hint: 'Reserve a diária', icon: 'business-outline', go: { tab: 'home', top: 'anuncios', kind: 'hotel' } },
-      { label: 'Pousadas', hint: 'Praia, serra e campo', icon: 'leaf-outline', go: { tab: 'home', top: 'anuncios', kind: 'hotel' } },
-    ],
-  },
-  {
     key: 'eventos',
     title: 'Festas, eventos e noite',
     hint: 'Casas noturnas, shows, salões e serviços',
@@ -84,6 +102,19 @@ export const CATEGORIES = [
       { label: 'Buffet e garçom', hint: 'Comida e bebida', icon: 'wine-outline', go: { tab: 'servicos', service: 'buffet' } },
       { label: 'Decoração', hint: 'Balões e mesa temática', icon: 'balloon-outline', go: { tab: 'servicos', service: 'decoracao' } },
       { label: 'Lives da noite', hint: 'Ao vivo das casas', icon: 'radio-outline', go: { tab: 'home', top: 'lives', live: 'noite' } },
+    ],
+  },
+  {
+    key: 'artistas',
+    title: 'Artistas',
+    hint: 'Músicas em MP3, vídeos e obras',
+    icon: 'musical-notes-outline',
+    subs: [
+      { label: 'Músicas', hint: 'Ouça e baixe em MP3', icon: 'musical-note-outline', go: { tab: 'artistas', art: 'musica' } },
+      { label: 'Vídeos', hint: 'Clipes e apresentações', icon: 'videocam-outline', go: { tab: 'artistas', art: 'video' } },
+      { label: 'Obras e exposições', hint: 'Pinturas e artes à venda', icon: 'color-palette-outline', go: { tab: 'artistas', art: 'obra' } },
+      { label: 'Todos os artistas', hint: 'Páginas dos artistas', icon: 'people-outline', go: { tab: 'artistas', art: 'todos' } },
+      { label: 'Publicar meu trabalho', hint: 'Área empresarial › Página', icon: 'cloud-upload-outline', go: { tab: 'pagina' } },
     ],
   },
   {
@@ -123,6 +154,7 @@ export const CATEGORIES = [
       { label: 'Estoque', hint: 'Produtos e entradas', icon: 'file-tray-stacked-outline', go: { tab: 'estoque' } },
       { label: 'Fluxo de caixa', hint: 'Entradas e saídas', icon: 'wallet-outline', go: { tab: 'caixa' } },
       { label: 'Negociações', hint: 'Descontos entre empresas', icon: 'swap-horizontal-outline', go: { tab: 'negocios' } },
+      { label: 'Página da empresa', hint: 'Perfil público, músicas e vídeos', icon: 'albums-outline', go: { tab: 'pagina' } },
     ],
   },
 ];

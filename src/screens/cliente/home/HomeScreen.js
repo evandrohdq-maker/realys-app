@@ -283,7 +283,10 @@ function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive
   // Tocar em quem postou abre o perfil da pessoa (com o botão de amizade).
   const openAuthor = (name) => {
     const m = memberByName(name);
-    if (m) dispatch({ type: 'OPEN_PROFILE', id: m.id });
+    if (m) return dispatch({ type: 'OPEN_PROFILE', id: m.id });
+    // Post de empresa: abre a página pública da empresa.
+    const store = state.stores.find((s) => s.name === name);
+    if (store) dispatch({ type: 'OPEN_COMPANY', id: store.id });
   };
   const requests = members.filter((m) => state.friends[m.id] === 'recebido');
   const friends = members
@@ -356,7 +359,7 @@ function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive
               <View key={it.p.id} style={styles.post}>
                 <TouchableOpacity
                   style={{ flexDirection: 'row', alignItems: 'center' }}
-                  activeOpacity={memberByName(it.p.author) ? 0.7 : 1}
+                  activeOpacity={0.7}
                   onPress={() => openAuthor(it.p.author)}
                   accessibilityLabel={`Ver perfil de ${it.p.author}`}
                 >

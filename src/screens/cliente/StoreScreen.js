@@ -132,6 +132,10 @@ export default function StoreScreen({ openVoice, goTo, explore }) {
         <Text style={{ color: colors.muted, marginBottom: 6 }}>
           {s.category} · {s.city} · <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {s.rating}</Text>
         </Text>
+        <TouchableOpacity style={styles.pageBtn} onPress={() => dispatch({ type: 'OPEN_COMPANY', id: s.id })}>
+          <Text style={{ color: colors.primary, fontWeight: '800' }}>Ver página da empresa ›</Text>
+          <Text style={{ color: colors.muted, fontSize: 12 }}>Apresentação, conteúdos, vídeos e seguir</Text>
+        </TouchableOpacity>
         <Row style={{ marginBottom: 14 }}>
           <Badge label="CNPJ verificado" />
           {s.shipsBrazil ? <View style={{ marginLeft: 6 }}><Badge label="Envia para todo o Brasil" color={colors.accent} /></View> : null}
@@ -231,6 +235,7 @@ function CartBar({ count, total, onPress }) {
 }
 
 const styles = StyleSheet.create({
+  pageBtn: { borderWidth: 1, borderColor: colors.primary, borderRadius: 12, padding: 10, marginBottom: 10, backgroundColor: colors.primaryLight },
   h1: { fontSize: 22, fontWeight: '800', color: colors.text, marginBottom: 6 },
   back: { color: colors.primary, fontWeight: '700', marginBottom: 10, fontSize: 15 },
   mic: {

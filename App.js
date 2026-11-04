@@ -28,6 +28,11 @@ import UpdateChecker from './src/components/UpdateChecker';
 import { AdminSystem, NoteModal, SYSTEM_MAP } from './src/screens/admin/AdminSystem';
 import { WakeWordListener } from './src/wakeWord';
 import { UserProfileModal, PeopleSearchModal } from './src/components/People';
+import { CompanyProfileModal } from './src/components/CompanyProfile';
+import TransitScreen from './src/screens/cliente/TransitScreen';
+import SosScreen from './src/screens/cliente/SosScreen';
+import ArtistsScreen from './src/screens/cliente/ArtistsScreen';
+import PageScreen from './src/screens/empresa/PageScreen';
 
 // Cada perfil enxerga abas diferentes dentro do MESMO app.
 const TABS = {
@@ -46,12 +51,17 @@ const TABS = {
     { key: 'servicos', label: 'Serviços', icon: 'construct-outline', Comp: ServicesScreen },
     { key: 'pedidos', label: 'Pedidos', icon: 'receipt-outline', Comp: OrdersScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
+    // Abertas pelo menu ⋮ (e pelo botão SOS): não ocupam lugar na barra de baixo.
+    { key: 'transporte', label: 'Transporte', icon: 'bus-outline', Comp: TransitScreen, hidden: true },
+    { key: 'socorro', label: 'Socorro', icon: 'medkit-outline', Comp: SosScreen, hidden: true },
+    { key: 'artistas', label: 'Artistas', icon: 'musical-notes-outline', Comp: ArtistsScreen, hidden: true },
   ],
   empresa: [
     { key: 'painel', label: 'Painel', icon: 'speedometer-outline', Comp: DashboardScreen },
     { key: 'estoque', label: 'Estoque', icon: 'file-tray-stacked-outline', Comp: InventoryScreen },
     { key: 'caixa', label: 'Caixa', icon: 'wallet-outline', Comp: FinanceScreen },
     { key: 'negocios', label: 'Negócios', icon: 'swap-horizontal-outline', Comp: B2BScreen },
+    { key: 'pagina', label: 'Página', icon: 'albums-outline', Comp: PageScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
   ],
   prestador: [
@@ -129,6 +139,11 @@ function Shell() {
           <Text style={styles.brand}>REALYS</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {state.activeRole === 'cliente' ? (
+            <TouchableOpacity onPress={() => pick({ tab: 'socorro', seg: 'emergencia' })} style={styles.sos} accessibilityLabel="Socorro e emergência">
+              <Text style={styles.sosText}>SOS</Text>
+            </TouchableOpacity>
+          ) : null}
           <TouchableOpacity onPress={() => setSearching(true)} style={[styles.dots, { marginRight: 6, width: 40, height: 40 }]} accessibilityLabel="Buscar pessoas na rede Realys">
             <Ionicons name="search" size={19} color={colors.text} />
           </TouchableOpacity>
@@ -190,7 +205,7 @@ function Shell() {
       ) : null}
 
       <View style={[styles.tabbar, { paddingBottom: 10 + insets.bottom }]}>
-        {tabs.map((t) => {
+        {tabs.filter((t) => !t.hidden).map((t) => {
           const on = t.key === current.key;
           return (
             <TouchableOpacity key={t.key} style={styles.tab} onPress={() => setTab(t.key)}>
@@ -229,6 +244,7 @@ function Shell() {
       />
       <PeopleSearchModal visible={searching} onClose={() => setSearching(false)} />
       <UserProfileModal />
+      <CompanyProfileModal />
       <CategoryMenu visible={menu} onClose={() => setMenu(false)} onPick={pick} />
       {isAdmin ? <NoteModal visible={noting} where={where} onClose={() => setNoting(false)} /> : null}
     </View>
@@ -298,6 +314,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  sos: { height: 34, paddingHorizontal: 10, borderRadius: 17, backgroundColor: colors.danger, alignItems: 'center', justifyContent: 'center', marginRight: 6 },
+  sosText: { color: '#FFFFFF', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
   dotsOn: { borderColor: colors.primary, backgroundColor: 'rgba(168,121,10,0.14)' },
   subHeader: {
     flexDirection: 'row',

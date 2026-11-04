@@ -29,10 +29,11 @@ export default function FeedScreen({ goTo }) {
         return (
           <View key={p.id} style={styles.post}>
             <TouchableOpacity
-              activeOpacity={memberByName(p.author) ? 0.7 : 1}
+              activeOpacity={0.7}
               onPress={() => {
                 const m = memberByName(p.author);
-                if (m) dispatch({ type: 'OPEN_PROFILE', id: m.id });
+                if (m) return dispatch({ type: 'OPEN_PROFILE', id: m.id });
+                if (p.storeId) dispatch({ type: 'OPEN_COMPANY', id: p.storeId });
               }}
               accessibilityLabel={`Ver perfil de ${p.author}`}
             >
