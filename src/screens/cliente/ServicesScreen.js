@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
-import { useStore, buildServiceCall, callReply, serviceType, priceText } from '../../store';
+import { useStore, buildServiceCall, callReply, serviceType, priceText, detectService } from '../../store';
+import { SearchBar, GlobalResults } from '../../components/Search';
 import { serviceTypes } from '../../data';
 import { colors } from '../../theme';
 import { Screen, Title, Card, Row, Input, Photo, Badge } from '../../components/ui';
@@ -53,6 +54,9 @@ export default function ServicesScreen({ explore, navigate }) {
   const [selId, setSelId] = useState(null);
   const [profile, setProfile] = useState(null);
   const [tracking, setTracking] = useState(null);
+  const [q, setQ] = useState('');
+  const [searched, setSearched] = useState('');
+  const [found, setFound] = useState(null); // tipo de serviço achado pela pesquisa
 
   // Veio do menu ⋮ (ex.: Serviços gerais → Eletricista)
   useEffect(() => {
@@ -92,6 +96,29 @@ export default function ServicesScreen({ explore, navigate }) {
   return (
     <Screen>
       <Title sub="Escolha quem você quer: veja nota, distância e preço de cada um">Serviços</Title>
+
+      <SearchBar
+        value={q}
+        onChangeText={setQ}
+        placeholder="Pesquisar: eletricista, hotel, Pedro…"
+        voicePrompt="Que serviço você procura?"
+        onSubmit={(text) => {
+          setSearched(text);
+          const key = text ? detectService(text) : null;
+          setFound(key);
+          if (key) setSelected(key);
+        }}
+      />
+      {searched ? (
+        <>
+          {found ? (
+            <Text style={{ color: colors.accent, fontWeight: '700', marginBottom: 8 }}>
+              Mostrando {serviceType(found).label.toLowerCase()} perto de você no mapa abaixo ↓
+            </Text>
+          ) : null}
+          <GlobalResults query={searched} navigate={navigate} max={found ? 4 : 8} title={found ? 'Também no Realys' : 'Resultados da pesquisa'} hideEmpty={!!found} />
+        </>
+      ) : null}
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12, marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
         {serviceTypes.map((s) => {

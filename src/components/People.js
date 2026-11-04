@@ -7,6 +7,7 @@ import { colors } from '../theme';
 import { Photo, Empty } from './ui';
 import { members, memberById, postsOf, searchMembers } from '../people';
 import { ChatModal } from '../screens/cliente/home/Social';
+import { listenOnce, GlobalResults } from './Search';
 
 // Botão de amizade: Adicionar → Solicitação enviada → Amigos (ou Aceitar / Recusar quando pediram para você).
 export function FriendButton({ member, compact }) {
@@ -169,12 +170,16 @@ function Stat({ n, label }) {
 }
 
 // Busca de pessoas na rede Realys, por nome ou @usuário.
-export function PeopleSearchModal({ visible, onClose }) {
+export function PeopleSearchModal({ visible, onClose, navigate }) {
   const { state, dispatch } = useStore();
   const insets = useSafeAreaInsets();
   const [q, setQ] = useState('');
+  const [searched, setSearched] = useState('');
   useEffect(() => {
-    if (!visible) setQ('');
+    if (!visible) {
+      setQ('');
+      setSearched('');
+    }
   }, [visible]);
   const results = searchMembers(q);
   const requests = members.filter((m) => state.friends[m.id] === 'recebido');
@@ -192,7 +197,11 @@ export function PeopleSearchModal({ visible, onClose }) {
             <Ionicons name="search" size={18} color={colors.muted} />
             <TextInput
               value={q}
-              onChangeText={setQ}
+              onChangeText={(t) => {
+                setQ(t);
+                if (!t) setSearched('');
+              }}
+              onSubmitEditing={() => setSearched(q.trim())}
               autoFocus
               placeholder="Buscar pessoas por nome ou @usuário"
               placeholderTextColor={colors.muted}
@@ -201,10 +210,26 @@ export function PeopleSearchModal({ visible, onClose }) {
               autoCapitalize="none"
             />
             {q ? (
-              <TouchableOpacity onPress={() => setQ('')} accessibilityLabel="Limpar busca">
+              <TouchableOpacity onPress={() => { setQ(''); setSearched(''); }} accessibilityLabel="Limpar busca">
                 <Ionicons name="close-circle" size={18} color={colors.muted} />
               </TouchableOpacity>
             ) : null}
+            <TouchableOpacity onPress={() => setSearched(q.trim())} accessibilityLabel="Pesquisar" style={{ marginLeft: 8 }}>
+              <Ionicons name="search-circle" size={26} color={colors.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={async () => {
+                const said = await listenOnce('Quem você procura?');
+                if (said) {
+                  setQ(said);
+                  setSearched(said);
+                }
+              }}
+              accessibilityLabel="Pesquisar por voz"
+              style={{ marginLeft: 6 }}
+            >
+              <Ionicons name="mic-circle" size={26} color={colors.primary} />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -218,7 +243,10 @@ export function PeopleSearchModal({ visible, onClose }) {
                 ))}
               </>
             ) : (
-              <Empty text={`Ninguém encontrado com "${q.trim()}". Confira o nome ou peça o @usuário da pessoa.`} />
+              <>
+                <Empty text={`Ninguém encontrado com "${q.trim()}". Confira o nome ou peça o @usuário da pessoa.`} />
+                {searched ? <GlobalResults query={searched} navigate={navigate ? (go) => { onClose(); navigate(go); } : null} title="Achei em outras partes do Realys" hideEmpty /> : null}
+              </>
             )
           ) : (
             <>

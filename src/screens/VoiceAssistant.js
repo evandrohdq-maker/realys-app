@@ -177,6 +177,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
               value={text}
               onChangeText={setText}
               onSubmitEditing={() => run(text)}
+              returnKeyType="search"
               style={{ flex: 1, marginBottom: 0 }}
             />
             <Button small title="Enviar" onPress={() => run(text)} style={{ marginLeft: 8 }} />

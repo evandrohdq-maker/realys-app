@@ -141,7 +141,7 @@ export const CATEGORIES = [
       { label: 'Contatos', hint: 'Sua lista de contatos', icon: 'person-add-outline', go: { tab: 'home', top: 'comunidade', seg: 'contatos' } },
       { label: 'Lives', hint: 'Assista ou abra a sua', icon: 'radio-outline', go: { tab: 'home', top: 'lives' } },
       { label: 'Stories', hint: 'O dia a dia de quem está no Realys', icon: 'aperture-outline', go: { tab: 'stories' } },
-      { label: 'Encontros', hint: 'Relacionamentos com quem passa perto', icon: 'heart-outline', go: { tab: 'encontros' } },
+      { label: 'Date', hint: 'Relacionamentos com quem passa perto', icon: 'heart-outline', go: { tab: 'encontros' } },
     ],
   },
   {

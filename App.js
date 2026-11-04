@@ -46,7 +46,7 @@ const TABS = {
   cliente: [
     { key: 'home', label: 'Início', icon: 'home-outline', Comp: HomeScreen },
     { key: 'stories', label: 'Stories', icon: 'aperture-outline', Comp: StoriesScreen },
-    { key: 'encontros', label: 'Encontros', icon: 'heart-outline', Comp: EncontrosScreen },
+    { key: 'encontros', label: 'Date', icon: 'heart-outline', Comp: EncontrosScreen },
     { key: 'loja', label: 'Loja', icon: 'bag-handle-outline', Comp: StoreScreen },
     { key: 'servicos', label: 'Serviços', icon: 'construct-outline', Comp: ServicesScreen },
     { key: 'pedidos', label: 'Pedidos', icon: 'receipt-outline', Comp: OrdersScreen },
@@ -242,7 +242,7 @@ function Shell() {
           Alert.alert('Mãos livres desligado', msg);
         }}
       />
-      <PeopleSearchModal visible={searching} onClose={() => setSearching(false)} />
+      <PeopleSearchModal visible={searching} onClose={() => setSearching(false)} navigate={pick} />
       <UserProfileModal />
       <CompanyProfileModal />
       <CategoryMenu visible={menu} onClose={() => setMenu(false)} onPick={pick} />

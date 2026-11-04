@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useStore, storeOf, cartTotal } from '../../store';
 import { colors, brl } from '../../theme';
+import { SearchBar, GlobalResults } from '../../components/Search';
 import { Screen, Photo, Badge, Row, Button, Input, ProductThumb, Chip, Card, Section, Empty } from '../../components/ui';
 
 const CATEGORIES = ['Todos', 'Alimentação', 'Mercado', 'Roupas', 'Eletrônicos'];
@@ -24,10 +25,11 @@ function ProductCard({ p, onAdd, storeName, style }) {
   );
 }
 
-export default function StoreScreen({ openVoice, goTo, explore }) {
+export default function StoreScreen({ openVoice, goTo, explore, navigate }) {
   const { state, dispatch } = useStore();
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('Todos');
+  const [searched, setSearched] = useState('');
 
   // Veio do menu ⋮ (ex.: Restaurantes → Pizzaria)
   useEffect(() => {
@@ -152,17 +154,17 @@ export default function StoreScreen({ openVoice, goTo, explore }) {
 
   return (
     <Screen>
-      <Row>
-        <Input
-          placeholder="Buscar produtos, lojas, restaurantes…"
-          value={q}
-          onChangeText={setQ}
-          style={{ flex: 1, marginBottom: 0 }}
-        />
-        <TouchableOpacity style={styles.mic} onPress={openVoice}>
-          <Text style={{ color: colors.text, fontSize: 20 }}>🎙️</Text>
-        </TouchableOpacity>
-      </Row>
+      <SearchBar
+        value={q}
+        onChangeText={(t) => {
+          setQ(t);
+          if (!t) setSearched('');
+        }}
+        onSubmit={setSearched}
+        placeholder="Buscar produtos, lojas, restaurantes…"
+        voicePrompt="O que você quer comprar?"
+        style={{ marginBottom: 0 }}
+      />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 12 }}>
         {CATEGORIES.map((c) => (
           <Chip key={c} label={c} active={cat === c} onPress={() => setCat(c)} />
@@ -177,6 +179,10 @@ export default function StoreScreen({ openVoice, goTo, explore }) {
             ))}
           </View>
         </Section>
+      ) : null}
+
+      {searched && !matchedProducts.length && !rankedStores.length ? (
+        <GlobalResults query={searched} navigate={navigate} title="Não está na loja, mas achei no Realys" />
       ) : null}
 
       {!q ? (

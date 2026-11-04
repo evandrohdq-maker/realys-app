@@ -3,21 +3,25 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
 import { colors } from '../../theme';
-import { Screen, Title, Photo, Badge, Row, Input } from '../../components/ui';
+import { Screen, Title, Photo, Badge, Row } from '../../components/ui';
 import { artists, artMedia, ART_KINDS } from '../../extraData';
 import { MediaList } from '../../components/CompanyProfile';
+import { SearchBar, GlobalResults } from '../../components/Search';
 
 // Artistas: músicas em MP3, vídeos e obras. Cada artista tem a sua página.
-export default function ArtistsScreen({ explore }) {
+export default function ArtistsScreen({ explore, navigate }) {
   const { dispatch } = useStore();
   const [kind, setKind] = useState('todos');
   const [q, setQ] = useState('');
+  const [searched, setSearched] = useState('');
   useEffect(() => {
     if (explore && explore.art) setKind(explore.art);
   }, [explore]);
 
   const term = q.trim().toLowerCase();
-  const list = artists.filter((a) => !term || (a.name + ' ' + a.genre + ' ' + a.city).toLowerCase().includes(term));
+  const list = artists.filter(
+    (a) => !term || (a.name + ' ' + a.genre + ' ' + a.city + ' ' + artMedia.filter((m) => m.ownerId === a.id).map((m) => m.title).join(' ')).toLowerCase().includes(term)
+  );
   const media = artMedia
     .filter((m) => kind === 'todos' || m.kind === kind)
     .filter((m) => list.some((a) => a.id === m.ownerId))
@@ -26,7 +30,8 @@ export default function ArtistsScreen({ explore }) {
   return (
     <Screen>
       <Title sub="Ouça, assista e apoie artistas reais">Artistas</Title>
-      <Input placeholder="Buscar artista, estilo ou cidade" value={q} onChangeText={setQ} />
+      <SearchBar value={q} onChangeText={(t) => { setQ(t); if (!t) setSearched(''); }} onSubmit={setSearched} placeholder="Buscar artista, música, estilo ou cidade" voicePrompt="Que artista ou música você procura?" />
+      {searched && !list.length ? <GlobalResults query={searched} navigate={navigate} /> : null}
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 8, marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
         {list.map((a) => (

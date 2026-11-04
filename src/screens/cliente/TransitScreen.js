@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
 import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Badge, Input, Button } from '../../components/ui';
+import { SearchBar, GlobalResults } from '../../components/Search';
 import { TRANSIT_SCOPES, transitCompanies, busStops, transitLines, trips, MY_SPOT } from '../../extraData';
 
 const company = (id) => transitCompanies.find((c) => c.id === id) || {};
@@ -12,10 +13,11 @@ const crowdColor = { Vazio: colors.success, 'Pouco cheio': colors.accent, Cheio:
 
 // Transporte público: ônibus e metrô da cidade, linhas entre cidades e entre estados.
 // Cada empresa liga o GPS da frota e o cliente vê onde o ônibus está.
-export default function TransitScreen({ explore }) {
+export default function TransitScreen({ explore, navigate }) {
   const { state, dispatch } = useStore();
   const [scope, setScope] = useState('municipal');
   const [dest, setDest] = useState('');
+  const [searched, setSearched] = useState('');
   const [tracking, setTracking] = useState(null); // { lineId, bus, min, stopName } ou { tripId }
   const [ticket, setTicket] = useState(null);
 
@@ -33,9 +35,13 @@ export default function TransitScreen({ explore }) {
   if (ticket) return <TicketView t={ticket} onBack={() => setTicket(null)} onTrack={() => { setTicket(null); setTracking(ticket.track); }} />;
   if (tracking) return <TrackView tr={tracking} onBack={() => setTracking(null)} />;
 
+  const nq = (s) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const matchLines = searched
+    ? transitLines.filter((l) => nq(l.code + ' ' + l.name + ' ' + l.stops.join(' ')).includes(nq(searched)))
+    : [];
   const list = trips
     .filter((t) => t.scope === scope)
-    .filter((t) => !dest.trim() || t.to.toLowerCase().includes(dest.trim().toLowerCase()));
+    .filter((t) => !dest.trim() || nq(t.to).includes(nq(dest.trim())));
 
   return (
     <Screen>
@@ -50,7 +56,7 @@ export default function TransitScreen({ explore }) {
         {TRANSIT_SCOPES.map((s) => {
           const on = s.key === scope;
           return (
-            <TouchableOpacity key={s.key} onPress={() => setScope(s.key)} style={[styles.scope, on && styles.scopeOn]}>
+            <TouchableOpacity key={s.key} onPress={() => { setScope(s.key); setDest(''); setSearched(''); }} style={[styles.scope, on && styles.scopeOn]}>
               <Ionicons name={s.icon} size={18} color={on ? colors.onPrimary : colors.primary} />
               <Text style={[styles.scopeText, on && { color: colors.onPrimary }]}>{s.label}</Text>
             </TouchableOpacity>
@@ -72,6 +78,26 @@ export default function TransitScreen({ explore }) {
 
       {scope === 'municipal' ? (
         <>
+          <SearchBar value={dest} onChangeText={(t) => { setDest(t); if (!t) setSearched(''); }} onSubmit={setSearched} placeholder="Linha, bairro ou destino (ex.: Aeroporto)" voicePrompt="Para onde você quer ir?" />
+          {searched ? (
+            <>
+              <Text style={styles.h2}>Linhas para "{searched}"</Text>
+              {matchLines.length === 0 ? <Text style={[styles.sub, { marginBottom: 12 }]}>Nenhuma linha passa por esse lugar ainda.</Text> : null}
+              {matchLines.map((l) => (
+                <TouchableOpacity key={l.id} style={styles.arr} onPress={() => setTracking({ lineId: l.id, bus: 'próximo ônibus', min: 6, stopName: 'Paulista' })}>
+                  <View style={styles.codeBox}>
+                    <Text style={styles.code}>{l.code}</Text>
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 10 }}>
+                    <Text style={{ color: colors.text, fontWeight: '700' }}>{l.name}</Text>
+                    <Text style={styles.sub} numberOfLines={1}>Passa por: {l.stops.join(', ')}</Text>
+                  </View>
+                  <Text style={{ color: colors.primary, fontWeight: '700' }}>GPS ›</Text>
+                </TouchableOpacity>
+              ))}
+              <View style={{ height: 12 }} />
+            </>
+          ) : null}
           <Text style={styles.h2}>Pontos perto de você</Text>
           {busStops.map((s) => (
             <Card key={s.id}>
@@ -128,9 +154,10 @@ export default function TransitScreen({ explore }) {
         </>
       ) : (
         <>
-          <Input placeholder="Para onde? (ex.: Campinas, Rio de Janeiro)" value={dest} onChangeText={setDest} />
+          <SearchBar value={dest} onChangeText={(t) => { setDest(t); if (!t) setSearched(''); }} onSubmit={setSearched} placeholder="Para onde? (ex.: Campinas, Rio de Janeiro)" voicePrompt="Para onde você vai?" />
           <Text style={styles.h2}>Saindo de São Paulo - SP hoje</Text>
-          {list.length === 0 ? <Text style={styles.sub}>Nenhuma viagem para esse destino hoje.</Text> : null}
+          {list.length === 0 ? <Text style={styles.sub}>Nenhuma viagem {scope === 'interestadual' ? 'entre estados' : 'entre cidades'} para esse destino hoje.</Text> : null}
+          {searched && list.length === 0 ? <GlobalResults query={searched} navigate={navigate} hideEmpty title="Outras opções no Realys" /> : null}
           {list.map((t) => {
             const c = company(t.companyId);
             return (

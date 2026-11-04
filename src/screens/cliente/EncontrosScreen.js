@@ -55,7 +55,7 @@ function Onboarding({ openTerms }) {
         <View style={styles.heroIcon}>
           <Ionicons name="heart" size={28} color="#fff" />
         </View>
-        <Text style={styles.heroTitle}>Encontros</Text>
+        <Text style={styles.heroTitle}>Date</Text>
         <Text style={styles.heroSub}>Conheça pessoas reais e verificadas que passam perto de você. Se as duas curtirem, é match.</Text>
         <View style={{ marginTop: 12 }}>
           <Bullet icon="shield-checkmark" text="Só participa quem entra e aceita os termos do Encontros" />
