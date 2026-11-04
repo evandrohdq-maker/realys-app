@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Switch, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Switch, Alert, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../../store';
@@ -8,6 +8,7 @@ import { Screen, Card, Row, Button, Photo, Section, Empty } from '../../componen
 import { encounterPeople } from '../../homeData';
 import { ENCONTROS_TERMS, TERMS_VERSION, RELATIONSHIP_STATUS, statusAllowed } from '../../encontrosTerms';
 import { ChatModal, VideoCallModal } from './home/Social';
+import { PROFILE_FIELDS, INTEREST_GROUPS, profileScore } from '../../encontrosProfile';
 
 const ROSE = '#E0567A';
 const LOOKING = ['Amizade', 'Namoro', 'Relacionamento sério'];
@@ -123,6 +124,9 @@ function Onboarding({ openTerms }) {
           </Section>
 
           <Button title="Entrar no Encontros" onPress={enter} style={!ready ? { opacity: 0.5 } : null} />
+          <Text style={{ color: colors.muted, fontSize: 12, textAlign: 'center', marginTop: 10 }}>
+            Depois de entrar, monte seu perfil de namoro (gostos, estilo de vida e mais). É opcional, mas perfil vazio recebe pouco engajamento.
+          </Text>
         </>
       ) : null}
     </Screen>
@@ -140,12 +144,16 @@ function Main({ openTerms }) {
   const [video, setVideo] = useState(null);
   const [banner, setBanner] = useState(null);
   const [note, setNote] = useState(null);
+  const [person, setPerson] = useState(null);
+  const [editProfile, setEditProfile] = useState(false);
+  const myScore = profileScore(e);
 
   // Só aparece quem também aceitou os termos e está disponível. Casados e namorando ficam de fora.
   const nearby = encounterPeople.filter(
     (p) => p.optIn && statusAllowed(p.status) && !e.blocked[p.id] && p.km <= e.maxKm && (e.interest === 'todos' || p.gender === e.interest)
   );
-  const queue = nearby.filter((p) => !e.liked[p.id] && !e.passed[p.id]);
+  // Perfis de namoro mais completos aparecem primeiro; os vazios ficam para o fim.
+  const queue = nearby.filter((p) => !e.liked[p.id] && !e.passed[p.id]).sort((a, b) => profileScore(b) - profileScore(a));
   const current = queue[0];
   const matches = e.matches.map((id) => encounterPeople.find((p) => p.id === id)).filter(Boolean);
 
@@ -223,10 +231,18 @@ function Main({ openTerms }) {
             </Row>
           </Card>
 
+          <ScoreBar score={myScore} onPress={() => setEditProfile(true)} />
+
           {!e.radar ? (
             <Empty text="Com o radar desligado você não aparece para ninguém e não recebe avisos de encontros." />
           ) : current ? (
-            <PersonCard p={current} onLike={() => like(current)} onPass={() => dispatch({ type: 'ENC_PASS', id: current.id })} onReport={() => report(current)} />
+            <PersonCard
+              p={current}
+              onLike={() => like(current)}
+              onPass={() => dispatch({ type: 'ENC_PASS', id: current.id })}
+              onReport={() => report(current)}
+              onOpen={() => setPerson(current)}
+            />
           ) : (
             <Card>
               <Text style={{ color: colors.text, fontWeight: '800', textAlign: 'center' }}>Por enquanto é isso por perto</Text>
@@ -276,7 +292,7 @@ function Main({ openTerms }) {
         </Screen>
       ) : null}
 
-      {seg === 'ajustes' ? <Settings openTerms={openTerms} /> : null}
+      {seg === 'ajustes' ? <Settings openTerms={openTerms} openProfile={() => setEditProfile(true)} /> : null}
 
       {banner && e.radar ? (
         <TouchableOpacity style={[styles.banner, { top: 8 }]} onPress={() => (setBanner(null), setSeg('radar'))} activeOpacity={0.9}>
@@ -295,6 +311,20 @@ function Main({ openTerms }) {
         </View>
       ) : null}
 
+      <PersonModal
+        p={person}
+        onClose={() => setPerson(null)}
+        onLike={() => {
+          const p = person;
+          setPerson(null);
+          like(p);
+        }}
+        onPass={() => {
+          dispatch({ type: 'ENC_PASS', id: person.id });
+          setPerson(null);
+        }}
+      />
+      <ProfileEditor visible={editProfile} onClose={() => setEditProfile(false)} />
       <MatchModal
         p={match}
         onClose={() => setMatch(null)}
@@ -316,10 +346,13 @@ function Main({ openTerms }) {
   );
 }
 
-function PersonCard({ p, onLike, onPass, onReport }) {
+function PersonCard({ p, onLike, onPass, onReport, onOpen }) {
+  const det = PROFILE_FIELDS.filter((f) => p.details && p.details[f.key]).slice(0, 3);
   return (
     <View style={styles.person}>
-      <Photo uri={p.photo} style={styles.personPhoto} fallback="🙂" />
+      <TouchableOpacity activeOpacity={0.9} onPress={onOpen} accessibilityLabel={`Ver perfil completo de ${p.name}`}>
+        <Photo uri={p.photo} style={styles.personPhoto} fallback="🙂" />
+      </TouchableOpacity>
       <View style={styles.personCross}>
         <Ionicons name="location" size={12} color="#fff" />
         <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700', marginLeft: 4 }}>
@@ -338,14 +371,28 @@ function PersonCard({ p, onLike, onPass, onReport }) {
         <Text style={{ color: ROSE, fontWeight: '700', fontSize: 12, marginTop: 2 }}>
           {approx(p.km)} · procura {p.looking.toLowerCase()}
         </Text>
+        {p.job ? <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>{p.job}</Text> : null}
         <Text style={{ color: colors.text, marginTop: 8, lineHeight: 20 }}>{p.bio}</Text>
-        <View style={[styles.wrap, { marginTop: 10 }]}>
+        {det.length ? (
+          <View style={[styles.wrap, { marginTop: 10 }]}>
+            {det.map((f) => (
+              <View key={f.key} style={[styles.tag, styles.detTag]}>
+                <Ionicons name={f.icon} size={12} color={ROSE} />
+                <Text style={{ color: colors.text, fontSize: 12, marginLeft: 4 }}>{p.details[f.key]}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
+        <View style={[styles.wrap, { marginTop: 6 }]}>
           {p.tags.map((t) => (
             <View key={t} style={styles.tag}>
               <Text style={{ color: colors.text, fontSize: 12 }}>{t}</Text>
             </View>
           ))}
         </View>
+        <TouchableOpacity onPress={onOpen}>
+          <Text style={{ color: ROSE, fontWeight: '700', textAlign: 'center', marginTop: 6 }}>Ver perfil completo</Text>
+        </TouchableOpacity>
         <Row style={{ justifyContent: 'center', marginTop: 14 }}>
           <TouchableOpacity style={[styles.round, { borderColor: colors.border }]} onPress={onPass} accessibilityLabel="Passar">
             <Ionicons name="close" size={30} color={colors.muted} />
@@ -383,7 +430,7 @@ function MatchModal({ p, onClose, onChat }) {
   );
 }
 
-function Settings({ openTerms }) {
+function Settings({ openTerms, openProfile }) {
   const { state, dispatch } = useStore();
   const e = state.encontros;
   const setStatus = (s) => {
@@ -406,6 +453,7 @@ function Settings({ openTerms }) {
     ]);
   return (
     <Screen>
+      <ScoreBar score={profileScore(e)} onPress={openProfile} />
       <Section title="Status de relacionamento">
         <View style={styles.wrap}>
           {RELATIONSHIP_STATUS.map((s) => (
@@ -452,6 +500,177 @@ function Settings({ openTerms }) {
       <SafetyCard />
       <Button variant="danger" title="Sair do Encontros e apagar meus dados" onPress={leave} style={{ marginTop: 6 }} />
     </Screen>
+  );
+}
+
+// Medidor de perfil completo: perfil vazio recebe pouco engajamento.
+function ScoreBar({ score, onPress }) {
+  const low = score < 50;
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={[styles.score, low && { borderColor: '#F3C77A', backgroundColor: '#FFF8EA' }]}>
+      <Row>
+        <Ionicons name={low ? 'alert-circle-outline' : 'sparkles'} size={20} color={low ? '#C77D12' : ROSE} />
+        <Text style={{ color: colors.text, fontWeight: '800', flex: 1, marginLeft: 8 }}>Perfil de namoro {score}% completo</Text>
+        <Text style={{ color: ROSE, fontWeight: '800' }}>{score >= 100 ? 'Editar' : 'Completar'}</Text>
+      </Row>
+      <View style={styles.track}>
+        <View style={[styles.fill, { width: `${score}%`, backgroundColor: low ? '#E0A32E' : ROSE }]} />
+      </View>
+      <Text style={{ color: colors.muted, fontSize: 12, lineHeight: 17 }}>
+        {score >= 80
+          ? 'Ótimo! Seu perfil aparece em destaque para quem cruza com você.'
+          : low
+          ? 'Perfil quase vazio recebe pouco engajamento: aparece no fim da fila dos outros e chama menos atenção. Conte seus gostos e seu estilo de vida.'
+          : 'Bom começo. Complete mais alguns itens para ganhar destaque e receber mais curtidas.'}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
+// Editor do perfil de namoro. Tudo é opcional.
+function ProfileEditor({ visible, onClose }) {
+  const { state, dispatch } = useStore();
+  const insets = useSafeAreaInsets();
+  const e = state.encontros;
+  const [bio, setBio] = useState(e.bio);
+  const [job, setJob] = useState(e.job);
+  const [details, setDetails] = useState(e.details);
+  const [interests, setInterests] = useState(e.interests);
+  useEffect(() => {
+    if (!visible) return;
+    setBio(e.bio);
+    setJob(e.job);
+    setDetails(e.details);
+    setInterests(e.interests);
+  }, [visible]);
+  const score = profileScore({ bio: bio.trim(), job: job.trim(), details, interests });
+  const toggle = (i) => setInterests(interests.includes(i) ? interests.filter((x) => x !== i) : [...interests, i]);
+  const save = () => {
+    dispatch({ type: 'ENC_SET', patch: { bio: bio.trim(), job: job.trim(), details, interests } });
+    onClose();
+  };
+  return (
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: colors.bg }}>
+        <View style={[styles.modalHead, { paddingTop: insets.top + 10 }]}>
+          <TouchableOpacity onPress={onClose} style={styles.iconBtn} accessibilityLabel="Voltar">
+            <Ionicons name="arrow-back" size={20} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800', marginLeft: 12, flex: 1 }}>Meu perfil de namoro</Text>
+        </View>
+        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 + insets.bottom }} keyboardShouldPersistTaps="handled">
+          <ScoreBar score={score} />
+          <Text style={styles.h}>Sobre mim</Text>
+          <TextInput
+            value={bio}
+            onChangeText={setBio}
+            placeholder="Conte um pouco de você, do seu jeito e do que valoriza numa pessoa"
+            placeholderTextColor={colors.muted}
+            maxLength={300}
+            multiline
+            style={[styles.input, { minHeight: 90 }]}
+          />
+          <Text style={styles.h}>Profissão</Text>
+          <TextInput value={job} onChangeText={setJob} placeholder="Ex.: Professora, motorista, empresário" placeholderTextColor={colors.muted} style={styles.input} />
+          {PROFILE_FIELDS.map((f) => (
+            <View key={f.key}>
+              <Row style={{ marginTop: 6 }}>
+                <Ionicons name={f.icon} size={16} color={ROSE} />
+                <Text style={[styles.h, { marginTop: 0, marginLeft: 6, marginBottom: 0 }]}>{f.label}</Text>
+              </Row>
+              <View style={[styles.wrap, { marginTop: 8 }]}>
+                {f.options.map((o) => (
+                  <Pill key={o} label={o} on={details[f.key] === o} onPress={() => setDetails({ ...details, [f.key]: details[f.key] === o ? undefined : o })} />
+                ))}
+              </View>
+            </View>
+          ))}
+          <Text style={styles.h}>Meus gostos (escolha vários)</Text>
+          {INTEREST_GROUPS.map((g) => (
+            <View key={g.title}>
+              <Text style={styles.groupTitle}>{g.title}</Text>
+              <View style={styles.wrap}>
+                {g.items.map((i) => (
+                  <Pill key={i} label={i} on={interests.includes(i)} onPress={() => toggle(i)} />
+                ))}
+              </View>
+            </View>
+          ))}
+          <Button title="Salvar perfil de namoro" onPress={save} style={{ marginTop: 10, backgroundColor: ROSE, borderColor: ROSE }} />
+          <Text style={{ color: colors.muted, fontSize: 12, textAlign: 'center', marginTop: 8 }}>
+            Tudo aqui é opcional. Quanto mais completo, mais destaque e mais curtidas.
+          </Text>
+        </ScrollView>
+      </View>
+    </Modal>
+  );
+}
+
+// Perfil completo de quem cruzou com você.
+function PersonModal({ p, onClose, onLike, onPass }) {
+  const insets = useSafeAreaInsets();
+  if (!p) return null;
+  const det = PROFILE_FIELDS.filter((f) => p.details && p.details[f.key]);
+  return (
+    <Modal visible animationType="slide" onRequestClose={onClose}>
+      <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
+        <Photo uri={p.photo} style={{ width: '100%', height: 380 }} fallback="🙂" />
+        <TouchableOpacity onPress={onClose} style={[styles.iconBtn, { position: 'absolute', left: 14, top: insets.top + 10 }]} accessibilityLabel="Voltar">
+          <Ionicons name="arrow-back" size={20} color={colors.text} />
+        </TouchableOpacity>
+        <View style={{ padding: 16 }}>
+          <Text style={{ color: colors.text, fontSize: 24, fontWeight: '900' }}>
+            {p.name}, {p.age} <Ionicons name="shield-checkmark" size={18} color={colors.primary} />
+          </Text>
+          {p.job ? <Text style={{ color: colors.muted, marginTop: 2 }}>{p.job}</Text> : null}
+          <Text style={{ color: ROSE, fontWeight: '700', fontSize: 12, marginTop: 4 }}>
+            {approx(p.km)} · procura {p.looking.toLowerCase()}
+          </Text>
+          <View style={styles.crossBox}>
+            <Ionicons name="footsteps-outline" size={15} color={ROSE} />
+            <Text style={{ color: colors.text, fontSize: 12.5, marginLeft: 6, flex: 1 }}>
+              Cruzou com você {p.when} · {p.place}
+            </Text>
+          </View>
+          <Text style={styles.h}>Sobre</Text>
+          <Text style={{ color: colors.text, lineHeight: 20 }}>{p.bio}</Text>
+          {det.length ? (
+            <>
+              <Text style={styles.h}>Estilo de vida</Text>
+              <View style={styles.detGrid}>
+                {det.map((f) => (
+                  <View key={f.key} style={styles.detItem}>
+                    <Ionicons name={f.icon} size={16} color={ROSE} />
+                    <View style={{ marginLeft: 8, flex: 1 }}>
+                      <Text style={{ fontSize: 11, color: colors.muted }}>{f.label}</Text>
+                      <Text style={{ fontSize: 13, color: colors.text, fontWeight: '700' }}>{p.details[f.key]}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </>
+          ) : (
+            <Text style={{ color: colors.muted, fontSize: 12, marginTop: 10 }}>{p.name} ainda não preencheu o estilo de vida.</Text>
+          )}
+          <Text style={styles.h}>Gostos</Text>
+          <View style={styles.wrap}>
+            {p.tags.map((t) => (
+              <View key={t} style={styles.tag}>
+                <Text style={{ color: colors.text, fontSize: 12 }}>{t}</Text>
+              </View>
+            ))}
+          </View>
+          <Row style={{ justifyContent: 'center', marginTop: 16 }}>
+            <TouchableOpacity style={[styles.round, { borderColor: colors.border }]} onPress={onPass} accessibilityLabel="Passar">
+              <Ionicons name="close" size={30} color={colors.muted} />
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.round, { backgroundColor: ROSE, borderColor: ROSE, marginLeft: 28 }]} onPress={onLike} accessibilityLabel="Curtir">
+              <Ionicons name="heart" size={30} color="#fff" />
+            </TouchableOpacity>
+          </Row>
+        </View>
+      </ScrollView>
+    </Modal>
   );
 }
 
@@ -531,6 +750,18 @@ const styles = StyleSheet.create({
   heroTitle: { color: colors.text, fontSize: 28, fontWeight: '900', marginTop: 10 },
   heroSub: { color: colors.muted, fontSize: 13, marginTop: 4, lineHeight: 18 },
   wrap: { flexDirection: 'row', flexWrap: 'wrap' },
+  h: { color: colors.text, fontSize: 15, fontWeight: '800', marginTop: 14, marginBottom: 8 },
+  groupTitle: { color: colors.muted, fontWeight: '700', fontSize: 12, marginBottom: 6, marginTop: 4, textTransform: 'uppercase' },
+  score: { backgroundColor: colors.card, borderRadius: 16, borderWidth: 1, borderColor: '#F6C6D3', padding: 12, marginBottom: 12 },
+  track: { height: 8, borderRadius: 4, backgroundColor: colors.cardAlt, marginVertical: 8, overflow: 'hidden' },
+  fill: { height: 8, borderRadius: 4 },
+  input: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: 12, color: colors.text, fontSize: 15, textAlignVertical: 'top' },
+  modalHead: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
+  iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  detTag: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF0F4' },
+  crossBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF0F4', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, marginTop: 12 },
+  detGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  detItem: { width: '48.5%', flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 12, borderWidth: 1, borderColor: colors.border, padding: 10, marginBottom: 8 },
   label: { color: colors.muted, fontSize: 12, marginTop: 6, marginBottom: 6 },
   pill: { height: 34, paddingHorizontal: 14, borderRadius: 17, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', marginRight: 6, marginBottom: 6 },
   pillOn: { backgroundColor: ROSE, borderColor: ROSE },

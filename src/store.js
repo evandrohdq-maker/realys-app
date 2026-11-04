@@ -40,6 +40,9 @@ const initialState = {
     interest: 'todos', // f, m, todos
     maxKm: 3,
     bio: '',
+    job: '', // perfil de namoro (opcional): profissão, estilo de vida e gostos
+    details: {},
+    interests: [],
     radar: false, // GPS ligado para encontrar quem passa perto
     invisible: false,
     liked: {},
