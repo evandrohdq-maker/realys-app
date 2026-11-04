@@ -20,6 +20,7 @@
 - *"Realys, preciso de um eletricista. Tem algum perto de mim?"* → a Realys responde por voz quem está perto, a distância, a nota, o que a pessoa faz e quanto cobra (ex.: "R$ 80,00 por hora"), e pergunta se quer chamar. Diga "sim" e ela agenda.
 - *"Realys, preciso de um carro na Rua Augusta, 1200"* → agenda na hora e responde com o tempo de espera, o carro e a placa.
 - *"Realys, chama um encanador"* → chama direto o mais próximo.
+- *"Realys, tem hotel em Campos do Jordão?"*, *"quero alugar um apartamento"*, *"tem curso online?"* → a Realys **pesquisa em todo o conteúdo do app** (anúncios, hotéis e pousadas, imóveis, aluguel de carros e máquinas, eventos, cursos, lojas, produtos, promoções, prestadores, lives, pessoas e posts), fala os primeiros resultados e mostra a lista; tocar num resultado abre a tela certa.
 
 **Mãos livres:** em **Perfil → Acionar falando "Realys"**, o app fica ouvindo enquanto está aberto. Basta dizer "Realys, preciso de um eletricista" que o assistente abre e responde, sem tocar na tela e sem "Ok Google". Quando a Realys pergunta algo ("quer que eu chame?"), o microfone abre sozinho para a resposta. Com o celular bloqueado ainda não funciona (próxima etapa).
 

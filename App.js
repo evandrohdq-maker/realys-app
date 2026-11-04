@@ -209,6 +209,11 @@ function Shell() {
         }}
         initialCommand={wakeCmd}
         handsFree={state.handsFree}
+        onNavigate={(go) => {
+          setVoice(false);
+          setWakeCmd(null);
+          pick(go);
+        }}
       />
       <WakeWordListener
         enabled={state.handsFree && !voice && !menu && !noting && !searching}

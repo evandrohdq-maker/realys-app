@@ -7,6 +7,7 @@ import { colors, brl } from '../theme';
 import { Input, Button, Row } from '../components/ui';
 import { ServiceCallCard } from './cliente/ServicesScreen';
 import { Photo } from '../components/ui';
+import { searchAll, contentReply, CONTENT_WORDS } from '../search';
 
 const EXAMPLES = [
   'Realys, preciso de um eletricista. Tem algum perto de mim?',
@@ -16,6 +17,9 @@ const EXAMPLES = [
   'Realys, tem motoboy perto de mim?',
   'Realys, quanto eu vendi hoje?',
   'Realys, quais produtos estão acabando?',
+  'Realys, tem hotel em Campos do Jordão?',
+  'Realys, quero alugar um apartamento',
+  'Realys, tem curso online?',
 ];
 
 const norm = (s) =>
@@ -27,7 +31,7 @@ const norm = (s) =>
 const YES = /^(sim|pode|pode sim|quero|chama|chame|manda|ok|beleza|isso|confirmo|agenda|agendar)\b/;
 const CALL_NOW = /\b(chama|chame|manda|mande|agenda|agende|agendar|solicita)\b/;
 
-// Interpreta o comando. Devolve { reply, call?, list?, pending? }.
+// Interpreta o comando. Devolve { reply, call?, list?, results?, pending? }.
 // Na versão final isso vira uma IA no servidor, com os cadastros reais dos prestadores.
 function interpret(text, state, dispatch, pending) {
   const t = norm(text).replace(/^(realys|reales|rayles|realis)[,\s]*/, '');
@@ -46,7 +50,9 @@ function interpret(text, state, dispatch, pending) {
   if (pending && YES.test(t) && !detectService(t)) return startCall(pending.serviceKey, pending.providerId);
   if (pending && /^(nao|não|deixa|cancela)/.test(t)) return { reply: 'Tudo bem. Se precisar, é só chamar.' };
 
-  const serviceKey = detectService(t);
+  // "Alugar um carro", "hotel", "curso"… é busca de conteúdo, não chamada de prestador.
+  const contentFirst = CONTENT_WORDS.test(t);
+  const serviceKey = contentFirst ? null : detectService(t);
   if (serviceKey) {
     const transport = serviceType(serviceKey).group === 'Transporte';
     // Transporte com endereço, ou pedido direto ("chama um eletricista"): já agenda.
@@ -75,16 +81,19 @@ function interpret(text, state, dispatch, pending) {
   }
   if (/(saldo|dinheiro|carteira)/.test(t)) return { reply: `Seu saldo Realys é de ${brl(state.wallet)}.` };
   if (/(carrinho)/.test(t)) return { reply: `Seu carrinho tem ${state.cart.length} itens, total de ${brl(cartTotal(state))}.` };
-  if (/(pizza|comida|fome|lanche|hamburguer)/.test(t)) {
-    return { reply: 'Perto de você: Pizzaria da Praça, nota 4,9, e Burguer do Zé, nota 4,5. Abra a aba Loja para pedir.' };
-  }
+
+  // Busca geral em todo o conteúdo do app: anúncios, hotéis, imóveis, eventos, cursos,
+  // lojas, produtos, promoções, prestadores, lives, pessoas e posts.
+  const { results, tokens, label } = searchAll(state, text.replace(/^\s*(realys|reales|rayles|realis)[,\s]*/i, ''));
+  if (results.length) return { reply: contentReply(results, label), results };
+  if (tokens.length) return { reply: contentReply([], label) };
   return {
     reply:
-      'Desculpe, ainda não entendi. Você pode pedir qualquer prestador, como eletricista, encanador, mecânico, diarista, motoboy ou carro, e também ver pedidos, vendas ou estoque.',
+      'Desculpe, ainda não entendi. Você pode procurar qualquer coisa do Realys, como hotéis, imóveis, lojas, produtos, cursos ou eventos, chamar um prestador, ou ver pedidos, vendas e estoque.',
   };
 }
 
-export default function VoiceAssistant({ visible, onClose, initialCommand, handsFree }) {
+export default function VoiceAssistant({ visible, onClose, initialCommand, handsFree, onNavigate }) {
   const { state, dispatch } = useStore();
   const [text, setText] = useState('');
   const [history, setHistory] = useState([]);
@@ -148,7 +157,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
           <TouchableOpacity onPress={listen} activeOpacity={0.85} style={[styles.bigMic, listening && { backgroundColor: colors.accent }]}>
             <Text style={{ color: colors.text, fontSize: 40 }}>🎙️</Text>
           </TouchableOpacity>
-          <Text style={styles.hint}>{listening ? 'Ouvindo…' : 'Toque e fale: "Realys, preciso de um carro…"'}</Text>
+          <Text style={styles.hint}>{listening ? 'Ouvindo…' : 'Toque e fale: "Realys, tem hotel perto?"'}</Text>
 
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Input
@@ -207,6 +216,37 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
                       </View>
                     ))
                   : null}
+                {h.results
+                  ? h.results.map((r) => (
+                      <TouchableOpacity
+                        key={r.id}
+                        style={styles.provider}
+                        activeOpacity={0.85}
+                        onPress={() => {
+                          Speech.stop();
+                          if (r.profileId) {
+                            dispatch({ type: 'OPEN_PROFILE', id: r.profileId });
+                            onClose();
+                          } else if (r.go && onNavigate) onNavigate(r.go);
+                        }}
+                      >
+                        <Photo uri={r.photo} style={styles.rPhoto} fallback={r.icon || '🔎'} />
+                        <View style={{ flex: 1, marginLeft: 10 }}>
+                          <Text style={{ color: colors.accent, fontSize: 11, fontWeight: '800' }}>
+                            {r.section}{r.sponsored ? ' · Patrocinado' : ''}
+                          </Text>
+                          <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={2}>{r.title}</Text>
+                          {r.subtitle ? <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={2}>{r.subtitle}</Text> : null}
+                          {r.price || r.priceValue != null ? (
+                            <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 13 }}>
+                              {r.price || `${brl(r.priceValue)}${r.priceUnit ? ' por ' + r.priceUnit : ''}`}
+                            </Text>
+                          ) : null}
+                        </View>
+                        <Text style={{ color: colors.muted, fontSize: 20, marginLeft: 6 }}>›</Text>
+                      </TouchableOpacity>
+                    ))
+                  : null}
                 {h.call ? <ServiceCallCard call={h.call} /> : null}
                 {i === 0 && h.pending ? (
                   <Row style={{ marginTop: 4 }}>
@@ -243,5 +283,6 @@ const styles = StyleSheet.create({
   userBubble: { alignSelf: 'flex-end', backgroundColor: colors.primary, padding: 10, borderRadius: 14, maxWidth: '85%', marginBottom: 6 },
   provider: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 12, padding: 10, marginBottom: 6, borderWidth: 1, borderColor: colors.border },
   pPhoto: { width: 44, height: 44, borderRadius: 22 },
+  rPhoto: { width: 56, height: 56, borderRadius: 12 },
   botBubble: { alignSelf: 'flex-start', backgroundColor: colors.card, padding: 10, borderRadius: 14, maxWidth: '90%', borderWidth: 1, borderColor: colors.border, marginBottom: 6 },
 });
