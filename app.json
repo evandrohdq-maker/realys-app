@@ -32,7 +32,8 @@
           "microphonePermission": "O Realys usa o microfone para ouvir quando você chama \"Realys\".",
           "speechRecognitionPermission": "O Realys reconhece sua voz para atender seus pedidos."
         }
-      ]
+      ],
+      "expo-secure-store"
     ]
   }
 }
