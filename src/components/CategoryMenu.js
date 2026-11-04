@@ -133,6 +133,20 @@ export const CATEGORIES = [
     ],
   },
   {
+    key: 'empregos',
+    title: 'Empregos e vagas',
+    hint: 'Vagas de empresas verificadas perto de você',
+    icon: 'briefcase-outline',
+    subs: [
+      { label: 'Vagas perto de mim', hint: 'Todas as áreas', icon: 'location-outline', go: { tab: 'vagas', area: 'todas', seg: 'vagas' } },
+      { label: 'Comércio', hint: 'Lojas e mercados', icon: 'storefront-outline', go: { tab: 'vagas', area: 'Comércio', seg: 'vagas' } },
+      { label: 'Alimentação', hint: 'Restaurantes e lanchonetes', icon: 'restaurant-outline', go: { tab: 'vagas', area: 'Alimentação', seg: 'vagas' } },
+      { label: 'Serviços e logística', hint: 'Entregas, motoristas e mais', icon: 'cube-outline', go: { tab: 'vagas', area: 'Logística', seg: 'vagas' } },
+      { label: 'Minhas candidaturas', hint: 'Acompanhe as vagas que você se candidatou', icon: 'document-text-outline', go: { tab: 'vagas', seg: 'minhas' } },
+      { label: 'Anunciar vaga (RH)', hint: 'Área empresarial › RH', icon: 'megaphone-outline', go: { tab: 'rh' } },
+    ],
+  },
+  {
     key: 'social',
     title: 'Comunidade e lives',
     hint: 'Posts, mensagens, vídeo e lives',
@@ -156,6 +170,7 @@ export const CATEGORIES = [
       { label: 'Estoque', hint: 'Produtos e entradas', icon: 'file-tray-stacked-outline', go: { tab: 'estoque' } },
       { label: 'Fluxo de caixa', hint: 'Entradas e saídas', icon: 'wallet-outline', go: { tab: 'caixa' } },
       { label: 'Negociações', hint: 'Descontos entre empresas', icon: 'swap-horizontal-outline', go: { tab: 'negocios' } },
+      { label: 'RH e vagas', hint: 'Anunciar vagas e ver candidatos', icon: 'people-outline', go: { tab: 'rh' } },
       { label: 'Página da empresa', hint: 'Perfil público, músicas e vídeos', icon: 'albums-outline', go: { tab: 'pagina' } },
     ],
   },

@@ -4,6 +4,7 @@ import { useStore, storeOf, cartTotal } from '../../store';
 import { colors, brl } from '../../theme';
 import { SearchBar, GlobalResults } from '../../components/Search';
 import { Screen, Photo, Badge, Row, Button, Input, ProductThumb, Chip, Card, Section, Empty } from '../../components/ui';
+import { LaunchStrip } from '../../components/Launches';
 
 const CATEGORIES = ['Todos', 'Alimentação', 'Mercado', 'Roupas', 'Eletrônicos'];
 
@@ -184,6 +185,8 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate }) {
       {searched && !matchedProducts.length && !rankedStores.length ? (
         <GlobalResults query={searched} navigate={navigate} title="Não está na loja, mas achei no Realys" />
       ) : null}
+
+      {!q ? <LaunchStrip title="🚀 Lançamentos" /> : null}
 
       {!q ? (
         <Section title="⭐ Destaques da semana">

@@ -5,6 +5,7 @@
 import { listings, LISTING_KINDS, promos, lives, communityPosts, events, EVENT_GROUPS } from './homeData';
 import { serviceTypes } from './data';
 import { members } from './people';
+import { allJobs } from './store';
 import { emergencyNumbers, hospitals, specialists, responders, transitLines, trips, transitCompanies, artists, artMedia } from './extraData';
 
 const norm = (s) =>
@@ -90,6 +91,11 @@ const SYN = {
   clipe: ['video', 'clipe'],
   quadro: ['obra', 'pintura'],
   pintura: ['obra', 'pintura', 'aquarela'],
+  vaga: ['vaga', 'emprego'],
+  emprego: ['emprego'],
+  trabalhar: ['emprego'],
+  lancamento: ['lancamento', 'novidade', 'novo'],
+  novidade: ['lancamento', 'novidade', 'novo'],
 };
 
 const variants = (tok) => {
@@ -140,9 +146,17 @@ function buildIndex(state) {
     const promo = promos.find((x) => x.productId === p.id);
     add(
       { id: 'p-' + p.id, section: promo ? `Promoção -${promo.off}%` : 'Produto', icon: p.emoji, title: p.name, subtitle: store.name || '', where: store.name, priceValue: p.price, go: promo ? { tab: 'home', top: 'promo' } : { tab: 'loja', cat: 'Todos', q: p.name } },
-      p.name, store.name, store.category, 'produto', promo ? 'promocao oferta desconto' : ''
+      p.name, store.name, store.category, 'produto', promo ? 'promocao oferta desconto' : '', p.launch ? 'lancamento novidade novo' : ''
     );
   });
+
+  // Empregos: vagas de empresas verificadas.
+  allJobs(state).forEach((j) =>
+    add(
+      { id: 'j-' + j.id, section: 'Vaga de emprego', icon: '💼', title: j.title, subtitle: `${j.company} · ${j.type}`, priceValue: j.salary, priceUnit: j.salaryUnit ? j.salaryUnit.replace('por ', '') : 'mês', where: j.company, sponsored: j.sponsored, go: { tab: 'vagas', job: j.id } },
+      j.title, j.company, j.area, j.type, j.city, 'vaga emprego trabalho'
+    )
+  );
 
   (state.providers || []).forEach((p) => {
     const t = serviceTypes.find((x) => x.key === p.service) || {};
@@ -271,4 +285,4 @@ export function contentReply(results, what) {
 
 // Palavras que indicam claramente busca de conteúdo, não de prestador
 // (ex.: "alugar um carro" é anúncio, não corrida).
-export const CONTENT_WORDS = /\b(hote(l|is)|pousadas?|hospedage(m|ns)|aluga(r|mos)?|aluguel|locacao|imove(l|is)|apartamentos?|ape|kitnet|casas? (a|para) venda|ingressos?|balada|casa noturna|shows?|cursos?|faculdades?|lives?|promocao|promocoes|ofertas?|lojas?|produtos?|hospita(l|is)|upa|samu|ambulancias?|medic(o|a|os|as)|especialistas?|consultas?|pediatra|cardiologista|dentista|onibus|metro|passage(m|ns)|rodoviaria|artistas?|clipes?)\b/;
+export const CONTENT_WORDS = /\b(hote(l|is)|pousadas?|hospedage(m|ns)|aluga(r|mos)?|aluguel|locacao|imove(l|is)|apartamentos?|ape|kitnet|casas? (a|para) venda|ingressos?|balada|casa noturna|shows?|cursos?|faculdades?|lives?|promocao|promocoes|ofertas?|lojas?|produtos?|hospita(l|is)|upa|samu|ambulancias?|medic(o|a|os|as)|especialistas?|consultas?|pediatra|cardiologista|dentista|onibus|metro|passage(m|ns)|rodoviaria|artistas?|clipes?|vagas?|empregos?|lancamentos?|novidades?)\b/;

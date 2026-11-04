@@ -33,6 +33,8 @@ import TransitScreen from './src/screens/cliente/TransitScreen';
 import SosScreen from './src/screens/cliente/SosScreen';
 import ArtistsScreen from './src/screens/cliente/ArtistsScreen';
 import PageScreen from './src/screens/empresa/PageScreen';
+import JobsScreen from './src/screens/cliente/JobsScreen';
+import HRScreen from './src/screens/empresa/HRScreen';
 
 // Cada perfil enxerga abas diferentes dentro do MESMO app.
 const TABS = {
@@ -55,12 +57,14 @@ const TABS = {
     { key: 'transporte', label: 'Transporte', icon: 'bus-outline', Comp: TransitScreen, hidden: true },
     { key: 'socorro', label: 'Socorro', icon: 'medkit-outline', Comp: SosScreen, hidden: true },
     { key: 'artistas', label: 'Artistas', icon: 'musical-notes-outline', Comp: ArtistsScreen, hidden: true },
+    { key: 'vagas', label: 'Empregos', icon: 'briefcase-outline', Comp: JobsScreen, hidden: true },
   ],
   empresa: [
     { key: 'painel', label: 'Painel', icon: 'speedometer-outline', Comp: DashboardScreen },
     { key: 'estoque', label: 'Estoque', icon: 'file-tray-stacked-outline', Comp: InventoryScreen },
     { key: 'caixa', label: 'Caixa', icon: 'wallet-outline', Comp: FinanceScreen },
     { key: 'negocios', label: 'Negócios', icon: 'swap-horizontal-outline', Comp: B2BScreen },
+    { key: 'rh', label: 'RH', icon: 'people-outline', Comp: HRScreen },
     { key: 'pagina', label: 'Página', icon: 'albums-outline', Comp: PageScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
   ],
@@ -69,6 +73,7 @@ const TABS = {
     { key: 'inicio', label: 'Feed', icon: 'home-outline', Comp: FeedScreen },
     { key: 'stories', label: 'Stories', icon: 'aperture-outline', Comp: StoriesScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
+    { key: 'vagas', label: 'Empregos', icon: 'briefcase-outline', Comp: JobsScreen, hidden: true },
   ],
   fornecedor: [
     { key: 'propostas', label: 'Propostas', icon: 'cube-outline', Comp: SupplierScreen },

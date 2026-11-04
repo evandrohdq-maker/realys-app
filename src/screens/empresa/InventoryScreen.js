@@ -27,8 +27,8 @@ export default function InventoryScreen() {
 
       <Card style={{ backgroundColor: colors.primaryLight, borderColor: colors.primaryLight }}>
         <Text style={{ color: colors.primaryDark, fontSize: 13 }}>
-          🔗 Ligado à sua vitrine: cada venda no app baixa o estoque sozinha. Produto zerado aparece como "Esgotado"
-          para o cliente.
+          🔗 Ligado à sua vitrine: cada venda no app baixa o estoque sozinha e emite a nota fiscal (NF-e). Produto zerado
+          aparece como "Esgotado" para o cliente. Toque em "Lançar no Shop" para mostrar um produto novo no topo da loja.
         </Text>
       </Card>
 
@@ -62,7 +62,8 @@ export default function InventoryScreen() {
                 <Text style={{ color: colors.muted, fontSize: 12 }}>
                   Venda {brl(p.price)} · Custo {brl(p.cost)}
                 </Text>
-                <View style={{ marginTop: 4 }}>
+                <View style={{ marginTop: 4, flexDirection: 'row', flexWrap: 'wrap' }}>
+                  {p.launch ? <Badge label="Lançamento" color={colors.accent} /> : null}
                   {p.stock === 0 ? (
                     <Badge label="Esgotado" color={colors.danger} />
                   ) : low ? (
@@ -84,6 +85,16 @@ export default function InventoryScreen() {
                 </Row>
                 <TouchableOpacity onPress={() => dispatch({ type: 'COUNTER_SALE', id: p.id })}>
                   <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '700', marginTop: 6 }}>Venda no balcão</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    dispatch({ type: 'TOGGLE_LAUNCH', id: p.id });
+                    if (!p.launch) Alert.alert('Lançamento publicado 🚀', `${p.name} agora aparece em Lançamentos, no topo do Shop dos clientes.`);
+                  }}
+                >
+                  <Text style={{ color: p.launch ? colors.danger : colors.accent, fontSize: 12, fontWeight: '700', marginTop: 6 }}>
+                    {p.launch ? 'Tirar dos lançamentos' : '🚀 Lançar no Shop'}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </Row>

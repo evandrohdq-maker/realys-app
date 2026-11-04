@@ -1,0 +1,176 @@
+// RH do Realys: vagas de emprego e candidatos (exemplos fictícios).
+// Empresas com CNPJ anunciam vagas; clientes com identidade verificada se candidatam com um toque.
+const face = (seed) => `https://picsum.photos/seed/${seed}/200/200`;
+
+export const JOB_AREAS = [
+  { key: 'todas', label: 'Todas', icon: 'briefcase-outline' },
+  { key: 'Comércio', label: 'Comércio', icon: 'storefront-outline' },
+  { key: 'Alimentação', label: 'Alimentação', icon: 'restaurant-outline' },
+  { key: 'Serviços', label: 'Serviços', icon: 'construct-outline' },
+  { key: 'Logística', label: 'Logística', icon: 'cube-outline' },
+  { key: 'Tecnologia', label: 'Tecnologia', icon: 'laptop-outline' },
+];
+
+export const JOB_TYPES = ['CLT', 'Temporário', 'Meio período', 'Freelance', 'Estágio'];
+
+// Vagas de outras empresas (o cliente vê e se candidata).
+export const jobs = [
+  {
+    id: 'j1',
+    companyId: 'e2',
+    company: 'Pizzaria da Praça',
+    logo: '🍕',
+    title: 'Pizzaiolo',
+    area: 'Alimentação',
+    type: 'CLT',
+    salary: 2400,
+    benefits: 'Vale-transporte e refeição no local',
+    shift: 'Noite (18h às 00h)',
+    city: 'Bela Vista, São Paulo - SP',
+    distanceKm: 1.2,
+    desc: 'Preparar massas e pizzas no forno a lenha, cuidar da organização da bancada e do estoque de ingredientes.',
+    reqs: ['1 ano de experiência', 'Disponível aos fins de semana'],
+    sponsored: true,
+    posted: 'Hoje',
+  },
+  {
+    id: 'j2',
+    companyId: 'e3',
+    company: 'Moda Brasil',
+    logo: '👕',
+    title: 'Vendedor(a) de loja',
+    area: 'Comércio',
+    type: 'CLT',
+    salary: 1900,
+    benefits: 'Comissão sobre vendas e vale-transporte',
+    shift: 'Comercial (escala 6x1)',
+    city: 'Consolação, São Paulo - SP',
+    distanceKm: 2.4,
+    desc: 'Atender clientes na loja e pelo chat do Realys, organizar a vitrine e as lives de venda.',
+    reqs: ['Ensino médio completo', 'Gostar de atender pessoas'],
+    sponsored: false,
+    posted: 'Ontem',
+  },
+  {
+    id: 'j3',
+    companyId: 'e4',
+    company: 'Tech Center',
+    logo: '🎧',
+    title: 'Técnico(a) de celulares',
+    area: 'Tecnologia',
+    type: 'CLT',
+    salary: 2800,
+    benefits: 'Plano de saúde e vale-refeição',
+    shift: 'Comercial',
+    city: 'Paraíso, São Paulo - SP',
+    distanceKm: 3.1,
+    desc: 'Diagnóstico e conserto de celulares, troca de telas e baterias, atendimento no balcão.',
+    reqs: ['Curso técnico em eletrônica', 'Experiência com assistência'],
+    sponsored: false,
+    posted: 'Há 2 dias',
+  },
+  {
+    id: 'j4',
+    companyId: 'e5',
+    company: 'Burguer do Zé',
+    logo: '🍔',
+    title: 'Atendente (meio período)',
+    area: 'Alimentação',
+    type: 'Meio período',
+    salary: 1100,
+    benefits: 'Lanche no turno',
+    shift: 'Tarde (14h às 18h)',
+    city: 'Liberdade, São Paulo - SP',
+    distanceKm: 1.8,
+    desc: 'Atendimento no caixa e no balcão, montagem de pedidos para delivery.',
+    reqs: ['Primeiro emprego aceito'],
+    sponsored: false,
+    posted: 'Hoje',
+  },
+  {
+    id: 'j5',
+    companyId: 's1',
+    company: 'Distribuidora Real Alimentos',
+    logo: '🚚',
+    title: 'Motorista de entregas (CNH D)',
+    area: 'Logística',
+    type: 'CLT',
+    salary: 3200,
+    benefits: 'Diárias de viagem e plano de saúde',
+    shift: 'Diurno',
+    city: 'Campinas - SP',
+    distanceKm: 92,
+    desc: 'Entregas para mercados e restaurantes da região, com rota acompanhada pelo GPS do Realys.',
+    reqs: ['CNH categoria D', 'Curso de direção defensiva'],
+    sponsored: true,
+    posted: 'Há 3 dias',
+  },
+  {
+    id: 'j6',
+    companyId: 'e2',
+    company: 'Pizzaria da Praça',
+    logo: '🍕',
+    title: 'Entregador(a) de moto',
+    area: 'Serviços',
+    type: 'Freelance',
+    salary: 120,
+    salaryUnit: 'por noite',
+    benefits: 'Taxa por entrega + gorjetas',
+    shift: 'Sexta a domingo à noite',
+    city: 'Bela Vista, São Paulo - SP',
+    distanceKm: 1.2,
+    desc: 'Entregas num raio de 5 km. As corridas aparecem no app e o cliente acompanha pelo GPS.',
+    reqs: ['Moto própria', 'CNH A'],
+    sponsored: false,
+    posted: 'Hoje',
+  },
+];
+
+// Vagas da MINHA empresa (Mercadinho Bom Preço), com os candidatos que já chegaram.
+// status do candidato: novo → entrevista → contratado (ou recusado)
+export const myJobs = [
+  {
+    id: 'mj1',
+    title: 'Repositor(a) de mercadorias',
+    area: 'Comércio',
+    type: 'CLT',
+    salary: 1850,
+    benefits: 'Vale-transporte e cesta básica',
+    shift: 'Manhã (7h às 15h)',
+    desc: 'Repor prateleiras, conferir validade e ajudar no recebimento das compras dos fornecedores.',
+    reqs: ['Ensino fundamental completo'],
+    status: 'aberta',
+    posted: 'Há 2 dias',
+    candidates: [
+      { id: 'c1', name: 'Ana Paula Ribeiro', photo: face('realys-cand1'), city: 'Bela Vista · 1,1 km', exp: '2 anos como repositora em supermercado', status: 'novo' },
+      { id: 'c2', name: 'Lucas Ferreira', photo: face('realys-cand2'), city: 'Liberdade · 2,0 km', exp: 'Primeiro emprego, curso de logística', status: 'entrevista' },
+      { id: 'c3', name: 'Rogério Santos', photo: face('realys-cand3'), city: 'Cambuci · 3,4 km', exp: '5 anos em atacado, empilhadeira', status: 'novo' },
+    ],
+  },
+  {
+    id: 'mj2',
+    title: 'Operador(a) de caixa',
+    area: 'Comércio',
+    type: 'Temporário',
+    salary: 1700,
+    benefits: 'Vale-transporte',
+    shift: 'Tarde (14h às 22h) · dezembro e janeiro',
+    desc: 'Reforço para o fim de ano: caixa, pagamento por Pix e saldo Realys, embalagem.',
+    reqs: ['Ensino médio completo'],
+    status: 'aberta',
+    posted: 'Hoje',
+    candidates: [{ id: 'c4', name: 'Juliana Costa', photo: face('realys-cand4'), city: 'Bela Vista · 0,8 km', exp: '1 ano como operadora de caixa', status: 'novo' }],
+  },
+];
+
+export const CANDIDATE_STATUS = {
+  novo: { label: 'Novo', color: '#2F74D0' },
+  entrevista: { label: 'Entrevista marcada', color: '#A8790A' },
+  contratado: { label: 'Contratado', color: '#1E9E63' },
+  recusado: { label: 'Não selecionado', color: '#6E7891' },
+};
+
+export const salaryText = (j) => {
+  const v = 'R$ ' + Number(j.salary).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return `${v} ${j.salaryUnit || 'por mês'}`;
+};

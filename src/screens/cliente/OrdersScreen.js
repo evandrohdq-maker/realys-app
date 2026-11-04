@@ -39,6 +39,9 @@ export default function OrdersScreen() {
                 />
               ))}
             </Row>
+            {o.nfe ? (
+              <Text style={{ marginTop: 8, color: colors.success, fontSize: 12, fontWeight: '700' }}>🧾 NF-e nº {o.nfe} emitida automaticamente</Text>
+            ) : null}
             {o.courier && o.status !== 'Entregue' ? (
               <Text style={{ marginTop: 8, color: colors.text }}>🛵 Entregador: {o.courier}</Text>
             ) : null}

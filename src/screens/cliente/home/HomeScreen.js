@@ -8,6 +8,7 @@ import { promos, listings, LISTING_KINDS, LISTING_CTA, communityPosts, contacts,
 import { ChatModal, VideoCallModal, LiveModal } from './Social';
 import { members, memberByName } from '../../../people';
 import { PeopleSearchModal, PersonRow } from '../../../components/People';
+import { LaunchStrip } from '../../../components/Launches';
 
 // As 5 abas do topo do Início do cliente.
 const TOP = [
@@ -132,6 +133,7 @@ function ShopTab({ goTo }) {
   return (
     <Screen>
       <Hero />
+      <LaunchStrip />
       <SectionHead title="Destaques para você" action="Ver loja" onAction={() => goTo('loja')} />
       <View style={styles.grid}>
         {featured.map((p) => (

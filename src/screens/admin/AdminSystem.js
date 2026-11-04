@@ -30,7 +30,7 @@ export const SYSTEM_MAP = [
     items: [
       { key: 'c-stories', name: 'Stories', desc: 'Página própria (botão Stories): ver, responder, criar o seu; patrocinados com botão de oferta', status: 'simulado', role: 'cliente', tab: 'stories', why: 'Stories de verdade (foto da câmera, 24 h no ar) precisam de servidor' },
       { key: 'c-enc', name: 'Date (encontros)', desc: 'Relacionamentos: termos e status (casados não participam), perfil de namoro opcional com % completo, radar por GPS, curtir/passar, match, conversa, denunciar', status: 'simulado', role: 'cliente', tab: 'encontros', why: 'Radar de verdade e notificações precisam do servidor e do GPS em segundo plano' },
-      { key: 'c-shop', name: 'Início › Shop', desc: 'Destaques e lojas (patrocinadas primeiro)', status: 'demo', role: 'cliente', tab: 'home', top: 'shop' },
+      { key: 'c-shop', name: 'Início › Shop', desc: 'Lançamentos das lojas no topo (com vídeo de apresentação), destaques e lojas (patrocinadas primeiro)', status: 'demo', role: 'cliente', tab: 'home', top: 'shop', why: 'O vídeo de lançamento é simulado: gravar e hospedar precisa de servidor' },
       { key: 'c-eventos', name: 'Início › Eventos', desc: 'Ao lado do Shop: festas promocionais e anúncios de promoções em destaque; shows e noite, salões e espaços, eventos gratuitos', status: 'demo', role: 'cliente', tab: 'home', top: 'eventos', why: 'Venda de ingresso e lista VIP de verdade precisam de servidor' },
       { key: 'c-promo', name: 'Início › Promoções', desc: 'Ofertas com desconto', status: 'demo', role: 'cliente', tab: 'home', top: 'promo' },
       { key: 'c-ads', name: 'Início › Anúncios', desc: 'Imóveis, aluguel de carros e máquinas, hotéis, festas e noite, cursos e faculdades online', status: 'demo', role: 'cliente', tab: 'home', top: 'anuncios', why: 'Criar anúncio de verdade precisa de servidor' },
@@ -42,7 +42,8 @@ export const SYSTEM_MAP = [
       { key: 'c-sos', name: 'Socorro e saúde (SOS)', desc: 'Botão SOS na aba Perfil; SAMU 192, Bombeiros 193, Polícia 190 e outros ligam de verdade pelo celular (com permissão); hospitais próximos, especialistas médicos e ambulâncias', status: 'demo', role: 'cliente', tab: 'socorro', why: 'Hospitais, médicos e ambulâncias são de exemplo (não ligam); localização real precisa do GPS' },
       { key: 'c-art', name: 'Artistas', desc: 'Músicas MP3, vídeos e obras; páginas dos artistas; prévia, compra e download', status: 'simulado', role: 'cliente', tab: 'artistas', why: 'Tocar o áudio e o vídeo de verdade precisa dos arquivos no servidor' },
       { key: 'c-pag', name: 'Páginas das empresas', desc: 'Perfil público de cada empresa e artista: apresentação, produtos, conteúdos, vídeos e músicas, seguir e mensagem (abre pela Loja ou tocando no nome em um post)', status: 'demo', role: 'cliente', tab: 'loja' },
-      { key: 'c-ped', name: 'Pedidos', desc: 'Acompanhar compras e chamados', status: 'demo', role: 'cliente', tab: 'pedidos' },
+      { key: 'c-vagas', name: 'Empregos', desc: 'Vagas de empresas verificadas perto de você, filtros por área, candidatura com um toque usando o perfil e Minhas candidaturas', status: 'simulado', role: 'cliente', tab: 'vagas', why: 'As vagas são de exemplo; a resposta da empresa de verdade precisa de servidor' },
+      { key: 'c-ped', name: 'Pedidos', desc: 'Acompanhar compras e chamados, com a NF-e emitida automaticamente', status: 'simulado', role: 'cliente', tab: 'pedidos', why: 'A NF-e é simulada: a emissão real precisa da integração com a Sefaz' },
     ],
   },
   {
@@ -52,6 +53,7 @@ export const SYSTEM_MAP = [
       { key: 'e-est', name: 'Estoque', desc: 'Produtos ligados à vitrine e venda no balcão', status: 'demo', role: 'empresa', tab: 'estoque' },
       { key: 'e-caixa', name: 'Fluxo de caixa', desc: 'Entradas, saídas e projeção', status: 'demo', role: 'empresa', tab: 'caixa' },
       { key: 'e-pag', name: 'Página da empresa / artista', desc: 'Editar o perfil público e publicar MP3, vídeos e obras pagando o servidor (por envio ou Plano Artista Pro); a despesa entra no caixa', status: 'simulado', role: 'empresa', tab: 'pagina', why: 'O arquivo é simulado: o envio de verdade precisa do servidor e do seletor de arquivos' },
+      { key: 'e-rh', name: 'RH', desc: 'Anunciar vagas, ver candidatos verificados, marcar entrevista, contratar ou recusar, encerrar vaga', status: 'demo', role: 'empresa', tab: 'rh' },
       { key: 'e-b2b', name: 'Negócios B2B', desc: 'Compras com proposta de desconto e propostas recebidas de fornecedores (aceitar, recusar, contrapropor)', status: 'demo', role: 'empresa', tab: 'negocios' },
     ],
   },

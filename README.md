@@ -10,8 +10,8 @@
 
 | Perfil | Abas | O que dá para mostrar |
 | --- | --- | --- |
-| **Cliente** | Início, Stories, Encontros, Loja, Serviços, Pedidos, Perfil | Feed com fotos e vídeos de perfis verificados, loja com destaques e patrocinados no topo, carrinho com pagamento protegido, **qualquer prestador** (eletricista, encanador, mecânico, diarista, pintor, chaveiro, técnico, frete, motoboy, carro, e **hotelaria**: hotéis e pousadas) com nota, funções e preço, acompanhar pedidos. Pelo menu ⋮: **Transporte público** (ônibus e metrô da cidade, linhas entre cidades e entre estados, ônibus acompanhado pelo GPS, passagem com QR), **Socorro e saúde** (botão SOS no topo, SAMU 192, Bombeiros 193, Polícia 190 e outros ligando direto do celular, hospitais mais próximos, especialistas médicos com teleconsulta, ambulâncias particulares), **Artistas** (músicas MP3, vídeos e obras) e a **página de cada empresa** (apresentação, produtos, conteúdos, seguir) |
-| **Empresa (CNPJ)** | Painel, Estoque, Caixa, Negócios, Página, Perfil | Gráficos de vendas, alertas da IA, estoque ligado à vitrine, venda no balcão, fluxo de caixa com projeção de 30, 60 e 90 dias, compras B2B com propostas de desconto e **propostas recebidas dos fornecedores** (aceitar, recusar ou pedir outro desconto), **Página**: editar o perfil público e publicar MP3, vídeos e obras pagando o servidor (por envio ou Plano Artista Pro) |
+| **Cliente** | Início, Stories, Encontros, Loja, Serviços, Pedidos, Perfil | Feed com fotos e vídeos de perfis verificados, loja com destaques e patrocinados no topo, carrinho com pagamento protegido, **qualquer prestador** (eletricista, encanador, mecânico, diarista, pintor, chaveiro, técnico, frete, motoboy, carro, e **hotelaria**: hotéis e pousadas) com nota, funções e preço, acompanhar pedidos. Pelo menu ⋮: **Transporte público** (ônibus e metrô da cidade, linhas entre cidades e entre estados, ônibus acompanhado pelo GPS, passagem com QR), **Socorro e saúde** (botão SOS no topo, SAMU 192, Bombeiros 193, Polícia 190 e outros ligando direto do celular, hospitais mais próximos, especialistas médicos com teleconsulta, ambulâncias particulares), **Artistas** (músicas MP3, vídeos e obras, à venda com saldo Realys), **Empregos** (vagas de empresas verificadas perto de você, filtros por área e candidatura com um toque usando o perfil) e a **página de cada empresa** (apresentação, produtos, conteúdos, seguir) |
+| **Empresa (CNPJ)** | Painel, Estoque, Caixa, Negócios, RH, Página, Perfil | Gráficos de vendas, alertas da IA, estoque ligado à vitrine, venda no balcão com **NF-e emitida automaticamente**, botão **Lançar no Shop** (o produto aparece em Lançamentos para os clientes), **RH**: anunciar vagas, ver candidatos verificados, marcar entrevista, contratar ou recusar, fluxo de caixa com projeção de 30, 60 e 90 dias, compras B2B com propostas de desconto e **propostas recebidas dos fornecedores** (aceitar, recusar ou pedir outro desconto), **Página**: editar o perfil público e publicar MP3, vídeos e obras pagando o servidor (por envio ou Plano Artista Pro) |
 | **Prestador** | Serviços, Feed, Stories, Perfil | **Cadastro profissional** (tipo de serviço, o que faz e quanto cobra: por hora, serviço, diária, m²…), ligar o GPS para ficar disponível, aceitar pedidos, ver ganhos |
 | **Fornecedor** | Propostas, Feed, Stories, Perfil | **Destacar produtos** (aparecem primeiro no catálogo das empresas), cadastrar produto, **enviar proposta direto para uma ou várias empresas** (quantidade, desconto, validade e mensagem), acompanhar as enviadas e responder as propostas recebidas |
 
@@ -53,7 +53,7 @@ O administrador vê a visão geral da plataforma (usuários, empresas, receita),
 
 **Visual:** tema claro e luminoso, fundo marfim, dourado e azul-céu.
 
-**Início do cliente (abas no topo):** **Shop** (destaques e lojas), **Promoções** (ofertas relâmpago), **Anúncios** (imóveis à venda e para alugar, aluguel de carros, vans, máquinas e equipamentos, hotéis e pousadas, casas noturnas, shows, festas e salões, cursos e faculdades online), **Comunidade** (posts de pessoas reais com anúncios entre eles, mensagens com histórico, contatos e chamada de vídeo) e **Lives** (assistir e abrir a sua: bate-papo, venda ao vivo ou aula ao vivo). Chamadas de vídeo e lives são simuladas na demonstração: a versão real precisa do servidor de vídeo.
+**Início do cliente (abas no topo):** **Shop** (**Lançamentos das lojas** no topo, com selo NOVO e vídeo de apresentação, depois destaques e lojas), **Promoções** (ofertas relâmpago), **Anúncios** (imóveis à venda e para alugar, aluguel de carros, vans, máquinas e equipamentos, hotéis e pousadas, casas noturnas, shows, festas e salões, cursos e faculdades online), **Comunidade** (posts de pessoas reais com anúncios entre eles, mensagens com histórico, contatos e chamada de vídeo) e **Lives** (assistir e abrir a sua: bate-papo, venda ao vivo ou aula ao vivo). Chamadas de vídeo e lives são simuladas na demonstração: a versão real precisa do servidor de vídeo.
 
 **Contratar serviço:** a busca mostra todos os prestadores próximos no mapa, com filtros (mais próximo, melhor avaliado, menor preço). Cada um tem **Contratar**, **Orçamento** e **Ver perfil**; "O mais próximo" é só um atalho. Depois de contratar, a tela de **GPS** mostra o prestador chegando, o tempo de espera e o código de chegada.
 
@@ -79,7 +79,9 @@ Para publicar uma atualização, basta enviar o código para a branch `main`: o 
 6. **Troque para Fornecedor:** aceite a proposta ou mande uma contraproposta.
 7. **Volte para Empresa:** o estoque subiu e a saída apareceu no fluxo de caixa. *A economia toda gira dentro do Realys.*
 8. **Toque no 🎙️** e diga "Realys, preciso de um eletricista". Ela responde quem está perto, o que faz e quanto cobra. Diga "sim" para chamar.
-9. **Troque para Prestador:** cadastre o que você faz e quanto cobra, ligue o GPS e mostre que agora a Realys também te indica para os clientes.
+9. **Menu ⋮ → Empregos e vagas:** candidate-se à vaga de Repositor do Mercadinho Bom Preço. Troque para **Empresa → RH**: você aparece na lista de candidatos, com identidade verificada. Marque a entrevista e contrate.
+10. **Cliente → Início › Shop:** mostre os **Lançamentos** no topo. Em **Empresa → Estoque**, toque em "Lançar no Shop" num produto e veja ele aparecer para os clientes.
+11. **Troque para Prestador:** cadastre o que você faz e quanto cobra, ligue o GPS e mostre que agora a Realys também te indica para os clientes.
 
 ---
 
@@ -127,7 +129,9 @@ src/components/ui.js       → botões, cartões, gráficos
 src/screens/LoginScreen.js → cadastro com biometria e escolha de perfis
 src/screens/VoiceAssistant.js → assistente de voz "Realys"
 src/screens/cliente/       → feed, loja, serviços, pedidos
-src/screens/empresa/       → painel, estoque, fluxo de caixa, negócios B2B
+src/screens/empresa/       → painel, estoque, fluxo de caixa, negócios B2B, RH (vagas e candidatos)
+src/jobsData.js            → vagas de emprego e candidatos de exemplo
+src/components/Launches.js → vitrine de Lançamentos do Shop
 src/screens/prestador/     → cadastro profissional (funções e preços) e pedidos recebidos
 src/screens/fornecedor/    → propostas recebidas e catálogo atacado
 ```
@@ -140,6 +144,7 @@ Para trocar os exemplos (nomes de lojas, produtos, preços, fotos), edite **`src
 
 - **Servidor na nuvem** com banco de dados e login (contas, produtos e pedidos salvos de verdade)
 - Verificação de identidade com biometria facial ligada a documento, e consulta de CNPJ na Receita
+- Emissão real de NF-e (integração com a Sefaz) e envio das contratações ao eSocial
 - Pagamentos reais e a moeda Realys (exige validação jurídica e regras do Banco Central)
 - Mapa e GPS em tempo real para motoristas, entregadores e frotas de ônibus (empresas de transporte enviando a posição)
 - Cadastro real de hospitais, médicos (CRM conferido) e ambulâncias, com números verdadeiros

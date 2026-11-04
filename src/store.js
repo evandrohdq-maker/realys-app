@@ -4,6 +4,7 @@ import * as D from './data';
 import { initialFriends } from './people';
 import { brl } from './theme';
 import { conversations as initialConversations } from './homeData';
+import * as J from './jobsData';
 
 const StoreContext = createContext(null);
 
@@ -73,7 +74,15 @@ const initialState = {
   boughtMedia: {}, // faixas e obras compradas pelo cliente
   tickets: [], // passagens de transporte público
   notes: [], // anotações do administrador sobre o que mudar em cada tela (ficam salvas no celular)
+  // RH: vagas de outras empresas, vagas da minha empresa (com candidatos) e candidaturas do cliente.
+  jobs: J.jobs,
+  myJobs: J.myJobs,
+  applications: {}, // { jobId: 'enviada' }
+  // Nota fiscal eletrônica emitida automaticamente a cada venda (simulada na demonstração).
+  nfeSeq: 1240,
 };
+
+const nfeNumber = (n) => String(n).padStart(6, '0');
 
 // Compra B2B fechada: o estoque da minha empresa sobe e a saída entra no financeiro.
 function applyPurchase(state, itemId, qty, discount) {
@@ -172,8 +181,10 @@ function reducer(state, a) {
       const salesByDay = state.salesByDay.map((d, i, arr) =>
         i === arr.length - 1 ? { ...d, value: d.value + mineTotal } : d
       );
+      const nfe = nfeNumber(state.nfeSeq + 1);
       return {
         ...state,
+        nfeSeq: state.nfeSeq + 1,
         wallet: +(state.wallet - total).toFixed(2),
         cart: [],
         products: state.products.map((p) => {
@@ -188,11 +199,12 @@ function reducer(state, a) {
             status: 'Pagamento protegido',
             store: storeNames.join(', '),
             courier: null,
+            nfe,
           },
           ...state.orders,
         ],
         finance: mineTotal
-          ? [{ id: newId('m'), date: today(), desc: 'Venda no app Realys', type: 'entrada', value: +mineTotal.toFixed(2) }, ...state.finance]
+          ? [{ id: newId('m'), date: today(), desc: `Venda no app Realys · NF-e ${nfe}`, type: 'entrada', value: +mineTotal.toFixed(2) }, ...state.finance]
           : state.finance,
         salesByDay,
       };
@@ -227,8 +239,9 @@ function reducer(state, a) {
       if (!p || p.stock < 1) return state;
       return {
         ...state,
+        nfeSeq: state.nfeSeq + 1,
         products: state.products.map((x) => (x.id === a.id ? { ...x, stock: x.stock - 1 } : x)),
-        finance: [{ id: newId('m'), date: today(), desc: `Balcão - ${p.name}`, type: 'entrada', value: p.price }, ...state.finance],
+        finance: [{ id: newId('m'), date: today(), desc: `Balcão - ${p.name} · NF-e ${nfeNumber(state.nfeSeq + 1)}`, type: 'entrada', value: p.price }, ...state.finance],
         salesByDay: state.salesByDay.map((d, i, arr) => (i === arr.length - 1 ? { ...d, value: d.value + p.price } : d)),
       };
     }
@@ -424,6 +437,58 @@ function reducer(state, a) {
     case 'REQUEST_RIDE':
       return { ...state, rides: [a.ride, ...state.rides] };
 
+    // Empresa anuncia (ou tira) um produto da vitrine de Lançamentos do Shop.
+    case 'TOGGLE_LAUNCH':
+      return {
+        ...state,
+        products: state.products.map((p) =>
+          p.id === a.id ? { ...p, launch: p.launch ? null : { note: a.note || 'Novidade da loja', at: 'Agora' } } : p
+        ),
+      };
+
+    // RH: candidatura do cliente. Se a vaga for da minha empresa, a pessoa entra na lista de candidatos.
+    case 'APPLY_JOB': {
+      const mine = state.myJobs.find((j) => j.id === a.id);
+      const me = {
+        id: 'cand-me',
+        name: state.user ? state.user.name : 'Você',
+        photo: null,
+        city: 'Identidade verificada',
+        exp: a.note || 'Candidatura pelo app Realys',
+        status: 'novo',
+      };
+      return {
+        ...state,
+        applications: { ...state.applications, [a.id]: 'enviada' },
+        myJobs: mine
+          ? state.myJobs.map((j) => (j.id === a.id ? { ...j, candidates: [me, ...j.candidates.filter((c) => c.id !== 'cand-me')] } : j))
+          : state.myJobs,
+      };
+    }
+    case 'CANCEL_APPLICATION': {
+      const applications = { ...state.applications };
+      delete applications[a.id];
+      return {
+        ...state,
+        applications,
+        myJobs: state.myJobs.map((j) => (j.id === a.id ? { ...j, candidates: j.candidates.filter((c) => c.id !== 'cand-me') } : j)),
+      };
+    }
+    case 'POST_JOB':
+      return {
+        ...state,
+        myJobs: [{ id: newId('mj'), status: 'aberta', posted: 'Agora', candidates: [], benefits: '', reqs: [], ...a.job }, ...state.myJobs],
+      };
+    case 'CANDIDATE_STATUS':
+      return {
+        ...state,
+        myJobs: state.myJobs.map((j) =>
+          j.id === a.jobId ? { ...j, candidates: j.candidates.map((c) => (c.id === a.candId ? { ...c, status: a.status } : c)) } : j
+        ),
+      };
+    case 'CLOSE_JOB':
+      return { ...state, myJobs: state.myJobs.map((j) => (j.id === a.id ? { ...j, status: j.status === 'aberta' ? 'encerrada' : 'aberta' } : j)) };
+
     default:
       return state;
   }
@@ -463,6 +528,15 @@ export const myProducts = (state) => state.products.filter((p) => p.storeId === 
 export const storeOf = (state, id) => state.stores.find((s) => s.id === id);
 export const cartTotal = (state) =>
   state.cart.reduce((s, c) => s + state.products.find((p) => p.id === c.productId).price * c.qty, 0);
+
+// Todas as vagas que o cliente vê: as da minha empresa (abertas) e as das outras empresas.
+export function allJobs(state) {
+  const store = state.stores.find((x) => x.id === D.MY_COMPANY_ID) || {};
+  const mine = state.myJobs
+    .filter((j) => j.status === 'aberta')
+    .map((j) => ({ ...j, companyId: D.MY_COMPANY_ID, company: store.name, logo: store.logo, city: 'Bela Vista, São Paulo - SP', distanceKm: 0.6 }));
+  return [...mine, ...state.jobs];
+}
 
 export const serviceType = (key) => D.serviceTypes.find((t) => t.key === key);
 

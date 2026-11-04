@@ -82,6 +82,11 @@ export const products = [
   { id: 'p10', storeId: 'e4', name: 'Fone Bluetooth Pro', price: 149.9, cost: 70.0, stock: 18, minStock: 5, emoji: '🎧', tint: '#E2F1F7', featured: true },
   { id: 'p11', storeId: 'e4', name: 'Carregador Turbo 30W', price: 79.9, cost: 32.0, stock: 50, minStock: 10, emoji: '🔌', tint: '#EDEDED', featured: false },
   { id: 'p12', storeId: 'e5', name: 'Combo X-Burguer + Fritas', price: 34.9, cost: 14.0, stock: 99, minStock: 0, emoji: '🍔', tint: '#FFF0D9', featured: true },
+  // Lançamentos: produtos novos que as lojas apresentam no Shop (o que mais chama a atenção do cliente).
+  { id: 'p13', storeId: 'e4', name: 'Smartwatch Fit 2', price: 299.9, cost: 160.0, stock: 25, minStock: 5, emoji: '⌚', tint: '#E2F1F7', featured: false, launch: { note: 'Chegou hoje · pré-venda com frete grátis', at: 'Hoje' } },
+  { id: 'p14', storeId: 'e3', name: 'Jaqueta Jeans Coleção Verão', price: 189.9, cost: 82.0, stock: 40, minStock: 8, emoji: '🧥', tint: '#E3ECFF', featured: false, launch: { note: 'Nova coleção · tamanhos P ao GG', at: 'Ontem' } },
+  { id: 'p15', storeId: 'e2', name: 'Pizza de Costela com Catupiry', price: 64.9, cost: 26.0, stock: 99, minStock: 0, emoji: '🍕', tint: '#FFE3D6', featured: false, launch: { note: 'Sabor novo da casa', at: 'Hoje' } },
+  { id: 'p16', storeId: 'e1', name: 'Café Especial Torra Média 250g', price: 24.9, cost: 15.0, stock: 30, minStock: 6, emoji: '☕', tint: '#EADBCF', featured: false, launch: { note: 'Grãos do Sul de Minas, lote limitado', at: 'Há 2 dias' } },
 ];
 
 export const posts = [
