@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="34%" r="75%">
+      <stop offset="0" stop-color="#F3D27A"/>
+      <stop offset="0.35" stop-color="#E2B544"/>
+      <stop offset="0.75" stop-color="#A8790A"/>
+      <stop offset="1" stop-color="#6E4F05"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="34%" r="45%">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#g)"/>
+  <g transform="translate(512 350)" fill="#FFFFFF" opacity="0.10">
+    <polygon points="0,0 -40,-900 40,-900" transform="rotate(0.0)"/><polygon points="0,0 -40,-900 40,-900" transform="rotate(22.5)"/><polygon points="0,0 -40,-900 40,-900" transform="rotate(45.0)"/><polygon points="0,0 -40,-900 40,-900" transform="rotate(67.5)"/><polygon points="0,0 -40,-900 40,-900" transform="rotate(90.0)"/><polygon points="0,0 -40,-900 40,-900" transform="rotate(112.5)"/><polygon points="0,0 -40,-900 40,-900" transform="rotate(135.0)"/><polygon points="0,0 -40,-900 40,-900" transform="rotate(157.5)"/><polygon points="0,0 -40,-900 40,-900" transform="rotate(180.0)"/><polygon points="0,0 -40,-900 40,-900" transform="rotate(202.5)"/><polygon points="0,0 -40,-900 40,-900" transform="rotate(225.0)"/><polygon points="0,0 -40,-900 40,-900" transform="rotate(247.5)"/><polygon points="0,0 -40,-900 40,-900" transform="rotate(270.0)"/><polygon points="0,0 -40,-900 40,-900" transform="rotate(292.5)"/><polygon points="0,0 -40,-900 40,-900" transform="rotate(315.0)"/><polygon points="0,0 -40,-900 40,-900" transform="rotate(337.5)"/>
+  </g>
+  <rect width="1024" height="1024" fill="url(#glow)"/>
+</svg>
