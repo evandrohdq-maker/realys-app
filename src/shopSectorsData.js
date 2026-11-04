@@ -1,0 +1,128 @@
+// Setores do Shop com subgrupos, no mesmo formato do Agro: Eletrônicos, Vestuário e Utensílios domésticos.
+// Cada item diz em quais subgrupos aparece (groups). Lojas, produtos e valores são fictícios.
+// ship: true = a loja envia para todo o Brasil.
+const photo = (seed, w = 600, h = 400) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
+
+export const SHOP_SECTORS = {
+  eletronicos: {
+    key: 'eletronicos',
+    title: 'Eletrônicos',
+    sub: 'Celulares, informática, TV, games e casa inteligente de lojas verificadas',
+    hint: 'Celulares, TV e games',
+    ion: 'phone-portrait-outline',
+    color: '#5B4FCF',
+    placeholder: 'Buscar celular, notebook, TV…',
+    voicePrompt: 'Que eletrônico você procura?',
+    banner: 'Lojas de eletrônicos mostram os lançamentos aqui. Todo aparelho tem nota fiscal e garantia, e o pagamento fica protegido até chegar na sua mão.',
+    groups: [
+      { key: 'todos', label: 'Todos', icon: '⚡' },
+      { key: 'celulares', label: 'Celulares', icon: '📱' },
+      { key: 'informatica', label: 'Informática', icon: '💻' },
+      { key: 'tvaudio', label: 'TV e áudio', icon: '📺' },
+      { key: 'games', label: 'Games', icon: '🎮' },
+      { key: 'smarthome', label: 'Casa inteligente', icon: '🏠' },
+      { key: 'acessorios', label: 'Acessórios', icon: '🔌' },
+    ],
+  },
+  vestuario: {
+    key: 'vestuario',
+    title: 'Vestuário',
+    sub: 'Roupas, calçados e acessórios de lojas e marcas verificadas',
+    hint: 'Roupas e calçados',
+    ion: 'shirt-outline',
+    color: '#C2457A',
+    placeholder: 'Buscar vestido, tênis, camisa…',
+    voicePrompt: 'Que roupa ou calçado você procura?',
+    banner: 'Marcas e lojas de roupa lançam coleções aqui. Troca grátis na primeira compra em lojas parceiras.',
+    groups: [
+      { key: 'todos', label: 'Todos', icon: '🛍️' },
+      { key: 'feminino', label: 'Feminino', icon: '👗' },
+      { key: 'masculino', label: 'Masculino', icon: '👔' },
+      { key: 'infantil', label: 'Infantil', icon: '🧸' },
+      { key: 'calcados', label: 'Calçados', icon: '👟' },
+      { key: 'fitness', label: 'Fitness', icon: '🏃' },
+      { key: 'acessorios', label: 'Acessórios', icon: '👜' },
+    ],
+  },
+  casa: {
+    key: 'casa',
+    title: 'Utensílios domésticos',
+    sub: 'Cozinha, eletroportáteis, cama e banho, limpeza e organização',
+    hint: 'Cozinha, cama e banho',
+    ion: 'home-outline',
+    color: '#D9822B',
+    placeholder: 'Buscar panela, air fryer, toalha…',
+    voicePrompt: 'O que você procura para a casa?',
+    banner: 'Tudo para a casa, de lojas do seu bairro e de lojas que enviam para todo o Brasil.',
+    groups: [
+      { key: 'todos', label: 'Todos', icon: '🏡' },
+      { key: 'cozinha', label: 'Cozinha', icon: '🍳' },
+      { key: 'eletroportateis', label: 'Eletroportáteis', icon: '🔌' },
+      { key: 'mesa', label: 'Mesa', icon: '🍽️' },
+      { key: 'cama', label: 'Cama e banho', icon: '🛏️' },
+      { key: 'limpeza', label: 'Limpeza', icon: '🧽' },
+      { key: 'organizacao', label: 'Organização', icon: '📦' },
+    ],
+  },
+};
+
+export const SHOP_SECTOR_KEYS = Object.keys(SHOP_SECTORS);
+
+// price null = sob orçamento. cta = texto do botão.
+export const shopSectorItems = [
+  // ───────────── Eletrônicos ─────────────
+  { id: 'el1', sector: 'eletronicos', groups: ['celulares'], icon: '📱', title: 'Smartphone 5G 256 GB, câmera tripla', who: 'TechMais Celulares', detail: 'Lançamento da semana. Tela 6,7", bateria para 2 dias. Nota fiscal e 1 ano de garantia.', price: 2399, unit: 'unidade', cta: 'Comprar', photo: photo('realys-cel5g'), sponsored: true, ship: true, launch: true },
+  { id: 'el2', sector: 'eletronicos', groups: ['celulares'], icon: '📲', title: 'Celular de entrada 128 GB', who: 'Mundo Cell', detail: 'Ótimo para redes sociais e WhatsApp. Leve no mesmo dia na loja física.', price: 999, unit: 'unidade', cta: 'Comprar', photo: photo('realys-celbasico') },
+  { id: 'el3', sector: 'eletronicos', groups: ['celulares', 'acessorios'], icon: '🛡️', title: 'Capinha + película 3D (kit)', who: 'Mundo Cell', detail: 'Para os modelos mais vendidos. Aplicação grátis na loja.', price: 59.9, unit: 'kit', cta: 'Comprar', photo: photo('realys-capinha'), ship: true },
+  { id: 'el4', sector: 'eletronicos', groups: ['informatica'], icon: '💻', title: 'Notebook 16 GB RAM, SSD 512 GB', who: 'InfoStore Brasil', detail: 'Para trabalho e estudo. Em até 10x no saldo Realys parcelado.', price: 3899, unit: 'unidade', cta: 'Comprar', photo: photo('realys-notebook'), sponsored: true, ship: true },
+  { id: 'el5', sector: 'eletronicos', groups: ['informatica'], icon: '🖥️', title: 'Monitor 27" para escritório', who: 'InfoStore Brasil', detail: 'Full HD, ajuste de altura. Desconto para empresas com CNPJ.', price: 1149, unit: 'unidade', cta: 'Comprar', photo: photo('realys-monitor'), ship: true },
+  { id: 'el6', sector: 'eletronicos', groups: ['informatica', 'acessorios'], icon: '🖨️', title: 'Impressora multifuncional com tanque de tinta', who: 'Papel & Cia', detail: 'Imprime, copia e digitaliza pelo celular.', price: 1089, unit: 'unidade', cta: 'Comprar', photo: photo('realys-impressora') },
+  { id: 'el7', sector: 'eletronicos', groups: ['tvaudio'], icon: '📺', title: 'Smart TV 55" 4K', who: 'Casa da TV', detail: 'Instalação na parede inclusa na sua cidade.', price: 2799, unit: 'unidade', cta: 'Comprar', photo: photo('realys-tv55'), launch: true },
+  { id: 'el8', sector: 'eletronicos', groups: ['tvaudio', 'acessorios'], icon: '🎧', title: 'Fone sem fio com cancelamento de ruído', who: 'SomTotal', detail: 'Até 30 h de bateria. Envia para todo o Brasil.', price: 349, unit: 'unidade', cta: 'Comprar', photo: photo('realys-fone'), ship: true },
+  { id: 'el9', sector: 'eletronicos', groups: ['tvaudio'], icon: '🔊', title: 'Caixa de som portátil à prova d’água', who: 'SomTotal', detail: 'Para praia, piscina e churrasco.', price: 299, unit: 'unidade', cta: 'Comprar', photo: photo('realys-caixasom') },
+  { id: 'el10', sector: 'eletronicos', groups: ['games'], icon: '🎮', title: 'Console de nova geração + 2 controles', who: 'GameZone', detail: 'Pronta entrega. Troque seu console usado como parte do pagamento.', price: 4199, unit: 'unidade', cta: 'Comprar', photo: photo('realys-console'), sponsored: true },
+  { id: 'el11', sector: 'eletronicos', groups: ['games'], icon: '🕹️', title: 'Cadeira gamer reclinável', who: 'GameZone', detail: 'Encosto 180°, apoio de braço 4D.', price: 899, unit: 'unidade', cta: 'Comprar', photo: photo('realys-cadeiragamer'), ship: true },
+  { id: 'el12', sector: 'eletronicos', groups: ['smarthome'], icon: '💡', title: 'Kit casa inteligente (4 lâmpadas + tomada)', who: 'Casa Conectada', detail: 'Liga e desliga pela voz e pelo celular, até de longe.', price: 279, unit: 'kit', cta: 'Comprar', photo: photo('realys-smartkit'), ship: true },
+  { id: 'el13', sector: 'eletronicos', groups: ['smarthome'], icon: '📷', title: 'Câmera de segurança Wi-Fi com visão noturna', who: 'Casa Conectada', detail: 'Avisa no celular quando detecta movimento.', price: 229, unit: 'unidade', cta: 'Comprar', photo: photo('realys-camera') },
+  { id: 'el14', sector: 'eletronicos', groups: ['smarthome', 'tvaudio'], icon: '🗣️', title: 'Instalação de casa inteligente', who: 'Técnico verificado · Realys Serviços', detail: 'Configuração de câmeras, lâmpadas e assistente de voz. Veja o perfil e o preço.', price: 150, unit: 'visita', cta: 'Ver profissional', go: { tab: 'servicos', service: 'tecnico' }, photo: photo('realys-instalacao') },
+  { id: 'el15', sector: 'eletronicos', groups: ['acessorios', 'celulares'], icon: '🔋', title: 'Carregador turbo 65 W + cabo', who: 'TechMais Celulares', detail: 'Carrega celular e notebook.', price: 129, unit: 'unidade', cta: 'Comprar', photo: photo('realys-carregador'), ship: true },
+  { id: 'el16', sector: 'eletronicos', groups: ['acessorios'], icon: '⌚', title: 'Smartwatch com GPS e monitor de sono', who: 'TechMais Celulares', detail: 'Notificações do Realys no pulso.', price: 499, unit: 'unidade', cta: 'Comprar', photo: photo('realys-smartwatch'), launch: true },
+
+  // ───────────── Vestuário ─────────────
+  { id: 'vs1', sector: 'vestuario', groups: ['feminino'], icon: '👗', title: 'Vestido midi de linho — coleção verão', who: 'Ateliê Flor de Lis', detail: 'Lançamento. Tamanhos P ao GG, várias cores.', price: 189.9, unit: 'peça', cta: 'Comprar', photo: photo('realys-vestido'), sponsored: true, ship: true, launch: true },
+  { id: 'vs2', sector: 'vestuario', groups: ['feminino'], icon: '👚', title: 'Blusa de tricô leve', who: 'Moda Bella', detail: 'Ótima para o trabalho e para o culto.', price: 89.9, unit: 'peça', cta: 'Comprar', photo: photo('realys-blusa') },
+  { id: 'vs3', sector: 'vestuario', groups: ['feminino'], icon: '👖', title: 'Calça pantalona alfaiataria', who: 'Moda Bella', detail: 'Cintura alta, tecido que não amassa.', price: 149.9, unit: 'peça', cta: 'Comprar', photo: photo('realys-pantalona'), ship: true },
+  { id: 'vs4', sector: 'vestuario', groups: ['masculino'], icon: '👔', title: 'Camisa social slim (kit com 2)', who: 'Alfaiataria Real', detail: 'Algodão egípcio. Ajuste grátis na loja física.', price: 219.9, unit: 'kit', cta: 'Comprar', photo: photo('realys-camisa'), ship: true },
+  { id: 'vs5', sector: 'vestuario', groups: ['masculino'], icon: '👕', title: 'Camiseta básica algodão (kit com 3)', who: 'Básico Brasil', detail: 'Preto, branco e cinza. Fábrica própria em SC.', price: 99.9, unit: 'kit', cta: 'Comprar', photo: photo('realys-camiseta'), sponsored: true, ship: true },
+  { id: 'vs6', sector: 'vestuario', groups: ['masculino'], icon: '🧥', title: 'Jaqueta jeans clássica', who: 'Jeans & Co', detail: 'Lavagem média, do P ao XGG.', price: 239.9, unit: 'peça', cta: 'Comprar', photo: photo('realys-jaqueta'), launch: true },
+  { id: 'vs7', sector: 'vestuario', groups: ['infantil'], icon: '🧸', title: 'Conjunto infantil moletom (2 a 10 anos)', who: 'Pequenos Passos', detail: 'Macio, não desbota. Estampas exclusivas.', price: 79.9, unit: 'conjunto', cta: 'Comprar', photo: photo('realys-infantil'), ship: true },
+  { id: 'vs8', sector: 'vestuario', groups: ['infantil'], icon: '🎒', title: 'Kit escolar: mochila + uniforme', who: 'Pequenos Passos', detail: 'Uniformes das escolas da sua cidade sob encomenda.', price: null, cta: 'Pedir orçamento', photo: photo('realys-uniforme') },
+  { id: 'vs9', sector: 'vestuario', groups: ['calcados', 'fitness'], icon: '👟', title: 'Tênis de corrida amortecido', who: 'Passo Certo Calçados', detail: 'Leve e respirável. Troca de numeração grátis.', price: 299.9, unit: 'par', cta: 'Comprar', photo: photo('realys-tenis'), sponsored: true, ship: true },
+  { id: 'vs10', sector: 'vestuario', groups: ['calcados', 'feminino'], icon: '👠', title: 'Scarpin couro legítimo', who: 'Passo Certo Calçados', detail: 'Fabricado em Franca - SP, salto 7 cm.', price: 229.9, unit: 'par', cta: 'Comprar', photo: photo('realys-scarpin'), ship: true },
+  { id: 'vs11', sector: 'vestuario', groups: ['calcados', 'masculino'], icon: '👞', title: 'Sapato social masculino', who: 'Passo Certo Calçados', detail: 'Solado de borracha, confortável o dia todo.', price: 259.9, unit: 'par', cta: 'Comprar', photo: photo('realys-sapato') },
+  { id: 'vs12', sector: 'vestuario', groups: ['fitness'], icon: '🏋️', title: 'Conjunto fitness legging + top', who: 'Fit Mulher', detail: 'Tecido com proteção UV, não fica transparente.', price: 139.9, unit: 'conjunto', cta: 'Comprar', photo: photo('realys-fitness'), launch: true, ship: true },
+  { id: 'vs13', sector: 'vestuario', groups: ['fitness', 'masculino'], icon: '🩳', title: 'Bermuda dry-fit para treino', who: 'Fit Mulher & Homem', detail: 'Seca rápido. Bolso para celular.', price: 69.9, unit: 'peça', cta: 'Comprar', photo: photo('realys-bermuda') },
+  { id: 'vs14', sector: 'vestuario', groups: ['acessorios'], icon: '👜', title: 'Bolsa de couro feita à mão', who: 'Couro Nobre Artesanal', detail: 'Peça de artesão de MG. Personalize com suas iniciais.', price: 329.9, unit: 'unidade', cta: 'Comprar', photo: photo('realys-bolsa'), ship: true },
+  { id: 'vs15', sector: 'vestuario', groups: ['acessorios'], icon: '⌚', title: 'Relógio analógico aço inox', who: 'Hora Certa Relojoaria', detail: 'Resistente à água, garantia de 2 anos.', price: 399, unit: 'unidade', cta: 'Comprar', photo: photo('realys-relogio') },
+  { id: 'vs16', sector: 'vestuario', groups: ['feminino', 'masculino'], icon: '🧵', title: 'Costureira: ajustes e consertos', who: 'Ateliê Dona Nena', detail: 'Barra, ajuste e conserto. Busca e entrega no bairro.', price: 25, unit: 'peça', cta: 'Contratar', photo: photo('realys-costura') },
+
+  // ───────────── Utensílios domésticos ─────────────
+  { id: 'cs1', sector: 'casa', groups: ['cozinha'], icon: '🍳', title: 'Jogo de panelas antiaderente (5 peças)', who: 'Casa & Cozinha', detail: 'Serve em fogão de indução. Tampas de vidro.', price: 349.9, unit: 'jogo', cta: 'Comprar', photo: photo('realys-panelas'), sponsored: true, ship: true },
+  { id: 'cs2', sector: 'casa', groups: ['cozinha'], icon: '🔪', title: 'Kit facas inox com cepo', who: 'Casa & Cozinha', detail: '6 facas e chaira. Garantia de 5 anos.', price: 189.9, unit: 'kit', cta: 'Comprar', photo: photo('realys-facas') },
+  { id: 'cs3', sector: 'casa', groups: ['cozinha', 'organizacao'], icon: '🫙', title: 'Potes herméticos de vidro (10 peças)', who: 'Organiza Lar', detail: 'Vão ao micro-ondas, freezer e lava-louças.', price: 129.9, unit: 'kit', cta: 'Comprar', photo: photo('realys-potes'), ship: true },
+  { id: 'cs4', sector: 'casa', groups: ['eletroportateis', 'cozinha'], icon: '🍟', title: 'Air fryer 5 L digital', who: 'EletroLar', detail: 'Lançamento. 8 receitas no painel, desliga sozinha.', price: 449, unit: 'unidade', cta: 'Comprar', photo: photo('realys-airfryer'), sponsored: true, ship: true, launch: true },
+  { id: 'cs5', sector: 'casa', groups: ['eletroportateis', 'cozinha'], icon: '🥤', title: 'Liquidificador 1.200 W', who: 'EletroLar', detail: '12 velocidades, copo de vidro.', price: 219, unit: 'unidade', cta: 'Comprar', photo: photo('realys-liquidificador') },
+  { id: 'cs6', sector: 'casa', groups: ['eletroportateis'], icon: '☕', title: 'Cafeteira de cápsula + 50 cápsulas', who: 'Café em Casa', detail: 'Cápsulas de café especial do produtor parceiro do Agro.', price: 499, unit: 'kit', cta: 'Comprar', photo: photo('realys-cafeteira') },
+  { id: 'cs7', sector: 'casa', groups: ['eletroportateis', 'limpeza'], icon: '🤖', title: 'Robô aspirador com mapa da casa', who: 'EletroLar', detail: 'Aspira e passa pano. Você programa pelo celular.', price: 1299, unit: 'unidade', cta: 'Comprar', photo: photo('realys-roboaspirador'), launch: true, ship: true },
+  { id: 'cs8', sector: 'casa', groups: ['mesa'], icon: '🍽️', title: 'Aparelho de jantar porcelana (30 peças)', who: 'Mesa Posta', detail: 'Para 6 pessoas. Embalagem reforçada para envio.', price: 399.9, unit: 'jogo', cta: 'Comprar', photo: photo('realys-jantar'), ship: true },
+  { id: 'cs9', sector: 'casa', groups: ['mesa'], icon: '🥂', title: 'Jogo de taças cristal (6 unidades)', who: 'Mesa Posta', detail: 'Ótimo presente de casamento.', price: 159.9, unit: 'jogo', cta: 'Comprar', photo: photo('realys-tacas') },
+  { id: 'cs10', sector: 'casa', groups: ['mesa', 'cozinha'], icon: '🍴', title: 'Faqueiro inox 42 peças', who: 'Casa & Cozinha', detail: 'Estojo de madeira. Gravação do nome da família.', price: 279.9, unit: 'jogo', cta: 'Comprar', photo: photo('realys-faqueiro'), ship: true },
+  { id: 'cs11', sector: 'casa', groups: ['cama'], icon: '🛏️', title: 'Jogo de cama queen 400 fios', who: 'Sono Bom Enxovais', detail: '100% algodão, 4 peças.', price: 259.9, unit: 'jogo', cta: 'Comprar', photo: photo('realys-jogocama'), sponsored: true, ship: true },
+  { id: 'cs12', sector: 'casa', groups: ['cama'], icon: '🛁', title: 'Kit toalhas de banho (4 peças)', who: 'Sono Bom Enxovais', detail: 'Fio penteado, secam rápido.', price: 139.9, unit: 'kit', cta: 'Comprar', photo: photo('realys-toalhas') },
+  { id: 'cs13', sector: 'casa', groups: ['cama'], icon: '🧸', title: 'Edredom dupla face casal', who: 'Sono Bom Enxovais', detail: 'Para o inverno, lavável na máquina.', price: 219.9, unit: 'unidade', cta: 'Comprar', photo: photo('realys-edredom') },
+  { id: 'cs14', sector: 'casa', groups: ['limpeza'], icon: '🧽', title: 'Kit limpeza: mop giratório + balde', who: 'Limpa Fácil', detail: 'Centrífuga no balde, refil extra.', price: 119.9, unit: 'kit', cta: 'Comprar', photo: photo('realys-mop'), ship: true },
+  { id: 'cs15', sector: 'casa', groups: ['limpeza'], icon: '🧴', title: 'Produtos de limpeza concentrados (caixa)', who: 'Limpa Fácil', detail: 'Rende 5x mais. Atacado para empresas e condomínios.', price: 89.9, unit: 'caixa', cta: 'Comprar', photo: photo('realys-limpeza') },
+  { id: 'cs16', sector: 'casa', groups: ['limpeza'], icon: '🧹', title: 'Diarista verificada', who: 'Realys Serviços', detail: 'Faxina completa com nota e avaliações. Veja quem está perto.', price: 180, unit: 'diária', cta: 'Ver profissional', go: { tab: 'servicos', service: 'diarista' }, photo: photo('realys-diarista') },
+  { id: 'cs17', sector: 'casa', groups: ['organizacao'], icon: '📦', title: 'Caixas organizadoras com tampa (6 un.)', who: 'Organiza Lar', detail: 'Transparentes, empilháveis.', price: 99.9, unit: 'kit', cta: 'Comprar', photo: photo('realys-caixas'), ship: true },
+  { id: 'cs18', sector: 'casa', groups: ['organizacao'], icon: '🗄️', title: 'Sapateira e cabideiro de bambu', who: 'Organiza Lar', detail: 'Monta em 10 minutos, sem ferramenta.', price: 169.9, unit: 'unidade', cta: 'Comprar', photo: photo('realys-sapateira') },
+];

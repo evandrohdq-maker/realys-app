@@ -55,6 +55,13 @@ O administrador vê a visão geral da plataforma (usuários, empresas, receita),
 - **Subgrupos do Agro:** no topo da aba, **Grãos, Café, Pecuária, Hortifrúti e Leite**. Cada um mostra as cotações e os produtos, máquinas e serviços daquela cadeia: silo e soja em lote (Grãos), derriçadeira e prova de café (Café), ração, brinco eletrônico, leilão virtual, bezerros e **veterinário rural** (Pecuária), estufa e mudas (Hortifrúti), ordenhadeira, tanque resfriador e coleta de leite (Leite). Também abrem pelo menu ⋮ › Agro.
 - **Agro é tech:** drones, sensores de solo, piloto automático GPS, robô de capina, app da fazenda e IA de pragas aparecem nas duas abas, com a faixa verde que leva de uma para a outra.
 
+**Eletrônicos, Vestuário e Utensílios domésticos (subgrupos como no Agro):** botões no Início › Shop, logo abaixo de Tecnologia e Agro, e no menu ⋮.
+
+- **Eletrônicos:** Celulares, Informática, TV e áudio, Games, Casa inteligente e Acessórios.
+- **Vestuário:** Feminino, Masculino, Infantil, Calçados, Fitness e Acessórios.
+- **Utensílios domésticos:** Cozinha, Eletroportáteis, Mesa, Cama e banho, Limpeza e Organização.
+- Cada subgrupo mostra os **lançamentos** numa faixa no topo, depois as ofertas com os **patrocinados primeiro**, e tem o filtro **Envia para o Brasil**. Comprar usa o saldo Realys (pedido com NF-e). Alguns itens levam a prestadores (técnico de casa inteligente, costureira, diarista). Tudo aparece também na pesquisa por voz (*"Realys, quero uma air fryer"*).
+
 **Menu ⋮ (três pontinhos):** no topo, abre as classes **Restaurantes, Serviços gerais, Lojas, Social e Área empresarial**. Cada classe abre uma sub-aba para escolher o tipo (ex.: Serviços gerais → Eletricista).
 
 **Stories (botão próprio na barra de baixo):** uma página só para os Stories, como no Instagram, com a faixa de bolinhas no topo e os stories em cartões grandes (Novos e Já vistos): o dia a dia, o lazer e as novidades de pessoas e empresas verificadas. Toque para ver em tela cheia (toque à direita avança, à esquerda volta, segure para pausar), responda (a resposta cai em Comunidade › Mensagens) e, nos stories de empresas, toque no botão da oferta. Em **Seu story** você publica o seu (texto sobre uma cor ou foto de exemplo).

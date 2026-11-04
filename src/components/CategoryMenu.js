@@ -3,6 +3,27 @@ import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Pressable 
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
 import { serviceTypes } from '../data';
+import { SHOP_SECTORS, SHOP_SECTOR_KEYS } from '../shopSectorsData';
+
+// Ícones dos subgrupos de Eletrônicos, Vestuário e Utensílios domésticos no menu ⋮.
+const GROUP_ION = {
+  todos: 'grid-outline', celulares: 'phone-portrait-outline', informatica: 'laptop-outline', tvaudio: 'tv-outline', games: 'game-controller-outline', smarthome: 'bulb-outline', acessorios: 'watch-outline',
+  feminino: 'woman-outline', masculino: 'man-outline', infantil: 'happy-outline', calcados: 'footsteps-outline', fitness: 'barbell-outline',
+  cozinha: 'restaurant-outline', eletroportateis: 'flash-outline', mesa: 'wine-outline', cama: 'bed-outline', limpeza: 'sparkles-outline', organizacao: 'file-tray-stacked-outline',
+};
+const sectorClass = (k) => {
+  const s = SHOP_SECTORS[k];
+  return {
+    key: k,
+    title: s.title,
+    hint: s.hint,
+    icon: s.ion,
+    subs: [
+      ...s.groups.filter((g) => g.key !== 'todos').map((g) => ({ label: g.label, hint: s.title, icon: GROUP_ION[g.key] || s.ion, go: { tab: k, group: g.key } })),
+      { label: 'Ver tudo', hint: `Todo o setor de ${s.title.toLowerCase()}`, icon: 'grid-outline', go: { tab: k, group: 'todos' } },
+    ],
+  };
+};
 
 // Classes do menu de três pontinhos (⋮). Cada uma abre uma sub-aba com os tipos.
 // "go" diz para qual aba o app vai e com qual filtro.
@@ -67,6 +88,8 @@ export const CATEGORIES = [
       { label: 'Agro é tech', hint: 'Drones, sensores e IA', icon: 'hardware-chip-outline', go: { tab: 'agro', seg: 'agrotech' } },
     ],
   },
+  // Setores do Shop com subgrupos, como o Agro.
+  ...SHOP_SECTOR_KEYS.map(sectorClass),
   {
     key: 'socorro',
     title: 'Socorro e saúde',
@@ -97,8 +120,9 @@ export const CATEGORIES = [
     icon: 'bag-handle-outline',
     subs: [
       { label: 'Mercado', hint: 'Compras do dia', icon: 'cart-outline', go: { tab: 'loja', cat: 'Mercado', q: '' } },
-      { label: 'Moda', hint: 'Roupas e calçados', icon: 'shirt-outline', go: { tab: 'loja', cat: 'Roupas', q: '' } },
-      { label: 'Eletrônicos', hint: 'Celulares e acessórios', icon: 'phone-portrait-outline', go: { tab: 'loja', cat: 'Eletrônicos', q: '' } },
+      { label: 'Vestuário', hint: 'Roupas, calçados e acessórios', icon: 'shirt-outline', go: { tab: 'vestuario', group: 'todos' } },
+      { label: 'Eletrônicos', hint: 'Celulares, TV, games e informática', icon: 'phone-portrait-outline', go: { tab: 'eletronicos', group: 'todos' } },
+      { label: 'Utensílios domésticos', hint: 'Cozinha, cama e banho, limpeza', icon: 'home-outline', go: { tab: 'casa', group: 'todos' } },
       { label: 'Promoções', hint: 'Ofertas relâmpago', icon: 'pricetags-outline', go: { tab: 'home', top: 'promo' } },
       { label: 'Ver todas', hint: 'Todas as lojas', icon: 'storefront-outline', go: { tab: 'loja', cat: 'Todos', q: '' } },
     ],

@@ -9,6 +9,7 @@ import { ChatModal, VideoCallModal, LiveModal } from './Social';
 import { members, memberByName } from '../../../people';
 import { PeopleSearchModal, PersonRow } from '../../../components/People';
 import { LaunchStrip } from '../../../components/Launches';
+import { SHOP_SECTORS, SHOP_SECTOR_KEYS } from '../../../shopSectorsData';
 
 // As 5 abas do topo do Início do cliente.
 const TOP = [
@@ -149,6 +150,19 @@ function ShopTab({ goTo }) {
             <Text style={styles.sectorHint} numberOfLines={1}>Insumos, máquinas e agrônomos</Text>
           </View>
         </TouchableOpacity>
+      </View>
+      {/* Eletrônicos, Vestuário e Utensílios domésticos: cada um com seus subgrupos, como o Agro. */}
+      <View style={styles.sectorRow}>
+        {SHOP_SECTOR_KEYS.map((k, i) => {
+          const s = SHOP_SECTORS[k];
+          return (
+            <TouchableOpacity key={k} style={[styles.sectorMini, { borderColor: s.color + '55' }, i < SHOP_SECTOR_KEYS.length - 1 && { marginRight: 8 }]} onPress={() => goTo(k)} activeOpacity={0.85}>
+              <Ionicons name={s.ion} size={22} color={s.color} />
+              <Text style={styles.sectorTitle} numberOfLines={1}>{k === 'casa' ? 'Utensílios' : s.title}</Text>
+              <Text style={styles.sectorHint} numberOfLines={1}>{s.hint}</Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
       <LaunchStrip />
       <SectionHead title="Destaques para você" action="Ver loja" onAction={() => goTo('loja')} />
@@ -739,6 +753,7 @@ function SectionHead({ title, action, onAction }) {
 const styles = StyleSheet.create({
   sectorRow: { flexDirection: 'row', marginBottom: 14 },
   sectorBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, padding: 10 },
+  sectorMini: { flex: 1, alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, paddingVertical: 10, paddingHorizontal: 6 },
   sectorTitle: { color: colors.text, fontWeight: '800', fontSize: 14 },
   sectorHint: { color: colors.muted, fontSize: 11 },
   topTabs: {

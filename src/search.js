@@ -7,6 +7,7 @@ import { serviceTypes } from './data';
 import { members } from './people';
 import { allJobs } from './store';
 import { sectorItems } from './techAgroData';
+import { SHOP_SECTORS, shopSectorItems } from './shopSectorsData';
 import { emergencyNumbers, hospitals, specialists, responders, transitLines, trips, transitCompanies, artists, artMedia } from './extraData';
 
 const norm = (s) =>
@@ -273,6 +274,16 @@ function buildIndex(state) {
     )
   );
 
+  // Eletrônicos, Vestuário e Utensílios domésticos (com os subgrupos de cada um).
+  shopSectorItems.forEach((it) => {
+    const sec = SHOP_SECTORS[it.sector];
+    const groups = (it.groups || []).map((g) => (sec.groups.find((x) => x.key === g) || {}).label).join(' ');
+    add(
+      { id: 'ss-' + it.id, section: sec.title, icon: it.icon, title: it.title, subtitle: it.who, price: it.price == null ? 'sob orçamento' : undefined, priceValue: it.price ? it.price : undefined, priceUnit: it.unit, where: it.who, photo: it.photo, sponsored: it.sponsored, go: it.go || { tab: it.sector, group: (it.groups || [])[0] || 'todos' } },
+      it.title, it.who, it.detail, sec.title, groups, { eletronicos: 'eletronico eletronicos aparelho', vestuario: 'roupa roupas moda vestuario', casa: 'casa utensilio utensilios domestico lar' }[it.sector], it.launch ? 'lancamento novidade' : ''
+    );
+  });
+
   communityPosts.forEach((c) =>
     add(
       { id: 'c-' + c.id, section: 'Comunidade', icon: '💬', title: c.author, subtitle: c.text, go: { tab: 'home', top: 'comunidade', seg: 'posts' } },
@@ -323,4 +334,4 @@ export function contentReply(results, what) {
 
 // Palavras que indicam claramente busca de conteúdo, não de prestador
 // (ex.: "alugar um carro" é anúncio, não corrida).
-export const CONTENT_WORDS = /\b(hote(l|is)|pousadas?|hospedage(m|ns)|aluga(r|mos)?|aluguel|locacao|imove(l|is)|apartamentos?|ape|kitnet|casas? (a|para) venda|ingressos?|balada|casa noturna|shows?|cursos?|faculdades?|lives?|promocao|promocoes|ofertas?|lojas?|produtos?|hospita(l|is)|upa|samu|ambulancias?|medic(o|a|os|as)|especialistas?|consultas?|pediatra|cardiologista|dentista|onibus|metro|passage(m|ns)|rodoviaria|artistas?|clipes?|vagas?|empregos?|lancamentos?|novidades?|tecnologia|robotica|robos?|inteligencia artificial|agro|agronegocio|sementes?|adubos?|trator(es)?|colheitadeiras?|fazendas?|gado|pecuaria|leilao|leiloes|bezerros?|ordenhadeiras?|hortifruti|estufas?)\b/;
+export const CONTENT_WORDS = /\b(hote(l|is)|pousadas?|hospedage(m|ns)|aluga(r|mos)?|aluguel|locacao|imove(l|is)|apartamentos?|ape|kitnet|casas? (a|para) venda|ingressos?|balada|casa noturna|shows?|cursos?|faculdades?|lives?|promocao|promocoes|ofertas?|lojas?|produtos?|hospita(l|is)|upa|samu|ambulancias?|medic(o|a|os|as)|especialistas?|consultas?|pediatra|cardiologista|dentista|onibus|metro|passage(m|ns)|rodoviaria|artistas?|clipes?|vagas?|empregos?|lancamentos?|novidades?|tecnologia|robotica|robos?|inteligencia artificial|agro|agronegocio|sementes?|adubos?|trator(es)?|colheitadeiras?|fazendas?|gado|pecuaria|leilao|leiloes|bezerros?|ordenhadeiras?|hortifruti|estufas?|eletronicos?|smart ?tv|televis(ao|oes)|videogames?|consoles?|roupas?|vestuario|vestidos?|camisas?|camisetas?|calcados?|tenis|sapatos?|bolsas?|utensilios?|panelas?|air ?fryer|liquidificador|toalhas?|jogo de cama|edredom)\b/;

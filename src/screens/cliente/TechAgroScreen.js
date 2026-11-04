@@ -11,7 +11,7 @@ const GREEN = '#2E8B57';
 
 const nq = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
-const priceText = (it) => (it.price == null ? 'Sob orçamento' : it.price === 0 ? 'Grátis' : `${brl(it.price)} / ${it.unit}`);
+export const priceText = (it) => (it.price == null ? 'Sob orçamento' : it.price === 0 ? 'Grátis' : `${brl(it.price)} / ${it.unit}`);
 
 // Itens de uma aba: os do próprio setor + os "agro é tech" do outro setor.
 // chain: subgrupo do Agro (grãos, café, pecuária…); 'todas' mostra tudo.
@@ -24,7 +24,7 @@ function itemsFor(sector, seg, term, chain = 'todas') {
     .sort((a, b) => (b.sponsored ? 1 : 0) - (a.sponsored ? 1 : 0));
 }
 
-function useBuy(navigate) {
+export function useBuy(navigate) {
   const { state, dispatch } = useStore();
   return (it) => {
     if (it.go) return navigate && navigate(it.go);
