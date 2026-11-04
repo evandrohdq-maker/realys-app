@@ -2,7 +2,7 @@
 // eventos, cursos, lojas, produtos, promoções, prestadores, lives, pessoas e posts).
 // Usada pelo assistente de voz quando o pedido não é um comando específico.
 // Na versão real isso vira uma busca no servidor, com os cadastros reais.
-import { listings, LISTING_KINDS, promos, lives, communityPosts } from './homeData';
+import { listings, LISTING_KINDS, promos, lives, communityPosts, events, EVENT_GROUPS } from './homeData';
 import { serviceTypes } from './data';
 import { members } from './people';
 import { emergencyNumbers, hospitals, specialists, responders, transitLines, trips, transitCompanies, artists, artMedia } from './extraData';
@@ -119,6 +119,14 @@ function buildIndex(state) {
       l.title, l.detail, l.place, l.who, kindLabel(l.kind), 'anuncio', l.kind === 'hotel' ? 'hotel pousada hospedagem diaria' : ''
     )
   );
+
+  events.forEach((e) => {
+    const g = (EVENT_GROUPS.find((x) => x.key === e.group) || {}).label || 'Eventos';
+    add(
+      { id: 'e-' + e.id, section: g, icon: '🎉', title: e.title, subtitle: `${e.who} · ${e.when}`, price: e.price, where: short(e.place), photo: e.photo, sponsored: e.sponsored, go: { tab: 'home', top: 'eventos', group: e.group } },
+      e.title, e.detail, e.place, e.who, g, 'evento festa', e.deal ? 'promocao oferta desconto' : ''
+    );
+  });
 
   (state.stores || []).forEach((s) =>
     add(

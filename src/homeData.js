@@ -61,6 +61,37 @@ export const listings = [
   { id: 'l23', kind: 'curso', title: 'Inglês conversação em grupo', detail: 'Aulas ao vivo 2x por semana', price: 'R$ 129/mês', place: 'Online ao vivo', who: 'Prof. Rafael Inglês', sponsored: false, photo: photo('realys-ingles') },
 ];
 
+// Eventos (aba ao lado do Shop). Os dois primeiros subgrupos ficam em destaque:
+// festas promocionais e anúncios de promoções.
+export const EVENT_GROUPS = [
+  { key: 'destaques', label: 'Destaques', icon: 'star-outline' },
+  { key: 'festa-promo', label: 'Festas promocionais', icon: 'sparkles-outline', highlight: true },
+  { key: 'promo-anuncio', label: 'Anúncios de promoções', icon: 'megaphone-outline', highlight: true },
+  { key: 'shows', label: 'Shows e noite', icon: 'musical-notes-outline' },
+  { key: 'espacos', label: 'Salões e espaços', icon: 'home-outline' },
+  { key: 'gratis', label: 'Gratuitos', icon: 'gift-outline' },
+];
+
+export const events = [
+  // Festas promocionais
+  { id: 'e1', group: 'festa-promo', title: 'Open bar pela metade até 0h', detail: 'Sexta · Club Neon · DJs convidados', when: 'Sex · 23h', price: 'R$ 60', from: 'R$ 120', deal: '-50%', cta: 'Garantir ingresso', place: 'Vila Olímpia, São Paulo - SP', who: 'Club Neon', sponsored: true, photo: photo('realys-ev-openbar') },
+  { id: 'e2', group: 'festa-promo', title: 'Aniversariante não paga', detail: 'Leve 5 amigos e ganhe camarote com espumante', when: 'Sáb · 22h', price: 'Grátis', from: 'R$ 80', deal: 'Aniversário', cta: 'Colocar nome na lista', place: 'Pinheiros, São Paulo - SP', who: 'Vibe House', sponsored: true, photo: photo('realys-ev-niver') },
+  { id: 'e3', group: 'festa-promo', title: 'Lista VIP grátis até 23h30', detail: 'Festa Anos 2000 · nome na lista pelo app', when: 'Sáb · 23h', price: 'Grátis', from: 'R$ 50', deal: 'Lista VIP', cta: 'Colocar nome na lista', place: 'Savassi, Belo Horizonte - MG', who: 'Garagem Bar & Club', sponsored: false, photo: photo('realys-ev-2000') },
+  { id: 'e4', group: 'festa-promo', title: 'Compre 1, leve 2 ingressos', detail: 'Baile Sertanejo com banda ao vivo', when: 'Sex · 22h', price: 'R$ 70', from: 'R$ 140', deal: '2 por 1', cta: 'Garantir ingresso', place: 'Goiânia - GO', who: 'Rancho Sertanejo', sponsored: false, photo: photo('realys-ev-sertanejo') },
+  // Anúncios de promoções
+  { id: 'e5', group: 'promo-anuncio', title: 'Happy hour em dobro', detail: 'Chopp e drinks em dobro de seg a qui, 17h às 20h', when: 'Seg a Qui', price: 'Em dobro', deal: 'Happy hour', cta: 'Ver promoção', place: 'Centro, Curitiba - PR', who: 'Bar do Alemão', sponsored: true, photo: photo('realys-ev-happy') },
+  { id: 'e6', group: 'promo-anuncio', title: 'Rodízio pela metade às terças', detail: 'Pizza e massa à vontade · válido pelo Realys', when: 'Toda terça', price: 'R$ 39,90', from: 'R$ 79,90', deal: '-50%', cta: 'Reservar mesa', place: 'Moema, São Paulo - SP', who: 'Cantina Bella Nonna', sponsored: false, photo: photo('realys-ev-rodizio') },
+  { id: 'e7', group: 'promo-anuncio', title: 'Combo balada: 4 drinks por R$ 50', detail: 'Pagando com saldo Realys na entrada', when: 'Fins de semana', price: 'R$ 50', from: 'R$ 88', deal: 'Combo', cta: 'Ver promoção', place: 'Lapa, Rio de Janeiro - RJ', who: 'Quintal do Samba', sponsored: false, photo: photo('realys-ev-combo') },
+  { id: 'e8', group: 'promo-anuncio', title: 'Pacote festa infantil com 20% off', detail: 'Salão + buffet + decoração para 60 crianças', when: 'Datas em dezembro', price: 'R$ 3.200', from: 'R$ 4.000', deal: '-20%', cta: 'Pedir orçamento', place: 'Guarulhos - SP', who: 'Espaço Celebrar', sponsored: false, photo: photo('realys-ev-infantil') },
+  // Outros eventos
+  { id: 'e9', group: 'shows', title: 'Sexta Eletrônica · Club Neon', detail: 'Casa noturna · DJs convidados', when: 'Sex · 23h', price: 'R$ 60', cta: 'Comprar ingresso', place: 'Vila Olímpia, São Paulo - SP', who: 'Club Neon', sponsored: false, photo: photo('realys-balada') },
+  { id: 'e10', group: 'shows', title: 'Samba no Quintal ao vivo', detail: 'Open bar opcional', when: 'Sáb · 18h', price: 'R$ 45', cta: 'Comprar ingresso', place: 'Lapa, Rio de Janeiro - RJ', who: 'Quintal do Samba', sponsored: false, photo: photo('realys-samba') },
+  { id: 'e11', group: 'shows', title: 'Noite de Louvor ao vivo', detail: 'Banda Louvor Vivo · entrada solidária', when: 'Dom · 19h', price: 'R$ 20', cta: 'Comprar ingresso', place: 'São Paulo - SP', who: 'Banda Louvor Vivo', sponsored: false, photo: photo('realys-ev-louvor') },
+  { id: 'e12', group: 'espacos', title: 'Salão de festas para 150 pessoas', detail: 'Cozinha, som e estacionamento', when: 'Escolha a data', price: 'R$ 2.800/data', cta: 'Reservar data', place: 'Guarulhos - SP', who: 'Espaço Celebrar', sponsored: false, photo: photo('realys-salao') },
+  { id: 'e13', group: 'espacos', title: 'Chácara com piscina para eventos', detail: 'Até 80 pessoas · churrasqueira', when: 'Fins de semana', price: 'R$ 1.500/dia', cta: 'Reservar data', place: 'Atibaia - SP', who: 'Chácara Bem-Te-Vi', sponsored: false, photo: photo('realys-ev-chacara') },
+  { id: 'e14', group: 'gratis', title: 'Festival de Food Trucks', detail: 'Entrada gratuita · música ao vivo', when: 'Dom · 11h', price: 'Grátis', cta: 'Confirmar presença', place: 'Parque Central, Curitiba - PR', who: 'Prefeitura em Movimento', sponsored: false, photo: photo('realys-foodtruck') },
+];
+
 // Comunidade: posts de clientes (pessoas reais, verificadas).
 export const communityPosts = [
   { id: 'c1', author: 'Ana Paula', text: 'Alguém indica um bom eletricista na zona sul? Contratei o Pedro pelo Realys e foi rápido demais! ⚡', image: null, likes: 48, comments: 12, time: 'há 12 min' },
@@ -155,7 +186,7 @@ export const stories = [
   },
   {
     id: 's6', contactId: 'st-club', name: 'Club Neon', avatar: photo('realys-u-club', 200, 200), business: true,
-    cta: 'Comprar ingresso', ctaTo: { top: 'anuncios', kind: 'evento' },
+    cta: 'Comprar ingresso', ctaTo: { top: 'eventos', group: 'festa-promo' },
     items: [{ id: 's6a', image: storyPhoto('realys-st-balada'), caption: 'Sexta tem DJ convidado. Lista VIP pelo app!', time: 'há 4 h' }],
   },
   {

@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf } from '../../../store';
 import { colors, brl } from '../../../theme';
 import { Screen, Photo, ProductThumb, Badge } from '../../../components/ui';
-import { promos, listings, LISTING_KINDS, LISTING_CTA, communityPosts, contacts, lives } from '../../../homeData';
+import { promos, listings, LISTING_KINDS, LISTING_CTA, communityPosts, contacts, lives, events, EVENT_GROUPS } from '../../../homeData';
 import { ChatModal, VideoCallModal, LiveModal } from './Social';
 import { members, memberByName } from '../../../people';
 import { PeopleSearchModal, PersonRow } from '../../../components/People';
@@ -12,6 +12,7 @@ import { PeopleSearchModal, PersonRow } from '../../../components/People';
 // As 5 abas do topo do Início do cliente.
 const TOP = [
   { key: 'shop', label: 'Shop', icon: 'bag-handle-outline' },
+  { key: 'eventos', label: 'Eventos', icon: 'sparkles-outline' },
   { key: 'promo', label: 'Promoções', icon: 'pricetags-outline' },
   { key: 'anuncios', label: 'Anúncios', icon: 'megaphone-outline' },
   { key: 'comunidade', label: 'Comunidade', icon: 'people-outline' },
@@ -23,6 +24,7 @@ export default function HomeScreen({ goTo, explore }) {
   const [top, setTop] = useState('shop');
   const [kind, setKind] = useState('todos');
   const [seg, setSeg] = useState('posts');
+  const [evGroup, setEvGroup] = useState('destaques');
   // Conversas ficam no estado do app (as respostas aos stories também caem aqui).
   const convs = state.conversations;
   const setConvs = (fn) => dispatch({ type: 'UPDATE_CONVS', fn: typeof fn === 'function' ? fn : () => fn });
@@ -38,6 +40,7 @@ export default function HomeScreen({ goTo, explore }) {
     if (explore.kind) setKind(explore.kind);
     if (explore.seg) setSeg(explore.seg);
     if (explore.live) setLiveFilter(explore.live);
+    if (explore.group) setEvGroup(explore.group);
   }, [explore]);
 
   const contactOf = (id) => contacts.find((c) => c.id === id);
@@ -65,7 +68,7 @@ export default function HomeScreen({ goTo, explore }) {
           return (
             <TouchableOpacity key={t.key} style={[styles.topTab, on && styles.topTabOn]} onPress={() => setTop(t.key)}>
               <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={19} color={on ? colors.onPrimary : colors.primary} />
-              <Text numberOfLines={1} style={[styles.topTabText, on && { color: colors.onPrimary }]}>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.topTabText, on && { color: colors.onPrimary }]}>
                 {t.label}
               </Text>
             </TouchableOpacity>
@@ -75,6 +78,7 @@ export default function HomeScreen({ goTo, explore }) {
 
       <View style={{ flex: 1 }}>
         {top === 'shop' ? <ShopTab goTo={goTo} /> : null}
+        {top === 'eventos' ? <EventsTab group={evGroup} setGroup={setEvGroup} onContact={contactAdvertiser} /> : null}
         {top === 'promo' ? <PromoTab /> : null}
         {top === 'anuncios' ? <AdsTab kind={kind} setKind={setKind} onContact={contactAdvertiser} /> : null}
         {top === 'comunidade' ? (
@@ -162,6 +166,143 @@ function ShopTab({ goTo }) {
         </TouchableOpacity>
       ))}
     </Screen>
+  );
+}
+
+// Eventos: festas promocionais e anúncios de promoções em destaque.
+const sortEv = (list) => [...list].sort((a, b) => b.sponsored - a.sponsored);
+
+function EventsTab({ group, setGroup, onContact }) {
+  const festas = sortEv(events.filter((e) => e.group === 'festa-promo'));
+  const anuncios = sortEv(events.filter((e) => e.group === 'promo-anuncio'));
+  const outros = events.filter((e) => !['festa-promo', 'promo-anuncio'].includes(e.group));
+  const list = sortEv(events.filter((e) => e.group === group));
+  const act = (e) => Alert.alert(e.cta, `${e.title}\n${e.who} · ${e.when}\n\nPedido enviado. A confirmação chega nas suas mensagens.`);
+  return (
+    <Screen>
+      <View style={styles.evBanner}>
+        <Ionicons name="sparkles" size={24} color={colors.onPrimary} />
+        <View style={{ flex: 1, marginLeft: 10 }}>
+          <Text style={{ color: colors.onPrimary, fontWeight: '900', fontSize: 17 }}>Eventos e festas</Text>
+          <Text style={{ color: colors.onPrimary, fontSize: 12, marginTop: 2 }}>Festas com desconto, listas VIP e promoções da noite</Text>
+        </View>
+      </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 12 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
+        {EVENT_GROUPS.map((g) => {
+          const on = g.key === group;
+          return (
+            <TouchableOpacity key={g.key} style={[styles.chip, g.highlight && !on && styles.chipHot, on && styles.chipOn]} onPress={() => setGroup(g.key)}>
+              <Ionicons name={g.icon} size={15} color={on ? colors.onPrimary : g.highlight ? '#FF3B5C' : colors.primary} />
+              <Text style={[styles.chipText, on && { color: colors.onPrimary }]}>{g.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
+      {group === 'destaques' ? (
+        <>
+          <SectionHead title="🔥 Festas promocionais" action="Ver todas" onAction={() => setGroup('festa-promo')} />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 16 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
+            {festas.map((e) => (
+              <EventPromoCard key={e.id} e={e} onPress={() => act(e)} />
+            ))}
+          </ScrollView>
+
+          <SectionHead title="📣 Anúncios de promoções" action="Ver todos" onAction={() => setGroup('promo-anuncio')} />
+          {anuncios.map((e) => (
+            <EventRow key={e.id} e={e} onAct={() => act(e)} onContact={() => onContact(e)} />
+          ))}
+
+          <SectionHead title="Mais eventos" />
+          {outros.map((e) => (
+            <EventRow key={e.id} e={e} onAct={() => act(e)} onContact={() => onContact(e)} />
+          ))}
+        </>
+      ) : (
+        list.map((e) => <EventRow key={e.id} e={e} big onAct={() => act(e)} onContact={() => onContact(e)} />)
+      )}
+
+      <TouchableOpacity
+        style={[styles.announce, { marginTop: 4 }]}
+        onPress={() => Alert.alert('Divulgar no Realys', 'Casas noturnas, bares, restaurantes e organizadores podem anunciar festas e promoções para pessoas verificadas por biometria. Patrocinados aparecem primeiro.')}
+      >
+        <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
+        <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>Divulgar festa ou promoção</Text>
+      </TouchableOpacity>
+    </Screen>
+  );
+}
+
+function EventPromoCard({ e, onPress }) {
+  return (
+    <TouchableOpacity style={styles.evCard} activeOpacity={0.9} onPress={onPress}>
+      <View>
+        <Photo uri={e.photo} style={styles.evCardPhoto} fallback="🎉" />
+        <View style={styles.evDeal}>
+          <Text style={styles.offText}>{e.deal}</Text>
+        </View>
+        {e.sponsored ? (
+          <View style={styles.adSponsored}>
+            <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '800' }}>PATROCINADO</Text>
+          </View>
+        ) : null}
+      </View>
+      <View style={{ padding: 10 }}>
+        <Text numberOfLines={2} style={styles.adTitle}>{e.title}</Text>
+        <Text numberOfLines={1} style={styles.adDetail}>{e.who} · {e.when}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: 6 }}>
+          <Text style={[styles.adPrice, { fontSize: 17 }]}>{e.price}</Text>
+          {e.from ? <Text style={styles.evFrom}>{e.from}</Text> : null}
+        </View>
+        <View style={[styles.adBtn, styles.adBtnMain, { flex: 0, marginRight: 0, marginTop: 8, height: 36 }]}>
+          <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 12 }}>{e.cta}</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+function EventRow({ e, big, onAct, onContact }) {
+  return (
+    <View style={styles.ad}>
+      <View>
+        <Photo uri={e.photo} style={[styles.adPhoto, !big && { height: 130 }]} fallback="🎉" />
+        {e.deal ? (
+          <View style={styles.evDeal}>
+            <Text style={styles.offText}>{e.deal}</Text>
+          </View>
+        ) : null}
+        {e.sponsored ? (
+          <View style={styles.adSponsored}>
+            <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '800' }}>PATROCINADO</Text>
+          </View>
+        ) : null}
+      </View>
+      <View style={{ padding: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+          <Text style={styles.adPrice}>{e.price}</Text>
+          {e.from ? <Text style={styles.evFrom}>{e.from}</Text> : null}
+        </View>
+        <Text style={styles.adTitle}>{e.title}</Text>
+        <Text style={styles.adDetail}>{e.detail}</Text>
+        <Text style={styles.adPlace}>
+          <Ionicons name="calendar-outline" size={12} color={colors.muted} /> {e.when}   <Ionicons name="location-outline" size={12} color={colors.muted} /> {e.place}
+        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+          <Ionicons name="shield-checkmark" size={13} color={colors.primary} />
+          <Text style={{ color: colors.text, fontSize: 12, marginLeft: 5 }}>{e.who}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', marginTop: 12 }}>
+          <TouchableOpacity style={[styles.adBtn, styles.adBtnMain]} onPress={onAct}>
+            <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>{e.cta}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.adBtn, { marginRight: 0 }]} onPress={onContact}>
+            <Text style={{ color: colors.text, fontWeight: '600' }}>Mensagem</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -579,7 +720,7 @@ function SectionHead({ title, action, onAction }) {
 const styles = StyleSheet.create({
   topTabs: {
     flexDirection: 'row',
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -588,7 +729,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     paddingVertical: 7,
-    marginHorizontal: 3,
+    paddingHorizontal: 2,
+    marginHorizontal: 2,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.border,
@@ -678,6 +820,12 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipHot: { borderColor: '#FF3B5C', backgroundColor: '#FFF0F3' },
+  evBanner: { flexDirection: 'row', alignItems: 'center', borderRadius: 18, padding: 14, marginBottom: 12, backgroundColor: colors.sponsored },
+  evCard: { width: 210, marginRight: 12, backgroundColor: colors.card, borderRadius: 18, borderWidth: 1, borderColor: '#FFC2CE', overflow: 'hidden' },
+  evCardPhoto: { width: '100%', height: 120 },
+  evDeal: { position: 'absolute', left: 10, top: 10, backgroundColor: '#FF3B5C', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
+  evFrom: { color: colors.muted, fontSize: 12, textDecorationLine: 'line-through', marginLeft: 8 },
   chipText: { color: colors.text, fontWeight: '600', fontSize: 12, marginLeft: 6 },
   announce: {
     flexDirection: 'row',

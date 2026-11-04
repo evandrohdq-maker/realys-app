@@ -95,8 +95,10 @@ export const CATEGORIES = [
     hint: 'Casas noturnas, shows, salões e serviços',
     icon: 'musical-notes-outline',
     subs: [
-      { label: 'Casas noturnas e shows', hint: 'Ingressos', icon: 'sparkles-outline', go: { tab: 'home', top: 'anuncios', kind: 'evento' } },
-      { label: 'Salões e espaços', hint: 'Reserve a data', icon: 'home-outline', go: { tab: 'home', top: 'anuncios', kind: 'evento' } },
+      { label: 'Festas promocionais', hint: 'Descontos, listas VIP e 2 por 1', icon: 'flame-outline', go: { tab: 'home', top: 'eventos', group: 'festa-promo' } },
+      { label: 'Promoções da noite', hint: 'Happy hour, rodízios e combos', icon: 'megaphone-outline', go: { tab: 'home', top: 'eventos', group: 'promo-anuncio' } },
+      { label: 'Casas noturnas e shows', hint: 'Ingressos', icon: 'sparkles-outline', go: { tab: 'home', top: 'eventos', group: 'shows' } },
+      { label: 'Salões e espaços', hint: 'Reserve a data', icon: 'home-outline', go: { tab: 'home', top: 'eventos', group: 'espacos' } },
       { label: 'DJ e som', hint: 'Para a sua festa', icon: 'musical-notes-outline', go: { tab: 'servicos', service: 'dj' } },
       { label: 'Fotógrafo', hint: 'Fotos e filmagem', icon: 'camera-outline', go: { tab: 'servicos', service: 'fotografo' } },
       { label: 'Buffet e garçom', hint: 'Comida e bebida', icon: 'wine-outline', go: { tab: 'servicos', service: 'buffet' } },
