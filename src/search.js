@@ -6,6 +6,7 @@ import { listings, LISTING_KINDS, promos, lives, communityPosts, events, EVENT_G
 import { serviceTypes } from './data';
 import { members } from './people';
 import { allJobs } from './store';
+import { sectorItems } from './techAgroData';
 import { emergencyNumbers, hospitals, specialists, responders, transitLines, trips, transitCompanies, artists, artMedia } from './extraData';
 
 const norm = (s) =>
@@ -95,6 +96,23 @@ const SYN = {
   emprego: ['emprego'],
   trabalhar: ['emprego'],
   lancamento: ['lancamento', 'novidade', 'novo'],
+  ia: ['ia', 'inteligencia', 'artificial', 'robo'],
+  inteligencia: ['ia', 'inteligencia'],
+  robo: ['robo', 'robotica', 'robotico'],
+  robotica: ['robotica', 'robo', 'arduino'],
+  app: ['app', 'aplicativo', 'sistema'],
+  aplicativo: ['app', 'aplicativo', 'sistema'],
+  tecnologia: ['tecnologia', 'ia', 'robotica', 'app'],
+  agro: ['agro', 'agricola', 'lavoura', 'fazenda', 'safra'],
+  agricultura: ['agro', 'agricola', 'lavoura', 'plantio'],
+  fazenda: ['fazenda', 'agro', 'lavoura'],
+  lavoura: ['lavoura', 'agro', 'safra'],
+  semente: ['semente', 'muda'],
+  adubo: ['adubo', 'fertilizante'],
+  trator: ['trator', 'colheitadeira', 'maquina'],
+  drone: ['drone', 'pulverizacao'],
+  praga: ['praga', 'lavoura', 'agronomo'],
+  agronomo: ['agronomo', 'agricola'],
   novidade: ['lancamento', 'novidade', 'novo'],
 };
 
@@ -235,6 +253,14 @@ function buildIndex(state) {
     );
   });
 
+  // Tecnologia e Agro (os itens "agro é tech" respondem pelas duas palavras).
+  sectorItems.forEach((it) =>
+    add(
+      { id: 'ta-' + it.id, section: it.agrotech ? 'Agro é tech' : it.sector === 'tech' ? 'Tecnologia' : 'Agro', icon: it.icon, title: it.title, subtitle: it.who, price: it.price == null ? 'sob orçamento' : it.price === 0 ? 'grátis' : undefined, priceValue: it.price ? it.price : undefined, priceUnit: it.unit, where: it.who, photo: it.photo, sponsored: it.sponsored, go: it.go || { tab: it.sector === 'tech' ? 'tecnologia' : 'agro', seg: it.seg } },
+      it.title, it.who, it.detail, it.sector === 'tech' ? 'tecnologia' : 'agro agricola agronegocio', it.agrotech ? 'agro tecnologia agrotech' : '', it.seg === 'cursos' ? 'curso aula evento' : it.seg === 'robotica' ? 'robotica robo' : it.seg === 'maquinas' ? 'maquina aluguel' : ''
+    )
+  );
+
   communityPosts.forEach((c) =>
     add(
       { id: 'c-' + c.id, section: 'Comunidade', icon: '💬', title: c.author, subtitle: c.text, go: { tab: 'home', top: 'comunidade', seg: 'posts' } },
@@ -285,4 +311,4 @@ export function contentReply(results, what) {
 
 // Palavras que indicam claramente busca de conteúdo, não de prestador
 // (ex.: "alugar um carro" é anúncio, não corrida).
-export const CONTENT_WORDS = /\b(hote(l|is)|pousadas?|hospedage(m|ns)|aluga(r|mos)?|aluguel|locacao|imove(l|is)|apartamentos?|ape|kitnet|casas? (a|para) venda|ingressos?|balada|casa noturna|shows?|cursos?|faculdades?|lives?|promocao|promocoes|ofertas?|lojas?|produtos?|hospita(l|is)|upa|samu|ambulancias?|medic(o|a|os|as)|especialistas?|consultas?|pediatra|cardiologista|dentista|onibus|metro|passage(m|ns)|rodoviaria|artistas?|clipes?|vagas?|empregos?|lancamentos?|novidades?)\b/;
+export const CONTENT_WORDS = /\b(hote(l|is)|pousadas?|hospedage(m|ns)|aluga(r|mos)?|aluguel|locacao|imove(l|is)|apartamentos?|ape|kitnet|casas? (a|para) venda|ingressos?|balada|casa noturna|shows?|cursos?|faculdades?|lives?|promocao|promocoes|ofertas?|lojas?|produtos?|hospita(l|is)|upa|samu|ambulancias?|medic(o|a|os|as)|especialistas?|consultas?|pediatra|cardiologista|dentista|onibus|metro|passage(m|ns)|rodoviaria|artistas?|clipes?|vagas?|empregos?|lancamentos?|novidades?|tecnologia|robotica|robos?|inteligencia artificial|agro|agronegocio|sementes?|adubos?|trator(es)?|colheitadeiras?|fazendas?)\b/;

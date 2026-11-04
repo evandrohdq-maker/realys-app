@@ -35,6 +35,7 @@ import ArtistsScreen from './src/screens/cliente/ArtistsScreen';
 import PageScreen from './src/screens/empresa/PageScreen';
 import JobsScreen from './src/screens/cliente/JobsScreen';
 import HRScreen from './src/screens/empresa/HRScreen';
+import { TechScreen, AgroScreen } from './src/screens/cliente/TechAgroScreen';
 
 // Cada perfil enxerga abas diferentes dentro do MESMO app.
 const TABS = {
@@ -58,6 +59,8 @@ const TABS = {
     { key: 'socorro', label: 'Socorro', icon: 'medkit-outline', Comp: SosScreen, hidden: true },
     { key: 'artistas', label: 'Artistas', icon: 'musical-notes-outline', Comp: ArtistsScreen, hidden: true },
     { key: 'vagas', label: 'Empregos', icon: 'briefcase-outline', Comp: JobsScreen, hidden: true },
+    { key: 'tecnologia', label: 'Tecnologia', icon: 'hardware-chip-outline', Comp: TechScreen, hidden: true },
+    { key: 'agro', label: 'Agro', icon: 'leaf-outline', Comp: AgroScreen, hidden: true },
   ],
   empresa: [
     { key: 'painel', label: 'Painel', icon: 'speedometer-outline', Comp: DashboardScreen },

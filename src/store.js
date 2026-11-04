@@ -393,6 +393,22 @@ function reducer(state, a) {
       };
     case 'BUY_TICKET':
       return { ...state, wallet: +(state.wallet - a.ticket.price).toFixed(2), tickets: [a.ticket, ...state.tickets] };
+    // Compra, assinatura ou inscrição feita nas abas Tecnologia e Agro: vira um pedido.
+    case 'SECTOR_ORDER': {
+      const it = a.item;
+      const price = it.price || 0;
+      if (price > state.wallet) return state;
+      const nfe = price ? nfeNumber(state.nfeSeq + 1) : null;
+      return {
+        ...state,
+        nfeSeq: price ? state.nfeSeq + 1 : state.nfeSeq,
+        wallet: +(state.wallet - price).toFixed(2),
+        orders: [
+          { id: newId('o'), items: [{ name: it.title, qty: 1, price }], total: price, status: 'Pagamento protegido', store: it.who, courier: null, nfe },
+          ...state.orders,
+        ],
+      };
+    }
 
     // Mensagens e stories (compartilhados entre o Início e a página de Stories).
     case 'UPDATE_CONVS':

@@ -133,6 +133,23 @@ function ShopTab({ goTo }) {
   return (
     <Screen>
       <Hero />
+      {/* Atalhos para as abas Tecnologia e Agro (as duas se conversam: agro é tech). */}
+      <View style={styles.sectorRow}>
+        <TouchableOpacity style={[styles.sectorBtn, { marginRight: 8, borderColor: 'rgba(47,116,208,0.35)' }]} onPress={() => goTo('tecnologia')} activeOpacity={0.85}>
+          <Ionicons name="hardware-chip-outline" size={22} color={colors.accent} />
+          <View style={{ marginLeft: 8, flex: 1 }}>
+            <Text style={styles.sectorTitle}>Tecnologia</Text>
+            <Text style={styles.sectorHint} numberOfLines={1}>IA, robótica e apps</Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.sectorBtn, { borderColor: 'rgba(46,139,87,0.35)' }]} onPress={() => goTo('agro')} activeOpacity={0.85}>
+          <Ionicons name="leaf-outline" size={22} color="#2E8B57" />
+          <View style={{ marginLeft: 8, flex: 1 }}>
+            <Text style={styles.sectorTitle}>Agro</Text>
+            <Text style={styles.sectorHint} numberOfLines={1}>Insumos, máquinas e agrônomos</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
       <LaunchStrip />
       <SectionHead title="Destaques para você" action="Ver loja" onAction={() => goTo('loja')} />
       <View style={styles.grid}>
@@ -720,6 +737,10 @@ function SectionHead({ title, action, onAction }) {
 }
 
 const styles = StyleSheet.create({
+  sectorRow: { flexDirection: 'row', marginBottom: 14 },
+  sectorBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, padding: 10 },
+  sectorTitle: { color: colors.text, fontWeight: '800', fontSize: 14 },
+  sectorHint: { color: colors.muted, fontSize: 11 },
   topTabs: {
     flexDirection: 'row',
     paddingHorizontal: 8,
