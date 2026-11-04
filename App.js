@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform, Alert } from 'react-native';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, Alert, BackHandler, ToastAndroid, ActivityIndicator } from 'react-native';
+import { BackProvider, createBackStack } from './src/back';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -36,7 +37,7 @@ import PageScreen from './src/screens/empresa/PageScreen';
 import JobsScreen from './src/screens/cliente/JobsScreen';
 import HRScreen from './src/screens/empresa/HRScreen';
 import { TechScreen, AgroScreen } from './src/screens/cliente/TechAgroScreen';
-import { ElectronicsScreen, FashionScreen, HomeGoodsScreen } from './src/screens/cliente/ShopSectorScreen';
+import { ElectronicsScreen, FashionScreen, HomeGoodsScreen, AppliancesScreen, FurnitureScreen } from './src/screens/cliente/ShopSectorScreen';
 
 // Cada perfil enxerga abas diferentes dentro do MESMO app.
 const TABS = {
@@ -65,6 +66,8 @@ const TABS = {
     { key: 'eletronicos', label: 'Eletrônicos', icon: 'phone-portrait-outline', Comp: ElectronicsScreen, hidden: true },
     { key: 'vestuario', label: 'Vestuário', icon: 'shirt-outline', Comp: FashionScreen, hidden: true },
     { key: 'casa', label: 'Utensílios domésticos', icon: 'home-outline', Comp: HomeGoodsScreen, hidden: true },
+    { key: 'eletrodomesticos', label: 'Eletrodomésticos', icon: 'snow-outline', Comp: AppliancesScreen, hidden: true },
+    { key: 'moveis', label: 'Móveis e decoração', icon: 'bed-outline', Comp: FurnitureScreen, hidden: true },
   ],
   empresa: [
     { key: 'painel', label: 'Painel', icon: 'speedometer-outline', Comp: DashboardScreen },
@@ -93,7 +96,12 @@ const TABS = {
 function Shell() {
   const { state, dispatch } = useStore();
   const tabs = TABS[state.activeRole];
-  const [tab, setTab] = useState(tabs[0].key);
+  const [tab, setTabRaw] = useState(tabs[0].key);
+  // Caminho percorrido (para o botão voltar do celular): [{ role, tab }]
+  const history = useRef([]);
+  const backStack = useMemo(createBackStack, []);
+  const lastBack = useRef(0);
+  const live = useRef({});
   const [voice, setVoice] = useState(false);
   const [menu, setMenu] = useState(false);
   const [explore, setExplore] = useState(null);
@@ -106,23 +114,67 @@ function Shell() {
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    setTab(pendingTab.current || TABS[state.activeRole][0].key);
+    setTabRaw(pendingTab.current || TABS[state.activeRole][0].key);
     pendingTab.current = null;
   }, [state.activeRole]);
+
+  // Troca de aba guardando de onde veio.
+  const setTab = (key) => {
+    if (key === tab) return;
+    history.current = [...history.current, { role: state.activeRole, tab }].slice(-30);
+    setTabRaw(key);
+  };
+  const switchRole = (role, tabKey) => {
+    history.current = [...history.current, { role: state.activeRole, tab }].slice(-30);
+    pendingTab.current = tabKey || null;
+    dispatch({ type: 'SET_ROLE', role });
+  };
+
+  // Botão voltar do Android: 1) volta dentro da tela, 2) volta para a aba anterior,
+  // 3) vai para a aba inicial, 4) na aba inicial, pede um segundo toque para sair.
+  live.current = { tab, role: state.activeRole };
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (backStack.pop()) return true;
+      const { tab: curTab, role } = live.current;
+      const prev = history.current.pop();
+      if (prev) {
+        if (prev.role !== role && TABS[prev.role] && state.user.roles.includes(prev.role)) {
+          pendingTab.current = prev.tab;
+          dispatch({ type: 'SET_ROLE', role: prev.role });
+        } else if (TABS[role].some((t) => t.key === prev.tab)) {
+          setTabRaw(prev.tab);
+        } else {
+          setTabRaw(TABS[role][0].key);
+        }
+        return true;
+      }
+      const first = TABS[role][0].key;
+      if (curTab !== first) {
+        setTabRaw(first);
+        return true;
+      }
+      const now = Date.now();
+      if (now - lastBack.current < 2000) return false; // segundo toque: sai do app
+      lastBack.current = now;
+      if (Platform.OS === 'android') ToastAndroid.show('Toque em voltar de novo para sair do Realys', ToastAndroid.SHORT);
+      return true;
+    });
+    return () => sub.remove();
+  }, [backStack, dispatch, state.user]);
 
   const current = tabs.find((t) => t.key === tab) || tabs[0];
   const Comp = current.Comp;
   const nextRole = () => {
     const r = state.user.roles;
-    dispatch({ type: 'SET_ROLE', role: r[(r.indexOf(state.activeRole) + 1) % r.length] });
+    switchRole(r[(r.indexOf(state.activeRole) + 1) % r.length]);
   };
 
   // Administrador abrindo qualquer tela pelo mapa do sistema.
   const openArea = (role, tabKey, top) => {
     setExplore({ tab: tabKey, top, at: Date.now() });
     if (role === state.activeRole) return setTab(tabKey);
-    pendingTab.current = tabKey;
-    dispatch({ type: 'SET_ROLE', role });
+    switchRole(role, tabKey);
   };
   const mapped = SYSTEM_MAP.flatMap((g) => g.items).filter((i) => i.role === state.activeRole && i.tab === current.key);
   const where = mapped.length === 1 ? mapped[0].name : `${ROLE_LABELS[state.activeRole]} › ${current.label}`;
@@ -137,11 +189,11 @@ function Shell() {
     if (!role) {
       return Alert.alert('Acesso de empresa', 'Essa área é para contas com CNPJ. Cadastre uma empresa no login para acessar.');
     }
-    pendingTab.current = go.tab;
-    dispatch({ type: 'SET_ROLE', role });
+    switchRole(role, go.tab);
   };
 
   return (
+    <BackProvider value={backStack}>
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -255,6 +307,7 @@ function Shell() {
       <CategoryMenu visible={menu} onClose={() => setMenu(false)} onPick={pick} />
       {isAdmin ? <NoteModal visible={noting} where={where} onClose={() => setNoting(false)} /> : null}
     </View>
+    </BackProvider>
   );
 }
 
@@ -263,7 +316,16 @@ function Root() {
   return (
     <>
       <StatusBar style="dark" />
-      {state.user ? <Shell key={state.user.name} /> : <LoginScreen />}
+      {!state.ready ? (
+        <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={[styles.brand, { fontSize: 26, marginBottom: 16 }]}>REALYS</Text>
+          <ActivityIndicator color={colors.primary} />
+        </View>
+      ) : state.user ? (
+        <Shell key={state.user.name} />
+      ) : (
+        <LoginScreen />
+      )}
       <UpdateChecker />
     </>
   );

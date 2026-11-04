@@ -1,4 +1,5 @@
-// Setores do Shop com subgrupos, no mesmo formato do Agro: Eletrônicos, Vestuário e Utensílios domésticos.
+// Setores do Shop com subgrupos, no mesmo formato do Agro: Eletrônicos, Vestuário, Utensílios domésticos,
+// Eletrodomésticos e Móveis e decoração.
 // Cada item diz em quais subgrupos aparece (groups). Lojas, produtos e valores são fictícios.
 // ship: true = a loja envia para todo o Brasil.
 const photo = (seed, w = 600, h = 400) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
@@ -64,6 +65,49 @@ export const SHOP_SECTORS = {
       { key: 'organizacao', label: 'Organização', icon: '📦' },
     ],
   },
+  eletrodomesticos: {
+    key: 'eletrodomesticos',
+    title: 'Eletrodomésticos',
+    sub: 'Geladeiras, fogões, lavadoras, ar-condicionado e mais, com entrega e instalação',
+    hint: 'Geladeira, fogão, lavadora',
+    ion: 'snow-outline',
+    color: '#1F8FA6',
+    placeholder: 'Buscar geladeira, fogão, lavadora…',
+    voicePrompt: 'Que eletrodoméstico você procura?',
+    banner: 'Linha branca com nota fiscal, garantia e entrega agendada. Instalação feita por técnico verificado do Realys.',
+    groups: [
+      { key: 'todos', label: 'Todos', icon: '🏠' },
+      { key: 'geladeiras', label: 'Geladeiras', icon: '🧊' },
+      { key: 'fogoes', label: 'Fogões e cooktops', icon: '🔥' },
+      { key: 'lavadoras', label: 'Lavadoras', icon: '🧺' },
+      { key: 'climatizacao', label: 'Ar e ventilação', icon: '❄️' },
+      { key: 'fornos', label: 'Micro-ondas e fornos', icon: '♨️' },
+      { key: 'lavaloucas', label: 'Lava-louças', icon: '🍽️' },
+      { key: 'instalacao', label: 'Instalação', icon: '🔧' },
+    ],
+  },
+  moveis: {
+    key: 'moveis',
+    title: 'Móveis e decoração',
+    sub: 'Sala, quarto, cozinha, escritório, área externa e decoração de lojas e marcenarias verificadas',
+    hint: 'Sofá, cama, decoração',
+    ion: 'bed-outline',
+    color: '#8A5A3C',
+    placeholder: 'Buscar sofá, guarda-roupa, luminária…',
+    voicePrompt: 'Que móvel ou decoração você procura?',
+    banner: 'Lojas de móveis, marcenarias e decoradores mostram os lançamentos aqui. Montagem inclusa nas lojas parceiras.',
+    groups: [
+      { key: 'todos', label: 'Todos', icon: '🛋️' },
+      { key: 'sala', label: 'Sala', icon: '🛋️' },
+      { key: 'quarto', label: 'Quarto', icon: '🛏️' },
+      { key: 'cozinhamov', label: 'Cozinha', icon: '🚪' },
+      { key: 'escritorio', label: 'Escritório', icon: '🪑' },
+      { key: 'externa', label: 'Área externa', icon: '🌿' },
+      { key: 'decoracao', label: 'Decoração', icon: '🖼️' },
+      { key: 'iluminacao', label: 'Iluminação', icon: '💡' },
+      { key: 'tapetes', label: 'Tapetes e cortinas', icon: '🧶' },
+    ],
+  },
 };
 
 export const SHOP_SECTOR_KEYS = Object.keys(SHOP_SECTORS);
@@ -125,4 +169,35 @@ export const shopSectorItems = [
   { id: 'cs16', sector: 'casa', groups: ['limpeza'], icon: '🧹', title: 'Diarista verificada', who: 'Realys Serviços', detail: 'Faxina completa com nota e avaliações. Veja quem está perto.', price: 180, unit: 'diária', cta: 'Ver profissional', go: { tab: 'servicos', service: 'diarista' }, photo: photo('realys-diarista') },
   { id: 'cs17', sector: 'casa', groups: ['organizacao'], icon: '📦', title: 'Caixas organizadoras com tampa (6 un.)', who: 'Organiza Lar', detail: 'Transparentes, empilháveis.', price: 99.9, unit: 'kit', cta: 'Comprar', photo: photo('realys-caixas'), ship: true },
   { id: 'cs18', sector: 'casa', groups: ['organizacao'], icon: '🗄️', title: 'Sapateira e cabideiro de bambu', who: 'Organiza Lar', detail: 'Monta em 10 minutos, sem ferramenta.', price: 169.9, unit: 'unidade', cta: 'Comprar', photo: photo('realys-sapateira') },
+  // ───────────── Eletrodomésticos ─────────────
+  { id: 'ed1', sector: 'eletrodomesticos', groups: ['geladeiras'], icon: '🧊', title: 'Geladeira frost free inverse 480 L', who: 'EletroLar', detail: 'Lançamento. Freezer embaixo, economia A+++. Entrega agendada e retirada da geladeira velha.', price: 4299, unit: 'unidade', cta: 'Comprar', photo: photo('realys-geladeira'), sponsored: true, ship: true, launch: true },
+  { id: 'ed2', sector: 'eletrodomesticos', groups: ['geladeiras'], icon: '🧊', title: 'Geladeira duplex 375 L', who: 'Casa Branca Eletro', detail: 'Frost free, prateleiras de vidro. Leve na loja física no mesmo dia.', price: 2599, unit: 'unidade', cta: 'Comprar', photo: photo('realys-geladeira2') },
+  { id: 'ed3', sector: 'eletrodomesticos', groups: ['geladeiras'], icon: '🥶', title: 'Freezer horizontal 2 tampas 400 L', who: 'Casa Branca Eletro', detail: 'Ótimo para comércio e casas grandes. Desconto para CNPJ.', price: 3199, unit: 'unidade', cta: 'Comprar', photo: photo('realys-freezer'), ship: true },
+  { id: 'ed4', sector: 'eletrodomesticos', groups: ['fogoes'], icon: '🔥', title: 'Fogão 5 bocas com forno autolimpante', who: 'EletroLar', detail: 'Mesa de inox, acendimento automático.', price: 1599, unit: 'unidade', cta: 'Comprar', photo: photo('realys-fogao'), sponsored: true, ship: true },
+  { id: 'ed5', sector: 'eletrodomesticos', groups: ['fogoes'], icon: '🍳', title: 'Cooktop de indução 4 zonas', who: 'Cozinha Gourmet Eletro', detail: 'Lançamento. Esquenta em segundos e é fácil de limpar.', price: 1899, unit: 'unidade', cta: 'Comprar', photo: photo('realys-cooktop'), launch: true },
+  { id: 'ed6', sector: 'eletrodomesticos', groups: ['lavadoras'], icon: '🧺', title: 'Lava e seca 11 kg', who: 'EletroLar', detail: 'Lava, centrifuga e seca. Programa pelo celular.', price: 3499, unit: 'unidade', cta: 'Comprar', photo: photo('realys-lavaseca'), sponsored: true, ship: true, launch: true },
+  { id: 'ed7', sector: 'eletrodomesticos', groups: ['lavadoras'], icon: '🫧', title: 'Máquina de lavar 13 kg', who: 'Casa Branca Eletro', detail: 'Cesto inox, 12 programas de lavagem.', price: 2199, unit: 'unidade', cta: 'Comprar', photo: photo('realys-lavadora'), ship: true },
+  { id: 'ed8', sector: 'eletrodomesticos', groups: ['climatizacao'], icon: '❄️', title: 'Ar-condicionado split inverter 12.000 BTUs', who: 'Clima Certo', detail: 'Gasta até 60% menos energia. Instalação com técnico verificado.', price: 2499, unit: 'unidade', cta: 'Comprar', photo: photo('realys-arcondicionado'), sponsored: true, launch: true },
+  { id: 'ed9', sector: 'eletrodomesticos', groups: ['climatizacao'], icon: '🌀', title: 'Climatizador e ventilador de torre', who: 'Clima Certo', detail: 'Silencioso, com controle remoto e timer.', price: 449, unit: 'unidade', cta: 'Comprar', photo: photo('realys-climatizador'), ship: true },
+  { id: 'ed10', sector: 'eletrodomesticos', groups: ['fornos'], icon: '♨️', title: 'Micro-ondas 32 L com grill', who: 'EletroLar', detail: 'Menu com receitas brasileiras, porta espelhada.', price: 899, unit: 'unidade', cta: 'Comprar', photo: photo('realys-microondas'), ship: true },
+  { id: 'ed11', sector: 'eletrodomesticos', groups: ['fornos'], icon: '🍕', title: 'Forno elétrico de embutir 50 L', who: 'Cozinha Gourmet Eletro', detail: 'Para cozinha planejada. Montagem junto com o marceneiro.', price: 1349, unit: 'unidade', cta: 'Comprar', photo: photo('realys-forno') },
+  { id: 'ed12', sector: 'eletrodomesticos', groups: ['lavaloucas'], icon: '🍽️', title: 'Lava-louças 14 serviços', who: 'Cozinha Gourmet Eletro', detail: 'Economiza água, ciclo rápido de 30 minutos.', price: 3299, unit: 'unidade', cta: 'Comprar', photo: photo('realys-lavaloucas'), ship: true, launch: true },
+  { id: 'ed13', sector: 'eletrodomesticos', groups: ['instalacao', 'climatizacao'], icon: '🔧', title: 'Técnico de ar-condicionado e linha branca', who: 'Realys Serviços', detail: 'Instalação, limpeza e conserto. Veja quem está perto e quanto cobra.', price: 150, unit: 'visita', cta: 'Ver profissional', go: { tab: 'servicos', service: 'tecnico' }, photo: photo('realys-tecnico') },
+  // ───────────── Móveis e decoração ─────────────
+  { id: 'mv1', sector: 'moveis', groups: ['sala'], icon: '🛋️', title: 'Sofá retrátil e reclinável 3 lugares', who: 'Casa Conforto Móveis', detail: 'Lançamento. Tecido que não pega pelo de pet. Montagem inclusa.', price: 2899, unit: 'unidade', cta: 'Comprar', photo: photo('realys-sofa'), sponsored: true, ship: true, launch: true },
+  { id: 'mv2', sector: 'moveis', groups: ['sala'], icon: '📺', title: 'Rack com painel para TV até 65"', who: 'Casa Conforto Móveis', detail: 'MDF com LED embutido, espaço para videogame.', price: 899, unit: 'unidade', cta: 'Comprar', photo: photo('realys-rack'), ship: true },
+  { id: 'mv3', sector: 'moveis', groups: ['sala', 'cozinhamov'], icon: '🪑', title: 'Mesa de jantar 6 cadeiras', who: 'Marcenaria Bom Lenho', detail: 'Madeira maciça feita sob medida na marcenaria local.', price: 3490, unit: 'conjunto', cta: 'Comprar', photo: photo('realys-mesajantar') },
+  { id: 'mv4', sector: 'moveis', groups: ['quarto'], icon: '🛏️', title: 'Cama box queen + colchão de molas ensacadas', who: 'Sono Bom Colchões', detail: '100 noites para testar. Entrega e montagem grátis na cidade.', price: 2199, unit: 'conjunto', cta: 'Comprar', photo: photo('realys-camabox'), sponsored: true, ship: true },
+  { id: 'mv5', sector: 'moveis', groups: ['quarto'], icon: '🚪', title: 'Guarda-roupa casal 6 portas com espelho', who: 'Casa Conforto Móveis', detail: 'Portas de correr, gaveteiro interno.', price: 1799, unit: 'unidade', cta: 'Comprar', photo: photo('realys-guardaroupa'), ship: true },
+  { id: 'mv6', sector: 'moveis', groups: ['cozinhamov'], icon: '🧑‍🍳', title: 'Cozinha planejada (projeto 3D grátis)', who: 'Marcenaria Bom Lenho', detail: 'O marceneiro vai até sua casa, mede e manda o projeto pelo app.', price: null, unit: 'projeto', cta: 'Pedir orçamento', photo: photo('realys-planejada'), launch: true },
+  { id: 'mv7', sector: 'moveis', groups: ['escritorio'], icon: '🪑', title: 'Cadeira ergonômica de escritório', who: 'Office Pro Móveis', detail: 'Apoio lombar e de braço reguláveis. Desconto para CNPJ.', price: 899, unit: 'unidade', cta: 'Comprar', photo: photo('realys-cadeira'), ship: true },
+  { id: 'mv8', sector: 'moveis', groups: ['escritorio'], icon: '🖥️', title: 'Mesa com regulagem de altura elétrica', who: 'Office Pro Móveis', detail: 'Trabalhe em pé ou sentado, com memória de altura.', price: 1990, unit: 'unidade', cta: 'Comprar', photo: photo('realys-mesaregulavel'), launch: true },
+  { id: 'mv9', sector: 'moveis', groups: ['externa'], icon: '🌿', title: 'Conjunto de varanda em fibra sintética', who: 'Jardim & Varanda', detail: 'Sofá, 2 poltronas e mesa de centro. Resiste a sol e chuva.', price: 2490, unit: 'conjunto', cta: 'Comprar', photo: photo('realys-varanda'), ship: true },
+  { id: 'mv10', sector: 'moveis', groups: ['decoracao'], icon: '🖼️', title: 'Kit quadros decorativos (3 peças)', who: 'Arte na Parede', detail: 'Molduras de madeira, artes de artistas da Realys.', price: 189.9, unit: 'kit', cta: 'Comprar', photo: photo('realys-quadros'), sponsored: true, ship: true },
+  { id: 'mv11', sector: 'moveis', groups: ['decoracao'], icon: '🪴', title: 'Vasos e plantas artificiais (kit)', who: 'Jardim & Varanda', detail: 'Parecem de verdade, sem precisar regar.', price: 129.9, unit: 'kit', cta: 'Comprar', photo: photo('realys-vasos'), ship: true },
+  { id: 'mv12', sector: 'moveis', groups: ['iluminacao', 'decoracao'], icon: '💡', title: 'Lustre pendente moderno de LED', who: 'Luz & Cia', detail: 'Luz quente ou fria pelo controle. Instalação com eletricista verificado.', price: 459, unit: 'unidade', cta: 'Comprar', photo: photo('realys-lustre'), launch: true },
+  { id: 'mv13', sector: 'moveis', groups: ['iluminacao'], icon: '🛋️', title: 'Luminária de chão para sala', who: 'Luz & Cia', detail: 'Haste de metal dourado, cúpula de linho.', price: 279.9, unit: 'unidade', cta: 'Comprar', photo: photo('realys-luminaria'), ship: true },
+  { id: 'mv14', sector: 'moveis', groups: ['tapetes'], icon: '🧶', title: 'Tapete de sala 2,00 x 2,50 m', who: 'Casa Conforto Móveis', detail: 'Antiderrapante, fácil de limpar.', price: 349.9, unit: 'unidade', cta: 'Comprar', photo: photo('realys-tapete'), ship: true },
+  { id: 'mv15', sector: 'moveis', groups: ['tapetes'], icon: '🪟', title: 'Cortina blackout sob medida', who: 'Decora Lar', detail: 'Medição e instalação na sua casa.', price: null, unit: 'janela', cta: 'Pedir orçamento', photo: photo('realys-cortina') },
+  { id: 'mv16', sector: 'moveis', groups: ['sala', 'quarto', 'decoracao'], icon: '🎨', title: 'Decorador de interiores verificado', who: 'Realys Serviços', detail: 'Projeto do ambiente com lista de compras direto no Shop. Veja quem está perto e quanto cobra.', price: 120, unit: 'hora', cta: 'Ver profissional', go: { tab: 'servicos', service: 'decoracao' }, photo: photo('realys-decorador') },
 ];

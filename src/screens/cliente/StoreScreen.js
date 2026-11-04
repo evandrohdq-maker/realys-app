@@ -5,6 +5,7 @@ import { colors, brl } from '../../theme';
 import { SearchBar, GlobalResults } from '../../components/Search';
 import { Screen, Photo, Badge, Row, Button, Input, ProductThumb, Chip, Card, Section, Empty } from '../../components/ui';
 import { LaunchStrip } from '../../components/Launches';
+import { useBack } from '../../back';
 
 const CATEGORIES = ['Todos', 'Alimentação', 'Mercado', 'Roupas', 'Eletrônicos'];
 
@@ -40,6 +41,9 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate }) {
   }, [explore]);
   const [openStore, setOpenStore] = useState(null);
   const [showCart, setShowCart] = useState(false);
+  // Voltar do celular: fecha o carrinho / a loja aberta antes de sair da aba.
+  useBack(!!openStore, () => setOpenStore(null));
+  useBack(showCart, () => setShowCart(false));
 
   const add = (id) => dispatch({ type: 'ADD_TO_CART', productId: id });
 

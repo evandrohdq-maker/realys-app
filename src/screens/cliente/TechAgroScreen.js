@@ -5,6 +5,7 @@ import { useStore } from '../../store';
 import { colors, brl } from '../../theme';
 import { Screen, Title, Photo, Badge, Row } from '../../components/ui';
 import { SearchBar, GlobalResults } from '../../components/Search';
+import { useBack } from '../../back';
 import { TECH_SEGMENTS, AGRO_SEGMENTS, AGRO_CHAINS, sectorItems, agroQuotes, agroWeather, leafDiagnoses } from '../../techAgroData';
 
 const GREEN = '#2E8B57';
@@ -121,6 +122,7 @@ export function TechScreen({ explore, navigate }) {
   useEffect(() => {
     if (explore && explore.tab === 'tecnologia') setSeg(explore.seg || 'todos');
   }, [explore]);
+  useBack(seg !== 'todos', () => setSeg('todos'));
 
   return (
     <Screen>
@@ -155,6 +157,10 @@ export function AgroScreen({ explore, navigate }) {
       setChain(explore.chain || 'todas');
     }
   }, [explore]);
+  useBack(seg !== 'todos' || chain !== 'todas', () => {
+    setSeg('todos');
+    setChain('todas');
+  });
   const quotes = chain === 'todas' ? agroQuotes.filter((c) => c.main) : agroQuotes.filter((c) => c.chain === chain);
   const chainLabel = (AGRO_CHAINS.find((c) => c.key === chain) || {}).label;
   const leaf = !['pecuaria', 'leite'].includes(chain);

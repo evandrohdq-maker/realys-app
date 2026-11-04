@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, BackHandler } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
 import { ADMIN_LOGIN } from '../data';
@@ -57,6 +57,19 @@ export default function LoginScreen() {
   const [busy, setBusy] = useState(false);
   const passRef = useRef(null);
   const info = detect(value);
+
+  // Voltar do celular: do Cadastro volta para Entrar; do formulário volta para as contas salvas.
+  const backState = useRef({});
+  backState.current = { mode, showForm, saved: saved.length };
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      const b = backState.current;
+      if (b.mode === 'cadastro') return setMode('entrar'), true;
+      if (b.showForm && b.saved) return setShowForm(false), true;
+      return false;
+    });
+    return () => sub.remove();
+  }, []);
 
   useEffect(() => {
     getSavedUsers().then((list) => {

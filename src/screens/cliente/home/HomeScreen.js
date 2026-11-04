@@ -10,6 +10,7 @@ import { members, memberByName } from '../../../people';
 import { PeopleSearchModal, PersonRow } from '../../../components/People';
 import { LaunchStrip } from '../../../components/Launches';
 import { SHOP_SECTORS, SHOP_SECTOR_KEYS } from '../../../shopSectorsData';
+import { useBack } from '../../../back';
 
 // As 5 abas do topo do Início do cliente.
 const TOP = [
@@ -34,6 +35,8 @@ export default function HomeScreen({ goTo, explore }) {
   const [videoWith, setVideoWith] = useState(null);
   const [live, setLive] = useState(null); // { live, mine }
   const [liveFilter, setLiveFilter] = useState('todas');
+  // Voltar do celular: das outras abas do topo (Eventos, Promoções…) volta para o Shop.
+  useBack(top !== 'shop', () => setTop('shop'));
 
   // Veio do menu ⋮ (ex.: Imóveis → Alugar)
   useEffect(() => {
@@ -151,14 +154,15 @@ function ShopTab({ goTo }) {
           </View>
         </TouchableOpacity>
       </View>
-      {/* Eletrônicos, Vestuário e Utensílios domésticos: cada um com seus subgrupos, como o Agro. */}
-      <View style={styles.sectorRow}>
+      {/* Eletrônicos, Vestuário, Utensílios, Eletrodomésticos e Móveis: cada um com seus subgrupos, como o Agro. */}
+      <View style={[styles.sectorRow, { flexWrap: 'wrap', marginBottom: 6 }]}>
         {SHOP_SECTOR_KEYS.map((k, i) => {
           const s = SHOP_SECTORS[k];
+          const short = { casa: 'Utensílios', eletrodomesticos: 'Eletrodomésticos', moveis: 'Móveis e decoração' }[k] || s.title;
           return (
-            <TouchableOpacity key={k} style={[styles.sectorMini, { borderColor: s.color + '55' }, i < SHOP_SECTOR_KEYS.length - 1 && { marginRight: 8 }]} onPress={() => goTo(k)} activeOpacity={0.85}>
+            <TouchableOpacity key={k} style={[styles.sectorMini, { borderColor: s.color + '55', flex: 0, width: '32%', marginBottom: 8, marginRight: i % 3 === 2 ? 0 : '2%' }]} onPress={() => goTo(k)} activeOpacity={0.85}>
               <Ionicons name={s.ion} size={22} color={s.color} />
-              <Text style={styles.sectorTitle} numberOfLines={1}>{k === 'casa' ? 'Utensílios' : s.title}</Text>
+              <Text style={styles.sectorTitle} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{short}</Text>
               <Text style={styles.sectorHint} numberOfLines={1}>{s.hint}</Text>
             </TouchableOpacity>
           );

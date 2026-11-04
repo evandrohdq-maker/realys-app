@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import * as D from './data';
 import { initialFriends } from './people';
 import { brl } from './theme';
@@ -16,6 +17,7 @@ const today = () => {
 };
 
 const initialState = {
+  ready: false, // vira true depois de ler a sessão salva (evita piscar a tela de login)
   user: null, // { name, roles: [], cnpj }
   activeRole: null,
   wallet: 750, // saldo em moeda Realys (1 RLS = R$ 1,00 na demonstração)
@@ -132,9 +134,16 @@ function closeOffer(state, offer, discount) {
 function reducer(state, a) {
   switch (a.type) {
     case 'LOGIN':
-      return { ...state, user: a.user, activeRole: a.user.roles[0] };
+      return { ...state, ready: true, user: a.user, activeRole: a.user.roles[0] };
+    // Abriu o app com sessão salva: entra direto, sem senha.
+    case 'RESTORE_SESSION': {
+      if (!a.session || !a.session.user) return { ...state, ready: true };
+      const roles = a.session.user.roles || [];
+      const role = roles.includes(a.session.activeRole) ? a.session.activeRole : roles[0];
+      return { ...state, ready: true, user: a.session.user, activeRole: role };
+    }
     case 'LOGOUT':
-      return { ...initialState, notes: state.notes, handsFree: state.handsFree };
+      return { ...initialState, ready: true, notes: state.notes, handsFree: state.handsFree };
     case 'SET_HANDSFREE':
       return { ...state, handsFree: a.on };
     case 'LOAD_NOTES':
@@ -512,10 +521,48 @@ function reducer(state, a) {
 
 const NOTES_KEY = 'realys.admin.notes';
 const HANDSFREE_KEY = 'realys.handsfree';
+// Sessão: o usuário continua conectado ao fechar e abrir o app, até tocar em "Sair" ou "Trocar usuário".
+const SESSION_KEY = 'realys.session';
+
+async function readSession() {
+  let raw = null;
+  try {
+    raw = await SecureStore.getItemAsync(SESSION_KEY);
+  } catch (e) {
+    raw = await AsyncStorage.getItem(SESSION_KEY).catch(() => null);
+  }
+  try {
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function writeSession(session) {
+  const value = session ? JSON.stringify(session) : null;
+  try {
+    if (value) await SecureStore.setItemAsync(SESSION_KEY, value);
+    else await SecureStore.deleteItemAsync(SESSION_KEY);
+  } catch (e) {
+    if (value) await AsyncStorage.setItem(SESSION_KEY, value).catch(() => {});
+    else await AsyncStorage.removeItem(SESSION_KEY).catch(() => {});
+  }
+}
 
 export function StoreProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const loaded = useRef(false);
+  // Ao abrir: se tem sessão salva, entra direto.
+  useEffect(() => {
+    readSession()
+      .then((session) => dispatch({ type: 'RESTORE_SESSION', session }))
+      .catch(() => dispatch({ type: 'RESTORE_SESSION', session: null }));
+  }, []);
+  // Guarda a sessão a cada login/troca de perfil e apaga ao sair.
+  useEffect(() => {
+    if (!state.ready) return;
+    writeSession(state.user ? { user: state.user, activeRole: state.activeRole } : null);
+  }, [state.ready, state.user, state.activeRole]);
   // Anotações do administrador: carrega ao abrir e salva a cada mudança.
   useEffect(() => {
     AsyncStorage.getItem(NOTES_KEY)

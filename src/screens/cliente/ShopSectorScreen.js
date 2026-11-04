@@ -6,9 +6,10 @@ import { Screen, Title, Photo, Badge, Row } from '../../components/ui';
 import { SearchBar, GlobalResults } from '../../components/Search';
 import { SHOP_SECTORS, shopSectorItems } from '../../shopSectorsData';
 import { useBuy, priceText } from './TechAgroScreen';
+import { useBack } from '../../back';
 
-// Setores do Shop com subgrupos (mesmo jeito do Agro): Eletrônicos, Vestuário e Utensílios domésticos.
-// Uma tela só serve para os três; muda a cor, os subgrupos e os produtos.
+// Setores do Shop com subgrupos (mesmo jeito do Agro): Eletrônicos, Vestuário, Utensílios domésticos,
+// Eletrodomésticos e Móveis e decoração. Uma tela só serve para todos; muda a cor, os subgrupos e os produtos.
 
 const nq = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
@@ -54,6 +55,8 @@ function SectorScreen({ sectorKey, explore, navigate }) {
   const [q, setQ] = useState('');
   const [searched, setSearched] = useState('');
   const buy = useBuy(navigate);
+  // Voltar do celular: de um subgrupo volta para "Todos" do setor; depois volta para a tela anterior.
+  useBack(group !== 'todos', () => setGroup('todos'));
 
   useEffect(() => {
     if (explore && explore.tab === sectorKey) setGroup(explore.group || 'todos');
@@ -152,6 +155,8 @@ function SectorScreen({ sectorKey, explore, navigate }) {
 export const ElectronicsScreen = (props) => <SectorScreen sectorKey="eletronicos" {...props} />;
 export const FashionScreen = (props) => <SectorScreen sectorKey="vestuario" {...props} />;
 export const HomeGoodsScreen = (props) => <SectorScreen sectorKey="casa" {...props} />;
+export const AppliancesScreen = (props) => <SectorScreen sectorKey="eletrodomesticos" {...props} />;
+export const FurnitureScreen = (props) => <SectorScreen sectorKey="moveis" {...props} />;
 
 const styles = StyleSheet.create({
   hero: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 12, marginBottom: 12, borderWidth: 1 },

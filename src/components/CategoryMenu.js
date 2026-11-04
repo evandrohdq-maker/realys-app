@@ -10,6 +10,8 @@ const GROUP_ION = {
   todos: 'grid-outline', celulares: 'phone-portrait-outline', informatica: 'laptop-outline', tvaudio: 'tv-outline', games: 'game-controller-outline', smarthome: 'bulb-outline', acessorios: 'watch-outline',
   feminino: 'woman-outline', masculino: 'man-outline', infantil: 'happy-outline', calcados: 'footsteps-outline', fitness: 'barbell-outline',
   cozinha: 'restaurant-outline', eletroportateis: 'flash-outline', mesa: 'wine-outline', cama: 'bed-outline', limpeza: 'sparkles-outline', organizacao: 'file-tray-stacked-outline',
+  geladeiras: 'snow-outline', fogoes: 'flame-outline', lavadoras: 'water-outline', climatizacao: 'thermometer-outline', fornos: 'pizza-outline', lavaloucas: 'restaurant-outline', instalacao: 'construct-outline',
+  sala: 'tv-outline', quarto: 'bed-outline', cozinhamov: 'cafe-outline', escritorio: 'desktop-outline', externa: 'leaf-outline', decoracao: 'color-palette-outline', iluminacao: 'bulb-outline', tapetes: 'grid-outline',
 };
 const sectorClass = (k) => {
   const s = SHOP_SECTORS[k];
@@ -123,6 +125,8 @@ export const CATEGORIES = [
       { label: 'Vestuário', hint: 'Roupas, calçados e acessórios', icon: 'shirt-outline', go: { tab: 'vestuario', group: 'todos' } },
       { label: 'Eletrônicos', hint: 'Celulares, TV, games e informática', icon: 'phone-portrait-outline', go: { tab: 'eletronicos', group: 'todos' } },
       { label: 'Utensílios domésticos', hint: 'Cozinha, cama e banho, limpeza', icon: 'home-outline', go: { tab: 'casa', group: 'todos' } },
+      { label: 'Eletrodomésticos', hint: 'Geladeira, fogão, lavadora, ar', icon: 'snow-outline', go: { tab: 'eletrodomesticos', group: 'todos' } },
+      { label: 'Móveis e decoração', hint: 'Sala, quarto, escritório, decoração', icon: 'bed-outline', go: { tab: 'moveis', group: 'todos' } },
       { label: 'Promoções', hint: 'Ofertas relâmpago', icon: 'pricetags-outline', go: { tab: 'home', top: 'promo' } },
       { label: 'Ver todas', hint: 'Todas as lojas', icon: 'storefront-outline', go: { tab: 'loja', cat: 'Todos', q: '' } },
     ],
