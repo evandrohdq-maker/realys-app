@@ -113,6 +113,18 @@ const SYN = {
   drone: ['drone', 'pulverizacao'],
   praga: ['praga', 'lavoura', 'agronomo'],
   agronomo: ['agronomo', 'agricola'],
+  gado: ['gado', 'boi', 'bezerro', 'rebanho', 'pecuaria', 'nelore'],
+  boi: ['boi', 'gado', 'rebanho'],
+  vaca: ['gado', 'leite', 'ordenha', 'rebanho'],
+  pecuaria: ['pecuaria', 'gado', 'rebanho'],
+  leilao: ['leilao', 'lote'],
+  leite: ['leite', 'ordenha', 'laticinio'],
+  cafe: ['cafe'],
+  soja: ['soja', 'grao'],
+  milho: ['milho', 'grao'],
+  grao: ['grao', 'soja', 'milho', 'silo'],
+  horta: ['horta', 'hortalica', 'hortifruti', 'estufa'],
+  hortifruti: ['hortifruti', 'hortalica', 'horta'],
   novidade: ['lancamento', 'novidade', 'novo'],
 };
 
@@ -257,7 +269,7 @@ function buildIndex(state) {
   sectorItems.forEach((it) =>
     add(
       { id: 'ta-' + it.id, section: it.agrotech ? 'Agro é tech' : it.sector === 'tech' ? 'Tecnologia' : 'Agro', icon: it.icon, title: it.title, subtitle: it.who, price: it.price == null ? 'sob orçamento' : it.price === 0 ? 'grátis' : undefined, priceValue: it.price ? it.price : undefined, priceUnit: it.unit, where: it.who, photo: it.photo, sponsored: it.sponsored, go: it.go || { tab: it.sector === 'tech' ? 'tecnologia' : 'agro', seg: it.seg } },
-      it.title, it.who, it.detail, it.sector === 'tech' ? 'tecnologia' : 'agro agricola agronegocio', it.agrotech ? 'agro tecnologia agrotech' : '', it.seg === 'cursos' ? 'curso aula evento' : it.seg === 'robotica' ? 'robotica robo' : it.seg === 'maquinas' ? 'maquina aluguel' : ''
+      it.title, it.who, it.detail, it.sector === 'tech' ? 'tecnologia' : 'agro agricola agronegocio', it.agrotech ? 'agro tecnologia agrotech' : '', (it.chains || []).map((c) => ({ graos: 'grao graos soja milho', cafe: 'cafe', pecuaria: 'pecuaria gado boi rebanho', horti: 'hortifruti horta hortalica', leite: 'leite' }[c])).join(' '), it.seg === 'cursos' ? 'curso aula evento' : it.seg === 'robotica' ? 'robotica robo' : it.seg === 'maquinas' ? 'maquina aluguel' : ''
     )
   );
 
@@ -311,4 +323,4 @@ export function contentReply(results, what) {
 
 // Palavras que indicam claramente busca de conteúdo, não de prestador
 // (ex.: "alugar um carro" é anúncio, não corrida).
-export const CONTENT_WORDS = /\b(hote(l|is)|pousadas?|hospedage(m|ns)|aluga(r|mos)?|aluguel|locacao|imove(l|is)|apartamentos?|ape|kitnet|casas? (a|para) venda|ingressos?|balada|casa noturna|shows?|cursos?|faculdades?|lives?|promocao|promocoes|ofertas?|lojas?|produtos?|hospita(l|is)|upa|samu|ambulancias?|medic(o|a|os|as)|especialistas?|consultas?|pediatra|cardiologista|dentista|onibus|metro|passage(m|ns)|rodoviaria|artistas?|clipes?|vagas?|empregos?|lancamentos?|novidades?|tecnologia|robotica|robos?|inteligencia artificial|agro|agronegocio|sementes?|adubos?|trator(es)?|colheitadeiras?|fazendas?)\b/;
+export const CONTENT_WORDS = /\b(hote(l|is)|pousadas?|hospedage(m|ns)|aluga(r|mos)?|aluguel|locacao|imove(l|is)|apartamentos?|ape|kitnet|casas? (a|para) venda|ingressos?|balada|casa noturna|shows?|cursos?|faculdades?|lives?|promocao|promocoes|ofertas?|lojas?|produtos?|hospita(l|is)|upa|samu|ambulancias?|medic(o|a|os|as)|especialistas?|consultas?|pediatra|cardiologista|dentista|onibus|metro|passage(m|ns)|rodoviaria|artistas?|clipes?|vagas?|empregos?|lancamentos?|novidades?|tecnologia|robotica|robos?|inteligencia artificial|agro|agronegocio|sementes?|adubos?|trator(es)?|colheitadeiras?|fazendas?|gado|pecuaria|leilao|leiloes|bezerros?|ordenhadeiras?|hortifruti|estufas?)\b/;

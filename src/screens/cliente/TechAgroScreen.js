@@ -5,7 +5,7 @@ import { useStore } from '../../store';
 import { colors, brl } from '../../theme';
 import { Screen, Title, Photo, Badge, Row } from '../../components/ui';
 import { SearchBar, GlobalResults } from '../../components/Search';
-import { TECH_SEGMENTS, AGRO_SEGMENTS, sectorItems, agroQuotes, agroWeather, leafDiagnoses } from '../../techAgroData';
+import { TECH_SEGMENTS, AGRO_SEGMENTS, AGRO_CHAINS, sectorItems, agroQuotes, agroWeather, leafDiagnoses } from '../../techAgroData';
 
 const GREEN = '#2E8B57';
 
@@ -14,10 +14,12 @@ const nq = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ
 const priceText = (it) => (it.price == null ? 'Sob orçamento' : it.price === 0 ? 'Grátis' : `${brl(it.price)} / ${it.unit}`);
 
 // Itens de uma aba: os do próprio setor + os "agro é tech" do outro setor.
-function itemsFor(sector, seg, term) {
+// chain: subgrupo do Agro (grãos, café, pecuária…); 'todas' mostra tudo.
+function itemsFor(sector, seg, term, chain = 'todas') {
   return sectorItems
     .filter((it) => it.sector === sector || it.agrotech)
     .filter((it) => (seg === 'todos' ? it.sector === sector || it.agrotech : seg === 'agrotech' ? it.agrotech : it.sector === sector && it.seg === seg))
+    .filter((it) => chain === 'todas' || (it.chains || []).includes(chain))
     .filter((it) => !term || nq(`${it.title} ${it.who} ${it.detail}`).includes(nq(term)))
     .sort((a, b) => (b.sponsored ? 1 : 0) - (a.sponsored ? 1 : 0));
 }
@@ -103,11 +105,11 @@ function Bridge({ text, button, onPress }) {
   );
 }
 
-function SectorList({ sector, seg, term, navigate, searched }) {
+function SectorList({ sector, seg, term, navigate, searched, chain }) {
   const buy = useBuy(navigate);
-  const list = itemsFor(sector, seg, term);
+  const list = itemsFor(sector, seg, term, chain);
   const otherLabel = (it) => (it.sector === 'tech' ? 'Tecnologia' : 'Agro');
-  if (!list.length) return searched ? <GlobalResults query={searched} navigate={navigate} /> : <Text style={styles.empty}>Nada aqui ainda.</Text>;
+  if (!list.length) return searched ? <GlobalResults query={searched} navigate={navigate} /> : <Text style={styles.empty}>Nada neste subgrupo ainda. Toque em outra categoria acima.</Text>;
   return list.map((it) => <ItemCard key={it.id} it={it} onPress={buy} otherLabel={otherLabel} />);
 }
 
@@ -144,16 +146,35 @@ export function TechScreen({ explore, navigate }) {
 // ───────────────────────── Agro ─────────────────────────
 export function AgroScreen({ explore, navigate }) {
   const [seg, setSeg] = useState('todos');
+  const [chain, setChain] = useState('todas');
   const [q, setQ] = useState('');
   const [searched, setSearched] = useState('');
   useEffect(() => {
-    if (explore && explore.tab === 'agro') setSeg(explore.seg || 'todos');
+    if (explore && explore.tab === 'agro') {
+      setSeg(explore.seg || 'todos');
+      setChain(explore.chain || 'todas');
+    }
   }, [explore]);
+  const quotes = chain === 'todas' ? agroQuotes.filter((c) => c.main) : agroQuotes.filter((c) => c.chain === chain);
+  const chainLabel = (AGRO_CHAINS.find((c) => c.key === chain) || {}).label;
+  const leaf = !['pecuaria', 'leite'].includes(chain);
 
   return (
     <Screen>
       <Title sub="Insumos, máquinas, agrônomos e venda direta do produtor">Agro</Title>
       <SearchBar value={q} onChangeText={(t) => { setQ(t); if (!t) setSearched(''); }} onSubmit={setSearched} placeholder="Buscar semente, trator, agrônomo…" voicePrompt="O que você procura no agro?" />
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 12 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
+        {AGRO_CHAINS.map((c) => {
+          const on = c.key === chain;
+          return (
+            <TouchableOpacity key={c.key} onPress={() => setChain(c.key)} style={[styles.chainBtn, on && styles.chainOn]} activeOpacity={0.85}>
+              <Text style={{ fontSize: 22 }}>{c.icon}</Text>
+              <Text style={[styles.chainText, on && { color: '#FFFFFF' }]}>{c.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
 
       <Row style={{ marginBottom: 12, alignItems: 'stretch' }}>
         <View style={[styles.box, { flex: 1, marginRight: 8 }]}>
@@ -163,10 +184,10 @@ export function AgroScreen({ explore, navigate }) {
           <Text style={[styles.boxSmall, { color: GREEN, marginTop: 4 }]}>{agroWeather.tip}</Text>
         </View>
         <View style={[styles.box, { flex: 1.1 }]}>
-          <Text style={styles.boxKicker}>COTAÇÕES (EXEMPLO)</Text>
-          {agroQuotes.map((c) => (
+          <Text style={styles.boxKicker}>{chain === 'todas' ? 'COTAÇÕES (EXEMPLO)' : `${chainLabel.toUpperCase()} (EXEMPLO)`}</Text>
+          {quotes.map((c) => (
             <Row key={c.key} style={{ justifyContent: 'space-between', marginTop: 3 }}>
-              <Text style={styles.quoteName} numberOfLines={1}>{c.label}</Text>
+              <Text style={styles.quoteName} numberOfLines={1}>{c.label}{chain !== 'todas' ? <Text style={styles.boxSmall}> · {c.unit}</Text> : null}</Text>
               <Text style={styles.quoteVal}>
                 {brl(c.value)} <Text style={{ color: c.change >= 0 ? colors.success : colors.danger }}>{c.change >= 0 ? '▲' : '▼'}{Math.abs(c.change).toFixed(1).replace('.', ',')}%</Text>
               </Text>
@@ -175,13 +196,13 @@ export function AgroScreen({ explore, navigate }) {
         </View>
       </Row>
 
-      <LeafDoctor navigate={navigate} />
+      {leaf ? <LeafDoctor key={chain} navigate={navigate} chain={chain} /> : null}
 
       <Segments list={AGRO_SEGMENTS} value={seg} onChange={setSeg} tint={GREEN} />
       {seg !== 'agrotech' ? (
         <Bridge text="Apps, IA e robótica feitos para o campo" button="Ver em Tecnologia" onPress={() => navigate && navigate({ tab: 'tecnologia', seg: 'agrotech' })} />
       ) : null}
-      <SectorList sector="agro" seg={seg} term={q.trim()} navigate={navigate} searched={searched} />
+      <SectorList sector="agro" seg={seg} term={q.trim()} navigate={navigate} searched={searched} chain={chain} />
 
       <View style={styles.tipBox}>
         <Ionicons name="swap-horizontal-outline" size={18} color={GREEN} />
@@ -194,13 +215,15 @@ export function AgroScreen({ explore, navigate }) {
 }
 
 // Diagnóstico da folha por IA (simulado): a tecnologia trabalhando para o agro.
-function LeafDoctor({ navigate }) {
+function LeafDoctor({ navigate, chain }) {
   const [step, setStep] = useState('idle'); // idle | busy | done
   const [res, setRes] = useState(null);
   const scan = () => {
     setStep('busy');
     setTimeout(() => {
-      setRes(leafDiagnoses[Math.floor(Math.random() * leafDiagnoses.length)]);
+      const pool = leafDiagnoses.filter((d) => chain === 'todas' || d.chain === chain);
+      const list = pool.length ? pool : leafDiagnoses;
+      setRes(list[Math.floor(Math.random() * list.length)]);
       setStep('done');
     }, 1600);
   };
@@ -272,5 +295,8 @@ const styles = StyleSheet.create({
   quoteName: { color: colors.text, fontSize: 12, fontWeight: '600', flex: 1 },
   quoteVal: { color: colors.text, fontSize: 12, fontWeight: '700' },
   doctor: { backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(47,116,208,0.25)', padding: 12, marginBottom: 12 },
+  chainBtn: { alignItems: 'center', justifyContent: 'center', width: 78, height: 70, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(46,139,87,0.3)', backgroundColor: '#FFFFFF', marginRight: 8 },
+  chainOn: { backgroundColor: GREEN, borderColor: GREEN },
+  chainText: { color: GREEN, fontWeight: '800', fontSize: 12, marginTop: 3 },
   tipBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, borderRadius: 14, padding: 12, marginTop: 4 },
 });
