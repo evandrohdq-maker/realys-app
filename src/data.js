@@ -67,7 +67,47 @@ export const stores = [
     cover: photo('realys-burger'),
     logo: '🍔',
   },
+  {
+    id: 'e6',
+    name: 'Boteco do Alemão',
+    category: 'Bares',
+    city: 'São Paulo - SP',
+    rating: 4.8,
+    recommended: true,
+    sponsored: true,
+    shipsBrazil: false,
+    cover: photo('realys-boteco'),
+    logo: '🍺',
+  },
+  {
+    id: 'e7',
+    name: 'Sushi Kento',
+    category: 'Alimentação',
+    city: 'São Paulo - SP',
+    rating: 4.7,
+    recommended: true,
+    sponsored: false,
+    shipsBrazil: false,
+    cover: photo('realys-sushi'),
+    logo: '🍣',
+  },
+  {
+    id: 'e8',
+    name: 'Doce Encanto Café',
+    category: 'Doces e cafés',
+    city: 'São Paulo - SP',
+    rating: 4.9,
+    recommended: false,
+    sponsored: false,
+    shipsBrazil: false,
+    cover: photo('realys-doceria'),
+    logo: '🧁',
+  },
 ];
+
+// Categorias de comida e bebida: são as que aparecem na aba Food.
+export const FOOD_CATEGORIES = ['Alimentação', 'Bares', 'Doces e cafés'];
+export const isFoodStore = (s) => !!s && FOOD_CATEGORIES.includes(s.category);
 
 export const products = [
   { id: 'p1', storeId: 'e1', name: 'Arroz Tipo 1 - 5kg', price: 27.9, cost: 21.0, stock: 42, minStock: 10, emoji: '🍚', tint: '#FFF4D6', featured: true },
@@ -87,6 +127,13 @@ export const products = [
   { id: 'p14', storeId: 'e3', name: 'Jaqueta Jeans Coleção Verão', price: 189.9, cost: 82.0, stock: 40, minStock: 8, emoji: '🧥', tint: '#E3ECFF', featured: false, launch: { note: 'Nova coleção · tamanhos P ao GG', at: 'Ontem' } },
   { id: 'p15', storeId: 'e2', name: 'Pizza de Costela com Catupiry', price: 64.9, cost: 26.0, stock: 99, minStock: 0, emoji: '🍕', tint: '#FFE3D6', featured: false, launch: { note: 'Sabor novo da casa', at: 'Hoje' } },
   { id: 'p16', storeId: 'e1', name: 'Café Especial Torra Média 250g', price: 24.9, cost: 15.0, stock: 30, minStock: 6, emoji: '☕', tint: '#EADBCF', featured: false, launch: { note: 'Grãos do Sul de Minas, lote limitado', at: 'Há 2 dias' } },
+  { id: 'p17', storeId: 'e6', name: 'Porção de Bolinho de Bacalhau (12 un.)', price: 49.9, cost: 18.0, stock: 99, minStock: 0, emoji: '🧆', tint: '#FFF0D9', featured: false },
+  { id: 'p18', storeId: 'e6', name: 'Balde com 5 Long Necks', price: 39.9, cost: 22.0, stock: 99, minStock: 0, emoji: '🍺', tint: '#FFF4D6', featured: false },
+  { id: 'p19', storeId: 'e6', name: 'Picanha na Chapa para 2', price: 89.9, cost: 42.0, stock: 99, minStock: 0, emoji: '🥩', tint: '#FFE3D6', featured: false },
+  { id: 'p20', storeId: 'e7', name: 'Combinado 30 peças', price: 79.9, cost: 34.0, stock: 99, minStock: 0, emoji: '🍣', tint: '#FFE0E0', featured: false },
+  { id: 'p21', storeId: 'e7', name: 'Temaki Salmão Completo', price: 32.9, cost: 13.0, stock: 99, minStock: 0, emoji: '🍙', tint: '#FFE0E0', featured: false, launch: { note: 'Novo no cardápio', at: 'Hoje' } },
+  { id: 'p22', storeId: 'e8', name: 'Bolo de Pote Ninho com Morango', price: 16.9, cost: 6.0, stock: 40, minStock: 5, emoji: '🍰', tint: '#FCE7F1', featured: false },
+  { id: 'p23', storeId: 'e8', name: 'Cappuccino Cremoso + Pão de Queijo', price: 14.9, cost: 5.5, stock: 99, minStock: 0, emoji: '☕', tint: '#EADBCF', featured: false },
 ];
 
 export const posts = [

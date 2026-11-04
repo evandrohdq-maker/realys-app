@@ -1,5 +1,5 @@
 // Setores do Shop com subgrupos, no mesmo formato do Agro: Eletrônicos, Vestuário, Utensílios domésticos,
-// Eletrodomésticos e Móveis e decoração.
+// Eletrodomésticos, Móveis e decoração e Vários (o que não se encaixa nos outros).
 // Cada item diz em quais subgrupos aparece (groups). Lojas, produtos e valores são fictícios.
 // ship: true = a loja envia para todo o Brasil.
 const photo = (seed, w = 600, h = 400) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
@@ -108,6 +108,29 @@ export const SHOP_SECTORS = {
       { key: 'tapetes', label: 'Tapetes e cortinas', icon: '🧶' },
     ],
   },
+  // Vários: artigos que não se encaixam em nenhum outro setor específico.
+  varios: {
+    key: 'varios',
+    title: 'Vários',
+    sub: 'Artigos que não se encaixam em outro setor: presentes, papelaria, pet, brinquedos, ferramentas, festas e mais',
+    hint: 'Presentes, pet, papelaria',
+    ion: 'apps-outline',
+    color: '#6B6F80',
+    placeholder: 'Buscar presente, ração, caderno, brinquedo…',
+    voicePrompt: 'O que você procura?',
+    banner: 'Tudo o que não tem um setor próprio fica aqui. Lojas verificadas, pagamento protegido até o produto chegar.',
+    groups: [
+      { key: 'todos', label: 'Todos', icon: '🧩' },
+      { key: 'presentes', label: 'Presentes', icon: '🎁' },
+      { key: 'papelaria', label: 'Papelaria', icon: '✏️' },
+      { key: 'pet', label: 'Pet', icon: '🐾' },
+      { key: 'brinquedos', label: 'Brinquedos', icon: '🧸' },
+      { key: 'ferramentas', label: 'Ferramentas', icon: '🔨' },
+      { key: 'festas', label: 'Festas', icon: '🎈' },
+      { key: 'esporte', label: 'Esporte e lazer', icon: '⚽' },
+      { key: 'beleza', label: 'Beleza e cuidados', icon: '🌸' },
+    ],
+  },
 };
 
 export const SHOP_SECTOR_KEYS = Object.keys(SHOP_SECTORS);
@@ -200,4 +223,21 @@ export const shopSectorItems = [
   { id: 'mv14', sector: 'moveis', groups: ['tapetes'], icon: '🧶', title: 'Tapete de sala 2,00 x 2,50 m', who: 'Casa Conforto Móveis', detail: 'Antiderrapante, fácil de limpar.', price: 349.9, unit: 'unidade', cta: 'Comprar', photo: photo('realys-tapete'), ship: true },
   { id: 'mv15', sector: 'moveis', groups: ['tapetes'], icon: '🪟', title: 'Cortina blackout sob medida', who: 'Decora Lar', detail: 'Medição e instalação na sua casa.', price: null, unit: 'janela', cta: 'Pedir orçamento', photo: photo('realys-cortina') },
   { id: 'mv16', sector: 'moveis', groups: ['sala', 'quarto', 'decoracao'], icon: '🎨', title: 'Decorador de interiores verificado', who: 'Realys Serviços', detail: 'Projeto do ambiente com lista de compras direto no Shop. Veja quem está perto e quanto cobra.', price: 120, unit: 'hora', cta: 'Ver profissional', go: { tab: 'servicos', service: 'decoracao' }, photo: photo('realys-decorador') },
+  // ───────────── Vários ─────────────
+  { id: 'vr1', sector: 'varios', groups: ['presentes'], icon: '🎁', title: 'Cesta de café da manhã para presentear', who: 'Mimos & Cestas', detail: 'Entrega com cartão personalizado no dia e horário que você escolher.', price: 149.9, unit: 'cesta', cta: 'Comprar', photo: photo('realys-cesta'), sponsored: true, launch: true },
+  { id: 'vr2', sector: 'varios', groups: ['presentes'], icon: '🖼️', title: 'Caneca e quadro personalizados com foto', who: 'Arte Personalizada', detail: 'Mande a foto pelo app e receba em até 3 dias.', price: 69.9, unit: 'kit', cta: 'Comprar', photo: photo('realys-caneca'), ship: true },
+  { id: 'vr3', sector: 'varios', groups: ['papelaria'], icon: '📒', title: 'Kit volta às aulas (cadernos, lápis e estojo)', who: 'Papel & Cia', detail: 'Lista da escola montada pela papelaria. Retire na loja ou receba em casa.', price: 119.9, unit: 'kit', cta: 'Comprar', photo: photo('realys-papelaria'), sponsored: true, ship: true },
+  { id: 'vr4', sector: 'varios', groups: ['papelaria'], icon: '🖨️', title: 'Impressão e encadernação', who: 'Papel & Cia', detail: 'Envie o arquivo pelo app e busque pronto em 1 hora.', price: 0.5, unit: 'página', cta: 'Pedir', photo: photo('realys-impressao') },
+  { id: 'vr5', sector: 'varios', groups: ['pet'], icon: '🦴', title: 'Ração premium cães adultos 15 kg', who: 'Pet Amigo', detail: 'Entrega no mesmo dia no bairro. Assinatura com 10% de desconto.', price: 189.9, unit: 'saco', cta: 'Comprar', photo: photo('realys-racao'), sponsored: true },
+  { id: 'vr6', sector: 'varios', groups: ['pet'], icon: '🛁', title: 'Banho e tosa com busca em casa', who: 'Pet Amigo', detail: 'Leva e traz o seu pet. Acompanhe pelo app.', price: 70, unit: 'banho', cta: 'Agendar', photo: photo('realys-banhotosa') },
+  { id: 'vr7', sector: 'varios', groups: ['brinquedos'], icon: '🧸', title: 'Blocos de montar 500 peças', who: 'Mundo dos Brinquedos', detail: 'A partir de 4 anos. Certificado pelo Inmetro.', price: 129.9, unit: 'caixa', cta: 'Comprar', photo: photo('realys-blocos'), ship: true, launch: true },
+  { id: 'vr8', sector: 'varios', groups: ['brinquedos', 'esporte'], icon: '🛴', title: 'Patinete infantil com luz nas rodas', who: 'Mundo dos Brinquedos', detail: 'Dobrável, aguenta até 50 kg.', price: 199.9, unit: 'unidade', cta: 'Comprar', photo: photo('realys-patinete'), ship: true },
+  { id: 'vr9', sector: 'varios', groups: ['ferramentas'], icon: '🔨', title: 'Maleta de ferramentas 110 peças', who: 'Casa do Construtor', detail: 'Chaves, alicates, martelo e trena. Garantia de 1 ano.', price: 249.9, unit: 'maleta', cta: 'Comprar', photo: photo('realys-ferramentas'), ship: true },
+  { id: 'vr10', sector: 'varios', groups: ['ferramentas'], icon: '🪛', title: 'Parafusadeira sem fio 12 V', who: 'Casa do Construtor', detail: 'Duas baterias e maleta. Também tem para alugar por dia.', price: 299.9, unit: 'unidade', cta: 'Comprar', photo: photo('realys-parafusadeira') },
+  { id: 'vr11', sector: 'varios', groups: ['festas'], icon: '🎈', title: 'Kit festa de aniversário (decoração completa)', who: 'Festa Feliz', detail: 'Balões, painel, toalhas e descartáveis para 30 pessoas.', price: 189.9, unit: 'kit', cta: 'Comprar', photo: photo('realys-festa'), sponsored: true },
+  { id: 'vr12', sector: 'varios', groups: ['festas'], icon: '🎂', title: 'Aluguel de mesas, cadeiras e pula-pula', who: 'Festa Feliz', detail: 'Entrega e montagem no local da festa.', price: null, unit: 'pacote', cta: 'Pedir orçamento', photo: photo('realys-aluguelfesta') },
+  { id: 'vr13', sector: 'varios', groups: ['esporte'], icon: '⚽', title: 'Bola oficial de futebol de campo', who: 'Esporte Total', detail: 'Costurada à mão, tamanho oficial.', price: 89.9, unit: 'unidade', cta: 'Comprar', photo: photo('realys-bola'), ship: true },
+  { id: 'vr14', sector: 'varios', groups: ['esporte'], icon: '🏕️', title: 'Barraca de camping 4 pessoas', who: 'Esporte Total', detail: 'Monta em 5 minutos, à prova d’água.', price: 349.9, unit: 'unidade', cta: 'Comprar', photo: photo('realys-barraca'), ship: true, launch: true },
+  { id: 'vr15', sector: 'varios', groups: ['beleza'], icon: '🌸', title: 'Kit cuidados com a pele (4 produtos)', who: 'Beleza Natural', detail: 'Sabonete, tônico, sérum e hidratante. Marca brasileira.', price: 159.9, unit: 'kit', cta: 'Comprar', photo: photo('realys-skincare'), ship: true },
+  { id: 'vr16', sector: 'varios', groups: ['beleza'], icon: '🧴', title: 'Perfume nacional 100 ml', who: 'Beleza Natural', detail: 'Fragrância amadeirada, longa duração.', price: 129.9, unit: 'unidade', cta: 'Comprar', photo: photo('realys-perfume') },
 ];

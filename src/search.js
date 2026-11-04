@@ -3,7 +3,8 @@
 // Usada pelo assistente de voz quando o pedido não é um comando específico.
 // Na versão real isso vira uma busca no servidor, com os cadastros reais.
 import { listings, LISTING_KINDS, promos, lives, communityPosts, events, EVENT_GROUPS } from './homeData';
-import { serviceTypes } from './data';
+import { serviceTypes, isFoodStore } from './data';
+import { foodPromos, barSpots } from './foodData';
 import { members } from './people';
 import { allJobs } from './store';
 import { sectorItems } from './techAgroData';
@@ -167,8 +168,23 @@ function buildIndex(state) {
 
   (state.stores || []).forEach((s) =>
     add(
-      { id: 's-' + s.id, section: 'Loja', icon: s.logo, title: s.name, subtitle: `${s.category} · ${s.city} · ★ ${s.rating}`, where: short(s.city), photo: s.cover, sponsored: s.sponsored, go: { tab: 'loja', cat: 'Todos', q: s.name }, companyId: s.id },
-      s.name, s.category, s.city, 'loja', s.shipsBrazil ? 'envia para todo o brasil entrega' : ''
+      { id: 's-' + s.id, section: isFoodStore(s) ? 'Food' : 'Loja', icon: s.logo, title: s.name, subtitle: `${s.category} · ${s.city} · ★ ${s.rating}`, where: short(s.city), photo: s.cover, sponsored: s.sponsored, go: { tab: isFoodStore(s) ? 'food' : 'loja', cat: isFoodStore(s) ? s.category : 'Todos', q: s.name }, companyId: s.id },
+      s.name, s.category, s.city, isFoodStore(s) ? 'food comida restaurante bar' : 'loja', s.shipsBrazil ? 'envia para todo o brasil entrega' : ''
+    )
+  );
+
+  // Food: promoções de restaurantes e bares/happy hour.
+  foodPromos.forEach((fp) => {
+    const st = (state.stores || []).find((s) => s.id === fp.storeId) || {};
+    add(
+      { id: 'fp-' + fp.id, section: 'Food · Promoção', icon: st.logo || '🍽️', title: fp.title, subtitle: `${st.name || ''} · ${fp.when}`, price: fp.price, where: st.name, photo: fp.photo, sponsored: fp.sponsored, go: { tab: 'food', cat: st.category || 'Todos', q: '' } },
+      fp.title, st.name, 'food comida restaurante promocao oferta desconto', fp.deal
+    );
+  });
+  barSpots.forEach((b) =>
+    add(
+      { id: 'bar-' + b.id, section: 'Food · Bares', icon: '🍻', title: b.name, subtitle: `${b.vibe} · ${b.when}`, photo: b.photo, sponsored: b.sponsored, go: { tab: 'food', cat: 'Bares', q: '' } },
+      b.name, b.vibe, b.music, 'bar bares happy hour chope drinks food'
     )
   );
 
@@ -176,7 +192,7 @@ function buildIndex(state) {
     const store = (state.stores || []).find((s) => s.id === p.storeId) || {};
     const promo = promos.find((x) => x.productId === p.id);
     add(
-      { id: 'p-' + p.id, section: promo ? `Promoção -${promo.off}%` : 'Produto', icon: p.emoji, title: p.name, subtitle: store.name || '', where: store.name, priceValue: p.price, go: promo ? { tab: 'home', top: 'promo' } : { tab: 'loja', cat: 'Todos', q: p.name } },
+      { id: 'p-' + p.id, section: promo ? `Promoção -${promo.off}%` : 'Produto', icon: p.emoji, title: p.name, subtitle: store.name || '', where: store.name, priceValue: p.price, go: promo ? { tab: 'home', top: 'promo' } : isFoodStore(store) ? { tab: 'food', cat: store.category, q: p.name } : { tab: 'loja', cat: 'Todos', q: p.name } },
       p.name, store.name, store.category, 'produto', promo ? 'promocao oferta desconto' : '', p.launch ? 'lancamento novidade novo' : ''
     );
   });
@@ -280,7 +296,7 @@ function buildIndex(state) {
     const groups = (it.groups || []).map((g) => (sec.groups.find((x) => x.key === g) || {}).label).join(' ');
     add(
       { id: 'ss-' + it.id, section: sec.title, icon: it.icon, title: it.title, subtitle: it.who, price: it.price == null ? 'sob orçamento' : undefined, priceValue: it.price ? it.price : undefined, priceUnit: it.unit, where: it.who, photo: it.photo, sponsored: it.sponsored, go: it.go || { tab: it.sector, group: (it.groups || [])[0] || 'todos' } },
-      it.title, it.who, it.detail, sec.title, groups, { eletronicos: 'eletronico eletronicos aparelho', vestuario: 'roupa roupas moda vestuario', casa: 'casa utensilio utensilios domestico lar', eletrodomesticos: 'eletrodomestico eletrodomesticos linha branca', moveis: 'movel moveis decoracao decorar moveis planejados' }[it.sector], it.launch ? 'lancamento novidade' : ''
+      it.title, it.who, it.detail, sec.title, groups, { eletronicos: 'eletronico eletronicos aparelho', vestuario: 'roupa roupas moda vestuario', casa: 'casa utensilio utensilios domestico lar', eletrodomesticos: 'eletrodomestico eletrodomesticos linha branca', moveis: 'movel moveis decoracao decorar moveis planejados', varios: 'varios diversos outros presente presentes pet papelaria brinquedo brinquedos ferramenta ferramentas festa' }[it.sector], it.launch ? 'lancamento novidade' : ''
     );
   });
 
@@ -334,4 +350,4 @@ export function contentReply(results, what) {
 
 // Palavras que indicam claramente busca de conteúdo, não de prestador
 // (ex.: "alugar um carro" é anúncio, não corrida).
-export const CONTENT_WORDS = /\b(hote(l|is)|pousadas?|hospedage(m|ns)|aluga(r|mos)?|aluguel|locacao|imove(l|is)|apartamentos?|ape|kitnet|casas? (a|para) venda|ingressos?|balada|casa noturna|shows?|cursos?|faculdades?|lives?|promocao|promocoes|ofertas?|lojas?|produtos?|hospita(l|is)|upa|samu|ambulancias?|medic(o|a|os|as)|especialistas?|consultas?|pediatra|cardiologista|dentista|onibus|metro|passage(m|ns)|rodoviaria|artistas?|clipes?|vagas?|empregos?|lancamentos?|novidades?|tecnologia|robotica|robos?|inteligencia artificial|agro|agronegocio|sementes?|adubos?|trator(es)?|colheitadeiras?|fazendas?|gado|pecuaria|leilao|leiloes|bezerros?|ordenhadeiras?|hortifruti|estufas?|eletronicos?|smart ?tv|televis(ao|oes)|videogames?|consoles?|roupas?|vestuario|vestidos?|camisas?|camisetas?|calcados?|tenis|sapatos?|bolsas?|utensilios?|panelas?|air ?fryer|liquidificador|toalhas?|jogo de cama|edredom|eletrodomesticos?|geladeiras?|freezer|fogo(es|ao)|cooktop|lavadoras?|maquina de lavar|lava e seca|lava-loucas|lava loucas|ar-condicionado|ar condicionado|climatizador|ventilador|micro-ondas|microondas|forno|moveis|movel|decoracao|sofas?|guarda-roupas?|guarda roupas?|camas?|colchao|mesa de jantar|cadeiras?|estante|rack|quadros?|luminarias?|lustres?|tapetes?|cortinas?|planejad[ao]s?)\b/;
+export const CONTENT_WORDS = /\b(hote(l|is)|pousadas?|hospedage(m|ns)|aluga(r|mos)?|aluguel|locacao|imove(l|is)|apartamentos?|ape|kitnet|casas? (a|para) venda|ingressos?|balada|casa noturna|shows?|cursos?|faculdades?|lives?|promocao|promocoes|ofertas?|lojas?|produtos?|hospita(l|is)|upa|samu|ambulancias?|medic(o|a|os|as)|especialistas?|consultas?|pediatra|cardiologista|dentista|onibus|metro|passage(m|ns)|rodoviaria|artistas?|clipes?|vagas?|empregos?|lancamentos?|novidades?|tecnologia|robotica|robos?|inteligencia artificial|agro|agronegocio|sementes?|adubos?|trator(es)?|colheitadeiras?|fazendas?|gado|pecuaria|leilao|leiloes|bezerros?|ordenhadeiras?|hortifruti|estufas?|eletronicos?|smart ?tv|televis(ao|oes)|videogames?|consoles?|roupas?|vestuario|vestidos?|camisas?|camisetas?|calcados?|tenis|sapatos?|bolsas?|utensilios?|panelas?|air ?fryer|liquidificador|toalhas?|jogo de cama|edredom|eletrodomesticos?|geladeiras?|freezer|fogo(es|ao)|cooktop|lavadoras?|maquina de lavar|lava e seca|lava-loucas|lava loucas|ar-condicionado|ar condicionado|climatizador|ventilador|micro-ondas|microondas|forno|moveis|movel|decoracao|sofas?|guarda-roupas?|guarda roupas?|camas?|colchao|mesa de jantar|cadeiras?|estante|rack|quadros?|luminarias?|lustres?|tapetes?|cortinas?|planejad[ao]s?|presentes?|papelaria|brinquedos?|ferramentas?|pet ?shop|racao|bares?|happy hour|chope|sushi|temaki|pizzas?|hamburguer(es)?|lanches?|docerias?|cafeterias?)\b/;

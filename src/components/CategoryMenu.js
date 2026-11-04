@@ -11,6 +11,7 @@ const GROUP_ION = {
   feminino: 'woman-outline', masculino: 'man-outline', infantil: 'happy-outline', calcados: 'footsteps-outline', fitness: 'barbell-outline',
   cozinha: 'restaurant-outline', eletroportateis: 'flash-outline', mesa: 'wine-outline', cama: 'bed-outline', limpeza: 'sparkles-outline', organizacao: 'file-tray-stacked-outline',
   geladeiras: 'snow-outline', fogoes: 'flame-outline', lavadoras: 'water-outline', climatizacao: 'thermometer-outline', fornos: 'pizza-outline', lavaloucas: 'restaurant-outline', instalacao: 'construct-outline',
+  presentes: 'gift-outline', papelaria: 'pencil-outline', pet: 'paw-outline', brinquedos: 'happy-outline', ferramentas: 'hammer-outline', festas: 'balloon-outline', esporte: 'football-outline', beleza: 'rose-outline',
   sala: 'tv-outline', quarto: 'bed-outline', cozinhamov: 'cafe-outline', escritorio: 'desktop-outline', externa: 'leaf-outline', decoracao: 'color-palette-outline', iluminacao: 'bulb-outline', tapetes: 'grid-outline',
 };
 const sectorClass = (k) => {
@@ -36,12 +37,13 @@ export const CATEGORIES = [
     hint: 'Delivery, mesa e retirada',
     icon: 'restaurant-outline',
     subs: [
-      { label: 'Pizzaria', hint: 'Forno e delivery', icon: 'pizza-outline', go: { tab: 'loja', cat: 'Alimentação', q: 'pizza' } },
-      { label: 'Hambúrguer', hint: 'Lanches e combos', icon: 'fast-food-outline', go: { tab: 'loja', cat: 'Alimentação', q: 'burguer' } },
-      { label: 'Japonesa', hint: 'Em breve', icon: 'fish-outline', soon: true, go: { tab: 'loja', cat: 'Alimentação', q: '' } },
-      { label: 'Brasileira', hint: 'Em breve', icon: 'flame-outline', soon: true, go: { tab: 'loja', cat: 'Alimentação', q: '' } },
-      { label: 'Doces e cafés', hint: 'Em breve', icon: 'cafe-outline', soon: true, go: { tab: 'loja', cat: 'Alimentação', q: '' } },
-      { label: 'Ver todos', hint: 'Todos os restaurantes', icon: 'grid-outline', go: { tab: 'loja', cat: 'Alimentação', q: '' } },
+      { label: 'Pizzaria', hint: 'Forno e delivery', icon: 'pizza-outline', go: { tab: 'food', cat: 'Alimentação', q: 'pizza' } },
+      { label: 'Hambúrguer', hint: 'Lanches e combos', icon: 'fast-food-outline', go: { tab: 'food', cat: 'Alimentação', q: 'burguer' } },
+      { label: 'Japonesa', hint: 'Sushi, temaki e rodízio', icon: 'fish-outline', go: { tab: 'food', cat: 'Alimentação', q: 'sushi' } },
+      { label: 'Brasileira', hint: 'Em breve', icon: 'flame-outline', soon: true, go: { tab: 'food', cat: 'Alimentação', q: '' } },
+      { label: 'Bares e happy hour', hint: 'Chope, petiscos e música ao vivo', icon: 'beer-outline', go: { tab: 'food', cat: 'Bares', q: '' } },
+      { label: 'Doces e cafés', hint: 'Cafeterias e docerias', icon: 'cafe-outline', go: { tab: 'food', cat: 'Doces e cafés', q: '' } },
+      { label: 'Ver todos', hint: 'Abrir o Food', icon: 'grid-outline', go: { tab: 'food', cat: 'Todos', q: '' } },
     ],
   },
   {
@@ -127,6 +129,7 @@ export const CATEGORIES = [
       { label: 'Utensílios domésticos', hint: 'Cozinha, cama e banho, limpeza', icon: 'home-outline', go: { tab: 'casa', group: 'todos' } },
       { label: 'Eletrodomésticos', hint: 'Geladeira, fogão, lavadora, ar', icon: 'snow-outline', go: { tab: 'eletrodomesticos', group: 'todos' } },
       { label: 'Móveis e decoração', hint: 'Sala, quarto, escritório, decoração', icon: 'bed-outline', go: { tab: 'moveis', group: 'todos' } },
+      { label: 'Vários', hint: 'Presentes, pet, papelaria, brinquedos…', icon: 'apps-outline', go: { tab: 'varios', group: 'todos' } },
       { label: 'Promoções', hint: 'Ofertas relâmpago', icon: 'pricetags-outline', go: { tab: 'home', top: 'promo' } },
       { label: 'Ver todas', hint: 'Todas as lojas', icon: 'storefront-outline', go: { tab: 'loja', cat: 'Todos', q: '' } },
     ],

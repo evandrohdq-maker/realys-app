@@ -157,6 +157,7 @@ export const FashionScreen = (props) => <SectorScreen sectorKey="vestuario" {...
 export const HomeGoodsScreen = (props) => <SectorScreen sectorKey="casa" {...props} />;
 export const AppliancesScreen = (props) => <SectorScreen sectorKey="eletrodomesticos" {...props} />;
 export const FurnitureScreen = (props) => <SectorScreen sectorKey="moveis" {...props} />;
+export const VariousScreen = (props) => <SectorScreen sectorKey="varios" {...props} />;
 
 const styles = StyleSheet.create({
   hero: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 12, marginBottom: 12, borderWidth: 1 },

@@ -14,7 +14,7 @@ import FeedScreen from './src/screens/cliente/FeedScreen';
 import HomeScreen from './src/screens/cliente/home/HomeScreen';
 import StoriesScreen from './src/screens/StoriesScreen';
 import EncontrosScreen from './src/screens/cliente/EncontrosScreen';
-import StoreScreen from './src/screens/cliente/StoreScreen';
+import StoreScreen, { FoodScreen } from './src/screens/cliente/StoreScreen';
 import ServicesScreen from './src/screens/cliente/ServicesScreen';
 import OrdersScreen from './src/screens/cliente/OrdersScreen';
 import DashboardScreen from './src/screens/empresa/DashboardScreen';
@@ -37,7 +37,7 @@ import PageScreen from './src/screens/empresa/PageScreen';
 import JobsScreen from './src/screens/cliente/JobsScreen';
 import HRScreen from './src/screens/empresa/HRScreen';
 import { TechScreen, AgroScreen } from './src/screens/cliente/TechAgroScreen';
-import { ElectronicsScreen, FashionScreen, HomeGoodsScreen, AppliancesScreen, FurnitureScreen } from './src/screens/cliente/ShopSectorScreen';
+import { ElectronicsScreen, FashionScreen, HomeGoodsScreen, AppliancesScreen, FurnitureScreen, VariousScreen } from './src/screens/cliente/ShopSectorScreen';
 
 // Cada perfil enxerga abas diferentes dentro do MESMO app.
 const TABS = {
@@ -52,7 +52,7 @@ const TABS = {
     { key: 'home', label: 'Início', icon: 'home-outline', Comp: HomeScreen },
     { key: 'stories', label: 'Stories', icon: 'aperture-outline', Comp: StoriesScreen },
     { key: 'encontros', label: 'Date', icon: 'heart-outline', Comp: EncontrosScreen },
-    { key: 'loja', label: 'Loja', icon: 'bag-handle-outline', Comp: StoreScreen },
+    { key: 'food', label: 'Food', icon: 'restaurant-outline', Comp: FoodScreen },
     { key: 'servicos', label: 'Serviços', icon: 'construct-outline', Comp: ServicesScreen },
     { key: 'pedidos', label: 'Pedidos', icon: 'receipt-outline', Comp: OrdersScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
@@ -68,6 +68,9 @@ const TABS = {
     { key: 'casa', label: 'Utensílios domésticos', icon: 'home-outline', Comp: HomeGoodsScreen, hidden: true },
     { key: 'eletrodomesticos', label: 'Eletrodomésticos', icon: 'snow-outline', Comp: AppliancesScreen, hidden: true },
     { key: 'moveis', label: 'Móveis e decoração', icon: 'bed-outline', Comp: FurnitureScreen, hidden: true },
+    { key: 'varios', label: 'Vários', icon: 'apps-outline', Comp: VariousScreen, hidden: true },
+    // Loja geral (todas as lojas): aberta pelo Shop do Início e pela busca.
+    { key: 'loja', label: 'Loja', icon: 'bag-handle-outline', Comp: StoreScreen, hidden: true },
   ],
   empresa: [
     { key: 'painel', label: 'Painel', icon: 'speedometer-outline', Comp: DashboardScreen },

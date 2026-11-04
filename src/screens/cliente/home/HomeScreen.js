@@ -125,10 +125,22 @@ function Hero() {
   return (
     <View style={styles.hero}>
       <Text style={styles.heroTitle}>Você no comando.</Text>
-      <Text style={styles.heroSub}>Compre, contrate, anuncie e converse com pessoas reais, tudo num app só.</Text>
     </View>
   );
 }
+
+// Atalhos do Shop: ícones pequenos dentro de um círculo, com o nome embaixo.
+// Tecnologia e Agro (que se conversam: agro é tech) e os setores com subgrupos, incluindo Vários.
+const SHOP_SHORTCUTS = [
+  { key: 'tecnologia', label: 'Tecnologia', ion: 'hardware-chip-outline', color: colors.accent },
+  { key: 'agro', label: 'Agro', ion: 'leaf-outline', color: '#2E8B57' },
+  ...SHOP_SECTOR_KEYS.map((k) => ({
+    key: k,
+    label: { casa: 'Utensílios', eletrodomesticos: 'Eletrodomésticos', moveis: 'Móveis' }[k] || SHOP_SECTORS[k].title,
+    ion: SHOP_SECTORS[k].ion,
+    color: SHOP_SECTORS[k].color,
+  })),
+];
 
 function ShopTab({ goTo }) {
   const { state, dispatch } = useStore();
@@ -137,36 +149,15 @@ function ShopTab({ goTo }) {
   return (
     <Screen>
       <Hero />
-      {/* Atalhos para as abas Tecnologia e Agro (as duas se conversam: agro é tech). */}
-      <View style={styles.sectorRow}>
-        <TouchableOpacity style={[styles.sectorBtn, { marginRight: 8, borderColor: 'rgba(47,116,208,0.35)' }]} onPress={() => goTo('tecnologia')} activeOpacity={0.85}>
-          <Ionicons name="hardware-chip-outline" size={22} color={colors.accent} />
-          <View style={{ marginLeft: 8, flex: 1 }}>
-            <Text style={styles.sectorTitle}>Tecnologia</Text>
-            <Text style={styles.sectorHint} numberOfLines={1}>IA, robótica e apps</Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.sectorBtn, { borderColor: 'rgba(46,139,87,0.35)' }]} onPress={() => goTo('agro')} activeOpacity={0.85}>
-          <Ionicons name="leaf-outline" size={22} color="#2E8B57" />
-          <View style={{ marginLeft: 8, flex: 1 }}>
-            <Text style={styles.sectorTitle}>Agro</Text>
-            <Text style={styles.sectorHint} numberOfLines={1}>Insumos, máquinas e agrônomos</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
-      {/* Eletrônicos, Vestuário, Utensílios, Eletrodomésticos e Móveis: cada um com seus subgrupos, como o Agro. */}
-      <View style={[styles.sectorRow, { flexWrap: 'wrap', marginBottom: 6 }]}>
-        {SHOP_SECTOR_KEYS.map((k, i) => {
-          const s = SHOP_SECTORS[k];
-          const short = { casa: 'Utensílios', eletrodomesticos: 'Eletrodomésticos', moveis: 'Móveis e decoração' }[k] || s.title;
-          return (
-            <TouchableOpacity key={k} style={[styles.sectorMini, { borderColor: s.color + '55', flex: 0, width: '32%', marginBottom: 8, marginRight: i % 3 === 2 ? 0 : '2%' }]} onPress={() => goTo(k)} activeOpacity={0.85}>
-              <Ionicons name={s.ion} size={22} color={s.color} />
-              <Text style={styles.sectorTitle} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{short}</Text>
-              <Text style={styles.sectorHint} numberOfLines={1}>{s.hint}</Text>
-            </TouchableOpacity>
-          );
-        })}
+      <View style={styles.circleGrid}>
+        {SHOP_SHORTCUTS.map((c) => (
+          <TouchableOpacity key={c.key} style={styles.circleItem} onPress={() => goTo(c.key)} activeOpacity={0.8} accessibilityLabel={c.label}>
+            <View style={[styles.circle, { borderColor: c.color + '66', backgroundColor: c.color + '12' }]}>
+              <Ionicons name={c.ion} size={18} color={c.color} />
+            </View>
+            <Text style={styles.circleLabel} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>{c.label}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
       <LaunchStrip />
       <SectionHead title="Destaques para você" action="Ver loja" onAction={() => goTo('loja')} />
@@ -755,11 +746,10 @@ function SectionHead({ title, action, onAction }) {
 }
 
 const styles = StyleSheet.create({
-  sectorRow: { flexDirection: 'row', marginBottom: 14 },
-  sectorBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, padding: 10 },
-  sectorMini: { flex: 1, alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, paddingVertical: 10, paddingHorizontal: 6 },
-  sectorTitle: { color: colors.text, fontWeight: '800', fontSize: 14 },
-  sectorHint: { color: colors.muted, fontSize: 11 },
+  circleGrid: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8, marginHorizontal: -4 },
+  circleItem: { width: '25%', alignItems: 'center', paddingHorizontal: 4, marginBottom: 12 },
+  circle: { width: 46, height: 46, borderRadius: 23, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  circleLabel: { color: colors.text, fontWeight: '700', fontSize: 11, marginTop: 5, textAlign: 'center' },
   topTabs: {
     flexDirection: 'row',
     paddingHorizontal: 8,
@@ -781,15 +771,15 @@ const styles = StyleSheet.create({
   topTabOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   topTabText: { color: colors.text, fontSize: 10, fontWeight: '700', marginTop: 3 },
   hero: {
-    borderRadius: 22,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: 'rgba(226,182,73,0.55)',
     backgroundColor: colors.primaryLight,
-    padding: 18,
-    marginBottom: 18,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    marginBottom: 12,
   },
-  heroTitle: { color: colors.primaryDark, fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
-  heroSub: { color: colors.muted, fontSize: 13, marginTop: 6, lineHeight: 18 },
+  heroTitle: { color: colors.primaryDark, fontSize: 17, fontWeight: '900', letterSpacing: -0.3 },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, marginTop: 4 },
   sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '800' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 10 },

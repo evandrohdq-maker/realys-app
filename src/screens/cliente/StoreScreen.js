@@ -6,6 +6,9 @@ import { SearchBar, GlobalResults } from '../../components/Search';
 import { Screen, Photo, Badge, Row, Button, Input, ProductThumb, Chip, Card, Section, Empty } from '../../components/ui';
 import { LaunchStrip } from '../../components/Launches';
 import { useBack } from '../../back';
+import { isFoodStore } from '../../data';
+import { FOOD_FILTERS } from '../../foodData';
+import { FoodHighlights } from './FoodHighlights';
 
 const CATEGORIES = ['Todos', 'Alimentação', 'Mercado', 'Roupas', 'Eletrônicos'];
 
@@ -27,16 +30,25 @@ function ProductCard({ p, onAdd, storeName, style }) {
   );
 }
 
-export default function StoreScreen({ openVoice, goTo, explore, navigate }) {
+// Aba Food do cliente: a mesma loja, mas só com comida e bebida (restaurantes, bares, doces e cafés),
+// com promoções de restaurantes e a interação com bares em destaque.
+export function FoodScreen(props) {
+  return <StoreScreen {...props} food />;
+}
+
+// Categoria vinda do menu ⋮ ou da busca → filtro da aba Food.
+const foodFilterOf = (cat) => (cat === 'Bares' ? 'bares' : cat === 'Doces e cafés' ? 'doces' : cat === 'Alimentação' ? 'restaurantes' : 'todos');
+
+export default function StoreScreen({ openVoice, goTo, explore, navigate, food }) {
   const { state, dispatch } = useStore();
   const [q, setQ] = useState('');
-  const [cat, setCat] = useState('Todos');
+  const [cat, setCat] = useState(food ? 'todos' : 'Todos');
   const [searched, setSearched] = useState('');
 
   // Veio do menu ⋮ (ex.: Restaurantes → Pizzaria)
   useEffect(() => {
     if (!explore) return;
-    if (explore.cat) setCat(explore.cat);
+    if (explore.cat) setCat(food ? foodFilterOf(explore.cat) : explore.cat);
     if (explore.q !== undefined) setQ(explore.q);
   }, [explore]);
   const [openStore, setOpenStore] = useState(null);
@@ -50,8 +62,9 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate }) {
   // Ordem da busca: patrocinadas primeiro, depois recomendadas, depois por nota.
   const rankedStores = useMemo(() => {
     const term = q.trim().toLowerCase();
+    const foodCats = food ? (FOOD_FILTERS.find((f) => f.key === cat) || {}).cats : null;
     return state.stores
-      .filter((s) => cat === 'Todos' || s.category === cat)
+      .filter((s) => (food ? isFoodStore(s) && (!foodCats || foodCats.includes(s.category)) : cat === 'Todos' || s.category === cat))
       .filter(
         (s) =>
           !term ||
@@ -59,12 +72,14 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate }) {
           state.products.some((p) => p.storeId === s.id && p.name.toLowerCase().includes(term))
       )
       .sort((a, b) => b.sponsored - a.sponsored || b.recommended - a.recommended || b.rating - a.rating);
-  }, [state.stores, state.products, q, cat]);
+  }, [state.stores, state.products, q, cat, food]);
 
+  // Na aba Food só entram produtos de restaurantes, bares e cafés.
+  const inScope = (p) => !food || isFoodStore(storeOf(state, p.storeId));
   const matchedProducts = q.trim()
-    ? state.products.filter((p) => p.name.toLowerCase().includes(q.trim().toLowerCase()))
+    ? state.products.filter((p) => inScope(p) && p.name.toLowerCase().includes(q.trim().toLowerCase()))
     : [];
-  const featured = state.products.filter((p) => p.featured);
+  const featured = state.products.filter((p) => p.featured && !food);
   const cartCount = state.cart.reduce((s, c) => s + c.qty, 0);
   const total = cartTotal(state);
 
@@ -83,7 +98,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate }) {
     return (
       <Screen>
         <TouchableOpacity onPress={() => setShowCart(false)}>
-          <Text style={styles.back}>‹ Voltar para a loja</Text>
+          <Text style={styles.back}>‹ {food ? 'Voltar para o Food' : 'Voltar para a loja'}</Text>
         </TouchableOpacity>
         <Text style={styles.h1}>Seu carrinho</Text>
         {state.cart.length === 0 ? <Empty text="Carrinho vazio." /> : null}
@@ -128,7 +143,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate }) {
     return (
       <Screen>
         <TouchableOpacity onPress={() => setOpenStore(null)}>
-          <Text style={styles.back}>‹ Todas as lojas</Text>
+          <Text style={styles.back}>‹ {food ? 'Todos os restaurantes e bares' : 'Todas as lojas'}</Text>
         </TouchableOpacity>
         <Photo uri={s.cover} style={styles.cover} fallback={s.logo} />
         <Row style={{ marginTop: 12, marginBottom: 4 }}>
@@ -166,14 +181,14 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate }) {
           if (!t) setSearched('');
         }}
         onSubmit={setSearched}
-        placeholder="Buscar produtos, lojas, restaurantes…"
-        voicePrompt="O que você quer comprar?"
+        placeholder={food ? 'Buscar pizza, sushi, bar, café…' : 'Buscar produtos, lojas, restaurantes…'}
+        voicePrompt={food ? 'O que você quer comer hoje?' : 'O que você quer comprar?'}
         style={{ marginBottom: 0 }}
       />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 12 }}>
-        {CATEGORIES.map((c) => (
-          <Chip key={c} label={c} active={cat === c} onPress={() => setCat(c)} />
-        ))}
+        {food
+          ? FOOD_FILTERS.map((f) => <Chip key={f.key} label={f.label} active={cat === f.key} onPress={() => setCat(f.key)} />)
+          : CATEGORIES.map((c) => <Chip key={c} label={c} active={cat === c} onPress={() => setCat(c)} />)}
       </ScrollView>
 
       {matchedProducts.length ? (
@@ -187,12 +202,14 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate }) {
       ) : null}
 
       {searched && !matchedProducts.length && !rankedStores.length ? (
-        <GlobalResults query={searched} navigate={navigate} title="Não está na loja, mas achei no Realys" />
+        <GlobalResults query={searched} navigate={navigate} title={food ? 'Não achei no Food, mas achei no Realys' : 'Não está na loja, mas achei no Realys'} />
       ) : null}
 
-      {!q ? <LaunchStrip title="🚀 Lançamentos" /> : null}
+      {food && !q ? <FoodHighlights filter={cat} onOpenStore={setOpenStore} onAdd={add} /> : null}
 
-      {!q ? (
+      {!q && !food ? <LaunchStrip title="🚀 Lançamentos" /> : null}
+
+      {!q && !food ? (
         <Section title="⭐ Destaques da semana">
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {featured.map((p) => (
@@ -208,7 +225,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate }) {
         </Section>
       ) : null}
 
-      <Section title="Lojas e restaurantes">
+      <Section title={food ? 'Restaurantes, bares e cafés' : 'Lojas e restaurantes'}>
         {rankedStores.map((s) => (
           <TouchableOpacity key={s.id} activeOpacity={0.85} onPress={() => setOpenStore(s.id)} style={styles.storeCard}>
             <Photo uri={s.cover} style={styles.storeImg} fallback={s.logo} />
