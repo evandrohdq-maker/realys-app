@@ -6,15 +6,19 @@
 import { useEffect, useRef } from 'react';
 import { AppState, Platform } from 'react-native';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
+import { findWake, normSame } from './wakeMatch';
 
-// Jeitos como o reconhecedor costuma escrever "Realys".
-const WAKE = /\b(realys|realis|reaalis|rialis|rialys|realiz|realiss|reales|riales|realice|reali|really is|real is|reale is)\b/;
-
-const norm = (s) =>
-  String(s || '')
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '');
+// "Realys" é reconhecido pelo SOM (ver src/wakeMatch.js), não por uma lista de grafias:
+// o celular escreve "Reels", "realize", "rallies"... e todos contam como "Realys" no começo da frase.
+// Também confere as várias opções que o celular ouviu, não só a primeira.
+const hearWake = (results) => {
+  for (const alt of results || []) {
+    const said = normSame(alt && alt.transcript);
+    const m = findWake(said);
+    if (m) return { said, m };
+  }
+  return null;
+};
 
 export async function askMicPermission() {
   try {
@@ -50,8 +54,9 @@ export function WakeWordListener({ enabled, onWake, onListening, onFatal }) {
         lang: 'pt-BR',
         interimResults: true,
         continuous: true,
-        maxAlternatives: 1,
-        contextualStrings: ['Realys'],
+        maxAlternatives: 5,
+        // Dica para o reconhecedor do celular: estas palavras existem e são prováveis.
+        contextualStrings: ['Realys', 'Riális', 'Realis'],
       });
     } catch (e) {
       running.current = false;
@@ -103,10 +108,10 @@ export function WakeWordListener({ enabled, onWake, onListening, onFatal }) {
 
   useSpeechRecognitionEvent('result', (event) => {
     if (!on.current) return;
-    const said = norm(event.results && event.results[0] && event.results[0].transcript);
-    const m = said.match(WAKE);
-    if (!m) return;
-    const rest = said.slice(m.index + m[0].length).replace(/^[\s,.!?]+/, '');
+    const heard = hearWake(event.results);
+    if (!heard) return;
+    const { said, m } = heard;
+    const rest = said.slice(m.end).replace(/^[\s,.!?]+/, '');
     if (event.isFinal) return fire(rest);
     // Ouviu "Realys": espera a pessoa terminar a frase (ou 2,5 s de silêncio).
     if (!woke.current) woke.current = { rest, timer: setTimeout(() => woke.current && fire(woke.current.rest), 2500) };

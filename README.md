@@ -24,6 +24,8 @@
 
 **Mãos livres:** em **Perfil → Acionar falando "Realys"**, o app fica ouvindo enquanto está aberto. Basta dizer "Realys, preciso de um eletricista" que o assistente abre e responde, sem tocar na tela e sem "Ok Google". Quando a Realys pergunta algo ("quer que eu chame?"), o microfone abre sozinho para a resposta. Com o celular bloqueado ainda não funciona (próxima etapa).
 
+**Como o app reconhece "Realys":** como é um nome inventado, o reconhecimento de voz do celular costuma escrever outra coisa ("Reels", "realize", "rallies", "real is"). Por isso o app compara pelo **som** da palavra, não pela grafia, e confere as várias opções que o celular ouviu. No começo da frase ("Realys, …", "Oi Realys, …") ele aceita sons parecidos; no meio de uma conversa só dispara se o som for praticamente igual, para não abrir sozinho com "vi uns reels ontem" ou "dez reais". Ver `src/wakeMatch.js`.
+
 As respostas saem do **cadastro que cada prestador faz** (funções e valores). Teste no perfil Prestador: cadastre-se, fique disponível e pergunte por voz no perfil Cliente.
 
 **Administrador geral:** na tela de entrada, digite `admin` no campo de acesso; o campo de senha aparece.
@@ -128,6 +130,7 @@ src/theme.js               → cores e formatação em reais
 src/components/ui.js       → botões, cartões, gráficos
 src/screens/LoginScreen.js → cadastro com biometria e escolha de perfis
 src/screens/VoiceAssistant.js → assistente de voz "Realys"
+src/wakeMatch.js           → reconhece a palavra "Realys" pelo som (aceita "Reels", "realize"…)
 src/screens/cliente/       → feed, loja, serviços, pedidos
 src/screens/empresa/       → painel, estoque, fluxo de caixa, negócios B2B, RH (vagas e candidatos)
 src/jobsData.js            → vagas de emprego e candidatos de exemplo

@@ -8,6 +8,7 @@ import { Input, Button, Row } from '../components/ui';
 import { ServiceCallCard } from './cliente/ServicesScreen';
 import { Photo } from '../components/ui';
 import { searchAll, contentReply, CONTENT_WORDS } from '../search';
+import { stripWake } from '../wakeMatch';
 import { emergencyNumbers } from '../extraData';
 import { confirmCall } from '../phone';
 
@@ -36,7 +37,7 @@ const CALL_NOW = /\b(chama|chame|manda|mande|agenda|agende|agendar|solicita)\b/;
 // Interpreta o comando. Devolve { reply, call?, list?, results?, pending? }.
 // Na versão final isso vira uma IA no servidor, com os cadastros reais dos prestadores.
 function interpret(text, state, dispatch, pending) {
-  const t = norm(text).replace(/^(realys|reales|rayles|realis)[,\s]*/, '');
+  const t = norm(stripWake(text));
   const addrMatch = text.match(/((rua|r\.|avenida|av\.?|alameda|travessa|praca|praça|estrada)\s.+)$/i);
   const address = addrMatch ? addrMatch[1].trim() : '';
 
@@ -96,7 +97,7 @@ function interpret(text, state, dispatch, pending) {
 
   // Busca geral em todo o conteúdo do app: anúncios, hotéis, imóveis, eventos, cursos,
   // lojas, produtos, promoções, prestadores, lives, pessoas e posts.
-  const { results, tokens, label } = searchAll(state, text.replace(/^\s*(realys|reales|rayles|realis)[,\s]*/i, ''));
+  const { results, tokens, label } = searchAll(state, stripWake(text));
   if (results.length) return { reply: contentReply(results, label), results };
   if (tokens.length) return { reply: contentReply([], label) };
   return {
