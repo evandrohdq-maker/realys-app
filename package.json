@@ -13,6 +13,7 @@
     "@react-native-async-storage/async-storage": "*",
     "expo": "~56.0.0",
     "expo-crypto": "*",
+    "expo-file-system": "*",
     "expo-intent-launcher": "*",
     "expo-local-authentication": "*",
     "expo-secure-store": "*",

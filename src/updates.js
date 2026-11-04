@@ -1,13 +1,21 @@
-// Atualização automática do APK.
+// Atualização do APK por dentro do próprio app.
 // Cada APK sabe o número da própria versão (src/build.json, gravado pelo GitHub na hora de gerar).
 // Ao abrir, o app pergunta ao GitHub qual é a versão mais nova publicada em Releases.
-// Se for maior que a instalada, mostra o aviso e baixa o APK novo.
-import { Linking } from 'react-native';
+// Se for maior, o próprio Realys baixa o APK para a pasta interna dele (não vai para Downloads),
+// abre o instalador do Android por cima do app atual (mesmo pacote e mesma assinatura = atualização,
+// não um app novo) e depois apaga o arquivo. Nada fica sobrando no celular.
+import { Platform } from 'react-native';
+import { File, Paths } from 'expo-file-system';
+import * as IntentLauncher from 'expo-intent-launcher';
 import BUILD from './build.json';
 
 export const REPO = 'evandrohdq-maker/realys-app';
 export const CURRENT_BUILD = Number(BUILD.build) || 0;
 export const VERSION_LABEL = CURRENT_BUILD ? `versão ${CURRENT_BUILD}` : 'versão de desenvolvimento';
+
+// Sempre o mesmo nome: um download novo substitui o anterior, nunca acumula.
+const APK_NAME = 'realys-update.apk';
+const apkFile = () => new File(Paths.cache, APK_NAME);
 
 // Tag publicada pelo GitHub: "demo-12" -> 12
 const buildFromTag = (tag) => {
@@ -28,13 +36,40 @@ export async function checkForUpdate() {
     latest,
     current: CURRENT_BUILD,
     url: apk ? apk.browser_download_url : null,
+    size: apk ? apk.size : 0,
     notes: (rel.body || '').trim(),
     name: rel.name || rel.tag_name,
   };
 }
 
-// O Android baixa o APK e, ao tocar na notificação de download, instala por cima
-// (os dados e o login continuam, porque é o mesmo app com a mesma assinatura).
-export function installUpdate(url) {
-  return Linking.openURL(url);
+// Apaga o APK que ficou da última atualização. Roda toda vez que o app abre:
+// se o app abriu já atualizado, o arquivo não serve mais para nada.
+export function cleanupOldUpdate() {
+  try {
+    const f = apkFile();
+    if (f.exists) f.delete();
+  } catch (e) {
+    // sem problema: o Android também limpa a pasta de cache sozinho
+  }
+}
+
+// Baixa o APK para dentro do app e abre a tela "Deseja atualizar este app?" do Android.
+// onStage('downloading' | 'installing') avisa a tela em que passo está.
+export async function installUpdate(url, onStage) {
+  if (Platform.OS !== 'android') throw new Error('Atualização de APK só existe no Android');
+
+  cleanupOldUpdate();
+  onStage && onStage('downloading');
+  const file = await File.downloadFileAsync(url, apkFile(), { idempotent: true });
+
+  onStage && onStage('installing');
+  // VIEW + tipo de pacote abre o instalador do sistema. O flag 1 (FLAG_GRANT_READ_URI_PERMISSION)
+  // deixa o instalador ler o arquivo, que continua privado do Realys.
+  await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
+    data: file.contentUri,
+    type: 'application/vnd.android.package-archive',
+    flags: 1,
+  });
+  // Não apaga aqui: o instalador ainda pode estar lendo o arquivo.
+  // Ele fica na pasta privada do Realys (invisível para a pessoa) e é apagado na próxima abertura.
 }

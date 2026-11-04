@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
-import { checkForUpdate, installUpdate } from '../updates';
+import { checkForUpdate, installUpdate, cleanupOldUpdate } from '../updates';
 
 // Aviso de "nova versão disponível". Roda sozinho toda vez que o app abre.
 // Também pode ser aberto à mão (Perfil → Verificar atualizações) com `manual`.
@@ -12,6 +12,7 @@ export default function UpdateChecker({ manual = false, onDone }) {
 
   useEffect(() => {
     if (Platform.OS !== 'android' && !manual) return;
+    if (!manual) cleanupOldUpdate(); // apaga o APK da atualização anterior, se sobrou
     let alive = true;
     checkForUpdate()
       .then((r) => {
@@ -34,12 +35,15 @@ export default function UpdateChecker({ manual = false, onDone }) {
 
   const update = async () => {
     try {
-      await installUpdate(info.url);
-      setStatus('downloading');
+      await installUpdate(info.url, setStatus);
+      setStatus('idle'); // voltou do instalador (cancelou): fecha o aviso
+      onDone && onDone();
     } catch (e) {
-      setStatus('error');
+      setStatus('failed');
     }
   };
+
+  const mb = info && info.size ? ` (${(info.size / 1048576).toFixed(0)} MB)` : '';
 
   const content = {
     checking: { icon: 'sync-outline', title: 'Procurando atualização…', text: 'Conferindo se existe uma versão nova do Realys.' },
@@ -50,8 +54,18 @@ export default function UpdateChecker({ manual = false, onDone }) {
     },
     downloading: {
       icon: 'cloud-download-outline',
-      title: 'Baixando a atualização',
-      text: 'Quando o download terminar, toque na notificação "realys-demo.apk" e depois em "Atualizar". Seus dados continuam no app.',
+      title: 'Baixando a atualização…',
+      text: `Aguarde um instante${mb}. O Realys baixa a versão nova por dentro do app, sem encher o celular de arquivos.`,
+    },
+    installing: {
+      icon: 'construct-outline',
+      title: 'Instalando',
+      text: 'Toque em "Atualizar" na tela do Android. O Realys é substituído pela versão nova e seus dados continuam no app.',
+    },
+    failed: {
+      icon: 'alert-circle-outline',
+      title: 'Não deu para atualizar',
+      text: 'Confira a internet e tente de novo. Se o Android pedir, permita que o Realys instale atualizações.',
     },
     uptodate: { icon: 'checkmark-circle-outline', title: 'Você está na versão mais nova', text: `Versão ${info && info.current} instalada.` },
     error: { icon: 'cloud-offline-outline', title: 'Não deu para verificar agora', text: 'Confira a internet e tente de novo pelo Perfil.' },
@@ -77,7 +91,7 @@ export default function UpdateChecker({ manual = false, onDone }) {
                 <Text style={styles.btnMainText}>Atualizar agora</Text>
               </TouchableOpacity>
             </View>
-          ) : status !== 'checking' ? (
+          ) : !['checking', 'downloading'].includes(status) ? (
             <TouchableOpacity style={[styles.btn, styles.btnMain, { marginTop: 16 }]} onPress={close}>
               <Text style={styles.btnMainText}>Ok</Text>
             </TouchableOpacity>
