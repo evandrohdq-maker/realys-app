@@ -22,6 +22,10 @@
 - *"chama um encanador"* → chama direto o mais próximo.
 - *"tem hotel em Campos do Jordão?"*, *"quero alugar um apartamento"*, *"tem curso online?"* → a Lotus **pesquisa em todo o conteúdo do app** (anúncios, hotéis e pousadas, imóveis, aluguel de carros e máquinas, eventos, cursos, lojas, produtos, promoções, prestadores, lives, pessoas e posts), fala os primeiros resultados e mostra a lista; tocar num resultado abre a tela certa.
 
+**Navegar falando:** peça para a Lotus abrir qualquer página e ela fecha a caixa e leva você direto para lá: *"me leva pro Agro"*, *"abre o Food"*, *"volta pros Stories"*, *"abre as mensagens"*, *"mostra os hotéis"*, *"abre minha carteira"*, *"abre o estoque"* ou só *"voltar"*. Também funciona dizendo só o nome (*"Agro"*, *"Date"*, *"Lives"*). Com o mãos livres ligado, *"abrir Lotus, me leva pro Agro"* vai direto, sem nem abrir a caixa. A lista de páginas e dos jeitos de falar fica em `src/voiceNav.js` (inclui os jeitos que o celular escreve "Stories": "histories", "estórias", "istóris"...).
+
+**Rápida:** a caixa abre em menos de meio segundo e já começa a ouvir, com o microfone dentro do próprio app (sem a janela do Google). O orbe dourado pulsa conforme o volume da sua voz e o texto aparece enquanto você fala.
+
 **Mãos livres:** em **Perfil → Acionar falando "abrir Lotus"**, o app fica ouvindo enquanto está aberto. Basta dizer **"abrir Lotus, preciso de um eletricista"** (ou só "abrir Lotus" e depois o pedido) que a assistente abre e responde, sem tocar na tela e sem "Ok Google". Quando a Lotus pergunta algo ("quer que eu chame?"), o microfone abre sozinho para a resposta. Com o celular bloqueado ainda não funciona (próxima etapa).
 
 **Como o app reconhece "abrir Lotus":** o app compara pelo **som**, não pela grafia, e confere as várias opções que o celular ouviu: aceita "Lótus", "lotos", "lots", "abre", "abra", "a brir"... Só dispara com o "abrir" antes do "Lotus", para não abrir sozinho quando alguém fala de flor de lótus ou de "lote". Ver `src/wakeMatch.js`. A voz suave fica em `src/voice.js`: escolhe a melhor voz feminina pt-BR instalada no celular e fala um pouco mais devagar.

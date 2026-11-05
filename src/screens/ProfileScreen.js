@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Switch, Alert, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { askMicPermission, wakeWordSupported } from '../wakeWord';
@@ -13,11 +13,15 @@ import WalletScreen from './WalletScreen';
 
 const ROLE_ICON = { cliente: '🛍️', empresa: '🏪', prestador: '🛵', fornecedor: '🚚', admin: '🛡️' };
 
-export default function ProfileScreen({ navigate }) {
+export default function ProfileScreen({ navigate, explore }) {
   const { state, dispatch } = useStore();
   const u = state.user;
   const [checking, setChecking] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
+  // "Lotus, abre minha carteira": já abre a carteira.
+  useEffect(() => {
+    if (explore && explore.tab === 'perfil' && explore.wallet) setWalletOpen(true);
+  }, [explore]);
 
   // Sai da conta e volta para a tela "Quem vai usar o Realys?".
   const switchUser = () =>

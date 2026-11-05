@@ -8,6 +8,9 @@ import { AppState, Platform } from 'react-native';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 import { findWake, normSame } from './wakeMatch';
 
+// Pausa depois de "abrir Lotus" para abrir a assistente (no máximo meio segundo).
+const WAKE_PAUSE_MS = 450;
+
 // "abrir Lotus" é reconhecido pelo SOM (ver src/wakeMatch.js), não por uma lista de grafias:
 // o celular escreve "Lótus", "lotos", "lots", "abre", "abra"... e todos contam.
 // Também confere as várias opções que o celular ouviu, não só a primeira.
@@ -82,6 +85,9 @@ export function WakeWordListener({ enabled, onWake, onListening, onFatal }) {
     stop();
     onListening && onListening(false);
     onWake(rest.trim());
+    // Se o pedido foi só de navegação ("abrir Lotus, me leva pro Agro"), a caixa não abre:
+    // volta a ouvir sozinho. Se a caixa abrir, o stop() cancela esta volta.
+    if (on.current) scheduleRestart(700);
   };
 
   useEffect(() => {
@@ -101,7 +107,9 @@ export function WakeWordListener({ enabled, onWake, onListening, onFatal }) {
     return () => sub.remove();
   }, []);
 
+  // A caixa da Lotus usa o mesmo microfone: só reage aos eventos quando está ouvindo o "abrir Lotus".
   useSpeechRecognitionEvent('start', () => {
+    if (!on.current) return;
     errors.current = 0;
     onListening && onListening(true);
   });
@@ -113,18 +121,21 @@ export function WakeWordListener({ enabled, onWake, onListening, onFatal }) {
     const { said, m } = heard;
     const rest = said.slice(m.end).replace(/^[\s,.!?]+/, '');
     if (event.isFinal) return fire(rest);
-    // Ouviu "abrir Lotus": espera a pessoa terminar a frase (ou 2,5 s de silêncio).
-    if (!woke.current) woke.current = { rest, timer: setTimeout(() => woke.current && fire(woke.current.rest), 2500) };
-    else woke.current.rest = rest;
+    // Ouviu "abrir Lotus": abre assim que a pessoa faz uma pausa de meio segundo.
+    // Cada palavra nova reinicia a contagem, para não cortar o pedido no meio.
+    if (woke.current) clearTimeout(woke.current.timer);
+    woke.current = { rest, timer: setTimeout(() => woke.current && fire(woke.current.rest), WAKE_PAUSE_MS) };
   });
 
   useSpeechRecognitionEvent('end', () => {
     running.current = false;
+    if (!on.current) return;
     onListening && onListening(false);
     if (on.current) scheduleRestart(errors.current > 4 ? 5000 : 350);
   });
 
   useSpeechRecognitionEvent('error', (event) => {
+    if (!on.current) return;
     errors.current += 1;
     if (event && (event.error === 'not-allowed' || event.error === 'service-not-allowed')) {
       on.current = false;

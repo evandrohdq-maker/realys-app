@@ -28,8 +28,10 @@ import CategoryMenu from './src/components/CategoryMenu';
 import UpdateChecker from './src/components/UpdateChecker';
 import { AdminSystem, NoteModal, SYSTEM_MAP } from './src/screens/admin/AdminSystem';
 import { WakeWordListener } from './src/wakeWord';
+import { findNavigation, navReply } from './src/voiceNav';
+import { stripWake } from './src/wakeMatch';
+import { speakSoft, prepareVoice } from './src/voice';
 import { UserProfileModal, PeopleSearchModal } from './src/components/People';
-import MyStoryButton from './src/components/MyStoryButton';
 import { CompanyProfileModal } from './src/components/CompanyProfile';
 import TransitScreen from './src/screens/cliente/TransitScreen';
 import SosScreen from './src/screens/cliente/SosScreen';
@@ -137,27 +139,36 @@ function Shell() {
   // Botão voltar do Android: 1) volta dentro da tela, 2) volta para a aba anterior,
   // 3) vai para a aba inicial, 4) na aba inicial, pede um segundo toque para sair.
   live.current = { tab, role: state.activeRole };
+  // Volta um passo (usado pelo botão do celular e pelo "voltar" falado para a Lotus).
+  // Retorna false quando já está na aba inicial sem nada para voltar.
+  const goBack = () => {
+    if (backStack.pop()) return true;
+    const { tab: curTab, role } = live.current;
+    const prev = history.current.pop();
+    if (prev) {
+      if (prev.role !== role && TABS[prev.role] && state.user.roles.includes(prev.role)) {
+        pendingTab.current = prev.tab;
+        dispatch({ type: 'SET_ROLE', role: prev.role });
+      } else if (TABS[role].some((t) => t.key === prev.tab)) {
+        setTabRaw(prev.tab);
+      } else {
+        setTabRaw(TABS[role][0].key);
+      }
+      return true;
+    }
+    const first = TABS[role][0].key;
+    if (curTab !== first) {
+      setTabRaw(first);
+      return true;
+    }
+    return false;
+  };
+  const goBackRef = useRef(goBack);
+  goBackRef.current = goBack;
+
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (backStack.pop()) return true;
-      const { tab: curTab, role } = live.current;
-      const prev = history.current.pop();
-      if (prev) {
-        if (prev.role !== role && TABS[prev.role] && state.user.roles.includes(prev.role)) {
-          pendingTab.current = prev.tab;
-          dispatch({ type: 'SET_ROLE', role: prev.role });
-        } else if (TABS[role].some((t) => t.key === prev.tab)) {
-          setTabRaw(prev.tab);
-        } else {
-          setTabRaw(TABS[role][0].key);
-        }
-        return true;
-      }
-      const first = TABS[role][0].key;
-      if (curTab !== first) {
-        setTabRaw(first);
-        return true;
-      }
+      if (goBackRef.current()) return true;
       const now = Date.now();
       if (now - lastBack.current < 2000) return false; // segundo toque: sai do app
       lastBack.current = now;
@@ -165,7 +176,12 @@ function Shell() {
       return true;
     });
     return () => sub.remove();
-  }, [backStack, dispatch, state.user]);
+  }, []);
+
+  // A voz da Lotus já fica escolhida desde a abertura do app (resposta sem atraso).
+  useEffect(() => {
+    prepareVoice();
+  }, []);
 
   const current = tabs.find((t) => t.key === tab) || tabs[0];
   const Comp = current.Comp;
@@ -196,18 +212,29 @@ function Shell() {
     switchRole(role, go.tab);
   };
 
+  // A Lotus só leva para áreas que a conta pode abrir.
+  const canOpen = (tabKey) => state.user.roles.some((r) => TABS[r] && TABS[r].some((t) => t.key === tabKey));
+  // Navegação falada: "me leva pro Agro", "abre o Food", "voltar".
+  const voiceGo = (nav) => {
+    setVoice(false);
+    setWakeCmd(null);
+    if (nav.back) {
+      if (!goBack()) speakSoft('Você já está no início.');
+      return;
+    }
+    pick(nav.go);
+  };
+
   return (
     <BackProvider value={backStack}>
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        {/* Canto superior esquerdo: sua última publicação de story, com o + para criar outro. */}
-        <MyStoryButton />
+        {/* Logo do Realys à esquerda (o R dourado, mesmo ícone do app). */}
+        <View style={{ flexDirection: 'row', alignItems: 'center' }} accessibilityLabel="Realys">
+          <Image source={require('./assets/icon.png')} style={styles.logoImg} />
+          <Text style={styles.brand}>REALYS</Text>
+        </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          {/* Logo do Realys (o R dourado, mesmo ícone do app). */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 10 }} accessibilityLabel="Realys">
-            <Image source={require('./assets/icon.png')} style={styles.logoImg} />
-            <Text style={styles.brand}>REALYS</Text>
-          </View>
           <TouchableOpacity onPress={() => setSearching(true)} style={[styles.dots, { marginRight: 6, width: 40, height: 40 }]} accessibilityLabel="Buscar pessoas na rede Realys">
             <Ionicons name="search" size={19} color={colors.text} />
           </TouchableOpacity>
@@ -288,11 +315,19 @@ function Shell() {
           setWakeCmd(null);
           pick(go);
         }}
+        onVoiceNav={voiceGo}
+        canOpen={canOpen}
       />
       <WakeWordListener
         enabled={state.handsFree && !voice && !menu && !noting && !searching}
         onListening={setHearing}
         onWake={(text) => {
+          // "abrir Lotus, me leva pro Agro": vai direto, sem abrir a caixa da Lotus.
+          const nav = text ? findNavigation(stripWake(text)) : null;
+          if (nav && (nav.back || canOpen(nav.go.tab))) {
+            speakSoft(navReply(nav));
+            return voiceGo(nav);
+          }
           setWakeCmd({ text, at: Date.now() });
           setVoice(true);
         }}
