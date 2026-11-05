@@ -906,8 +906,8 @@ export function detectService(text) {
 }
 
 // Cria um chamado para o prestador mais próximo de qualquer tipo de serviço.
-export function buildServiceCall(state, address, serviceKey = 'motorista') {
-  const provider = nearest(state, serviceKey);
+export function buildServiceCall(state, address, serviceKey = 'motorista', providerId = null) {
+  const provider = (providerId && state.providers.find((p) => p.id === providerId)) || nearest(state, serviceKey);
   if (!provider) return null;
   const type = serviceType(serviceKey);
   const transport = type.group === 'Transporte';
@@ -932,7 +932,8 @@ export function callReply(call) {
   const p = call.provider;
   const plate = p.plate ? `, placa ${p.plate.split('').join(' ')}` : '';
   const vehicle = p.vehicle ? ` ${p.vehicle}${plate}.` : '';
-  return `Ok, agendando. ${call.serviceLabel} ${p.name}, nota ${String(p.rating).replace('.', ',')}, chega em ${call.eta} minutos.${vehicle}`;
+  if (call.when) return `Pronto, agendado para ${call.when}. ${call.serviceLabel} ${p.name}, nota ${String(p.rating).replace('.', ',')}.${vehicle}`;
+  return `Ok, chamando agora. ${call.serviceLabel} ${p.name}, nota ${String(p.rating).replace('.', ',')}, chega em ${call.eta} minutos.${vehicle}`;
 }
 
 // "R$ 80,00 por hora", "R$ 35,00 por m²"...
@@ -957,7 +958,8 @@ export function searchReply(state, serviceKey) {
     `O mais próximo é ${first.name}, a ${km(first)} quilômetros, nota ${String(first.rating).replace('.', ',')}. ` +
     `Faz ${first.functions.slice(0, 3).join(', ').toLowerCase()}, e cobra ${priceText(first)}.`;
   if (list[1]) reply += ` Também tem ${list[1].name}, a ${km(list[1])} quilômetros, por ${priceText(list[1])}.`;
-  reply += ` Quer que eu chame ${first.name.split(' ')[0]}?`;
+  // A Lotus nunca chama sozinha: mostra as opções e pergunta.
+  reply += ` Quer que eu chame ${first.name.split(' ')[0]} agora, agende para outro horário, ou prefere outro da lista?`;
   return { list, reply };
 }
 

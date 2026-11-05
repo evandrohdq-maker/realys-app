@@ -44,8 +44,36 @@ const norm = (s) =>
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '');
 
-const YES = /^(sim|pode|pode sim|quero|chama|chame|manda|ok|beleza|isso|confirmo|agenda|agendar)\b/;
-const CALL_NOW = /\b(chama|chame|manda|mande|agenda|agende|agendar|solicita)\b/;
+const YES = /^(sim|pode|pode sim|quero|chama|chame|manda|ok|beleza|isso|confirmo|agenda|agendar|agora|adiciona|adicione|coloca|bota|finaliza\w*|fecha\w*)\b/;
+const NO = /^(nao|deixa|cancela|agora nao|nenhum|esquece)\b/;
+const CALL_NOW = /\b(chama|chame|manda|mande|solicita)\b/;
+// "Agendar para depois": mais tarde, amanhã, às 18h, sexta…
+const LATER = /\b(mais tarde|depois|outro horario|outro dia|amanha|depois de amanha|hoje a (tarde|noite)|(as|para as|pras|pra) \d|\d{1,2} ?h\b|\d{1,2}:\d{2}|segunda|terca|quarta|quinta|sexta|sabado|domingo|semana que vem)/;
+const WHEN = /\b(amanha|hoje|depois de amanha|segunda|terca|quarta|quinta|sexta|sabado|domingo|semana que vem|manha|tarde|noite|\d{1,2} ?h\b|\d{1,2}:\d{2}|(as|para as|pras) \d{1,2})/;
+// Tem um dia ou horário de verdade? ("mais tarde" sozinho não conta: aí ela pergunta para quando.)
+const hasWhen = (t) => WHEN.test(t.replace(/\b(mais tarde|depois|outro horario|outro dia)\b/g, ''));
+const whenOf = (text) =>
+  text
+    .replace(/^(agend\w*|marca\w*|deixa|pode|sim|ok)\s*/i, '')
+    .replace(/^(para|pra)\s+/i, '')
+    .replace(/[.!?]+$/, '')
+    .trim();
+
+// Produtos que a Lotus mostrou (busca ou preços): ela pergunta se pode pôr no carrinho.
+const cartOptions = (results, state) =>
+  (results || [])
+    .map((r) => {
+      const m = String(r.id || '').match(/^(?:k-)?p-(.+)$/);
+      const prod = m && state.products.find((x) => x.id === m[1]);
+      return prod && prod.stock > 0 ? { id: prod.id, name: prod.name, price: prod.price } : null;
+    })
+    .filter(Boolean)
+    .slice(0, 5);
+const withCartOffer = (res, state) => {
+  const options = cartOptions(res.results, state);
+  if (!options.length || res.pending) return res;
+  return { ...res, pending: { type: 'cart', options }, reply: `${res.reply} Quer que eu adicione ${options.length > 1 ? 'algum deles' : options[0].name} ao carrinho?` };
+};
 
 // Interpreta o comando. Devolve { reply, nav?, call?, list?, results?, pending? }.
 // Na versão final isso vira uma IA no servidor, com os cadastros reais dos prestadores.
@@ -54,13 +82,18 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
   const addrMatch = text.match(/((rua|r\.|avenida|av\.?|alameda|travessa|praca|praça|estrada)\s.+)$/i);
   const address = addrMatch ? addrMatch[1].trim() : '';
 
-  const startCall = (serviceKey, providerId) => {
-    const call = buildServiceCall(state, address, serviceKey);
+  // Só chama depois que a pessoa confirmou (agora ou agendado).
+  const startCall = (serviceKey, providerId, when, addr) => {
+    const call = buildServiceCall(state, addr || address, serviceKey, providerId);
     if (!call) return { reply: 'Não encontrei esse prestador disponível agora.' };
-    if (providerId) call.provider = state.providers.find((p) => p.id === providerId) || call.provider;
+    if (when) {
+      call.when = when;
+      call.status = `${call.serviceLabel} agendado para ${when}`;
+    }
     dispatch({ type: 'REQUEST_RIDE', ride: call });
     return { call, reply: callReply(call) };
   };
+  const firstName = (id) => ((state.providers.find((p) => p.id === id) || {}).name || '').split(' ')[0];
 
   // Resposta "sim" depois de uma pesquisa: chama o prestador sugerido.
   // "Encontrei duas Anas, qual delas?" → "a Ana Souza", "a segunda".
@@ -68,8 +101,45 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
     const o = pickOption(t, pending.options);
     if (o) return { open: o, reply: openReply(o) };
   }
-  if (pending && pending.serviceKey && YES.test(t) && !detectService(t)) return startCall(pending.serviceKey, pending.providerId);
-  if (pending && /^(nao|não|deixa|cancela)/.test(t)) return { reply: 'Tudo bem. Se precisar, é só chamar.' };
+  // Serviço mostrado: a pessoa escolhe quem, se chama agora ou agenda, ou desiste.
+  if (pending && pending.type === 'service' && !detectService(t)) {
+    const chosen = pickOption(t, pending.options || []);
+    const pid = chosen ? chosen.id : pending.providerId;
+    if (pending.stage === 'when') {
+      if (NO.test(t)) return { reply: 'Tudo bem, não agendei nada. Se precisar, é só chamar.' };
+      if (hasWhen(t)) return startCall(pending.serviceKey, pid, whenOf(text.replace(/^\s*lotus[,\s]*/i, '')), pending.address);
+      return { reply: 'Para quando? Por exemplo: hoje às 18h ou amanhã às 9h.', pending };
+    }
+    if (NO.test(t) && !chosen) return { reply: 'Tudo bem, não chamei ninguém. Se precisar, é só pedir.' };
+    if (LATER.test(t)) {
+      if (hasWhen(t)) return startCall(pending.serviceKey, pid, whenOf(stripWake(text)), pending.address);
+      return { reply: `Combinado. Para quando eu agendo com ${firstName(pid)}? Por exemplo: hoje às 18h ou amanhã às 9h.`, pending: { ...pending, providerId: pid, stage: 'when' } };
+    }
+    if (chosen && !YES.test(t) && !CALL_NOW.test(t))
+      return { reply: `${chosen.name}, por ${priceText(chosen)}. Quer que eu chame agora ou agende para outro horário?`, pending: { ...pending, providerId: chosen.id } };
+    if (chosen || YES.test(t)) return startCall(pending.serviceKey, pid, null, pending.address);
+  }
+  // Produtos mostrados: pôr no carrinho só se a pessoa quiser.
+  if (pending && pending.type === 'cart') {
+    const chosen = pickOption(t, pending.options);
+    if (NO.test(t) && !chosen) return { reply: 'Tudo bem, não adicionei nada.' };
+    const item = chosen || (YES.test(t) && pending.options[0]);
+    if (item) {
+      dispatch({ type: 'ADD_TO_CART', productId: item.id });
+      const total = cartTotal(state) + item.price;
+      return { reply: `Adicionei ${item.name} ao carrinho. O total fica em ${brl(total)}. Quer que eu finalize a compra agora?`, pending: { type: 'checkout', total } };
+    }
+  }
+  // Carrinho: finalizar só com confirmação.
+  if (pending && pending.type === 'checkout') {
+    if (NO.test(t) || /continu/.test(t)) return { reply: 'Certo, o carrinho fica guardado. Você finaliza quando quiser na aba Loja.' };
+    if (YES.test(t)) {
+      if (pending.total > state.wallet + (state.giftCredits || 0)) return { reply: 'Seu saldo não dá para essa compra. Adicione saldo na carteira e eu finalizo.' };
+      dispatch({ type: 'CHECKOUT' });
+      return { reply: `Compra finalizada, ${brl(pending.total)}, com pagamento protegido. Acompanhe em Pedidos.` };
+    }
+  }
+  if (pending && NO.test(t)) return { reply: 'Tudo bem. Se precisar, é só chamar.' };
 
   // Emergência: "Lotus, liga para o SAMU", "chama os bombeiros", "socorro!".
   const EM = { samu: /\b(samu|ambulancia)\b/, bombeiros: /\bbombeiros?\b/, policia: /\bpolicia\b(?! rodoviaria)/, prf: /\bpolicia rodoviaria\b/, defesa: /\bdefesa civil\b/, cvv: /\bcvv\b/ };
@@ -85,7 +155,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
   // clientes e informação falsa. "Quanto custa um eletricista?", "o que falam da Pizzaria?",
   // "é verdade que a gasolina vai a R$ 15?". Só responde: nunca compra, vende ou age sozinha.
   const known = knowledgeAnswer(state, stripWake(text));
-  if (known) return known;
+  if (known) return withCartOffer(known, state);
 
   // Perfil de alguém: "abre o perfil da Ana", "página da Pizzaria da Praça".
   const prof = findProfile(stripWake(text), state);
@@ -114,11 +184,15 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
   const serviceKey = contentFirst ? null : detectService(t);
   if (serviceKey) {
     const transport = serviceType(serviceKey).group === 'Transporte';
-    // Transporte com endereço, ou pedido direto ("chama um eletricista"): já agenda.
-    if ((transport && address) || CALL_NOW.test(t)) return startCall(serviceKey);
-    // Senão é uma pesquisa: quem está perto, o que faz e quanto cobra.
+    // Nunca chama nem agenda sozinha: mostra quem está perto, o que faz e quanto cobra,
+    // e pergunta se chama agora, agenda para outro horário ou se prefere outro da lista.
     const { list, reply } = searchReply(state, serviceKey);
-    return { reply, list, pending: list.length ? { serviceKey, providerId: list[0].id } : null };
+    const where = transport && address ? ` saindo de ${address}` : '';
+    return {
+      reply: where ? reply.replace(' perto de você.', ` perto de você${where}.`) : reply,
+      list,
+      pending: list.length ? { type: 'service', serviceKey, providerId: list[0].id, options: list, address } : null,
+    };
   }
 
   if (/(pedido|minha entrega)/.test(t)) {
@@ -157,7 +231,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
     }
   }
   const { results, tokens, label } = found;
-  if (results.length || found.category) return { reply: contentReply(results, label, found), results };
+  if (results.length || found.category) return withCartOffer({ reply: contentReply(results, label, found), results }, state);
   if (tokens.length) return { miss: true, reply: contentReply([], label) };
   return {
     miss: true,
@@ -679,19 +753,41 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
                             <Text style={styles.itemPrice}>{r.price || `${brl(r.priceValue)}${r.priceUnit ? ' por ' + r.priceUnit : ''}`}</Text>
                           ) : null}
                         </View>
-                        <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+                        {/^(?:k-)?p-/.test(String(r.id)) && state.products.some((x) => 'p-' + x.id === String(r.id).replace(/^k-/, '')) ? (
+                          <TouchableOpacity
+                            style={styles.callBtn}
+                            onPress={() => {
+                              const pid = String(r.id).replace(/^k-/, '').slice(2);
+                              const prod = state.products.find((x) => x.id === pid);
+                              dispatch({ type: 'ADD_TO_CART', productId: pid });
+                              run(`Adicionar ${prod.name}`, { reply: `Adicionei ${prod.name} ao carrinho. Quer que eu finalize a compra agora?`, pending: { type: 'checkout', total: cartTotal(state) + prod.price } });
+                            }}
+                          >
+                            <Text style={styles.callText}>Adicionar</Text>
+                          </TouchableOpacity>
+                        ) : (
+                          <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+                        )}
                       </TouchableOpacity>
                     ))
                   : null}
                 {h.call ? <ServiceCallCard call={h.call} /> : null}
-                {i === 0 && h.pending ? (
-                  <View style={{ flexDirection: 'row', marginTop: 4 }}>
-                    <TouchableOpacity style={[styles.chip, styles.chipOn]} onPress={() => run('Sim')}>
-                      <Text style={[styles.chipText, { color: colors.onPrimary }]}>Sim, pode chamar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.chip} onPress={() => run('Não')}>
-                      <Text style={styles.chipText}>Não</Text>
-                    </TouchableOpacity>
+                {i === 0 && h.pending && pending ? (
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 4 }}>
+                    {(pending.type === 'service'
+                      ? pending.stage === 'when'
+                        ? [['Hoje às 18h', 'hoje às 18h', true], ['Amanhã às 9h', 'amanhã às 9h'], ['Não agendar', 'Não']]
+                        : [[`Chamar ${(state.providers.find((p) => p.id === pending.providerId) || { name: '' }).name.split(' ')[0]} agora`, 'Sim', true], ['Agendar para depois', 'agendar para mais tarde'], ['Não', 'Não']]
+                      : pending.type === 'cart'
+                      ? [[pending.options.length > 1 ? 'Adicionar o 1º' : 'Adicionar ao carrinho', 'Sim', true], ['Não', 'Não']]
+                      : pending.type === 'checkout'
+                      ? [['Finalizar compra', 'Sim', true], ['Continuar comprando', 'continuar']]
+                      : [['Sim', 'Sim', true], ['Não', 'Não']]
+                    ).map(([label, say, main]) => (
+                      <TouchableOpacity key={label} style={[styles.chip, main && styles.chipOn]} onPress={() => run(say)}>
+                        <Text style={[styles.chipText, main && { color: colors.onPrimary }]}>{label}</Text>
+                      </TouchableOpacity>
+                    ))}
                   </View>
                 ) : null}
               </View>

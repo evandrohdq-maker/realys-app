@@ -24,9 +24,9 @@
 
 **Em todas as telas:** o botão redondo do microfone abre a **Lotus**, assistente de voz do Realys (responde com voz feminina suave, em português do Brasil), com pesquisa por voz para qualquer prestador:
 
-- *"Preciso de um eletricista. Tem algum perto de mim?"* → a Lotus responde por voz quem está perto, a distância, a nota, o que a pessoa faz e quanto cobra (ex.: "R$ 80,00 por hora"), e pergunta se quer chamar. Diga "sim" e ela agenda.
-- *"preciso de um carro na Rua Augusta, 1200"* → agenda na hora e responde com o tempo de espera, o carro e a placa.
-- *"chama um encanador"* → chama direto o mais próximo.
+- **A Lotus nunca chama, agenda ou compra sozinha:** ela mostra as opções e pergunta antes.
+- *"Preciso de um eletricista"*, *"chama um encanador"*, *"preciso de um carro na Rua Augusta, 1200"* → mostra a lista de quem está perto (distância, nota, o que faz e quanto cobra) e pergunta: **chamar agora**, **agendar para depois** ou **outro da lista**. Dá para responder "a Juliana", "o segundo", "sim", "agenda para amanhã às 9h" ou "não". Se for "mais tarde", ela pergunta para quando.
+- *"Quero uma pizza"*, *"preço do café"* → mostra as opções e pergunta se **adiciona ao carrinho** (qual delas, ou "não"); depois pergunta se **finaliza a compra** ou se você continua comprando. Os produtos da lista também têm o botão **Adicionar**.
 - *"tem hotel em Campos do Jordão?"*, *"quero alugar um apartamento"*, *"tem curso online?"* → a Lotus **pesquisa em todo o conteúdo do app** (anúncios, hotéis e pousadas, imóveis, aluguel de carros e máquinas, eventos, cursos, lojas, produtos, promoções, prestadores, lives, pessoas e posts), fala os primeiros resultados e mostra a lista; tocar num resultado abre a tela certa.
 
 **Navegar falando:** peça para a Lotus abrir qualquer página e ela fecha a caixa e leva você direto para lá: *"me leva pro Agro"*, *"abre o Food"*, *"volta pros Stories"*, *"abre as mensagens"*, *"mostra os hotéis"*, *"abre minha carteira"*, *"abre o estoque"* ou só *"voltar"*. Também funciona dizendo só o nome (*"Agro"*, *"Date"*, *"Lives"*). Com o mãos livres ligado, *"abrir Lotus, me leva pro Agro"* vai direto, sem nem abrir a caixa. A lista de páginas e dos jeitos de falar fica em `src/voiceNav.js` (inclui os jeitos que o celular escreve "Stories": "histories", "estórias", "istóris"...).
