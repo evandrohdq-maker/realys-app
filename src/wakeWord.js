@@ -1,5 +1,5 @@
-// Palavra de ativação "Realys": o app fica ouvindo e, quando alguém fala "Realys…",
-// abre o assistente com o pedido. Não passa pelo "Ok Google": usa o reconhecimento
+// Comando de ativação "abrir Lotus": o app fica ouvindo e, quando alguém fala "abrir Lotus…",
+// abre a assistente Lotus com o pedido. Não passa pelo "Ok Google": usa o reconhecimento
 // de voz do próprio celular, dentro do Realys.
 // Funciona com o app aberto e a tela ligada. Com a tela bloqueada é a próxima etapa
 // (precisa de um serviço em segundo plano com aviso fixo na barra de notificações).
@@ -8,8 +8,8 @@ import { AppState, Platform } from 'react-native';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 import { findWake, normSame } from './wakeMatch';
 
-// "Realys" é reconhecido pelo SOM (ver src/wakeMatch.js), não por uma lista de grafias:
-// o celular escreve "Reels", "realize", "rallies"... e todos contam como "Realys" no começo da frase.
+// "abrir Lotus" é reconhecido pelo SOM (ver src/wakeMatch.js), não por uma lista de grafias:
+// o celular escreve "Lótus", "lotos", "lots", "abre", "abra"... e todos contam.
 // Também confere as várias opções que o celular ouviu, não só a primeira.
 const hearWake = (results) => {
   for (const alt of results || []) {
@@ -56,7 +56,7 @@ export function WakeWordListener({ enabled, onWake, onListening, onFatal }) {
         continuous: true,
         maxAlternatives: 5,
         // Dica para o reconhecedor do celular: estas palavras existem e são prováveis.
-        contextualStrings: ['Realys', 'Riális', 'Realis'],
+        contextualStrings: ['abrir Lotus', 'Lotus', 'Lótus'],
       });
     } catch (e) {
       running.current = false;
@@ -113,7 +113,7 @@ export function WakeWordListener({ enabled, onWake, onListening, onFatal }) {
     const { said, m } = heard;
     const rest = said.slice(m.end).replace(/^[\s,.!?]+/, '');
     if (event.isFinal) return fire(rest);
-    // Ouviu "Realys": espera a pessoa terminar a frase (ou 2,5 s de silêncio).
+    // Ouviu "abrir Lotus": espera a pessoa terminar a frase (ou 2,5 s de silêncio).
     if (!woke.current) woke.current = { rest, timer: setTimeout(() => woke.current && fire(woke.current.rest), 2500) };
     else woke.current.rest = rest;
   });
@@ -129,7 +129,7 @@ export function WakeWordListener({ enabled, onWake, onListening, onFatal }) {
     if (event && (event.error === 'not-allowed' || event.error === 'service-not-allowed')) {
       on.current = false;
       stop();
-      onFatal && onFatal('O Realys precisa da permissão do microfone para ouvir a palavra "Realys".');
+      onFatal && onFatal('O Realys precisa da permissão do microfone para ouvir o comando "abrir Lotus".');
     }
   });
 

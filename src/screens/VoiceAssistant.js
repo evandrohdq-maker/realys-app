@@ -9,20 +9,21 @@ import { ServiceCallCard } from './cliente/ServicesScreen';
 import { Photo } from '../components/ui';
 import { searchAll, contentReply, CONTENT_WORDS } from '../search';
 import { stripWake } from '../wakeMatch';
+import { speakSoft, stopSpeaking, prepareVoice } from '../voice';
 import { emergencyNumbers } from '../extraData';
 import { confirmCall } from '../phone';
 
 const EXAMPLES = [
-  'Realys, preciso de um eletricista. Tem algum perto de mim?',
-  'Realys, preciso de um encanador',
-  'Realys, meu carro quebrou, preciso de um mecânico',
-  'Realys, preciso de um carro na Rua Augusta, 1200',
-  'Realys, tem motoboy perto de mim?',
-  'Realys, quanto eu vendi hoje?',
-  'Realys, quais produtos estão acabando?',
-  'Realys, tem hotel em Campos do Jordão?',
-  'Realys, quero alugar um apartamento',
-  'Realys, tem curso online?',
+  'Preciso de um eletricista. Tem algum perto de mim?',
+  'Preciso de um encanador',
+  'Meu carro quebrou, preciso de um mecânico',
+  'Preciso de um carro na Rua Augusta, 1200',
+  'Tem motoboy perto de mim?',
+  'Quanto eu vendi hoje?',
+  'Quais produtos estão acabando?',
+  'Tem hotel em Campos do Jordão?',
+  'Quero alugar um apartamento',
+  'Tem curso online?',
 ];
 
 const norm = (s) =>
@@ -53,7 +54,7 @@ function interpret(text, state, dispatch, pending) {
   if (pending && YES.test(t) && !detectService(t)) return startCall(pending.serviceKey, pending.providerId);
   if (pending && /^(nao|não|deixa|cancela)/.test(t)) return { reply: 'Tudo bem. Se precisar, é só chamar.' };
 
-  // Emergência: "Realys, liga para o SAMU", "chama os bombeiros", "socorro!".
+  // Emergência: "Lotus, liga para o SAMU", "chama os bombeiros", "socorro!".
   const EM = { samu: /\b(samu|ambulancia)\b/, bombeiros: /\bbombeiros?\b/, policia: /\bpolicia\b(?! rodoviaria)/, prf: /\bpolicia rodoviaria\b/, defesa: /\bdefesa civil\b/, cvv: /\bcvv\b/ };
   const emKey = Object.keys(EM).find((k) => EM[k].test(t));
   const wantsCall = /\b(liga|ligue|ligar|chama|chame|chamar|socorro|emergencia|urgente)\b/.test(t);
@@ -119,19 +120,21 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     setPending(res.pending || null);
     setHistory((h) => [{ q: cmd, ...res }, ...h]);
     setText('');
-    Speech.stop();
-    Speech.speak(res.reply, {
-      language: 'pt-BR',
-      rate: 1.0,
-      // Mãos livres: se a Realys fez uma pergunta ("quer que eu chame?"), já abre o microfone para a resposta.
+    speakSoft(res.reply, {
+      // Mãos livres: se a Lotus fez uma pergunta ("quer que eu chame?"), já abre o microfone para a resposta.
       onDone: () => handsFree && res.pending && listen(),
     });
   };
 
-  // Aberto pela palavra "Realys": executa o pedido falado ou abre o microfone.
+  // Já escolhe a voz suave da Lotus para a primeira resposta sair sem atraso.
+  useEffect(() => {
+    if (visible) prepareVoice();
+  }, [visible]);
+
+  // Aberto pelo comando "abrir Lotus": executa o pedido falado ou abre o microfone.
   useEffect(() => {
     if (!visible || !initialCommand) return;
-    if (initialCommand.text) run('Realys, ' + initialCommand.text);
+    if (initialCommand.text) run(initialCommand.text);
     else listen();
   }, [visible, initialCommand && initialCommand.at]);
 
@@ -144,7 +147,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
         extra: {
           'android.speech.extra.LANGUAGE_MODEL': 'free_form',
           'android.speech.extra.LANGUAGE': 'pt-BR',
-          'android.speech.extra.PROMPT': 'Fale com o Realys',
+          'android.speech.extra.PROMPT': 'Fale com a Lotus',
         },
       });
       const said = result && result.extra && result.extra['android.speech.extra.RESULTS'];
@@ -161,8 +164,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
         <View style={styles.sheet}>
           <View style={styles.head}>
-            <Text style={styles.title}>🎙️ Assistente Realys</Text>
-            <TouchableOpacity onPress={() => { Speech.stop(); onClose(); }}>
+            <Text style={styles.title}>🎙️ Lotus · assistente do Realys</Text>
+            <TouchableOpacity onPress={() => { stopSpeaking(); onClose(); }}>
               <Text style={{ fontSize: 22, color: colors.muted }}>✕</Text>
             </TouchableOpacity>
           </View>
@@ -170,7 +173,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
           <TouchableOpacity onPress={listen} activeOpacity={0.85} style={[styles.bigMic, listening && { backgroundColor: colors.accent }]}>
             <Text style={{ color: colors.text, fontSize: 40 }}>🎙️</Text>
           </TouchableOpacity>
-          <Text style={styles.hint}>{listening ? 'Ouvindo…' : 'Toque e fale: "Realys, tem hotel perto?"'}</Text>
+          <Text style={styles.hint}>{listening ? 'Ouvindo…' : 'Toque e fale: "tem hotel perto?"'}</Text>
 
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Input
@@ -237,7 +240,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
                         style={styles.provider}
                         activeOpacity={0.85}
                         onPress={() => {
-                          Speech.stop();
+                          stopSpeaking();
                           if (r.profileId) {
                             dispatch({ type: 'OPEN_PROFILE', id: r.profileId });
                             onClose();

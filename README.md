@@ -15,16 +15,16 @@
 | **Prestador** | Serviços, Feed, Stories, Perfil | **Cadastro profissional** (tipo de serviço, o que faz e quanto cobra: por hora, serviço, diária, m²…), ligar o GPS para ficar disponível, aceitar pedidos, ver ganhos |
 | **Fornecedor** | Propostas, Feed, Stories, Perfil | **Destacar produtos** (aparecem primeiro no catálogo das empresas), cadastrar produto, **enviar proposta direto para uma ou várias empresas** (quantidade, desconto, validade e mensagem), acompanhar as enviadas e responder as propostas recebidas |
 
-**Em todas as telas:** o botão redondo do microfone abre o **Assistente Realys**, com pesquisa por voz para qualquer prestador:
+**Em todas as telas:** o botão redondo do microfone abre a **Lotus**, assistente de voz do Realys (responde com voz feminina suave, em português do Brasil), com pesquisa por voz para qualquer prestador:
 
-- *"Realys, preciso de um eletricista. Tem algum perto de mim?"* → a Realys responde por voz quem está perto, a distância, a nota, o que a pessoa faz e quanto cobra (ex.: "R$ 80,00 por hora"), e pergunta se quer chamar. Diga "sim" e ela agenda.
+- *"Preciso de um eletricista. Tem algum perto de mim?"* → a Lotus responde por voz quem está perto, a distância, a nota, o que a pessoa faz e quanto cobra (ex.: "R$ 80,00 por hora"), e pergunta se quer chamar. Diga "sim" e ela agenda.
 - *"Realys, preciso de um carro na Rua Augusta, 1200"* → agenda na hora e responde com o tempo de espera, o carro e a placa.
 - *"Realys, chama um encanador"* → chama direto o mais próximo.
 - *"Realys, tem hotel em Campos do Jordão?"*, *"quero alugar um apartamento"*, *"tem curso online?"* → a Realys **pesquisa em todo o conteúdo do app** (anúncios, hotéis e pousadas, imóveis, aluguel de carros e máquinas, eventos, cursos, lojas, produtos, promoções, prestadores, lives, pessoas e posts), fala os primeiros resultados e mostra a lista; tocar num resultado abre a tela certa.
 
-**Mãos livres:** em **Perfil → Acionar falando "Realys"**, o app fica ouvindo enquanto está aberto. Basta dizer "Realys, preciso de um eletricista" que o assistente abre e responde, sem tocar na tela e sem "Ok Google". Quando a Realys pergunta algo ("quer que eu chame?"), o microfone abre sozinho para a resposta. Com o celular bloqueado ainda não funciona (próxima etapa).
+**Mãos livres:** em **Perfil → Acionar falando "abrir Lotus"**, o app fica ouvindo enquanto está aberto. Basta dizer **"abrir Lotus, preciso de um eletricista"** (ou só "abrir Lotus" e depois o pedido) que a assistente abre e responde, sem tocar na tela e sem "Ok Google". Quando a Lotus pergunta algo ("quer que eu chame?"), o microfone abre sozinho para a resposta. Com o celular bloqueado ainda não funciona (próxima etapa).
 
-**Como o app reconhece "Realys":** como é um nome inventado, o reconhecimento de voz do celular costuma escrever outra coisa ("Reels", "realize", "rallies", "real is"). Por isso o app compara pelo **som** da palavra, não pela grafia, e confere as várias opções que o celular ouviu. No começo da frase ("Realys, …", "Oi Realys, …") ele aceita sons parecidos; no meio de uma conversa só dispara se o som for praticamente igual, para não abrir sozinho com "vi uns reels ontem" ou "dez reais". Ver `src/wakeMatch.js`.
+**Como o app reconhece "abrir Lotus":** o app compara pelo **som**, não pela grafia, e confere as várias opções que o celular ouviu: aceita "Lótus", "lotos", "lots", "abre", "abra", "a brir"... Só dispara com o "abrir" antes do "Lotus", para não abrir sozinho quando alguém fala de flor de lótus ou de "lote". Ver `src/wakeMatch.js`. A voz suave fica em `src/voice.js`: escolhe a melhor voz feminina pt-BR instalada no celular e fala um pouco mais devagar.
 
 As respostas saem do **cadastro que cada prestador faz** (funções e valores). Teste no perfil Prestador: cadastre-se, fique disponível e pergunte por voz no perfil Cliente.
 
@@ -51,7 +51,7 @@ O administrador vê a visão geral da plataforma (usuários, empresas, receita),
 **Tecnologia e Agro (as duas se conversam):** atalhos no Início › Shop e no menu ⋮.
 
 - **Tecnologia:** inteligência artificial (atendente com IA, IA que lê notas e lança no caixa), robótica (kits educacionais, braço robótico para indústria), apps e sistemas (gestão, criar o app da sua empresa com um desenvolvedor), cursos e eventos (IA para negócios, Arduino, hackathon). Assinar, comprar e se inscrever com saldo Realys (vira pedido com NF-e) ou pedir orçamento.
-- **Agro:** sementes e insumos, máquinas (venda e aluguel de trator e colheitadeira), agrônomos e drone agrícola (aparecem em Serviços com preço e nota, e a Realys acha por voz: *"Realys, preciso de um agrônomo"*), direto do produtor (café, hortifrúti e laticínios para empresas), clima do dia, cotações (exemplo) e o **Doutor da lavoura**: fotografa a folha e a IA aponta a praga provável, com botão para chamar o agrônomo.
+- **Agro:** sementes e insumos, máquinas (venda e aluguel de trator e colheitadeira), agrônomos e drone agrícola (aparecem em Serviços com preço e nota, e a Lotus acha por voz: *"abrir Lotus, preciso de um agrônomo"*), direto do produtor (café, hortifrúti e laticínios para empresas), clima do dia, cotações (exemplo) e o **Doutor da lavoura**: fotografa a folha e a IA aponta a praga provável, com botão para chamar o agrônomo.
 - **Subgrupos do Agro:** no topo da aba, **Grãos, Café, Pecuária, Hortifrúti e Leite**. Cada um mostra as cotações e os produtos, máquinas e serviços daquela cadeia: silo e soja em lote (Grãos), derriçadeira e prova de café (Café), ração, brinco eletrônico, leilão virtual, bezerros e **veterinário rural** (Pecuária), estufa e mudas (Hortifrúti), ordenhadeira, tanque resfriador e coleta de leite (Leite). Também abrem pelo menu ⋮ › Agro.
 - **Agro é tech:** drones, sensores de solo, piloto automático GPS, robô de capina, app da fazenda e IA de pragas aparecem nas duas abas, com a faixa verde que leva de uma para a outra.
 
@@ -60,7 +60,7 @@ O administrador vê a visão geral da plataforma (usuários, empresas, receita),
 - **Eletrônicos:** Celulares, Informática, TV e áudio, Games, Casa inteligente e Acessórios.
 - **Vestuário:** Feminino, Masculino, Infantil, Calçados, Fitness e Acessórios.
 - **Utensílios domésticos:** Cozinha, Eletroportáteis, Mesa, Cama e banho, Limpeza e Organização.
-- Cada subgrupo mostra os **lançamentos** numa faixa no topo, depois as ofertas com os **patrocinados primeiro**, e tem o filtro **Envia para o Brasil**. Comprar usa o saldo Realys (pedido com NF-e). Alguns itens levam a prestadores (técnico de casa inteligente, costureira, diarista). Tudo aparece também na pesquisa por voz (*"Realys, quero uma air fryer"*).
+- Cada subgrupo mostra os **lançamentos** numa faixa no topo, depois as ofertas com os **patrocinados primeiro**, e tem o filtro **Envia para o Brasil**. Comprar usa o saldo Realys (pedido com NF-e). Alguns itens levam a prestadores (técnico de casa inteligente, costureira, diarista). Tudo aparece também na pesquisa por voz (*"abrir Lotus, quero uma air fryer"*).
 
 **Menu ⋮ (três pontinhos):** no topo, abre as classes **Restaurantes, Serviços gerais, Lojas, Social e Área empresarial**. Cada classe abre uma sub-aba para escolher o tipo (ex.: Serviços gerais → Eletricista).
 
@@ -103,7 +103,7 @@ Para publicar uma atualização, basta enviar o código para a branch `main`: o 
 5. **Empresa → Negócios:** abra o Feijão Carioca, peça 60 unidades com 8% de desconto e envie a proposta.
 6. **Troque para Fornecedor:** aceite a proposta ou mande uma contraproposta.
 7. **Volte para Empresa:** o estoque subiu e a saída apareceu no fluxo de caixa. *A economia toda gira dentro do Realys.*
-8. **Toque no 🎙️** e diga "Realys, preciso de um eletricista". Ela responde quem está perto, o que faz e quanto cobra. Diga "sim" para chamar.
+8. **Toque no 🎙️** e diga "preciso de um eletricista". A Lotus responde quem está perto, o que faz e quanto cobra. Diga "sim" para chamar.
 9. **Menu ⋮ → Empregos e vagas:** candidate-se à vaga de Repositor do Mercadinho Bom Preço. Troque para **Empresa → RH**: você aparece na lista de candidatos, com identidade verificada. Marque a entrevista e contrate.
 10. **Cliente → Início › Shop:** mostre os **Lançamentos** no topo. Em **Empresa → Estoque**, toque em "Lançar no Shop" num produto e veja ele aparecer para os clientes.
 11. **Troque para Prestador:** cadastre o que você faz e quanto cobra, ligue o GPS e mostre que agora a Realys também te indica para os clientes.
@@ -152,8 +152,9 @@ src/data.js                → dados de exemplo (lojas, produtos, prestadores, f
 src/theme.js               → cores e formatação em reais
 src/components/ui.js       → botões, cartões, gráficos
 src/screens/LoginScreen.js → cadastro com biometria e escolha de perfis
-src/screens/VoiceAssistant.js → assistente de voz "Realys"
-src/wakeMatch.js           → reconhece a palavra "Realys" pelo som (aceita "Reels", "realize"…)
+src/screens/VoiceAssistant.js → Lotus, a assistente de voz
+src/voice.js               → voz suave da Lotus (voz feminina pt-BR, mais calma)
+src/wakeMatch.js           → reconhece "abrir Lotus" pelo som (aceita "Lótus", "abre lotos"…)
 src/screens/cliente/       → feed, loja, serviços, pedidos
 src/screens/empresa/       → painel, estoque, fluxo de caixa, negócios B2B, RH (vagas e candidatos)
 src/jobsData.js            → vagas de emprego e candidatos de exemplo
@@ -177,7 +178,7 @@ Para trocar os exemplos (nomes de lojas, produtos, preços, fotos), edite **`src
 - Mapa e GPS em tempo real para motoristas, entregadores e frotas de ônibus (empresas de transporte enviando a posição)
 - Cadastro real de hospitais, médicos (CRM conferido) e ambulâncias, com números verdadeiros
 - Envio e reprodução de verdade de MP3 e vídeos dos artistas (servidor de arquivos e cobrança do espaço)
-- Palavra-chave "Realys" com a tela bloqueada (motor de palavra-chave no próprio celular)
+- Comando "abrir Lotus" com a tela bloqueada (motor de palavra-chave no próprio celular)
 - IA verificadora de fake news e sistema de denúncias
 - Vídeos curtos de verdade (gravar, enviar, hospedar)
 - Publicação na Google Play

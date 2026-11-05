@@ -31,8 +31,8 @@ export default function DriverScreen() {
     Alert.alert(
       'Cadastro salvo ✅',
       state.available
-        ? 'Você já aparece para os clientes e para a pesquisa por voz da Realys.'
-        : 'Fique disponível (GPS ligado) para aparecer para os clientes e na pesquisa por voz da Realys.'
+        ? 'Você já aparece para os clientes e para a pesquisa por voz da Lotus.'
+        : 'Fique disponível (GPS ligado) para aparecer para os clientes e na pesquisa por voz da Lotus.'
     );
   };
 
@@ -61,7 +61,7 @@ export default function DriverScreen() {
         {editing ? (
           <Card>
             <Text style={{ color: colors.muted, fontSize: 13, marginBottom: 10 }}>
-              Essas informações são o que a Realys responde quando um cliente pergunta por voz: "tem eletricista perto
+              Essas informações são o que a Lotus responde quando um cliente pergunta por voz: "tem eletricista perto
               de mim?".
             </Text>
             <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Tipo de serviço</Text>

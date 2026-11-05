@@ -71,7 +71,7 @@ const initialState = {
   reports: D.reports,
   signups: D.pendingSignups,
   blocked: [],
-  handsFree: false, // ouvir a palavra "Realys" para abrir o assistente
+  handsFree: false, // ouvir o comando "abrir Lotus" para abrir a assistente
   viewCompany: null, // página pública aberta (empresa ou artista)
   following: {}, // páginas que o cliente segue
   myPage: {}, // apresentação editada da minha empresa
@@ -473,7 +473,7 @@ function reducer(state, a) {
 
     case 'TOGGLE_AVAILABLE': {
       const available = !state.available;
-      // Ao ficar disponível com cadastro feito, o prestador aparece para os clientes (e para a voz da Realys).
+      // Ao ficar disponível com cadastro feito, o prestador aparece para os clientes (e para a voz da Lotus).
       const others = state.providers.filter((p) => p.id !== 'me');
       const providers = available && state.myProvider ? [...others, state.myProvider] : others;
       return { ...state, available, providers };

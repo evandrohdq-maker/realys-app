@@ -230,7 +230,7 @@ function Shell() {
         {state.handsFree ? (
           <View style={[styles.idPill, { borderColor: hearing ? colors.accent : colors.border }]}>
             <Ionicons name={hearing ? 'ear' : 'ear-outline'} size={12} color={hearing ? colors.accent : colors.muted} />
-            <Text style={[styles.idText, { color: hearing ? colors.accent : colors.muted }]}>{hearing ? 'Diga "Realys"' : 'Mãos livres'}</Text>
+            <Text style={[styles.idText, { color: hearing ? colors.accent : colors.muted }]}>{hearing ? 'Diga "abrir Lotus"' : 'Mãos livres'}</Text>
           </View>
         ) : null}
         <Text style={styles.wallet}>Saldo {brl(state.wallet)}</Text>
@@ -244,7 +244,7 @@ function Shell() {
         style={[styles.fab, { bottom: 84 + insets.bottom }]}
         onPress={() => setVoice(true)}
         activeOpacity={0.85}
-        accessibilityLabel="Falar com a Realys"
+        accessibilityLabel="Falar com a Lotus"
       >
         <Ionicons name="mic" size={26} color={colors.primary} />
       </TouchableOpacity>

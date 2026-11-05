@@ -37,7 +37,7 @@ export default function DashboardScreen() {
       </Card>
 
       <Card style={{ backgroundColor: '#FFF4DC', borderColor: '#E9CF95' }}>
-        <Text style={{ color: colors.text, fontWeight: '800', marginBottom: 6 }}>🤖 Assistente Realys</Text>
+        <Text style={{ color: colors.text, fontWeight: '800', marginBottom: 6 }}>🤖 Lotus · assistente do Realys</Text>
         {low.map((p) => (
           <Text key={p.id} style={{ color: colors.text, marginBottom: 4 }}>
             • Seu estoque de <Text style={{ fontWeight: '700' }}>{p.name}</Text> está baixo ({p.stock} un.). Veja ofertas de

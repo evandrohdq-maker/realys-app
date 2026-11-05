@@ -10,6 +10,7 @@ import { Screen, Title, Card, Row, Input, Photo, Badge } from '../../components/
 import { etaMin, mapPos, kmText, ratingText, reviewsCount } from '../../providerInfo';
 import ProviderProfile from './ProviderProfile';
 import TrackingScreen from './TrackingScreen';
+import { speakSoft } from '../../voice';
 
 // Cartão do chamado (usado também pelo assistente de voz).
 export function ServiceCallCard({ call }) {
@@ -84,8 +85,7 @@ export default function ServicesScreen({ explore, navigate }) {
     c.provider = p;
     c.eta = etaMin(p);
     dispatch({ type: 'REQUEST_RIDE', ride: c });
-    Speech.stop();
-    Speech.speak(callReply(c), { language: 'pt-BR' });
+    speakSoft(callReply(c));
     setProfile(null);
     setTracking(c);
   };
@@ -263,7 +263,7 @@ export default function ServicesScreen({ explore, navigate }) {
         <Row>
           <Ionicons name="mic-outline" size={18} color={colors.primary} />
           <Text style={{ color: colors.text, fontSize: 13, marginLeft: 8, flex: 1 }}>
-            Pela voz também funciona: "Realys, preciso de um eletricista na Rua Tamandaré".
+            Pela voz também funciona: "abrir Lotus, preciso de um eletricista na Rua Tamandaré".
           </Text>
         </Row>
       </Card>

@@ -32,10 +32,10 @@ export function stem(w) {
 
 const words = (s) => norm(s).split(/[^a-z0-9]+/).filter(Boolean);
 
-// Palavras que não ajudam a achar nada ("Realys, tem algum hotel perto de mim?").
+// Palavras que não ajudam a achar nada ("Lotus, tem algum hotel perto de mim?").
 const STOP = new Set(
   (
-    'realys reales rayles realis preciso precisando quero queria gostaria tem tenho algum alguma alguns algumas ' +
+    'realys reales rayles realis lotus lotos preciso precisando quero queria gostaria tem tenho algum alguma alguns algumas ' +
     'perto proximo proxima mim me meu minha um uma uns umas o a os as de do da dos das no na nos nas em para pra pro ' +
     'com sem por e ou que eu voce vc ver veja mostra mostre mostrar procura procuro procurar pesquisa pesquisar ' +
     'busca buscar busco encontrar encontra acha achar ache qual quais onde como tipo algo coisa favor hoje agora aqui ' +

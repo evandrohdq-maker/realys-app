@@ -142,9 +142,9 @@ export default function ProfileScreen({ navigate }) {
       <Card style={{ backgroundColor: colors.primaryLight, borderColor: 'rgba(168,121,10,0.35)', marginTop: 8 }}>
         <Row>
           <View style={{ flex: 1, paddingRight: 10 }}>
-            <Text style={{ fontWeight: '800', color: colors.text, fontSize: 15 }}>Acionar falando "Realys"</Text>
+            <Text style={{ fontWeight: '800', color: colors.text, fontSize: 15 }}>Acionar falando "abrir Lotus"</Text>
             <Text style={{ color: colors.muted, fontSize: 12, marginTop: 4 }}>
-              Com o app aberto, diga "Realys, preciso de um eletricista" e a Realys atende, sem tocar na tela e sem "Ok Google".
+              Com o app aberto, diga "abrir Lotus, preciso de um eletricista" e a Lotus, assistente do Realys, atende com voz suave, sem tocar na tela e sem "Ok Google".
             </Text>
           </View>
           <Switch
