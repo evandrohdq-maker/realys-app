@@ -16,12 +16,15 @@ import { speakSoft, stopSpeaking, prepareVoice } from '../voice';
 import { emergencyNumbers } from '../extraData';
 import { confirmCall } from '../phone';
 import { findNavigation, navReply } from '../voiceNav';
+import { isPartyQuery, hasPartyCue, partyReply, findProfile, pickOption, openReply, askReply, toResult } from '../voiceIntents';
 
 // Sugestões que aparecem antes da primeira fala.
 const EXAMPLES = [
   'Me leva pro Agro',
   'Abre o Food',
   'Volta pros Stories',
+  'Festa mais próxima',
+  'Abre o perfil da Ana',
   'Tem eletricista perto de mim?',
   'Preciso de um carro na Rua Augusta, 1200',
   'Tem hotel em Campos do Jordão?',
@@ -57,7 +60,12 @@ function interpret(text, state, dispatch, pending, canOpen) {
   };
 
   // Resposta "sim" depois de uma pesquisa: chama o prestador sugerido.
-  if (pending && YES.test(t) && !detectService(t)) return startCall(pending.serviceKey, pending.providerId);
+  // "Encontrei duas Anas, qual delas?" → "a Ana Souza", "a segunda".
+  if (pending && pending.type === 'profile') {
+    const o = pickOption(t, pending.options);
+    if (o) return { open: o, reply: openReply(o) };
+  }
+  if (pending && pending.serviceKey && YES.test(t) && !detectService(t)) return startCall(pending.serviceKey, pending.providerId);
   if (pending && /^(nao|não|deixa|cancela)/.test(t)) return { reply: 'Tudo bem. Se precisar, é só chamar.' };
 
   // Emergência: "Lotus, liga para o SAMU", "chama os bombeiros", "socorro!".
@@ -70,12 +78,27 @@ function interpret(text, state, dispatch, pending, canOpen) {
     return { reply: `Vou ligar para ${e.label}, ${e.number.split('').join(' ')}. Confirme na tela.` };
   }
 
+  // Perfil de alguém: "abre o perfil da Ana", "página da Pizzaria da Praça".
+  const prof = findProfile(stripWake(text), state);
+  if (prof) {
+    if (prof.open) return { open: prof.open, reply: openReply(prof.open, prof.others) };
+    if (prof.ask) return { reply: askReply(prof.ask, prof.options), results: prof.options.map(toResult), pending: { type: 'profile', options: prof.options } };
+    return { reply: `Não encontrei ninguém chamado ${prof.notFound} no Realys. Confira o nome ou procure pela lupa no topo do app.` };
+  }
+
+  // Festas: "festa mais próxima", "tem balada aberta agora?" → abertas ou que abrem logo, pela distância.
+  // (Aluguel de salão e buffet continuam na busca geral.)
+  const party = isPartyQuery(t);
+  if (party && hasPartyCue(t)) return partyReply(t);
+
   // Navegação: "me leva pro Agro", "abre o Food", "volta pros Stories", "voltar".
   const nav = findNavigation(stripWake(text));
   if (nav) {
     if (nav.back || !canOpen || canOpen(nav.go.tab)) return { nav, reply: navReply(nav) };
     return { reply: `${nav.label} é uma área para contas de empresa, com CNPJ. Cadastre uma empresa no login para acessar.` };
   }
+
+  if (party) return partyReply(t);
 
   // "Alugar um carro", "hotel", "curso"… é busca de conteúdo, não chamada de prestador.
   const contentFirst = CONTENT_WORDS.test(t);
@@ -243,6 +266,15 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
       setPhase('idle');
       speakSoft(res.reply);
       onVoiceNav(res.nav);
+      return;
+    }
+    // Perfil: fala "Abrindo o perfil de Ana Paula", fecha a caixa e abre o perfil.
+    if (res.open) {
+      setPending(null);
+      setPhase('idle');
+      speakSoft(res.reply);
+      dispatch({ type: res.open.kind === 'company' ? 'OPEN_COMPANY' : 'OPEN_PROFILE', id: res.open.id });
+      onClose();
       return;
     }
     setPending(res.pending || null);

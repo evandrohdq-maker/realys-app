@@ -29,6 +29,7 @@ import UpdateChecker from './src/components/UpdateChecker';
 import { AdminSystem, NoteModal, SYSTEM_MAP } from './src/screens/admin/AdminSystem';
 import { WakeWordListener } from './src/wakeWord';
 import { findNavigation, navReply } from './src/voiceNav';
+import { findProfile, openReply } from './src/voiceIntents';
 import { stripWake } from './src/wakeMatch';
 import { speakSoft, prepareVoice } from './src/voice';
 import { UserProfileModal, PeopleSearchModal } from './src/components/People';
@@ -323,7 +324,14 @@ function Shell() {
         onListening={setHearing}
         onWake={(text) => {
           // "abrir Lotus, me leva pro Agro": vai direto, sem abrir a caixa da Lotus.
-          const nav = text ? findNavigation(stripWake(text)) : null;
+          // "abrir Lotus, abre o perfil do Diego": abre o perfil direto.
+          const prof = text ? findProfile(stripWake(text), state) : null;
+          if (prof && prof.open) {
+            speakSoft(openReply(prof.open, prof.others));
+            dispatch({ type: prof.open.kind === 'company' ? 'OPEN_COMPANY' : 'OPEN_PROFILE', id: prof.open.id });
+            return;
+          }
+          const nav = text && !prof ? findNavigation(stripWake(text)) : null;
           if (nav && (nav.back || canOpen(nav.go.tab))) {
             speakSoft(navReply(nav));
             return voiceGo(nav);
