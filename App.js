@@ -29,6 +29,7 @@ import UpdateChecker from './src/components/UpdateChecker';
 import { AdminSystem, NoteModal, SYSTEM_MAP } from './src/screens/admin/AdminSystem';
 import { WakeWordListener } from './src/wakeWord';
 import { UserProfileModal, PeopleSearchModal } from './src/components/People';
+import MyStoryButton from './src/components/MyStoryButton';
 import { CompanyProfileModal } from './src/components/CompanyProfile';
 import TransitScreen from './src/screens/cliente/TransitScreen';
 import SosScreen from './src/screens/cliente/SosScreen';
@@ -200,6 +201,8 @@ function Shell() {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {/* Canto superior esquerdo: sua última publicação de story, com o + para criar outro. */}
+          <MyStoryButton />
           <View style={styles.logoMark}>
             <Ionicons name="cube-outline" size={18} color={colors.primary} />
           </View>
@@ -233,7 +236,6 @@ function Shell() {
             <Text style={[styles.idText, { color: hearing ? colors.accent : colors.muted }]}>{hearing ? 'Diga "abrir Lotus"' : 'Mãos livres'}</Text>
           </View>
         ) : null}
-        <Text style={styles.wallet}>Saldo {brl(state.wallet)}</Text>
       </View>
 
       <View style={{ flex: 1 }}>
@@ -354,16 +356,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoMark: {
-    width: 32,
-    height: 32,
+    width: 28,
+    height: 28,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: 'rgba(168,121,10,0.45)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: 8,
   },
-  brand: { color: colors.text, fontSize: 19, fontWeight: '800', letterSpacing: 4 },
+  brand: { color: colors.text, fontSize: 17, fontWeight: '800', letterSpacing: 2 },
   roleChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -375,7 +377,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(168,121,10,0.08)',
     marginRight: 8,
   },
-  roleChipText: { color: colors.primary, fontWeight: '700', fontSize: 12, marginLeft: 5, maxWidth: 92 },
+  roleChipText: { color: colors.primary, fontWeight: '700', fontSize: 12, marginLeft: 5, maxWidth: 72 },
   dots: {
     width: 44,
     height: 44,

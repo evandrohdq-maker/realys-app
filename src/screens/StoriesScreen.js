@@ -6,11 +6,12 @@ import { colors } from '../theme';
 import { Photo } from '../components/ui';
 import { stories, contacts } from '../homeData';
 import { StoryViewer, StoryComposer } from './cliente/home/Stories';
-import { TestimonialFeed } from '../components/SocialProfile';
+import { CommunityHub } from './cliente/home/HomeScreen';
 
 // Página própria dos Stories (botão "Stories" na barra de baixo).
-// Em cima, a faixa de bolinhas como no Instagram; embaixo, o feed de depoimentos (estilo Orkut).
-export default function StoriesScreen({ navigate }) {
+// Em cima, a faixa de bolinhas como no Instagram; embaixo, a Comunidade: feed único de posts e
+// depoimentos (curtir, comentar, compartilhar), mensagens, contatos e live.
+export default function StoriesScreen({ navigate, explore }) {
   const { state, dispatch } = useStore();
   const [view, setView] = useState(null); // { groups, start, mine }
   const [composing, setComposing] = useState(false);
@@ -50,11 +51,14 @@ export default function StoriesScreen({ navigate }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 110 }}>
-        <View style={styles.head}>
+      <CommunityHub
+        explore={explore}
+        top={
+          <View>
+        <View style={[styles.head, { paddingHorizontal: 0, paddingTop: 0 }]}>
           <View style={{ flex: 1 }}>
             <Text style={styles.title}>Stories</Text>
-            <Text style={styles.sub}>Stories e depoimentos de pessoas e empresas verificadas</Text>
+            <Text style={styles.sub}>Stories, posts e depoimentos de pessoas e empresas verificadas</Text>
           </View>
           <TouchableOpacity style={styles.newBtn} onPress={() => setComposing(true)} accessibilityLabel="Criar story">
             <Ionicons name="add" size={18} color={colors.onPrimary} />
@@ -63,7 +67,7 @@ export default function StoriesScreen({ navigate }) {
         </View>
 
         {/* Faixa de bolinhas */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.strip}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={styles.strip}>
           <TouchableOpacity style={styles.item} onPress={openMine} activeOpacity={0.85} accessibilityLabel="Seu story">
             <View style={[styles.ring, { borderColor: mine.items.length ? colors.gold : colors.border }]}>
               <View style={styles.meAvatar}>
@@ -90,9 +94,9 @@ export default function StoriesScreen({ navigate }) {
           })}
         </ScrollView>
 
-        {/* Abaixo dos stories: feed de depoimentos aprovados (curtir, comentar, compartilhar). */}
-        <TestimonialFeed />
-      </ScrollView>
+          </View>
+        }
+      />
 
       <StoryViewer
         visible={!!view}

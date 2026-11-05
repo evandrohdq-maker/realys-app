@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput, Share } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf } from '../../../store';
 import { colors, brl } from '../../../theme';
@@ -11,14 +11,14 @@ import { PeopleSearchModal, PersonRow } from '../../../components/People';
 import { LaunchStrip } from '../../../components/Launches';
 import { SHOP_SECTORS, SHOP_SECTOR_KEYS } from '../../../shopSectorsData';
 import { useBack } from '../../../back';
+import { TestimonialCard, TestimonialComposer } from '../../../components/SocialProfile';
 
-// As 5 abas do topo do Início do cliente.
+// Abas do topo do Início do cliente. A Comunidade foi para a página de Stories.
 const TOP = [
   { key: 'shop', label: 'Shop', icon: 'bag-handle-outline' },
   { key: 'eventos', label: 'Eventos', icon: 'sparkles-outline' },
   { key: 'promo', label: 'Promoções', icon: 'pricetags-outline' },
   { key: 'anuncios', label: 'Anúncios', icon: 'megaphone-outline' },
-  { key: 'comunidade', label: 'Comunidade', icon: 'people-outline' },
   { key: 'lives', label: 'Lives', icon: 'radio-outline' },
 ];
 
@@ -41,6 +41,7 @@ export default function HomeScreen({ goTo, explore }) {
   // Veio do menu ⋮ (ex.: Imóveis → Alugar)
   useEffect(() => {
     if (!explore || !explore.top) return;
+    if (explore.top === 'comunidade') return; // agora fica na página de Stories
     setTop(explore.top);
     if (explore.kind) setKind(explore.kind);
     if (explore.seg) setSeg(explore.seg);
@@ -86,18 +87,6 @@ export default function HomeScreen({ goTo, explore }) {
         {top === 'eventos' ? <EventsTab group={evGroup} setGroup={setEvGroup} onContact={contactAdvertiser} /> : null}
         {top === 'promo' ? <PromoTab /> : null}
         {top === 'anuncios' ? <AdsTab kind={kind} setKind={setKind} onContact={contactAdvertiser} /> : null}
-        {top === 'comunidade' ? (
-          <CommunityTab
-            seg={seg}
-            setSeg={setSeg}
-            convs={convs}
-            contactOf={anyContact}
-            onChat={openChat}
-            onVideo={(c) => setVideoWith(c)}
-            onGoLive={() => setLive({ live: null, mine: true })}
-            userName={state.user ? state.user.name : 'Você'}
-          />
-        ) : null}
         {top === 'lives' ? <LivesTab filter={liveFilter} setFilter={setLiveFilter} onWatch={(l) => setLive({ live: l, mine: false })} onGoLive={() => setLive({ live: null, mine: true })} /> : null}
       </View>
 
@@ -446,7 +435,57 @@ function AdsTab({ kind, setKind, onContact }) {
   );
 }
 
-function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive, userName }) {
+// Comunidade completa (feed, mensagens, contatos, live), usada na página de Stories.
+// `top` é o que vem antes das abas (a faixa de stories).
+export function CommunityHub({ top, explore }) {
+  const { state, dispatch } = useStore();
+  const [seg, setSeg] = useState('posts');
+  const convs = state.conversations;
+  const setConvs = (fn) => dispatch({ type: 'UPDATE_CONVS', fn: typeof fn === 'function' ? fn : () => fn });
+  const [chatWith, setChatWith] = useState(null);
+  const [videoWith, setVideoWith] = useState(null);
+  const [live, setLive] = useState(null);
+  useBack(seg !== 'posts', () => setSeg('posts'));
+  useEffect(() => {
+    if (explore && explore.tab === 'stories' && explore.seg) setSeg(explore.seg);
+  }, [explore]);
+  const contactOf = (id) => contacts.find((c) => c.id === id) || (convs.find((c) => c.contactId === id) || {}).extra;
+  const openChat = (contact) => {
+    if (!convs.find((c) => c.contactId === contact.id)) {
+      setConvs((cs) => [{ id: 'm' + Date.now(), contactId: contact.id, unread: 0, messages: [], extra: contact }, ...cs]);
+    }
+    setConvs((cs) => cs.map((c) => (c.contactId === contact.id ? { ...c, unread: 0 } : c)));
+    setChatWith(contact);
+  };
+  const chatConv = chatWith ? convs.find((c) => c.contactId === chatWith.id) : null;
+  return (
+    <View style={{ flex: 1 }}>
+      <CommunityTab
+        top={top}
+        seg={seg}
+        setSeg={setSeg}
+        convs={convs}
+        contactOf={contactOf}
+        onChat={openChat}
+        onVideo={(c) => setVideoWith(c)}
+        onGoLive={() => setLive({ live: null, mine: true })}
+        userName={state.user ? state.user.name : 'Você'}
+      />
+      <ChatModal
+        contact={chatWith}
+        visible={!!chatWith}
+        messages={chatConv ? chatConv.messages : []}
+        onClose={() => setChatWith(null)}
+        onSend={(msg) => setConvs((cs) => cs.map((c) => (c.contactId === chatWith.id ? { ...c, messages: [...c.messages, msg] } : c)))}
+        onVideo={() => setVideoWith(chatWith)}
+      />
+      <VideoCallModal contact={videoWith} visible={!!videoWith} onClose={() => setVideoWith(null)} />
+      <LiveModal live={live && live.live} mine={!!(live && live.mine)} visible={!!live} onClose={() => setLive(null)} userName={state.user ? state.user.name : 'Você'} />
+    </View>
+  );
+}
+
+function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive, userName }) {
   const { state, dispatch } = useStore();
   const [searching, setSearching] = useState(false);
   // Tocar em quem postou abre o perfil da pessoa (com o botão de amizade).
@@ -465,7 +504,26 @@ function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive
   const [posts, setPosts] = useState(communityPosts);
   const [draft, setDraft] = useState('');
   const [liked, setLiked] = useState({});
+  const [cmts, setCmts] = useState({}); // comentários feitos aqui: { postId: [texto] }
+  const [openCmt, setOpenCmt] = useState(null);
+  const [cmtText, setCmtText] = useState('');
+  const [shared, setShared] = useState({});
+  const [writing, setWriting] = useState(false);
   const ads = useMemo(() => state.posts.filter((p) => p.sponsored), [state.posts]);
+  const testimonials = state.testimonials.filter((t) => t.status === 'aprovado');
+  const pendingMine = state.testimonials.filter((t) => t.to === 'me' && t.status === 'pendente').length;
+  const sharePost = async (p) => {
+    try {
+      const r = await Share.share({ message: `${p.author} no Realys:\n\n${p.text}\n\nRealys · Pessoas reais. Negócios reais.` });
+      if (!r || r.action !== Share.dismissedAction) setShared((x) => ({ ...x, [p.id]: (x[p.id] || 0) + 1 }));
+    } catch (e) {}
+  };
+  const sendCmt = (id) => {
+    const v = cmtText.trim();
+    if (!v) return;
+    setCmts((x) => ({ ...x, [id]: [...(x[id] || []), v] }));
+    setCmtText('');
+  };
 
   const publish = () => {
     if (!draft.trim()) return;
@@ -473,18 +531,22 @@ function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive
     setDraft('');
   };
 
-  // A cada 2 posts da comunidade entra 1 anúncio: é aqui que a publicidade chega ao usuário.
+  // Feed único: posts da comunidade e depoimentos aprovados, intercalados.
+  // A cada 2 posts entra 1 anúncio: é aqui que a publicidade chega ao usuário.
   const feed = [];
-  posts.forEach((p, i) => {
-    feed.push({ type: 'post', p });
+  const n = Math.max(posts.length, testimonials.length);
+  for (let i = 0; i < n; i++) {
+    if (posts[i]) feed.push({ type: 'post', p: posts[i] });
+    if (testimonials[i]) feed.push({ type: 'dep', t: testimonials[i] });
     if (i % 2 === 1 && ads.length) feed.push({ type: 'ad', p: ads[Math.floor(i / 2) % ads.length] });
-  });
+  }
 
   return (
-    <View style={{ flex: 1 }}>
-      <View style={styles.segRow}>
+    <Screen>
+      {top}
+      <View style={[styles.segRow, { paddingHorizontal: 0, paddingTop: 0, marginBottom: 12 }]}>
         {[
-          ['posts', 'Posts', 'chatbox-ellipses-outline'],
+          ['posts', 'Feed', 'newspaper-outline'],
           ['msgs', 'Mensagens', 'mail-outline'],
           ['contatos', 'Contatos', 'person-add-outline'],
         ].map(([k, label, icon]) => {
@@ -509,7 +571,7 @@ function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive
       </View>
 
       {seg === 'posts' ? (
-        <Screen>
+        <View>
           <View style={styles.composer}>
             <TextInput
               style={styles.composerInput}
@@ -519,12 +581,29 @@ function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive
               onChangeText={setDraft}
               multiline
             />
-            <TouchableOpacity style={styles.publish} onPress={publish}>
-              <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Publicar</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' }}>
+              <TouchableOpacity style={styles.depBtn} onPress={() => setWriting(true)} accessibilityLabel="Escrever depoimento">
+                <Ionicons name="chatbox-ellipses-outline" size={15} color={colors.primary} />
+                <Text style={{ color: colors.primary, fontWeight: '800', marginLeft: 5, fontSize: 13 }}>Depoimento</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.publish} onPress={publish}>
+                <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Publicar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
+          {pendingMine ? (
+            <View style={styles.pendingBanner}>
+              <Ionicons name="mail-unread-outline" size={18} color={colors.primaryDark} />
+              <Text style={{ color: colors.primaryDark, fontWeight: '700', marginLeft: 8, flex: 1, fontSize: 13 }}>
+                Você tem {pendingMine} depoimento{pendingMine > 1 ? 's' : ''} esperando aprovação. Veja em Perfil › Depoimentos.
+              </Text>
+            </View>
+          ) : null}
+          <TestimonialComposer visible={writing} onClose={() => setWriting(false)} />
           {feed.map((it, idx) =>
-            it.type === 'post' ? (
+            it.type === 'dep' ? (
+              <TestimonialCard key={it.t.id} t={it.t} />
+            ) : it.type === 'post' ? (
               <View key={it.p.id} style={styles.post}>
                 <TouchableOpacity
                   style={{ flexDirection: 'row', alignItems: 'center' }}
@@ -549,19 +628,49 @@ function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive
                 <Text style={{ color: colors.text, marginTop: 10, lineHeight: 20 }}>{it.p.text}</Text>
                 {it.p.image ? <Photo uri={it.p.image} style={styles.postImg} /> : null}
                 <View style={{ flexDirection: 'row', marginTop: 10 }}>
-                  <TouchableOpacity style={styles.postAct} onPress={() => setLiked({ ...liked, [it.p.id]: !liked[it.p.id] })}>
+                  <TouchableOpacity style={styles.postAct} onPress={() => setLiked({ ...liked, [it.p.id]: !liked[it.p.id] })} accessibilityLabel="Curtir">
                     <Ionicons name={liked[it.p.id] ? 'heart' : 'heart-outline'} size={18} color={liked[it.p.id] ? '#FF5A7A' : colors.muted} />
                     <Text style={styles.postActText}>{it.p.likes + (liked[it.p.id] ? 1 : 0)}</Text>
                   </TouchableOpacity>
-                  <View style={styles.postAct}>
+                  <TouchableOpacity
+                    style={styles.postAct}
+                    onPress={() => {
+                      setOpenCmt(openCmt === it.p.id ? null : it.p.id);
+                      setCmtText('');
+                    }}
+                    accessibilityLabel="Comentar"
+                  >
                     <Ionicons name="chatbubble-outline" size={17} color={colors.muted} />
-                    <Text style={styles.postActText}>{it.p.comments}</Text>
-                  </View>
-                  <View style={styles.postAct}>
+                    <Text style={styles.postActText}>{it.p.comments + (cmts[it.p.id] || []).length}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.postAct} onPress={() => sharePost(it.p)} accessibilityLabel="Compartilhar">
                     <Ionicons name="share-social-outline" size={17} color={colors.muted} />
-                    <Text style={styles.postActText}>Compartilhar</Text>
-                  </View>
+                    <Text style={styles.postActText}>{shared[it.p.id] ? `Compartilhado ${shared[it.p.id]}x` : 'Compartilhar'}</Text>
+                  </TouchableOpacity>
                 </View>
+                {(cmts[it.p.id] || []).map((c, k) => (
+                  <View key={k} style={styles.cmt}>
+                    <Text style={{ color: colors.text, fontWeight: '800', fontSize: 12 }}>{userName}</Text>
+                    <Text style={{ color: colors.text, fontSize: 13 }}>{c}</Text>
+                  </View>
+                ))}
+                {openCmt === it.p.id ? (
+                  <View style={styles.cmtBox}>
+                    <TextInput
+                      value={cmtText}
+                      onChangeText={setCmtText}
+                      placeholder="Escreva um comentário…"
+                      placeholderTextColor={colors.muted}
+                      style={{ flex: 1, color: colors.text, height: 40 }}
+                      onSubmitEditing={() => sendCmt(it.p.id)}
+                      returnKeyType="send"
+                      autoFocus
+                    />
+                    <TouchableOpacity onPress={() => sendCmt(it.p.id)} style={{ padding: 6 }} accessibilityLabel="Enviar comentário">
+                      <Ionicons name="send" size={18} color={cmtText.trim() ? colors.primary : colors.muted} />
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
               </View>
             ) : (
               <View key={'ad' + idx} style={[styles.post, { borderColor: 'rgba(108,92,231,0.45)' }]}>
@@ -574,11 +683,11 @@ function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive
               </View>
             )
           )}
-        </Screen>
+        </View>
       ) : null}
 
       {seg === 'msgs' ? (
-        <Screen>
+        <View>
           {convs.map((c) => {
             const ct = contactOf(c.contactId);
             if (!ct) return null;
@@ -603,11 +712,11 @@ function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive
               </TouchableOpacity>
             );
           })}
-        </Screen>
+        </View>
       ) : null}
 
       {seg === 'contatos' ? (
-        <Screen>
+        <View>
           <TouchableOpacity style={styles.findPeople} onPress={() => setSearching(true)} activeOpacity={0.85}>
             <Ionicons name="search" size={18} color={colors.muted} />
             <Text style={{ color: colors.muted, marginLeft: 8, flex: 1 }}>Buscar pessoas por nome ou @usuário</Text>
@@ -654,10 +763,10 @@ function CommunityTab({ seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive
               </TouchableOpacity>
             </View>
           ))}
-        </Screen>
+        </View>
       ) : null}
       <PeopleSearchModal visible={searching} onClose={() => setSearching(false)} />
-    </View>
+    </Screen>
   );
 }
 
@@ -899,6 +1008,10 @@ const styles = StyleSheet.create({
   findPeople: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingHorizontal: 12, height: 46, marginBottom: 6 },
   contactsTitle: { color: colors.text, fontWeight: '800', fontSize: 15, marginTop: 12, marginBottom: 8 },
   composerInput: { color: colors.text, fontSize: 15, minHeight: 44, textAlignVertical: 'top' },
+  depBtn: { flexDirection: 'row', alignItems: 'center', height: 36, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1.5, borderColor: colors.primary, marginTop: 6, marginRight: 8 },
+  pendingBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: 12, padding: 10, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(168,121,10,0.3)' },
+  cmt: { backgroundColor: colors.cardAlt, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 7, marginTop: 8 },
+  cmtBox: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: 20, paddingLeft: 12, marginTop: 8, backgroundColor: colors.bg },
   publish: { alignSelf: 'flex-end', height: 36, paddingHorizontal: 16, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
   post: { backgroundColor: colors.card, borderRadius: 18, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 12 },
   avatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },

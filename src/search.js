@@ -302,7 +302,7 @@ function buildIndex(state) {
 
   communityPosts.forEach((c) =>
     add(
-      { id: 'c-' + c.id, section: 'Comunidade', icon: '💬', title: c.author, subtitle: c.text, go: { tab: 'home', top: 'comunidade', seg: 'posts' } },
+      { id: 'c-' + c.id, section: 'Comunidade', icon: '💬', title: c.author, subtitle: c.text, go: { tab: 'stories', seg: 'posts' } },
       c.author, c.text, 'comunidade post'
     )
   );

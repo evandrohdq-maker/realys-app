@@ -64,6 +64,29 @@ export default function ProfileScreen({ navigate }) {
             <Text style={{ color: colors.text, fontWeight: '800', fontSize: 18 }}>{u.name}</Text>
             <Badge label="✔ Identidade verificada por biometria" />
           </View>
+          {/* Botão de emergência: pequeno, com brilho vermelho. As informações abrem na tela de Socorro. */}
+          <TouchableOpacity
+            onPress={() => navigate && navigate({ tab: 'socorro', seg: 'emergencia' })}
+            accessibilityLabel="SOS, socorro e emergência"
+            activeOpacity={0.8}
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              backgroundColor: colors.danger,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderWidth: 3,
+              borderColor: '#FFC9C7',
+              shadowColor: '#FF1E1E',
+              shadowOpacity: 0.9,
+              shadowRadius: 10,
+              shadowOffset: { width: 0, height: 0 },
+              elevation: 10,
+            }}
+          >
+            <Text style={{ color: '#FFFFFF', fontWeight: '900', fontSize: 12, letterSpacing: 0.5 }}>SOS</Text>
+          </TouchableOpacity>
         </Row>
         <Row style={{ justifyContent: 'space-between', marginTop: 14 }}>
           <Text style={{ color: colors.muted }}>Saldo Realys</Text>
@@ -78,41 +101,6 @@ export default function ProfileScreen({ navigate }) {
           É o que seus amigos veem ao abrir seu perfil. Depoimentos só aparecem depois que você aceita.
         </Text>
         <ProfileSocial ownerId="me" />
-      </Card>
-
-      {/* SOS: socorro e emergência (antes ficava no topo do app). */}
-      <Card style={{ backgroundColor: '#FDECEC', borderColor: colors.danger, borderWidth: 1.5 }}>
-        <TouchableOpacity
-          activeOpacity={0.85}
-          onPress={() => navigate && navigate({ tab: 'socorro', seg: 'emergencia' })}
-          accessibilityLabel="Socorro e emergência"
-          style={{ flexDirection: 'row', alignItems: 'center' }}
-        >
-          <View style={{ width: 54, height: 54, borderRadius: 27, backgroundColor: colors.danger, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-            <Text style={{ color: '#FFFFFF', fontWeight: '900', fontSize: 15, letterSpacing: 1 }}>SOS</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.danger, fontWeight: '900', fontSize: 16 }}>Socorro e emergência</Text>
-            <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>SAMU 192, Bombeiros 193, Polícia 190 e hospitais próximos</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.danger} />
-        </TouchableOpacity>
-        <Row style={{ marginTop: 12 }}>
-          {[
-            ['hospitais', 'Hospitais', 'business-outline'],
-            ['especialistas', 'Médicos', 'medkit-outline'],
-            ['socorristas', 'Ambulâncias', 'pulse-outline'],
-          ].map(([seg, label, icon], i) => (
-            <TouchableOpacity
-              key={seg}
-              onPress={() => navigate && navigate({ tab: 'socorro', seg })}
-              style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 36, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(217,83,79,0.4)', backgroundColor: '#FFFFFF', marginLeft: i ? 6 : 0 }}
-            >
-              <Ionicons name={icon} size={14} color={colors.danger} />
-              <Text style={{ color: colors.danger, fontWeight: '700', fontSize: 11, marginLeft: 4 }}>{label}</Text>
-            </TouchableOpacity>
-          ))}
-        </Row>
       </Card>
 
       <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16, marginVertical: 8 }}>Trocar de perfil</Text>
