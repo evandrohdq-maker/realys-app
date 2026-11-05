@@ -20,7 +20,25 @@ export function profileById(state, id) {
   return { ...s, kind: 'empresa', bio: page.bio || '', hours: page.hours, followers: page.followers || 0, verified: true };
 }
 
-export const mediaOf = (state, id) => [...(state.myMedia || []).filter((m) => m.ownerId === id), ...artMedia.filter((m) => m.ownerId === id)];
+// Criações do Estúdio (no Perfil) marcadas para a parte empresarial também aparecem na página da empresa.
+const studioMedia = (state, id) =>
+  id !== MY_COMPANY_ID
+    ? []
+    : (state.creations || [])
+        .filter((c) => c.dest && c.dest.empresa)
+        .map((c) => ({
+          id: 'cr-' + c.id,
+          ownerId: id,
+          kind: c.kind === 'musica' ? 'musica' : c.kind === 'video' ? 'video' : 'obra',
+          title: c.title,
+          length: c.kind === 'musica' ? '3:30' : c.kind === 'video' ? 'vídeo' : 'do Estúdio',
+          plays: 0,
+          price: 0,
+          cover: c.cover,
+          file: c.file,
+          studio: true,
+        }));
+export const mediaOf = (state, id) => [...studioMedia(state, id), ...(state.myMedia || []).filter((m) => m.ownerId === id), ...artMedia.filter((m) => m.ownerId === id)];
 
 // Lista de faixas, vídeos e obras com tocador simples.
 export function MediaList({ items, showOwner }) {

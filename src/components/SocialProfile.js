@@ -12,6 +12,8 @@ import { members, memberById } from '../people';
 import { analyzeTestimonial, galleryOf } from '../testimonialsData';
 import { STORY_SAMPLE_PHOTOS } from '../homeData';
 import { StoryViewer } from '../screens/cliente/home/Stories';
+import { privacyOf, creationsOf } from '../studioData';
+import { canSee, LockedPanel, CreationsGrid } from './ProfileStudio';
 
 const first = (name) => String(name || '').split(' ')[0];
 
@@ -19,7 +21,7 @@ const first = (name) => String(name || '').split(' ')[0];
 export function usePerson() {
   const { state } = useStore();
   return (id) => {
-    if (id === 'me') return { id: 'me', name: state.user ? state.user.name : 'Você', photo: null, me: true };
+    if (id === 'me') return { id: 'me', name: state.user ? state.user.name : 'Você', photo: (state.myProfile && state.myProfile.photo) || null, me: true };
     const m = memberById(id);
     return m ? { ...m } : { id, name: 'Membro Realys', photo: null };
   };
@@ -709,26 +711,42 @@ function MediaViewer({ items, index, kind, onClose }) {
 // ───────────────────────── Abas do perfil ─────────────────────────
 
 // Destaques + abas: (Posts) · Fotos · Vídeos · Depoimentos.
-export function ProfileSocial({ ownerId, postsSlot, postsCount }) {
+export function ProfileSocial({ ownerId, postsSlot, postsCount, ownerName }) {
   const { state } = useStore();
   const mine = ownerId === 'me';
   const g = mine ? state.myGallery : galleryOf(ownerId);
   const nTest = state.testimonials.filter((t) => t.to === ownerId && t.status === 'aprovado').length;
   const nPending = mine ? state.testimonials.filter((t) => t.to === 'me' && t.status === 'pendente').length : 0;
+  // Privacidade: o dono escolhe quem vê a vida social e o portfólio (todos, só amigos, só ele).
+  const priv = mine ? { exposed: true, social: 'todos', portfolio: 'todos' } : privacyOf(ownerId);
+  const isFriend = state.friends[ownerId] === 'amigo';
+  const showSocial = canSee(priv.social, isFriend, priv.exposed);
+  const showPortfolio = canSee(priv.portfolio, isFriend, priv.exposed);
+  const created = mine ? state.creations : creationsOf(ownerId);
+  const socialCreations = created.filter((c) => c.dest && c.dest.social);
+  const portfolio = created.filter((c) => c.dest && c.dest.portfolio);
   const tabs = [
-    ...(postsSlot ? [{ key: 'posts', label: 'Posts', icon: 'grid-outline', n: postsCount }] : []),
-    { key: 'photos', label: 'Fotos', icon: 'images-outline', n: g.photos.length },
-    { key: 'videos', label: 'Vídeos', icon: 'videocam-outline', n: g.videos.length },
-    { key: 'dep', label: 'Depoimentos', icon: 'chatbox-ellipses-outline', n: nTest, alert: nPending },
+    ...(showSocial && postsSlot ? [{ key: 'posts', label: 'Posts', icon: 'grid-outline', n: postsCount }] : []),
+    ...(showSocial
+      ? [
+          { key: 'photos', label: 'Fotos', icon: 'images-outline', n: g.photos.length },
+          { key: 'videos', label: 'Vídeos', icon: 'videocam-outline', n: g.videos.length },
+          ...(socialCreations.length || mine ? [{ key: 'criacoes', label: 'Criações', icon: 'sparkles-outline', n: socialCreations.length }] : []),
+          { key: 'dep', label: 'Depoimentos', icon: 'chatbox-ellipses-outline', n: nTest, alert: nPending },
+        ]
+      : []),
+    ...(showPortfolio && (portfolio.length || mine) ? [{ key: 'portfolio', label: 'Portfólio', icon: 'briefcase-outline', n: portfolio.length }] : []),
   ];
-  const [tab, setTab] = useState(postsSlot ? 'posts' : 'photos');
+  const [tab, setTab] = useState(tabs.length ? tabs[0].key : 'photos');
+  if (!tabs.length) return <LockedPanel name={ownerName} audience={priv.social} exposed={priv.exposed} />;
+  const current = tabs.some((t) => t.key === tab) ? tab : tabs[0].key;
 
   return (
     <View>
-      <HighlightsRow ownerId={ownerId} />
+      {showSocial ? <HighlightsRow ownerId={ownerId} /> : <LockedPanel name={ownerName} audience={priv.social} exposed={priv.exposed} />}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 14, marginBottom: 12 }}>
         {tabs.map((t) => {
-          const on = tab === t.key;
+          const on = current === t.key;
           return (
             <TouchableOpacity key={t.key} onPress={() => setTab(t.key)} style={[styles.tab, on && styles.tabOn]} accessibilityLabel={t.label}>
               <Ionicons name={t.icon} size={15} color={on ? colors.onPrimary : colors.text} />
@@ -745,10 +763,12 @@ export function ProfileSocial({ ownerId, postsSlot, postsCount }) {
           );
         })}
       </ScrollView>
-      {tab === 'posts' ? postsSlot : null}
-      {tab === 'photos' ? <MediaGallery ownerId={ownerId} kind="photos" /> : null}
-      {tab === 'videos' ? <MediaGallery ownerId={ownerId} kind="videos" /> : null}
-      {tab === 'dep' ? <TestimonialsTab ownerId={ownerId} /> : null}
+      {current === 'posts' ? postsSlot : null}
+      {current === 'photos' ? <MediaGallery ownerId={ownerId} kind="photos" /> : null}
+      {current === 'videos' ? <MediaGallery ownerId={ownerId} kind="videos" /> : null}
+      {current === 'criacoes' ? <CreationsGrid items={socialCreations} emptyText="Crie no Estúdio (aqui no Perfil) e marque Social para aparecer aqui." /> : null}
+      {current === 'portfolio' ? <CreationsGrid items={portfolio} emptyText="Crie no Estúdio e marque Portfólio para montar sua vitrine de trabalhos." /> : null}
+      {current === 'dep' ? <TestimonialsTab ownerId={ownerId} /> : null}
     </View>
   );
 }

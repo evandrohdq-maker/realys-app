@@ -1,3 +1,4 @@
+import { privacyOf } from '../studioData';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -109,7 +110,7 @@ export function UserProfileModal() {
             <Ionicons name="shield-checkmark" size={16} color={colors.primary} style={{ marginLeft: 6 }} />
           </View>
           <Text style={styles.handle}>@{m.handle} · {m.city}</Text>
-          <Text style={styles.bio}>{m.bio}</Text>
+          {privacyOf(m.id).exposed ? <Text style={styles.bio}>{m.bio}</Text> : null}
 
           <View style={styles.stats}>
             <Stat n={friendsCount} label="amigos" />
@@ -132,6 +133,7 @@ export function UserProfileModal() {
           <ProfileSocial
             key={m.id}
             ownerId={m.id}
+            ownerName={m.name}
             postsCount={posts.length}
             postsSlot={
               posts.length ? (

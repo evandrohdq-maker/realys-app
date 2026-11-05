@@ -110,6 +110,14 @@ const initialState = {
   following: {}, // páginas que o cliente segue
   myPage: {}, // apresentação editada da minha empresa
   myMedia: [], // músicas, vídeos e obras que a minha empresa/artista publicou
+  // Meu perfil: dados que o usuário edita e quem pode ver cada parte.
+  myProfile: { handle: '', profession: '', city: '', bio: '', photo: null, links: '' },
+  // social = fotos, vídeos, destaques e depoimentos · portfolio = Estúdio (trabalhos e criações)
+  // 'todos' | 'amigos' | 'eu'. exposed = false deixa o perfil invisível para todo mundo.
+  privacy: { exposed: true, social: 'todos', portfolio: 'todos' },
+  // Estúdio: tudo que o usuário cria (música, vídeo, arte, foto, projeto). dest diz onde aparece:
+  // social (perfil da Comunidade), portfolio (vitrine profissional do perfil), empresa (página do CNPJ).
+  creations: [],
   mediaPlan: false, // Plano Artista Pro ativo
   boughtMedia: {}, // faixas e obras compradas pelo cliente
   tickets: [], // passagens de transporte público
@@ -452,6 +460,18 @@ function baseReducer(state, a) {
           ? [{ id: newId('m'), date: today(), desc: `Servidor Realys - ${a.item.file}`, type: 'saida', value: a.fee }, ...state.finance]
           : state.finance,
       };
+    case 'SET_MY_PROFILE':
+      return { ...state, myProfile: { ...state.myProfile, ...a.profile } };
+    case 'SET_PRIVACY':
+      return { ...state, privacy: { ...state.privacy, ...a.privacy } };
+    case 'LOAD_PROFILE':
+      return { ...state, myProfile: { ...state.myProfile, ...(a.data.myProfile || {}) }, privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations };
+    case 'ADD_CREATION':
+      return { ...state, creations: [a.item, ...state.creations] };
+    case 'UPDATE_CREATION':
+      return { ...state, creations: state.creations.map((c) => (c.id === a.id ? { ...c, ...a.patch, dest: { ...c.dest, ...((a.patch && a.patch.dest) || {}) } } : c)) };
+    case 'REMOVE_CREATION':
+      return { ...state, creations: state.creations.filter((c) => c.id !== a.id) };
     case 'MEDIA_REMOVE':
       return { ...state, myMedia: state.myMedia.filter((m) => m.id !== a.id) };
     case 'MEDIA_PLAN':
@@ -649,6 +669,7 @@ function baseReducer(state, a) {
 
 const NOTES_KEY = 'realys.admin.notes';
 const HANDSFREE_KEY = 'realys.handsfree';
+const PROFILE_KEY = 'realys.profile.v1'; // perfil editado, privacidade e criações do Estúdio
 // Sessão: o usuário continua conectado ao fechar e abrir o app, até tocar em "Sair" ou "Trocar usuário".
 const SESSION_KEY = 'realys.session';
 
@@ -709,6 +730,21 @@ export function StoreProvider({ children }) {
   useEffect(() => {
     if (loaded.current) AsyncStorage.setItem(NOTES_KEY, JSON.stringify(state.notes)).catch(() => {});
   }, [state.notes]);
+  // Perfil, privacidade e Estúdio ficam salvos no celular (por conta).
+  const profileKey = state.user ? `${PROFILE_KEY}.${state.user.id || state.user.cpf || state.user.cnpj || state.user.name}` : null;
+  const profileLoaded = useRef(null);
+  useEffect(() => {
+    if (!profileKey) return;
+    profileLoaded.current = null;
+    AsyncStorage.getItem(profileKey)
+      .then((raw) => raw && dispatch({ type: 'LOAD_PROFILE', data: JSON.parse(raw) }))
+      .catch(() => {})
+      .finally(() => (profileLoaded.current = profileKey));
+  }, [profileKey]);
+  useEffect(() => {
+    if (!profileKey || profileLoaded.current !== profileKey) return;
+    AsyncStorage.setItem(profileKey, JSON.stringify({ myProfile: state.myProfile, privacy: state.privacy, creations: state.creations })).catch(() => {});
+  }, [state.myProfile, state.privacy, state.creations]);
   return <StoreContext.Provider value={{ state, dispatch }}>{children}</StoreContext.Provider>;
 }
 

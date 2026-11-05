@@ -18,6 +18,8 @@ export const NAV_TARGETS = [
   T('Serviços', { tab: 'servicos' }, ['servicos', 'servico', 'prestadores', 'prestador de servico', 'prestadores de servico']),
   T('Pedidos', { tab: 'pedidos' }, ['pedidos', 'pedido', 'meus pedidos', 'minhas compras', 'compras', 'entregas']),
   T('Perfil', { tab: 'perfil' }, ['perfil', 'meu perfil', 'minha conta', 'conta', 'configuracoes', 'ajustes']),
+  T('Estúdio', { tab: 'perfil' }, ['estudio', 'meu estudio', 'portfolio', 'meu portfolio', 'minhas criacoes', 'criacoes']),
+  T('Privacidade do perfil', { tab: 'perfil' }, ['privacidade', 'editar perfil', 'editar meu perfil']),
   T('Carteira', { tab: 'perfil', wallet: true }, ['carteira', 'minha carteira', 'carteira digital', 'extrato']),
 
   // Abas do topo do Início

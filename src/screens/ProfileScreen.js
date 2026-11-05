@@ -10,6 +10,8 @@ import { VERSION_LABEL } from '../updates';
 import { getSavedUsers, forgetUser } from '../accounts';
 import { ProfileSocial } from '../components/SocialProfile';
 import WalletScreen from './WalletScreen';
+import { ProfileEditor, PrivacyPanel, StudioPanel, FutureIcon, audienceLabel } from '../components/ProfileStudio';
+import { Photo } from '../components/ui';
 
 const ROLE_ICON = { cliente: '🛍️', empresa: '🏪', prestador: '🛵', fornecedor: '🚚', admin: '🛡️' };
 
@@ -18,6 +20,9 @@ export default function ProfileScreen({ navigate, explore }) {
   const u = state.user;
   const [checking, setChecking] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const prof = state.myProfile;
+  const priv = state.privacy;
   // "Lotus, abre minha carteira": já abre a carteira.
   useEffect(() => {
     if (explore && explore.tab === 'perfil' && explore.wallet) setWalletOpen(true);
@@ -64,10 +69,19 @@ export default function ProfileScreen({ navigate, explore }) {
               marginRight: 12,
             }}
           >
-            <Text style={{ color: colors.onPrimary, fontSize: 24, fontWeight: '900' }}>{u.name[0]}</Text>
+            {prof.photo ? (
+              <Photo uri={prof.photo} style={{ width: 60, height: 60, borderRadius: 30 }} />
+            ) : (
+              <Text style={{ color: colors.onPrimary, fontSize: 24, fontWeight: '900' }}>{u.name[0]}</Text>
+            )}
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ color: colors.text, fontWeight: '800', fontSize: 18 }}>{u.name}</Text>
+            {prof.handle || prof.profession ? (
+              <Text style={{ color: colors.muted, fontSize: 12, marginBottom: 3 }} numberOfLines={1}>
+                {[prof.handle ? '@' + prof.handle : '', prof.profession].filter(Boolean).join(' · ')}
+              </Text>
+            ) : null}
             <Badge label="✔ Identidade verificada por biometria" />
           </View>
           {/* Botão de emergência: pequeno, com brilho vermelho. As informações abrem na tela de Socorro. */}
@@ -94,6 +108,18 @@ export default function ProfileScreen({ navigate, explore }) {
             <Text style={{ color: '#FFFFFF', fontWeight: '900', fontSize: 12, letterSpacing: 0.5 }}>SOS</Text>
           </TouchableOpacity>
         </Row>
+        {prof.bio ? <Text style={{ color: colors.text, fontSize: 13, lineHeight: 19, marginTop: 10 }}>{prof.bio}</Text> : null}
+        {/* Editar perfil e situação da privacidade. */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
+          <TouchableOpacity onPress={() => setEditing(true)} style={styles.editBtn} activeOpacity={0.85} accessibilityLabel="Editar perfil">
+            <Ionicons name="create-outline" size={16} color={colors.onPrimary} />
+            <Text style={{ color: colors.onPrimary, fontWeight: '900', marginLeft: 6 }}>Editar perfil</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => dispatch({ type: 'SET_PRIVACY', privacy: { exposed: !priv.exposed } })} style={[styles.privPill, !priv.exposed && { borderColor: colors.accent }]} accessibilityLabel={priv.exposed ? 'Deixar perfil invisível' : 'Expor meu perfil'}>
+            <Ionicons name={priv.exposed ? 'eye' : 'eye-off'} size={15} color={priv.exposed ? colors.primary : colors.accent} />
+            <Text style={{ color: priv.exposed ? colors.primaryDark : colors.accent, fontWeight: '800', fontSize: 12, marginLeft: 5 }}>{priv.exposed ? 'Exposto' : 'Invisível'}</Text>
+          </TouchableOpacity>
+        </View>
         {/* Carteira em destaque: o saldo só aparece aqui no Perfil. */}
         <TouchableOpacity onPress={() => setWalletOpen(true)} activeOpacity={0.88} style={styles.wallet} accessibilityLabel="Abrir minha carteira">
           <View style={styles.walletIcon}>
@@ -109,6 +135,29 @@ export default function ProfileScreen({ navigate, explore }) {
           </View>
         </TouchableOpacity>
         <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6 }}>Depósitos, gastos, recebidos, saques e o balanço do mês.</Text>
+      </Card>
+
+      {/* Estúdio: produção de conteúdo do próprio usuário (portfólio, música, vídeo, arte...). */}
+      <Card>
+        <Row>
+          <FutureIcon name="rocket" size={40} spin />
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={{ color: colors.text, fontWeight: '900', fontSize: 16 }}>Estúdio Realys</Text>
+            <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
+              Crie seu portfólio e publique músicas, vídeos e artes. Você escolhe se cada criação vai para o Social, o Portfólio{u.roles.includes('empresa') ? ' ou a parte Empresarial' : ''}.
+            </Text>
+          </View>
+        </Row>
+        <StudioPanel />
+      </Card>
+
+      {/* Quem vê o perfil: exposto ou invisível; vida social e portfólio para todos, só amigos ou só eu. */}
+      <Card>
+        <Text style={{ color: colors.text, fontWeight: '900', fontSize: 16, marginBottom: 2 }}>Quem vê meu perfil</Text>
+        <Text style={{ color: colors.muted, fontSize: 12, marginBottom: 10 }}>
+          Agora: vida social para {audienceLabel(priv.social).toLowerCase()}, portfólio para {audienceLabel(priv.portfolio).toLowerCase()}{priv.exposed ? '' : ' (perfil invisível)'}.
+        </Text>
+        <PrivacyPanel />
       </Card>
 
       {/* Perfil social: destaques, galeria de fotos, galeria de vídeos e depoimentos aceitos. */}
@@ -189,6 +238,7 @@ export default function ProfileScreen({ navigate, explore }) {
       <Button title="Verificar atualizações" variant="light" onPress={() => setChecking(true)} style={{ marginTop: 10 }} />
       {checking ? <UpdateChecker manual onDone={() => setChecking(false)} /> : null}
       <WalletScreen visible={walletOpen} onClose={() => setWalletOpen(false)} />
+      <ProfileEditor visible={editing} onClose={() => setEditing(false)} />
       <Text style={{ textAlign: 'center', color: colors.muted, fontSize: 11, marginTop: 14 }}>
         Realys · {VERSION_LABEL} · demonstração
       </Text>
@@ -197,6 +247,8 @@ export default function ProfileScreen({ navigate, explore }) {
 }
 
 const styles = StyleSheet.create({
+  editBtn: { flexDirection: 'row', alignItems: 'center', height: 38, paddingHorizontal: 14, borderRadius: 19, backgroundColor: colors.primary, marginRight: 8 },
+  privPill: { flexDirection: 'row', alignItems: 'center', height: 38, paddingHorizontal: 12, borderRadius: 19, borderWidth: 1, borderColor: 'rgba(168,121,10,0.4)', backgroundColor: colors.primaryLight },
   wallet: {
     flexDirection: 'row',
     alignItems: 'center',

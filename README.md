@@ -15,6 +15,13 @@
 | **Prestador** | Serviços, Feed, Stories, Perfil | **Cadastro profissional** (tipo de serviço, o que faz e quanto cobra: por hora, serviço, diária, m²…), ligar o GPS para ficar disponível, aceitar pedidos, ver ganhos |
 | **Fornecedor** | Propostas, Feed, Stories, Perfil | **Destacar produtos** (aparecem primeiro no catálogo das empresas), cadastrar produto, **enviar proposta direto para uma ou várias empresas** (quantidade, desconto, validade e mensagem), acompanhar as enviadas e responder as propostas recebidas |
 
+**Perfil em dois sistemas (aba Perfil):**
+
+- **Editar perfil:** foto, @usuário, profissão, cidade, "sobre você" e link. O nome vem do documento e da biometria e não muda.
+- **Quem vê meu perfil:** chave **Exposto / Invisível** (modo invisível esconde o perfil de todo mundo) e, separadamente, para a **vida social** (fotos, vídeos, destaques, depoimentos) e para o **portfólio**: **Todos**, **Só amigos** ou **Só eu**. Quem visita um perfil fechado vê o aviso "Perfil reservado" (na demo: Beatriz Costa mostra a vida social só para amigos, André Oliveira só o trabalho e Carlos Mendes está invisível).
+- **Estúdio Realys:** produção de conteúdo do próprio usuário: **Música, Vídeo, Arte, Foto e Projeto** (portfólio de trabalhos). Cada criação escolhe onde aparece: **Social** (aba Criações do perfil), **Portfólio** (vitrine profissional do perfil) e, para quem tem CNPJ, **Empresarial** (entra na página da empresa, em Vídeos e músicas). Dá para ligar e desligar cada lugar depois, direto na lista.
+- Tudo fica salvo no celular, por conta. Ícones com anel em órbita e brilho dourado e azul, no mesmo estilo futurista da Lotus.
+
 **Em todas as telas:** o botão redondo do microfone abre a **Lotus**, assistente de voz do Realys (responde com voz feminina suave, em português do Brasil), com pesquisa por voz para qualquer prestador:
 
 - *"Preciso de um eletricista. Tem algum perto de mim?"* → a Lotus responde por voz quem está perto, a distância, a nota, o que a pessoa faz e quanto cobra (ex.: "R$ 80,00 por hora"), e pergunta se quer chamar. Diga "sim" e ela agenda.
