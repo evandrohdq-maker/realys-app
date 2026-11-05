@@ -62,8 +62,8 @@ const TABS = {
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
   ],
   cliente: [
-    // Comunidade vem primeiro: é a aba que abre quando o app inicia.
-    { key: 'stories', label: 'Comunidade', icon: 'people-circle-outline', Comp: StoriesScreen },
+    // Community vem primeiro: é a aba que abre quando o app inicia.
+    { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'home', label: 'Shop', icon: 'bag-handle-outline', Comp: HomeScreen },
     { key: 'encontros', label: 'Date', icon: 'heart-outline', Comp: EncontrosScreen },
     { key: 'food', label: 'Food', icon: 'restaurant-outline', Comp: FoodScreen },
@@ -98,14 +98,14 @@ const TABS = {
   prestador: [
     { key: 'prestar', label: 'Trabalhar', icon: 'navigate-circle-outline', Comp: DriverScreen },
     { key: 'inicio', label: 'Feed', icon: 'home-outline', Comp: FeedScreen },
-    { key: 'stories', label: 'Comunidade', icon: 'people-circle-outline', Comp: StoriesScreen },
+    { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
     { key: 'vagas', label: 'Empregos', icon: 'briefcase-outline', Comp: JobsScreen, hidden: true },
   ],
   fornecedor: [
     { key: 'propostas', label: 'Propostas', icon: 'cube-outline', Comp: SupplierScreen },
     { key: 'inicio', label: 'Feed', icon: 'home-outline', Comp: FeedScreen },
-    { key: 'stories', label: 'Comunidade', icon: 'people-circle-outline', Comp: StoriesScreen },
+    { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
   ],
 };
@@ -322,7 +322,11 @@ function Shell() {
         {tabs.filter((t) => !t.hidden).map((t) => {
           const on = t.key === current.key;
           return (
-            <TouchableOpacity key={t.key} style={styles.tab} onPress={() => setTab(t.key)}>
+            <TouchableOpacity key={t.key} style={styles.tab} onPress={() => {
+              // Community no rodapé sempre volta para o feed (sai de Eventos, Lives etc.).
+              if (t.key === 'stories') setExplore({ tab: 'stories', at: Date.now() });
+              setTab(t.key);
+            }}>
               <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={22} color={on ? colors.primary : colors.muted} />
               <Text style={[styles.tabLabel, on && { color: colors.primary, fontWeight: '700' }]}>{t.label}</Text>
             </TouchableOpacity>

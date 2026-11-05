@@ -29,7 +29,7 @@ export const SYSTEM_MAP = [
   {
     group: 'Usuário',
     items: [
-      { key: 'c-stories', name: 'Comunidade', desc: 'Página própria (botão Comunidade, antes Community/Stories): ver, responder, criar o seu; patrocinados com botão de oferta', status: 'simulado', role: 'cliente', tab: 'stories', why: 'Stories de verdade (foto da câmera, 24 h no ar) precisam de servidor' },
+      { key: 'c-stories', name: 'Community', desc: 'Página própria (botão Community, antes Stories): ver, responder, criar o seu; patrocinados com botão de oferta', status: 'simulado', role: 'cliente', tab: 'stories', why: 'Stories de verdade (foto da câmera, 24 h no ar) precisam de servidor' },
       { key: 'c-enc', name: 'Date (encontros)', desc: 'Relacionamentos: termos e status (casados não participam), perfil de namoro opcional com % completo, radar por GPS, curtir/passar, match, conversa, denunciar', status: 'simulado', role: 'cliente', tab: 'encontros', why: 'Radar de verdade e notificações precisam do servidor e do GPS em segundo plano' },
       { key: 'c-shop', name: 'Início › Shop', desc: 'Lançamentos das lojas no topo (com vídeo de apresentação), destaques e lojas (patrocinadas primeiro)', status: 'demo', role: 'cliente', tab: 'home', top: 'shop', why: 'O vídeo de lançamento é simulado: gravar e hospedar precisa de servidor' },
       { key: 'c-eventos', name: 'Início › Eventos', desc: 'Ao lado do Shop: festas promocionais e anúncios de promoções em destaque; shows e noite, salões e espaços, eventos gratuitos', status: 'demo', role: 'cliente', tab: 'home', top: 'eventos', why: 'Venda de ingresso e lista VIP de verdade precisam de servidor' },

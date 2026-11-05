@@ -13,7 +13,7 @@ import { CommunityHub, CommunityExtras, TopTabs, COMMUNITY_TOP, COMMUNITY_TOP_KE
 import { useBack } from '../back';
 import { TestimonialComposer } from '../components/SocialProfile';
 
-// Página Comunidade (botão "Comunidade" na barra de baixo): stories e comunidade.
+// Página Community (botão "Community" na barra de baixo): stories e comunidade.
 // Em cima, a faixa de bolinhas como no Instagram; embaixo, a Comunidade: feed único de posts e
 // depoimentos (curtir, comentar, compartilhar), mensagens, contatos e live.
 export default function StoriesScreen({ navigate, explore }) {
@@ -69,7 +69,7 @@ export default function StoriesScreen({ navigate, explore }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <TopTabs items={COMMUNITY_TOP} value={top} onChange={setTop} />
+      <TopTabs items={COMMUNITY_TOP.filter((t) => t.key !== 'comunidade')} value={top} onChange={(k) => setTop(k === top ? 'comunidade' : k)} />
       <CommunityExtras top={top} explore={explore} />
       {top === 'comunidade' ? (
       <CommunityHub

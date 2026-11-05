@@ -27,7 +27,8 @@ export default function HomeScreen({ goTo }) {
   );
 }
 
-// Barra do topo da Community: a própria Community e as opções que vieram do Shop.
+// Barra do topo da Community: as opções que vieram do Shop. 'comunidade' é o feed
+// (aberto pelo botão Community do rodapé), não aparece como botão no topo.
 export const COMMUNITY_TOP = [
   { key: 'comunidade', label: 'Comunidade', icon: 'people-circle-outline' },
   { key: 'eventos', label: 'Eventos', icon: 'sparkles-outline' },

@@ -217,11 +217,11 @@ export const CATEGORIES = [
     hint: 'Posts, mensagens, vídeo e lives',
     icon: 'people-outline',
     subs: [
-      { label: 'Comunidade', hint: 'Posts de pessoas reais', icon: 'chatbox-ellipses-outline', go: { tab: 'stories', seg: 'posts' } },
+      { label: 'Community', hint: 'Posts de pessoas reais', icon: 'chatbox-ellipses-outline', go: { tab: 'stories', seg: 'posts' } },
       { label: 'Mensagens', hint: 'Conversas e chamadas de vídeo', icon: 'mail-outline', go: { tab: 'stories', seg: 'msgs' } },
       { label: 'Contatos', hint: 'Sua lista de contatos', icon: 'person-add-outline', go: { tab: 'stories', seg: 'contatos' } },
       { label: 'Lives', hint: 'Assista ou abra a sua', icon: 'radio-outline', go: { tab: 'home', top: 'lives' } },
-      { label: 'Comunidade', hint: 'Stories e a comunidade de quem está no Realys', icon: 'people-circle-outline', go: { tab: 'stories' } },
+      { label: 'Community', hint: 'Stories e a comunidade de quem está no Realys', icon: 'people-circle-outline', go: { tab: 'stories' } },
       { label: 'Date', hint: 'Relacionamentos com quem passa perto', icon: 'heart-outline', go: { tab: 'encontros' } },
     ],
   },
