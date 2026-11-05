@@ -32,11 +32,26 @@ export const SERVE_MODES = [
   { key: 'brasil', label: 'Envia para todo o Brasil', icon: 'airplane-outline' },
 ];
 
+// Galeria empresarial: só fotos da empresa. Nada de foto pessoal ou de "se exibir":
+// a página da empresa é um perfil empresarial, aberto aos usuários, mas não é um perfil social.
+export const GALLERY_TYPES = [
+  { key: 'equipe', label: 'Equipe', icon: 'people-outline' },
+  { key: 'produtos', label: 'Produtos', icon: 'cube-outline' },
+  { key: 'estrutura', label: 'Estrutura', icon: 'business-outline' },
+];
+const g = (id, type, seed, caption) => ({ id, type, photo: pic(seed, 600, 600), caption });
+
 // Depoimento de quem comprou: who = membro do Realys (src/people.js), product = o que comprou.
 const r = (id, who, stars, product, time, text, shown = true) => ({ id, who, stars, product, time, text, shown, verified: true });
 
 const BUSINESS = {
   e1: {
+    legalName: 'Bom Preço Comércio de Alimentos Ltda.',
+    cnpj: '12.345.678/0001-90',
+    team: '18 colaboradores',
+    address: 'Rua Domingos de Morais, 1200 · Vila Mariana, São Paulo - SP',
+    contact: 'Seg a sáb, 7h às 21h · (11) 4000-1001',
+    gallery: [g('g11', 'estrutura', 'realys-g-mercado-loja', 'Nossa loja na Vila Mariana'), g('g12', 'equipe', 'realys-g-mercado-equipe', 'Equipe do caixa e da entrega'), g('g13', 'produtos', 'realys-g-mercado-horti', 'Hortifrúti que chega toda manhã'), g('g14', 'produtos', 'realys-g-mercado-cafe', 'Café especial do Sul de Minas')],
     tagline: 'O mercado do bairro, agora na palma da mão',
     sectors: { mercado: ['Mercado de bairro', 'Hortifrúti', 'Açougue', 'Bebidas'], alimentacao: ['Padaria', 'Delivery'] },
     serves: 'Vila Mariana, Moema e Saúde · entrega em até 1 h',
@@ -56,6 +71,12 @@ const BUSINESS = {
     ],
   },
   e2: {
+    legalName: 'Pizzaria da Praça Ltda.',
+    cnpj: '23.456.789/0001-01',
+    team: '24 colaboradores',
+    address: 'Praça da Árvore, 45 · Saúde, São Paulo - SP',
+    contact: 'Todos os dias, 18h às 23h30 · (11) 4000-1002',
+    gallery: [g('g21', 'estrutura', 'realys-g-pizza-forno', 'Forno a lenha no salão'), g('g22', 'equipe', 'realys-g-pizza-equipe', 'Pizzaiolos da casa'), g('g23', 'produtos', 'realys-g-pizza-marg', 'Margherita de fermentação natural')],
     tagline: 'Forno a lenha, massa de 48 horas',
     sectors: { alimentacao: ['Pizzaria', 'Delivery', 'Eventos e buffet'] },
     serves: 'Zona Sul de São Paulo · delivery em até 40 min',
@@ -72,6 +93,12 @@ const BUSINESS = {
     ],
   },
   e3: {
+    legalName: 'Moda Brasil Confecções S.A.',
+    cnpj: '34.567.890/0001-12',
+    team: '62 colaboradores',
+    address: 'Av. Afonso Pena, 3000 · Funcionários, Belo Horizonte - MG',
+    contact: 'Loja online 24h · (31) 4000-1003',
+    gallery: [g('g31', 'estrutura', 'realys-g-moda-loja', 'Loja de Belo Horizonte'), g('g32', 'equipe', 'realys-g-moda-atelie', 'Nosso ateliê de costura'), g('g33', 'produtos', 'realys-g-moda-colecao', 'Coleção Verão Brasil')],
     tagline: 'Moda brasileira que veste o Brasil inteiro',
     sectors: { moda: ['Feminino', 'Masculino', 'Fitness', 'Plus size'] },
     serves: 'Loja em Belo Horizonte · envia para todo o Brasil',
@@ -87,6 +114,12 @@ const BUSINESS = {
     ],
   },
   e4: {
+    legalName: 'Tech Center Eletrônicos Ltda.',
+    cnpj: '45.678.901/0001-23',
+    team: '31 colaboradores',
+    address: 'Rua XV de Novembro, 800 · Centro, Curitiba - PR',
+    contact: 'Seg a sex, 9h às 19h · (41) 4000-1004',
+    gallery: [g('g41', 'estrutura', 'realys-g-tech-loja', 'Loja e assistência técnica'), g('g42', 'equipe', 'realys-g-tech-tecnicos', 'Técnicos certificados'), g('g43', 'produtos', 'realys-g-tech-notes', 'Notebooks com garantia')],
     tagline: 'Tecnologia com garantia e assistência própria',
     sectors: { tecnologia: ['Celulares', 'Informática', 'Games', 'Assistência técnica'] },
     serves: 'Curitiba e região · envia para todo o Brasil',
@@ -99,6 +132,12 @@ const BUSINESS = {
     ads: [{ id: 'ad30', title: 'Semana gamer: consoles e acessórios', length: '0:30', views: 35700, cover: pic('realys-ad-tech') }],
   },
   e5: {
+    legalName: 'Burguer do Zé Lanches ME',
+    cnpj: '56.789.012/0001-34',
+    team: '9 colaboradores',
+    address: 'Rua dos Pinheiros, 550 · Pinheiros, São Paulo - SP',
+    contact: 'Ter a dom, 18h às 0h · (11) 4000-1005',
+    gallery: [g('g51', 'estrutura', 'realys-g-burger-casa', 'Nossa chapa'), g('g52', 'produtos', 'realys-g-burger-smash', 'Smash duplo')],
     tagline: 'Hambúrguer artesanal de verdade',
     sectors: { alimentacao: ['Hamburgueria', 'Delivery'] },
     serves: 'Pinheiros e Vila Madalena · delivery em até 35 min',
@@ -108,6 +147,12 @@ const BUSINESS = {
     ads: [{ id: 'ad40', title: 'Combo da sexta: burger + batata + refri', length: '0:20', views: 15800, cover: pic('realys-ad-burger') }],
   },
   e6: {
+    legalName: 'Boteco do Alemão Bar e Restaurante Ltda.',
+    cnpj: '67.890.123/0001-45',
+    team: '14 colaboradores',
+    address: 'Rua Aspicuelta, 220 · Vila Madalena, São Paulo - SP',
+    contact: 'Seg a sáb, 17h às 1h · (11) 4000-1006',
+    gallery: [g('g61', 'estrutura', 'realys-g-boteco-salao', 'Salão e palco do samba'), g('g62', 'produtos', 'realys-g-boteco-chope', 'Chope e petiscos')],
     tagline: 'Chope gelado e petisco de boteco raiz',
     sectors: { alimentacao: ['Bar e boteco', 'Eventos e buffet'] },
     serves: 'Vila Madalena · música ao vivo de quinta a sábado',
@@ -117,6 +162,12 @@ const BUSINESS = {
     ads: [{ id: 'ad50', title: 'Happy hour: chope em dobro até as 20h', length: '0:15', views: 22400, cover: pic('realys-ad-boteco') }],
   },
   e7: {
+    legalName: 'Kento Culinária Japonesa Ltda.',
+    cnpj: '78.901.234/0001-56',
+    team: '16 colaboradores',
+    address: 'Rua Galvão Bueno, 300 · Liberdade, São Paulo - SP',
+    contact: 'Ter a dom, 11h às 23h · (11) 4000-1007',
+    gallery: [g('g71', 'equipe', 'realys-g-sushi-mestre', 'Mestre Kento e equipe'), g('g72', 'produtos', 'realys-g-sushi-combo', 'Combinado da casa')],
     tagline: 'Sushi feito na hora pelo mestre Kento',
     sectors: { alimentacao: ['Comida japonesa', 'Delivery', 'Eventos e buffet'] },
     serves: 'Liberdade e Paraíso · delivery em até 45 min',
@@ -126,6 +177,12 @@ const BUSINESS = {
     ads: [{ id: 'ad60', title: 'Rodízio premium de quinta', length: '0:30', views: 12900, cover: pic('realys-ad-sushi') }],
   },
   e8: {
+    legalName: 'Doce Encanto Café e Confeitaria ME',
+    cnpj: '89.012.345/0001-67',
+    team: '7 colaboradores',
+    address: 'Av. Ibirapuera, 2100 · Moema, São Paulo - SP',
+    contact: 'Seg a sáb, 8h às 20h · (11) 4000-1008',
+    gallery: [g('g81', 'estrutura', 'realys-g-doce-vitrine', 'Nossa vitrine de doces'), g('g82', 'produtos', 'realys-g-doce-bolo', 'Bolos de festa sob encomenda')],
     tagline: 'Doces de vitrine e café coado na hora',
     sectors: { alimentacao: ['Doceria', 'Cafeteria', 'Eventos e buffet'] },
     serves: 'Moema · encomendas para festas',
@@ -136,7 +193,7 @@ const BUSINESS = {
   },
 };
 
-const EMPTY = { tagline: '', sectors: {}, serves: '', modes: [], showcase: [], reviews: [], ads: [] };
+const EMPTY = { tagline: '', sectors: {}, serves: '', modes: [], showcase: [], reviews: [], ads: [], gallery: [], legalName: '', cnpj: '', team: '', address: '', contact: '' };
 
 // Página empresarial da empresa, já com o que a minha empresa editou (state.myBusiness).
 export function businessOf(state, id) {
@@ -147,7 +204,13 @@ export function businessOf(state, id) {
   const reviews = base.reviews.map((rv) =>
     mine.reviewShown && rv.id in mine.reviewShown ? { ...rv, shown: mine.reviewShown[rv.id] } : rv,
   );
-  return { ...base, ...mine, reviews, ads: [...(mine.newAds || []), ...base.ads].filter((ad) => !(mine.removedAds || {})[ad.id]) };
+  return {
+    ...base,
+    ...mine,
+    reviews,
+    ads: [...(mine.newAds || []), ...base.ads].filter((ad) => !(mine.removedAds || {})[ad.id]),
+    gallery: [...(mine.newPhotos || []), ...base.gallery].filter((ph) => !(mine.removedPhotos || {})[ph.id]),
+  };
 }
 
 // Vitrine: os produtos escolhidos pela empresa (ou os em destaque, se ela não escolheu).

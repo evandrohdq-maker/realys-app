@@ -1,4 +1,5 @@
-// Página empresarial pública: visual futurista (fundo noturno, brilho dourado e azul, anel em órbita),
+// Página empresarial pública (não é perfil social: nada de foto pessoal; só equipe, produtos,
+// estrutura e dados da empresa): visual futurista (fundo noturno, brilho dourado e azul, anel em órbita),
 // onde a empresa atua e os segmentos de cada área, onde atende, vitrine, produtos,
 // depoimentos de quem comprou, vídeos de propaganda e conteúdos.
 import React, { useState, useEffect, useRef } from 'react';
@@ -10,7 +11,7 @@ import { colors, brl } from '../theme';
 import { Photo, ProductThumb } from './ui';
 import { MY_COMPANY_ID } from '../data';
 import { memberById } from '../people';
-import { businessOf, showcaseOf, sectorByKey, SERVE_MODES, ratingOf } from '../companyBusiness';
+import { businessOf, showcaseOf, sectorByKey, SERVE_MODES, ratingOf, GALLERY_TYPES } from '../companyBusiness';
 
 const NIGHT = '#0B1124';
 const NIGHT2 = '#131C38';
@@ -98,6 +99,75 @@ function SectorCards({ sectors }) {
         );
       })}
     </ScrollView>
+  );
+}
+
+// Galeria empresarial: equipe, produtos e estrutura.
+function Gallery({ photos }) {
+  const [type, setType] = useState('todos');
+  const [open, setOpen] = useState(null);
+  const list = type === 'todos' ? photos : photos.filter((ph) => ph.type === type);
+  if (!photos.length) return <Text style={styles.empty}>A empresa ainda não publicou fotos.</Text>;
+  return (
+    <>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 }}>
+        {[{ key: 'todos', label: 'Todas', icon: 'grid-outline' }, ...GALLERY_TYPES].map((t) => {
+          const on = type === t.key;
+          const n = t.key === 'todos' ? photos.length : photos.filter((ph) => ph.type === t.key).length;
+          if (!n) return null;
+          return (
+            <TouchableOpacity key={t.key} onPress={() => setType(t.key)} style={[styles.gType, on && styles.gTypeOn]}>
+              <Ionicons name={t.icon} size={13} color={on ? '#FFFFFF' : colors.primary} />
+              <Text style={[styles.gTypeText, on && { color: '#FFFFFF' }]}>{t.label} · {n}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      <View style={styles.grid}>
+        {list.map((ph) => (
+          <TouchableOpacity key={ph.id} style={styles.gItem} activeOpacity={0.9} onPress={() => setOpen(ph)}>
+            <Photo uri={ph.photo} style={styles.gImg} fallback="🏢" />
+            <View style={styles.gTag}>
+              <Text style={styles.gTagText}>{(GALLERY_TYPES.find((t) => t.key === ph.type) || {}).label}</Text>
+            </View>
+            {ph.caption ? <Text style={styles.gCaption} numberOfLines={2}>{ph.caption}</Text> : null}
+          </TouchableOpacity>
+        ))}
+      </View>
+      <Modal visible={!!open} transparent animationType="fade" onRequestClose={() => setOpen(null)}>
+        <TouchableOpacity style={styles.viewer} activeOpacity={1} onPress={() => setOpen(null)}>
+          {open ? (
+            <>
+              <Photo uri={open.photo} style={styles.viewerImg} fallback="🏢" />
+              {open.caption ? <Text style={styles.viewerText}>{open.caption}</Text> : null}
+            </>
+          ) : null}
+        </TouchableOpacity>
+      </Modal>
+    </>
+  );
+}
+
+// Ficha da empresa: dados do CNPJ e do atendimento.
+function CompanyFacts({ b }) {
+  const rows = [
+    ['document-text-outline', 'Razão social', b.legalName],
+    ['shield-checkmark-outline', 'CNPJ verificado', b.cnpj],
+    ['people-outline', 'Equipe', b.team],
+    ['location-outline', 'Endereço', b.address],
+    ['call-outline', 'Atendimento', b.contact],
+  ].filter((r) => r[2]);
+  if (!rows.length) return null;
+  return (
+    <View style={styles.facts}>
+      {rows.map(([icon, label, value], i) => (
+        <View key={label} style={[styles.factRow, i > 0 && styles.factSep]}>
+          <Ionicons name={icon} size={15} color={colors.gold} />
+          <Text style={styles.factLabel}>{label}</Text>
+          <Text style={styles.factValue}>{value}</Text>
+        </View>
+      ))}
+    </View>
   );
 }
 
@@ -276,7 +346,8 @@ export function BusinessPageModal({ p, media, MediaList }) {
     ['produtos', 'Produtos', 'pricetags-outline'],
     ['depoimentos', 'Depoimentos', 'chatbubbles-outline'],
     ['propagandas', 'Propagandas', 'videocam-outline'],
-    ['conteudo', 'Conteúdos', 'images-outline'],
+    ['galeria', 'Galeria', 'images-outline'],
+    ['conteudo', 'Novidades', 'newspaper-outline'],
     ...(media.length ? [['midia', 'Músicas', 'musical-notes-outline']] : []),
   ];
   const add = (id) => {
@@ -289,7 +360,8 @@ export function BusinessPageModal({ p, media, MediaList }) {
       <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
         {/* Topo noturno com brilho dourado e azul */}
         <View style={styles.hero}>
-          <Photo uri={p.cover} style={styles.heroImg} fallback={p.logo} />
+          {/* Foto da empresa (estrutura), nunca uma foto pessoal */}
+          <Photo uri={((b.gallery || []).find((ph) => ph.type === 'estrutura') || {}).photo || p.cover} style={styles.heroImg} fallback={p.logo} />
           <View style={styles.heroShade} />
           <View style={[styles.blob, { backgroundColor: 'rgba(226,182,73,0.32)', width: 260, height: 260, top: -90, right: -80 }]} />
           <View style={[styles.blob, { backgroundColor: 'rgba(47,116,208,0.30)', width: 220, height: 220, top: 120, left: -90 }]} />
@@ -335,16 +407,19 @@ export function BusinessPageModal({ p, media, MediaList }) {
             <View style={{ flexDirection: 'row', marginTop: 14 }}>
               <TouchableOpacity style={[styles.cta, { flex: 1 }, following && styles.ctaOn]} onPress={() => dispatch({ type: 'FOLLOW', id: p.id })}>
                 <Ionicons name={following ? 'checkmark' : 'add'} size={16} color={following ? colors.gold : NIGHT} />
-                <Text style={[styles.ctaText, following && { color: colors.gold }]}>{following ? 'Seguindo' : 'Seguir'}</Text>
+                <Text style={[styles.ctaText, following && { color: colors.gold }]}>{following ? 'Seguindo a empresa' : 'Seguir empresa'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.glassBtn, { flex: 1, marginLeft: 8 }]} onPress={() => Alert.alert('Mensagem', `Conversa com ${p.name} aberta no chat do Realys.`)}>
-                <Ionicons name="chatbubble-ellipses-outline" size={16} color="#FFFFFF" />
-                <Text style={styles.glassBtnText}>Mensagem</Text>
+              <TouchableOpacity style={[styles.glassBtn, { flex: 1, marginLeft: 8 }]} onPress={() => Alert.alert('Atendimento', `Atendimento de ${p.name} aberto no chat do Realys.${b.contact ? `\n\n${b.contact}` : ''}`)}>
+                <Ionicons name="headset-outline" size={16} color="#FFFFFF" />
+                <Text style={styles.glassBtnText}>Atendimento</Text>
               </TouchableOpacity>
             </View>
 
             {p.bio ? <Text style={styles.bio}>{p.bio}</Text> : null}
             {p.hours ? <Text style={styles.hours}>🕒 {p.hours}</Text> : null}
+
+            <Text style={styles.heroH}>FICHA DA EMPRESA</Text>
+            <CompanyFacts b={b} />
 
             <Text style={styles.heroH}>ONDE ATUA</Text>
             <SectorCards sectors={b.sectors} />
@@ -440,6 +515,8 @@ export function BusinessPageModal({ p, media, MediaList }) {
 
           {tab === 'propagandas' ? <AdList ads={b.ads || []} /> : null}
 
+          {tab === 'galeria' ? <Gallery photos={b.gallery || []} /> : null}
+
           {tab === 'conteudo' ? (
             posts.length ? (
               posts.map((x) => (
@@ -452,7 +529,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
                 </View>
               ))
             ) : (
-              <Text style={styles.empty}>Nenhum conteúdo publicado ainda.</Text>
+              <Text style={styles.empty}>Nenhuma novidade publicada ainda.</Text>
             )
           ) : null}
 
@@ -555,6 +632,22 @@ const styles = StyleSheet.create({
   adSub: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 },
   adBar: { position: 'absolute', bottom: 0, left: 0, height: 3, backgroundColor: colors.gold },
 
+  facts: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', paddingHorizontal: 12 },
+  factRow: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 9 },
+  factSep: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' },
+  factLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '700', width: 104, marginLeft: 8 },
+  factValue: { color: '#FFFFFF', fontSize: 12, fontWeight: '600', flex: 1 },
+  gType: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)', paddingHorizontal: 10, paddingVertical: 6, marginRight: 6, marginBottom: 6 },
+  gTypeOn: { backgroundColor: NIGHT, borderColor: NIGHT },
+  gTypeText: { color: colors.primaryDark, fontWeight: '800', fontSize: 12, marginLeft: 4 },
+  gItem: { width: '48.5%', backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: colors.border, marginBottom: 10, overflow: 'hidden' },
+  gImg: { width: '100%', height: 140 },
+  gTag: { position: 'absolute', top: 8, left: 8, backgroundColor: 'rgba(11,17,36,0.75)', borderRadius: 10, paddingHorizontal: 7, paddingVertical: 2, borderWidth: 1, borderColor: GLASS_BD },
+  gTagText: { color: colors.gold, fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
+  gCaption: { color: colors.text, fontSize: 12, fontWeight: '600', padding: 8 },
+  viewer: { flex: 1, backgroundColor: 'rgba(11,17,36,0.94)', alignItems: 'center', justifyContent: 'center', padding: 16 },
+  viewerImg: { width: '100%', height: 360, borderRadius: 16 },
+  viewerText: { color: '#FFFFFF', fontWeight: '700', marginTop: 12, textAlign: 'center' },
   post: { backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: colors.border, marginBottom: 12, overflow: 'hidden' },
   title: { fontWeight: '800', color: colors.text },
   sub: { color: colors.muted, fontSize: 12, marginTop: 2 },

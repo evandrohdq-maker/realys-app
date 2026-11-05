@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, myProducts } from '../../store';
 import { colors, brl } from '../../theme';
-import { Screen, Title, Card, Row, Input, Button, Badge } from '../../components/ui';
+import { Screen, Title, Card, Row, Input, Button, Badge, Photo } from '../../components/ui';
 import { UPLOAD_PLANS, STORAGE_PLAN } from '../../extraData';
 import { MY_COMPANY_ID } from '../../data';
 import { profileById, mediaOf } from '../../components/CompanyProfile';
 import { Stars, reviewer } from '../../components/BusinessPage';
-import { SECTORS, SERVE_MODES, businessOf, showcaseOf } from '../../companyBusiness';
+import { SECTORS, SERVE_MODES, GALLERY_TYPES, businessOf, showcaseOf } from '../../companyBusiness';
 
 const NIGHT = '#0B1124';
 const MAX_SHOWCASE = 6;
@@ -49,6 +50,11 @@ export default function PageScreen() {
   const [hours, setHours] = useState(me.hours || '');
   const [tagline, setTagline] = useState(biz.tagline || '');
   const [serves, setServes] = useState(biz.serves || '');
+  const [team, setTeam] = useState(biz.team || '');
+  const [address, setAddress] = useState(biz.address || '');
+  const [contact, setContact] = useState(biz.contact || '');
+  const [photoType, setPhotoType] = useState('equipe');
+  const [caption, setCaption] = useState('');
   const [openSector, setOpenSector] = useState(Object.keys(biz.sectors || {})[0] || null);
   const [custom, setCustom] = useState('');
   const [adTitle, setAdTitle] = useState('');
@@ -72,7 +78,7 @@ export default function PageScreen() {
 
   const savePage = () => {
     dispatch({ type: 'SET_PAGE', page: { bio: bio.trim(), hours: hours.trim() } });
-    setBiz({ tagline: tagline.trim(), serves: serves.trim() });
+    setBiz({ tagline: tagline.trim(), serves: serves.trim(), team: team.trim(), address: address.trim(), contact: contact.trim() });
     Alert.alert('Página atualizada', 'Os clientes já veem a nova apresentação.');
   };
 
@@ -96,6 +102,27 @@ export default function PageScreen() {
     setCustom('');
   };
   const toggleMode = (k) => setBiz({ modes: modes.includes(k) ? modes.filter((x) => x !== k) : [...modes, k] });
+
+  // Galeria empresarial: só fotos da empresa (equipe, produtos, estrutura). Não é perfil social.
+  const addPhoto = async () => {
+    let uri = null;
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) return Alert.alert('Permissão necessária', 'Autorize o Realys a ver suas fotos para montar a galeria da empresa.');
+      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
+      if (res.canceled || !res.assets || !res.assets[0]) return;
+      uri = res.assets[0].uri;
+    } catch (e) {
+      return Alert.alert('Não deu para abrir a galeria', 'Tente de novo em instantes.');
+    }
+    const m = state.myBusiness || {};
+    setBiz({ newPhotos: [{ id: 'gp' + Date.now(), type: photoType, photo: uri, caption: caption.trim() }, ...(m.newPhotos || [])] });
+    setCaption('');
+  };
+  const removePhoto = (ph) => {
+    const m = state.myBusiness || {};
+    setBiz({ newPhotos: (m.newPhotos || []).filter((x) => x.id !== ph.id), removedPhotos: { ...(m.removedPhotos || {}), [ph.id]: true } });
+  };
 
   // Vitrine: até 6 produtos em destaque, na ordem em que foram escolhidos.
   const toggleShowcase = (id) => {
@@ -222,6 +249,12 @@ export default function PageScreen() {
         <Input value={bio} onChangeText={setBio} placeholder="Conte quem é a sua empresa" multiline />
         <Text style={styles.label}>Horário</Text>
         <Input value={hours} onChangeText={setHours} placeholder="Seg a sex, 9h às 18h" />
+        <Text style={styles.label}>Equipe</Text>
+        <Input value={team} onChangeText={setTeam} placeholder="Ex.: 18 colaboradores" />
+        <Text style={styles.label}>Endereço</Text>
+        <Input value={address} onChangeText={setAddress} placeholder="Rua, número · bairro, cidade" />
+        <Text style={styles.label}>Atendimento (horário e telefone comercial)</Text>
+        <Input value={contact} onChangeText={setContact} placeholder="Seg a sáb, 8h às 18h · (11) 0000-0000" />
         <Text style={styles.label}>Onde atende</Text>
         <Input value={serves} onChangeText={setServes} placeholder="Ex.: Vila Mariana e região · entrega em até 1 h" />
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 }}>
@@ -230,6 +263,28 @@ export default function PageScreen() {
           ))}
         </View>
         <Button small title="Salvar apresentação" onPress={savePage} />
+      </Card>
+
+      <Head icon="images-outline" title={`Galeria da empresa (${(biz.gallery || []).length})`} sub="Fotos da equipe, dos produtos e da estrutura. A página é um perfil empresarial: nada de fotos pessoais." />
+      <Card>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 6 }}>
+          {GALLERY_TYPES.map((t) => (
+            <Pick key={t.key} small icon={t.icon} label={t.label} on={photoType === t.key} onPress={() => setPhotoType(t.key)} />
+          ))}
+        </View>
+        <Input value={caption} onChangeText={setCaption} placeholder={photoType === 'equipe' ? 'Ex.: Equipe da entrega' : photoType === 'produtos' ? 'Ex.: Linha de cafés especiais' : 'Ex.: Nossa loja na Vila Mariana'} />
+        <Button small title="Escolher foto do celular" onPress={addPhoto} />
+        <View style={[styles.gGrid, { marginTop: 10 }]}>
+          {(biz.gallery || []).map((ph) => (
+            <View key={ph.id} style={styles.gItem}>
+              <Photo uri={ph.photo} style={styles.gImg} fallback="🏢" />
+              <Text style={styles.gTag}>{(GALLERY_TYPES.find((t) => t.key === ph.type) || {}).label}</Text>
+              <TouchableOpacity onPress={() => removePhoto(ph)} style={styles.gDel} accessibilityLabel="Remover foto">
+                <Ionicons name="close" size={14} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
       </Card>
 
       <Head icon="grid-outline" title="Onde a empresa atua" sub="Escolha as áreas em que você trabalha. Em cada uma, marque os segmentos que descrevem a sua empresa." />
@@ -445,6 +500,11 @@ const styles = StyleSheet.create({
   pickText: { color: colors.primaryDark, fontWeight: '700', fontSize: 12 },
   plus: { width: 42, height: 42, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginLeft: 8, marginBottom: 10 },
 
+  gGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  gItem: { width: '31.5%', marginBottom: 8, borderRadius: 12, overflow: 'hidden' },
+  gImg: { width: '100%', height: 90 },
+  gTag: { position: 'absolute', left: 4, bottom: 4, backgroundColor: 'rgba(11,17,36,0.75)', color: colors.gold, fontSize: 9, fontWeight: '900', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, overflow: 'hidden' },
+  gDel: { position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(217,83,79,0.9)', alignItems: 'center', justifyContent: 'center' },
   prodRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
   order: { color: colors.primary, fontWeight: '900', marginRight: 8 },
   expose: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 9, paddingVertical: 5 },
