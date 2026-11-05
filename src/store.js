@@ -152,7 +152,7 @@ const initialState = {
   myBusiness: null,
   companyReviews: {}, // depoimentos que o cliente escreveu: { [empresaId]: [...] }
   // Meu perfil: dados que o usuário edita e quem pode ver cada parte.
-  myProfile: { handle: '', profession: '', city: '', bio: '', photo: null, links: '' },
+  myProfile: { handle: '', profession: '', city: '', bio: '', photo: null, links: '', social: null, quiz: null },
   // social = fotos, vídeos, destaques e depoimentos · portfolio = Estúdio (trabalhos e criações)
   // 'todos' | 'amigos' | 'eu'. exposed = false deixa o perfil invisível para todo mundo.
   privacy: { exposed: true, social: 'todos', portfolio: 'todos' },
@@ -235,6 +235,19 @@ function pickCourier(state) {
 }
 
 // Toda ação que mexe no saldo entra sozinha no extrato da carteira.
+// O perfil social respondido no cadastro (classe, subclasse, descrição) vira o perfil da pessoa,
+// a não ser que ela já tenha editado o perfil depois.
+function withSignupProfile(profile, user) {
+  if (!user || !user.social || (profile && profile.social)) return profile;
+  return {
+    ...profile,
+    social: user.social,
+    quiz: { about: user.about || '', work: user.work || '', hobbies: [] },
+    bio: profile.bio || user.about || '',
+    profession: profile.profession || user.work || '',
+  };
+}
+
 function reducer(state, a) {
   const next = baseReducer(state, a);
   if (!next || next === state || next.wallet === state.wallet || next.walletTx !== state.walletTx || a.type === 'LOGOUT') return next;
@@ -248,7 +261,7 @@ function baseReducer(state, a) {
   switch (a.type) {
     case 'LOGIN': {
       const user = withUserRole(a.user);
-      return { ...state, ready: true, user, activeRole: user.roles[0] };
+      return { ...state, ready: true, user, activeRole: user.roles[0], myProfile: withSignupProfile(state.myProfile, user) };
     }
     // Abriu o app com sessão salva: entra direto, sem senha.
     case 'RESTORE_SESSION': {
@@ -256,7 +269,7 @@ function baseReducer(state, a) {
       const user = withUserRole(a.session.user);
       const roles = user.roles;
       const role = roles.includes(a.session.activeRole) ? a.session.activeRole : roles[0];
-      return { ...state, ready: true, user, activeRole: role };
+      return { ...state, ready: true, user, activeRole: role, myProfile: withSignupProfile(state.myProfile, user) };
     }
     case 'LOGOUT':
       return { ...initialState, ready: true, notes: state.notes, handsFree: state.handsFree };
@@ -589,7 +602,7 @@ function baseReducer(state, a) {
     case 'SET_PRIVACY':
       return { ...state, privacy: { ...state.privacy, ...a.privacy } };
     case 'LOAD_PROFILE':
-      return { ...state, myProfile: { ...state.myProfile, ...(a.data.myProfile || {}) }, privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, myBusiness: a.data.myBusiness || state.myBusiness };
+      return { ...state, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, myBusiness: a.data.myBusiness || state.myBusiness };
     case 'ADD_CREATION':
       return { ...state, creations: [a.item, ...state.creations] };
     case 'UPDATE_CREATION':

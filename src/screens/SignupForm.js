@@ -17,6 +17,8 @@ import {
   createAccount,
   confirmBiometric,
 } from '../accounts';
+import { ProfileQuiz } from '../components/SocialClass';
+import { classifyProfile } from '../socialClasses';
 
 // Cadastro de clientes (CPF) e empresas (CNPJ). A biometria confirma que é uma pessoa real
 // antes de criar a conta.
@@ -33,6 +35,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
   const [terms, setTerms] = useState(false);
   const [remember, setRemember] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [quiz, setQuiz] = useState({ about: '', work: '', hobbies: [] }); // questionário do perfil social
   const refs = { doc: useRef(), username: useRef(), email: useRef(), phone: useRef(), password: useRef(), confirm: useRef() };
   const next = (k) => () => refs[k].current && refs[k].current.focus();
 
@@ -68,7 +71,9 @@ export default function SignupForm({ onDone, onGoLogin }) {
     try {
       const bio = await confirmBiometric('Confirme sua biometria para criar a conta Realys');
       if (bio === 'falhou') return Alert.alert('Biometria não confirmada', 'A conta só é criada depois de confirmar que é você.');
-      const { account, error } = await createAccount({ kind, name, doc, username, email, phone, password });
+      // Pessoa: o perfil social sai do questionário (Gamer, Artista, Estudante...).
+      const social = empresa ? null : quiz.manual && quiz.social ? quiz.social : classifyProfile(`${quiz.about} ${quiz.work}`, quiz.hobbies);
+      const { account, error } = await createAccount({ kind, name, doc, username, email, phone, password, social, about: empresa ? '' : quiz.about, work: empresa ? '' : quiz.work });
       if (error) return Alert.alert('Não foi possível cadastrar', error);
       Alert.alert(
         'Conta criada!',
@@ -256,6 +261,9 @@ export default function SignupForm({ onDone, onGoLogin }) {
           />
         ),
       })}
+
+      {/* Questionário do perfil social (só para pessoas; empresas têm perfil empresarial). */}
+      {empresa ? null : <ProfileQuiz value={quiz} onChange={setQuiz} />}
 
       <TouchableOpacity style={authStyles.check} onPress={() => setTerms(!terms)} activeOpacity={0.8}>
         <Ionicons name={terms ? 'checkbox' : 'square-outline'} size={22} color={terms ? colors.primary : colors.muted} />

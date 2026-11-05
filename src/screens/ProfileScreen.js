@@ -12,6 +12,7 @@ import { ProfileSocial } from '../components/SocialProfile';
 import WalletScreen from './WalletScreen';
 import { ProfileEditor, PrivacyPanel, StudioPanel, FutureIcon, audienceLabel } from '../components/ProfileStudio';
 import { Photo } from '../components/ui';
+import { SocialBadge, ProfileQuizModal } from '../components/SocialClass';
 
 const ROLE_ICON = { cliente: '🛍️', empresa: '🏪', prestador: '🛵', fornecedor: '🚚', admin: '🛡️' };
 
@@ -21,6 +22,7 @@ export default function ProfileScreen({ navigate, explore }) {
   const [checking, setChecking] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [quizOpen, setQuizOpen] = useState(false);
   const prof = state.myProfile;
   const priv = state.privacy;
   // "Lotus, abre minha carteira": já abre a carteira.
@@ -108,6 +110,21 @@ export default function ProfileScreen({ navigate, explore }) {
             <Text style={{ color: '#FFFFFF', fontWeight: '900', fontSize: 12, letterSpacing: 0.5 }}>SOS</Text>
           </TouchableOpacity>
         </Row>
+        {/* Perfil social: classe e subclasse definidas pelo questionário do cadastro. */}
+        {prof.social ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
+            <SocialBadge social={prof.social} style={{ flex: 1 }} onPress={() => setQuizOpen(true)} />
+            <TouchableOpacity onPress={() => setQuizOpen(true)} hitSlop={8} accessibilityLabel="Refazer questionário do perfil social">
+              <Ionicons name="refresh-circle-outline" size={22} color={colors.accent} />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity onPress={() => setQuizOpen(true)} style={styles.quizCta} activeOpacity={0.85}>
+            <Ionicons name="planet-outline" size={18} color={colors.primary} />
+            <Text style={{ color: colors.primary, fontWeight: '800', marginLeft: 6, flex: 1 }}>Descubra seu perfil social (Gamer, Artista, Estudante…)</Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+          </TouchableOpacity>
+        )}
         {prof.bio ? <Text style={{ color: colors.text, fontSize: 13, lineHeight: 19, marginTop: 10 }}>{prof.bio}</Text> : null}
         {/* Editar perfil e situação da privacidade. */}
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
@@ -239,6 +256,15 @@ export default function ProfileScreen({ navigate, explore }) {
       {checking ? <UpdateChecker manual onDone={() => setChecking(false)} /> : null}
       <WalletScreen visible={walletOpen} onClose={() => setWalletOpen(false)} />
       <ProfileEditor visible={editing} onClose={() => setEditing(false)} />
+      <ProfileQuizModal
+        visible={quizOpen}
+        initial={prof.quiz || { about: prof.bio || '', work: prof.profession || '', hobbies: [], manual: false }}
+        onClose={() => setQuizOpen(false)}
+        onSave={(q) => {
+          setQuizOpen(false);
+          dispatch({ type: 'SET_MY_PROFILE', profile: { social: q.social, quiz: { about: q.about, work: q.work, hobbies: q.hobbies || [], manual: !!q.manual } } });
+        }}
+      />
       <Text style={{ textAlign: 'center', color: colors.muted, fontSize: 11, marginTop: 14 }}>
         Realys · {VERSION_LABEL} · demonstração
       </Text>
@@ -247,6 +273,7 @@ export default function ProfileScreen({ navigate, explore }) {
 }
 
 const styles = StyleSheet.create({
+  quizCta: { flexDirection: 'row', alignItems: 'center', marginTop: 10, padding: 10, borderRadius: 12, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.primary, backgroundColor: colors.primaryLight },
   editBtn: { flexDirection: 'row', alignItems: 'center', height: 38, paddingHorizontal: 14, borderRadius: 19, backgroundColor: colors.primary, marginRight: 8 },
   privPill: { flexDirection: 'row', alignItems: 'center', height: 38, paddingHorizontal: 12, borderRadius: 19, borderWidth: 1, borderColor: 'rgba(168,121,10,0.4)', backgroundColor: colors.primaryLight },
   wallet: {

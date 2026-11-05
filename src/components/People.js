@@ -12,6 +12,8 @@ import { ChatModal } from '../screens/cliente/home/Social';
 import { listenOnce, GlobalResults } from './Search';
 import { ProfileSocial } from './SocialProfile';
 import { memberTarget } from './GiftSheet';
+import { SocialBadge } from './SocialClass';
+import { CLASSES } from '../socialClasses';
 
 // Botão de amizade: Adicionar → Solicitação enviada → Amigos (ou Aceitar / Recusar quando pediram para você).
 export function FriendButton({ member, compact }) {
@@ -112,6 +114,7 @@ export function UserProfileModal() {
             <Ionicons name="shield-checkmark" size={16} color={colors.primary} style={{ marginLeft: 6 }} />
           </View>
           <Text style={styles.handle}>@{m.handle} · {m.city}</Text>
+          <SocialBadge social={m.social} style={{ marginTop: 6 }} />
           {privacyOf(m.id).exposed ? <Text style={styles.bio}>{m.bio}</Text> : null}
 
           <View style={styles.stats}>
@@ -219,7 +222,7 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
               }}
               onSubmitEditing={() => setSearched(q.trim())}
               autoFocus
-              placeholder="Buscar pessoas por nome ou @usuário"
+              placeholder="Buscar por nome, @usuário ou perfil (ex.: gamer)"
               placeholderTextColor={colors.muted}
               style={styles.searchInput}
               returnKeyType="search"
@@ -274,6 +277,16 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
                   ))}
                 </>
               ) : null}
+              {/* Explorar por perfil social: toca e vê quem é Gamer, Influenciador, Artista... */}
+              <Text style={styles.section}>Explorar por perfil</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 6 }}>
+                {CLASSES.filter((c) => members.some((m) => m.social && (m.social.cls === c.id || (m.social.extra || []).includes(c.id)))).map((c) => (
+                  <TouchableOpacity key={c.id} onPress={() => setQ(c.label)} style={[styles.classChip, { borderColor: c.color + '66' }]} activeOpacity={0.85}>
+                    <Ionicons name={c.icon} size={15} color={c.color} />
+                    <Text style={{ color: c.color, fontWeight: '800', fontSize: 13, marginLeft: 5 }}>{c.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
               <Text style={styles.section}>Pessoas que você talvez conheça</Text>
               {suggestions.map((m) => (
                 <PersonRow key={m.id} m={m} onOpen={() => open(m)} />
@@ -299,6 +312,7 @@ export function PersonRow({ m, onOpen }) {
           @{m.handle}
           {m.mutual ? ` · ${m.mutual} amigos em comum` : ` · ${m.city}`}
         </Text>
+        <SocialBadge social={m.social} size="sm" showExtra={false} />
       </View>
       <FriendButton member={m} compact />
     </TouchableOpacity>
@@ -306,6 +320,7 @@ export function PersonRow({ m, onOpen }) {
 }
 
 const styles = StyleSheet.create({
+  classChip: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 999, paddingVertical: 7, paddingHorizontal: 12, marginRight: 8, backgroundColor: colors.card },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 12, paddingVertical: 11, paddingHorizontal: 14, borderWidth: 1.5 },
   btnSm: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 10 },
   btnSolid: { backgroundColor: colors.primary, borderColor: colors.primary },

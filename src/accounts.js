@@ -123,7 +123,7 @@ export function userFromAccount(acc) {
   if (acc.kind === 'empresa') {
     return { id: acc.id, name: acc.name, username: acc.username, roles: ['empresa', 'fornecedor', 'cliente'], cnpj: formatCnpj(acc.doc) };
   }
-  return { id: acc.id, name: acc.name, username: acc.username, roles: ['cliente', 'prestador'], cpf: formatCpf(acc.doc), cnpj: '12.345.678/0001-90' };
+  return { id: acc.id, name: acc.name, username: acc.username, roles: ['cliente', 'prestador'], cpf: formatCpf(acc.doc), cnpj: '12.345.678/0001-90', social: acc.social || null, about: acc.about || '', work: acc.work || '' };
 }
 
 // Acha a conta pelo que a pessoa digitou: usuário, CPF ou CNPJ.
@@ -141,7 +141,7 @@ export async function checkPassword(acc, password) {
 }
 
 // Cria a conta. Devolve { account } ou { error }.
-export async function createAccount({ kind, name, doc, username, email, phone, password }) {
+export async function createAccount({ kind, name, doc, username, email, phone, password, social = null, about = '', work = '' }) {
   const list = await loadAccounts();
   const d = onlyDigits(doc);
   const u = cleanUsername(username);
@@ -160,6 +160,9 @@ export async function createAccount({ kind, name, doc, username, email, phone, p
     phone: onlyDigits(phone),
     salt,
     hash: await hashPassword(password, salt),
+    social, // perfil social: { cls, sub, extra } (ex.: Gamer · Streamer)
+    about: about.trim(),
+    work: work.trim(),
     createdAt: new Date().toISOString(),
   };
   await saveAccounts([...list, account]);

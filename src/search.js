@@ -6,6 +6,7 @@ import { listings, LISTING_KINDS, promos, lives, communityPosts, events, EVENT_G
 import { serviceTypes, isFoodStore } from './data';
 import { foodPromos, barSpots } from './foodData';
 import { members } from './people';
+import { socialLabel, socialSearchText } from './socialClasses';
 import { allJobs } from './store';
 import { sectorItems } from './techAgroData';
 import { SHOP_SECTORS, shopSectorItems } from './shopSectorsData';
@@ -237,8 +238,8 @@ function buildIndex(state) {
 
   members.forEach((m) =>
     add(
-      { id: 'u-' + m.id, section: 'Pessoa', icon: '👤', title: m.name, subtitle: `@${m.handle} · ${m.city}`, where: short(m.city), photo: m.photo, profileId: m.id },
-      m.name, m.handle, m.city, m.bio, 'pessoa perfil'
+      { id: 'u-' + m.id, section: 'Pessoa', icon: '👤', title: m.name, subtitle: [`@${m.handle}`, socialLabel(m.social), m.city].filter(Boolean).join(' · '), where: short(m.city), photo: m.photo, profileId: m.id },
+      m.name, m.handle, m.city, m.bio, 'pessoa perfil', socialSearchText(m.social)
     )
   );
 
