@@ -76,8 +76,16 @@ export default function OrdersScreen() {
               <Text style={{ marginTop: 8, color: colors.success, fontSize: 12, fontWeight: '700' }}>🧾 NF-e nº {o.nfe} emitida automaticamente</Text>
             ) : null}
             {o.courier ? <CourierCard order={o} /> : null}
+            {o.promoOff ? <Text style={{ marginTop: 6, color: colors.success, fontSize: 12, fontWeight: '700' }}>🏷️ Crédito de parceiro usado: − {brl(o.promoOff)}</Text> : null}
             <Row style={{ justifyContent: 'space-between', marginTop: 10 }}>
               <Text style={{ fontWeight: '800', color: colors.primary }}>{brl(o.total)}</Text>
+              {o.status === 'Entregue' ? (
+                o.rated ? (
+                  <Badge label="Avaliado ⭐" color={colors.success} />
+                ) : (
+                  <Button small title="Avaliar pedido" onPress={() => dispatch({ type: 'OPEN_RATE', kind: 'pedido', refId: o.id })} />
+                )
+              ) : null}
               {o.status !== 'Entregue' ? (
                 <Button
                   small

@@ -6,6 +6,7 @@ import * as D from './data';
 import { initialFriends } from './people';
 import { brl } from './theme';
 import { initialGifts, initialGiftCredits, giftFee, GIFT_MIN, GIFT_MAX } from './gifts';
+import { pointsFor, PARTNER_OFFERS, initialPoints, promoDiscount } from './rewards';
 import { conversations as initialConversations, communityPosts as initialCommunityPosts } from './homeData';
 import * as J from './jobsData';
 import { initialTestimonials, myInitialGallery } from './testimonialsData';
@@ -115,6 +116,13 @@ const initialState = {
   myProvider: null, // cadastro profissional de quem usa o perfil Prestador
   cart: [], // [{ productId, qty }]
   cartOpen: false, // janela do carrinho aberta
+  // Avaliações depois da entrega ou do serviço (ver src/ratings.js).
+  ratings: [],
+  rateOpen: null, // { kind: 'pedido' | 'servico', refId }
+  // Pontos de avaliação e créditos promocionais dos parceiros (ver src/rewards.js).
+  points: initialPoints,
+  pointsLog: [],
+  promoCredits: [], // { id, offerId, kind, partnerId?, service?, partner, title, value, used }
   liked: {},
   reports: D.reports,
   signups: D.pendingSignups,
@@ -299,9 +307,12 @@ function baseReducer(state, a) {
     case 'CHECKOUT': {
       const lines = state.cart.map((c) => ({ ...c, product: state.products.find((p) => p.id === c.productId) }));
       const total = lines.reduce((s, l) => s + l.product.price * l.qty, 0);
-      if (!lines.length || total > state.wallet + state.giftCredits) return state;
+      // Créditos promocionais dos parceiros: descontam sozinhos nas compras daquela loja.
+      const { off: promoOff, used: promoUsed } = promoDiscount(state, lines);
+      const toPay = +(total - promoOff).toFixed(2);
+      if (!lines.length || toPay > state.wallet + state.giftCredits) return state;
       // Créditos de presente pagam primeiro; o resto sai do saldo.
-      const fromGift = +Math.min(state.giftCredits, total).toFixed(2);
+      const fromGift = +Math.min(state.giftCredits, toPay).toFixed(2);
       const mine = lines.filter((l) => l.product.storeId === D.MY_COMPANY_ID);
       const mineTotal = mine.reduce((s, l) => s + l.product.price * l.qty, 0);
       const storeNames = [...new Set(lines.map((l) => state.stores.find((s) => s.id === l.product.storeId).name))];
@@ -315,8 +326,9 @@ function baseReducer(state, a) {
       return {
         ...state,
         nfeSeq: state.nfeSeq + 1,
-        wallet: +(state.wallet - (total - fromGift)).toFixed(2),
+        wallet: +(state.wallet - (toPay - fromGift)).toFixed(2),
         cart: [],
+        promoCredits: (state.promoCredits || []).map((pc) => (promoUsed[pc.id] ? { ...pc, used: true } : pc)),
         giftCredits: +(state.giftCredits - fromGift).toFixed(2),
         gifts: fromGift ? [{ id: newId('gu'), dir: 'usado', amount: fromGift, desc: storeNames.join(', '), at: Date.now() }, ...state.gifts] : state.gifts,
         products: state.products.map((p) => {
@@ -327,7 +339,8 @@ function baseReducer(state, a) {
           {
             id: newId('o'),
             items: lines.map((l) => ({ name: l.product.name, qty: l.qty, price: l.product.price })),
-            total: +total.toFixed(2),
+            total: +toPay.toFixed(2),
+            promoOff: promoOff ? +promoOff.toFixed(2) : undefined,
             status: 'Pagamento protegido',
             store: storeNames.join(', '),
             courier: courier ? courier.name : null,
@@ -357,6 +370,11 @@ function baseReducer(state, a) {
           const next = flow[Math.min(flow.indexOf(o.status) + 1, flow.length - 1)];
           return { ...o, status: next, courier: o.courier || 'Marcos Silva' };
         }),
+        // Entregou: já abre a avaliação do pedido.
+        rateOpen: (() => {
+          const o = state.orders.find((x) => x.id === a.id);
+          return o && o.status === 'A caminho' && !o.rated ? { kind: 'pedido', refId: o.id } : state.rateOpen;
+        })(),
       };
     }
 
@@ -739,6 +757,62 @@ function baseReducer(state, a) {
           : state.walletTx,
         rideRequests: state.rideRequests.filter((r) => r.id !== a.id),
         rides: [{ ...req, status: 'Em andamento' }, ...state.rides],
+      };
+    }
+    // Serviço terminado (cliente confirmou e pagou pelo Realys): abre a avaliação do prestador.
+    case 'FINISH_CALL':
+      return {
+        ...state,
+        rides: state.rides.map((r) => (r.id === a.id ? { ...r, done: true, status: `${r.serviceLabel} concluído` } : r)),
+        rateOpen: { kind: 'servico', refId: a.id },
+      };
+    case 'OPEN_RATE':
+      return { ...state, rateOpen: { kind: a.kind, refId: a.refId } };
+    case 'CLOSE_RATE':
+      return { ...state, rateOpen: null };
+    // Avaliação enviada: entra na nota do prestador/motoboy e, para lojas, vira depoimento verificado.
+    case 'SUBMIT_RATING': {
+      const at = Date.now();
+      const items = a.items.filter((it) => it.stars > 0);
+      if (!items.length) return { ...state, rateOpen: null };
+      const ratings = [...items.map((it) => ({ id: newId('rt'), kind: a.kind, refId: a.refId, ...it, at })), ...state.ratings];
+      const providers = state.providers.map((p) => {
+        const it = items.find((x) => x.targetId === p.id && x.type !== 'loja' && x.type !== 'food');
+        if (!it) return p;
+        const n = p.ratingCount || 40;
+        return { ...p, rating: +(((p.rating * n) + it.stars) / (n + 1)).toFixed(2), ratingCount: n + 1 };
+      });
+      let companyReviews = state.companyReviews;
+      items
+        .filter((it) => it.type === 'loja' || it.type === 'food')
+        .forEach((it) => {
+          const text = (it.text || '').trim() || (it.tags.length ? it.tags.join(', ') + '.' : `Nota ${it.stars} de 5.`);
+          if (checkText(text).verdict === 'falso') return;
+          const review = { id: newId('rv'), who: 'me', stars: it.stars, text, product: a.product || '', time: 'agora', verified: true, shown: it.targetId !== D.MY_COMPANY_ID };
+          companyReviews = { ...companyReviews, [it.targetId]: [review, ...(companyReviews[it.targetId] || [])] };
+        });
+      const earned = pointsFor(items);
+      return {
+        ...state,
+        ratings,
+        providers,
+        companyReviews,
+        points: state.points + earned,
+        pointsLog: [{ id: newId('pt'), points: earned, desc: `Avaliação: ${items.map((it) => it.targetName).join(', ')}`, at }, ...state.pointsLog],
+        rateOpen: null,
+        orders: a.kind === 'pedido' ? state.orders.map((o) => (o.id === a.refId ? { ...o, rated: true } : o)) : state.orders,
+        rides: a.kind === 'servico' ? state.rides.map((r) => (r.id === a.refId ? { ...r, rated: true } : r)) : state.rides,
+      };
+    }
+    // Troca pontos por um crédito promocional de um parceiro.
+    case 'REDEEM_POINTS': {
+      const offer = PARTNER_OFFERS.find((o) => o.id === a.offerId);
+      if (!offer || state.points < offer.points) return state;
+      return {
+        ...state,
+        points: state.points - offer.points,
+        pointsLog: [{ id: newId('pt'), points: -offer.points, desc: `Trocado: ${offer.title} · ${offer.partner}`, at: Date.now() }, ...state.pointsLog],
+        promoCredits: [{ id: newId('pc'), offerId: offer.id, kind: offer.kind, partnerId: offer.partnerId, service: offer.service, partner: offer.partner, icon: offer.icon, title: offer.title, value: offer.value, used: false }, ...state.promoCredits],
       };
     }
     case 'REQUEST_RIDE':

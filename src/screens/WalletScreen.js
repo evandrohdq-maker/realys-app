@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { colors, brl } from '../theme';
 import { GIFT_FEE_PCT } from '../gifts';
+import { PARTNER_OFFERS, POINTS_PER_RATING, POINTS_COMMENT_BONUS } from '../rewards';
 
 const KIND = {
   deposito: { label: 'Depósito', icon: 'arrow-down-circle', color: colors.success, sign: '+' },
@@ -131,6 +132,60 @@ export default function WalletScreen({ visible, onClose }) {
             <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 10, marginTop: 8 }}>
               Presentear sai do seu saldo, com taxa de {GIFT_FEE_PCT}% do Realys. Quem recebe não precisa aceitar: entra na hora.
             </Text>
+          </View>
+
+          {/* Pontos Realys: ganha avaliando, troca por créditos dos parceiros */}
+          <View style={styles.pointsCard}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="trophy" size={22} color={colors.primary} />
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '700' }}>Pontos Realys</Text>
+                <Text style={{ color: colors.text, fontSize: 24, fontWeight: '900' }}>{state.points} pontos</Text>
+              </View>
+            </View>
+            <Text style={{ color: colors.muted, fontSize: 11, marginTop: 4, lineHeight: 16 }}>
+              Ganhe {POINTS_PER_RATING} pontos a cada avaliação de pedido ou serviço (+{POINTS_COMMENT_BONUS} com comentário) e troque por créditos promocionais com os parceiros. Não podem ser sacados.
+            </Text>
+            {(state.promoCredits || []).filter((pc) => !pc.used).length ? (
+              <>
+                <Text style={styles.pointsH}>Seus créditos de parceiros</Text>
+                {state.promoCredits.filter((pc) => !pc.used).map((pc) => (
+                  <View key={pc.id} style={styles.offer}>
+                    <Text style={{ fontSize: 20, width: 30 }}>{pc.icon}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: colors.text, fontWeight: '800' }}>{pc.title}</Text>
+                      <Text style={{ color: colors.muted, fontSize: 11 }}>{pc.partner} · {pc.kind === 'loja' ? 'desconta sozinho na próxima compra' : 'vale no próximo serviço'}</Text>
+                    </View>
+                    <Text style={{ color: colors.success, fontWeight: '900' }}>{brl(pc.value)}</Text>
+                  </View>
+                ))}
+              </>
+            ) : null}
+            <Text style={styles.pointsH}>Trocar pontos com parceiros</Text>
+            {PARTNER_OFFERS.map((o) => {
+              const can = state.points >= o.points;
+              return (
+                <View key={o.id} style={styles.offer}>
+                  <Text style={{ fontSize: 20, width: 30 }}>{o.icon}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: colors.text, fontWeight: '800' }}>{o.title}</Text>
+                    <Text style={{ color: colors.muted, fontSize: 11 }}>{o.partner}{o.supplier ? ' · fornecedor' : o.kind === 'servico' ? ' · prestadores' : ''}</Text>
+                  </View>
+                  <TouchableOpacity
+                    disabled={!can}
+                    onPress={() =>
+                      Alert.alert('Trocar pontos', `${o.title} (${o.partner}) por ${o.points} pontos?`, [
+                        { text: 'Cancelar', style: 'cancel' },
+                        { text: 'Trocar', onPress: () => dispatch({ type: 'REDEEM_POINTS', offerId: o.id }) },
+                      ])
+                    }
+                    style={[styles.redeem, !can && { opacity: 0.45 }]}
+                  >
+                    <Text style={{ color: '#FFFFFF', fontWeight: '900', fontSize: 12 }}>{o.points} pts</Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
           </View>
 
           {/* Balanço */}
@@ -369,6 +424,10 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
   title: { color: colors.text, fontWeight: '900', fontSize: 18 },
+  pointsCard: { backgroundColor: colors.card, borderRadius: 20, padding: 16, marginTop: 10, borderWidth: 1.5, borderColor: colors.gold },
+  pointsH: { color: colors.muted, fontSize: 11, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase', marginTop: 14, marginBottom: 4 },
+  offer: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border },
+  redeem: { backgroundColor: colors.primary, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 7, marginLeft: 8 },
   giftCard: { backgroundColor: '#0B1124', borderRadius: 20, padding: 16, marginTop: 10, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
   giftRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', marginTop: 6 },
   balanceCard: { backgroundColor: colors.primary, borderRadius: 20, padding: 16 },

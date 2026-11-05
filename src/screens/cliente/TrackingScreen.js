@@ -5,12 +5,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../theme';
 import { Photo } from '../../components/ui';
 import { arrivalCode, ratingText } from '../../providerInfo';
+import { useStore } from '../../store';
 
 const STEPS = ['Aceito', 'A caminho', 'Chegou', 'Em serviço'];
 const DEMO_SECONDS = 30; // na demonstração o trajeto inteiro leva 30 segundos
 
 // Acompanhar o prestador pelo GPS até a casa do cliente.
 export default function TrackingScreen({ call, visible, onClose, onOpenProfile }) {
+  const { dispatch } = useStore();
   const insets = useSafeAreaInsets();
   const W = Dimensions.get('window').width;
   const H = Math.round(Dimensions.get('window').height * 0.52);
@@ -166,7 +168,8 @@ export default function TrackingScreen({ call, visible, onClose, onOpenProfile }
             <TouchableOpacity
               style={[styles.mainBtn, { marginBottom: 10 }]}
               onPress={() => {
-                Alert.alert('Serviço concluído', `Pagamento feito dentro do Realys. Que tal avaliar ${first}?`);
+                // Concluído: a avaliação abre sozinha.
+                dispatch({ type: 'FINISH_CALL', id: call.id });
                 onClose();
               }}
             >

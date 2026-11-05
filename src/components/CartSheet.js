@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore, cartTotal, storeOf } from '../store';
 import { colors, brl } from '../theme';
 import { ProductThumb } from './ui';
+import { promoDiscount } from '../rewards';
 
 const NIGHT = '#0B1124';
 
@@ -17,7 +18,8 @@ export default function CartSheet({ onOrders }) {
   if (!state.cartOpen) return null;
   const close = () => dispatch({ type: 'CLOSE_CART' });
   const lines = state.cart.map((c) => ({ ...c, p: state.products.find((x) => x.id === c.productId) })).filter((l) => l.p);
-  const total = cartTotal(state);
+  const promo = promoDiscount(state, lines.map((l) => ({ ...l, product: l.p })));
+  const total = +(cartTotal(state) - promo.off).toFixed(2);
   const fromGift = Math.min(state.giftCredits || 0, total);
   const fromWallet = total - fromGift;
   const count = lines.reduce((n, l) => n + l.qty, 0);
@@ -81,6 +83,12 @@ export default function CartSheet({ onOrders }) {
               </ScrollView>
 
               <View style={styles.sum}>
+                {promo.off > 0 ? (
+                  <View style={styles.sumRow}>
+                    <Text style={styles.sumLabel}>🏷️ Créditos de parceiros</Text>
+                    <Text style={[styles.sumValue, { color: '#7BE0B0' }]}>− {brl(promo.off)}</Text>
+                  </View>
+                ) : null}
                 {fromGift > 0 ? (
                   <View style={styles.sumRow}>
                     <Text style={styles.sumLabel}>🎁 Créditos de presente</Text>

@@ -76,7 +76,8 @@ export default function ServicesScreen({ explore, navigate }) {
   const num = {};
   byDist.forEach((p, i) => (num[p.id] = i + 1));
   const sel = byDist.find((p) => p.id === selId) || nearestP;
-  const lastCall = state.rides.find((r) => r.provider && r.serviceKey);
+  const lastCall = state.rides.find((r) => r.provider && r.serviceKey && !r.done);
+  const toRate = state.rides.find((r) => r.provider && r.serviceKey && r.done && !r.rated);
 
   const hire = (p) => {
     if (!p) return;
@@ -189,6 +190,16 @@ export default function ServicesScreen({ explore, navigate }) {
         </View>
       ) : null}
 
+      {toRate ? (
+        <TouchableOpacity style={[styles.activeCall, { borderColor: colors.gold }]} onPress={() => dispatch({ type: 'OPEN_RATE', kind: 'servico', refId: toRate.id })} activeOpacity={0.85}>
+          <Ionicons name="star" size={20} color={colors.gold} />
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={{ fontWeight: '800', color: colors.text }}>Avalie {toRate.provider.name.split(' ')[0]} · {toRate.serviceLabel}</Text>
+            <Text style={{ color: colors.muted, fontSize: 12 }}>Serviço concluído. Sua nota vale pontos Realys.</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+        </TouchableOpacity>
+      ) : null}
       {lastCall ? (
         <TouchableOpacity style={styles.activeCall} onPress={() => setTracking(lastCall)} activeOpacity={0.85}>
           <Ionicons name="navigate-circle" size={26} color={colors.primary} />
