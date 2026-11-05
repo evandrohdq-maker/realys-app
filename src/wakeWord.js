@@ -6,7 +6,8 @@
 import { useEffect, useRef } from 'react';
 import { AppState, Platform } from 'react-native';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
-import { findWake, normSame } from './wakeMatch';
+import { findWake, normSame, hearCall } from './wakeMatch';
+import { stopSpeaking } from './voice';
 
 // Pausa depois de "abrir Lotus" para abrir a assistente (no máximo meio segundo).
 const WAKE_PAUSE_MS = 450;
@@ -117,6 +118,8 @@ export function WakeWordListener({ enabled, onWake, onListening, onFatal }) {
   useSpeechRecognitionEvent('result', (event) => {
     if (!on.current) return;
     const heard = hearWake(event.results);
+    // Chamou "Lotus" enquanto ela fala (caixa fechada, ex.: "Abrindo Agro"): ela se cala na hora.
+    if (!heard && !woke.current && running.current && hearCall(event.results)) stopSpeaking();
     if (!heard) return;
     const { said, m } = heard;
     const rest = said.slice(m.end).replace(/^[\s,.!?]+/, '');

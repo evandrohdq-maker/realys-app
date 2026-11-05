@@ -130,3 +130,26 @@ export function stripWake(said) {
   if (!onlyCalls) return text.trim();
   return text.slice(m.end).replace(/^[\s,.!?:;-]+/, '').trim();
 }
+
+// Chamar pelo nome enquanto a Lotus fala: "Lotus!" interrompe a fala e ela volta a ouvir.
+// Basta o nome (com ou sem "abrir", "oi", "ei" antes). O que vier depois já vira o novo pedido:
+// "Lotus, me leva pro Agro" -> { rest: "me leva pro Agro" }; "Lotus" -> { rest: "" }.
+// Devolve null se o nome não foi dito.
+export function findCall(said) {
+  const text = String(said || '');
+  const words = wordsOf(normSame(text));
+  for (let i = 0; i < words.length; i++) {
+    const l = lotusAt(words, i);
+    if (l) return { rest: text.slice(l.end).replace(/^[\s,.!?:;-]+/, '').trim() };
+  }
+  return null;
+}
+
+// Confere todas as opções que o celular ouviu.
+export function hearCall(results) {
+  for (const alt of results || []) {
+    const m = findCall(alt && alt.transcript);
+    if (m) return m;
+  }
+  return null;
+}

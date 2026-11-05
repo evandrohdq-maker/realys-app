@@ -39,6 +39,8 @@
 
 **Mãos livres:** em **Perfil → Acionar falando "abrir Lotus"**, o app fica ouvindo enquanto está aberto. Basta dizer **"abrir Lotus, preciso de um eletricista"** (ou só "abrir Lotus" e depois o pedido) que a assistente abre e responde, sem tocar na tela e sem "Ok Google". Quando a Lotus pergunta algo ("quer que eu chame?"), o microfone abre sozinho para a resposta. Com o celular bloqueado ainda não funciona (próxima etapa).
 
+**Interromper a Lotus:** enquanto ela fala, é só chamar **"Lotus"** de novo. Ela para de falar na hora e volta a ouvir um novo pedido. Também dá para emendar: *"Lotus, me leva pro Agro"* interrompe e já faz o novo pedido. Funciona dentro da caixa da Lotus e, com o mãos livres ligado, também quando ela fala com a caixa fechada (ex.: "Abrindo Agro"). Tocar no orbe enquanto ela fala também interrompe. Ver `findCall` em `src/wakeMatch.js`.
+
 **Como o app reconhece "abrir Lotus":** o app compara pelo **som**, não pela grafia, e confere as várias opções que o celular ouviu: aceita "Lótus", "lotos", "lots", "abre", "abra", "a brir"... Só dispara com o "abrir" antes do "Lotus", para não abrir sozinho quando alguém fala de flor de lótus ou de "lote". Ver `src/wakeMatch.js`. A voz suave fica em `src/voice.js`: escolhe a melhor voz feminina pt-BR instalada no celular e fala um pouco mais devagar.
 
 As respostas saem do **cadastro que cada prestador faz** (funções e valores). Teste no perfil Prestador: cadastre-se, fique disponível e pergunte por voz no perfil Cliente.

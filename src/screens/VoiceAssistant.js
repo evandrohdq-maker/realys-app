@@ -11,7 +11,7 @@ import { colors, brl } from '../theme';
 import { ServiceCallCard } from './cliente/ServicesScreen';
 import { Photo } from '../components/ui';
 import { searchAll, contentReply, CONTENT_WORDS } from '../search';
-import { stripWake } from '../wakeMatch';
+import { stripWake, findCall, hearCall } from '../wakeMatch';
 import { speakSoft, stopSpeaking, prepareVoice } from '../voice';
 import { emergencyNumbers } from '../extraData';
 import { confirmCall } from '../phone';
@@ -168,6 +168,10 @@ function bestHeard(alts) {
   return list.find((s) => findNavigation(stripWake(s))) || list[0];
 }
 
+// Chamar "Lotus" enquanto ela fala: espera esta pausa depois do nome para pegar o novo pedido
+// ("Lotus… me leva pro Agro"). Se a pessoa disser só "Lotus", ela abre o microfone para ouvir.
+const CALL_PAUSE_MS = 900;
+
 const speechOk = () => {
   try {
     return Platform.OS === 'android' && ExpoSpeechRecognitionModule.isRecognitionAvailable();
@@ -254,6 +258,71 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
   const supported = useMemo(speechOk, []);
   const pendingRef = useRef(null);
   pendingRef.current = pending;
+  // Escuta enquanto a Lotus fala, para interromper quando a pessoa chama "Lotus" de novo.
+  const bargeIn = useRef({ on: false, heard: false, rest: '', timer: null, tries: 0 });
+  // Cada fala tem um número: quando ela é interrompida, os avisos da fala antiga são ignorados.
+  const speechId = useRef(0);
+
+  const startBargeRecognizer = () => {
+    try {
+      ExpoSpeechRecognitionModule.start({
+        lang: 'pt-BR',
+        interimResults: true,
+        continuous: true,
+        maxAlternatives: 5,
+        contextualStrings: HINTS,
+      });
+    } catch (e) {
+      bargeIn.current.on = false;
+    }
+  };
+
+  // Começa a ouvir enquanto a Lotus fala.
+  const startBargeIn = (reply) => {
+    if (!supported) return;
+    // Se a própria resposta tem o nome "Lotus", o microfone poderia ouvir a voz dela e se interromper.
+    if (findCall(reply)) return;
+    bargeIn.current = { on: true, heard: false, rest: '', timer: null, tries: 0 };
+    startBargeRecognizer();
+  };
+
+  const stopBargeIn = () => {
+    const b = bargeIn.current;
+    clearTimeout(b.timer);
+    if (!b.on) return;
+    b.on = false;
+    try {
+      ExpoSpeechRecognitionModule.abort();
+    } catch (e) {}
+  };
+
+  // A pessoa chamou "Lotus" no meio da fala: cala na hora e segue o novo pedido (ou volta a ouvir).
+  const finishBargeIn = () => {
+    const rest = bargeIn.current.rest;
+    stopBargeIn();
+    level.setValue(0);
+    if (rest) return run(rest);
+    setPartial('');
+    setTimeout(listen, 150);
+  };
+
+  const onBargeHeard = (results, isFinal) => {
+    const b = bargeIn.current;
+    const call = hearCall(results);
+    if (!b.heard) {
+      if (!call) return;
+      b.heard = true;
+      speechId.current += 1;
+      stopSpeaking();
+      setPending(null);
+      setPhase('listening');
+    }
+    if (call) b.rest = call.rest;
+    setPartial(b.rest || '');
+    clearTimeout(b.timer);
+    if (isFinal) return finishBargeIn();
+    b.timer = setTimeout(finishBargeIn, CALL_PAUSE_MS);
+  };
 
   const stopListening = () => {
     if (!session.current.active) return;
@@ -264,6 +333,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
   };
 
   const close = () => {
+    speechId.current += 1;
+    stopBargeIn();
     stopListening();
     stopSpeaking();
     setPhase('idle');
@@ -309,15 +380,26 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     setPending(res.pending || null);
     setHistory((h) => [{ q: cmd, ...res }, ...h]);
     setPhase('speaking');
+    const id = (speechId.current += 1);
+    let done = false;
+    const ended = () => {
+      done = true;
+      if (id !== speechId.current) return false; // fala interrompida: já está ouvindo o novo pedido
+      stopBargeIn();
+      setPhase('idle');
+      return true;
+    };
     speakSoft(res.reply, {
       onDone: () => {
-        setPhase('idle');
         // Mãos livres: se a Lotus fez uma pergunta ("quer que eu chame?"), já abre o microfone para a resposta.
-        if (handsFree && res.pending) listen();
+        if (ended() && handsFree && res.pending) setTimeout(listen, 150);
       },
-      onStopped: () => setPhase('idle'),
-      onError: () => setPhase('idle'),
+      onStopped: ended,
+      onError: ended,
     });
+    // Enquanto fala, fica ouvindo: dizer "Lotus" de novo interrompe e ela ouve um novo pedido.
+    stopBargeIn();
+    setTimeout(() => !done && id === speechId.current && startBargeIn(res.reply), 250);
   };
 
   // Microfone pelo diálogo do Google: só se o reconhecimento dentro do app não existir no celular.
@@ -361,6 +443,11 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
 
   const listen = async () => {
     if (!supported) return legacyListen();
+    // Tocar no orbe enquanto ela fala: interrompe a fala e ouve.
+    if (bargeIn.current.on) {
+      speechId.current += 1;
+      stopBargeIn();
+    }
     // Tocar no orbe enquanto ouve: para de ouvir.
     if (session.current.active) {
       stopListening();
@@ -393,6 +480,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     Animated.timing(level, { toValue: v, duration: 90, useNativeDriver: true }).start();
   });
   useSpeechRecognitionEvent('result', (e) => {
+    if (bargeIn.current.on) return onBargeHeard(e && e.results, e && e.isFinal);
     if (!session.current.active) return;
     const said = e && e.results && e.results[0] ? e.results[0].transcript : '';
     setPartial(said);
@@ -403,12 +491,27 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     }
   });
   useSpeechRecognitionEvent('end', () => {
+    const b = bargeIn.current;
+    if (b.on) {
+      if (b.heard) return finishBargeIn();
+      // O celular parou de ouvir sozinho, mas ela ainda está falando: volta a ouvir.
+      if (b.tries++ < 6) setTimeout(() => b.on && !b.heard && startBargeRecognizer(), 250);
+      return;
+    }
     if (!session.current.active || !session.current.started) return;
     session.current.active = false;
     level.setValue(0);
     setPhase('idle');
   });
   useSpeechRecognitionEvent('error', (e) => {
+    const b = bargeIn.current;
+    if (b.on) {
+      if (b.heard) return finishBargeIn();
+      const code = e && e.error;
+      if (code === 'not-allowed' || code === 'service-not-allowed') return stopBargeIn();
+      if (b.tries++ < 6) setTimeout(() => b.on && !b.heard && startBargeRecognizer(), 300);
+      return;
+    }
     const s = session.current;
     if (!s.active) return;
     const code = e && e.error;
@@ -431,6 +534,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
   // Abriu a caixa: entra rápido e já começa a ouvir (ou executa o pedido do "abrir Lotus").
   useEffect(() => {
     if (!visible) {
+      speechId.current += 1;
+      stopBargeIn();
       stopListening();
       enter.setValue(0);
       return;
