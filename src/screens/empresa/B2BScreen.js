@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LiveNowBadge } from '../../components/LiveBits';
 import { View, Text, Alert, TouchableOpacity } from 'react-native';
 import { useStore } from '../../store';
 import { MY_COMPANY_ID } from '../../data';
@@ -38,6 +39,8 @@ export default function B2BScreen() {
   return (
     <Screen>
       <Title sub="Compre no atacado e negocie descontos com empresas verificadas">Negócios Realys</Title>
+      {/* Fornecedores ao vivo: feira, degustação e preços de atacado */}
+      {state.suppliers.map((sup) => <LiveNowBadge key={sup.id} hostType="fornecedor" hostId={sup.id} style={{ marginTop: 0, marginBottom: 8 }} />)}
 
       <Section title="Propostas de fornecedores">
         {!offers.length ? <Text style={{ color: colors.muted, marginBottom: 8 }}>Nenhuma proposta recebida.</Text> : null}

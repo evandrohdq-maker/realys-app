@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LiveNowBadge } from './LiveBits';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -178,6 +179,7 @@ export function CompanyProfileModal() {
             {p.id === MY_COMPANY_ID ? <View style={{ marginLeft: 6 }}><Badge label="Sua página" color={colors.success} /></View> : null}
           </Row>
           {p.bio ? <Text style={styles.bio}>{p.bio}</Text> : null}
+          <LiveNowBadge hostType="artista" hostId={p.id} />
           {p.hours ? <Text style={styles.sub}>🕒 {p.hours}</Text> : null}
           <Text style={[styles.sub, { marginTop: 6 }]}>{count(p.followers + (following ? 1 : 0))} seguidores</Text>
 

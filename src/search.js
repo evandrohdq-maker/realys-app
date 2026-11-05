@@ -147,6 +147,20 @@ const short = (s) => String(s || '').split(',')[0].split(' - ')[0];
 const kindLabel = (k) => (LISTING_KINDS.find((x) => x.key === k) || {}).label || '';
 
 // Monta o índice de tudo que existe no app.
+// Palavras de cada assunto de live, para a busca achar "live de games", "podcast", "jornal ao vivo".
+const LIVE_WORDS = {
+  gamers: 'gamer gamers game games jogo jogos gameplay campeonato torneio',
+  artistas: 'artista artistas show musica cantor banda',
+  cursos: 'curso cursos aula aulas oficina treino',
+  faculdades: 'faculdade faculdades universidade aula aberta',
+  tecnologia: 'tecnologia tech ia inteligencia artificial computador pc',
+  noticias: 'noticia noticias noticiario noticiarios jornal boletim',
+  podcasts: 'podcast podcasts papo entrevista',
+  compras: 'compras venda ao vivo atacado',
+  noite: 'festa balada noite',
+  comunidade: 'comunidade bate papo',
+};
+
 function buildIndex(state) {
   const items = [];
   const add = (it, ...texts) => items.push({ ...it, hay: words(texts.join(' ')).map(stem), titleHay: words(it.title).map(stem) });
@@ -216,8 +230,8 @@ function buildIndex(state) {
 
   lives.forEach((l) =>
     add(
-      { id: 'lv-' + l.id, section: 'Live', icon: '🔴', title: l.title, subtitle: `${l.host} · ${l.viewers} assistindo`, where: `live de ${l.host}`, photo: l.photo, sponsored: l.sponsored, go: { tab: 'home', top: 'lives', live: l.aula ? 'aulas' : 'todas' } },
-      l.title, l.host, l.tag, 'live ao vivo', l.aula ? 'aula' : ''
+      { id: 'lv-' + l.id, section: 'Live', icon: '🔴', title: l.title, subtitle: `${l.host} · ${l.viewers} assistindo`, where: `live de ${l.host}`, photo: l.photo, sponsored: l.sponsored, go: { tab: 'home', top: 'lives', live: l.cat || 'todas' } },
+      l.title, l.host, l.tag, 'live ao vivo', l.aula ? 'aula' : '', LIVE_WORDS[l.cat] || ''
     )
   );
 

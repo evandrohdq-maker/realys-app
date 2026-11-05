@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LiveNowBadge } from '../../components/LiveBits';
 import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,6 +42,7 @@ export default function ProviderProfile({ provider: p, visible, onClose, onHire,
               <Photo uri={p.photo} style={styles.avatar} fallback="🧑" />
             </View>
             <Text style={styles.name}>{p.name}</Text>
+            <LiveNowBadge hostType="prestador" hostId={p.id} style={{ alignSelf: 'stretch', marginHorizontal: 16 }} />
             <Text style={styles.role}>
               {type.label}
               {p.vehicle ? ` · ${p.vehicle}` : ''}

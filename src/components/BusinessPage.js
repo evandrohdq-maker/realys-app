@@ -3,6 +3,7 @@
 // onde a empresa atua e os segmentos de cada área, onde atende, vitrine, produtos,
 // depoimentos de quem comprou, vídeos de propaganda e conteúdos.
 import React, { useState, useEffect, useRef } from 'react';
+import { LiveNowBadge } from './LiveBits';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, Animated, Easing, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -374,6 +375,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
             <OrbitLogo logo={p.logo} />
             <Text style={styles.heroName}>{p.name}</Text>
             {b.tagline ? <Text style={styles.tagline}>{b.tagline}</Text> : null}
+            <LiveNowBadge hostType="empresa" hostId={p.id} />
             <View style={styles.badges}>
               <View style={styles.glassBadge}>
                 <Ionicons name="shield-checkmark" size={12} color={colors.gold} />

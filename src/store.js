@@ -134,6 +134,10 @@ const initialState = {
   venueOrders: [], // { id, venueId, venue, table, items, total, status, at }
   staffFeed: [], // avisos do caixa: { id, venueId, text, orderId, at }
   reservations: {}, // { [venueId]: mesa }
+  // Lives: a minha no ar (aparece na aba Lives e no meu perfil) e a que estou assistindo pelo perfil de alguém.
+  myLive: null, // { id, cat, hostType, hostId, host, title, viewers, mine: true }
+  watchLive: null,
+  viewProvider: null, // perfil de prestador aberto por cima de qualquer tela
   liked: {},
   reports: D.reports,
   signups: D.pendingSignups,
@@ -634,6 +638,18 @@ function baseReducer(state, a) {
     }
     case 'VENUE_ORDER_STATUS':
       return { ...state, venueOrders: state.venueOrders.map((o) => (o.id === a.id ? { ...o, status: a.status } : o)) };
+    case 'LIVE_START':
+      return { ...state, myLive: { ...a.live, id: 'my-live', mine: true } };
+    case 'LIVE_END':
+      return { ...state, myLive: null };
+    case 'WATCH_LIVE':
+      return { ...state, watchLive: a.id, viewCompany: null, viewProfile: null, viewProvider: null };
+    case 'CLOSE_WATCH':
+      return { ...state, watchLive: null };
+    case 'OPEN_PROVIDER':
+      return { ...state, viewProvider: a.id, watchLive: null };
+    case 'CLOSE_PROVIDER':
+      return { ...state, viewProvider: null };
     case 'BUY_TICKET':
       return { ...state, wallet: +(state.wallet - a.ticket.price).toFixed(2), tickets: [a.ticket, ...state.tickets] };
     // Compra, assinatura ou inscrição feita nas abas Tecnologia e Agro: vira um pedido.

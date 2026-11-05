@@ -7,6 +7,9 @@ import { Screen, Photo, ProductThumb, Badge } from '../../../components/ui';
 import { venueOfEvent, freeTable, ticketPrice } from '../../../venueData';
 import { promos, listings, LISTING_KINDS, LISTING_CTA, communityPosts, contacts, lives, events, EVENT_GROUPS } from '../../../homeData';
 import { ChatModal, VideoCallModal, LiveModal } from './Social';
+import { LIVE_CATS, catOf } from '../../../liveData';
+import { HostChip, useOpenHost } from '../../../components/HostChip';
+import { allLives } from '../../../components/LiveBits';
 import { members, memberByName } from '../../../people';
 import { PeopleSearchModal, PersonRow } from '../../../components/People';
 import { LaunchStrip } from '../../../components/Launches';
@@ -775,20 +778,17 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
   );
 }
 
-const LIVE_FILTERS = [
-  ['todas', 'Todas', 'radio-outline'],
-  ['aulas', 'Aulas e cursos', 'school-outline'],
-  ['compras', 'Compras ao vivo', 'bag-handle-outline'],
-  ['noite', 'Noite e eventos', 'musical-notes-outline'],
-];
+// Assuntos das lives (src/liveData.js). "aulas" é o nome antigo de Cursos.
+const LIVE_FILTERS = [['todas', 'Todas', 'radio-outline'], ...LIVE_CATS.map((c) => [c.key, c.label, c.icon])];
 
 function LivesTab({ filter, setFilter, onWatch, onGoLive }) {
-  const match = (l) =>
-    filter === 'todas' ||
-    (filter === 'aulas' && l.aula) ||
-    (filter === 'compras' && (l.tag === 'Compras ao vivo' || l.tag === 'Gastronomia' || l.tag === 'Imóveis')) ||
-    (filter === 'noite' && l.tag === 'Noite e eventos');
-  const list = lives.filter(match).sort((a, b) => b.sponsored - a.sponsored || b.viewers - a.viewers);
+  const { state } = useStore();
+  const openHost = useOpenHost();
+  const f = filter === 'aulas' ? 'cursos' : filter;
+  const list = allLives(state)
+    .filter((l) => f === 'todas' || l.cat === f)
+    .sort((a, b) => (b.mine ? 1 : 0) - (a.mine ? 1 : 0) || b.sponsored - a.sponsored || b.viewers - a.viewers);
+  const cat = f === 'todas' ? null : catOf(f);
   return (
     <Screen>
       <TouchableOpacity style={styles.goLiveCard} onPress={onGoLive} activeOpacity={0.9}>
@@ -804,7 +804,7 @@ function LivesTab({ filter, setFilter, onWatch, onGoLive }) {
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 12 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
         {LIVE_FILTERS.map(([k, label, icon]) => {
-          const on = k === filter;
+          const on = k === f;
           return (
             <TouchableOpacity key={k} style={[styles.chip, on && styles.chipOn]} onPress={() => setFilter(k)}>
               <Ionicons name={icon} size={15} color={on ? colors.onPrimary : colors.primary} />
@@ -814,7 +814,9 @@ function LivesTab({ filter, setFilter, onWatch, onGoLive }) {
         })}
       </ScrollView>
 
-      <SectionHead title={filter === 'aulas' ? 'Aulas ao vivo agora' : 'Ao vivo agora'} />
+      <SectionHead title={cat ? cat.title : 'Ao vivo agora'} />
+      {cat ? <Text style={{ color: colors.muted, fontSize: 12, marginTop: -6, marginBottom: 10 }}>{cat.hint}</Text> : null}
+      {!list.length ? <Text style={{ color: colors.muted, textAlign: 'center', marginVertical: 20 }}>Ninguém ao vivo neste assunto agora. Que tal abrir a sua?</Text> : null}
       {list.map((l) => (
         <TouchableOpacity key={l.id} style={styles.liveCard} onPress={() => onWatch(l)} activeOpacity={0.9}>
           <Photo uri={l.photo} style={styles.livePhoto} fallback="🎥" />
@@ -835,10 +837,11 @@ function LivesTab({ filter, setFilter, onWatch, onGoLive }) {
             </View>
           </View>
           <View style={{ padding: 12 }}>
-            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{l.title}</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{l.mine ? 'Você está ao vivo · ' : ''}{l.title}</Text>
             <Text style={{ color: colors.muted, fontSize: 12, marginTop: 3 }}>
-              {l.host} · {l.tag}
+              {catOf(l.cat).label} · {l.tag}{l.verifiedNews ? ' · canal verificado' : ''}
             </Text>
+            <HostChip live={l} onOpen={openHost} />
           </View>
         </TouchableOpacity>
       ))}

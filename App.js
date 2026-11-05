@@ -40,6 +40,8 @@ import GiftSheet from './src/components/GiftSheet';
 import CartSheet, { CartIcon } from './src/components/CartSheet';
 import RateSheet, { LoyaltyNotifier } from './src/components/RateSheet';
 import VenueSheet, { VenuePill } from './src/components/VenueSheet';
+import { GlobalLive } from './src/components/LiveBits';
+import ProviderProfile from './src/screens/cliente/ProviderProfile';
 import TransitScreen from './src/screens/cliente/TransitScreen';
 import SosScreen from './src/screens/cliente/SosScreen';
 import ArtistsScreen from './src/screens/cliente/ArtistsScreen';
@@ -370,6 +372,21 @@ function Shell() {
       <RateSheet />
       <LoyaltyNotifier />
       <VenueSheet />
+      <GlobalLive />
+      {/* Perfil de prestador aberto de qualquer lugar (ex.: pela live dele) */}
+      {state.viewProvider ? (
+        <ProviderProfile
+          provider={state.providers.find((x) => x.id === state.viewProvider)}
+          visible
+          onClose={() => dispatch({ type: 'CLOSE_PROVIDER' })}
+          onHire={(p) => {
+            dispatch({ type: 'CLOSE_PROVIDER' });
+            pick({ tab: 'servicos', service: p.service });
+          }}
+          onQuote={(p) => Alert.alert('Orçamento pedido', `${p.name} recebeu seu pedido. A proposta chega no chat do Realys.`)}
+          onMessage={(p) => Alert.alert('Mensagem', `Conversa com ${p.name.split(' ')[0]} aberta no chat do Realys.`)}
+        />
+      ) : null}
       <CategoryMenu
         visible={menu}
         onClose={() => setMenu(false)}

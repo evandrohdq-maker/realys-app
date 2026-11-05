@@ -142,15 +142,38 @@ export const conversations = [
   },
 ];
 
+// Lives: cat = assunto (src/liveData.js) · hostType/hostId = quem transmite e o perfil que abre.
 export const lives = [
-  { id: 'v1', title: 'Desfile coleção verão + cupom ao vivo', host: 'Moda Brasil', viewers: 1240, sponsored: true, photo: photo('realys-live-moda', 800, 500), tag: 'Compras ao vivo' },
-  { id: 'v2', title: 'Pizza na pedra: assista a montagem', host: 'Pizzaria da Praça', viewers: 380, sponsored: false, photo: photo('realys-live-pizza', 800, 500), tag: 'Gastronomia' },
-  { id: 'v3', title: 'Tour pelo apartamento à venda na Vila Mariana', host: 'Imobiliária Horizonte', viewers: 96, sponsored: false, photo: photo('realys-live-ap', 800, 500), tag: 'Imóveis' },
-  { id: 'v4', title: 'Bate-papo: dicas para economizar no mercado', host: 'Ana Paula', viewers: 57, sponsored: false, photo: photo('realys-live-ana', 800, 500), tag: 'Comunidade' },
-  { id: 'v5', title: 'Aula ao vivo: matemática para o Enem', host: 'Profa. Helena Matos', viewers: 412, sponsored: false, photo: photo('realys-live-aula', 800, 500), tag: 'Aula ao vivo', aula: true },
-  { id: 'v6', title: 'Aula aberta: introdução à Administração', host: 'Faculdade Horizonte Digital', viewers: 865, sponsored: true, photo: photo('realys-live-facul', 800, 500), tag: 'Faculdade online', aula: true },
-  { id: 'v7', title: 'Treino funcional em casa (30 min)', host: 'Thais Personal', viewers: 230, sponsored: false, photo: photo('realys-live-treino', 800, 500), tag: 'Aula ao vivo', aula: true },
-  { id: 'v8', title: 'Esquenta de sexta direto do Club Neon', host: 'Club Neon', viewers: 640, sponsored: false, photo: photo('realys-live-balada', 800, 500), tag: 'Noite e eventos' },
+  { id: 'v1', cat: 'compras', hostType: 'empresa', hostId: 'e3', title: 'Desfile coleção verão + cupom ao vivo', host: 'Moda Brasil', viewers: 1240, sponsored: true, photo: photo('realys-live-moda', 800, 500), tag: 'Compras ao vivo' },
+  { id: 'v2', cat: 'compras', hostType: 'empresa', hostId: 'e2', title: 'Pizza na pedra: assista a montagem', host: 'Pizzaria da Praça', viewers: 380, sponsored: false, photo: photo('realys-live-pizza', 800, 500), tag: 'Gastronomia' },
+  { id: 'v3', cat: 'compras', hostType: 'empresa', hostId: null, title: 'Tour pelo apartamento à venda na Vila Mariana', host: 'Imobiliária Horizonte', viewers: 96, sponsored: false, photo: photo('realys-live-ap', 800, 500), tag: 'Imóveis' },
+  { id: 'v4', cat: 'comunidade', hostType: 'usuario', hostId: 'u1', title: 'Bate-papo: dicas para economizar no mercado', host: 'Ana Paula', viewers: 57, sponsored: false, photo: photo('realys-live-ana', 800, 500), tag: 'Comunidade' },
+  { id: 'v5', cat: 'cursos', hostType: 'usuario', hostId: null, title: 'Aula ao vivo: matemática para o Enem', host: 'Profa. Helena Matos', viewers: 412, sponsored: false, photo: photo('realys-live-aula', 800, 500), tag: 'Aula ao vivo', aula: true },
+  { id: 'v6', cat: 'faculdades', hostType: 'empresa', hostId: null, title: 'Aula aberta: introdução à Administração', host: 'Faculdade Horizonte Digital', viewers: 865, sponsored: true, photo: photo('realys-live-facul', 800, 500), tag: 'Faculdade online', aula: true },
+  { id: 'v7', cat: 'cursos', hostType: 'prestador', hostId: 'v22', title: 'Treino funcional em casa (30 min)', host: 'Thais Personal', viewers: 230, sponsored: false, photo: photo('realys-live-treino', 800, 500), tag: 'Aula ao vivo', aula: true },
+  { id: 'v8', cat: 'noite', hostType: 'empresa', hostId: null, title: 'Esquenta de sexta direto do Club Neon', host: 'Club Neon', viewers: 640, sponsored: false, photo: photo('realys-live-balada', 800, 500), tag: 'Noite e eventos' },
+  // Gamers
+  { id: 'v9', cat: 'gamers', hostType: 'empresa', hostId: 'e4', title: 'Torneio Realys de futebol virtual: a grande final', host: 'Tech Center', viewers: 5420, sponsored: true, photo: photo('realys-live-torneio', 800, 500), tag: 'Campeonato' },
+  { id: 'v10', cat: 'gamers', hostType: 'usuario', hostId: 'u2', title: 'Ranqueada valendo vaga no campeonato', host: 'Diego Santos', viewers: 2310, sponsored: false, photo: photo('realys-live-ranked', 800, 500), tag: 'Gameplay' },
+  // Artistas
+  { id: 'v11', cat: 'artistas', hostType: 'artista', hostId: 'a1', title: 'Ensaio aberto: louvor ao vivo', host: 'Banda Louvor Vivo', viewers: 3100, sponsored: false, photo: photo('realys-live-louvor', 800, 500), tag: 'Show ao vivo' },
+  { id: 'v12', cat: 'artistas', hostType: 'artista', hostId: 'a2', title: 'Voz e viola: pedidos dos fãs', host: 'Duda Viola', viewers: 1180, sponsored: false, photo: photo('realys-live-viola', 800, 500), tag: 'Show ao vivo' },
+  // Cursos e faculdades
+  { id: 'v13', cat: 'cursos', hostType: 'prestador', hostId: 'v4', title: 'Oficina: troca de chuveiro com segurança', host: 'Pedro Alves', viewers: 340, sponsored: false, photo: photo('realys-live-eletrica', 800, 500), tag: 'Oficina', aula: true },
+  { id: 'v14', cat: 'faculdades', hostType: 'empresa', hostId: null, title: 'Aula aberta: Direito Digital e redes sociais', host: 'Universidade Aberta Brasil Sul', viewers: 920, sponsored: false, photo: photo('realys-live-direito', 800, 500), tag: 'Faculdade', aula: true },
+  // Tecnologia
+  { id: 'v15', cat: 'tecnologia', hostType: 'empresa', hostId: null, title: 'IA para pequenos negócios: na prática', host: 'NeuralBR Soluções', viewers: 760, sponsored: true, photo: photo('realys-live-ia', 800, 500), tag: 'Tecnologia' },
+  { id: 'v16', cat: 'tecnologia', hostType: 'empresa', hostId: 'e4', title: 'Montando um PC gamer do zero', host: 'Tech Center', viewers: 1450, sponsored: false, photo: photo('realys-live-pc', 800, 500), tag: 'Tecnologia' },
+  // Noticiários (só canais verificados; a IA verificadora acompanha)
+  { id: 'v17', cat: 'noticias', hostType: 'empresa', hostId: null, title: 'Jornal da manhã: as notícias do dia', host: 'Realys Notícias', viewers: 4200, sponsored: false, photo: photo('realys-live-jornal', 800, 500), tag: 'Noticiário', verifiedNews: true },
+  { id: 'v18', cat: 'noticias', hostType: 'empresa', hostId: null, title: 'Boletim do agro: cotações e clima', host: 'Canal Campo Hoje', viewers: 610, sponsored: false, photo: photo('realys-live-agro', 800, 500), tag: 'Noticiário', verifiedNews: true },
+  // Podcasts
+  { id: 'v19', cat: 'podcasts', hostType: 'empresa', hostId: 'e1', title: 'Podcast Negócio de Bairro #42', host: 'Mercadinho Bom Preço', viewers: 380, sponsored: false, photo: photo('realys-live-podcast1', 800, 500), tag: 'Podcast' },
+  { id: 'v20', cat: 'podcasts', hostType: 'prestador', hostId: 'v2', title: 'Papo de Motoboy: a vida nas entregas', host: 'Marcos Silva', viewers: 520, sponsored: false, photo: photo('realys-live-podcast2', 800, 500), tag: 'Podcast' },
+  { id: 'v21', cat: 'podcasts', hostType: 'usuario', hostId: 'u1', title: 'Fé e Família: conversa de domingo', host: 'Ana Paula', viewers: 290, sponsored: false, photo: photo('realys-live-podcast3', 800, 500), tag: 'Podcast' },
+  // Fornecedores
+  { id: 'v22', cat: 'compras', hostType: 'fornecedor', hostId: 's2', title: 'Degustação e lote de café para cafeterias', host: 'Atacadão do Café', viewers: 210, sponsored: false, photo: photo('realys-live-cafe', 800, 500), tag: 'Atacado ao vivo' },
+  { id: 'v23', cat: 'compras', hostType: 'fornecedor', hostId: 's1', title: 'Feira virtual de atacado: preços para empresas', host: 'Distribuidora Real Alimentos', viewers: 330, sponsored: true, photo: photo('realys-live-atacado', 800, 500), tag: 'Atacado ao vivo' },
 ];
 
 export const liveComments = [

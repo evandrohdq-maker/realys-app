@@ -1,4 +1,5 @@
 import { privacyOf } from '../studioData';
+import { LiveNowBadge } from './LiveBits';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -120,6 +121,7 @@ export function UserProfileModal() {
             <Stat n={state.testimonials.filter((t) => t.to === m.id && t.status === 'aprovado').length} label="depoimentos" />
           </View>
 
+          <LiveNowBadge hostType="usuario" hostId={m.id} />
           {st === 'recebido' ? <Text style={styles.ask}>{m.name.split(' ')[0]} quer ser seu amigo no Realys.</Text> : null}
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
             <View style={{ flex: 1 }}>

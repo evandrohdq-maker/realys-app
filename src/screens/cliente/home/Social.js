@@ -5,6 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../../theme';
 import { Photo } from '../../../components/ui';
 import { liveComments } from '../../../homeData';
+import { useStore } from '../../../store';
+import { HostChip, useOpenHost } from '../../../components/HostChip';
+import { LIVE_CATS, hostOptions, defaultHost, catOf, HOST_TYPES } from '../../../liveData';
 
 const now = () => {
   const d = new Date();
@@ -164,7 +167,22 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
   const [comments, setComments] = useState([]);
   const [text, setText] = useState('');
   const [liked, setLiked] = useState(0);
-  const [type, setType] = useState('papo');
+  const { state, dispatch } = useStore();
+  const openHost = useOpenHost();
+  // Minha live: o assunto e o perfil com que eu transmito (usuário, empresa, prestador, fornecedor, artista).
+  const [cat, setCat] = useState('comunidade');
+  const [host, setHost] = useState(null);
+  const hosts = hostOptions(state);
+  const me = host || defaultHost(state);
+  const type = cat === 'cursos' || cat === 'faculdades' ? 'aula' : cat === 'compras' ? 'venda' : 'papo';
+  const close = () => {
+    if (mine && onAir) dispatch({ type: 'LIVE_END' });
+    onClose();
+  };
+  const start = () => {
+    dispatch({ type: 'LIVE_START', live: { cat, hostType: me.type, hostId: me.id, host: me.name, title: title.trim() || catOf(cat).title, viewers: 0, tag: catOf(cat).label, photo: null, sponsored: false } });
+    setOnAir(true);
+  };
 
   useEffect(() => {
     if (!visible) return;
@@ -200,7 +218,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" onRequestClose={close}>
       <View style={{ flex: 1, backgroundColor: '#03050A' }}>
         {live ? <Photo uri={live.photo.replace('800/500', '800/1400')} style={StyleSheet.absoluteFill} fallback="🎥" /> : null}
         {mine ? (
@@ -225,7 +243,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
           ) : null}
           {onAir && mine ? <Text style={{ color: "#FFFFFF", fontWeight: '700', marginLeft: 8 }}>{mmss(secs)}</Text> : null}
           <View style={{ flex: 1 }} />
-          <TouchableOpacity style={styles.iconBtnDark} onPress={onClose} accessibilityLabel="Fechar">
+          <TouchableOpacity style={styles.iconBtnDark} onPress={close} accessibilityLabel="Fechar">
             <Ionicons name="close" size={22} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
@@ -234,6 +252,16 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
           <View style={styles.hostRow}>
             <Text style={styles.hostName}>{live.host}</Text>
             <Text style={styles.liveTitle}>{live.title}</Text>
+            {live.hostType ? (
+              <HostChip
+                live={live}
+                dark
+                onOpen={(l) => {
+                  onClose();
+                  setTimeout(() => openHost(l), 250);
+                }}
+              />
+            ) : null}
           </View>
         ) : null}
 
@@ -241,21 +269,32 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
           <View style={styles.goLive}>
             <Text style={styles.goLiveTitle}>Abrir uma live</Text>
             <Text style={{ color: colors.muted, marginBottom: 12 }}>Seus contatos e seguidores recebem o aviso na hora.</Text>
-            <View style={{ flexDirection: 'row', marginBottom: 10 }}>
-              {[
-                ['papo', 'Bate-papo', 'chatbubbles-outline'],
-                ['aula', 'Aula', 'school-outline'],
-                ['venda', 'Venda ao vivo', 'bag-handle-outline'],
-              ].map(([k, label, icon]) => {
-                const on = type === k;
+            <Text style={{ color: colors.text, fontWeight: '800', marginBottom: 6 }}>Assunto</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+              {LIVE_CATS.filter((c) => c.key !== 'noite').map((c) => {
+                const on = cat === c.key;
                 return (
-                  <TouchableOpacity key={k} style={[styles.typeChip, on && styles.typeChipOn]} onPress={() => setType(k)}>
-                    <Ionicons name={icon} size={14} color={on ? colors.onPrimary : colors.primary} />
-                    <Text style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>{label}</Text>
+                  <TouchableOpacity key={c.key} style={[styles.typeChip, on && styles.typeChipOn]} onPress={() => setCat(c.key)}>
+                    <Ionicons name={c.icon} size={14} color={on ? colors.onPrimary : colors.primary} />
+                    <Text style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>{c.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+            <Text style={{ color: colors.text, fontWeight: '800', marginBottom: 6 }}>Transmitir como</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 }}>
+              {hosts.map((h) => {
+                const on = me.type === h.type;
+                const t = HOST_TYPES[h.type];
+                return (
+                  <TouchableOpacity key={h.type} style={[styles.typeChip, { marginBottom: 6 }, on && styles.typeChipOn]} onPress={() => setHost(h)}>
+                    <Ionicons name={t.icon} size={14} color={on ? colors.onPrimary : colors.primary} />
+                    <Text style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>{t.label}</Text>
                   </TouchableOpacity>
                 );
               })}
             </View>
+            {cat === 'noticias' ? <Text style={{ color: colors.muted, fontSize: 11, marginBottom: 8 }}>Noticiário ao vivo passa pela IA verificadora: notícia falsa derruba a live.</Text> : null}
             <TextInput
               style={styles.goLiveInput}
               placeholder={type === 'aula' ? 'Tema da aula (ex.: Matemática para o Enem)' : type === 'venda' ? 'O que você vai vender (ex.: Coleção de verão)' : 'Título da live (ex.: Bate-papo com a comunidade)'}
@@ -263,7 +302,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
               value={title}
               onChangeText={setTitle}
             />
-            <TouchableOpacity style={styles.goLiveBtn} onPress={() => setOnAir(true)}>
+            <TouchableOpacity style={styles.goLiveBtn} onPress={start}>
               <Ionicons name="radio-outline" size={20} color="#fff" />
               <Text style={{ color: '#fff', fontWeight: '800', fontSize: 16, marginLeft: 8 }}>Iniciar live</Text>
             </TouchableOpacity>
@@ -272,10 +311,9 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
 
         {onAir ? (
           <View style={[styles.liveBottom, { paddingBottom: 14 + insets.bottom }]}>
-            {mine && title ? (
+            {mine ? (
               <Text style={styles.liveTitle}>
-                {type === 'aula' ? 'Aula ao vivo · ' : type === 'venda' ? 'Venda ao vivo · ' : ''}
-                {title}
+                {catOf(cat).label} · {me.name} · {title}
               </Text>
             ) : null}
             {comments.map((c, i) => (
@@ -295,7 +333,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                 returnKeyType="send"
               />
               {mine ? (
-                <TouchableOpacity style={styles.endLive} onPress={onClose}>
+                <TouchableOpacity style={styles.endLive} onPress={close}>
                   <Text style={{ color: '#fff', fontWeight: '800' }}>Encerrar</Text>
                 </TouchableOpacity>
               ) : (
