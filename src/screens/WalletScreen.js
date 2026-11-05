@@ -9,6 +9,7 @@ import { useStore } from '../store';
 import { colors, brl } from '../theme';
 import { GIFT_FEE_PCT } from '../gifts';
 import { PARTNER_OFFERS, POINTS_PER_RATING, POINTS_COMMENT_BONUS } from '../rewards';
+import { levelOf, nextLevel, ORDERS_FOR_BONUS, BONUS, STAMPS_FOR_REWARD, STAMP_BACK_PCT, initialLoyalty } from '../loyalty';
 
 const KIND = {
   deposito: { label: 'Depósito', icon: 'arrow-down-circle', color: colors.success, sign: '+' },
@@ -134,6 +135,46 @@ export default function WalletScreen({ visible, onClose }) {
             </Text>
           </View>
 
+          {/* Clube Realys: nível, bônus a cada 20 pedidos e selos por loja */}
+          {(() => {
+            const ly = state.loyalty || initialLoyalty;
+            const lvl = levelOf(ly.orders);
+            const nxt = nextLevel(ly.orders);
+            const toBonus = ORDERS_FOR_BONUS - (ly.orders % ORDERS_FOR_BONUS);
+            const stamps = Object.entries(ly.stamps || {}).filter(([, v]) => v.count > 0);
+            return (
+              <View style={styles.clubCard}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Text style={{ fontSize: 26 }}>{lvl.icon}</Text>
+                  <View style={{ flex: 1, marginLeft: 10 }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '700' }}>Clube Realys · nível {lvl.label}</Text>
+                    <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '900' }}>{ly.orders} pedidos entregues</Text>
+                  </View>
+                </View>
+                <Text style={styles.clubLabel}>Faltam {toBonus} {toBonus === 1 ? 'pedido' : 'pedidos'} para ganhar {BONUS.pct}% no próximo (até {brl(BONUS.cap)})</Text>
+                <View style={styles.clubTrack}>
+                  <View style={[styles.clubFill, { width: `${((ORDERS_FOR_BONUS - toBonus) / ORDERS_FOR_BONUS) * 100}%` }]} />
+                </View>
+                {nxt ? <Text style={styles.clubSmall}>Nível {nxt.label} {nxt.icon} com {nxt.min} pedidos: {Math.round((nxt.mult - 1) * 100)}% a mais de pontos</Text> : null}
+                {stamps.length ? <Text style={styles.clubLabel}>Selos nas lojas ({STAMPS_FOR_REWARD} selos = {STAMP_BACK_PCT}% de volta)</Text> : null}
+                {stamps.map(([id, v]) => {
+                  const st = state.stores.find((x) => x.id === id) || {};
+                  return (
+                    <View key={id} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+                      <Text style={{ width: 26, fontSize: 16 }}>{st.logo || '🏪'}</Text>
+                      <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '700', width: 120 }} numberOfLines={1}>{st.name}</Text>
+                      <View style={{ flex: 1, flexDirection: 'row' }}>
+                        {Array.from({ length: STAMPS_FOR_REWARD }).map((_, i) => (
+                          <View key={i} style={[styles.stamp, i < v.count && styles.stampOn]} />
+                        ))}
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            );
+          })()}
+
           {/* Pontos Realys: ganha avaliando, troca por créditos dos parceiros */}
           <View style={styles.pointsCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -154,7 +195,7 @@ export default function WalletScreen({ visible, onClose }) {
                     <Text style={{ fontSize: 20, width: 30 }}>{pc.icon}</Text>
                     <View style={{ flex: 1 }}>
                       <Text style={{ color: colors.text, fontWeight: '800' }}>{pc.title}</Text>
-                      <Text style={{ color: colors.muted, fontSize: 11 }}>{pc.partner} · {pc.kind === 'loja' ? 'desconta sozinho na próxima compra' : 'vale no próximo serviço'}</Text>
+                      <Text style={{ color: colors.muted, fontSize: 11 }}>{pc.partner} · {pc.kind === 'loja' ? 'desconta sozinho na próxima compra lá' : pc.kind === 'cupom' ? `pedido mínimo de ${brl(pc.minOrder || 0)}, desconta sozinho` : 'vale no próximo serviço'}</Text>
                     </View>
                     <Text style={{ color: colors.success, fontWeight: '900' }}>{brl(pc.value)}</Text>
                   </View>
@@ -424,6 +465,13 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
   title: { color: colors.text, fontWeight: '900', fontSize: 18 },
+  clubCard: { backgroundColor: '#0B1124', borderRadius: 20, padding: 16, marginTop: 10, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
+  clubLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: '700', marginTop: 12 },
+  clubSmall: { color: 'rgba(255,255,255,0.55)', fontSize: 11, marginTop: 6 },
+  clubTrack: { height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.12)', marginTop: 6, overflow: 'hidden' },
+  clubFill: { height: 8, backgroundColor: '#E2B649' },
+  stamp: { flex: 1, height: 10, borderRadius: 5, marginRight: 3, borderWidth: 1, borderColor: 'rgba(226,182,73,0.5)' },
+  stampOn: { backgroundColor: '#E2B649' },
   pointsCard: { backgroundColor: colors.card, borderRadius: 20, padding: 16, marginTop: 10, borderWidth: 1.5, borderColor: colors.gold },
   pointsH: { color: colors.muted, fontSize: 11, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase', marginTop: 14, marginBottom: 4 },
   offer: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border },

@@ -7,6 +7,7 @@ import { initialFriends } from './people';
 import { brl } from './theme';
 import { initialGifts, initialGiftCredits, giftFee, GIFT_MIN, GIFT_MAX } from './gifts';
 import { pointsFor, PARTNER_OFFERS, initialPoints, promoDiscount } from './rewards';
+import { initialLoyalty, onDelivered } from './loyalty';
 import { conversations as initialConversations, communityPosts as initialCommunityPosts } from './homeData';
 import * as J from './jobsData';
 import { initialTestimonials, myInitialGallery } from './testimonialsData';
@@ -123,6 +124,8 @@ const initialState = {
   points: initialPoints,
   pointsLog: [],
   promoCredits: [], // { id, offerId, kind, partnerId?, service?, partner, title, value, used }
+  loyalty: initialLoyalty, // Clube Realys: pedidos entregues, selos por loja (ver src/loyalty.js)
+  loyaltyNotes: [], // avisos de bônus que acabaram de sair
   liked: {},
   reports: D.reports,
   signups: D.pendingSignups,
@@ -363,8 +366,20 @@ function baseReducer(state, a) {
     }
     case 'ADVANCE_ORDER': {
       const flow = ['Pagamento protegido', 'Preparando', 'A caminho', 'Entregue'];
+      const cur = state.orders.find((x) => x.id === a.id);
+      // Entregou: conta para o Clube Realys (selos, bônus de 20 pedidos e pontos por compra).
+      const club = cur && cur.status === 'A caminho' ? onDelivered(state, cur) : null;
       return {
         ...state,
+        ...(club
+          ? {
+              loyalty: club.loyalty,
+              points: state.points + club.points,
+              pointsLog: club.points ? [{ id: newId('pt'), points: club.points, desc: `Compra: ${cur.store}`, at: Date.now() }, ...state.pointsLog] : state.pointsLog,
+              promoCredits: [...club.credits.map((c) => ({ id: newId('pc'), used: false, ...c })), ...state.promoCredits],
+              loyaltyNotes: club.notes,
+            }
+          : {}),
         orders: state.orders.map((o) => {
           if (o.id !== a.id) return o;
           const next = flow[Math.min(flow.indexOf(o.status) + 1, flow.length - 1)];
@@ -770,6 +785,8 @@ function baseReducer(state, a) {
       return { ...state, rateOpen: { kind: a.kind, refId: a.refId } };
     case 'CLOSE_RATE':
       return { ...state, rateOpen: null };
+    case 'CLEAR_LOYALTY_NOTES':
+      return { ...state, loyaltyNotes: [] };
     // Avaliação enviada: entra na nota do prestador/motoboy e, para lojas, vira depoimento verificado.
     case 'SUBMIT_RATING': {
       const at = Date.now();

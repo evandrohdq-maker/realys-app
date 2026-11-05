@@ -38,7 +38,7 @@ import { UserProfileModal, PeopleSearchModal } from './src/components/People';
 import { CompanyProfileModal } from './src/components/CompanyProfile';
 import GiftSheet from './src/components/GiftSheet';
 import CartSheet, { CartIcon } from './src/components/CartSheet';
-import RateSheet from './src/components/RateSheet';
+import RateSheet, { LoyaltyNotifier } from './src/components/RateSheet';
 import TransitScreen from './src/screens/cliente/TransitScreen';
 import SosScreen from './src/screens/cliente/SosScreen';
 import ArtistsScreen from './src/screens/cliente/ArtistsScreen';
@@ -365,6 +365,7 @@ function Shell() {
       <GiftSheet />
       <CartSheet onOrders={() => pick({ tab: 'pedidos' })} />
       <RateSheet />
+      <LoyaltyNotifier />
       <CategoryMenu
         visible={menu}
         onClose={() => setMenu(false)}

@@ -43,5 +43,15 @@ export function promoDiscount(state, lines) {
         off += v;
       }
     });
+  // Cupom do Clube Realys (vale em qualquer parceiro): um por pedido, depois dos créditos de loja.
+  const rest = Object.values(left).reduce((a, b) => a + b, 0);
+  const cupom = (state.promoCredits || []).find((pc) => pc.kind === 'cupom' && !pc.used);
+  if (cupom && rest >= (cupom.minOrder || 0)) {
+    const v = +Math.min(cupom.cap, (rest * cupom.pct) / 100).toFixed(2);
+    if (v > 0) {
+      used[cupom.id] = v;
+      off += v;
+    }
+  }
   return { off: +off.toFixed(2), used };
 }

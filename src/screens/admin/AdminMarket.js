@@ -8,6 +8,7 @@ import { useStore } from '../../store';
 import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Stat, Empty } from '../../components/ui';
 import { marketReport, KNOWLEDGE_RULES } from '../../lm/knowledge';
+import { LOYALTY_RULES } from '../../loyalty';
 
 const NIGHT = '#0B1124';
 const per = (u) => (u && !['unidade', 'venda'].includes(u) ? ` /${u}` : '');
@@ -168,6 +169,19 @@ export default function AdminMarket() {
           <Text style={styles.sub}>
             {f.source} · {f.at}{f.reason ? ` · ${f.reason}` : ''}{f.score ? ` · IA ${f.score}%` : ''}
           </Text>
+        </Card>
+      ))}
+
+      <Head icon="pricetags-outline" title="Política de bônus do Clube Realys" sub="Calibrada com o Clube iFood, cartões fidelidade de restaurantes e cashback de mercado." />
+      {LOYALTY_RULES.map((r) => (
+        <Card key={r.title}>
+          <Row style={{ alignItems: 'flex-start' }}>
+            <Ionicons name={r.icon} size={18} color={colors.primary} style={{ marginTop: 1 }} />
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={styles.name}>{r.title}</Text>
+              <Text style={[styles.sub, { lineHeight: 17 }]}>{r.text}</Text>
+            </View>
+          </Row>
         </Card>
       ))}
 

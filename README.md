@@ -93,6 +93,13 @@ O administrador vê a visão geral da plataforma (usuários, empresas, receita),
 
 **Pontos Realys:** cada avaliação dá **10 pontos** (+5 com comentário). Em **Carteira › Pontos Realys** os pontos viram **créditos promocionais com os parceiros** (restaurantes, lojas, fornecedores e prestadores). Crédito de loja desconta sozinho na próxima compra lá; não pode ser sacado. Regras e catálogo em `src/rewards.js`.
 
+**Clube Realys (fidelidade):** política calibrada com o Clube iFood (cupons de 25% até R$ 10), cartões fidelidade de restaurante ("compre 10, ganhe 1") e cashback de mercado (média de 5%), em `src/loyalty.js`:
+- **Selo por loja:** cada pedido entregue vale 1 selo; com **10 selos**, **10% de volta** do que gastou nesses pedidos (até R$ 30) para usar na mesma loja. Pago pela loja.
+- **A cada 20 pedidos** em qualquer empresa: **15% no próximo pedido** (até R$ 25, mínimo R$ 30) em qualquer parceiro. Pago pelo Realys.
+- **Pontos por compra:** 1 ponto a cada R$ 10, mais os pontos de avaliação; níveis **Bronze, Prata, Ouro e Diamante** dão até 50% a mais de pontos.
+- **Teto:** os benefícios somados ficam perto de 3% do gasto do cliente, para não comer a margem das empresas.
+- Tudo desconta sozinho no carrinho. Em **Carteira** aparece o nível, quanto falta para o bônus e os selos de cada loja; a política completa fica em **Administrador › Mercado**.
+
 **Presentear (botão 🎁):** cliente presenteia outro cliente (perfil da pessoa), um **prestador de serviço** (perfil do prestador) ou dá **gorjeta ao motoboy** (no pedido); a **empresa presenteia clientes** (Painel › Presentear clientes). Também pela **Carteira › Presentear**. O valor sai do saldo de quem dá, com **taxa de 5% do Realys** (mínimo R$ 0,50), e entra **na hora** para quem recebe, sem precisar aceitar, como **créditos de presente**. Esses créditos **não podem ser sacados**: servem só para comprar produtos no Realys e são usados primeiro nas compras. A taxa entra na receita do administrador. Regras em `src/gifts.js`.
 
 **Food chama o motoboy:** todo pedido de restaurante, bar ou doceria já sai com um **motoboy cadastrado no Realys** (o mais perto), e o pedido de entrega chega para os motoboys no perfil Prestador. Em **Pedidos** aparece quem vai entregar (moto, placa, nota e quem chamou) e o botão **Gorjeta**.

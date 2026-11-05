@@ -14,6 +14,18 @@ import { providerTarget } from './GiftSheet';
 const NIGHT = '#0B1124';
 const TYPE_LABEL = { loja: 'Loja', food: 'Restaurante', motoboy: 'Entrega', motorista: 'Motorista', prestador: 'Prestador' };
 
+// Avisa os bônus do Clube Realys que acabaram de sair (selos completos, 20 pedidos, nível novo).
+export function LoyaltyNotifier() {
+  const { state, dispatch } = useStore();
+  const notes = state.loyaltyNotes || [];
+  useEffect(() => {
+    if (!notes.length) return;
+    Alert.alert('Clube Realys 🎉', notes.join('\n\n') + '\n\nO desconto é aplicado sozinho no carrinho.');
+    dispatch({ type: 'CLEAR_LOYALTY_NOTES' });
+  }, [notes.length]);
+  return null;
+}
+
 export default function RateSheet() {
   const { state, dispatch } = useStore();
   const insets = useSafeAreaInsets();
