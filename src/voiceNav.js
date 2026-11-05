@@ -12,7 +12,7 @@ export const NAV_TARGETS = [
   // Barra de baixo (Usuário)
   T('Início', { tab: 'stories' }, ['inicio', 'home', 'pagina inicial', 'tela inicial', 'comeco', 'principal']),
   T('Shop', { tab: 'home', top: 'shop' }, ['shop', 'shopping', 'xop', 'chop', 'shope', 'shopi']),
-  T('Community', { tab: 'stories' }, ['community', 'comunity', 'comuniti', 'comiuniti', 'kamiuniti', 'stories', 'storys', 'story', 'storis', 'stori', 'historias', 'historia', 'histories', 'history', 'historys', 'estorias', 'estoria', 'estoris', 'istoris', 'istori', 'storie', 'stores', 'status']),
+  T('Comunidade', { tab: 'stories' }, ['community', 'comunity', 'comuniti', 'comiuniti', 'kamiuniti', 'stories', 'storys', 'story', 'storis', 'stori', 'historias', 'historia', 'histories', 'history', 'historys', 'estorias', 'estoria', 'estoris', 'istoris', 'istori', 'storie', 'stores', 'status']),
   T('Date', { tab: 'encontros' }, ['date', 'deite', 'deit', 'deiti', 'deyt', 'dates', 'encontros', 'encontro', 'namoro', 'namorar', 'match', 'relacionamentos', 'relacionamento', 'paquera']),
   T('Food', { tab: 'food', cat: 'Todos', q: '' }, ['food', 'fud', 'fudi', 'fude', 'fuud', 'foods', 'comida', 'comidas', 'restaurante', 'restaurantes', 'alimentacao', 'delivery']),
   T('Serviços', { tab: 'servicos' }, ['servicos', 'servico', 'prestadores', 'prestador de servico', 'prestadores de servico']),

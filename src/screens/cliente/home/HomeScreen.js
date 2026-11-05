@@ -29,7 +29,7 @@ export default function HomeScreen({ goTo }) {
 
 // Barra do topo da Community: a própria Community e as opções que vieram do Shop.
 export const COMMUNITY_TOP = [
-  { key: 'comunidade', label: 'Community', icon: 'people-circle-outline' },
+  { key: 'comunidade', label: 'Comunidade', icon: 'people-circle-outline' },
   { key: 'eventos', label: 'Eventos', icon: 'sparkles-outline' },
   { key: 'promo', label: 'Promoções', icon: 'pricetags-outline' },
   { key: 'anuncios', label: 'Anúncios', icon: 'megaphone-outline' },

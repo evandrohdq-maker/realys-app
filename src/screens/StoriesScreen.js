@@ -13,7 +13,7 @@ import { CommunityHub, CommunityExtras, TopTabs, COMMUNITY_TOP, COMMUNITY_TOP_KE
 import { useBack } from '../back';
 import { TestimonialComposer } from '../components/SocialProfile';
 
-// Página Community (botão "Community" na barra de baixo): stories e comunidade.
+// Página Comunidade (botão "Comunidade" na barra de baixo): stories e comunidade.
 // Em cima, a faixa de bolinhas como no Instagram; embaixo, a Comunidade: feed único de posts e
 // depoimentos (curtir, comentar, compartilhar), mensagens, contatos e live.
 export default function StoriesScreen({ navigate, explore }) {
@@ -33,6 +33,9 @@ export default function StoriesScreen({ navigate, explore }) {
   const userName = state.user ? state.user.name : 'Você';
   const seen = state.storySeen;
   const mine = { id: 'mine', mine: true, name: userName, items: state.myStories };
+  // Foto do botão de postagem: a do perfil; sem ela, a imagem do último story publicado.
+  const lastStory = state.myStories.length ? state.myStories[state.myStories.length - 1] : null;
+  const myPhoto = (state.myProfile && state.myProfile.photo) || (lastStory && lastStory.image) || null;
 
   const fresh = stories.filter((g) => !seen[g.id]);
   const old = stories.filter((g) => seen[g.id]);
@@ -73,16 +76,23 @@ export default function StoriesScreen({ navigate, explore }) {
         explore={explore}
         top={
           <View>
-        <View style={[styles.head, { paddingHorizontal: 0, paddingTop: 0 }]}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.title}>Community</Text>
-            <Text style={styles.sub}>Stories, publicações e depoimentos de pessoas e empresas verificadas</Text>
+        {/* Botão de postagem: a foto do perfil (com o anel do último story) abre publicação, story ou depoimento. */}
+        <TouchableOpacity style={styles.postBar} onPress={() => setAdding(true)} activeOpacity={0.85} accessibilityLabel="Nova publicação">
+          <View style={[styles.meRing, { borderColor: lastStory ? colors.gold : colors.border, borderWidth: lastStory ? 2.5 : 1.5 }]}>
+            {myPhoto ? (
+              <Photo uri={myPhoto} style={styles.meImg} fallback="🙂" />
+            ) : (
+              <View style={[styles.meImg, { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }]}>
+                <Text style={{ color: colors.onPrimary, fontWeight: '900', fontSize: 18 }}>{userName.charAt(0).toUpperCase()}</Text>
+              </View>
+            )}
+            <View style={styles.mePlus}>
+              <Ionicons name="add" size={13} color="#fff" />
+            </View>
           </View>
-          {/* Uma opção só: o + abre publicação, story ou depoimento. */}
-          <TouchableOpacity style={styles.plusBtn} onPress={() => setAdding(true)} accessibilityLabel="Nova publicação">
-            <Ionicons name="add" size={28} color={colors.onPrimary} />
-          </TouchableOpacity>
-        </View>
+          <Text style={styles.postBarText} numberOfLines={1}>Publicar algo, {userName.split(' ')[0]}?</Text>
+          <Ionicons name="images-outline" size={20} color={colors.primary} />
+        </TouchableOpacity>
 
         {/* Faixa de bolinhas */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={styles.strip}>
@@ -305,6 +315,11 @@ const styles = StyleSheet.create({
   photoBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 46, borderRadius: 14, borderWidth: 1.5, borderColor: colors.primary, marginTop: 14 },
   removeImg: { position: 'absolute', top: 8, right: 8, width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' },
   title: { color: colors.text, fontSize: 26, fontWeight: '900' },
+  postBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 28, paddingVertical: 6, paddingLeft: 6, paddingRight: 14 },
+  meRing: { width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center' },
+  meImg: { width: 42, height: 42, borderRadius: 21 },
+  mePlus: { position: 'absolute', right: -2, bottom: -2, width: 20, height: 20, borderRadius: 10, backgroundColor: colors.accent, borderWidth: 2, borderColor: colors.card, alignItems: 'center', justifyContent: 'center' },
+  postBarText: { flex: 1, color: colors.muted, fontSize: 14, marginLeft: 10 },
   sub: { color: colors.muted, fontSize: 12, marginTop: 2 },
   newBtn: { flexDirection: 'row', alignItems: 'center', height: 38, paddingHorizontal: 14, borderRadius: 19, backgroundColor: colors.primary, marginLeft: 10 },
   strip: { paddingHorizontal: 12, paddingVertical: 14 },
