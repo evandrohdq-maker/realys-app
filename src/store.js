@@ -48,6 +48,7 @@ const WALLET_CAT = {
   BUY_MEDIA: ['Artistas', () => 'Compra de música ou obra'],
   MEDIA_UPLOAD: ['Servidor', (a) => `Servidor Realys - ${(a.item && a.item.file) || 'arquivo'}`],
   MEDIA_PLAN: ['Servidor', () => 'Plano Artista Pro'],
+  VENUE_ORDER: ['Food', (a) => `Pedido na mesa: ${a.items.map((it) => `${it.qty} ${it.name}`).join(', ')}`],
   BUY_TICKET: ['Eventos e passagens', (a) => (a.ticket && (a.ticket.title || a.ticket.name)) || 'Ingresso ou passagem'],
   SECTOR_ORDER: ['Compras', (a) => (a.item && a.item.title) || 'Compra'],
 };
@@ -126,6 +127,13 @@ const initialState = {
   promoCredits: [], // { id, offerId, kind, partnerId?, service?, partner, title, value, used }
   loyalty: initialLoyalty, // Clube Realys: pedidos entregues, selos por loja (ver src/loyalty.js)
   loyaltyNotes: [], // avisos de bônus que acabaram de sair
+  // Comanda no estabelecimento (src/venueData.js): onde o cliente está, a mesa, os pedidos
+  // e os avisos que chegam no caixa do lugar.
+  venue: null, // { id, kind, name, title, menu, table? }
+  venueOpen: false,
+  venueOrders: [], // { id, venueId, venue, table, items, total, status, at }
+  staffFeed: [], // avisos do caixa: { id, venueId, text, orderId, at }
+  reservations: {}, // { [venueId]: mesa }
   liked: {},
   reports: D.reports,
   signups: D.pendingSignups,
@@ -593,6 +601,39 @@ function baseReducer(state, a) {
         wallet: +(state.wallet - a.price).toFixed(2),
         finance: [{ id: newId('m'), date: today(), desc: 'Plano Artista Pro (servidor)', type: 'saida', value: a.price }, ...state.finance],
       };
+    // Chegou no lugar (ingresso do evento ou check-in no bar). Se reservou mesa, já fica nela.
+    case 'VENUE_ENTER':
+      return { ...state, venue: { ...a.venue, table: a.table || state.reservations[a.venue.id] || null }, venueOpen: !!a.open };
+    case 'VENUE_RESERVE':
+      return { ...state, reservations: { ...state.reservations, [a.venueId]: a.table }, venue: state.venue && state.venue.id === a.venueId ? { ...state.venue, table: a.table } : state.venue };
+    case 'VENUE_SET_TABLE':
+      return { ...state, venue: state.venue ? { ...state.venue, table: a.table } : state.venue };
+    case 'VENUE_LEAVE':
+      return { ...state, venue: null, venueOpen: false };
+    case 'OPEN_VENUE':
+      return { ...state, venueOpen: true };
+    case 'CLOSE_VENUE':
+      return { ...state, venueOpen: false };
+    // Pedido na mesa: paga pelo Realys (créditos de presente primeiro) e avisa o caixa do lugar.
+    case 'VENUE_ORDER': {
+      const v = state.venue;
+      const total = +a.items.reduce((x, it) => x + it.price * it.qty, 0).toFixed(2);
+      if (!v || !total || total > state.wallet + state.giftCredits) return state;
+      const fromGift = +Math.min(state.giftCredits, total).toFixed(2);
+      const who = (state.user && state.user.name) || 'Cliente';
+      const id = newId('vo');
+      const what = a.items.map((it) => `${it.qty} ${it.name}`).join(', ');
+      return {
+        ...state,
+        wallet: +(state.wallet - (total - fromGift)).toFixed(2),
+        giftCredits: +(state.giftCredits - fromGift).toFixed(2),
+        gifts: fromGift ? [{ id: newId('gu'), dir: 'usado', amount: fromGift, desc: v.name, at: Date.now() }, ...state.gifts] : state.gifts,
+        venueOrders: [{ id, venueId: v.id, venue: v.name, table: v.table, items: a.items, total, status: 'Recebido no caixa', at: Date.now() }, ...state.venueOrders],
+        staffFeed: [{ id: newId('sf'), venueId: v.id, orderId: id, text: `${v.table ? `Mesa ${v.table}` : 'Balcão'} · ${who} pediu ${what}`, total, at: Date.now() }, ...state.staffFeed],
+      };
+    }
+    case 'VENUE_ORDER_STATUS':
+      return { ...state, venueOrders: state.venueOrders.map((o) => (o.id === a.id ? { ...o, status: a.status } : o)) };
     case 'BUY_TICKET':
       return { ...state, wallet: +(state.wallet - a.ticket.price).toFixed(2), tickets: [a.ticket, ...state.tickets] };
     // Compra, assinatura ou inscrição feita nas abas Tecnologia e Agro: vira um pedido.

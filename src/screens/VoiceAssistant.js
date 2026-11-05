@@ -152,6 +152,11 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
     return { reply: `Vou ligar para ${e.label}, ${e.number.split('').join(' ')}. Confirme na tela.` };
   }
 
+  // No evento ou bar com check-in: "quero pedir uma cerveja", "abre a comanda" → abre a comanda
+  // (ela mostra o cardápio; o pedido só sai quando a pessoa confirma).
+  if (state.venue && /(comanda|na mesa|cardapio|cerveja|chope|drink|caipirinha|agua|refri|porcao|petisco|bebida)/.test(t)) {
+    return { openVenue: true, reply: `Abrindo a comanda de ${state.venue.name}${state.venue.table ? `, mesa ${state.venue.table}` : ''}. Escolha o que quer e confirme o pedido.` };
+  }
   // "Abre meu carrinho", "ver carrinho": abre a janela do carrinho.
   if (/(carrinho|minhas compras|sacola)/.test(t) && !/\b(adiciona|adicione|coloca|bota|poe|por)\b/.test(t)) {
     const n = state.cart.reduce((x, c) => x + c.qty, 0);
@@ -453,6 +458,14 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
       setPhase('idle');
       speakSoft(res.reply);
       onVoiceNav(res.nav);
+      return;
+    }
+    if (res.openVenue) {
+      setPending(null);
+      setPhase('idle');
+      speakSoft(res.reply);
+      dispatch({ type: 'OPEN_VENUE' });
+      onClose();
       return;
     }
     // Carrinho: fala, fecha a caixa e abre a janela do carrinho.

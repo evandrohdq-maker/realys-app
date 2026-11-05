@@ -6,13 +6,14 @@ import { colors, brl } from '../../theme';
 import { Photo, ProductThumb } from '../../components/ui';
 import { isFoodStore } from '../../data';
 import { foodPromos, barSpots, foodPosts } from '../../foodData';
+import { venueOfBar, freeTable } from '../../venueData';
 
 // Destaques da aba Food: promoções de restaurantes, bares e happy hour (com check-in e "vou hoje"),
 // novidades do cardápio e o que a galera está comendo. Só conteúdo de comida e bebida.
 const sponsoredFirst = (list) => [...list].sort((a, b) => (b.sponsored ? 1 : 0) - (a.sponsored ? 1 : 0));
 
 export function FoodHighlights({ filter, onOpenStore, onAdd }) {
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
   const [going, setGoing] = useState({});
   const [here, setHere] = useState({});
   const [liked, setLiked] = useState({});
@@ -115,7 +116,14 @@ export function FoodHighlights({ filter, onOpenStore, onAdd }) {
                       style={[styles.btn, isHere && styles.btnOn]}
                       onPress={() => {
                         setHere({ ...here, [b.id]: !isHere });
-                        if (!isHere) Alert.alert('Check-in feito 📍', `Seus amigos veem que você está no ${b.name}.`);
+                        if (isHere) return;
+                        // Check-in: já pode pedir bebidas e comidas pelo app (na mesa reservada, se tiver).
+                        dispatch({ type: 'VENUE_ENTER', venue: venueOfBar(b) });
+                        const table = (state.reservations || {})['bar-' + b.id];
+                        Alert.alert('Check-in feito 📍', `Seus amigos veem que você está no ${b.name}.${table ? ` Você está na mesa ${table}.` : ''}\n\nQuer pedir bebidas e comidas pelo app? O caixa recebe o seu pedido na hora.`, [
+                          { text: 'Agora não' },
+                          { text: 'Abrir comanda', onPress: () => dispatch({ type: 'OPEN_VENUE' }) },
+                        ]);
                       }}
                     >
                       <Ionicons name="location" size={16} color={isHere ? colors.onPrimary : colors.primary} />
@@ -123,7 +131,12 @@ export function FoodHighlights({ filter, onOpenStore, onAdd }) {
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.btn, { marginRight: 0 }]}
-                      onPress={() => (b.storeId ? onOpenStore(b.storeId) : Alert.alert('Reservar mesa', `Pedido de reserva enviado para ${b.name}. A confirmação chega nas suas mensagens.`))}
+                      onPress={() => {
+                        if (b.storeId) return onOpenStore(b.storeId);
+                        const table = freeTable();
+                        dispatch({ type: 'VENUE_RESERVE', venueId: 'bar-' + b.id, table });
+                        Alert.alert('Mesa reservada 🪑', `Mesa ${table} no ${b.name}. Quando chegar, faça o check-in: você já fica na mesa e pode pedir pelo app.`);
+                      }}
                     >
                       <Ionicons name={b.storeId ? 'book-outline' : 'people-outline'} size={16} color={colors.primary} />
                       <Text style={styles.btnText}>{b.storeId ? 'Cardápio' : 'Reservar'}</Text>

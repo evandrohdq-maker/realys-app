@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf } from '../../../store';
 import { colors, brl } from '../../../theme';
 import { Screen, Photo, ProductThumb, Badge } from '../../../components/ui';
+import { venueOfEvent, freeTable, ticketPrice } from '../../../venueData';
 import { promos, listings, LISTING_KINDS, LISTING_CTA, communityPosts, contacts, lives, events, EVENT_GROUPS } from '../../../homeData';
 import { ChatModal, VideoCallModal, LiveModal } from './Social';
 import { members, memberByName } from '../../../people';
@@ -194,7 +195,31 @@ function EventsTab({ group, setGroup, onContact }) {
   const anuncios = sortEv(events.filter((e) => e.group === 'promo-anuncio'));
   const outros = events.filter((e) => !['festa-promo', 'promo-anuncio'].includes(e.group));
   const list = sortEv(events.filter((e) => e.group === group));
-  const act = (e) => Alert.alert(e.cta, `${e.title}\n${e.who} · ${e.when}\n\nPedido enviado. A confirmação chega nas suas mensagens.`);
+  const { state, dispatch } = useStore();
+  const ticketOf = (e) => (state.tickets || []).find((t) => t.eventId === e.id);
+  // Comprar ingresso (com ou sem mesa reservada). Com ingresso, no local: abre a comanda para pedir.
+  const act = (e) => {
+    const tk = ticketOf(e);
+    const venue = venueOfEvent(e);
+    if (tk) return dispatch({ type: 'VENUE_ENTER', venue, table: tk.table, open: true });
+    const price = ticketPrice(e.price);
+    if (price > state.wallet) return Alert.alert('Saldo insuficiente', 'Adicione saldo Realys para comprar o ingresso.');
+    const buy = (withTable) => {
+      const table = withTable ? freeTable() : null;
+      dispatch({ type: 'BUY_TICKET', ticket: { id: 'tk' + Date.now(), eventId: e.id, title: e.title, name: e.who, price, table } });
+      if (table) dispatch({ type: 'VENUE_RESERVE', venueId: venue.id, table });
+      Alert.alert(
+        'Ingresso garantido 🎟️',
+        `${e.title} · ${e.who} · ${e.when}${table ? `\n\nMesa ${table} reservada para você.` : ''}\n\nQuando chegar, toque em "Estou no local" para pedir bebidas e comidas pelo app${table ? ', direto na sua mesa' : ''}.`,
+      );
+    };
+    Alert.alert(e.cta, `${e.title}\n${e.who} · ${e.when}\n${price ? brl(price) : 'Grátis'} pelo Realys`, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Só ingresso', onPress: () => buy(false) },
+      { text: 'Ingresso + mesa', onPress: () => buy(true) },
+    ]);
+  };
+  const withCta = (e) => (ticketOf(e) ? { ...e, cta: 'Estou no local · pedir' } : e);
   return (
     <Screen>
       <View style={styles.evBanner}>
@@ -222,22 +247,22 @@ function EventsTab({ group, setGroup, onContact }) {
           <SectionHead title="🔥 Festas promocionais" action="Ver todas" onAction={() => setGroup('festa-promo')} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 16 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
             {festas.map((e) => (
-              <EventPromoCard key={e.id} e={e} onPress={() => act(e)} />
+              <EventPromoCard key={e.id} e={withCta(e)} onPress={() => act(e)} />
             ))}
           </ScrollView>
 
           <SectionHead title="📣 Anúncios de promoções" action="Ver todos" onAction={() => setGroup('promo-anuncio')} />
           {anuncios.map((e) => (
-            <EventRow key={e.id} e={e} onAct={() => act(e)} onContact={() => onContact(e)} />
+            <EventRow key={e.id} e={withCta(e)} onAct={() => act(e)} onContact={() => onContact(e)} />
           ))}
 
           <SectionHead title="Mais eventos" />
           {outros.map((e) => (
-            <EventRow key={e.id} e={e} onAct={() => act(e)} onContact={() => onContact(e)} />
+            <EventRow key={e.id} e={withCta(e)} onAct={() => act(e)} onContact={() => onContact(e)} />
           ))}
         </>
       ) : (
-        list.map((e) => <EventRow key={e.id} e={e} big onAct={() => act(e)} onContact={() => onContact(e)} />)
+        list.map((e) => <EventRow key={e.id} e={withCta(e)} big onAct={() => act(e)} onContact={() => onContact(e)} />)
       )}
 
       <TouchableOpacity

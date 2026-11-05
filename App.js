@@ -39,6 +39,7 @@ import { CompanyProfileModal } from './src/components/CompanyProfile';
 import GiftSheet from './src/components/GiftSheet';
 import CartSheet, { CartIcon } from './src/components/CartSheet';
 import RateSheet, { LoyaltyNotifier } from './src/components/RateSheet';
+import VenueSheet, { VenuePill } from './src/components/VenueSheet';
 import TransitScreen from './src/screens/cliente/TransitScreen';
 import SosScreen from './src/screens/cliente/SosScreen';
 import ArtistsScreen from './src/screens/cliente/ArtistsScreen';
@@ -268,6 +269,8 @@ function Shell() {
           <Ionicons name="scan-outline" size={12} color={colors.primary} />
           <Text style={styles.idText}>ID biométrico verificado</Text>
         </View>
+        {/* No evento ou bar: atalho discreto para a comanda */}
+        <VenuePill style={[styles.idPill, { borderColor: colors.gold }]} textStyle={[styles.idText, { color: colors.primary }]} />
         {state.handsFree ? (
           <View style={[styles.idPill, { borderColor: hearing ? colors.accent : colors.border }]}>
             <Ionicons name={hearing ? 'ear' : 'ear-outline'} size={12} color={hearing ? colors.accent : colors.muted} />
@@ -366,6 +369,7 @@ function Shell() {
       <CartSheet onOrders={() => pick({ tab: 'pedidos' })} />
       <RateSheet />
       <LoyaltyNotifier />
+      <VenueSheet />
       <CategoryMenu
         visible={menu}
         onClose={() => setMenu(false)}
