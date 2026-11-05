@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useStore, myProducts } from '../../store';
 import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Stat, BarChart, Section, ProductThumb, Badge } from '../../components/ui';
 
 export default function DashboardScreen() {
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
   const products = myProducts(state);
   const week = state.salesByDay.reduce((s, d) => s + d.value, 0);
   const todayValue = state.salesByDay[state.salesByDay.length - 1].value;
@@ -26,10 +27,20 @@ export default function DashboardScreen() {
         <Stat label="Vendas hoje" value={brl(todayValue)} color={colors.primary} />
         <Stat label="Últimos 7 dias" value={brl(week)} />
       </Row>
-      <Row style={{ marginHorizontal: -4, marginBottom: 16 }}>
+      <Row style={{ marginHorizontal: -4, marginBottom: 8 }}>
         <Stat label="Ticket médio" value={brl(avgTicket)} />
         <Stat label="Saldo do período" value={brl(entradas - saidas)} color={entradas - saidas >= 0 ? colors.success : colors.danger} />
       </Row>
+
+      {/* Presentear clientes: créditos que o cliente usa só para comprar no Realys */}
+      <TouchableOpacity activeOpacity={0.9} onPress={() => dispatch({ type: 'OPEN_GIFT', asCompany: true })} style={{ backgroundColor: '#0B1124', borderRadius: 18, padding: 14, marginBottom: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' }}>
+        <Ionicons name="gift" size={24} color="#E2B649" />
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <Text style={{ color: '#FFFFFF', fontWeight: '900' }}>Presentear clientes</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 }}>Mande créditos para um cliente fiel. Ele usa só em compras no Realys.</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color="#E2B649" />
+      </TouchableOpacity>
 
       <Card>
         <Text style={{ color: colors.text, fontWeight: '800', marginBottom: 10 }}>Faturamento por dia</Text>

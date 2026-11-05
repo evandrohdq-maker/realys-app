@@ -61,6 +61,7 @@ export function AdminOverview() {
           ['Vídeos avulsos e vídeos longos', 7310],
           ['Patrocínio na busca', 8420],
           ['Taxas de negócios B2B', 3710],
+          ['Taxas de presentes e gorjetas', 1180 + state.giftFees],
         ].map(([label, v]) => (
           <Card key={label}>
             <Row style={{ justifyContent: 'space-between' }}>

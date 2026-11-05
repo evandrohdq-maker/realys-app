@@ -10,6 +10,7 @@ import { members, memberById, postsOf, searchMembers } from '../people';
 import { ChatModal } from '../screens/cliente/home/Social';
 import { listenOnce, GlobalResults } from './Search';
 import { ProfileSocial } from './SocialProfile';
+import { memberTarget } from './GiftSheet';
 
 // Botão de amizade: Adicionar → Solicitação enviada → Amigos (ou Aceitar / Recusar quando pediram para você).
 export function FriendButton({ member, compact }) {
@@ -127,6 +128,9 @@ export function UserProfileModal() {
             <TouchableOpacity style={styles.msgBtn} onPress={openChat} accessibilityLabel={`Mensagem para ${m.name}`}>
               <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.primary} />
               <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 6 }}>Mensagem</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.msgBtn, { paddingHorizontal: 12 }]} onPress={() => dispatch({ type: 'OPEN_GIFT', to: memberTarget(m) })} accessibilityLabel={`Presentear ${m.name}`}>
+              <Ionicons name="gift-outline" size={18} color={colors.primary} />
             </TouchableOpacity>
           </View>
 

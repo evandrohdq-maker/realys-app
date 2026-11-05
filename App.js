@@ -36,6 +36,7 @@ import { speakSoft, prepareVoice } from './src/voice';
 import { loadModel } from './src/lm/lotusLM';
 import { UserProfileModal, PeopleSearchModal } from './src/components/People';
 import { CompanyProfileModal } from './src/components/CompanyProfile';
+import GiftSheet from './src/components/GiftSheet';
 import TransitScreen from './src/screens/cliente/TransitScreen';
 import SosScreen from './src/screens/cliente/SosScreen';
 import ArtistsScreen from './src/screens/cliente/ArtistsScreen';
@@ -357,6 +358,7 @@ function Shell() {
       <PeopleSearchModal visible={searching} onClose={() => setSearching(false)} navigate={pick} />
       <UserProfileModal />
       <CompanyProfileModal />
+      <GiftSheet />
       <CategoryMenu
         visible={menu}
         onClose={() => setMenu(false)}

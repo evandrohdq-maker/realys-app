@@ -84,7 +84,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
   const total = cartTotal(state);
 
   const checkout = () => {
-    if (total > state.wallet) return Alert.alert('Saldo insuficiente', 'Adicione saldo Realys para concluir.');
+    if (total > state.wallet + state.giftCredits) return Alert.alert('Saldo insuficiente', 'Adicione saldo Realys para concluir.');
     dispatch({ type: 'CHECKOUT' });
     setShowCart(false);
     Alert.alert(
@@ -127,6 +127,12 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
             <Text style={{ color: colors.muted }}>Seu saldo Realys</Text>
             <Text style={{ color: colors.text, fontWeight: '700' }}>{brl(state.wallet)}</Text>
           </Row>
+          {state.giftCredits > 0 ? (
+            <Row style={{ justifyContent: 'space-between', marginTop: 6 }}>
+              <Text style={{ color: colors.muted }}>🎁 Créditos de presente (usados primeiro)</Text>
+              <Text style={{ color: colors.success, fontWeight: '700' }}>− {brl(Math.min(state.giftCredits, total))}</Text>
+            </Row>
+          ) : null}
           <Row style={{ justifyContent: 'space-between', marginTop: 6 }}>
             <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>Total</Text>
             <Text style={{ fontWeight: '800', fontSize: 16, color: colors.primary }}>{brl(total)}</Text>

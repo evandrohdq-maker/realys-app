@@ -36,7 +36,7 @@ export function useBuy(navigate) {
       dispatch({ type: 'SECTOR_ORDER', item: it });
       return Alert.alert('Inscrição feita', `Você está inscrito em "${it.title}". Acompanhe em Pedidos.`);
     }
-    if (it.price > state.wallet) return Alert.alert('Saldo insuficiente', 'Adicione saldo Realys para continuar.');
+    if (it.price > state.wallet + state.giftCredits) return Alert.alert('Saldo insuficiente', 'Adicione saldo Realys para continuar.');
     Alert.alert(it.cta, `${it.title}\n${it.who}\n\n${priceText(it)} com saldo Realys (pagamento protegido).`, [
       { text: 'Cancelar', style: 'cancel' },
       {

@@ -301,7 +301,7 @@ export const initialProposals = [
 ];
 
 export const initialOrders = [
-  { id: 'o1', items: [{ name: 'Pizza Calabresa Grande', qty: 1, price: 54.9 }], total: 54.9, status: 'Entregue', store: 'Pizzaria da Praça', courier: 'Marcos Silva' },
+  { id: 'o1', items: [{ name: 'Pizza Calabresa Grande', qty: 1, price: 54.9 }], total: 54.9, status: 'Entregue', store: 'Pizzaria da Praça', courier: 'Marcos Silva', courierId: 'v2', food: true, requestedBy: 'Pizzaria da Praça' },
 ];
 
 // Pedidos que chegam para o prestador (no perfil Prestador da demonstração).

@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../theme';
-import { serviceType, priceText } from '../../store';
+import { serviceType, priceText, useStore } from '../../store';
+import { providerTarget } from '../../components/GiftSheet';
 import { Photo } from '../../components/ui';
 import { reviewsCount, jobsDone, kmText, ratingText, sampleReviews, etaMin } from '../../providerInfo';
 
@@ -15,6 +16,7 @@ const TABS = [
 
 // Perfil completo do prestador: o que faz, quanto cobra, avaliações e fotos.
 export default function ProviderProfile({ provider: p, visible, onClose, onHire, onQuote, onMessage }) {
+  const { dispatch } = useStore();
   const [tab, setTab] = useState('serv');
   const [fav, setFav] = useState(false);
   const insets = useSafeAreaInsets();
@@ -125,6 +127,9 @@ export default function ProviderProfile({ provider: p, visible, onClose, onHire,
         <View style={[styles.bar, { paddingBottom: 14 + insets.bottom }]}>
           <TouchableOpacity style={styles.barIcon} onPress={() => onMessage(p)} accessibilityLabel="Enviar mensagem">
             <Ionicons name="chatbubble-ellipses-outline" size={20} color={colors.text} />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.barIcon, { marginLeft: 8 }]} onPress={() => dispatch({ type: 'OPEN_GIFT', to: providerTarget(p) })} accessibilityLabel={`Presentear ${p.name}`}>
+            <Ionicons name="gift-outline" size={20} color={colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity style={[styles.barBtn, styles.barGhost]} onPress={() => onQuote(p)}>
             <Text style={{ color: colors.primary, fontWeight: '700' }}>Orçamento</Text>

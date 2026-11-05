@@ -5,6 +5,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as D from './data';
 import { initialFriends } from './people';
 import { brl } from './theme';
+import { initialGifts, initialGiftCredits, giftFee, GIFT_MIN, GIFT_MAX } from './gifts';
 import { conversations as initialConversations, communityPosts as initialCommunityPosts } from './homeData';
 import * as J from './jobsData';
 import { initialTestimonials, myInitialGallery } from './testimonialsData';
@@ -55,6 +56,12 @@ const initialState = {
   activeRole: null,
   wallet: 750, // saldo em moeda Realys (1 RLS = R$ 1,00 na demonstração)
   walletTx: initialWalletTx, // extrato da carteira
+  // Créditos de presente: chegam sem precisar aceitar, não podem ser sacados e só servem para
+  // comprar produtos no Realys (ver src/gifts.js). gifts = presentes recebidos, enviados e usados.
+  giftCredits: initialGiftCredits,
+  gifts: initialGifts,
+  giftOpen: null, // janela de presentear aberta: { to?, asCompany? }
+  giftFees: 0, // taxas de presente que ficaram para o Realys nesta sessão
   spendLimit: 400, // limite de gastos do mês, definido pelo próprio usuário
   stores: D.stores,
   products: D.products,
@@ -197,6 +204,12 @@ const withUserRole = (user) => {
   return { ...user, roles };
 };
 
+// Food chama um motoboy já cadastrado no Realys: o mais perto que faz entregas.
+function pickCourier(state) {
+  const list = (state.providers || []).filter((p) => p.service === 'motoboy').sort((a, b) => a.distanceKm - b.distanceKm);
+  return list[0] || null;
+}
+
 // Toda ação que mexe no saldo entra sozinha no extrato da carteira.
 function reducer(state, a) {
   const next = baseReducer(state, a);
@@ -274,7 +287,9 @@ function baseReducer(state, a) {
     case 'CHECKOUT': {
       const lines = state.cart.map((c) => ({ ...c, product: state.products.find((p) => p.id === c.productId) }));
       const total = lines.reduce((s, l) => s + l.product.price * l.qty, 0);
-      if (!lines.length || total > state.wallet) return state;
+      if (!lines.length || total > state.wallet + state.giftCredits) return state;
+      // Créditos de presente pagam primeiro; o resto sai do saldo.
+      const fromGift = +Math.min(state.giftCredits, total).toFixed(2);
       const mine = lines.filter((l) => l.product.storeId === D.MY_COMPANY_ID);
       const mineTotal = mine.reduce((s, l) => s + l.product.price * l.qty, 0);
       const storeNames = [...new Set(lines.map((l) => state.stores.find((s) => s.id === l.product.storeId).name))];
@@ -282,11 +297,16 @@ function baseReducer(state, a) {
         i === arr.length - 1 ? { ...d, value: d.value + mineTotal } : d
       );
       const nfe = nfeNumber(state.nfeSeq + 1);
+      // Pedido de comida: o restaurante solicita um motoboy cadastrado na plataforma.
+      const foodStores = [...new Set(lines.map((l) => state.stores.find((s) => s.id === l.product.storeId)).filter((s) => D.isFoodStore(s)).map((s) => s.name))];
+      const courier = foodStores.length ? pickCourier(state) : null;
       return {
         ...state,
         nfeSeq: state.nfeSeq + 1,
-        wallet: +(state.wallet - total).toFixed(2),
+        wallet: +(state.wallet - (total - fromGift)).toFixed(2),
         cart: [],
+        giftCredits: +(state.giftCredits - fromGift).toFixed(2),
+        gifts: fromGift ? [{ id: newId('gu'), dir: 'usado', amount: fromGift, desc: storeNames.join(', '), at: Date.now() }, ...state.gifts] : state.gifts,
         products: state.products.map((p) => {
           const l = lines.find((x) => x.productId === p.id);
           return l ? { ...p, stock: Math.max(0, p.stock - l.qty) } : p;
@@ -298,11 +318,18 @@ function baseReducer(state, a) {
             total: +total.toFixed(2),
             status: 'Pagamento protegido',
             store: storeNames.join(', '),
-            courier: null,
+            courier: courier ? courier.name : null,
+            courierId: courier ? courier.id : null,
+            food: !!foodStores.length,
+            requestedBy: foodStores.join(', '),
             nfe,
           },
           ...state.orders,
         ],
+        // O pedido de entrega também chega para os motoboys (perfil Prestador).
+        rideRequests: courier
+          ? [{ id: newId('r'), client: foodStores.join(', '), service: 'Entrega de comida (Food)', from: foodStores.join(', '), to: 'Endereço do cliente', price: +(courier.price + 1.5 * 2).toFixed(2), distanceKm: 2 }, ...state.rideRequests]
+          : state.rideRequests,
         finance: mineTotal
           ? [{ id: newId('m'), date: today(), desc: `Venda no app Realys · NF-e ${nfe}`, type: 'entrada', value: +mineTotal.toFixed(2) }, ...state.finance]
           : state.finance,
@@ -527,12 +554,15 @@ function baseReducer(state, a) {
     case 'SECTOR_ORDER': {
       const it = a.item;
       const price = it.price || 0;
-      if (price > state.wallet) return state;
+      if (price > state.wallet + state.giftCredits) return state;
       const nfe = price ? nfeNumber(state.nfeSeq + 1) : null;
+      const fromGift = +Math.min(state.giftCredits, price).toFixed(2);
       return {
         ...state,
         nfeSeq: price ? state.nfeSeq + 1 : state.nfeSeq,
-        wallet: +(state.wallet - price).toFixed(2),
+        wallet: +(state.wallet - (price - fromGift)).toFixed(2),
+        giftCredits: +(state.giftCredits - fromGift).toFixed(2),
+        gifts: fromGift ? [{ id: newId('gu'), dir: 'usado', amount: fromGift, desc: it.title, at: Date.now() }, ...state.gifts] : state.gifts,
         orders: [
           { id: newId('o'), items: [{ name: it.title, qty: 1, price }], total: price, status: 'Pagamento protegido', store: it.who, courier: null, nfe },
           ...state.orders,
@@ -632,6 +662,38 @@ function baseReducer(state, a) {
       return { ...state, myProvider: me, providers: state.available ? [...others, me] : others };
     }
     // Carteira: depositar, sacar e definir o limite de gastos do mês.
+    case 'OPEN_GIFT':
+      return { ...state, giftOpen: { to: a.to || null, asCompany: !!a.asCompany } };
+    case 'CLOSE_GIFT':
+      return { ...state, giftOpen: null };
+    // Presente: sai do saldo de quem dá (valor + taxa do Realys) e entra na hora para quem recebe,
+    // como crédito de presente (não precisa aceitar, não dá para sacar, só compra no Realys).
+    case 'SEND_GIFT': {
+      const amount = +Number(a.amount).toFixed(2);
+      const fee = giftFee(amount);
+      if (!(amount >= GIFT_MIN) || amount > GIFT_MAX || amount + fee > state.wallet || !a.to) return state;
+      const company = a.asCompany ? state.stores.find((x) => x.id === D.MY_COMPANY_ID) : null;
+      const gift = {
+        id: newId('gf'),
+        dir: 'enviado',
+        to: a.to,
+        from: company ? { name: company.name, kind: 'empresa', logo: company.logo } : { name: (state.user && state.user.name) || 'Você', kind: 'pessoa' },
+        amount,
+        fee,
+        occasion: a.occasion,
+        message: a.message,
+        at: Date.now(),
+        status: 'Entregue',
+      };
+      return {
+        ...state,
+        wallet: +(state.wallet - amount - fee).toFixed(2),
+        walletTx: [{ id: newId('w'), ts: Date.now(), kind: 'gasto', cat: 'Presentes', desc: `Presente para ${a.to.name} (${brl(amount)} + taxa ${brl(fee)})`, amount: +(amount + fee).toFixed(2) }, ...state.walletTx],
+        gifts: [gift, ...state.gifts],
+        giftFees: +(state.giftFees + fee).toFixed(2),
+        finance: company ? [{ id: newId('m'), date: today(), desc: `Presente para cliente ${a.to.name}`, type: 'saida', value: +(amount + fee).toFixed(2) }, ...state.finance] : state.finance,
+      };
+    }
     case 'WALLET_DEPOSIT': {
       const v = +Number(a.amount).toFixed(2);
       if (!(v > 0)) return state;

@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { colors, brl } from '../theme';
+import { GIFT_FEE_PCT } from '../gifts';
 
 const KIND = {
   deposito: { label: 'Depósito', icon: 'arrow-down-circle', color: colors.success, sign: '+' },
@@ -93,8 +94,43 @@ export default function WalletScreen({ visible, onClose }) {
             <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>Moeda Realys · 1 RLS = R$ 1,00 na demonstração</Text>
             <View style={{ flexDirection: 'row', marginTop: 14 }}>
               <BigBtn icon="add-circle-outline" label="Depositar" onPress={() => setAction('deposito')} />
-              <BigBtn icon="arrow-up-circle-outline" label="Sacar" onPress={() => setAction('saque')} style={{ marginLeft: 10 }} />
+              <BigBtn icon="arrow-up-circle-outline" label="Sacar" onPress={() => setAction('saque')} style={{ marginLeft: 8 }} />
+              <BigBtn icon="gift-outline" label="Presentear" onPress={() => dispatch({ type: 'OPEN_GIFT', asCompany: state.activeRole === 'empresa' })} style={{ marginLeft: 8 }} />
             </View>
+          </View>
+
+          {/* Créditos de presente: não sacam, só compram no Realys */}
+          <View style={styles.giftCard}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="gift" size={22} color="#E2B649" />
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12, fontWeight: '700' }}>Créditos de presente</Text>
+                <Text style={{ color: '#FFFFFF', fontSize: 24, fontWeight: '900' }}>{brl(state.giftCredits)}</Text>
+              </View>
+            </View>
+            <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11, marginTop: 6, lineHeight: 16 }}>
+              Só para comprar produtos no Realys (lojas, Food, Shop, Tecnologia e Agro). Não podem ser sacados. Nas compras eles são usados primeiro, antes do saldo.
+            </Text>
+            {state.gifts.slice(0, 6).map((g) => (
+              <View key={g.id} style={styles.giftRow}>
+                <Text style={{ fontSize: 16, width: 26 }}>{g.dir === 'recebido' ? (g.from.logo || '🎁') : g.dir === 'enviado' ? '💝' : '🛍️'}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13 }} numberOfLines={1}>
+                    {g.dir === 'recebido' ? `De ${g.from.name}` : g.dir === 'enviado' ? `Para ${g.to.name}${g.to.tip ? ' (gorjeta)' : ''}` : `Usado em ${g.desc}`}
+                  </Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11 }} numberOfLines={1}>
+                    {g.dir === 'usado' ? fmtDate(g.at) : `${g.occasion || 'Presente'}${g.message ? ` · ${g.message}` : ''}`}
+                    {g.dir === 'enviado' ? ` · taxa ${brl(g.fee)}` : ''}
+                  </Text>
+                </View>
+                <Text style={{ color: g.dir === 'recebido' ? '#7BE0B0' : '#FFFFFF', fontWeight: '900' }}>
+                  {g.dir === 'recebido' ? '+' : '−'} {brl(g.amount)}
+                </Text>
+              </View>
+            ))}
+            <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 10, marginTop: 8 }}>
+              Presentear sai do seu saldo, com taxa de {GIFT_FEE_PCT}% do Realys. Quem recebe não precisa aceitar: entra na hora.
+            </Text>
           </View>
 
           {/* Balanço */}
@@ -333,6 +369,8 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
   title: { color: colors.text, fontWeight: '900', fontSize: 18 },
+  giftCard: { backgroundColor: '#0B1124', borderRadius: 20, padding: 16, marginTop: 10, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
+  giftRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', marginTop: 6 },
   balanceCard: { backgroundColor: colors.primary, borderRadius: 20, padding: 16 },
   balance: { color: '#fff', fontSize: 32, fontWeight: '900', marginVertical: 4 },
   bigBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 44, borderRadius: 14, backgroundColor: '#fff' },
