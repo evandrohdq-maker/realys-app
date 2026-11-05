@@ -64,7 +64,7 @@ const TABS = {
   cliente: [
     // Community vem primeiro: é a aba que abre quando o app inicia.
     { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
-    { key: 'home', label: 'Shop', icon: 'bag-handle-outline', Comp: HomeScreen },
+    { key: 'home', label: 'Início', icon: 'home-outline', Comp: HomeScreen },
     { key: 'encontros', label: 'Date', icon: 'heart-outline', Comp: EncontrosScreen },
     { key: 'food', label: 'Food', icon: 'restaurant-outline', Comp: FoodScreen },
     { key: 'servicos', label: 'Serviços', icon: 'construct-outline', Comp: ServicesScreen },
