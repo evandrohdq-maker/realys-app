@@ -24,6 +24,7 @@ import B2BScreen from './src/screens/empresa/B2BScreen';
 import DriverScreen from './src/screens/prestador/DriverScreen';
 import SupplierScreen from './src/screens/fornecedor/SupplierScreen';
 import { AdminOverview, AdminModeration, AdminSignups } from './src/screens/admin/AdminScreens';
+import AdminMarket from './src/screens/admin/AdminMarket';
 import CategoryMenu from './src/components/CategoryMenu';
 import UpdateChecker from './src/components/UpdateChecker';
 import { AdminSystem, NoteModal, SYSTEM_MAP } from './src/screens/admin/AdminSystem';
@@ -49,6 +50,7 @@ const TABS = {
   admin: [
     { key: 'geral', label: 'Geral', icon: 'shield-checkmark-outline', Comp: AdminOverview },
     { key: 'sistema', label: 'Sistema', icon: 'git-network-outline', Comp: AdminSystem },
+    { key: 'mercado', label: 'Mercado', icon: 'analytics-outline', Comp: AdminMarket },
     { key: 'moderacao', label: 'Moderação', icon: 'flag-outline', Comp: AdminModeration },
     { key: 'cadastros', label: 'Cadastros', icon: 'checkmark-done-outline', Comp: AdminSignups },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },

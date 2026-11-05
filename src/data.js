@@ -328,7 +328,7 @@ export const platformStats = {
 };
 
 export const reports = [
-  { id: 'rp1', kind: 'Fake news', target: 'Perfil "Notícias Já"', detail: 'Post diz que a gasolina vai a R$ 15 amanhã. A IA não achou nenhuma reportagem que confirme.', aiScore: 94, status: 'aberta', count: 37 },
+  { id: 'rp1', kind: 'Fake news', target: 'Perfil "Notícias Já"', claim: 'A gasolina vai a R$ 15 amanhã', detail: 'Post diz que a gasolina vai a R$ 15 amanhã. A IA não achou nenhuma reportagem que confirme.', aiScore: 94, status: 'aberta', count: 37 },
   { id: 'rp2', kind: 'Golpe', target: 'Loja "iPhone Barato SP"', detail: 'Anuncia iPhone por R$ 900 e pede pagamento fora do Realys.', aiScore: 98, status: 'aberta', count: 12 },
   { id: 'rp3', kind: 'Prestador', target: 'Rafael Costa (motoboy)', detail: 'Cliente relata atraso de 40 minutos na entrega.', aiScore: 20, status: 'aberta', count: 1 },
   { id: 'rp4', kind: 'Conteúdo ofensivo', target: 'Comentário em post da Moda Brasil', detail: 'Ofensa a outro usuário.', aiScore: 81, status: 'aberta', count: 4 },

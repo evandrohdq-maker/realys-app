@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { checkText, claimOf } from './lm/factCheck';
 import * as SecureStore from 'expo-secure-store';
 import * as D from './data';
 import { initialFriends } from './people';
@@ -72,6 +73,11 @@ const initialState = {
   viewProfile: null, // id do membro cujo perfil está aberto (abre por cima de qualquer tela)
   myStories: [], // stories que o próprio usuário publicou
   communityPosts: initialCommunityPosts, // feed da Comunidade (na página de Stories)
+  // Informações verificadas como falsas: saem da plataforma e do conhecimento da Lotus,
+  // e ficam só marcadas como falsas para ela avisar quem perguntar (ver src/lm/factCheck.js).
+  falseKnowledge: [
+    { id: 'fk0', claim: 'Pix vai ser taxado em 10% a partir de segunda', reason: 'anuncia taxa sem fonte oficial', score: 96, source: 'Moderação', at: 'semana passada' },
+  ],
   testimonials: initialTestimonials, // depoimentos (pendente → aprovado/recusado/oculto)
   tLiked: {}, // depoimentos que o usuário curtiu
   myGallery: myInitialGallery, // fotos, vídeos e destaques do próprio perfil
@@ -227,12 +233,24 @@ function baseReducer(state, a) {
       return { ...state, notes: state.notes.map((n) => (n.id === a.id ? { ...n, done: !n.done } : n)) };
     case 'DELETE_NOTE':
       return { ...state, notes: state.notes.filter((n) => n.id !== a.id) };
-    case 'RESOLVE_REPORT':
+    case 'RESOLVE_REPORT': {
+      const rp = state.reports.find((r) => r.id === a.id);
+      const fake = rp && rp.kind === 'Fake news' && a.status !== 'arquivada';
       return {
         ...state,
         reports: state.reports.map((r) => (r.id === a.id ? { ...r, status: a.status } : r)),
-        blocked: a.status === 'bloqueado' ? [...state.blocked, state.reports.find((r) => r.id === a.id).target] : state.blocked,
+        // Fake news confirmada: o post sai do feed e a afirmação vira "informação falsa" para a Lotus.
+        communityPosts: rp && rp.postId
+          ? fake
+            ? state.communityPosts.filter((c) => c.id !== rp.postId)
+            : state.communityPosts.map((c) => (c.id === rp.postId ? { ...c, flagged: false } : c))
+          : state.communityPosts,
+        falseKnowledge: fake
+          ? [{ id: newId('fk'), claim: rp.claim || rp.detail, reason: 'confirmada pela Moderação', score: rp.aiScore, source: rp.target, at: 'agora' }, ...state.falseKnowledge]
+          : state.falseKnowledge,
+        blocked: a.status === 'bloqueado' ? [...state.blocked, rp.target] : state.blocked,
       };
+    }
     case 'REVIEW_SIGNUP':
       return { ...state, signups: state.signups.map((g) => (g.id === a.id ? { ...g, status: a.status } : g)) };
     case 'UNBLOCK':
@@ -468,6 +486,7 @@ function baseReducer(state, a) {
       return { ...state, myBusiness: { ...(state.myBusiness || {}), ...a.patch } };
     // Cliente que comprou escreve um depoimento. Na minha empresa ele chega para eu aprovar.
     case 'ADD_COMPANY_REVIEW':
+      if (checkText(a.review.text).verdict === 'falso') return state;
       return { ...state, companyReviews: { ...state.companyReviews, [a.id]: [a.review, ...(state.companyReviews[a.id] || [])] } };
     case 'BUY_MEDIA':
       return { ...state, wallet: +(state.wallet - a.price).toFixed(2), boughtMedia: { ...state.boughtMedia, [a.id]: true } };
@@ -561,8 +580,28 @@ function baseReducer(state, a) {
       return { ...state, myGallery: { ...state.myGallery, [a.kind]: [...a.items, ...state.myGallery[a.kind]] } };
     case 'GALLERY_REMOVE':
       return { ...state, myGallery: { ...state.myGallery, [a.kind]: state.myGallery[a.kind].filter((x) => x.id !== a.id) } };
-    case 'POST_PUBLISH':
+    // Todo post passa pela IA verificadora antes de entrar no feed.
+    case 'POST_PUBLISH': {
+      const check = checkText(a.post.text);
+      if (check.verdict === 'falso') {
+        // Fake news: não entra na plataforma nem no conhecimento da Lotus; fica marcada como falsa.
+        return {
+          ...state,
+          falseKnowledge: [{ id: newId('fk'), claim: claimOf(a.post.text), reason: check.reasons.join(', '), score: check.score, source: `Post de ${a.post.author || 'usuário'}`, at: 'agora' }, ...state.falseKnowledge],
+          reports: [{ id: newId('rp'), kind: 'Fake news', target: `Post de ${a.post.author || 'usuário'}`, detail: `Removido pela IA antes de publicar: "${claimOf(a.post.text)}"`, claim: claimOf(a.post.text), aiScore: check.score, status: 'removido', count: 1 }, ...state.reports],
+        };
+      }
+      if (check.verdict === 'suspeito') {
+        // Suspeito: aparece, mas a Lotus não aprende com ele até o administrador decidir.
+        const post = { ...a.post, flagged: true };
+        return {
+          ...state,
+          communityPosts: [post, ...state.communityPosts],
+          reports: [{ id: newId('rp'), kind: 'Fake news', target: `Post de ${a.post.author || 'usuário'}`, detail: `A IA achou suspeito (${check.reasons.join(', ')}): "${claimOf(a.post.text)}"`, claim: claimOf(a.post.text), postId: post.id, aiScore: check.score, status: 'aberta', count: 1 }, ...state.reports],
+        };
+      }
       return { ...state, communityPosts: [a.post, ...state.communityPosts] };
+    }
     case 'PUBLISH_STORY':
       return { ...state, myStories: [...state.myStories, a.item] };
 
@@ -859,3 +898,6 @@ export function searchReply(state, serviceKey) {
   reply += ` Quer que eu chame ${first.name.split(' ')[0]}?`;
   return { list, reply };
 }
+
+// Para testes no computador.
+export const _reducer = reducer;

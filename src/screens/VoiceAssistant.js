@@ -17,6 +17,7 @@ import { emergencyNumbers } from '../extraData';
 import { confirmCall } from '../phone';
 import { findNavigation, navReply } from '../voiceNav';
 import { understand } from '../lm/lotusLM';
+import { knowledgeAnswer } from '../lm/knowledge';
 import { isPartyQuery, hasPartyCue, partyReply, findProfile, pickOption, openReply, askReply, toResult } from '../voiceIntents';
 
 // Sugestões que aparecem antes da primeira fala.
@@ -79,6 +80,12 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
     setTimeout(() => confirmCall(e.label, e.number), 300);
     return { reply: `Vou ligar para ${e.label}, ${e.number.split('').join(' ')}. Confirme na tela.` };
   }
+
+  // Conhecimento da Lotus (o que empresas e clientes publicaram): preços, comparação, opinião dos
+  // clientes e informação falsa. "Quanto custa um eletricista?", "o que falam da Pizzaria?",
+  // "é verdade que a gasolina vai a R$ 15?". Só responde: nunca compra, vende ou age sozinha.
+  const known = knowledgeAnswer(state, stripWake(text));
+  if (known) return known;
 
   // Perfil de alguém: "abre o perfil da Ana", "página da Pizzaria da Praça".
   const prof = findProfile(stripWake(text), state);
@@ -597,6 +604,17 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
                 <View style={styles.botCard}>
                   <View style={styles.botBar} />
                   <View style={{ flex: 1 }}>
+                    {h.falseInfo ? (
+                      <View style={[styles.sense, { backgroundColor: 'rgba(217,83,79,0.1)' }]}>
+                        <Ionicons name="close-circle" size={11} color={colors.danger} />
+                        <Text style={[styles.senseTxt, { color: colors.danger }]}>Informação falsa verificada</Text>
+                      </View>
+                    ) : h.knowledge ? (
+                      <View style={[styles.sense, { backgroundColor: 'rgba(168,121,10,0.1)' }]}>
+                        <Ionicons name="library-outline" size={11} color={colors.primary} />
+                        <Text style={[styles.senseTxt, { color: colors.primary }]}>Pelo que foi publicado no Realys</Text>
+                      </View>
+                    ) : null}
                     {h.understood ? (
                       <View style={styles.sense}>
                         <Ionicons name="sparkles" size={11} color={colors.accent} />

@@ -599,6 +599,12 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
                     <Text style={{ color: colors.muted, fontSize: 11 }}>{it.p.time}</Text>
                   </View>
                 </TouchableOpacity>
+                {it.p.flagged ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF4DC', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 5, marginTop: 10 }}>
+                    <Ionicons name="alert-circle-outline" size={14} color="#C77D12" />
+                    <Text style={{ color: '#8A5A0B', fontSize: 12, fontWeight: '700', marginLeft: 5, flex: 1 }}>Em verificação: a IA do Realys achou sinais de informação falsa</Text>
+                  </View>
+                ) : null}
                 <Text style={{ color: colors.text, marginTop: 10, lineHeight: 20 }}>{it.p.text}</Text>
                 {it.p.image ? <Photo uri={it.p.image} style={styles.postImg} /> : null}
                 <View style={{ flexDirection: 'row', marginTop: 10 }}>

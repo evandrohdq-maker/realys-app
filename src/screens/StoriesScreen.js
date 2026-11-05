@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
 import { colors } from '../theme';
 import { Photo } from '../components/ui';
+import { checkText } from '../lm/factCheck';
 import { stories, contacts } from '../homeData';
 import { StoryViewer, StoryComposer } from './cliente/home/Stories';
 import { CommunityHub } from './cliente/home/HomeScreen';
@@ -119,6 +120,12 @@ export default function StoriesScreen({ navigate, explore }) {
         onPublish={(post) => {
           dispatch({ type: 'POST_PUBLISH', post: { ...post, author: userName } });
           setPosting(false);
+          // A IA verificadora confere antes de publicar (ver src/lm/factCheck.js).
+          const check = checkText(post.text);
+          if (check.verdict === 'falso')
+            Alert.alert('Publicação não feita', `A IA do Realys verificou este conteúdo como informação falsa (${check.reasons.join(', ')}). Ele não foi publicado.`);
+          else if (check.verdict === 'suspeito')
+            Alert.alert('Publicado em verificação', 'A IA achou alguns sinais de informação falsa. O post aparece com o aviso "em verificação" até a moderação conferir.');
         }}
       />
       <TestimonialComposer visible={writingDep} onClose={() => setWritingDep(false)} />
