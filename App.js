@@ -32,6 +32,7 @@ import { findNavigation, navReply } from './src/voiceNav';
 import { findProfile, openReply } from './src/voiceIntents';
 import { stripWake } from './src/wakeMatch';
 import { speakSoft, prepareVoice } from './src/voice';
+import { loadModel } from './src/lm/lotusLM';
 import { UserProfileModal, PeopleSearchModal } from './src/components/People';
 import { CompanyProfileModal } from './src/components/CompanyProfile';
 import TransitScreen from './src/screens/cliente/TransitScreen';
@@ -179,9 +180,16 @@ function Shell() {
     return () => sub.remove();
   }, []);
 
-  // A voz da Lotus já fica escolhida desde a abertura do app (resposta sem atraso).
+  // A voz da Lotus já fica escolhida desde a abertura do app (resposta sem atraso),
+  // e o modelo de linguagem carrega logo depois que a tela aparece.
   useEffect(() => {
     prepareVoice();
+    const t = setTimeout(() => {
+      try {
+        loadModel();
+      } catch (e) {}
+    }, 1200);
+    return () => clearTimeout(t);
   }, []);
 
   const current = tabs.find((t) => t.key === tab) || tabs[0];

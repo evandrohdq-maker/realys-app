@@ -16,6 +16,7 @@ import { speakSoft, stopSpeaking, prepareVoice } from '../voice';
 import { emergencyNumbers } from '../extraData';
 import { confirmCall } from '../phone';
 import { findNavigation, navReply } from '../voiceNav';
+import { understand } from '../lm/lotusLM';
 import { isPartyQuery, hasPartyCue, partyReply, findProfile, pickOption, openReply, askReply, toResult } from '../voiceIntents';
 
 // Sugestões que aparecem antes da primeira fala.
@@ -47,7 +48,7 @@ const CALL_NOW = /\b(chama|chame|manda|mande|agenda|agende|agendar|solicita)\b/;
 
 // Interpreta o comando. Devolve { reply, nav?, call?, list?, results?, pending? }.
 // Na versão final isso vira uma IA no servidor, com os cadastros reais dos prestadores.
-function interpret(text, state, dispatch, pending, canOpen) {
+function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
   const t = norm(stripWake(text));
   const addrMatch = text.match(/((rua|r\.|avenida|av\.?|alameda|travessa|praca|praça|estrada)\s.+)$/i);
   const address = addrMatch ? addrMatch[1].trim() : '';
@@ -136,6 +137,18 @@ function interpret(text, state, dispatch, pending, canOpen) {
   // Busca geral em todo o conteúdo do app: anúncios, hotéis, imóveis, eventos, cursos,
   // lojas, produtos, promoções, prestadores, lives, pessoas e posts.
   const found = searchAll(state, stripWake(text));
+  // Modelo de linguagem (dentro do celular): sem palavra-chave conhecida, entende pelo sentido.
+  // "tô a fim de dançar hoje" → festas; "meu chuveiro queimou" → prestadores; "tô sem trabalho" → vagas.
+  if (!depth && !found.category && (!found.results.length || !CONTENT_WORDS.test(t))) {
+    let sense = null;
+    try {
+      sense = understand(stripWake(text));
+    } catch (e) {}
+    if (sense) {
+      const sub = interpret(sense.intent.command, state, dispatch, null, canOpen, 1);
+      if (!sub.miss) return { ...sub, understood: sense.intent.label, reply: sub.nav || sub.open ? sub.reply : `Entendi, você procura ${sense.intent.label}. ${sub.reply}` };
+    }
+  }
   const { results, tokens, label } = found;
   if (results.length || found.category) return { reply: contentReply(results, label, found), results };
   if (tokens.length) return { miss: true, reply: contentReply([], label) };
@@ -478,7 +491,15 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
                 </View>
                 <View style={styles.botCard}>
                   <View style={styles.botBar} />
-                  <Text style={styles.botText}>{h.reply}</Text>
+                  <View style={{ flex: 1 }}>
+                    {h.understood ? (
+                      <View style={styles.sense}>
+                        <Ionicons name="sparkles" size={11} color={colors.accent} />
+                        <Text style={styles.senseTxt}>Entendi pelo sentido: {h.understood}</Text>
+                      </View>
+                    ) : null}
+                    <Text style={styles.botText}>{h.reply}</Text>
+                  </View>
                 </View>
                 {h.list
                   ? h.list.map((p) => (
@@ -666,7 +687,9 @@ const styles = StyleSheet.create({
   userText: { color: '#FFFFFF', fontSize: 14 },
   botCard: { flexDirection: 'row', backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 6 },
   botBar: { width: 3, borderRadius: 2, backgroundColor: colors.gold, marginRight: 10 },
-  botText: { flex: 1, color: colors.text, fontSize: 14, lineHeight: 20 },
+  botText: { color: colors.text, fontSize: 14, lineHeight: 20 },
+  sense: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: 'rgba(47,116,208,0.08)', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, marginBottom: 6 },
+  senseTxt: { color: colors.accent, fontSize: 11, fontWeight: '800', marginLeft: 4 },
 
   item: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 10, marginBottom: 6, borderWidth: 1, borderColor: colors.border },
   itemTag: { color: colors.accent, fontSize: 10, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' },
@@ -693,3 +716,6 @@ const styles = StyleSheet.create({
   input: { flex: 1, color: colors.text, fontSize: 15, paddingHorizontal: 8, paddingVertical: 6 },
   sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
 });
+
+// Para testes no computador.
+export const _interpret = interpret;
