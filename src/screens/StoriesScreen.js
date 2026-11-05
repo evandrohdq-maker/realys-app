@@ -9,7 +9,8 @@ import { Photo } from '../components/ui';
 import { checkText } from '../lm/factCheck';
 import { stories, contacts } from '../homeData';
 import { StoryViewer, StoryComposer } from './cliente/home/Stories';
-import { CommunityHub } from './cliente/home/HomeScreen';
+import { CommunityHub, CommunityExtras, TopTabs, COMMUNITY_TOP, COMMUNITY_TOP_KEYS } from './cliente/home/HomeScreen';
+import { useBack } from '../back';
 import { TestimonialComposer } from '../components/SocialProfile';
 
 // Página Community (botão "Community" na barra de baixo): stories e comunidade.
@@ -22,6 +23,13 @@ export default function StoriesScreen({ navigate, explore }) {
   const [adding, setAdding] = useState(false); // menu do +
   const [posting, setPosting] = useState(false);
   const [writingDep, setWritingDep] = useState(false);
+  // Barra do topo: Community, Eventos, Promoções, Anúncios e Lives (vieram do Shop).
+  const [top, setTop] = useState('comunidade');
+  useBack(top !== 'comunidade', () => setTop('comunidade'));
+  useEffect(() => {
+    if (!explore || explore.tab !== 'stories') return;
+    setTop(explore.top && COMMUNITY_TOP_KEYS.includes(explore.top) ? explore.top : 'comunidade');
+  }, [explore]);
   const userName = state.user ? state.user.name : 'Você';
   const seen = state.storySeen;
   const mine = { id: 'mine', mine: true, name: userName, items: state.myStories };
@@ -58,6 +66,9 @@ export default function StoriesScreen({ navigate, explore }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <TopTabs items={COMMUNITY_TOP} value={top} onChange={setTop} />
+      <CommunityExtras top={top} explore={explore} />
+      {top === 'comunidade' ? (
       <CommunityHub
         explore={explore}
         top={
@@ -93,6 +104,7 @@ export default function StoriesScreen({ navigate, explore }) {
           </View>
         }
       />
+      ) : null}
 
       <StoryViewer
         visible={!!view}

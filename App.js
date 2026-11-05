@@ -209,7 +209,8 @@ function Shell() {
   };
 
   // Administrador abrindo qualquer tela pelo mapa do sistema.
-  const openArea = (role, tabKey, top) => {
+  const openArea = (role, tabKeyIn, top) => {
+    const tabKey = route({ tab: tabKeyIn, top }).tab;
     setExplore({ tab: tabKey, top, at: Date.now() });
     if (role === state.activeRole) return setTab(tabKey);
     switchRole(role, tabKey);
@@ -217,8 +218,13 @@ function Shell() {
   const mapped = SYSTEM_MAP.flatMap((g) => g.items).filter((i) => i.role === state.activeRole && i.tab === current.key);
   const where = mapped.length === 1 ? mapped[0].name : `${ROLE_LABELS[state.activeRole]} › ${current.label}`;
 
+  // Eventos, Promoções, Anúncios e Lives agora ficam na Community (antes ficavam no Shop).
+  const route = (go) =>
+    go && go.tab === 'home' && ['eventos', 'promo', 'anuncios', 'lives', 'comunidade'].includes(go.top) ? { ...go, tab: 'stories' } : go;
+
   // Escolha feita no menu ⋮: vai para a aba certa (trocando de perfil se precisar).
-  const pick = (go) => {
+  const pick = (goIn) => {
+    const go = route(goIn);
     setMenu(false);
     setExplore({ ...go, at: Date.now() });
     const has = (role) => TABS[role].some((t) => t.key === go.tab);

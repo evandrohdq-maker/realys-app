@@ -17,43 +17,65 @@ import { SHOP_SECTORS, SHOP_SECTOR_KEYS } from '../../../shopSectorsData';
 import { useBack } from '../../../back';
 import { TestimonialCard } from '../../../components/SocialProfile';
 
-// Abas do topo do Início do cliente. A Comunidade foi para a página de Stories.
-const TOP = [
-  { key: 'shop', label: 'Shop', icon: 'bag-handle-outline' },
+// Aba Shop (barra de baixo): só a loja. Eventos, Promoções, Anúncios e Lives
+// agora ficam na barra do topo da página Community (ver CommunityExtras abaixo).
+export default function HomeScreen({ goTo }) {
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <ShopTab goTo={goTo} />
+    </View>
+  );
+}
+
+// Barra do topo da Community: a própria Community e as opções que vieram do Shop.
+export const COMMUNITY_TOP = [
+  { key: 'comunidade', label: 'Community', icon: 'people-circle-outline' },
   { key: 'eventos', label: 'Eventos', icon: 'sparkles-outline' },
   { key: 'promo', label: 'Promoções', icon: 'pricetags-outline' },
   { key: 'anuncios', label: 'Anúncios', icon: 'megaphone-outline' },
   { key: 'lives', label: 'Lives', icon: 'radio-outline' },
 ];
+export const COMMUNITY_TOP_KEYS = COMMUNITY_TOP.map((t) => t.key);
 
-export default function HomeScreen({ goTo, explore }) {
+export function TopTabs({ items, value, onChange }) {
+  return (
+    <View style={styles.topTabs}>
+      {items.map((t) => {
+        const on = t.key === value;
+        return (
+          <TouchableOpacity key={t.key} style={[styles.topTab, on && styles.topTabOn]} onPress={() => onChange(t.key)} accessibilityLabel={t.label}>
+            <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={19} color={on ? colors.onPrimary : colors.primary} />
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.topTabText, on && { color: colors.onPrimary }]}>
+              {t.label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+// Eventos, Promoções, Anúncios e Lives dentro da Community. Fica sempre montado para
+// guardar os filtros escolhidos; mostra o conteúdo só quando `top` é uma dessas abas.
+export function CommunityExtras({ top, explore }) {
   const { state, dispatch } = useStore();
-  const [top, setTop] = useState('shop');
   const [kind, setKind] = useState('todos');
-  const [seg, setSeg] = useState('posts');
   const [evGroup, setEvGroup] = useState('destaques');
-  // Conversas ficam no estado do app (as respostas aos stories também caem aqui).
   const convs = state.conversations;
   const setConvs = (fn) => dispatch({ type: 'UPDATE_CONVS', fn: typeof fn === 'function' ? fn : () => fn });
   const [chatWith, setChatWith] = useState(null);
   const [videoWith, setVideoWith] = useState(null);
   const [live, setLive] = useState(null); // { live, mine }
   const [liveFilter, setLiveFilter] = useState('todas');
-  // Voltar do celular: das outras abas do topo (Eventos, Promoções…) volta para o Shop.
-  useBack(top !== 'shop', () => setTop('shop'));
 
-  // Veio do menu ⋮ (ex.: Imóveis → Alugar)
+  // Veio do menu ⋮, da busca ou da Lotus (ex.: Imóveis → Alugar)
   useEffect(() => {
-    if (!explore || !explore.top) return;
-    if (explore.top === 'comunidade') return; // agora fica na página de Stories
-    setTop(explore.top);
+    if (!explore) return;
     if (explore.kind) setKind(explore.kind);
-    if (explore.seg) setSeg(explore.seg);
     if (explore.live) setLiveFilter(explore.live);
     if (explore.group) setEvGroup(explore.group);
   }, [explore]);
 
-  const contactOf = (id) => contacts.find((c) => c.id === id);
   const openChat = (contact) => {
     if (!convs.find((c) => c.contactId === contact.id)) {
       setConvs((cs) => [{ id: 'm' + Date.now(), contactId: contact.id, unread: 0, messages: [], extra: contact }, ...cs]);
@@ -66,33 +88,15 @@ export default function HomeScreen({ goTo, explore }) {
   // Anunciante vira um contato para a conversa sobre o anúncio.
   const contactAdvertiser = (l) =>
     openChat({ id: 'adv-' + l.who, name: l.who, status: 'anunciante verificado', photo: `https://picsum.photos/seed/${encodeURIComponent(l.who)}/200/200` });
-  const anyContact = (id) => contactOf(id) || (convs.find((c) => c.contactId === id) || {}).extra;
-
   const chatConv = chatWith ? convs.find((c) => c.contactId === chatWith.id) : null;
+  const active = top !== 'comunidade';
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <View style={styles.topTabs}>
-        {TOP.map((t) => {
-          const on = t.key === top;
-          return (
-            <TouchableOpacity key={t.key} style={[styles.topTab, on && styles.topTabOn]} onPress={() => setTop(t.key)}>
-              <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={19} color={on ? colors.onPrimary : colors.primary} />
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.topTabText, on && { color: colors.onPrimary }]}>
-                {t.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      <View style={{ flex: 1 }}>
-        {top === 'shop' ? <ShopTab goTo={goTo} /> : null}
-        {top === 'eventos' ? <EventsTab group={evGroup} setGroup={setEvGroup} onContact={contactAdvertiser} /> : null}
-        {top === 'promo' ? <PromoTab /> : null}
-        {top === 'anuncios' ? <AdsTab kind={kind} setKind={setKind} onContact={contactAdvertiser} /> : null}
-        {top === 'lives' ? <LivesTab filter={liveFilter} setFilter={setLiveFilter} onWatch={(l) => setLive({ live: l, mine: false })} onGoLive={() => setLive({ live: null, mine: true })} /> : null}
-      </View>
+    <View style={active ? { flex: 1 } : null}>
+      {top === 'eventos' ? <EventsTab group={evGroup} setGroup={setEvGroup} onContact={contactAdvertiser} /> : null}
+      {top === 'promo' ? <PromoTab /> : null}
+      {top === 'anuncios' ? <AdsTab kind={kind} setKind={setKind} onContact={contactAdvertiser} /> : null}
+      {top === 'lives' ? <LivesTab filter={liveFilter} setFilter={setLiveFilter} onWatch={(l) => setLive({ live: l, mine: false })} onGoLive={() => setLive({ live: null, mine: true })} /> : null}
 
       <ChatModal
         contact={chatWith}
