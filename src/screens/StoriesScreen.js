@@ -12,7 +12,7 @@ import { StoryViewer, StoryComposer } from './cliente/home/Stories';
 import { CommunityHub } from './cliente/home/HomeScreen';
 import { TestimonialComposer } from '../components/SocialProfile';
 
-// Página própria dos Stories (botão "Stories" na barra de baixo).
+// Página Community (botão "Community" na barra de baixo): stories e comunidade.
 // Em cima, a faixa de bolinhas como no Instagram; embaixo, a Comunidade: feed único de posts e
 // depoimentos (curtir, comentar, compartilhar), mensagens, contatos e live.
 export default function StoriesScreen({ navigate, explore }) {
@@ -64,7 +64,7 @@ export default function StoriesScreen({ navigate, explore }) {
           <View>
         <View style={[styles.head, { paddingHorizontal: 0, paddingTop: 0 }]}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.title}>Stories</Text>
+            <Text style={styles.title}>Community</Text>
             <Text style={styles.sub}>Stories, publicações e depoimentos de pessoas e empresas verificadas</Text>
           </View>
           {/* Uma opção só: o + abre publicação, story ou depoimento. */}

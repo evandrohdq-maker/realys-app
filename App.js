@@ -63,7 +63,7 @@ const TABS = {
   ],
   cliente: [
     { key: 'home', label: 'Início', icon: 'home-outline', Comp: HomeScreen },
-    { key: 'stories', label: 'Stories', icon: 'aperture-outline', Comp: StoriesScreen },
+    { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'encontros', label: 'Date', icon: 'heart-outline', Comp: EncontrosScreen },
     { key: 'food', label: 'Food', icon: 'restaurant-outline', Comp: FoodScreen },
     { key: 'servicos', label: 'Serviços', icon: 'construct-outline', Comp: ServicesScreen },
@@ -97,14 +97,14 @@ const TABS = {
   prestador: [
     { key: 'prestar', label: 'Trabalhar', icon: 'navigate-circle-outline', Comp: DriverScreen },
     { key: 'inicio', label: 'Feed', icon: 'home-outline', Comp: FeedScreen },
-    { key: 'stories', label: 'Stories', icon: 'aperture-outline', Comp: StoriesScreen },
+    { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
     { key: 'vagas', label: 'Empregos', icon: 'briefcase-outline', Comp: JobsScreen, hidden: true },
   ],
   fornecedor: [
     { key: 'propostas', label: 'Propostas', icon: 'cube-outline', Comp: SupplierScreen },
     { key: 'inicio', label: 'Feed', icon: 'home-outline', Comp: FeedScreen },
-    { key: 'stories', label: 'Stories', icon: 'aperture-outline', Comp: StoriesScreen },
+    { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
   ],
 };
