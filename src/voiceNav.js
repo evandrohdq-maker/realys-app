@@ -108,11 +108,12 @@ const VERBS = new Set([
 const BACK = new Set(['volta', 'voltar', 'volte', 'retorna', 'retornar', 'retorne', 'anterior', 'atras']);
 
 // Palavras que não mudam o pedido ("me leva PRA página DO agro, POR FAVOR").
+// "quero", "preciso" e "tem" ficam de fora: "quero um hotel" é pedido de busca, com resposta falada.
 const FILLER = new Set([
   'a', 'o', 'as', 'os', 'de', 'do', 'da', 'dos', 'das', 'pra', 'pro', 'pras', 'pros', 'para', 'na', 'no', 'nas', 'nos', 'em', 'ao', 'aos', 'ate',
-  'me', 'mim', 'eu', 'quero', 'queria', 'gostaria', 'poderia', 'pode', 'podia', 'por', 'favor', 'agora', 'ai', 'la', 'aqui', 'ali', 'ja', 'logo',
+  'me', 'mim', 'eu', 'poderia', 'pode', 'podia', 'por', 'favor', 'agora', 'ai', 'la', 'aqui', 'ali', 'ja', 'logo',
   'minha', 'meu', 'minhas', 'meus', 'uma', 'um', 'e', 'parte', 'app', 'aplicativo', 'realys', 'lotus', 'voce', 'consegue', 'com', 'so', 'rapido',
-  'oi', 'ola', 'ei', 'por', 'gentileza', 'direto', 'diretamente', 'pagina', 'aba', 'tela', 'area', 'secao', 'menu', 'categoria', 'sessao', 'que', 'tem',
+  'oi', 'ola', 'ei', 'por', 'gentileza', 'direto', 'diretamente', 'pagina', 'aba', 'tela', 'area', 'secao', 'menu', 'categoria', 'sessao', 'que',
 ]);
 
 const words = (s) => norm(s).replace(/[^a-z0-9 ]+/g, ' ').split(' ').filter(Boolean);

@@ -153,8 +153,9 @@ function buildIndex(state) {
 
   listings.forEach((l) =>
     add(
-      { id: 'l-' + l.id, section: kindLabel(l.kind), icon: '📣', title: l.title, subtitle: `${l.who} · ${l.place}`, price: l.price, where: short(l.place), photo: l.photo, sponsored: l.sponsored, go: { tab: 'home', top: 'anuncios', kind: l.kind } },
-      l.title, l.detail, l.place, l.who, kindLabel(l.kind), 'anuncio', l.kind === 'hotel' ? 'hotel pousada hospedagem diaria' : ''
+      { id: 'l-' + l.id, section: kindLabel(l.kind), icon: '📣', title: l.title, subtitle: `${l.who} · ${l.place}`, price: l.price, where: short(l.place), km: l.km, photo: l.photo, sponsored: l.sponsored, go: { tab: 'home', top: 'anuncios', kind: l.kind } },
+      // Hotéis não levam o nome do setor ("Hotéis e pousadas"), para "pousada" achar só as pousadas.
+      l.title, l.detail, l.place, l.who, l.kind === 'hotel' ? 'hospedagem diaria' : kindLabel(l.kind), 'anuncio'
     )
   );
 
@@ -236,13 +237,13 @@ function buildIndex(state) {
   );
   hospitals.forEach((h) =>
     add(
-      { id: 'h-' + h.id, section: 'Hospital', icon: '🏥', title: h.name, subtitle: `${h.type} · ${h.network} · ${h.distanceKm.toFixed(1).replace('.', ',')} km`, where: `a ${h.distanceKm.toFixed(1).replace('.', ',')} km`, photo: h.photo, go: { tab: 'socorro', seg: 'hospitais' } },
+      { km: h.distanceKm, id: 'h-' + h.id, section: 'Hospital', icon: '🏥', title: h.name, subtitle: `${h.type} · ${h.network} · ${h.distanceKm.toFixed(1).replace('.', ',')} km`, where: `a ${h.distanceKm.toFixed(1).replace('.', ',')} km`, photo: h.photo, go: { tab: 'socorro', seg: 'hospitais' } },
       h.name, h.type, h.network, 'hospital pronto socorro saude'
     )
   );
   specialists.forEach((d) =>
     add(
-      { id: 'd-' + d.id, section: d.specialty, icon: '🩺', title: d.name, subtitle: `${d.specialty} · ${d.reg}`, priceValue: d.price, priceUnit: 'consulta', where: `a ${d.distanceKm.toFixed(1).replace('.', ',')} km`, photo: d.photo, go: { tab: 'socorro', seg: 'especialistas', specialty: d.specialty } },
+      { km: d.distanceKm, id: 'd-' + d.id, section: d.specialty, icon: '🩺', title: d.name, subtitle: `${d.specialty} · ${d.reg}`, priceValue: d.price, priceUnit: 'consulta', where: `a ${d.distanceKm.toFixed(1).replace('.', ',')} km`, photo: d.photo, go: { tab: 'socorro', seg: 'especialistas', specialty: d.specialty } },
       d.name, d.specialty, 'medico especialista consulta saude', d.tele ? 'teleconsulta' : ''
     )
   );
@@ -310,15 +311,171 @@ function buildIndex(state) {
   return items;
 }
 
-// Devolve { results, tokens }. Ganha quem bate com mais palavras; patrocinados primeiro no empate.
-export function searchAll(state, text, max = 8) {
+// Assuntos do Realys. Quando o pedido fala de um assunto ("preciso de um hotel"), a busca fica
+// SÓ dentro dele: as outras palavras ("em Santos", "com piscina", "barato") filtram e ordenam,
+// mas nunca puxam coisas de fora (clínica, caixa de som, móveis...).
+// A ordem importa: o primeiro assunto que bater ganha.
+export const CATEGORIES = [
+  {
+    key: 'hotel', label: 'hotéis e pousadas', one: 'hotel',
+    // Palavras que só dizem o assunto. "pousada", "hostel" e "chalé" continuam filtrando.
+    core: /^(hote(l|is)|hospeda\w*|resorts?|motel|moteis|dormir|pernoit\w*|diarias?|quarto)$/,
+    re: /\b(hote(l|is)|pousadas?|hospeda\w*|hostels?|resorts?|motel|moteis|dormir|pernoit\w*|diarias?|chales?|onde ficar|lugar para ficar|quarto (para|pra) (hoje|essa|esta|uma|o|a|dormir))\b/,
+    test: (it) => it.go && it.go.kind === 'hotel',
+  },
+  {
+    key: 'imovel-aluguel', label: 'imóveis para alugar', one: 'imóvel para alugar',
+    core: /^(alug\w*|aluguel|locacao|imove(l|is)|imovel)$/,
+    re: /\b(alug\w* (um |uma |o |a )?(apartamento|ape|apto|casa|kitnet|imove\w*|sala|galpao|quarto)|(apartamento|casa|kitnet|imove\w*|sala) (para|pra) alugar|locacao de imove\w*|aluguel de (casa|apartamento|imove\w*))\b/,
+    test: (it) => it.go && it.go.kind === 'imovel-aluguel',
+  },
+  {
+    key: 'imovel-venda', label: 'imóveis à venda', one: 'imóvel à venda',
+    core: /^(compr\w*|venda|imove(l|is)|imovel|imobiliaria)$/,
+    re: /\b(compr\w* (um |uma |o |a )?(apartamento|ape|apto|casa|imove\w*|terreno)|(imove\w*|casas?|apartamentos?|terrenos?) a venda|imove\w*|imobiliaria)\b/,
+    test: (it) => it.go && it.go.kind === 'imovel-venda',
+  },
+  {
+    key: 'carro-aluguel', label: 'carros para alugar', one: 'carro para alugar',
+    core: /^(alug\w*|aluguel|locadoras?|carros?|veiculos?)$/,
+    re: /\b(alug\w* (um |uma )?(carro|van|veiculo|suv)|aluguel de (carros?|vans?|veiculos?)|locadoras?)\b/,
+    test: (it) => it.go && it.go.kind === 'carro-aluguel',
+  },
+  {
+    key: 'maquina-aluguel', label: 'máquinas para alugar', one: 'máquina para alugar',
+    core: /^(alug\w*|aluguel|maquinas?|equipamentos?)$/,
+    re: /\b(alug\w* (uma |um )?(maquinas?|retroescavadeira|betoneira|andaimes?|equipamentos?|gerador)|aluguel de (maquinas?|equipamentos?))\b/,
+    test: (it) => it.go && it.go.kind === 'maquina-aluguel',
+  },
+  {
+    key: 'curso', label: 'cursos e faculdades', one: 'curso',
+    re: /\b(cursos?|faculdades?|graduacao|pos graduacao|ead|mba|aulas? online)\b/,
+    test: (it) => it.go && it.go.kind === 'curso',
+  },
+  {
+    key: 'saude', label: 'hospitais e médicos', one: 'atendimento de saúde',
+    // "cardiologista", "dentista", "UPA" filtram; "médico" e "consulta" só dizem o assunto.
+    core: /^(medic[oa]s?|consultas?|doutor\w*|especialistas?|atendimento|saude)$/,
+    re: /\b(hospita(l|is)|upa|pronto socorro|clinicas?|medic[oa]s?|especialistas?|consultas?|pediatra|cardiologista|dermatologista|ginecologista|ortopedista|psicolog\w*|psiquiatra|oftalmologista|dentista|doutor\w*|ambulancias?|exames?)\b/,
+    test: (it) => ['Hospital', 'Socorro', 'Emergência'].includes(it.section) || String(it.id).startsWith('d-'),
+  },
+  {
+    key: 'transporte', label: 'linhas e viagens', one: 'linha ou viagem',
+    re: /\b(onibus|metro|passage(m|ns)|rodoviaria|trem|linha de onibus|viagem de onibus)\b/,
+    test: (it) => /^(tl|tr)-/.test(String(it.id)),
+  },
+  {
+    key: 'vaga', label: 'vagas de emprego', one: 'vaga',
+    re: /\b(vagas?|empregos?|curriculo|contratando|trabalho de carteira)\b/,
+    test: (it) => String(it.id).startsWith('j-'),
+  },
+  {
+    key: 'artista', label: 'artistas e músicas', one: 'artista',
+    re: /\b(artistas?|musicas?|mp3|clipes?|bandas?|cantor\w*|obras? de arte|pinturas?)\b/,
+    test: (it) => /^(a|am)-/.test(String(it.id)),
+  },
+  {
+    key: 'live', label: 'lives', one: 'live',
+    re: /\b(lives?|laives?|transmiss\w*)\b/,
+    test: (it) => String(it.id).startsWith('lv-'),
+  },
+];
+
+export function categoryOf(text) {
+  const t = norm(text);
+  return CATEGORIES.find((c) => c.re.test(t)) || null;
+}
+
+// Palavras que só dizem "quero isso" e não servem de filtro dentro do assunto.
+const SOFT = new Set(
+  ('reservar reserva reservo urgente urgencia hoje amanha noite noitinha semana fim final disponivel disponiveis ' +
+    'barato barata baratos baratas bom boa bons boas melhor melhores perto proximo proxima proximos proximas aqui regiao ' +
+    'posso pode consigo preciso precisava gostaria um uma alguma algum quarto ficar dormir lugar estou to tô viagem viajando').split(' ')
+);
+const NEAR = /\b(perto|proxim\w*|aqui|regiao|redondeza\w*|mais perto)\b/;
+const CHEAP = /\b(barat\w*|economic\w*|em conta|mais em conta|menor preco)\b/;
+const priceNum = (it) => {
+  if (it.priceValue != null) return it.priceValue;
+  const m = String(it.price || '').replace(/\./g, '').match(/(\d+)(,\d+)?/);
+  return m ? Number(m[1]) : 1e9;
+};
+
+// Devolve { results, tokens, label, category?, missing? }.
+// Com assunto: só itens do assunto, filtrados pelas outras palavras.
+// Sem assunto: ganha quem bate com mais palavras; patrocinados primeiro no empate.
+// O reconhecimento de voz às vezes escreve errado as palavras-chave ("otel", "rotel", "hotéu",
+// "pousda", "ospital"). Antes de buscar, troca pela palavra do Realys mais parecida.
+const KEYWORDS = ['hotel', 'hoteis', 'pousada', 'hostel', 'hospedagem', 'hospital', 'clinica', 'medico', 'dentista', 'pediatra', 'curso', 'faculdade', 'onibus', 'metro', 'passagem', 'apartamento', 'kitnet', 'imovel', 'aluguel', 'pizza', 'pizzaria', 'hamburguer', 'sushi', 'festa', 'balada', 'show', 'trator', 'eletricista', 'encanador', 'mecanico', 'diarista', 'emprego', 'vaga', 'artista', 'musica'];
+function editDistance(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++)
+    for (let j = 1; j <= b.length; j++)
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+let VOCAB = null; // todas as palavras que existem no conteúdo do app
+export function fixHeard(text, state) {
+  if (!VOCAB) VOCAB = new Set(buildIndex(state).flatMap((it) => it.hay).concat(Object.keys(SYN)));
+  return String(text)
+    .split(/(\s+)/)
+    .map((w) => {
+      const n = norm(w).replace(/[^a-z]/g, '');
+      if (n.length < 4 || STOP.has(n) || VOCAB.has(stem(n)) || VOCAB.has(n)) return w;
+      let best = null;
+      for (const k of KEYWORDS) {
+        const dist = editDistance(n, k);
+        if (dist <= (k.length <= 5 ? 1 : 2) && (!best || dist < best.dist)) best = { k, dist };
+      }
+      return best ? best.k : w;
+    })
+    .join('');
+}
+
+export function searchAll(state, rawText, max = 8) {
+  const text = fixHeard(rawText, state);
   const tokens = queryTokens(text);
   // Para falar de volta com acento ("hotéis", não "hoteis").
   const label = String(text).split(/[^\p{L}\p{N}]+/u).filter((w) => w && tokens.includes(norm(w))).join(' ').toLowerCase();
+  const t = norm(text);
+  const category = categoryOf(text);
+  if (category) {
+    const pool = buildIndex(state).filter(category.test);
+    // Palavras que sobram depois do assunto: "Santos", "piscina", "pet"...
+    const core = category.core || category.re;
+    const extra = tokens.filter((w) => !SOFT.has(w) && !core.test(w) && !core.test(stem(w)));
+    const extraLabel = String(text).split(/[^\p{L}\p{N}]+/u).filter((w) => w && extra.includes(norm(w))).join(' ');
+    // Sinônimos que caem de volta no próprio assunto não filtram ("pousada" → "hotel" acharia todos).
+    const vs = extra.map((w) => variants(w).filter((v) => !core.test(v)));
+    let scored = pool.map((it) => ({ it, score: vs.filter((v) => tokenHits(v, it.hay)).length }));
+    const best = scored.reduce((m, x) => Math.max(m, x.score), 0);
+    const missing = extra.length && best === 0 ? extraLabel : null;
+    if (best > 0) scored = scored.filter((x) => x.score === best);
+    const near = NEAR.test(t);
+    const cheap = CHEAP.test(t);
+    scored.sort(
+      (a, b) =>
+        (cheap ? priceNum(a.it) - priceNum(b.it) : 0) ||
+        (near ? (a.it.km == null ? 1e9 : a.it.km) - (b.it.km == null ? 1e9 : b.it.km) : 0) ||
+        // Sem pedido de lugar: primeiro o que fica na sua cidade (até 50 km), depois o resto.
+        ((a.it.km != null && a.it.km > 50) ? 1 : 0) - ((b.it.km != null && b.it.km > 50) ? 1 : 0) ||
+        (b.it.sponsored ? 1 : 0) - (a.it.sponsored ? 1 : 0) ||
+        (a.it.km == null ? 1e9 : a.it.km) - (b.it.km == null ? 1e9 : b.it.km)
+    );
+    return { results: scored.slice(0, max).map((x) => x.it), tokens, label, category, missing, extra: best > 0 ? extraLabel : '', near, cheap };
+  }
   if (!tokens.length) return { results: [], tokens, label };
-  const vs = tokens.map(variants);
+  // Sem assunto fechado: a palavra de assunto ("trator", "pizza") vale mais que as outras ("usado"),
+  // e bater a própria palavra vale mais que bater só um sinônimo. Assim não vem máquina de lavar
+  // num pedido de trator.
+  const isTopic = (w) => !!(SYN[stem(w)] || SYN[w] || CONTENT_WORDS.test(w));
+  const vs = tokens.map((w) => ({ own: [stem(w)], syn: variants(w), topic: isTopic(w) }));
   const scored = buildIndex(state)
-    .map((it) => ({ it, score: vs.filter((v) => tokenHits(v, it.hay)).length, inTitle: vs.filter((v) => tokenHits(v, it.titleHay)).length }))
+    .map((it) => ({
+      it,
+      score: vs.reduce((s, v) => s + (tokenHits(v.own, it.hay) ? (v.topic ? 100 : 10) : tokenHits(v.syn, it.hay) ? (v.topic ? 30 : 3) : 0), 0),
+      inTitle: vs.filter((v) => tokenHits(v.syn, it.titleHay)).length,
+    }))
     .filter((x) => x.score > 0);
   if (!scored.length) return { results: [], tokens, label };
   const best = Math.max(...scored.map((x) => x.score));
@@ -330,15 +487,30 @@ export function searchAll(state, text, max = 8) {
   return { results, tokens, label };
 }
 
-// Resposta falada da busca geral.
-export function contentReply(results, what) {
-  if (!results.length) return `Não encontrei nada sobre "${what}" no Realys. Tente outra palavra.`;
+const kmSpeak = (km) => (km < 1 ? `${Math.round((km * 1000) / 50) * 50} metros` : `${km.toFixed(km < 10 ? 1 : 0).replace('.', ',')} km`);
+
+// Resposta falada da busca geral. Com assunto (meta.category), fala só do assunto.
+export function contentReply(results, what, meta = {}) {
   const priceOf = (r) => r.price || (r.priceValue != null ? `R$ ${r.priceValue.toFixed(2).replace('.', ',')}${r.priceUnit ? ' por ' + r.priceUnit : ''}` : '');
-  const top = results.slice(0, 3).map((r) => {
+  const line = (r) => {
     const p = priceOf(r);
-    const where = r.where ? `, ${r.where}` : '';
-    return `${r.title}${where}${p ? ', ' + p : ''}`;
-  });
+    const near = r.where && /^a \d/.test(r.where); // "a 0,7 km"
+    const where = r.where ? (near ? `, ${r.where}` : `, em ${r.where}`) : '';
+    const dist = !near && r.km != null && r.km < 50 ? `, a ${kmSpeak(r.km)}` : '';
+    return `${r.title}${where}${dist}${p ? ', ' + p.replace('/diária', ' a diária') : ''}`;
+  };
+  const c = meta.category;
+  if (c) {
+    if (!results.length) return `Ainda não tem ${c.label} cadastrados no Realys. Assim que alguém anunciar, eu te aviso.`;
+    const top = results.slice(0, 3).map(line);
+    const n = results.length;
+    const head = meta.missing
+      ? `Não encontrei ${c.one} com "${meta.missing}", mas tem ${n} ${c.label} no Realys. `
+      : `Encontrei ${n} ${n > 1 ? c.label : c.one}${meta.extra ? `${/ para /.test(c.one) || n > 1 ? ' com' : ' para'} "${meta.extra}"` : ''}${meta.cheap ? ', do mais barato para o mais caro' : meta.near ? ', do mais perto para o mais longe' : ''}. `;
+    return head + `${top.join('; ')}.` + (n > 3 ? ` E mais ${n - 3} na lista.` : '') + ' Toque em um para ver e reservar.';
+  }
+  if (!results.length) return `Não encontrei nada sobre "${what}" no Realys. Tente outra palavra.`;
+  const top = results.slice(0, 3).map(line);
   const n = results.length;
   return (
     `Encontrei ${n} ${n > 1 ? 'resultados' : 'resultado'} para "${what}". ` +

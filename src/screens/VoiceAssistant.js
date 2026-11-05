@@ -27,6 +27,7 @@ const EXAMPLES = [
   'Abre o perfil da Ana',
   'Tem eletricista perto de mim?',
   'Preciso de um carro na Rua Augusta, 1200',
+  'Preciso de um hotel barato',
   'Tem hotel em Campos do Jordão?',
   'Abre minha carteira',
   'Quanto eu vendi hoje?',
@@ -134,10 +135,12 @@ function interpret(text, state, dispatch, pending, canOpen) {
 
   // Busca geral em todo o conteúdo do app: anúncios, hotéis, imóveis, eventos, cursos,
   // lojas, produtos, promoções, prestadores, lives, pessoas e posts.
-  const { results, tokens, label } = searchAll(state, stripWake(text));
-  if (results.length) return { reply: contentReply(results, label), results };
-  if (tokens.length) return { reply: contentReply([], label) };
+  const found = searchAll(state, stripWake(text));
+  const { results, tokens, label } = found;
+  if (results.length || found.category) return { reply: contentReply(results, label, found), results };
+  if (tokens.length) return { miss: true, reply: contentReply([], label) };
   return {
+    miss: true,
     reply:
       'Desculpe, ainda não entendi. Você pode pedir para eu abrir qualquer página, como "me leva pro Agro", procurar hotéis, lojas ou cursos, chamar um prestador, ou ver pedidos, vendas e estoque.',
   };
@@ -254,11 +257,24 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     onClose();
   };
 
-  const run = (cmd, forced) => {
+  const run = (cmd, forced, alts) => {
     if (!cmd || !cmd.trim()) return;
     setPhase('thinking');
     setPartial('');
-    const res = forced || interpret(cmd, state, dispatch, pendingRef.current, canOpen);
+    let res = forced || interpret(cmd, state, dispatch, pendingRef.current, canOpen);
+    // O celular ouviu errado? Tenta as outras opções que ele ouviu antes de dizer "não encontrei".
+    const empty = (r) => !!r.miss;
+    if (!forced && empty(res) && alts && alts.length > 1) {
+      for (const alt of alts) {
+        if (alt === cmd) continue;
+        const r = interpret(alt, state, dispatch, pendingRef.current, canOpen);
+        if (!empty(r)) {
+          res = r;
+          cmd = alt;
+          break;
+        }
+      }
+    }
     setText('');
     // Navegação: fala "Abrindo Agro", fecha a caixa e abre a página na hora.
     if (res.nav && onVoiceNav) {
@@ -305,7 +321,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
         },
       });
       const said = result && result.extra && result.extra['android.speech.extra.RESULTS'];
-      if (said && said.length) return run(bestHeard(said.map((s) => ({ transcript: s }))));
+      if (said && said.length) return run(bestHeard(said.map((s) => ({ transcript: s }))), null, said);
       setPhase('idle');
     } catch (e) {
       setPhase('idle');
@@ -370,7 +386,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     if (e.isFinal) {
       session.current.active = false;
       level.setValue(0);
-      run(bestHeard(e.results));
+      run(bestHeard(e.results), null, (e.results || []).map((a) => a && a.transcript).filter(Boolean));
     }
   });
   useSpeechRecognitionEvent('end', () => {
