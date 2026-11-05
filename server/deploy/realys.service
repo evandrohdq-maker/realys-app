@@ -1,0 +1,21 @@
+[Unit]
+Description=Servidor do Realys
+After=network.target
+
+[Service]
+Type=simple
+User=realys
+WorkingDirectory=/opt/realys/server
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning src/index.js
+Restart=always
+RestartSec=3
+Environment=NODE_ENV=production
+# Proteções: o serviço só escreve na pasta de dados.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/realys/server/data
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

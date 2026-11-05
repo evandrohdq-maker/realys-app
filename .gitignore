@@ -6,3 +6,5 @@ dist/
 *.apk
 *.keystore
 .DS_Store
+server/data/
+server/.env

@@ -1,0 +1,8 @@
+# Caddy: recebe as conexões da internet (com HTTPS automático) e repassa para o Realys.
+SEU_DOMINIO {
+	encode gzip
+	request_body {
+		max_size 64MB
+	}
+	reverse_proxy 127.0.0.1:8080
+}

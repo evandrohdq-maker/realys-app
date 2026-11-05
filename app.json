@@ -48,6 +48,9 @@
         }
       ]
     ],
-    "icon": "./assets/icon.png"
+    "icon": "./assets/icon.png",
+    "extra": {
+      "apiUrl": ""
+    }
   }
 }

@@ -243,3 +243,7 @@ Para trocar os exemplos (nomes de lojas, produtos, preços, fotos), edite **`src
 - IA verificadora de fake news e sistema de denúncias
 - Vídeos curtos de verdade (gravar, enviar, hospedar)
 - Publicação na Google Play
+
+## Servidor
+
+A pasta **`server/`** tem o servidor do Realys (contas, carteira, presentes, lojas, pedidos, social, chat, prestadores com GPS, lives e administrador), pronto para instalar numa VPS com um comando. Instruções em [`server/README.md`](server/README.md). O app se liga a ele pelo endereço em `app.json` › `extra` › `apiUrl` (vazio = modo demonstração) e pelo cliente `src/api.js`.
