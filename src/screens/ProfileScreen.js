@@ -8,6 +8,7 @@ import { Screen, Title, Card, Row, Button, Badge } from '../components/ui';
 import UpdateChecker from '../components/UpdateChecker';
 import { VERSION_LABEL } from '../updates';
 import { getSavedUsers, forgetUser } from '../accounts';
+import { ProfileSocial } from '../components/SocialProfile';
 
 const ROLE_ICON = { cliente: '🛍️', empresa: '🏪', prestador: '🛵', fornecedor: '🚚', admin: '🛡️' };
 
@@ -68,6 +69,15 @@ export default function ProfileScreen({ navigate }) {
           <Text style={{ color: colors.muted }}>Saldo Realys</Text>
           <Text style={{ fontWeight: '800', color: colors.primary }}>{brl(state.wallet)}</Text>
         </Row>
+      </Card>
+
+      {/* Perfil social: destaques, galeria de fotos, galeria de vídeos e depoimentos aceitos. */}
+      <Card>
+        <Text style={{ color: colors.text, fontWeight: '900', fontSize: 16 }}>Meu perfil na Comunidade</Text>
+        <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
+          É o que seus amigos veem ao abrir seu perfil. Depoimentos só aparecem depois que você aceita.
+        </Text>
+        <ProfileSocial ownerId="me" />
       </Card>
 
       {/* SOS: socorro e emergência (antes ficava no topo do app). */}

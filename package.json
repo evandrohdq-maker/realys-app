@@ -14,6 +14,7 @@
     "expo": "~56.0.0",
     "expo-crypto": "*",
     "expo-file-system": "*",
+    "expo-image-picker": "*",
     "expo-intent-launcher": "*",
     "expo-local-authentication": "*",
     "expo-secure-store": "*",

@@ -64,7 +64,11 @@ O administrador vê a visão geral da plataforma (usuários, empresas, receita),
 
 **Menu ⋮ (três pontinhos):** no topo, abre as classes **Restaurantes, Serviços gerais, Lojas, Social e Área empresarial**. Cada classe abre uma sub-aba para escolher o tipo (ex.: Serviços gerais → Eletricista).
 
-**Stories (botão próprio na barra de baixo):** uma página só para os Stories, como no Instagram, com a faixa de bolinhas no topo e os stories em cartões grandes (Novos e Já vistos): o dia a dia, o lazer e as novidades de pessoas e empresas verificadas. Toque para ver em tela cheia (toque à direita avança, à esquerda volta, segure para pausar), responda (a resposta cai em Comunidade › Mensagens) e, nos stories de empresas, toque no botão da oferta. Em **Seu story** você publica o seu (texto sobre uma cor ou foto de exemplo).
+**Stories (botão próprio na barra de baixo):** uma página só para os Stories, como no Instagram, com a faixa de bolinhas no topo: o dia a dia, o lazer e as novidades de pessoas e empresas verificadas. Toque para ver em tela cheia (toque à direita avança, à esquerda volta, segure para pausar), responda (a resposta cai em Comunidade › Mensagens) e, nos stories de empresas, toque no botão da oferta. Em **Seu story** você publica o seu (texto sobre uma cor ou foto de exemplo). Abaixo dos stories fica o **feed de Depoimentos**.
+
+**Depoimentos (como no Orkut):** qualquer amigo pode escrever um depoimento para o perfil de outro (botão **Escrever** no feed ou **Escrever depoimento** no perfil da pessoa). Antes de entregar, a Realys **analisa o texto** (bloqueia ofensas, links, pedidos de dinheiro/golpe, telefone e CPF). O dono do perfil recebe em **Perfil › Depoimentos › Para aprovar** e escolhe **Aceitar e expor** ou **Recusar**. Só os aceitos aparecem no perfil e no feed, onde todos podem **curtir, comentar e compartilhar**. O dono pode **tirar do perfil** depois, quando quiser. Na demonstração, o amigo aprova o seu depoimento sozinho uns 8 segundos depois de enviado.
+
+**Galerias do perfil:** todo perfil (o seu e o de quem você abre) tem **Destaques** (stories fixados no perfil, em bolinhas com nome, como no Instagram), **Fotos**, **Vídeos** e **Depoimentos**. No seu perfil você adiciona fotos e vídeos **do próprio celular**, cria destaques com seus stories ou fotos, e segura um item para remover. Na demonstração o vídeo mostra a capa; o player entra numa próxima versão.
 
 **Buscar pessoas e perfis:** a lupa no topo do app (e em Comunidade › Contatos) busca qualquer usuário da rede pelo nome ou pelo @usuário, sem ligar para acento ou maiúscula. Tocar no nome ou na foto de quem postou abre o perfil da pessoa: capa, foto, cidade, bio, amigos, amigos em comum, posts e os botões **Adicionar amigo** (vira "Solicitação enviada", que dá para cancelar) e **Mensagem**. Pedidos de amizade recebidos aparecem na busca e nos Contatos para aceitar ou recusar; quem vira amigo entra na lista de Amigos e contatos.
 
@@ -154,6 +158,8 @@ src/screens/cliente/       → feed, loja, serviços, pedidos
 src/screens/empresa/       → painel, estoque, fluxo de caixa, negócios B2B, RH (vagas e candidatos)
 src/jobsData.js            → vagas de emprego e candidatos de exemplo
 src/components/Launches.js → vitrine de Lançamentos do Shop
+src/components/SocialProfile.js → depoimentos, destaques e galerias de fotos e vídeos do perfil
+src/testimonialsData.js    → depoimentos de exemplo e a análise automática do texto
 src/screens/prestador/     → cadastro profissional (funções e preços) e pedidos recebidos
 src/screens/fornecedor/    → propostas recebidas e catálogo atacado
 ```

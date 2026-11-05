@@ -6,6 +6,7 @@ import { initialFriends } from './people';
 import { brl } from './theme';
 import { conversations as initialConversations } from './homeData';
 import * as J from './jobsData';
+import { initialTestimonials, myInitialGallery } from './testimonialsData';
 
 const StoreContext = createContext(null);
 
@@ -37,6 +38,9 @@ const initialState = {
   friends: initialFriends, // amizades: { id: 'amigo' | 'enviado' | 'recebido' }
   viewProfile: null, // id do membro cujo perfil está aberto (abre por cima de qualquer tela)
   myStories: [], // stories que o próprio usuário publicou
+  testimonials: initialTestimonials, // depoimentos (pendente → aprovado/recusado/oculto)
+  tLiked: {}, // depoimentos que o usuário curtiu
+  myGallery: myInitialGallery, // fotos, vídeos e destaques do próprio perfil
   // Encontros: só funciona depois que a pessoa aceita os termos e informa um status disponível.
   encontros: {
     accepted: false,
@@ -424,6 +428,41 @@ function reducer(state, a) {
       return { ...state, conversations: a.fn(state.conversations) };
     case 'STORY_SEEN':
       return state.storySeen[a.id] ? state : { ...state, storySeen: { ...state.storySeen, [a.id]: true } };
+    // Depoimentos
+    case 'T_SEND':
+      return {
+        ...state,
+        testimonials: [
+          { id: newId('t'), from: 'me', to: a.to, text: a.text, time: 'agora', status: 'pendente', likes: 0, shares: 0, comments: [] },
+          ...state.testimonials,
+        ],
+      };
+    case 'T_RESPOND': // aprovado | recusado | oculto (tirado do perfil)
+      return { ...state, testimonials: state.testimonials.map((t) => (t.id === a.id ? { ...t, status: a.status, time: a.status === 'aprovado' && t.from === 'me' ? 'agora' : t.time } : t)) };
+    case 'T_APPROVE_LAST_FROM_ME': {
+      // Demonstração: o amigo aprova o depoimento que você mandou.
+      const t = state.testimonials.find((x) => x.from === 'me' && x.to === a.to && x.status === 'pendente');
+      return t ? { ...state, testimonials: state.testimonials.map((x) => (x.id === t.id ? { ...x, status: 'aprovado', time: 'agora' } : x)) } : state;
+    }
+    case 'T_LIKE': {
+      const on = !state.tLiked[a.id];
+      const tLiked = { ...state.tLiked };
+      if (on) tLiked[a.id] = true;
+      else delete tLiked[a.id];
+      return { ...state, tLiked, testimonials: state.testimonials.map((t) => (t.id === a.id ? { ...t, likes: t.likes + (on ? 1 : -1) } : t)) };
+    }
+    case 'T_COMMENT':
+      return {
+        ...state,
+        testimonials: state.testimonials.map((t) => (t.id === a.id ? { ...t, comments: [...t.comments, { id: newId('c'), who: a.who, text: a.text, mine: true }] } : t)),
+      };
+    case 'T_SHARE':
+      return { ...state, testimonials: state.testimonials.map((t) => (t.id === a.id ? { ...t, shares: t.shares + 1 } : t)) };
+    // Galeria do próprio perfil: kind = photos | videos | highlights
+    case 'GALLERY_ADD':
+      return { ...state, myGallery: { ...state.myGallery, [a.kind]: [...a.items, ...state.myGallery[a.kind]] } };
+    case 'GALLERY_REMOVE':
+      return { ...state, myGallery: { ...state.myGallery, [a.kind]: state.myGallery[a.kind].filter((x) => x.id !== a.id) } };
     case 'PUBLISH_STORY':
       return { ...state, myStories: [...state.myStories, a.item] };
 

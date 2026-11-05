@@ -6,9 +6,10 @@ import { colors } from '../theme';
 import { Photo } from '../components/ui';
 import { stories, contacts } from '../homeData';
 import { StoryViewer, StoryComposer } from './cliente/home/Stories';
+import { TestimonialFeed } from '../components/SocialProfile';
 
 // Página própria dos Stories (botão "Stories" na barra de baixo).
-// Em cima, a faixa de bolinhas como no Instagram; embaixo, os stories em cartões grandes.
+// Em cima, a faixa de bolinhas como no Instagram; embaixo, o feed de depoimentos (estilo Orkut).
 export default function StoriesScreen({ navigate }) {
   const { state, dispatch } = useStore();
   const [view, setView] = useState(null); // { groups, start, mine }
@@ -53,7 +54,7 @@ export default function StoriesScreen({ navigate }) {
         <View style={styles.head}>
           <View style={{ flex: 1 }}>
             <Text style={styles.title}>Stories</Text>
-            <Text style={styles.sub}>O dia a dia, o lazer e as novidades de pessoas e empresas verificadas</Text>
+            <Text style={styles.sub}>Stories e depoimentos de pessoas e empresas verificadas</Text>
           </View>
           <TouchableOpacity style={styles.newBtn} onPress={() => setComposing(true)} accessibilityLabel="Criar story">
             <Ionicons name="add" size={18} color={colors.onPrimary} />
@@ -89,8 +90,8 @@ export default function StoriesScreen({ navigate }) {
           })}
         </ScrollView>
 
-        {fresh.length ? <Grid title="Novos" groups={fresh} onOpen={open} /> : null}
-        {old.length ? <Grid title="Já vistos" groups={old} onOpen={open} seen /> : null}
+        {/* Abaixo dos stories: feed de depoimentos aprovados (curtir, comentar, compartilhar). */}
+        <TestimonialFeed />
       </ScrollView>
 
       <StoryViewer

@@ -8,6 +8,7 @@ import { Photo, Empty } from './ui';
 import { members, memberById, postsOf, searchMembers } from '../people';
 import { ChatModal } from '../screens/cliente/home/Social';
 import { listenOnce, GlobalResults } from './Search';
+import { ProfileSocial } from './SocialProfile';
 
 // Botão de amizade: Adicionar → Solicitação enviada → Amigos (ou Aceitar / Recusar quando pediram para você).
 export function FriendButton({ member, compact }) {
@@ -114,6 +115,7 @@ export function UserProfileModal() {
             <Stat n={friendsCount} label="amigos" />
             <Stat n={m.mutual} label="em comum" />
             <Stat n={posts.length} label="posts" />
+            <Stat n={state.testimonials.filter((t) => t.to === m.id && t.status === 'aprovado').length} label="depoimentos" />
           </View>
 
           {st === 'recebido' ? <Text style={styles.ask}>{m.name.split(' ')[0]} quer ser seu amigo no Realys.</Text> : null}
@@ -127,24 +129,30 @@ export function UserProfileModal() {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.section}>Posts</Text>
-          {posts.length ? (
-            posts.map((p) => (
-              <View key={p.id} style={styles.post}>
-                <Text style={{ color: colors.muted, fontSize: 11 }}>{p.time}</Text>
-                <Text style={{ color: colors.text, marginTop: 4, lineHeight: 20 }}>{p.text}</Text>
-                {p.image ? <Photo uri={p.image} style={styles.postImg} /> : null}
-                <View style={{ flexDirection: 'row', marginTop: 8 }}>
-                  <Ionicons name="heart-outline" size={15} color={colors.muted} />
-                  <Text style={styles.meta}>{p.likes}</Text>
-                  <Ionicons name="chatbubble-outline" size={14} color={colors.muted} style={{ marginLeft: 14 }} />
-                  <Text style={styles.meta}>{p.comments}</Text>
-                </View>
-              </View>
-            ))
-          ) : (
-            <Empty text={`${m.name.split(' ')[0]} ainda não publicou nada.`} />
-          )}
+          <ProfileSocial
+            key={m.id}
+            ownerId={m.id}
+            postsCount={posts.length}
+            postsSlot={
+              posts.length ? (
+                posts.map((p) => (
+                  <View key={p.id} style={styles.post}>
+                    <Text style={{ color: colors.muted, fontSize: 11 }}>{p.time}</Text>
+                    <Text style={{ color: colors.text, marginTop: 4, lineHeight: 20 }}>{p.text}</Text>
+                    {p.image ? <Photo uri={p.image} style={styles.postImg} /> : null}
+                    <View style={{ flexDirection: 'row', marginTop: 8 }}>
+                      <Ionicons name="heart-outline" size={15} color={colors.muted} />
+                      <Text style={styles.meta}>{p.likes}</Text>
+                      <Ionicons name="chatbubble-outline" size={14} color={colors.muted} style={{ marginLeft: 14 }} />
+                      <Text style={styles.meta}>{p.comments}</Text>
+                    </View>
+                  </View>
+                ))
+              ) : (
+                <Empty text={`${m.name.split(' ')[0]} ainda não publicou nada.`} />
+              )
+            }
+          />
         </View>
       </ScrollView>
 
