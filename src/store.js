@@ -110,6 +110,10 @@ const initialState = {
   following: {}, // páginas que o cliente segue
   myPage: {}, // apresentação editada da minha empresa
   myMedia: [], // músicas, vídeos e obras que a minha empresa/artista publicou
+  // Página empresarial da minha empresa: áreas e segmentos, onde atende, vitrine,
+  // depoimentos expostos e vídeos de propaganda (ver src/companyBusiness.js).
+  myBusiness: null,
+  companyReviews: {}, // depoimentos que o cliente escreveu: { [empresaId]: [...] }
   // Meu perfil: dados que o usuário edita e quem pode ver cada parte.
   myProfile: { handle: '', profession: '', city: '', bio: '', photo: null, links: '' },
   // social = fotos, vídeos, destaques e depoimentos · portfolio = Estúdio (trabalhos e criações)
@@ -448,6 +452,23 @@ function baseReducer(state, a) {
     }
     case 'SET_PAGE':
       return { ...state, myPage: { ...state.myPage, ...a.page } };
+    // Empresa publica um vídeo de propaganda: paga o servidor (ou usa o plano) e aparece na página.
+    case 'AD_UPLOAD': {
+      const mine = state.myBusiness || {};
+      return {
+        ...state,
+        wallet: +(state.wallet - a.fee).toFixed(2),
+        myBusiness: { ...mine, newAds: [a.ad, ...(mine.newAds || [])] },
+        finance: a.fee
+          ? [{ id: newId('m'), date: today(), desc: `Servidor Realys - propaganda ${a.ad.file}`, type: 'saida', value: a.fee }, ...state.finance]
+          : state.finance,
+      };
+    }
+    case 'SET_BUSINESS':
+      return { ...state, myBusiness: { ...(state.myBusiness || {}), ...a.patch } };
+    // Cliente que comprou escreve um depoimento. Na minha empresa ele chega para eu aprovar.
+    case 'ADD_COMPANY_REVIEW':
+      return { ...state, companyReviews: { ...state.companyReviews, [a.id]: [a.review, ...(state.companyReviews[a.id] || [])] } };
     case 'BUY_MEDIA':
       return { ...state, wallet: +(state.wallet - a.price).toFixed(2), boughtMedia: { ...state.boughtMedia, [a.id]: true } };
     // Artista/empresa sobe um arquivo: paga o servidor e a despesa entra no fluxo de caixa.
@@ -465,7 +486,7 @@ function baseReducer(state, a) {
     case 'SET_PRIVACY':
       return { ...state, privacy: { ...state.privacy, ...a.privacy } };
     case 'LOAD_PROFILE':
-      return { ...state, myProfile: { ...state.myProfile, ...(a.data.myProfile || {}) }, privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations };
+      return { ...state, myProfile: { ...state.myProfile, ...(a.data.myProfile || {}) }, privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, myBusiness: a.data.myBusiness || state.myBusiness };
     case 'ADD_CREATION':
       return { ...state, creations: [a.item, ...state.creations] };
     case 'UPDATE_CREATION':
@@ -743,8 +764,8 @@ export function StoreProvider({ children }) {
   }, [profileKey]);
   useEffect(() => {
     if (!profileKey || profileLoaded.current !== profileKey) return;
-    AsyncStorage.setItem(profileKey, JSON.stringify({ myProfile: state.myProfile, privacy: state.privacy, creations: state.creations })).catch(() => {});
-  }, [state.myProfile, state.privacy, state.creations]);
+    AsyncStorage.setItem(profileKey, JSON.stringify({ myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myBusiness: state.myBusiness })).catch(() => {});
+  }, [state.myProfile, state.privacy, state.creations, state.myPage, state.myBusiness]);
   return <StoreContext.Provider value={{ state, dispatch }}>{children}</StoreContext.Provider>;
 }
 

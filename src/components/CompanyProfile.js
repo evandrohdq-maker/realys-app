@@ -7,6 +7,7 @@ import { colors, brl } from '../theme';
 import { Photo, ProductThumb, Badge, Row } from './ui';
 import { artists, artMedia, companyPages } from '../extraData';
 import { MY_COMPANY_ID } from '../data';
+import { BusinessPageModal } from './BusinessPage';
 
 const count = (n) => (n >= 1000 ? (n / 1000).toFixed(1).replace('.', ',').replace(',0', '') + ' mil' : String(n));
 
@@ -140,6 +141,8 @@ export function CompanyProfileModal() {
   const isArtist = p && p.kind === 'artista';
   useEffect(() => setTab(isArtist ? 'musica' : 'produtos'), [state.viewCompany]);
   if (!p) return null;
+  // Empresas: página empresarial futurista (onde atua, segmentos, vitrine, depoimentos, propagandas).
+  if (!isArtist) return <BusinessPageModal p={p} media={mediaOf(state, p.id)} MediaList={MediaList} />;
 
   const close = () => dispatch({ type: 'CLOSE_COMPANY' });
   const following = !!state.following[p.id];
