@@ -23,7 +23,7 @@ export const brl = (v) =>
   'R$ ' + Number(v).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
 export const ROLE_LABELS = {
-  cliente: 'Cliente',
+  cliente: 'Usuário',
   empresa: 'Empresa',
   prestador: 'Prestador',
   fornecedor: 'Fornecedor',

@@ -17,11 +17,44 @@ const today = () => {
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
 };
 
+// Extrato da carteira Realys: depósitos, gastos, valores recebidos (serviços prestados) e saques.
+// O saldo inicial da demonstração (R$ 750) é a soma deste histórico.
+const daysAgo = (n, h = 12) => {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  d.setHours(h, 0, 0, 0);
+  return d.getTime();
+};
+const initialWalletTx = [
+  { id: 'w1', ts: daysAgo(27, 9), kind: 'deposito', cat: 'Depósito', desc: 'Depósito por Pix', amount: 400 },
+  { id: 'w2', ts: daysAgo(22, 20), kind: 'gasto', cat: 'Food', desc: 'Pizzaria da Praça', amount: 62.9 },
+  { id: 'w3', ts: daysAgo(18, 15), kind: 'recebido', cat: 'Serviço prestado', desc: 'Instalação elétrica para Diego Santos', amount: 180 },
+  { id: 'w4', ts: daysAgo(15, 8), kind: 'gasto', cat: 'Transporte', desc: 'Passagem de ônibus (QR)', amount: 4.4 },
+  { id: 'w5', ts: daysAgo(12, 17), kind: 'saque', cat: 'Saque', desc: 'Saque por Pix para sua conta', amount: 150 },
+  { id: 'w6', ts: daysAgo(9, 11), kind: 'deposito', cat: 'Depósito', desc: 'Depósito por cartão', amount: 300 },
+  { id: 'w7', ts: daysAgo(6, 19), kind: 'gasto', cat: 'Compras', desc: 'Mercadinho Bom Preço', amount: 96.4 },
+  { id: 'w8', ts: daysAgo(4, 14), kind: 'recebido', cat: 'Serviço prestado', desc: 'Troca de chuveiro para Ana Paula', amount: 120 },
+  { id: 'w9', ts: daysAgo(2, 21), kind: 'gasto', cat: 'Transporte', desc: 'Corrida de carro pelo Realys', amount: 23.7 },
+  { id: 'w10', ts: daysAgo(1, 13), kind: 'recebido', cat: 'Transferência', desc: 'Recebido de Rogério Teixeira', amount: 87.4 },
+];
+
+// Que tipo de gasto cada ação do app gera no extrato (quando mexe no saldo).
+const WALLET_CAT = {
+  CHECKOUT: ['Compras', () => 'Compra nas lojas do Realys'],
+  BUY_MEDIA: ['Artistas', () => 'Compra de música ou obra'],
+  MEDIA_UPLOAD: ['Servidor', (a) => `Servidor Realys - ${(a.item && a.item.file) || 'arquivo'}`],
+  MEDIA_PLAN: ['Servidor', () => 'Plano Artista Pro'],
+  BUY_TICKET: ['Eventos e passagens', (a) => (a.ticket && (a.ticket.title || a.ticket.name)) || 'Ingresso ou passagem'],
+  SECTOR_ORDER: ['Compras', (a) => (a.item && a.item.title) || 'Compra'],
+};
+
 const initialState = {
   ready: false, // vira true depois de ler a sessão salva (evita piscar a tela de login)
   user: null, // { name, roles: [], cnpj }
   activeRole: null,
   wallet: 750, // saldo em moeda Realys (1 RLS = R$ 1,00 na demonstração)
+  walletTx: initialWalletTx, // extrato da carteira
+  spendLimit: 400, // limite de gastos do mês, definido pelo próprio usuário
   stores: D.stores,
   products: D.products,
   posts: D.posts,
@@ -135,16 +168,39 @@ function closeOffer(state, offer, discount) {
   return { ...next, offers: state.offers.map((o) => (o.id === offer.id ? { ...o, status: 'aceita', discount } : o)) };
 }
 
+// Toda conta (empresa, prestador, fornecedor) também é Usuário: pode consumir dentro do Realys.
+// Perfil de Empresa (e de Fornecedor) só para contas com CNPJ: conta de CPF nunca recebe esses acessos.
+const withUserRole = (user) => {
+  let roles = (user && user.roles) || [];
+  const isAdmin = roles.includes('admin');
+  if (!isAdmin && user.cpf) roles = roles.filter((r) => r !== 'empresa' && r !== 'fornecedor');
+  if (!roles.includes('cliente')) roles = [...roles, 'cliente'];
+  return { ...user, roles };
+};
+
+// Toda ação que mexe no saldo entra sozinha no extrato da carteira.
 function reducer(state, a) {
+  const next = baseReducer(state, a);
+  if (!next || next === state || next.wallet === state.wallet || next.walletTx !== state.walletTx || a.type === 'LOGOUT') return next;
+  const diff = +(next.wallet - state.wallet).toFixed(2);
+  const [cat, desc] = WALLET_CAT[a.type] || [diff > 0 ? 'Entrada' : 'Outros gastos', () => (diff > 0 ? 'Entrada na carteira' : 'Pagamento no Realys')];
+  const tx = { id: newId('w'), ts: Date.now(), kind: diff > 0 ? 'recebido' : 'gasto', cat, desc: desc(a), amount: Math.abs(diff) };
+  return { ...next, walletTx: [tx, ...next.walletTx] };
+}
+
+function baseReducer(state, a) {
   switch (a.type) {
-    case 'LOGIN':
-      return { ...state, ready: true, user: a.user, activeRole: a.user.roles[0] };
+    case 'LOGIN': {
+      const user = withUserRole(a.user);
+      return { ...state, ready: true, user, activeRole: user.roles[0] };
+    }
     // Abriu o app com sessão salva: entra direto, sem senha.
     case 'RESTORE_SESSION': {
       if (!a.session || !a.session.user) return { ...state, ready: true };
-      const roles = a.session.user.roles || [];
+      const user = withUserRole(a.session.user);
+      const roles = user.roles;
       const role = roles.includes(a.session.activeRole) ? a.session.activeRole : roles[0];
-      return { ...state, ready: true, user: a.session.user, activeRole: role };
+      return { ...state, ready: true, user, activeRole: role };
     }
     case 'LOGOUT':
       return { ...initialState, ready: true, notes: state.notes, handsFree: state.handsFree };
@@ -492,12 +548,42 @@ function reducer(state, a) {
       const others = state.providers.filter((p) => p.id !== 'me');
       return { ...state, myProvider: me, providers: state.available ? [...others, me] : others };
     }
-    case 'ACCEPT_RIDE_REQUEST':
+    // Carteira: depositar, sacar e definir o limite de gastos do mês.
+    case 'WALLET_DEPOSIT': {
+      const v = +Number(a.amount).toFixed(2);
+      if (!(v > 0)) return state;
       return {
         ...state,
-        rideRequests: state.rideRequests.filter((r) => r.id !== a.id),
-        rides: [{ ...state.rideRequests.find((r) => r.id === a.id), status: 'Em andamento' }, ...state.rides],
+        wallet: +(state.wallet + v).toFixed(2),
+        walletTx: [{ id: newId('w'), ts: Date.now(), kind: 'deposito', cat: 'Depósito', desc: `Depósito por ${a.method}`, amount: v }, ...state.walletTx],
       };
+    }
+    case 'WALLET_WITHDRAW': {
+      const v = +Number(a.amount).toFixed(2);
+      if (!(v > 0) || v > state.wallet) return state;
+      return {
+        ...state,
+        wallet: +(state.wallet - v).toFixed(2),
+        walletTx: [{ id: newId('w'), ts: Date.now(), kind: 'saque', cat: 'Saque', desc: `Saque por Pix para ${a.dest}`, amount: v }, ...state.walletTx],
+      };
+    }
+    case 'WALLET_LIMIT':
+      return { ...state, spendLimit: Math.max(0, Number(a.value) || 0) };
+    // Prestador aceita o pedido: o valor do serviço entra na carteira (pagamento protegido liberado).
+    case 'ACCEPT_RIDE_REQUEST': {
+      const req = state.rideRequests.find((r) => r.id === a.id);
+      const price = (req && Number(req.price)) || 0;
+      if (!req) return state;
+      return {
+        ...state,
+        wallet: +(state.wallet + price).toFixed(2),
+        walletTx: price
+          ? [{ id: newId('w'), ts: Date.now(), kind: 'recebido', cat: 'Serviço prestado', desc: `Serviço: ${req.service || req.kind || req.from || 'pedido aceito'}${req.client ? ` para ${req.client}` : ''}`, amount: price }, ...state.walletTx]
+          : state.walletTx,
+        rideRequests: state.rideRequests.filter((r) => r.id !== a.id),
+        rides: [{ ...req, status: 'Em andamento' }, ...state.rides],
+      };
+    }
     case 'REQUEST_RIDE':
       return { ...state, rides: [a.ride, ...state.rides] };
 

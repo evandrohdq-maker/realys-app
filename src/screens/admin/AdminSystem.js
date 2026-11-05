@@ -26,7 +26,7 @@ export const SYSTEM_MAP = [
     ],
   },
   {
-    group: 'Cliente',
+    group: 'Usuário',
     items: [
       { key: 'c-stories', name: 'Stories', desc: 'Página própria (botão Stories): ver, responder, criar o seu; patrocinados com botão de oferta', status: 'simulado', role: 'cliente', tab: 'stories', why: 'Stories de verdade (foto da câmera, 24 h no ar) precisam de servidor' },
       { key: 'c-enc', name: 'Date (encontros)', desc: 'Relacionamentos: termos e status (casados não participam), perfil de namoro opcional com % completo, radar por GPS, curtir/passar, match, conversa, denunciar', status: 'simulado', role: 'cliente', tab: 'encontros', why: 'Radar de verdade e notificações precisam do servidor e do GPS em segundo plano' },

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Switch, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Switch, Alert, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { askMicPermission, wakeWordSupported } from '../wakeWord';
 import { useStore } from '../store';
@@ -9,6 +9,7 @@ import UpdateChecker from '../components/UpdateChecker';
 import { VERSION_LABEL } from '../updates';
 import { getSavedUsers, forgetUser } from '../accounts';
 import { ProfileSocial } from '../components/SocialProfile';
+import WalletScreen from './WalletScreen';
 
 const ROLE_ICON = { cliente: '🛍️', empresa: '🏪', prestador: '🛵', fornecedor: '🚚', admin: '🛡️' };
 
@@ -16,6 +17,7 @@ export default function ProfileScreen({ navigate }) {
   const { state, dispatch } = useStore();
   const u = state.user;
   const [checking, setChecking] = useState(false);
+  const [walletOpen, setWalletOpen] = useState(false);
 
   // Sai da conta e volta para a tela "Quem vai usar o Realys?".
   const switchUser = () =>
@@ -88,10 +90,21 @@ export default function ProfileScreen({ navigate }) {
             <Text style={{ color: '#FFFFFF', fontWeight: '900', fontSize: 12, letterSpacing: 0.5 }}>SOS</Text>
           </TouchableOpacity>
         </Row>
-        <Row style={{ justifyContent: 'space-between', marginTop: 14 }}>
-          <Text style={{ color: colors.muted }}>Saldo Realys</Text>
-          <Text style={{ fontWeight: '800', color: colors.primary }}>{brl(state.wallet)}</Text>
-        </Row>
+        {/* Carteira em destaque: o saldo só aparece aqui no Perfil. */}
+        <TouchableOpacity onPress={() => setWalletOpen(true)} activeOpacity={0.88} style={styles.wallet} accessibilityLabel="Abrir minha carteira">
+          <View style={styles.walletIcon}>
+            <Ionicons name="wallet" size={22} color={colors.primary} />
+          </View>
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, fontWeight: '600' }}>Carteira Realys</Text>
+            <Text style={{ color: '#FFFFFF', fontWeight: '900', fontSize: 22 }}>{brl(state.wallet)}</Text>
+          </View>
+          <View style={styles.walletBtn}>
+            <Text style={{ color: colors.primary, fontWeight: '900', fontSize: 12 }}>Gerenciar</Text>
+            <Ionicons name="chevron-forward" size={14} color={colors.primary} />
+          </View>
+        </TouchableOpacity>
+        <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6 }}>Depósitos, gastos, recebidos, saques e o balanço do mês.</Text>
       </Card>
 
       {/* Perfil social: destaques, galeria de fotos, galeria de vídeos e depoimentos aceitos. */}
@@ -171,9 +184,28 @@ export default function ProfileScreen({ navigate }) {
       <Button title="Sair" variant="outline" onPress={logout} style={{ marginTop: 10 }} />
       <Button title="Verificar atualizações" variant="light" onPress={() => setChecking(true)} style={{ marginTop: 10 }} />
       {checking ? <UpdateChecker manual onDone={() => setChecking(false)} /> : null}
+      <WalletScreen visible={walletOpen} onClose={() => setWalletOpen(false)} />
       <Text style={{ textAlign: 'center', color: colors.muted, fontSize: 11, marginTop: 14 }}>
         Realys · {VERSION_LABEL} · demonstração
       </Text>
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  wallet: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: 16,
+    padding: 12,
+    marginTop: 14,
+    shadowColor: colors.primary,
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 5,
+  },
+  walletIcon: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
+  walletBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, paddingHorizontal: 10, height: 30 },
+});
