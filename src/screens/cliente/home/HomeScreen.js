@@ -11,7 +11,7 @@ import { PeopleSearchModal, PersonRow } from '../../../components/People';
 import { LaunchStrip } from '../../../components/Launches';
 import { SHOP_SECTORS, SHOP_SECTOR_KEYS } from '../../../shopSectorsData';
 import { useBack } from '../../../back';
-import { TestimonialCard, TestimonialComposer } from '../../../components/SocialProfile';
+import { TestimonialCard } from '../../../components/SocialProfile';
 
 // Abas do topo do Início do cliente. A Comunidade foi para a página de Stories.
 const TOP = [
@@ -501,14 +501,12 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
     .filter((m) => state.friends[m.id] === 'amigo')
     .map((m) => ({ ...(contacts.find((c) => c.id === m.id) || { status: 'amigo no Realys' }), id: m.id, name: m.name, photo: m.photo }));
   const people = [...friends, ...contacts.filter((c) => c.business)];
-  const [posts, setPosts] = useState(communityPosts);
-  const [draft, setDraft] = useState('');
+  const posts = state.communityPosts;
   const [liked, setLiked] = useState({});
   const [cmts, setCmts] = useState({}); // comentários feitos aqui: { postId: [texto] }
   const [openCmt, setOpenCmt] = useState(null);
   const [cmtText, setCmtText] = useState('');
   const [shared, setShared] = useState({});
-  const [writing, setWriting] = useState(false);
   const ads = useMemo(() => state.posts.filter((p) => p.sponsored), [state.posts]);
   const testimonials = state.testimonials.filter((t) => t.status === 'aprovado');
   const pendingMine = state.testimonials.filter((t) => t.to === 'me' && t.status === 'pendente').length;
@@ -525,11 +523,6 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
     setCmtText('');
   };
 
-  const publish = () => {
-    if (!draft.trim()) return;
-    setPosts([{ id: 'n' + Date.now(), author: userName, text: draft.trim(), image: null, likes: 0, comments: 0, time: 'agora' }, ...posts]);
-    setDraft('');
-  };
 
   // Feed único: posts da comunidade e depoimentos aprovados, intercalados.
   // A cada 2 posts entra 1 anúncio: é aqui que a publicidade chega ao usuário.
@@ -572,25 +565,6 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
 
       {seg === 'posts' ? (
         <View>
-          <View style={styles.composer}>
-            <TextInput
-              style={styles.composerInput}
-              placeholder="Compartilhe algo com a comunidade…"
-              placeholderTextColor={colors.muted}
-              value={draft}
-              onChangeText={setDraft}
-              multiline
-            />
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' }}>
-              <TouchableOpacity style={styles.depBtn} onPress={() => setWriting(true)} accessibilityLabel="Escrever depoimento">
-                <Ionicons name="chatbox-ellipses-outline" size={15} color={colors.primary} />
-                <Text style={{ color: colors.primary, fontWeight: '800', marginLeft: 5, fontSize: 13 }}>Depoimento</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.publish} onPress={publish}>
-                <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Publicar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
           {pendingMine ? (
             <View style={styles.pendingBanner}>
               <Ionicons name="mail-unread-outline" size={18} color={colors.primaryDark} />
@@ -599,7 +573,7 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
               </Text>
             </View>
           ) : null}
-          <TestimonialComposer visible={writing} onClose={() => setWriting(false)} />
+
           {feed.map((it, idx) =>
             it.type === 'dep' ? (
               <TestimonialCard key={it.t.id} t={it.t} />

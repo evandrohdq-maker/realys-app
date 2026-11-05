@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Pressable, TextInput, Image, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
 import { colors } from '../theme';
@@ -7,6 +9,7 @@ import { Photo } from '../components/ui';
 import { stories, contacts } from '../homeData';
 import { StoryViewer, StoryComposer } from './cliente/home/Stories';
 import { CommunityHub } from './cliente/home/HomeScreen';
+import { TestimonialComposer } from '../components/SocialProfile';
 
 // Página própria dos Stories (botão "Stories" na barra de baixo).
 // Em cima, a faixa de bolinhas como no Instagram; embaixo, a Comunidade: feed único de posts e
@@ -15,6 +18,9 @@ export default function StoriesScreen({ navigate, explore }) {
   const { state, dispatch } = useStore();
   const [view, setView] = useState(null); // { groups, start, mine }
   const [composing, setComposing] = useState(false);
+  const [adding, setAdding] = useState(false); // menu do +
+  const [posting, setPosting] = useState(false);
+  const [writingDep, setWritingDep] = useState(false);
   const userName = state.user ? state.user.name : 'Você';
   const seen = state.storySeen;
   const mine = { id: 'mine', mine: true, name: userName, items: state.myStories };
@@ -58,27 +64,16 @@ export default function StoriesScreen({ navigate, explore }) {
         <View style={[styles.head, { paddingHorizontal: 0, paddingTop: 0 }]}>
           <View style={{ flex: 1 }}>
             <Text style={styles.title}>Stories</Text>
-            <Text style={styles.sub}>Stories, posts e depoimentos de pessoas e empresas verificadas</Text>
+            <Text style={styles.sub}>Stories, publicações e depoimentos de pessoas e empresas verificadas</Text>
           </View>
-          <TouchableOpacity style={styles.newBtn} onPress={() => setComposing(true)} accessibilityLabel="Criar story">
-            <Ionicons name="add" size={18} color={colors.onPrimary} />
-            <Text style={{ color: colors.onPrimary, fontWeight: '800', marginLeft: 4 }}>Criar</Text>
+          {/* Uma opção só: o + abre publicação, story ou depoimento. */}
+          <TouchableOpacity style={styles.plusBtn} onPress={() => setAdding(true)} accessibilityLabel="Nova publicação">
+            <Ionicons name="add" size={28} color={colors.onPrimary} />
           </TouchableOpacity>
         </View>
 
         {/* Faixa de bolinhas */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={styles.strip}>
-          <TouchableOpacity style={styles.item} onPress={openMine} activeOpacity={0.85} accessibilityLabel="Seu story">
-            <View style={[styles.ring, { borderColor: mine.items.length ? colors.gold : colors.border }]}>
-              <View style={styles.meAvatar}>
-                <Text style={{ color: colors.onPrimary, fontWeight: '900', fontSize: 22 }}>{userName[0].toUpperCase()}</Text>
-              </View>
-            </View>
-            <TouchableOpacity style={styles.plus} onPress={() => setComposing(true)} accessibilityLabel="Criar story">
-              <Ionicons name="add" size={14} color={colors.onPrimary} />
-            </TouchableOpacity>
-            <Text numberOfLines={1} style={styles.name}>Seu story</Text>
-          </TouchableOpacity>
           {[...fresh, ...old].map((g) => {
             const isSeen = !!seen[g.id];
             return (
@@ -108,6 +103,25 @@ export default function StoriesScreen({ navigate, explore }) {
         onReply={reply}
         onCta={cta}
       />
+      <AddSheet
+        visible={adding}
+        onClose={() => setAdding(false)}
+        onPick={(k) => {
+          setAdding(false);
+          if (k === 'post') setPosting(true);
+          if (k === 'story') setComposing(true);
+          if (k === 'dep') setWritingDep(true);
+        }}
+      />
+      <PostComposer
+        visible={posting}
+        onClose={() => setPosting(false)}
+        onPublish={(post) => {
+          dispatch({ type: 'POST_PUBLISH', post: { ...post, author: userName } });
+          setPosting(false);
+        }}
+      />
+      <TestimonialComposer visible={writingDep} onClose={() => setWritingDep(false)} />
       <StoryComposer
         visible={composing}
         onClose={() => setComposing(false)}
@@ -117,6 +131,103 @@ export default function StoriesScreen({ navigate, explore }) {
         }}
       />
     </View>
+  );
+}
+
+// Menu do +: o que você quer publicar?
+function AddSheet({ visible, onClose, onPick }) {
+  const insets = useSafeAreaInsets();
+  const opts = [
+    ['post', 'Publicação', 'Texto e foto no feed da Comunidade', 'create-outline'],
+    ['story', 'Story', 'Some em 24 h (ou fica nos seus destaques)', 'aperture-outline'],
+    ['dep', 'Depoimento', 'Escreva sobre um amigo para o perfil dele', 'chatbox-ellipses-outline'],
+  ];
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.backdrop} onPress={onClose}>
+        <Pressable style={[styles.sheet, { paddingBottom: 18 + insets.bottom }]} onPress={() => {}}>
+          <Text style={styles.sheetTitle}>Criar</Text>
+          {opts.map(([k, title, hint, icon]) => (
+            <TouchableOpacity key={k} style={styles.opt} onPress={() => onPick(k)} activeOpacity={0.85}>
+              <View style={styles.optIcon}>
+                <Ionicons name={icon} size={22} color={colors.primary} />
+              </View>
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>{title}</Text>
+                <Text style={{ color: colors.muted, fontSize: 12 }}>{hint}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+            </TouchableOpacity>
+          ))}
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+// Nova publicação no feed: texto e, se quiser, uma foto do celular.
+function PostComposer({ visible, onClose, onPublish }) {
+  const insets = useSafeAreaInsets();
+  const [text, setText] = useState('');
+  const [image, setImage] = useState(null);
+  useEffect(() => {
+    if (!visible) return;
+    setText('');
+    setImage(null);
+  }, [visible]);
+  const pick = async () => {
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) return Alert.alert('Permissão necessária', 'Autorize o Realys a ver suas fotos para anexar na publicação.');
+      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
+      if (!res.canceled && res.assets && res.assets[0]) setImage(res.assets[0].uri);
+    } catch (e) {
+      Alert.alert('Não deu para abrir a galeria', 'Tente de novo em instantes.');
+    }
+  };
+  const ok = text.trim() || image;
+  return (
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <View style={[styles.postHead, { paddingTop: insets.top + 10 }]}>
+          <TouchableOpacity onPress={onClose} style={styles.closeBtn} accessibilityLabel="Cancelar">
+            <Ionicons name="close" size={20} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.sheetTitle}>Nova publicação</Text>
+          <TouchableOpacity
+            disabled={!ok}
+            onPress={() => onPublish({ id: 'n' + Date.now(), text: text.trim(), image, likes: 0, comments: 0, time: 'agora' })}
+            style={[styles.publishBtn, !ok && { opacity: 0.4 }]}
+          >
+            <Text style={{ color: colors.onPrimary, fontWeight: '900' }}>Publicar</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
+          <TextInput
+            value={text}
+            onChangeText={setText}
+            placeholder="Compartilhe algo com a comunidade…"
+            placeholderTextColor={colors.muted}
+            multiline
+            autoFocus
+            style={styles.postInput}
+          />
+          {image ? (
+            <View style={{ marginTop: 12 }}>
+              <Image source={{ uri: image }} style={{ width: '100%', height: 260, borderRadius: 14 }} />
+              <TouchableOpacity onPress={() => setImage(null)} style={styles.removeImg} accessibilityLabel="Tirar foto">
+                <Ionicons name="close" size={16} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          ) : null}
+          <TouchableOpacity style={styles.photoBtn} onPress={pick}>
+            <Ionicons name="image-outline" size={18} color={colors.primary} />
+            <Text style={{ color: colors.primary, fontWeight: '800', marginLeft: 8 }}>{image ? 'Trocar foto' : 'Adicionar foto'}</Text>
+          </TouchableOpacity>
+          <Text style={{ color: colors.muted, fontSize: 11, marginTop: 10 }}>Só pessoas verificadas por biometria veem e comentam.</Text>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </Modal>
   );
 }
 
@@ -162,6 +273,18 @@ function Grid({ title, groups, onOpen, seen }) {
 const AV = 62;
 const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 14 },
+  plusBtn: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginLeft: 10, elevation: 3, shadowColor: colors.primary, shadowOpacity: 0.35, shadowRadius: 6, shadowOffset: { width: 0, height: 2 } },
+  backdrop: { flex: 1, backgroundColor: 'rgba(31,42,68,0.35)', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: colors.bg, borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 16 },
+  sheetTitle: { color: colors.text, fontWeight: '900', fontSize: 18, marginBottom: 6 },
+  opt: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 16, padding: 12, marginTop: 8 },
+  optIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  postHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
+  closeBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  publishBtn: { height: 38, paddingHorizontal: 16, borderRadius: 19, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  postInput: { minHeight: 140, textAlignVertical: 'top', color: colors.text, fontSize: 17, lineHeight: 24 },
+  photoBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 46, borderRadius: 14, borderWidth: 1.5, borderColor: colors.primary, marginTop: 14 },
+  removeImg: { position: 'absolute', top: 8, right: 8, width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' },
   title: { color: colors.text, fontSize: 26, fontWeight: '900' },
   sub: { color: colors.muted, fontSize: 12, marginTop: 2 },
   newBtn: { flexDirection: 'row', alignItems: 'center', height: 38, paddingHorizontal: 14, borderRadius: 19, backgroundColor: colors.primary, marginLeft: 10 },

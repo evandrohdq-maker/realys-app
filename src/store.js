@@ -4,7 +4,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as D from './data';
 import { initialFriends } from './people';
 import { brl } from './theme';
-import { conversations as initialConversations } from './homeData';
+import { conversations as initialConversations, communityPosts as initialCommunityPosts } from './homeData';
 import * as J from './jobsData';
 import { initialTestimonials, myInitialGallery } from './testimonialsData';
 
@@ -71,6 +71,7 @@ const initialState = {
   friends: initialFriends, // amizades: { id: 'amigo' | 'enviado' | 'recebido' }
   viewProfile: null, // id do membro cujo perfil está aberto (abre por cima de qualquer tela)
   myStories: [], // stories que o próprio usuário publicou
+  communityPosts: initialCommunityPosts, // feed da Comunidade (na página de Stories)
   testimonials: initialTestimonials, // depoimentos (pendente → aprovado/recusado/oculto)
   tLiked: {}, // depoimentos que o usuário curtiu
   myGallery: myInitialGallery, // fotos, vídeos e destaques do próprio perfil
@@ -519,6 +520,8 @@ function baseReducer(state, a) {
       return { ...state, myGallery: { ...state.myGallery, [a.kind]: [...a.items, ...state.myGallery[a.kind]] } };
     case 'GALLERY_REMOVE':
       return { ...state, myGallery: { ...state.myGallery, [a.kind]: state.myGallery[a.kind].filter((x) => x.id !== a.id) } };
+    case 'POST_PUBLISH':
+      return { ...state, communityPosts: [a.post, ...state.communityPosts] };
     case 'PUBLISH_STORY':
       return { ...state, myStories: [...state.myStories, a.item] };
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform, Alert, BackHandler, ToastAndroid, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, Alert, BackHandler, ToastAndroid, ActivityIndicator, Image } from 'react-native';
 import { BackProvider, createBackStack } from './src/back';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -200,26 +200,21 @@ function Shell() {
     <BackProvider value={backStack}>
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        {/* Canto superior esquerdo: sua última publicação de story, com o + para criar outro. */}
+        <MyStoryButton />
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          {/* Canto superior esquerdo: sua última publicação de story, com o + para criar outro. */}
-          <MyStoryButton />
-          <View style={styles.logoMark}>
-            <Ionicons name="cube-outline" size={18} color={colors.primary} />
+          {/* Logo do Realys (o R dourado, mesmo ícone do app). */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 10 }} accessibilityLabel="Realys">
+            <Image source={require('./assets/icon.png')} style={styles.logoImg} />
+            <Text style={styles.brand}>REALYS</Text>
           </View>
-          <Text style={styles.brand}>REALYS</Text>
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity onPress={() => setSearching(true)} style={[styles.dots, { marginRight: 6, width: 40, height: 40 }]} accessibilityLabel="Buscar pessoas na rede Realys">
             <Ionicons name="search" size={19} color={colors.text} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={nextRole} style={styles.roleChip} accessibilityLabel="Trocar de perfil">
-            <Ionicons name="swap-horizontal" size={13} color={colors.primary} />
-            <Text numberOfLines={1} style={styles.roleChipText}>{ROLE_LABELS[state.activeRole]}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setMenu(true)}
             style={[styles.dots, menu && styles.dotsOn]}
-            accessibilityLabel="Abrir menu de categorias"
+            accessibilityLabel="Abrir menu: perfis de acesso e categorias"
           >
             <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
           </TouchableOpacity>
@@ -309,7 +304,17 @@ function Shell() {
       <PeopleSearchModal visible={searching} onClose={() => setSearching(false)} navigate={pick} />
       <UserProfileModal />
       <CompanyProfileModal />
-      <CategoryMenu visible={menu} onClose={() => setMenu(false)} onPick={pick} />
+      <CategoryMenu
+        visible={menu}
+        onClose={() => setMenu(false)}
+        onPick={pick}
+        roles={state.user.roles}
+        activeRole={state.activeRole}
+        onRole={(r) => {
+          setMenu(false);
+          if (r !== state.activeRole) switchRole(r);
+        }}
+      />
       {isAdmin ? <NoteModal visible={noting} where={where} onClose={() => setNoting(false)} /> : null}
     </View>
     </BackProvider>
@@ -366,6 +371,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   brand: { color: colors.text, fontSize: 17, fontWeight: '800', letterSpacing: 2 },
+  logoImg: { width: 30, height: 30, borderRadius: 9, marginRight: 7 },
   roleChip: {
     flexDirection: 'row',
     alignItems: 'center',

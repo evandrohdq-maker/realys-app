@@ -62,11 +62,13 @@ O administrador vê a visão geral da plataforma (usuários, empresas, receita),
 - **Utensílios domésticos:** Cozinha, Eletroportáteis, Mesa, Cama e banho, Limpeza e Organização.
 - Cada subgrupo mostra os **lançamentos** numa faixa no topo, depois as ofertas com os **patrocinados primeiro**, e tem o filtro **Envia para o Brasil**. Comprar usa o saldo Realys (pedido com NF-e). Alguns itens levam a prestadores (técnico de casa inteligente, costureira, diarista). Tudo aparece também na pesquisa por voz (*"abrir Lotus, quero uma air fryer"*).
 
-**Menu ⋮ (três pontinhos):** no topo, abre as classes **Restaurantes, Serviços gerais, Lojas, Social e Área empresarial**. Cada classe abre uma sub-aba para escolher o tipo (ex.: Serviços gerais → Eletricista).
+**Menu ⋮ (três pontinhos):** no cabeçalho, **Acessar como** (Usuário, Empresa, Prestador, Fornecedor); abaixo, as classes **Restaurantes, Serviços gerais, Lojas, Social e Área empresarial**. Cada classe abre uma sub-aba para escolher o tipo (ex.: Serviços gerais → Eletricista).
 
 **Stories e Comunidade (botão Stories na barra de baixo):** a faixa de bolinhas dos stories fica no topo, como no Instagram. Toque para ver em tela cheia (toque à direita avança, à esquerda volta, segure para pausar), responda (a resposta cai em Mensagens) e, nos stories de empresas, toque no botão da oferta. Logo abaixo fica a **Comunidade**, que saiu do Início: **Feed** (um feed único com os posts das pessoas e os depoimentos aprovados, com anúncios entre eles; tudo dá para curtir, comentar e compartilhar), **Mensagens**, **Contatos** e o botão **Live**.
 
-**Seu story no canto superior esquerdo:** em todas as telas, ao lado da logo, aparece uma bolinha com a sua última publicação de story (a foto, ou o texto sobre a cor). Tocar abre seus stories; o **+** pequeno no canto cria o próximo.
+**Cabeçalho do app:** no canto esquerdo, a bolinha com a sua última publicação de story (a foto, ou o texto sobre a cor); tocar abre seus stories e o **+** pequeno cria o próximo. À direita ficam a **logo do Realys** (o R dourado), a lupa e o menu **⋮**. A troca de perfil (**Usuário, Empresa, Prestador, Fornecedor**) saiu do topo e agora é o cabeçalho do menu ⋮ (**Acessar como**).
+
+**Criar na página de Stories:** uma opção só, o botão **+**, que pergunta o que você quer criar: **Publicação** (texto e foto do celular no Feed), **Story** ou **Depoimento**.
 
 **Depoimentos (como no Orkut):** qualquer amigo pode escrever um depoimento para o perfil de outro (botão **Escrever** no feed ou **Escrever depoimento** no perfil da pessoa). Antes de entregar, a Realys **analisa o texto** (bloqueia ofensas, links, pedidos de dinheiro/golpe, telefone e CPF). O dono do perfil recebe em **Perfil › Depoimentos › Para aprovar** e escolhe **Aceitar e expor** ou **Recusar**. Só os aceitos aparecem no perfil e no Feed da Comunidade, onde todos podem **curtir, comentar e compartilhar**. O dono pode **tirar do perfil** depois, quando quiser. Na demonstração, o amigo aprova o seu depoimento sozinho uns 8 segundos depois de enviado.
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme';
+import { colors, ROLE_LABELS } from '../theme';
 import { serviceTypes } from '../data';
 import { SHOP_SECTORS, SHOP_SECTOR_KEYS } from '../shopSectorsData';
 
@@ -241,7 +241,9 @@ export const CATEGORIES = [
   },
 ];
 
-export default function CategoryMenu({ visible, onClose, onPick }) {
+const ROLE_ICON = { cliente: 'person-outline', empresa: 'storefront-outline', prestador: 'construct-outline', fornecedor: 'cube-outline', admin: 'shield-checkmark-outline' };
+
+export default function CategoryMenu({ visible, onClose, onPick, roles = [], activeRole, onRole }) {
   const [cat, setCat] = useState(null);
   useEffect(() => {
     if (!visible) setCat(null);
@@ -253,11 +255,26 @@ export default function CategoryMenu({ visible, onClose, onPick }) {
         <Pressable style={styles.panel} onPress={() => {}}>
           {!cat ? (
             <>
+              {/* Cabeçalho do menu: escolher como usar o app (Usuário, Empresa, Prestador…). */}
               <View style={styles.head}>
-                <Text style={styles.kicker}>EXPLORAR REALYS</Text>
+                <Text style={styles.kicker}>ACESSAR COMO</Text>
                 <TouchableOpacity onPress={onClose} style={styles.iconBtn} accessibilityLabel="Fechar">
                   <Ionicons name="close" size={18} color={colors.text} />
                 </TouchableOpacity>
+              </View>
+              <View style={styles.roles}>
+                {roles.map((r) => {
+                  const on = r === activeRole;
+                  return (
+                    <TouchableOpacity key={r} onPress={() => onRole && onRole(r)} style={[styles.role, on && styles.roleOn]} accessibilityLabel={`Usar como ${ROLE_LABELS[r]}`}>
+                      <Ionicons name={ROLE_ICON[r] || 'person-outline'} size={15} color={on ? colors.onPrimary : colors.primary} />
+                      <Text style={[styles.roleTxt, on && { color: colors.onPrimary }]}>{ROLE_LABELS[r]}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <View style={[styles.head, { marginTop: 4 }]}>
+                <Text style={styles.kicker}>EXPLORAR REALYS</Text>
               </View>
               <ScrollView style={{ maxHeight: 520 }}>
               {CATEGORIES.map((c) => (
@@ -306,6 +323,10 @@ export default function CategoryMenu({ visible, onClose, onPick }) {
 }
 
 const styles = StyleSheet.create({
+  roles: { flexDirection: 'row', flexWrap: 'wrap', paddingBottom: 10, marginBottom: 6, borderBottomWidth: 1, borderBottomColor: colors.border },
+  role: { flexDirection: 'row', alignItems: 'center', height: 34, paddingHorizontal: 12, borderRadius: 17, borderWidth: 1, borderColor: 'rgba(168,121,10,0.45)', backgroundColor: 'rgba(168,121,10,0.08)', marginRight: 6, marginBottom: 6 },
+  roleOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  roleTxt: { color: colors.primary, fontWeight: '800', fontSize: 12, marginLeft: 5 },
   backdrop: { flex: 1, backgroundColor: 'rgba(31,42,68,0.35)', alignItems: 'flex-end', paddingTop: 90, paddingHorizontal: 12 },
   panel: {
     width: '100%',
