@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../../../theme';
+import { colors, brl } from '../../../theme';
+import { LIVE_GIFTS, LIVE_GIFT_QTY, liveGiftCost, liveGiftOf } from '../../../gifts';
 import { Photo } from '../../../components/ui';
 import { liveComments } from '../../../homeData';
 import { useStore } from '../../../store';
@@ -167,7 +168,19 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
   const [comments, setComments] = useState([]);
   const [text, setText] = useState('');
   const [liked, setLiked] = useState(0);
+  // Presentes na live: bandeja para escolher, animação na tela e quanto eu ganhei nesta live.
+  const [tray, setTray] = useState(false);
+  const [pick, setPick] = useState('rosa');
+  const [qty, setQty] = useState(1);
+  const [earned, setEarned] = useState(0);
+  const [burst, setBurst] = useState(null);
+  const burstAnim = useRef(new Animated.Value(0)).current;
   const { state, dispatch } = useStore();
+  const showBurst = (g, q, who) => {
+    setBurst({ emoji: g.emoji, text: `${who} enviou ${g.name}${q > 1 ? ` x${q}` : ''}`, at: Date.now() });
+    burstAnim.setValue(0);
+    Animated.timing(burstAnim, { toValue: 1, duration: 1800, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start(() => setBurst(null));
+  };
   const openHost = useOpenHost();
   // Minha live: o assunto e o perfil com que eu transmito (usuário, empresa, prestador, fornecedor, artista).
   const [cat, setCat] = useState('comunidade');
@@ -191,6 +204,10 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
     setSecs(0);
     setComments([]);
     setLiked(0);
+    setTray(false);
+    setQty(1);
+    setEarned(0);
+    setBurst(null);
   }, [visible]);
 
   useEffect(() => {
@@ -202,6 +219,19 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
     }, 1000);
     const c = setInterval(() => {
       const who = names[Math.floor(Math.random() * names.length)];
+      // De vez em quando alguém da plateia manda um presente (mais os pequenos, às vezes um grande).
+      if (Math.random() < (mine ? 0.28 : 0.15)) {
+        const g = LIVE_GIFTS[Math.min(LIVE_GIFTS.length - 1, Math.floor(Math.random() ** 2.4 * LIVE_GIFTS.length))];
+        const q = Math.random() < 0.25 ? 5 : 1;
+        setComments((cs) => [...cs.slice(-5), { who, what: `enviou ${g.emoji} ${g.name}${q > 1 ? ` x${q}` : ''}`, gift: true }]);
+        if (mine) {
+          // Na minha live o presente vira crédito de live na hora.
+          dispatch({ type: 'RECEIVE_LIVE_GIFT', from: who, gift: g.key, qty: q });
+          setEarned((e) => +(e + g.value * q).toFixed(2));
+        }
+        if (g.value >= 10) showBurst(g, q, who);
+        return;
+      }
       const what = liveComments[Math.floor(Math.random() * liveComments.length)];
       setComments((cs) => [...cs.slice(-5), { who, what }]);
     }, 2200);
@@ -210,6 +240,18 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
       clearInterval(c);
     };
   }, [visible, onAir]);
+
+  const gift = liveGiftOf(pick);
+  const cost = liveGiftCost(gift, qty);
+  const sendGift = () => {
+    if (!live) return;
+    if (cost.total > state.wallet)
+      return Alert.alert('Saldo insuficiente', `Esse presente custa ${brl(cost.total)} com a taxa. Deposite saldo na carteira. (Créditos de presente não servem para presentear.)`);
+    dispatch({ type: 'SEND_LIVE_GIFT', live, gift: gift.key, qty });
+    setComments((cs) => [...cs.slice(-5), { who: userName || 'Você', what: `enviou ${gift.emoji} ${gift.name}${qty > 1 ? ` x${qty}` : ''}`, gift: true }]);
+    showBurst(gift, qty, 'Você');
+    setTray(false);
+  };
 
   const send = () => {
     if (!text.trim()) return;
@@ -242,6 +284,12 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
             </View>
           ) : null}
           {onAir && mine ? <Text style={{ color: "#FFFFFF", fontWeight: '700', marginLeft: 8 }}>{mmss(secs)}</Text> : null}
+          {onAir && mine ? (
+            <View style={styles.earned} accessibilityLabel={`Presentes recebidos nesta live: ${brl(earned)}`}>
+              <Ionicons name="gift" size={13} color="#0B1124" />
+              <Text style={styles.earnedText}>{brl(earned)}</Text>
+            </View>
+          ) : null}
           <View style={{ flex: 1 }} />
           <TouchableOpacity style={styles.iconBtnDark} onPress={close} accessibilityLabel="Fechar">
             <Ionicons name="close" size={22} color="#FFFFFF" />
@@ -309,6 +357,25 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
           </View>
         ) : null}
 
+        {burst ? (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.burst,
+              {
+                opacity: burstAnim.interpolate({ inputRange: [0, 0.15, 0.75, 1], outputRange: [0, 1, 1, 0] }),
+                transform: [
+                  { translateY: burstAnim.interpolate({ inputRange: [0, 1], outputRange: [40, -60] }) },
+                  { scale: burstAnim.interpolate({ inputRange: [0, 0.2, 1], outputRange: [0.4, 1.15, 1] }) },
+                ],
+              },
+            ]}
+          >
+            <Text style={{ fontSize: 72 }}>{burst.emoji}</Text>
+            <Text style={styles.burstText}>{burst.text}</Text>
+          </Animated.View>
+        ) : null}
+
         {onAir ? (
           <View style={[styles.liveBottom, { paddingBottom: 14 + insets.bottom }]}>
             {mine ? (
@@ -317,11 +384,46 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
               </Text>
             ) : null}
             {comments.map((c, i) => (
-              <View key={i} style={styles.comment}>
-                <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{c.who} </Text>
-                <Text style={{ color: "#FFFFFF", fontSize: 13, flexShrink: 1 }}>{c.what}</Text>
+              <View key={i} style={[styles.comment, c.gift && styles.giftComment]}>
+                <Text style={{ color: c.gift ? '#E2B649' : colors.primary, fontWeight: '700', fontSize: 13 }}>{c.who} </Text>
+                <Text style={{ color: "#FFFFFF", fontSize: 13, flexShrink: 1, fontWeight: c.gift ? '800' : '400' }}>{c.what}</Text>
               </View>
             ))}
+            {tray && !mine ? (
+              <View style={styles.tray}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                  <Text style={styles.trayTitle}>Presentear {live ? live.host : ''}</Text>
+                  <View style={{ flex: 1 }} />
+                  <Text style={styles.trayBalance}>Saldo {brl(state.wallet)}</Text>
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                  {LIVE_GIFTS.map((g) => {
+                    const on = g.key === pick;
+                    return (
+                      <TouchableOpacity key={g.key} style={[styles.giftItem, on && styles.giftItemOn]} onPress={() => setPick(g.key)} accessibilityLabel={`${g.name}, ${brl(g.value)}`}>
+                        <Text style={{ fontSize: 28 }}>{g.emoji}</Text>
+                        <Text style={styles.giftName} numberOfLines={1}>{g.name}</Text>
+                        <Text style={styles.giftValue}>{brl(g.value)}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
+                  {LIVE_GIFT_QTY.map((q) => (
+                    <TouchableOpacity key={q} style={[styles.qty, qty === q && styles.qtyOn]} onPress={() => setQty(q)}>
+                      <Text style={{ color: qty === q ? '#0B1124' : '#FFFFFF', fontWeight: '900', fontSize: 12 }}>x{q}</Text>
+                    </TouchableOpacity>
+                  ))}
+                  <View style={{ flex: 1 }} />
+                  <TouchableOpacity style={styles.giftSend} onPress={sendGift}>
+                    <Text style={styles.giftSendText}>Enviar · {brl(cost.total)}</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.trayNote}>
+                  Inclui a taxa do Realys ({brl(cost.fee)}). Quem transmite recebe {brl(cost.value)} em créditos de live, que viram moeda Realys.
+                </Text>
+              </View>
+            ) : null}
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
               <TextInput
                 style={styles.liveInput}
@@ -337,10 +439,15 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                   <Text style={{ color: '#fff', fontWeight: '800' }}>Encerrar</Text>
                 </TouchableOpacity>
               ) : (
-                <TouchableOpacity style={styles.heart} onPress={() => setLiked(liked + 1)} accessibilityLabel="Curtir">
-                  <Ionicons name="heart" size={22} color="#FF5A7A" />
-                  {liked ? <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: '700' }}>{liked}</Text> : null}
-                </TouchableOpacity>
+                <>
+                  <TouchableOpacity style={[styles.heart, tray && { backgroundColor: '#E2B649' }]} onPress={() => setTray(!tray)} accessibilityLabel="Enviar presente">
+                    <Ionicons name="gift" size={21} color={tray ? '#0B1124' : '#E2B649'} />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.heart} onPress={() => setLiked(liked + 1)} accessibilityLabel="Curtir">
+                    <Ionicons name="heart" size={22} color="#FF5A7A" />
+                    {liked ? <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: '700' }}>{liked}</Text> : null}
+                  </TouchableOpacity>
+                </>
               )}
             </View>
           </View>
@@ -446,6 +553,23 @@ const styles = StyleSheet.create({
   },
   typeChipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   goLiveBtn: { height: 52, borderRadius: 16, backgroundColor: '#FF3B5C', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  earned: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E2B649', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4, marginLeft: 8 },
+  earnedText: { color: '#0B1124', fontWeight: '900', fontSize: 12, marginLeft: 4 },
+  giftComment: { backgroundColor: 'rgba(226,182,73,0.22)', borderWidth: 1, borderColor: 'rgba(226,182,73,0.6)' },
+  tray: { backgroundColor: 'rgba(11,17,36,0.94)', borderRadius: 20, padding: 12, marginTop: 8, borderWidth: 1, borderColor: 'rgba(226,182,73,0.5)' },
+  trayTitle: { color: '#FFFFFF', fontWeight: '900', fontSize: 14 },
+  trayBalance: { color: '#E2B649', fontWeight: '800', fontSize: 12 },
+  giftItem: { width: 76, alignItems: 'center', paddingVertical: 8, borderRadius: 16, marginRight: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
+  giftItemOn: { borderColor: '#E2B649', backgroundColor: 'rgba(226,182,73,0.18)' },
+  giftName: { color: '#FFFFFF', fontSize: 11, fontWeight: '700', marginTop: 2 },
+  giftValue: { color: '#E2B649', fontSize: 11, fontWeight: '900' },
+  qty: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)', marginRight: 6 },
+  qtyOn: { backgroundColor: '#E2B649', borderColor: '#E2B649' },
+  giftSend: { backgroundColor: '#E2B649', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10 },
+  giftSendText: { color: '#0B1124', fontWeight: '900', fontSize: 13 },
+  trayNote: { color: 'rgba(255,255,255,0.6)', fontSize: 10, marginTop: 8, lineHeight: 14 },
+  burst: { position: 'absolute', alignSelf: 'center', top: '30%', alignItems: 'center' },
+  burstText: { color: '#FFFFFF', fontWeight: '900', fontSize: 15, backgroundColor: 'rgba(11,17,36,0.7)', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14, overflow: 'hidden', marginTop: 4 },
   liveBottom: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 14 },
   comment: {
     flexDirection: 'row',
@@ -467,6 +591,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     color: '#fff',
   },
-  heart: { width: 48, height: 44, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
+  heart: { width: 48, height: 44, alignItems: 'center', justifyContent: 'center', marginLeft: 8, borderRadius: 22 },
   endLive: { height: 44, paddingHorizontal: 16, borderRadius: 22, backgroundColor: '#FF3B5C', alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
 });

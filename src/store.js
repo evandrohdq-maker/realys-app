@@ -5,7 +5,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as D from './data';
 import { initialFriends } from './people';
 import { brl } from './theme';
-import { initialGifts, initialGiftCredits, giftFee, GIFT_MIN, GIFT_MAX } from './gifts';
+import { initialGifts, initialGiftCredits, giftFee, GIFT_MIN, GIFT_MAX, liveGiftOf, liveGiftCost, initialLiveCredits, initialLiveGifts, LIVE_CONVERT_MIN } from './gifts';
 import { pointsFor, PARTNER_OFFERS, initialPoints, promoDiscount } from './rewards';
 import { initialLoyalty, onDelivered } from './loyalty';
 import { conversations as initialConversations, communityPosts as initialCommunityPosts } from './homeData';
@@ -65,6 +65,9 @@ const initialState = {
   gifts: initialGifts,
   giftOpen: null, // janela de presentear aberta: { to?, asCompany? }
   giftFees: 0, // taxas de presente que ficaram para o Realys nesta sessão
+  // Presentes nas lives: créditos que ganhei transmitindo (viram moeda Realys quando eu converto).
+  liveCredits: initialLiveCredits,
+  liveGifts: initialLiveGifts, // presentes recebidos nas minhas lives
   spendLimit: 400, // limite de gastos do mês, definido pelo próprio usuário
   stores: D.stores,
   products: D.products,
@@ -809,6 +812,42 @@ function baseReducer(state, a) {
         finance: company ? [{ id: newId('m'), date: today(), desc: `Presente para cliente ${a.to.name}`, type: 'saida', value: +(amount + fee).toFixed(2) }, ...state.finance] : state.finance,
       };
     }
+    // Presente numa live: sai do saldo de quem assiste (valor + taxa do Realys) e vai para quem transmite.
+    case 'SEND_LIVE_GIFT': {
+      const g = liveGiftOf(a.gift);
+      const qty = Math.max(1, Math.floor(a.qty || 1));
+      const { value, fee, total } = liveGiftCost(g, qty);
+      if (!a.live || a.live.mine || total > state.wallet) return state;
+      return {
+        ...state,
+        wallet: +(state.wallet - total).toFixed(2),
+        walletTx: [{ id: newId('w'), ts: Date.now(), kind: 'gasto', cat: 'Presentes', desc: `Live de ${a.live.host}: ${g.emoji} ${g.name}${qty > 1 ? ` x${qty}` : ''} (${brl(value)} + taxa ${brl(fee)})`, amount: total }, ...state.walletTx],
+        gifts: [{ id: newId('gf'), dir: 'enviado', to: { name: a.live.host, kind: 'live' }, amount: value, fee, occasion: `${g.emoji} ${g.name}${qty > 1 ? ` x${qty}` : ''} na live`, message: a.live.title, at: Date.now(), status: 'Entregue' }, ...state.gifts],
+        giftFees: +(state.giftFees + fee).toFixed(2),
+      };
+    }
+    // Alguém mandou presente na MINHA live: entra na hora como crédito de live.
+    case 'RECEIVE_LIVE_GIFT': {
+      const g = liveGiftOf(a.gift);
+      const qty = Math.max(1, Math.floor(a.qty || 1));
+      const value = +(g.value * qty).toFixed(2);
+      return {
+        ...state,
+        liveCredits: +(state.liveCredits + value).toFixed(2),
+        liveGifts: [{ id: newId('lg'), from: a.from, gift: g.key, qty, value, live: (state.myLive && state.myLive.title) || 'Minha live', at: Date.now() }, ...state.liveGifts].slice(0, 60),
+      };
+    }
+    // Converter créditos de live em moeda Realys: 1 crédito = 1 RLS, direto no saldo da carteira.
+    case 'CONVERT_LIVE_CREDITS': {
+      const v = +Math.min(state.liveCredits, Number(a.amount || state.liveCredits)).toFixed(2);
+      if (!(v >= LIVE_CONVERT_MIN)) return state;
+      return {
+        ...state,
+        liveCredits: +(state.liveCredits - v).toFixed(2),
+        wallet: +(state.wallet + v).toFixed(2),
+        walletTx: [{ id: newId('w'), ts: Date.now(), kind: 'deposito', cat: 'Lives', desc: `Créditos de live convertidos em moeda Realys (${v.toFixed(2).replace('.', ',')} RLS)`, amount: v }, ...state.walletTx],
+      };
+    }
     case 'WALLET_DEPOSIT': {
       const v = +Number(a.amount).toFixed(2);
       if (!(v > 0)) return state;
@@ -1138,3 +1177,4 @@ export function searchReply(state, serviceKey) {
 
 // Para testes no computador.
 export const _reducer = reducer;
+export const _initialState = initialState;

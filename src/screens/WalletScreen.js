@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { colors, brl } from '../theme';
-import { GIFT_FEE_PCT } from '../gifts';
+import { GIFT_FEE_PCT, LIVE_CONVERT_MIN, liveGiftOf } from '../gifts';
 import { PARTNER_OFFERS, POINTS_PER_RATING, POINTS_COMMENT_BONUS } from '../rewards';
 import { levelOf, nextLevel, ORDERS_FOR_BONUS, BONUS, STAMPS_FOR_REWARD, STAMP_BACK_PCT, initialLoyalty } from '../loyalty';
 
@@ -133,6 +133,49 @@ export default function WalletScreen({ visible, onClose }) {
             <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 10, marginTop: 8 }}>
               Presentear sai do seu saldo, com taxa de {GIFT_FEE_PCT}% do Realys. Quem recebe não precisa aceitar: entra na hora.
             </Text>
+          </View>
+
+          {/* Créditos de live: presentes recebidos nas minhas lives, que viram moeda Realys */}
+          <View style={styles.liveCard}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={styles.liveIcon}>
+                <Ionicons name="radio" size={18} color="#FFFFFF" />
+              </View>
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '700' }}>Créditos de live</Text>
+                <Text style={{ color: colors.text, fontSize: 24, fontWeight: '900' }}>{brl(state.liveCredits)}</Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.convertBtn, state.liveCredits < LIVE_CONVERT_MIN && { opacity: 0.45 }]}
+                onPress={() => {
+                  if (state.liveCredits < LIVE_CONVERT_MIN) return Alert.alert('Ainda não dá', `Junte pelo menos ${LIVE_CONVERT_MIN} créditos de live para converter.`);
+                  const v = state.liveCredits;
+                  Alert.alert('Converter em moeda Realys', `${brl(v)} em créditos de live viram ${v.toFixed(2).replace('.', ',')} RLS no seu saldo. Confirmar?`, [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { text: 'Converter', onPress: () => dispatch({ type: 'CONVERT_LIVE_CREDITS', amount: v }) },
+                  ]);
+                }}
+              >
+                <Ionicons name="swap-horizontal" size={14} color="#0B1124" />
+                <Text style={styles.convertText}>Converter em RLS</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6, lineHeight: 16 }}>
+              Presentes que você ganha quando transmite ao vivo. Converta em moeda Realys (1 crédito = 1 RLS) e use como saldo normal: comprar, presentear ou sacar.
+            </Text>
+            {state.liveGifts.slice(0, 5).map((g) => {
+              const lg = liveGiftOf(g.gift);
+              return (
+                <View key={g.id} style={styles.liveRow}>
+                  <Text style={{ fontSize: 18, width: 28 }}>{lg.emoji}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }} numberOfLines={1}>{g.from} · {lg.name}{g.qty > 1 ? ` x${g.qty}` : ''}</Text>
+                    <Text style={{ color: colors.muted, fontSize: 11 }} numberOfLines={1}>{g.live} · {fmtDate(g.at)}</Text>
+                  </View>
+                  <Text style={{ color: '#1E9E63', fontWeight: '900' }}>+ {brl(g.value)}</Text>
+                </View>
+              );
+            })}
           </View>
 
           {/* Clube Realys: nível, bônus a cada 20 pedidos e selos por loja */}
@@ -477,6 +520,11 @@ const styles = StyleSheet.create({
   offer: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border },
   redeem: { backgroundColor: colors.primary, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 7, marginLeft: 8 },
   giftCard: { backgroundColor: '#0B1124', borderRadius: 20, padding: 16, marginTop: 10, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
+  liveCard: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 16, marginTop: 10, borderWidth: 1, borderColor: 'rgba(255,59,92,0.35)' },
+  liveIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#FF3B5C', alignItems: 'center', justifyContent: 'center' },
+  convertBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E2B649', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 8 },
+  convertText: { color: '#0B1124', fontWeight: '900', fontSize: 12, marginLeft: 4 },
+  liveRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border, marginTop: 6 },
   giftRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', marginTop: 6 },
   balanceCard: { backgroundColor: colors.primary, borderRadius: 20, padding: 16 },
   balance: { color: '#fff', fontSize: 32, fontWeight: '900', marginVertical: 4 },

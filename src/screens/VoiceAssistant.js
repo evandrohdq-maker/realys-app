@@ -12,7 +12,7 @@ import { ServiceCallCard } from './cliente/ServicesScreen';
 import { Photo } from '../components/ui';
 import { searchAll, contentReply, CONTENT_WORDS } from '../search';
 import { stripWake, findCall, hearCall } from '../wakeMatch';
-import { speakSoft, stopSpeaking, prepareVoice } from '../voice';
+import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences } from '../voice';
 import { emergencyNumbers } from '../extraData';
 import { confirmCall } from '../phone';
 import { findNavigation, navReply } from '../voiceNav';
@@ -48,6 +48,15 @@ const norm = (s) =>
 const YES = /^(sim|pode|pode sim|quero|chama|chame|manda|ok|beleza|isso|confirmo|agenda|agendar|agora|adiciona|adicione|coloca|bota|finaliza\w*|fecha\w*)\b/;
 const NO = /^(nao|deixa|cancela|agora nao|nenhum|esquece)\b/;
 const CALL_NOW = /\b(chama|chame|manda|mande|solicita)\b/;
+// Lotus em pausa: "continua" retoma de onde parou, "repete" fala tudo de novo.
+const RESUME = /^(continua\w*|continue|pode continuar|segue|siga|prossegue|prossiga|pode falar|termina\w*|volta a falar|fala o resto)\b/;
+const REPEAT = /^(repete|repita|fala de novo|de novo|nao entendi|como)\b/;
+const HOLD = /^(espera|pera|aguarda|aguarde|pausa|pause|um momento|so um minuto|calma)\b/;
+// Perguntas sobre as opções que ela acabou de mostrar (sem precisar repetir o serviço).
+const FOLLOW = /(mais barat|menor preco|mais em conta|economic|mais pert|mais proxim|melhor (nota|avaliad)|mais bem avaliad|maior nota|\boutr[oa]\b|tem mais|mais alguem|quanto (cobra|custa|fica|e|sai)|preco|valor|nota dele|nota dela|avaliac|quanto tempo|demora|chega em|distancia|longe|que carro|qual carro|placa|o que (ele|ela) faz)/;
+const kmText = (p) => String(p.distanceKm.toFixed(1)).replace('.', ',');
+// Mesma conta do chamado (store.js): transporte ~4 min/km, outros serviços ~6 min/km.
+const etaMin = (p, transport) => Math.max(3, Math.round(p.distanceKm * (transport ? 4 : 6)));
 // "Agendar para depois": mais tarde, amanhã, às 18h, sexta…
 const LATER = /\b(mais tarde|depois|outro horario|outro dia|amanha|depois de amanha|hoje a (tarde|noite)|(as|para as|pras|pra) \d|\d{1,2} ?h\b|\d{1,2}:\d{2}|segunda|terca|quarta|quinta|sexta|sabado|domingo|semana que vem)/;
 const WHEN = /\b(amanha|hoje|depois de amanha|segunda|terca|quarta|quinta|sexta|sabado|domingo|semana que vem|manha|tarde|noite|\d{1,2} ?h\b|\d{1,2}:\d{2}|(as|para as|pras) \d{1,2})/;
@@ -103,8 +112,44 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
     if (o) return { open: o, reply: openReply(o) };
   }
   // Serviço mostrado: a pessoa escolhe quem, se chama agora ou agenda, ou desiste.
-  if (pending && pending.type === 'service' && !detectService(t)) {
-    const chosen = pickOption(t, pending.options || []);
+  const sameService = pending && pending.type === 'service' && detectService(t) === pending.serviceKey && FOLLOW.test(t);
+  if (pending && pending.type === 'service' && (!detectService(t) || sameService)) {
+    const opts = pending.options || [];
+    let chosen = pickOption(t, opts);
+    const current = opts.find((o) => o.id === pending.providerId) || opts[0];
+    // "Tem mais barato?", "e o mais perto?", "o de melhor nota", "tem outro?": escolhe na lista já mostrada.
+    let already = '';
+    if (!chosen && opts.length) {
+      const by = (f) => [...opts].sort(f)[0];
+      if (/mais barat|menor preco|mais em conta|economic/.test(t)) {
+        chosen = by((a, b) => a.price - b.price);
+        if (current && chosen.price === current.price) [chosen, already] = [current, 'mais em conta'];
+      } else if (/mais pert|mais proxim/.test(t)) {
+        chosen = by((a, b) => a.distanceKm - b.distanceKm);
+        if (chosen === current) already = 'mais perto';
+      } else if (/melhor (nota|avaliad)|mais bem avaliad|maior nota/.test(t)) {
+        chosen = by((a, b) => b.rating - a.rating);
+        if (current && chosen.rating === current.rating) [chosen, already] = [current, 'mais bem avaliado'];
+      }
+      else if (/\boutr[oa]\b|tem mais|mais alguem/.test(t)) {
+        const i = opts.findIndex((o) => o.id === (current && current.id));
+        chosen = opts[(i + 1) % opts.length];
+        if (chosen === current) return { reply: `Por enquanto só tem ${current.name} disponível perto de você.`, pending };
+      }
+    }
+    // Perguntas sobre quem ela estava apresentando: preço, nota, tempo para chegar, o que faz.
+    const about = chosen || current;
+    if (about && !YES.test(t) && !NO.test(t) && !LATER.test(t)) {
+      const ask = `Quer que eu chame ${about.name.split(' ')[0]} agora ou agende para outro horário?`;
+      const keep = { ...pending, providerId: about.id };
+      if (/quanto (cobra|custa|fica|e|sai)|preco|valor/.test(t) && !chosen) return { reply: `${about.name} cobra ${priceText(about)}. ${ask}`, pending: keep };
+      if (/nota dele|nota dela|avaliac/.test(t) && !chosen) return { reply: `${about.name} tem nota ${String(about.rating).replace('.', ',')}. ${ask}`, pending: keep };
+      if (/quanto tempo|demora|chega em|distancia|longe/.test(t) && !chosen) return { reply: `${about.name} está a ${kmText(about)} quilômetros, chega em uns ${etaMin(about, serviceType(pending.serviceKey).group === 'Transporte')} minutos. ${ask}`, pending: keep };
+      if (/o que (ele|ela) faz/.test(t) && !chosen) return { reply: `${about.name} faz ${about.functions.slice(0, 4).join(', ').toLowerCase()}. ${ask}`, pending: keep };
+      if (already) return { reply: `${chosen.name} já é o ${already} da lista: ${kmText(chosen)} quilômetros, nota ${String(chosen.rating).replace('.', ',')}, ${priceText(chosen)}. ${ask}`, pending: keep, list: opts };
+      if (chosen && FOLLOW.test(t))
+        return { reply: `${chosen.name}, a ${kmText(chosen)} quilômetros, nota ${String(chosen.rating).replace('.', ',')}, cobra ${priceText(chosen)}. ${ask}`, pending: keep, list: opts };
+    }
     const pid = chosen ? chosen.id : pending.providerId;
     if (pending.stage === 'when') {
       if (NO.test(t)) return { reply: 'Tudo bem, não agendei nada. Se precisar, é só chamar.' };
@@ -138,6 +183,14 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
       if (pending.total > state.wallet + (state.giftCredits || 0)) return { reply: 'Seu saldo não dá para essa compra. Adicione saldo na carteira e eu finalizo.' };
       dispatch({ type: 'CHECKOUT' });
       return { reply: `Compra finalizada, ${brl(pending.total)}, com pagamento protegido. Acompanhe em Pedidos.` };
+    }
+  }
+  // Créditos de live: converter só com confirmação.
+  if (pending && pending.type === 'convertLive') {
+    if (YES.test(t) || /convert/.test(t)) {
+      if (state.liveCredits < 10) return { reply: 'Você precisa de pelo menos 10 créditos de live para converter.' };
+      dispatch({ type: 'CONVERT_LIVE_CREDITS', amount: state.liveCredits });
+      return { reply: `Pronto, ${brl(state.liveCredits)} em créditos de live viraram moeda Realys no seu saldo.` };
     }
   }
   if (pending && NO.test(t)) return { reply: 'Tudo bem. Se precisar, é só chamar.' };
@@ -224,6 +277,12 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
         : 'Seu estoque está em dia.',
     };
   }
+  // "Quanto ganhei nas lives?", "converte meus créditos de live".
+  if (/\blives?\b/.test(t) && /(credito|ganhei|presente|recebi|converte|converter|moeda)/.test(t)) {
+    const c = state.liveCredits || 0;
+    if (c < 10) return { reply: `Você tem ${brl(c)} em créditos de live. Com 10 ou mais dá para converter em moeda Realys.` };
+    return { reply: `Você tem ${brl(c)} em créditos de live, dos presentes que ganhou transmitindo. Quer que eu converta em moeda Realys agora?`, pending: { type: 'convertLive' } };
+  }
   if (/(saldo|dinheiro|carteira)/.test(t)) return { reply: `Seu saldo Realys é de ${brl(state.wallet)}.` };
 
   // Busca geral em todo o conteúdo do app: anúncios, hotéis, imóveis, eventos, cursos,
@@ -277,6 +336,7 @@ const PHASE_TEXT = {
   listening: 'Ouvindo…',
   thinking: 'Processando…',
   speaking: 'Lotus respondendo',
+  paused: 'Em pausa',
 };
 
 // Orbe da Lotus: anéis que respiram em repouso, pulsam ao ouvir e acompanham o volume da voz.
@@ -330,7 +390,7 @@ function Orb({ phase, level, onPress }) {
         <View style={styles.coreGlowGold} />
         <View style={styles.coreGlowBlue} />
         <View style={[styles.coreInner, phase === 'listening' && { borderColor: colors.accent }]}>
-          <Ionicons name={phase === 'listening' ? 'mic' : phase === 'speaking' ? 'volume-high' : phase === 'thinking' ? 'sparkles' : 'mic-outline'} size={30} color={accent} />
+          <Ionicons name={phase === 'listening' ? 'mic' : phase === 'speaking' ? 'volume-high' : phase === 'paused' ? 'pause' : phase === 'thinking' ? 'sparkles' : 'mic-outline'} size={30} color={accent} />
         </View>
       </Animated.View>
     </Pressable>
@@ -354,15 +414,29 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
   const bargeIn = useRef({ on: false, heard: false, rest: '', timer: null, tries: 0 });
   // Cada fala tem um número: quando ela é interrompida, os avisos da fala antiga são ignorados.
   const speechId = useRef(0);
+  // O que ela está falando agora (frases e em qual está) e, quando pausada, de onde continuar.
+  const talking = useRef(null); // { parts, index, res }
+  const [paused, setPaused] = useState(null);
+  const pausedRef = useRef(null);
+  pausedRef.current = paused;
+  const restPhase = () => (pausedRef.current ? 'paused' : 'idle');
 
   const startBargeRecognizer = () => {
+    if (!bargeIn.current.on) return;
     try {
       ExpoSpeechRecognitionModule.start({
         lang: 'pt-BR',
         interimResults: true,
         continuous: true,
         maxAlternatives: 5,
-        contextualStrings: HINTS,
+        contextualStrings: ['Lotus', 'Lótus', ...HINTS],
+        // Em Androids mais antigos o "continuous" não existe e o microfone desliga sozinho depois de
+        // cada frase que ouve (inclusive a voz da própria Lotus). Aqui ele aguenta mais tempo ligado.
+        androidIntentOptions: {
+          EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS: 60000,
+          EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS: 8000,
+          EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS: 8000,
+        },
       });
     } catch (e) {
       bargeIn.current.on = false;
@@ -388,7 +462,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     } catch (e) {}
   };
 
-  // A pessoa chamou "Lotus" no meio da fala: cala na hora e segue o novo pedido (ou volta a ouvir).
+  // A pessoa chamou "Lotus" no meio da fala: ela PAUSA (guarda a frase em que estava e o assunto,
+  // como a lista de motoristas) e ouve o novo pedido, que é entendido junto com o que já foi pedido.
   const finishBargeIn = () => {
     const rest = bargeIn.current.rest;
     stopBargeIn();
@@ -398,15 +473,22 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     setTimeout(listen, 150);
   };
 
+  const pauseTalk = () => {
+    speechId.current += 1;
+    const cur = talking.current;
+    talking.current = null;
+    stopSpeaking();
+    if (cur) setPaused({ parts: cur.parts, index: cur.index, res: cur.res });
+  };
+
   const onBargeHeard = (results, isFinal) => {
     const b = bargeIn.current;
     const call = hearCall(results);
     if (!b.heard) {
       if (!call) return;
       b.heard = true;
-      speechId.current += 1;
-      stopSpeaking();
-      setPending(null);
+      // Não apaga o assunto (pending): "Lotus… tem mais barato?" continua falando dos mesmos motoristas.
+      pauseTalk();
       setPhase('listening');
     }
     if (call) b.rest = call.rest;
@@ -426,6 +508,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
 
   const close = () => {
     speechId.current += 1;
+    talking.current = null;
+    setPaused(null);
     stopBargeIn();
     stopListening();
     stopSpeaking();
@@ -433,8 +517,55 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     onClose();
   };
 
+  // Fala a resposta frase por frase, ouvindo "Lotus" ao mesmo tempo para poder ser pausada.
+  const say = (res, parts, from) => {
+    setPhase('speaking');
+    setPaused(null);
+    const id = (speechId.current += 1);
+    talking.current = { parts, index: from, res };
+    let done = false;
+    const ended = () => {
+      done = true;
+      if (id !== speechId.current) return false; // fala pausada: já está ouvindo o novo pedido
+      talking.current = null;
+      stopBargeIn();
+      setPhase('idle');
+      return true;
+    };
+    speakParts(parts, from, {
+      onPart: (i) => {
+        if (id === speechId.current && talking.current) talking.current.index = i;
+      },
+      onDone: () => {
+        // Mãos livres: se a Lotus fez uma pergunta ("quer que eu chame?"), já abre o microfone para a resposta.
+        if (ended() && handsFree && res.pending) setTimeout(listen, 150);
+      },
+      onStopped: ended,
+      onError: ended,
+    });
+    // Enquanto fala, fica ouvindo: dizer "Lotus" de novo pausa e ela ouve um novo pedido.
+    stopBargeIn();
+    setTimeout(() => !done && id === speechId.current && startBargeIn(res.reply), 200);
+  };
+
+  const resume = (fromStart) => {
+    const p = pausedRef.current;
+    if (!p) return false;
+    say(p.res, p.parts, fromStart ? 0 : Math.min(p.index, p.parts.length - 1));
+    return true;
+  };
+
   const run = (cmd, forced, alts) => {
     if (!cmd || !cmd.trim()) return;
+    // Em pausa: "continua" retoma da frase em que parou; "repete" fala tudo de novo; "espera" segue pausada.
+    if (!forced && pausedRef.current) {
+      const c = norm(stripWake(cmd));
+      setPartial('');
+      if (RESUME.test(c) && resume(false)) return;
+      if (REPEAT.test(c) && resume(true)) return;
+      if (HOLD.test(c)) return setPhase('paused');
+      setPaused(null); // pedido novo: a fala antiga fica para trás, mas o assunto (pending) continua valendo
+    }
     setPhase('thinking');
     setPartial('');
     let res = forced || interpret(cmd, state, dispatch, pendingRef.current, canOpen);
@@ -486,29 +617,11 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
       onClose();
       return;
     }
+    // Pergunta sobre a lista que ela mostrou: mantém a lista na tela.
+    if (!res.list && res.pending && res.pending.type === 'service' && pendingRef.current && pendingRef.current.type === 'service') res = { ...res, list: res.pending.options };
     setPending(res.pending || null);
     setHistory((h) => [{ q: cmd, ...res }, ...h]);
-    setPhase('speaking');
-    const id = (speechId.current += 1);
-    let done = false;
-    const ended = () => {
-      done = true;
-      if (id !== speechId.current) return false; // fala interrompida: já está ouvindo o novo pedido
-      stopBargeIn();
-      setPhase('idle');
-      return true;
-    };
-    speakSoft(res.reply, {
-      onDone: () => {
-        // Mãos livres: se a Lotus fez uma pergunta ("quer que eu chame?"), já abre o microfone para a resposta.
-        if (ended() && handsFree && res.pending) setTimeout(listen, 150);
-      },
-      onStopped: ended,
-      onError: ended,
-    });
-    // Enquanto fala, fica ouvindo: dizer "Lotus" de novo interrompe e ela ouve um novo pedido.
-    stopBargeIn();
-    setTimeout(() => !done && id === speechId.current && startBargeIn(res.reply), 250);
+    say(res, splitSentences(res.reply), 0);
   };
 
   // Microfone pelo diálogo do Google: só se o reconhecimento dentro do app não existir no celular.
@@ -552,15 +665,15 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
 
   const listen = async () => {
     if (!supported) return legacyListen();
-    // Tocar no orbe enquanto ela fala: interrompe a fala e ouve.
-    if (bargeIn.current.on) {
-      speechId.current += 1;
+    // Tocar no orbe enquanto ela fala: pausa a fala e ouve.
+    if (bargeIn.current.on || talking.current) {
       stopBargeIn();
+      pauseTalk();
     }
     // Tocar no orbe enquanto ouve: para de ouvir.
     if (session.current.active) {
       stopListening();
-      setPhase('idle');
+      setPhase(restPhase());
       return;
     }
     stopSpeaking();
@@ -581,6 +694,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
   };
 
   useSpeechRecognitionEvent('start', () => {
+    if (bargeIn.current.on) bargeIn.current.tries = 0;
     if (session.current.active) session.current.started = true;
   });
   useSpeechRecognitionEvent('volumechange', (e) => {
@@ -603,14 +717,15 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     const b = bargeIn.current;
     if (b.on) {
       if (b.heard) return finishBargeIn();
-      // O celular parou de ouvir sozinho, mas ela ainda está falando: volta a ouvir.
-      if (b.tries++ < 6) setTimeout(() => b.on && !b.heard && startBargeRecognizer(), 250);
+      // O celular parou de ouvir sozinho, mas ela ainda está falando: volta a ouvir na hora,
+      // quantas vezes precisar (só desiste se ele falhar muitas vezes seguidas sem nem começar).
+      if (b.tries++ < 12) setTimeout(() => b.on && !b.heard && startBargeRecognizer(), 80);
       return;
     }
     if (!session.current.active || !session.current.started) return;
     session.current.active = false;
     level.setValue(0);
-    setPhase('idle');
+    setPhase(restPhase());
   });
   useSpeechRecognitionEvent('error', (e) => {
     const b = bargeIn.current;
@@ -618,7 +733,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
       if (b.heard) return finishBargeIn();
       const code = e && e.error;
       if (code === 'not-allowed' || code === 'service-not-allowed') return stopBargeIn();
-      if (b.tries++ < 6) setTimeout(() => b.on && !b.heard && startBargeRecognizer(), 300);
+      if (b.tries++ < 12) setTimeout(() => b.on && !b.heard && startBargeRecognizer(), code === 'no-speech' || code === 'speech-timeout' ? 80 : 250);
       return;
     }
     const s = session.current;
@@ -632,7 +747,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     }
     s.active = false;
     level.setValue(0);
-    setPhase('idle');
+    setPhase(restPhase());
     if (code === 'not-allowed' || code === 'service-not-allowed') {
       setHistory((h) => [{ q: '🎙️', reply: 'O Realys precisa da permissão do microfone para ouvir você.' }, ...h]);
     } else if (code === 'no-speech' || code === 'speech-timeout') {
@@ -644,6 +759,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
   useEffect(() => {
     if (!visible) {
       speechId.current += 1;
+      talking.current = null;
+      setPaused(null);
       stopBargeIn();
       stopListening();
       enter.setValue(0);
@@ -687,6 +804,15 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
           <Text style={[styles.live, !partial && !last && styles.livePlaceholder]} numberOfLines={3}>
             {partial || (last && phase !== 'listening' ? last.reply : '“Me leva pro Agro”')}
           </Text>
+          {paused && phase !== 'speaking' ? (
+            <View style={styles.pauseRow}>
+              <Text style={styles.pauseHint}>Diga "continua" ou faça outro pedido sobre o mesmo assunto</Text>
+              <TouchableOpacity onPress={() => resume(false)} style={styles.pauseBtn} accessibilityLabel="Continuar a fala da Lotus">
+                <Ionicons name="play" size={14} color={colors.onPrimary} />
+                <Text style={styles.pauseBtnText}>Continuar</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
 
           <ScrollView style={{ flex: 1, marginTop: 10 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             {!history.length ? (
@@ -915,6 +1041,10 @@ const styles = StyleSheet.create({
   statusDot: { width: 7, height: 7, borderRadius: 4, marginRight: 6 },
   status: { color: colors.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase' },
   live: { textAlign: 'center', color: colors.text, fontSize: 19, fontWeight: '600', marginTop: 8, paddingHorizontal: 10, minHeight: 26 },
+  pauseRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 8, paddingHorizontal: 10 },
+  pauseHint: { flex: 1, color: colors.muted, fontSize: 12, marginRight: 8 },
+  pauseBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 7 },
+  pauseBtnText: { color: colors.onPrimary, fontWeight: '800', fontSize: 12, marginLeft: 4 },
   livePlaceholder: { color: 'rgba(110,120,145,0.6)', fontStyle: 'italic', fontWeight: '500' },
 
   chip: {

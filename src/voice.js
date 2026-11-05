@@ -44,3 +44,38 @@ export async function speakSoft(text, options = {}) {
 }
 
 export const stopSpeaking = () => Speech.stop();
+
+// Divide a resposta em frases. Assim a Lotus sabe em que frase parou quando é pausada
+// e consegue continuar dali (o Android não tem "pausar" na voz, só "parar").
+export const splitSentences = (text) =>
+  (String(text || '').match(/[^.!?…]+[.!?…]*/g) || [String(text || '')]).map((s) => s.trim()).filter(Boolean);
+
+// Fala as frases a partir da frase `from`. onPart(i) avisa qual frase começou.
+// onDone só no fim da última; onStopped/onError uma vez só (quando ela é parada).
+export async function speakParts(parts, from = 0, { onPart, onDone, onStopped, onError } = {}) {
+  const voice = await prepareVoice();
+  Speech.stop();
+  let over = false;
+  const once = (fn) => () => {
+    if (over) return;
+    over = true;
+    fn && fn();
+  };
+  const stopped = once(onStopped);
+  const failed = once(onError);
+  const finished = once(onDone);
+  const list = parts.slice(from);
+  if (!list.length) return finished();
+  list.forEach((p, k) => {
+    const i = from + k;
+    Speech.speak(p, {
+      language: 'pt-BR',
+      ...SOFT,
+      ...(voice ? { voice } : {}),
+      onStart: () => !over && onPart && onPart(i),
+      onDone: k === list.length - 1 ? finished : undefined,
+      onStopped: stopped,
+      onError: failed,
+    });
+  });
+}
