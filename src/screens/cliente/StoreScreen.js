@@ -173,7 +173,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
             <ProductCard key={p.id} p={p} onAdd={() => add(p.id)} />
           ))}
         </View>
-        {cartCount ? <CartBar count={cartCount} total={total} onPress={() => setShowCart(true)} /> : null}
+        {cartCount ? <CartBar count={cartCount} total={total} onPress={() => dispatch({ type: 'OPEN_CART' })} /> : null}
       </Screen>
     );
   }
@@ -256,7 +256,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
         {!rankedStores.length ? <Empty text="Nada encontrado." /> : null}
       </Section>
 
-      {cartCount ? <CartBar count={cartCount} total={total} onPress={() => setShowCart(true)} /> : null}
+      {cartCount ? <CartBar count={cartCount} total={total} onPress={() => dispatch({ type: 'OPEN_CART' })} /> : null}
     </Screen>
   );
 }

@@ -37,6 +37,7 @@ import { loadModel } from './src/lm/lotusLM';
 import { UserProfileModal, PeopleSearchModal } from './src/components/People';
 import { CompanyProfileModal } from './src/components/CompanyProfile';
 import GiftSheet from './src/components/GiftSheet';
+import CartSheet, { CartIcon } from './src/components/CartSheet';
 import TransitScreen from './src/screens/cliente/TransitScreen';
 import SosScreen from './src/screens/cliente/SosScreen';
 import ArtistsScreen from './src/screens/cliente/ArtistsScreen';
@@ -247,6 +248,8 @@ function Shell() {
           <Text style={styles.brand}>REALYS</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {/* Carrinho discreto: só aparece quando há itens */}
+          <CartIcon style={[styles.dots, { marginRight: 6, width: 40, height: 40 }]} />
           <TouchableOpacity onPress={() => setSearching(true)} style={[styles.dots, { marginRight: 6, width: 40, height: 40 }]} accessibilityLabel="Buscar pessoas na rede Realys">
             <Ionicons name="search" size={19} color={colors.text} />
           </TouchableOpacity>
@@ -359,6 +362,7 @@ function Shell() {
       <UserProfileModal />
       <CompanyProfileModal />
       <GiftSheet />
+      <CartSheet onOrders={() => pick({ tab: 'pedidos' })} />
       <CategoryMenu
         visible={menu}
         onClose={() => setMenu(false)}

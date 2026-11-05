@@ -32,6 +32,7 @@ const EXAMPLES = [
   'Preciso de um hotel barato',
   'Tem hotel em Campos do Jordão?',
   'Abre minha carteira',
+  'Abre meu carrinho',
   'Quanto eu vendi hoje?',
 ];
 
@@ -132,7 +133,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
   }
   // Carrinho: finalizar só com confirmação.
   if (pending && pending.type === 'checkout') {
-    if (NO.test(t) || /continu/.test(t)) return { reply: 'Certo, o carrinho fica guardado. Você finaliza quando quiser na aba Loja.' };
+    if (NO.test(t) || /continu/.test(t)) return { reply: 'Certo, o carrinho fica guardado. Ele fica no ícone da sacola, no topo da tela.' };
     if (YES.test(t)) {
       if (pending.total > state.wallet + (state.giftCredits || 0)) return { reply: 'Seu saldo não dá para essa compra. Adicione saldo na carteira e eu finalizo.' };
       dispatch({ type: 'CHECKOUT' });
@@ -149,6 +150,12 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
     const e = emergencyNumbers.find((x) => x.key === (emKey || 'samu'));
     setTimeout(() => confirmCall(e.label, e.number), 300);
     return { reply: `Vou ligar para ${e.label}, ${e.number.split('').join(' ')}. Confirme na tela.` };
+  }
+
+  // "Abre meu carrinho", "ver carrinho": abre a janela do carrinho.
+  if (/(carrinho|minhas compras|sacola)/.test(t) && !/\b(adiciona|adicione|coloca|bota|poe|por)\b/.test(t)) {
+    const n = state.cart.reduce((x, c) => x + c.qty, 0);
+    return { openCart: true, reply: n ? `Abrindo seu carrinho: ${n} ${n === 1 ? 'item' : 'itens'}, total de ${brl(cartTotal(state))}.` : 'Seu carrinho está vazio. Abrindo para você ver.' };
   }
 
   // Conhecimento da Lotus (o que empresas e clientes publicaram): preços, comparação, opinião dos
@@ -213,7 +220,6 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
     };
   }
   if (/(saldo|dinheiro|carteira)/.test(t)) return { reply: `Seu saldo Realys é de ${brl(state.wallet)}.` };
-  if (/(carrinho)/.test(t)) return { reply: `Seu carrinho tem ${state.cart.length} itens, total de ${brl(cartTotal(state))}.` };
 
   // Busca geral em todo o conteúdo do app: anúncios, hotéis, imóveis, eventos, cursos,
   // lojas, produtos, promoções, prestadores, lives, pessoas e posts.
@@ -447,6 +453,15 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
       setPhase('idle');
       speakSoft(res.reply);
       onVoiceNav(res.nav);
+      return;
+    }
+    // Carrinho: fala, fecha a caixa e abre a janela do carrinho.
+    if (res.openCart) {
+      setPending(null);
+      setPhase('idle');
+      speakSoft(res.reply);
+      dispatch({ type: 'OPEN_CART' });
+      onClose();
       return;
     }
     // Perfil: fala "Abrindo o perfil de Ana Paula", fecha a caixa e abre o perfil.

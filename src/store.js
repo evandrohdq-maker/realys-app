@@ -114,6 +114,7 @@ const initialState = {
   available: false,
   myProvider: null, // cadastro profissional de quem usa o perfil Prestador
   cart: [], // [{ productId, qty }]
+  cartOpen: false, // janela do carrinho aberta
   liked: {},
   reports: D.reports,
   signups: D.pendingSignups,
@@ -283,6 +284,17 @@ function baseReducer(state, a) {
     }
     case 'REMOVE_FROM_CART':
       return { ...state, cart: state.cart.filter((c) => c.productId !== a.productId) };
+    // Mais um / menos um no carrinho (chegando a zero, sai do carrinho).
+    case 'CART_QTY':
+      return {
+        ...state,
+        cart: state.cart.map((c) => (c.productId === a.productId ? { ...c, qty: c.qty + a.delta } : c)).filter((c) => c.qty > 0),
+      };
+    // Carrinho em janela: abre de qualquer tela (ícone no topo, barra da loja ou pela Lotus).
+    case 'OPEN_CART':
+      return { ...state, cartOpen: true };
+    case 'CLOSE_CART':
+      return { ...state, cartOpen: false };
 
     case 'CHECKOUT': {
       const lines = state.cart.map((c) => ({ ...c, product: state.products.find((p) => p.id === c.productId) }));
