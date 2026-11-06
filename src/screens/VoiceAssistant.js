@@ -11,6 +11,8 @@ import { colors, brl, soft } from '../theme';
 import { ServiceCallCard } from './cliente/ServicesScreen';
 import { Photo } from '../components/ui';
 import ProviderPreview from '../components/ProviderPreview';
+import LotusFlower from '../components/LotusFlower';
+import StarField from '../components/StarField';
 import { searchAll, contentReply, CONTENT_WORDS } from '../search';
 import { stripWake, findCall, hearCall } from '../wakeMatch';
 import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences } from '../voice';
@@ -333,70 +335,12 @@ const speechOk = () => {
 };
 
 const PHASE_TEXT = {
-  idle: 'Toque no orbe e fale',
+  idle: 'Toque na flor e fale',
   listening: 'Ouvindo…',
   thinking: 'Processando…',
   speaking: 'Lotus respondendo',
   paused: 'Em pausa',
 };
-
-// Orbe da Lotus: anéis que respiram em repouso, pulsam ao ouvir e acompanham o volume da voz.
-function Orb({ phase, level, onPress }) {
-  const breath = useRef(new Animated.Value(0)).current;
-  const wave = useRef(new Animated.Value(0)).current;
-  const spin = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const fast = phase === 'listening' || phase === 'speaking';
-    breath.setValue(0);
-    wave.setValue(0);
-    const a = Animated.loop(
-      Animated.sequence([
-        Animated.timing(breath, { toValue: 1, duration: fast ? 520 : 1600, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        Animated.timing(breath, { toValue: 0, duration: fast ? 520 : 1600, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-      ]),
-    );
-    const w = Animated.loop(Animated.timing(wave, { toValue: 1, duration: fast ? 1100 : 2600, easing: Easing.out(Easing.quad), useNativeDriver: true }));
-    a.start();
-    w.start();
-    return () => {
-      a.stop();
-      w.stop();
-    };
-  }, [phase]);
-
-  useEffect(() => {
-    const s = Animated.loop(Animated.timing(spin, { toValue: 1, duration: 6000, easing: Easing.linear, useNativeDriver: true }));
-    s.start();
-    return () => s.stop();
-  }, []);
-
-  const coreScale = Animated.add(
-    breath.interpolate({ inputRange: [0, 1], outputRange: [1, phase === 'idle' ? 1.04 : 1.07] }),
-    level.interpolate({ inputRange: [0, 1], outputRange: [0, 0.28] }),
-  );
-  const waveScale = wave.interpolate({ inputRange: [0, 1], outputRange: [1, 1.9] });
-  const waveOpacity = wave.interpolate({ inputRange: [0, 0.15, 1], outputRange: [0, 0.45, 0] });
-  const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
-  const accent = phase === 'listening' ? colors.accent : colors.primary;
-
-  return (
-    <Pressable onPress={onPress} accessibilityLabel="Falar com a Lotus" style={styles.orbWrap}>
-      <Animated.View style={[styles.wave, { borderColor: accent, opacity: waveOpacity, transform: [{ scale: waveScale }] }]} />
-      <Animated.View style={[styles.halo, { transform: [{ rotate }] }]}>
-        <View style={[styles.haloDot, { backgroundColor: colors.gold, top: -4, left: (ORB + 8) / 2 - 4 }]} />
-        <View style={[styles.haloDot, { backgroundColor: colors.accent, bottom: -3, left: (ORB + 8) / 2 - 3, width: 6, height: 6 }]} />
-      </Animated.View>
-      <Animated.View style={[styles.core, { transform: [{ scale: coreScale }] }]}>
-        <View style={styles.coreGlowGold} />
-        <View style={styles.coreGlowBlue} />
-        <View style={[styles.coreInner, phase === 'listening' && { borderColor: colors.accent }]}>
-          <Ionicons name={phase === 'listening' ? 'mic' : phase === 'speaking' ? 'volume-high' : phase === 'paused' ? 'pause' : phase === 'thinking' ? 'sparkles' : 'mic-outline'} size={30} color={accent} />
-        </View>
-      </Animated.View>
-    </Pressable>
-  );
-}
 
 export default function VoiceAssistant({ visible, onClose, initialCommand, handsFree, onNavigate, onVoiceNav, canOpen }) {
   const { state, dispatch } = useStore();
@@ -669,12 +613,12 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
 
   const listen = async () => {
     if (!supported) return legacyListen();
-    // Tocar no orbe enquanto ela fala: pausa a fala e ouve.
+    // Tocar na flor enquanto ela fala: pausa a fala e ouve.
     if (bargeIn.current.on || talking.current) {
       stopBargeIn();
       pauseTalk();
     }
-    // Tocar no orbe enquanto ouve: para de ouvir.
+    // Tocar na flor enquanto ouve: para de ouvir.
     if (session.current.active) {
       stopListening();
       setPhase(restPhase());
@@ -798,6 +742,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
         <Pressable style={{ flex: 1 }} onPress={close} />
         <Animated.View style={[styles.sheet, { opacity: enter, transform: [{ translateY }] }]}>
+          <StarField active={visible} />
           <View style={styles.grip} />
           <View style={styles.head}>
             <View>
@@ -805,13 +750,13 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
               <Text style={styles.brandSub}>assistente do Realys</Text>
             </View>
             <TouchableOpacity onPress={close} style={styles.closeBtn} accessibilityLabel="Fechar a Lotus">
-              <Ionicons name="close" size={20} color={colors.text} />
+              <Ionicons name="close" size={20} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
 
-          <Orb phase={phase} level={level} onPress={listen} />
+          <LotusFlower phase={phase} level={level} onPress={listen} visible={visible} />
           <View style={styles.statusRow}>
-            <View style={[styles.statusDot, { backgroundColor: phase === 'listening' ? colors.accent : phase === 'idle' ? colors.muted : colors.primary }]} />
+            <View style={[styles.statusDot, { backgroundColor: phase === 'listening' ? '#60A5FA' : phase === 'idle' ? 'rgba(255,255,255,0.4)' : colors.gold }]} />
             <Text style={styles.status}>{PHASE_TEXT[phase]}</Text>
           </View>
           <Text style={[styles.live, !partial && !last && styles.livePlaceholder]} numberOfLines={3}>
@@ -846,19 +791,19 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
                   <View style={styles.botBar} />
                   <View style={{ flex: 1 }}>
                     {h.falseInfo ? (
-                      <View style={[styles.sense, { backgroundColor: 'rgba(217,83,79,0.1)' }]}>
+                      <View style={[styles.sense, { backgroundColor: 'rgba(217,83,79,0.18)' }]}>
                         <Ionicons name="close-circle" size={11} color={colors.danger} />
                         <Text style={[styles.senseTxt, { color: colors.danger }]}>Informação falsa verificada</Text>
                       </View>
                     ) : h.knowledge ? (
-                      <View style={[styles.sense, { backgroundColor: 'rgba(168,121,10,0.1)' }]}>
-                        <Ionicons name="library-outline" size={11} color={colors.primary} />
-                        <Text style={[styles.senseTxt, { color: colors.primary }]}>Pelo que foi publicado no Realys</Text>
+                      <View style={[styles.sense, { backgroundColor: 'rgba(226,182,73,0.16)' }]}>
+                        <Ionicons name="library-outline" size={11} color={colors.gold} />
+                        <Text style={[styles.senseTxt, { color: colors.gold }]}>Pelo que foi publicado no Realys</Text>
                       </View>
                     ) : null}
                     {h.understood ? (
                       <View style={styles.sense}>
-                        <Ionicons name="sparkles" size={11} color={colors.accent} />
+                        <Ionicons name="sparkles" size={11} color="#93C5FD" />
                         <Text style={styles.senseTxt}>Entendi pelo sentido: {h.understood}</Text>
                       </View>
                     ) : null}
@@ -960,10 +905,10 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
           </ScrollView>
 
           <View style={styles.inputBar}>
-            <Ionicons name="sparkles-outline" size={18} color={colors.primary} style={{ marginLeft: 4 }} />
+            <Ionicons name="sparkles-outline" size={18} color={colors.gold} style={{ marginLeft: 4 }} />
             <TextInput
               placeholder="Digite ou fale com a Lotus"
-              placeholderTextColor={colors.muted}
+              placeholderTextColor="rgba(255,255,255,0.5)"
               value={text}
               onChangeText={setText}
               onSubmitEditing={() => run(text)}
@@ -987,98 +932,59 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
   );
 }
 
-const ORB = 132;
-
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(16,22,40,0.42)' },
+  backdrop: { flex: 1, backgroundColor: 'rgba(6,10,24,0.28)' },
   sheet: {
-    backgroundColor: '#FFFDF8',
+    // Céu noturno translúcido: dá para ver o app por trás, como um vidro estrelado.
+    backgroundColor: 'rgba(12,18,42,0.86)',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     paddingHorizontal: 18,
     paddingTop: 8,
     paddingBottom: 16,
     height: '84%',
-    borderWidth: 1,
-    borderColor: 'rgba(226,182,73,0.45)',
-    shadowColor: colors.primary,
-    shadowOpacity: 0.25,
+    overflow: 'hidden',
+    shadowColor: '#7B6CF6',
+    shadowOpacity: 0.35,
     shadowRadius: 24,
     elevation: 24,
   },
-  grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: 8 },
+  grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.25)', marginBottom: 8 },
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  brand: { fontSize: 18, fontWeight: '800', letterSpacing: 6, color: colors.text },
-  brandSub: { fontSize: 11, color: colors.muted, letterSpacing: 1.2, marginTop: 1 },
-  closeBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cardAlt },
+  brand: { fontSize: 18, fontWeight: '800', letterSpacing: 6, color: '#FFFFFF' },
+  brandSub: { fontSize: 11, color: 'rgba(253,230,138,0.85)', letterSpacing: 1.2, marginTop: 1 },
+  closeBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.12)' },
 
-  orbWrap: { alignSelf: 'center', width: ORB + 40, height: ORB + 40, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
-  wave: { position: 'absolute', width: ORB, height: ORB, borderRadius: ORB / 2, borderWidth: 2 },
-  halo: {
-    position: 'absolute',
-    width: ORB + 8,
-    height: ORB + 8,
-    borderRadius: (ORB + 8) / 2,
-    borderWidth: 1,
-    borderColor: 'rgba(168,121,10,0.25)',
-    borderStyle: 'dashed',
-  },
-  haloDot: { position: 'absolute', width: 8, height: 8, borderRadius: 4 },
-  core: {
-    width: ORB - 24,
-    height: ORB - 24,
-    borderRadius: (ORB - 24) / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFF6DE',
-    shadowColor: colors.gold,
-    shadowOpacity: 0.7,
-    shadowRadius: 22,
-    elevation: 14,
-    overflow: 'hidden',
-  },
-  coreGlowGold: { position: 'absolute', width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(226,182,73,0.55)', top: -38, left: -30 },
-  coreGlowBlue: { position: 'absolute', width: 90, height: 90, borderRadius: 45, backgroundColor: 'rgba(47,116,208,0.28)', bottom: -34, right: -26 },
-  coreInner: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: colors.gold,
-  },
   statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 2 },
   statusDot: { width: 7, height: 7, borderRadius: 4, marginRight: 6 },
-  status: { color: colors.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase' },
-  live: { textAlign: 'center', color: colors.text, fontSize: 19, fontWeight: '600', marginTop: 8, paddingHorizontal: 10, minHeight: 26 },
+  status: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase' },
+  live: { textAlign: 'center', color: '#FFFFFF', fontSize: 19, fontWeight: '600', marginTop: 8, paddingHorizontal: 10, minHeight: 26 },
   pauseRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 8, paddingHorizontal: 10 },
-  pauseHint: { flex: 1, color: colors.muted, fontSize: 12, marginRight: 8 },
+  pauseHint: { flex: 1, color: 'rgba(255,255,255,0.7)', fontSize: 12, marginRight: 8 },
   pauseBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 7 },
   pauseBtnText: { color: colors.onPrimary, fontWeight: '700', fontSize: 12, marginLeft: 4 },
-  livePlaceholder: { color: 'rgba(110,120,145,0.6)', fontStyle: 'italic', fontWeight: '500' },
+  livePlaceholder: { color: 'rgba(255,255,255,0.45)', fontStyle: 'italic', fontWeight: '500' },
 
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 9,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(168,121,10,0.35)',
-    backgroundColor: 'rgba(251,241,214,0.6)',
+    borderColor: 'rgba(253,230,138,0.35)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     marginRight: 8,
     marginBottom: 6,
   },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipText: { color: colors.primaryDark, fontWeight: '700', fontSize: 13 },
+  chipText: { color: '#FDE68A', fontWeight: '700', fontSize: 13 },
 
-  userLine: { alignSelf: 'flex-end', backgroundColor: colors.text, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 16, borderBottomRightRadius: 4, maxWidth: '85%', marginBottom: 6 },
-  userText: { color: '#FFFFFF', fontSize: 14 },
-  botCard: { flexDirection: 'row', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 12, marginBottom: 6, ...soft },
+  userLine: { alignSelf: 'flex-end', backgroundColor: 'rgba(255,255,255,0.92)', paddingHorizontal: 14, paddingVertical: 9, borderRadius: 16, borderBottomRightRadius: 4, maxWidth: '85%', marginBottom: 6 },
+  userText: { color: colors.text, fontSize: 14 },
+  botCard: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.09)', borderRadius: 16, padding: 12, marginBottom: 6 },
   botBar: { width: 3, borderRadius: 2, backgroundColor: colors.gold, marginRight: 10 },
-  botText: { color: colors.text, fontSize: 14, lineHeight: 20 },
-  sense: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: 'rgba(47,116,208,0.08)', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, marginBottom: 6 },
-  senseTxt: { color: colors.accent, fontSize: 11, fontWeight: '700', marginLeft: 4 },
+  botText: { color: '#FFFFFF', fontSize: 14, lineHeight: 20 },
+  sense: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: 'rgba(147,197,253,0.14)', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, marginBottom: 6 },
+  senseTxt: { color: '#93C5FD', fontSize: 11, fontWeight: '700', marginLeft: 4 },
 
   item: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 10, marginBottom: 6, ...soft },
   itemTag: { color: colors.accent, fontSize: 10, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
@@ -1093,16 +999,16 @@ const styles = StyleSheet.create({
   inputBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 26,
     borderWidth: 1,
-    borderColor: 'rgba(168,121,10,0.35)',
+    borderColor: 'rgba(253,230,138,0.3)',
     paddingLeft: 10,
     paddingRight: 5,
     paddingVertical: 5,
     marginTop: 8,
   },
-  input: { flex: 1, color: colors.text, fontSize: 15, paddingHorizontal: 8, paddingVertical: 6 },
+  input: { flex: 1, color: '#FFFFFF', fontSize: 15, paddingHorizontal: 8, paddingVertical: 6 },
   sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
 });
 
