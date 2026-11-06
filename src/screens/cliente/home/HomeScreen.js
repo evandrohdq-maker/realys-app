@@ -16,6 +16,7 @@ import { LaunchStrip } from '../../../components/Launches';
 import { SHOP_SECTORS, SHOP_SECTOR_KEYS } from '../../../shopSectorsData';
 import { useBack } from '../../../back';
 import { TestimonialCard } from '../../../components/SocialProfile';
+import { ShopHero, CircleShortcuts, ShopProductCard, ShopGrid, StoreRow } from '../../../components/ShopKit';
 
 // Aba Shop (barra de baixo): só a loja. Eventos, Promoções, Anúncios e Lives
 // agora ficam na barra do topo da página Community (ver CommunityExtras abaixo).
@@ -119,14 +120,6 @@ export function CommunityExtras({ top, explore }) {
   );
 }
 
-function Hero() {
-  return (
-    <View style={styles.hero}>
-      <Text style={styles.heroTitle}>Você no comando.</Text>
-    </View>
-  );
-}
-
 // Atalhos do Shop: ícones pequenos dentro de um círculo, com o nome embaixo.
 // Tecnologia e Agro (que se conversam: agro é tech) e os setores com subgrupos, incluindo Vários.
 const SHOP_SHORTCUTS = [
@@ -146,56 +139,27 @@ function ShopTab({ goTo }) {
   const stores = [...state.stores].sort((a, b) => b.sponsored - a.sponsored || b.recommended - a.recommended || b.rating - a.rating);
   return (
     <Screen>
-      <Hero />
-      <View style={styles.circleGrid}>
-        {SHOP_SHORTCUTS.map((c) => (
-          <TouchableOpacity key={c.key} style={styles.circleItem} onPress={() => goTo(c.key)} activeOpacity={0.8} accessibilityLabel={c.label}>
-            <View style={[styles.circle, { borderColor: c.color + '66', backgroundColor: c.color + '12' }]}>
-              <Ionicons name={c.ion} size={18} color={c.color} />
-            </View>
-            <Text style={styles.circleLabel} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>{c.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <ShopHero title="Você no comando." />
+      <CircleShortcuts items={SHOP_SHORTCUTS} onPress={goTo} />
       <LaunchStrip />
       <SectionHead title="Destaques para você" action="Ver loja" onAction={() => goTo('loja')} />
-      <View style={styles.grid}>
+      <ShopGrid>
         {featured.map((p) => (
-          <View key={p.id} style={styles.prod}>
-            <ProductThumb product={p} size={86} />
-            <Text numberOfLines={2} style={styles.prodName}>
-              {p.name}
-            </Text>
-            <Text style={styles.prodStore}>{(storeOf(state, p.storeId) || {}).name}</Text>
-            <Text style={styles.prodPrice}>{brl(p.price)}</Text>
-            <TouchableOpacity style={styles.addBtn} onPress={() => dispatch({ type: 'ADD_TO_CART', productId: p.id })}>
-              <Ionicons name="add" size={16} color={colors.onPrimary} />
-              <Text style={styles.addText}>Carrinho</Text>
-            </TouchableOpacity>
-          </View>
+          <ShopProductCard key={p.id} p={p} storeName={(storeOf(state, p.storeId) || {}).name} onAdd={() => dispatch({ type: 'ADD_TO_CART', productId: p.id })} />
         ))}
-      </View>
+      </ShopGrid>
       <SectionHead title="Lojas em destaque" />
       {stores.map((s) => (
-        <TouchableOpacity key={s.id} style={styles.storeRow} onPress={() => goTo('loja')} activeOpacity={0.85}>
-          <View style={styles.storeLogo}>
-            <Text style={{ color: colors.text, fontSize: 22 }}>{s.logo}</Text>
-          </View>
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={styles.storeName}>{s.name}</Text>
-            <Text style={styles.storeMeta}>
-              {s.category} · <Text style={{ color: colors.accent, fontWeight: '700' }}>★ {s.rating}</Text>
-              {s.shipsBrazil ? ' · envia p/ todo o Brasil' : ''}
-            </Text>
-          </View>
-          {s.sponsored ? <Badge label="Patrocinado" color={colors.sponsored} /> : null}
-        </TouchableOpacity>
+        <StoreRow key={s.id} s={{ ...s, city: null, recommended: false }} onPress={() => goTo('loja')} />
       ))}
     </Screen>
   );
 }
 
 // Eventos: festas promocionais e anúncios de promoções em destaque.
+// Atalhos redondos (mesmo visual do Shop); os grupos em destaque ficam em rosa.
+const EVENT_SHORT = { 'festa-promo': 'Festas', 'promo-anuncio': 'Promoções', shows: 'Shows', espacos: 'Espaços', gratis: 'Grátis' };
+const EVENT_SHORTCUTS = EVENT_GROUPS.map((g) => ({ key: g.key, label: EVENT_SHORT[g.key] || g.label, ion: g.icon, color: g.highlight ? '#FF3B5C' : colors.primary }));
 const sortEv = (list) => [...list].sort((a, b) => b.sponsored - a.sponsored);
 
 function EventsTab({ group, setGroup, onContact }) {
@@ -230,25 +194,8 @@ function EventsTab({ group, setGroup, onContact }) {
   const withCta = (e) => (ticketOf(e) ? { ...e, cta: 'Estou no local · pedir' } : e);
   return (
     <Screen>
-      <View style={styles.evBanner}>
-        <Ionicons name="sparkles" size={24} color={colors.onPrimary} />
-        <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 17 }}>Eventos e festas</Text>
-          <Text style={{ color: colors.onPrimary, fontSize: 12, marginTop: 2 }}>Festas com desconto, listas VIP e promoções da noite</Text>
-        </View>
-      </View>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 12 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
-        {EVENT_GROUPS.map((g) => {
-          const on = g.key === group;
-          return (
-            <TouchableOpacity key={g.key} style={[styles.chip, g.highlight && !on && styles.chipHot, on && styles.chipOn]} onPress={() => setGroup(g.key)}>
-              <Ionicons name={g.icon} size={15} color={on ? colors.onPrimary : g.highlight ? '#FF3B5C' : colors.primary} />
-              <Text style={[styles.chipText, on && { color: colors.onPrimary }]}>{g.label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+      <ShopHero title="Eventos e festas" sub="Festas com desconto, listas VIP e promoções da noite" />
+      <CircleShortcuts items={EVENT_SHORTCUTS} value={group} onPress={setGroup} />
 
       {group === 'destaques' ? (
         <>
@@ -868,10 +815,6 @@ function SectionHead({ title, action, onAction }) {
 }
 
 const styles = StyleSheet.create({
-  circleGrid: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8, marginHorizontal: -4 },
-  circleItem: { width: '25%', alignItems: 'center', paddingHorizontal: 4, marginBottom: 12 },
-  circle: { width: 46, height: 46, borderRadius: 23, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-  circleLabel: { color: colors.text, fontWeight: '700', fontSize: 11, marginTop: 5, textAlign: 'center' },
   // Abas do topo clean: sem caixinhas; a ativa ganha uma pílula clarinha e o ícone dourado.
   topTabs: {
     flexDirection: 'row',
@@ -889,50 +832,10 @@ const styles = StyleSheet.create({
   },
   topTabOn: { backgroundColor: colors.primaryLight },
   topTabText: { color: colors.muted, fontSize: 10, fontWeight: '600', marginTop: 3 },
-  hero: {
-    borderRadius: 14,
-    backgroundColor: colors.primaryLight,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    marginBottom: 12,
-  },
-  heroTitle: { color: colors.primaryDark, fontSize: 17, fontWeight: '800', letterSpacing: -0.3 },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, marginTop: 4 },
   sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '700' },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 10 },
-  prod: {
-    width: '48.5%',
-    backgroundColor: colors.card,
-    borderRadius: 18,
-    padding: 10,
-    ...soft,
-    marginBottom: 10,
-  },
   prodName: { color: colors.text, fontWeight: '700', fontSize: 13, marginTop: 8 },
   prodStore: { color: colors.muted, fontSize: 11, marginTop: 2 },
-  prodPrice: { color: colors.primary, fontWeight: '700', fontSize: 15, marginTop: 4 },
-  addBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 36,
-    borderRadius: 11,
-    backgroundColor: colors.primary,
-    marginTop: 8,
-  },
-  addText: { color: colors.onPrimary, fontWeight: '700', fontSize: 12, marginLeft: 2 },
-  storeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 8,
-    ...soft,
-  },
-  storeLogo: { width: 44, height: 44, borderRadius: 13, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
-  storeName: { color: colors.text, fontWeight: '700' },
-  storeMeta: { color: colors.muted, fontSize: 12, marginTop: 2 },
   promoBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -967,8 +870,7 @@ const styles = StyleSheet.create({
   },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipHot: { borderColor: '#FF3B5C', backgroundColor: '#FFF0F3' },
-  evBanner: { flexDirection: 'row', alignItems: 'center', borderRadius: 18, padding: 14, marginBottom: 12, backgroundColor: colors.sponsored },
-  evCard: { width: 210, marginRight: 12, backgroundColor: colors.card, borderRadius: 18, borderWidth: 1, borderColor: '#FFC2CE', overflow: 'hidden' },
+  evCard: { width: 210, marginRight: 12, marginBottom: 6, backgroundColor: colors.card, borderRadius: 18, overflow: 'hidden', ...soft },
   evCardPhoto: { width: '100%', height: 120 },
   evDeal: { position: 'absolute', left: 10, top: 10, backgroundColor: '#FF3B5C', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
   evFrom: { color: colors.muted, fontSize: 12, textDecorationLine: 'line-through', marginLeft: 8 },
@@ -992,7 +894,7 @@ const styles = StyleSheet.create({
   adTitle: { color: colors.text, fontWeight: '700', fontSize: 15, marginTop: 2 },
   adDetail: { color: colors.muted, fontSize: 12, marginTop: 2 },
   adPlace: { color: colors.muted, fontSize: 12, marginTop: 4 },
-  adBtn: { flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: '#F0E9DA', alignItems: 'center', justifyContent: 'center', marginRight: 8 },
+  adBtn: { flex: 1, height: 38, borderRadius: 11, borderWidth: 1, borderColor: '#F0E9DA', alignItems: 'center', justifyContent: 'center', marginRight: 8 },
   adBtnMain: { backgroundColor: colors.primary, borderColor: colors.primary },
   segRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 10 },
   seg: {

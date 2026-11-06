@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { colors, brl, soft } from '../theme';
 import { Photo, ProductThumb } from './ui';
+import { ShopProductCard } from './ShopKit';
 import { MY_COMPANY_ID } from '../data';
 import { memberById } from '../people';
 import { businessOf, showcaseOf, sectorByKey, SERVE_MODES, ratingOf, GALLERY_TYPES } from '../companyBusiness';
@@ -299,6 +300,8 @@ function WriteReview({ company, onClose }) {
 }
 
 function ProductCard({ x, onAdd, big }) {
+  // Cartões pequenos com o mesmo visual do Shop; o destaque grande da vitrine continua especial.
+  if (!big) return <ShopProductCard p={x} onAdd={() => onAdd(x.id)} />;
   return (
     <View style={[styles.pCard, big && styles.pCardBig]}>
       {big ? <View style={styles.pGlow} /> : null}

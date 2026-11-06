@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { colors, brl, soft } from '../theme';
 import { Photo, ProductThumb, Badge, Row } from './ui';
+import { ShopProductCard } from './ShopKit';
 import { artists, artMedia, companyPages } from '../extraData';
 import { MY_COMPANY_ID } from '../data';
 import { BusinessPageModal } from './BusinessPage';
@@ -206,18 +207,7 @@ export function CompanyProfileModal() {
             products.length ? (
               <View style={styles.grid}>
                 {products.map((x) => (
-                  <View key={x.id} style={styles.pCard}>
-                    <ProductThumb product={x} size={84} />
-                    <Text style={styles.title} numberOfLines={2}>{x.name}</Text>
-                    <Text style={{ color: colors.primary, fontWeight: '700', marginVertical: 4 }}>{brl(x.price)}</Text>
-                    {x.stock > 0 ? (
-                      <TouchableOpacity style={styles.addBtn} onPress={() => add(x.id)}>
-                        <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 12 }}>+ Carrinho</Text>
-                      </TouchableOpacity>
-                    ) : (
-                      <Badge label="Esgotado" color={colors.danger} />
-                    )}
-                  </View>
+                  <ShopProductCard key={x.id} p={x} onAdd={() => add(x.id)} />
                 ))}
               </View>
             ) : (

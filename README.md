@@ -14,6 +14,7 @@ Tema claro, com as cores de sempre: fundo marfim, dourado de glória e azul-céu
 - **Topo limpo:** só a logo, o REALYS com um check dourado de ID verificado e os ícones soltos (busca, carrinho e menu ⋮), sem caixinhas. A faixa de avisos (comanda do evento, mãos livres) só aparece quando tem algo.
 - **Barra de baixo** arredondada e sem linha; a aba ativa fica com o ícone dourado numa pílula clarinha. As abas do topo da Community seguem o mesmo estilo.
 - **Textos mais leves** (menos negrito) e chips em marfim, sem contorno.
+- **Mesmo visual do Shop em todo lugar:** a Loja, o Food, os Eventos e as páginas das empresas usam as peças do Shop (`src/components/ShopKit.js`): faixa clarinha de título, atalhos redondos com ícone pequeno, cartões de produto com o botão **+ Carrinho** e lojas em linha com o logo num quadradinho.
 
 ---
 

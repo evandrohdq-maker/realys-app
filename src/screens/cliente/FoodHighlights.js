@@ -36,16 +36,6 @@ export function FoodHighlights({ filter, onOpenStore, onAdd }) {
 
   return (
     <View>
-      <View style={styles.banner}>
-        <View style={styles.bannerIcon}>
-          <Ionicons name="restaurant" size={20} color={colors.onPrimary} />
-        </View>
-        <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={styles.bannerTitle}>Food</Text>
-          <Text style={styles.bannerSub}>Promoções de restaurantes, bares e cafés perto de você</Text>
-        </View>
-      </View>
-
       {showPromos && promos.length ? (
         <>
           <Head title="🔥 Promoções de restaurantes" />
@@ -196,10 +186,6 @@ function Head({ title }) {
 }
 
 const styles = StyleSheet.create({
-  banner: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(226,182,73,0.55)', padding: 12, marginBottom: 14 },
-  bannerIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  bannerTitle: { color: colors.primaryDark, fontWeight: '800', fontSize: 18 },
-  bannerSub: { color: colors.muted, fontSize: 12, marginTop: 2 },
   head: { color: colors.text, fontSize: 17, fontWeight: '700', marginBottom: 10, marginTop: 4 },
   hScroll: { marginHorizontal: -16, marginBottom: 16 },
   promoCard: { width: 210, marginRight: 12, backgroundColor: colors.card, borderRadius: 18, overflow: 'hidden', ...soft },
@@ -219,11 +205,11 @@ const styles = StyleSheet.create({
   liveNowText: { color: '#fff', fontSize: 11, fontWeight: '700' },
   barName: { color: colors.text, fontWeight: '700', fontSize: 16 },
   barVibe: { color: colors.primary, fontWeight: '700', fontSize: 13, marginTop: 2 },
-  btn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 38, borderRadius: 19, borderWidth: 1, borderColor: colors.primary, marginRight: 8 },
+  btn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 36, borderRadius: 11, borderWidth: 1, borderColor: colors.primary, marginRight: 8 },
   btnOn: { backgroundColor: colors.primary },
   btnText: { color: colors.primary, fontWeight: '700', fontSize: 12, marginLeft: 4 },
-  newCard: { width: 140, marginRight: 10, backgroundColor: colors.card, borderRadius: 16, padding: 10, ...soft },
-  add: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 32, borderRadius: 16, backgroundColor: colors.primary, marginTop: 6 },
+  newCard: { width: 140, marginRight: 10, backgroundColor: colors.card, borderRadius: 18, padding: 10, ...soft },
+  add: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 36, borderRadius: 11, backgroundColor: colors.primary, marginTop: 8 },
   post: { backgroundColor: colors.card, borderRadius: 18, padding: 12, marginBottom: 12, ...soft },
   postImg: { width: '100%', height: 180, borderRadius: 14, marginTop: 10 },
 });

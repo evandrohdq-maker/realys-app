@@ -9,26 +9,19 @@ import { useBack } from '../../back';
 import { isFoodStore } from '../../data';
 import { FOOD_FILTERS } from '../../foodData';
 import { FoodHighlights } from './FoodHighlights';
+import { ShopHero, CircleShortcuts, ShopHead, ShopProductCard as ProductCard, ShopGrid, StoreRow } from '../../components/ShopKit';
 
-const CATEGORIES = ['Todos', 'Alimentação', 'Mercado', 'Roupas', 'Eletrônicos'];
-
-function ProductCard({ p, onAdd, storeName, style }) {
-  return (
-    <View style={[styles.pCard, style]}>
-      <ProductThumb product={p} size={96} />
-      <Text numberOfLines={2} style={styles.pName}>
-        {p.name}
-      </Text>
-      {storeName ? <Text style={styles.pStore}>{storeName}</Text> : null}
-      <Text style={styles.pPrice}>{brl(p.price)}</Text>
-      {p.stock > 0 ? (
-        <Button small title="+ Carrinho" onPress={onAdd} />
-      ) : (
-        <Badge label="Esgotado" color={colors.danger} />
-      )}
-    </View>
-  );
-}
+// Atalhos redondos da Loja (mesmo visual do Shop).
+const CATEGORIES = [
+  { key: 'Todos', label: 'Todos', ion: 'grid-outline', color: colors.primary },
+  { key: 'Alimentação', label: 'Comida', ion: 'restaurant-outline', color: '#E8590C' },
+  { key: 'Mercado', label: 'Mercado', ion: 'basket-outline', color: '#2E8B57' },
+  { key: 'Roupas', label: 'Roupas', ion: 'shirt-outline', color: '#C2255C' },
+  { key: 'Eletrônicos', label: 'Eletrônicos', ion: 'phone-portrait-outline', color: colors.accent },
+];
+// Atalhos redondos do Food.
+const FOOD_COLORS = { todos: colors.primary, restaurantes: '#E8590C', bares: '#B7791F', doces: '#A0522D' };
+const FOOD_SHORTCUTS = FOOD_FILTERS.map((f) => ({ key: f.key, label: f.key === 'doces' ? 'Doces e cafés' : f.label, ion: f.icon, color: FOOD_COLORS[f.key] }));
 
 // Aba Food do cliente: a mesma loja, mas só com comida e bebida (restaurantes, bares, doces e cafés),
 // com promoções de restaurantes e a interação com bares em destaque.
@@ -168,11 +161,11 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
           <Badge label="CNPJ verificado" />
           {s.shipsBrazil ? <View style={{ marginLeft: 6 }}><Badge label="Envia para todo o Brasil" color={colors.accent} /></View> : null}
         </Row>
-        <View style={styles.grid}>
+        <ShopGrid>
           {items.map((p) => (
             <ProductCard key={p.id} p={p} onAdd={() => add(p.id)} />
           ))}
-        </View>
+        </ShopGrid>
         {cartCount ? <CartBar count={cartCount} total={total} onPress={() => dispatch({ type: 'OPEN_CART' })} /> : null}
       </Screen>
     );
@@ -191,20 +184,19 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
         voicePrompt={food ? 'O que você quer comer hoje?' : 'O que você quer comprar?'}
         style={{ marginBottom: 0 }}
       />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 12 }}>
-        {food
-          ? FOOD_FILTERS.map((f) => <Chip key={f.key} label={f.label} active={cat === f.key} onPress={() => setCat(f.key)} />)
-          : CATEGORIES.map((c) => <Chip key={c} label={c} active={cat === c} onPress={() => setCat(c)} />)}
-      </ScrollView>
+      <View style={{ height: 12 }} />
+      {!q ? (food ? <ShopHero title="Food" sub="Promoções de restaurantes, bares e cafés perto de você" /> : <ShopHero title="Loja Realys" sub="Lojas verificadas, patrocinadas e recomendadas primeiro" />) : null}
+      <CircleShortcuts items={food ? FOOD_SHORTCUTS : CATEGORIES} value={cat} onPress={setCat} />
 
       {matchedProducts.length ? (
-        <Section title={`Produtos para "${q}"`}>
-          <View style={styles.grid}>
+        <>
+          <ShopHead title={`Produtos para "${q}"`} />
+          <ShopGrid>
             {matchedProducts.map((p) => (
               <ProductCard key={p.id} p={p} storeName={storeOf(state, p.storeId).name} onAdd={() => add(p.id)} />
             ))}
-          </View>
-        </Section>
+          </ShopGrid>
+        </>
       ) : null}
 
       {searched && !matchedProducts.length && !rankedStores.length ? (
@@ -216,45 +208,22 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
       {!q && !food ? <LaunchStrip title="🚀 Lançamentos" /> : null}
 
       {!q && !food ? (
-        <Section title="⭐ Destaques da semana">
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <>
+          <ShopHead title="Destaques para você" />
+          <ShopGrid>
             {featured.map((p) => (
-              <ProductCard
-                key={p.id}
-                p={p}
-                style={{ width: 150, marginRight: 10 }}
-                storeName={storeOf(state, p.storeId).name}
-                onAdd={() => add(p.id)}
-              />
+              <ProductCard key={p.id} p={p} storeName={storeOf(state, p.storeId).name} onAdd={() => add(p.id)} />
             ))}
-          </ScrollView>
-        </Section>
+          </ShopGrid>
+        </>
       ) : null}
 
-      <Section title={food ? 'Restaurantes, bares e cafés' : 'Lojas e restaurantes'}>
-        {rankedStores.map((s) => (
-          <TouchableOpacity key={s.id} activeOpacity={0.85} onPress={() => setOpenStore(s.id)} style={styles.storeCard}>
-            <Photo uri={s.cover} style={styles.storeImg} fallback={s.logo} />
-            <View style={{ padding: 12 }}>
-              <Row style={{ justifyContent: 'space-between' }}>
-                <Text style={styles.storeName}>
-                  {s.logo} {s.name}
-                </Text>
-                <Text style={{ color: colors.accent, fontWeight: '700' }}>★ {s.rating}</Text>
-              </Row>
-              <Text style={{ color: colors.muted, fontSize: 12, marginVertical: 4 }}>
-                {s.category} · {s.city}
-              </Text>
-              <Row>
-                {s.sponsored ? <Badge label="Patrocinado" color={colors.sponsored} /> : null}
-                {s.recommended ? <View style={{ marginLeft: s.sponsored ? 6 : 0 }}><Badge label="Recomendado" /></View> : null}
-                {s.shipsBrazil ? <View style={{ marginLeft: 6 }}><Badge label="Envia p/ todo Brasil" color={colors.accent} /></View> : null}
-              </Row>
-            </View>
-          </TouchableOpacity>
-        ))}
-        {!rankedStores.length ? <Empty text="Nada encontrado." /> : null}
-      </Section>
+      <ShopHead title={food ? 'Restaurantes, bares e cafés' : 'Lojas em destaque'} />
+      {rankedStores.map((s) => (
+        <StoreRow key={s.id} s={s} onPress={() => setOpenStore(s.id)} />
+      ))}
+      {!rankedStores.length ? <Empty text="Nada encontrado." /> : null}
+      <View style={{ height: 10 }} />
 
       {cartCount ? <CartBar count={cartCount} total={total} onPress={() => dispatch({ type: 'OPEN_CART' })} /> : null}
     </Screen>
@@ -283,22 +252,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  pCard: {
-    backgroundColor: colors.card,
-    borderRadius: 14,
-    padding: 10,
-    width: '48.5%',
-    marginBottom: 10,
-    alignItems: 'flex-start',
-    ...soft,
-  },
-  pName: { fontWeight: '600', color: colors.text, marginTop: 8, minHeight: 36 },
-  pStore: { fontSize: 11, color: colors.muted },
-  pPrice: { fontWeight: '700', color: colors.primary, fontSize: 16, marginVertical: 6 },
-  storeCard: { backgroundColor: colors.card, borderRadius: 16, overflow: 'hidden', marginBottom: 12, ...soft },
-  storeImg: { width: '100%', height: 130 },
-  storeName: { fontWeight: '700', fontSize: 16, color: colors.text },
   cover: { width: '100%', height: 170, borderRadius: 16 },
   cartBar: {
     flexDirection: 'row',
