@@ -1,0 +1,249 @@
+<!doctype html>
+<html><body style="margin:0;background:transparent">
+<canvas id="c" width="1024" height="1024"></canvas>
+<script>
+// ---------- matemática ----------
+const D = Math.PI / 180;
+const norm = (a) => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const mix = (a, b, t) => a + (b - a) * t;
+function lookAt(e, c, up) {
+  const z = norm(sub(e, c)), x = norm(cross(up, z)), y = cross(z, x);
+  return [x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, -dot(x, e), -dot(y, e), -dot(z, e), 1];
+}
+function persp(fov, asp, n, f) {
+  const t = 1 / Math.tan(fov / 2);
+  return [t / asp, 0, 0, 0, 0, t, 0, 0, 0, 0, (f + n) / (n - f), -1, 0, 0, 2 * f * n / (n - f), 0];
+}
+function ortho(s, n, f) { return [1 / s, 0, 0, 0, 0, 1 / s, 0, 0, 0, 0, -2 / (f - n), 0, 0, 0, -(f + n) / (f - n), 1]; }
+function mul(a, b) { const o = new Array(16).fill(0); for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) for (let k = 0; k < 4; k++) o[j * 4 + i] += a[k * 4 + i] * b[j * 4 + k]; return o; }
+
+// ---------- malha ----------
+// Cada vértice: posição(3) normal(3) uv(2) material(1) extra(1)
+function Mesh() { this.v = []; this.i = []; this.n = 0; }
+Mesh.prototype.grid = function (NU, NV, f, mat, extra) {
+  const base = this.n, P = [];
+  for (let a = 0; a <= NU; a++) for (let b = 0; b <= NV; b++) {
+    const u = a / NU, v = b / NV;
+    const p = f(u, v), e = 1e-3;
+    const pu = sub(f(Math.min(1, u + e), v), f(Math.max(0, u - e), v));
+    const pv = sub(f(u, Math.min(1, v + e)), f(u, Math.max(0, v - e)));
+    let nn = norm(cross(pu, pv));
+    if (!isFinite(nn[0])) nn = [0, 1, 0];
+    this.v.push(...p, ...nn, u, v, mat, extra);
+    this.n++;
+  }
+  for (let a = 0; a < NU; a++) for (let b = 0; b < NV; b++) {
+    const k = base + a * (NV + 1) + b;
+    this.i.push(k, k + NV + 1, k + 1, k + 1, k + NV + 1, k + NV + 2);
+  }
+};
+
+// Pétala: u ao longo (base->ponta), v de -1 a 1 na largura.
+function petal(m, ring, phi, b, seed) {
+  const { L, W, r0, y0, open, closed, cup } = ring;
+  const tilt = mix(closed, open, b) * D;
+  const bend = mix(-34, -0.32 * open, b) * D; // botão: pontas para dentro; aberta: pontas sobem
+  const jit = Math.sin(seed * 12.9898) * 0.5; // cada pétala um pouco diferente
+  const tiltJ = tilt + jit * 4 * D * b;
+  const N = 60, cl = [[0, 0]];
+  let y = 0, z = 0;
+  for (let k = 1; k <= N; k++) {
+    const u = k / N, a = tiltJ + bend * u * u;
+    y += Math.cos(a) * L / N; z += Math.sin(a) * L / N; cl.push([y, z]);
+  }
+  const cs = Math.cos(phi), sn = Math.sin(phi);
+  m.grid(48, 24, (u, vv) => {
+    const v = vv * 2 - 1;
+    const kf = u * N, k0 = Math.min(N - 1, Math.floor(kf)), t = kf - k0;
+    const yy = mix(cl[k0][0], cl[k0 + 1][0], t), zz = mix(cl[k0][1], cl[k0 + 1][1], t);
+    const a = tiltJ + bend * u * u;
+    const hw = W * Math.pow(Math.sin(Math.PI * Math.pow(u, 0.5)), 0.55) * (1 - 0.25 * Math.pow(u, 6)) * (1 + 0.04 * jit);
+    // concha: bordas viram para dentro (em direção ao centro da flor)
+    const c = cup * hw * v * v + 0.012 * Math.sin(v * 5 + u * 7 + seed) * u;
+    const nin = [0, Math.sin(a), -Math.cos(a)];
+    const lx = v * hw * (1 - 0.18 * v * v);
+    const ly = y0 + yy + nin[1] * c;
+    const lz = r0 + zz + nin[2] * c;
+    return [lx * cs + lz * sn, ly, -lx * sn + lz * cs];
+  }, 0, ring.ao);
+}
+
+function buildFlower(b, rot, withPad) {
+  const m = new Mesh();
+  const s = mix(0.86, 1, b);
+  const rings = [
+    { n: 8, L: 0.98 * s, W: 0.42, r0: 0.11, y0: 0.04, open: 62, closed: 16, cup: 0.5, ao: 1.0, off: 0 },
+    { n: 8, L: 0.92 * s, W: 0.40, r0: 0.10, y0: 0.06, open: 48, closed: 10, cup: 0.55, ao: 0.9, off: 22.5 },
+    { n: 7, L: 0.78 * s, W: 0.36, r0: 0.12, y0: 0.08, open: 40, closed: 5, cup: 0.6, ao: 0.8, off: 11 },
+    { n: 6, L: 0.50 * s, W: 0.26, r0: 0.17, y0: 0.10, open: 40, closed: 1, cup: 0.65, ao: 0.7, off: 33 },
+  ];
+  let seed = 1;
+  rings.forEach((r) => { for (let i = 0; i < r.n; i++) petal(m, r, (rot + r.off + i * 360 / r.n) * D, b, seed++); });
+
+  // Cápsula de sementes (cone invertido de topo achatado)
+  const podTop = 0.22 + 0.08 * b, podR = 0.15;
+  m.grid(8, 48, (u, v) => {
+    const ang = v * Math.PI * 2;
+    const r = mix(0.06, podR, Math.pow(u, 0.7));
+    return [Math.cos(ang) * r, 0.08 + u * (podTop - 0.08), Math.sin(ang) * r];
+  }, 1, 0);
+  m.grid(10, 48, (u, v) => {
+    const ang = -v * Math.PI * 2, r = podR * (1 - u);
+    return [Math.cos(ang) * r, podTop + 0.012 * Math.cos(u * Math.PI * 0.5), Math.sin(ang) * r];
+  }, 2, 0);
+  // Estames: fitas finas douradas ao redor da cápsula
+  const NS = 150;
+  for (let i = 0; i < NS; i++) {
+    const ang = (i / NS) * Math.PI * 2 + Math.sin(i * 7.1) * 0.05 + rot * D;
+    const len = 0.2 * (0.85 + 0.15 * Math.sin(i * 3.3)) * mix(0.6, 1, b);
+    const tilt = mix(8, 42 + 10 * Math.sin(i * 1.7), b) * D;
+    const ca = Math.cos(ang), sa = Math.sin(ang);
+    m.grid(8, 1, (u, v) => {
+      const w = (v - 0.5) * (u > 0.78 ? 0.016 : 0.006);
+      const rr = podR * 0.92 + Math.sin(tilt) * len * u;
+      const yy = 0.12 + Math.cos(tilt) * len * u + 0.03 * u * u;
+      return [ca * rr - sa * w, yy, sa * rr + ca * w];
+    }, 3, i / NS);
+  }
+  if (withPad) {
+    m.grid(24, 120, (u, v) => {
+      const ang = (8 + v * 344) * D + 200 * D; // fenda da folha virada para trás
+      const r = u * 1.05;
+      const lift = 0.05 * Math.pow(u, 6) + 0.004 * Math.sin(ang * 5) * u;
+      return [Math.cos(ang) * r, -0.02 + lift, Math.sin(ang) * r];
+    }, 4, 0);
+  }
+  return m;
+}
+
+// ---------- WebGL ----------
+const cv = document.getElementById('c');
+const gl = cv.getContext('webgl2', { antialias: true, preserveDrawingBuffer: true, premultipliedAlpha: false, alpha: true });
+
+const VS = `#version 300 es
+layout(location=0) in vec3 p; layout(location=1) in vec3 n; layout(location=2) in vec2 uv; layout(location=3) in vec2 me;
+uniform mat4 VP; uniform mat4 LVP;
+out vec3 P; out vec3 N; out vec2 UV; out vec2 ME; out vec4 LP;
+void main(){ P=p; N=n; UV=uv; ME=me; LP=LVP*vec4(p,1.); gl_Position=VP*vec4(p,1.); }`;
+const FS = `#version 300 es
+precision highp float;
+in vec3 P; in vec3 N; in vec2 UV; in vec2 ME; in vec4 LP;
+uniform vec3 eye; uniform vec3 Lk; uniform vec3 Lb;
+uniform vec3 cBody; uniform vec3 cTip; uniform vec3 cBase;
+uniform sampler2D sh; uniform int depthOnly;
+out vec4 o;
+vec3 lin(vec3 c){return pow(c,vec3(2.2));}
+float shadow(){
+  vec3 c=LP.xyz/LP.w*0.5+0.5; float s=0.; vec2 t=1./vec2(textureSize(sh,0));
+  for(int x=-2;x<=2;x++)for(int y=-2;y<=2;y++){ float d=texture(sh,c.xy+vec2(x,y)*t*1.5).r; s+= c.z-0.0025>d?0.:1.; }
+  return s/25.;
+}
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+void main(){
+  if(depthOnly==1){ o=vec4(1); return; }
+  vec3 V=normalize(eye-P); vec3 n=normalize(N); if(!gl_FrontFacing) n=-n;
+  float mat=ME.x; float u=UV.x; float v=UV.y*2.-1.;
+  vec3 alb; float rough=0.5; float trans=0.; float ao=1.;
+  if(mat<0.5){ // pétala
+    float t=smoothstep(0.42,1.0,u)+0.35*abs(v)*smoothstep(0.4,1.,u);
+    alb=mix(lin(cBody),lin(cTip),clamp(t,0.,1.));
+    alb=mix(lin(cBase),alb,smoothstep(0.0,0.22,u));
+    float vein=pow(abs(sin(v*3.14159*8.5+sin(u*6.)*0.3)),30.)*smoothstep(0.1,0.6,u);
+    alb=mix(alb,lin(cTip)*0.85,vein*0.35);
+    alb*=0.94+0.06*h(floor(UV*vec2(160.,60.)));
+    trans=0.65; ao=mix(0.35,1.,smoothstep(0.0,0.45,u))*mix(0.75,1.,ME.y);
+  } else if(mat<1.5){ alb=lin(vec3(0.62,0.70,0.30)); ao=mix(0.4,1.,UV.x); rough=0.7; }
+  else if(mat<2.5){ // topo da cápsula com furinhos
+    vec2 q=vec2(atan(P.z,P.x)*3.,length(P.xz)*55.);
+    float holes=smoothstep(0.18,0.1,length(fract(vec2(q.x*1.3,q.y*0.6))-0.5));
+    holes*=step(0.05,length(P.xz));
+    alb=mix(lin(vec3(0.74,0.76,0.34)),lin(vec3(0.36,0.40,0.14)),holes*0.85);
+  } else if(mat<3.5){ alb=lin(u>0.78?vec3(0.98,0.72,0.18):vec3(0.97,0.90,0.62)); trans=0.3; ao=mix(0.5,1.,u); }
+  else { // folha d'água
+    float ang=atan(P.z,P.x); float r=length(P.xz);
+    float vein=pow(abs(sin(ang*22.)),40.)*smoothstep(0.1,1.2,r);
+    alb=mix(lin(vec3(0.10,0.30,0.14)),lin(vec3(0.20,0.44,0.20)),smoothstep(0.,1.0,r));
+    alb=mix(alb,lin(vec3(0.30,0.52,0.26)),vein*0.45);
+    alb*=0.9+0.1*h(floor(P.xz*90.));
+    rough=0.3; ao=mix(0.35,1.,smoothstep(0.15,0.8,r));
+  }
+  float s=shadow();
+  float ndl=dot(n,Lk);
+  float diff=max(0.,(ndl+0.35)/1.35);
+  vec3 col=alb*diff*s*vec3(1.0,0.96,0.90)*2.2;
+  // luz atravessando a pétala (translucidez)
+  float tr=max(0.,-ndl)*trans; col+=alb*tr*vec3(1.0,0.75,0.75)*1.1*mix(0.4,1.,s);
+  // céu / ambiente
+  col+=alb*(0.32+0.25*n.y)*vec3(0.75,0.80,1.0)*ao;
+  // contraluz suave
+  float rim=pow(1.-max(0.,dot(n,V)),3.); col+=rim*max(0.,dot(V,-Lb)+0.3)*vec3(0.95,0.85,1.0)*0.35*(mat<0.5?1.:0.4);
+  // brilho
+  vec3 H=normalize(Lk+V); col+=pow(max(0.,dot(n,H)),mix(80.,12.,rough))*(1.-rough)*0.35*s;
+  col*=mix(1.,ao,0.6);
+  col=col/(1.+col*0.35); // tone map suave
+  o=vec4(pow(col,vec3(1./2.2)),1.);
+}`;
+function prog(vs, fs) {
+  const p = gl.createProgram();
+  for (const [t, s] of [[gl.VERTEX_SHADER, vs], [gl.FRAGMENT_SHADER, fs]]) {
+    const sh = gl.createShader(t); gl.shaderSource(sh, s); gl.compileShader(sh);
+    if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh));
+    gl.attachShader(p, sh);
+  }
+  gl.linkProgram(p); return p;
+}
+const P = prog(VS, FS);
+const SM = 2048;
+const dtex = gl.createTexture();
+gl.bindTexture(gl.TEXTURE_2D, dtex);
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT32F, SM, SM, 0, gl.DEPTH_COMPONENT, gl.FLOAT, null);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+const dummy = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, dummy); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4));
+const fb = gl.createFramebuffer();
+gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, dtex, 0);
+gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+const vbo = gl.createBuffer(), ibo = gl.createBuffer(), vao = gl.createVertexArray();
+gl.bindVertexArray(vao);
+gl.bindBuffer(gl.ARRAY_BUFFER, vbo); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+[[0, 3, 0], [1, 3, 12], [2, 2, 24], [3, 2, 32]].forEach(([l, n, o]) => { gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, n, gl.FLOAT, false, 40, o); });
+
+const U = (n) => gl.getUniformLocation(P, n);
+const hex = (h) => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255];
+
+window.render = function ({ b = 1, rot = 0, pad = true, body = '#FFF7F2', tip = '#E86A9A', base = '#F3EBC0', elev = 36, dist = 6.2, size = 1024 }) {
+  cv.width = cv.height = size;
+  const m = buildFlower(b, rot, pad);
+  gl.bindBuffer(gl.ARRAY_BUFFER, vbo); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(m.v), gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(m.i), gl.STATIC_DRAW);
+  const Lk = norm([-0.55, 0.85, 0.45]), Lb = norm([0.3, 0.4, -1]);
+  const LV = lookAt([Lk[0] * 4, Lk[1] * 4, Lk[2] * 4], [0, 0.3, 0], [0, 1, 0]);
+  const LVP = mul(ortho(1.6, 0.5, 8), LV);
+  const e = [0, Math.sin(elev * D) * dist + 0.35, Math.cos(elev * D) * dist];
+  const VP = mul(persp(27 * D, 1, 0.5, 20), lookAt(e, [0, 0.36, 0], [0, 1, 0]));
+  gl.useProgram(P); gl.bindVertexArray(vao); gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE);
+  gl.uniformMatrix4fv(U('LVP'), false, LVP);
+  // sombra
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fb); gl.viewport(0, 0, SM, SM); gl.clear(gl.DEPTH_BUFFER_BIT);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, dummy);
+  gl.uniform1i(U('depthOnly'), 1); gl.uniformMatrix4fv(U('VP'), false, LVP);
+  gl.colorMask(false, false, false, false);
+  gl.drawElements(gl.TRIANGLES, m.i.length, gl.UNSIGNED_INT, 0);
+  gl.colorMask(true, true, true, true);
+  // cena
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, size, size);
+  gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.uniform1i(U('depthOnly'), 0); gl.uniformMatrix4fv(U('VP'), false, VP);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, dtex); gl.uniform1i(U('sh'), 0);
+  gl.uniform3fv(U('eye'), e); gl.uniform3fv(U('Lk'), Lk); gl.uniform3fv(U('Lb'), Lb);
+  gl.uniform3fv(U('cBody'), hex(body)); gl.uniform3fv(U('cTip'), hex(tip)); gl.uniform3fv(U('cBase'), hex(base));
+  gl.drawElements(gl.TRIANGLES, m.i.length, gl.UNSIGNED_INT, 0);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  return cv.toDataURL('image/png');
+};
+</script></body></html>
