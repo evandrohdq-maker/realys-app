@@ -11,6 +11,9 @@ import { etaMin, mapPos, kmText, ratingText, reviewsCount } from '../../provider
 import ProviderProfile from './ProviderProfile';
 import TrackingScreen from './TrackingScreen';
 import { speakSoft } from '../../voice';
+import { brl } from '../../theme';
+import { isVisitService, rankProviders, providerStats, isNewProvider, visitFee, visitDiscount } from '../../serviceVisits';
+import { VisitRequestSheet, VisitCard } from '../../components/VisitSheet';
 
 // Cartão do chamado (usado também pelo assistente de voz).
 export function ServiceCallCard({ call }) {
@@ -42,6 +45,7 @@ export function ServiceCallCard({ call }) {
 }
 
 const SORTS = [
+  ['rank', 'Recomendados'],
   ['dist', 'Mais próximo'],
   ['rating', 'Melhor avaliado'],
   ['price', 'Menor preço'],
@@ -51,7 +55,8 @@ export default function ServicesScreen({ explore, navigate }) {
   const { state, dispatch } = useStore();
   const [address, setAddress] = useState('');
   const [selected, setSelected] = useState('eletricista');
-  const [sort, setSort] = useState('dist');
+  const [sort, setSort] = useState('rank');
+  const [visitFor, setVisitFor] = useState(null); // prestador para quem o cliente está pedindo visita
   const [selId, setSelId] = useState(null);
   const [profile, setProfile] = useState(null);
   const [tracking, setTracking] = useState(null);
@@ -67,7 +72,14 @@ export default function ServicesScreen({ explore, navigate }) {
 
   const type = serviceType(selected);
   const byDist = [...state.providers].filter((p) => p.service === selected).sort((a, b) => a.distanceKm - b.distanceKm);
-  const list = [...byDist];
+  // Ranking por mérito (nota + serviços em 90 dias + resposta + proximidade + impulso de novato)
+  // e, separado, quem paga o plano de destaque.
+  const ranking = rankProviders(state.providers, selected);
+  const meritPos = {};
+  ranking.merit.forEach((p, i) => (meritPos[p.id] = i + 1));
+  const sponsoredP = sort === 'rank' ? ranking.sponsored[0] : null;
+  const isVisit = isVisitService(selected);
+  const list = sort === 'rank' ? [...ranking.merit] : [...byDist];
   if (sort === 'rating') list.sort((a, b) => b.rating - a.rating);
   if (sort === 'price') list.sort((a, b) => a.price - b.price);
   const nearestP = byDist[0];
@@ -78,9 +90,17 @@ export default function ServicesScreen({ explore, navigate }) {
   const sel = byDist.find((p) => p.id === selId) || nearestP;
   const lastCall = state.rides.find((r) => r.provider && r.serviceKey && !r.done);
   const toRate = state.rides.find((r) => r.provider && r.serviceKey && r.done && !r.rated);
+  // Visitas em andamento primeiro; as encerradas somem depois de avaliadas.
+  const myVisits = (state.visits || []).filter((v) => !(v.status === 'concluida' && v.rated)).slice(0, 4);
 
   const hire = (p) => {
     if (!p) return;
+    // Serviços por visita: o cliente paga a taxa de visita, que fica retida até a visita acontecer.
+    if (isVisitService(p.service)) {
+      setProfile(null);
+      setVisitFor(p);
+      return;
+    }
     const c = buildServiceCall(state, address.trim(), p.service);
     if (!c) return;
     c.provider = p;
@@ -93,6 +113,61 @@ export default function ServicesScreen({ explore, navigate }) {
   const quote = (p) =>
     Alert.alert('Orçamento pedido', `${p.name} recebeu seu pedido. A proposta chega no chat do Realys.`);
   const message = (p) => Alert.alert('Mensagem', `Conversa com ${p.name.split(' ')[0]} aberta no chat do Realys.`);
+
+  // Cartão de um prestador na lista (também usado no bloco Patrocinado).
+  const renderCard = (p, isSponsored) => {
+    const visitService = isVisitService(p.service);
+    const stats = providerStats(p);
+    const on = sel && p.id === sel.id;
+    return (
+      <TouchableOpacity key={(isSponsored ? 'sp-' : '') + p.id} activeOpacity={0.9} onPress={() => setSelId(p.id)} style={[styles.pCard, on && styles.pCardOn]}>
+        <Row>
+          <View style={[styles.num, on && { backgroundColor: colors.primary }]}>
+            <Text style={[styles.numText, on && { color: colors.onPrimary }]}>{num[p.id]}</Text>
+          </View>
+          <Photo uri={p.photo} style={styles.avatar} fallback="🧑" />
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={styles.pName}>{p.name}</Text>
+            <Text style={styles.pMeta}>
+              <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {ratingText(p.rating)}</Text> ({reviewsCount(p)}) · {kmText(p.distanceKm)} · ~{etaMin(p)} min
+            </Text>
+            <Text style={styles.pPrice}>
+              {priceText(p)}
+              {visitService ? <Text style={{ color: colors.text }}> · visita {brl(visitFee(p))}</Text> : null}
+            </Text>
+            {visitService ? (
+              <Text style={styles.pStats}>
+                {stats.done90} serviços em 90 dias · responde {stats.responseRate}% · ~{stats.responseMin} min
+              </Text>
+            ) : null}
+          </View>
+        </Row>
+        <View style={styles.badges}>
+          {isSponsored ? <Badge label="Patrocinado" color={colors.sponsored} /> : null}
+          {!isSponsored && sort === 'rank' && meritPos[p.id] ? <Badge label={`#${meritPos[p.id]} por mérito`} color={colors.primary} /> : null}
+          {isNewProvider(p) ? <Badge label="Novo no Realys" color={colors.violet} /> : null}
+          {visitService && visitDiscount(p) ? <Badge label="Visita descontada se contratar" color={colors.success} /> : null}
+          {nearestP && p.id === nearestP.id ? <Badge label="Mais próximo" color={colors.primary} /> : null}
+          {p.id === bestId ? <Badge label="Melhor avaliado" color={colors.accent} /> : null}
+          {p.id === cheapestId && byDist.length > 1 ? <Badge label="Menor preço" color={colors.success} /> : null}
+        </View>
+        <Text style={styles.pFunc} numberOfLines={2}>
+          {p.functions.join(' · ')}
+        </Text>
+        <View style={styles.actions}>
+          <TouchableOpacity style={[styles.act, styles.actMain]} onPress={() => hire(p)}>
+            <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 13 }}>{visitService ? 'Pedir visita' : 'Contratar'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.act} onPress={() => quote(p)}>
+            <Text style={styles.actText}>Orçamento</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.act, { marginRight: 0 }]} onPress={() => setProfile(p)}>
+            <Text style={styles.actText}>Ver perfil</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <Screen>
@@ -184,7 +259,7 @@ export default function ServicesScreen({ explore, navigate }) {
           </TouchableOpacity>
           <TouchableOpacity style={[styles.quickBtn, styles.quickMain]} onPress={() => hire(sel)}>
             <Text style={{ color: colors.onPrimary, fontWeight: '800' }} numberOfLines={1}>
-              Contratar {sel.name.split(' ')[0]}
+              {isVisit ? 'Pedir visita a' : 'Contratar'} {sel.name.split(' ')[0]}
             </Text>
           </TouchableOpacity>
         </View>
@@ -213,6 +288,25 @@ export default function ServicesScreen({ explore, navigate }) {
         </TouchableOpacity>
       ) : null}
 
+      {myVisits.length ? (
+        <View style={{ marginBottom: 6 }}>
+          <Text style={styles.blockTitle}>Minhas visitas</Text>
+          {myVisits.map((v) => (
+            <VisitCard key={v.id} visit={v} />
+          ))}
+        </View>
+      ) : null}
+
+      {isVisit ? (
+        <View style={styles.howBox}>
+          <Ionicons name="shield-checkmark-outline" size={18} color={colors.primary} />
+          <Text style={styles.howText}>
+            Você paga só a <Text style={{ fontWeight: '800' }}>taxa de visita</Text>, que fica retida até a visita acontecer. Se o prestador recusar ou
+            não vier, o valor volta. O preço do serviço vocês combinam direto, sem taxa do Realys.
+          </Text>
+        </View>
+      ) : null}
+
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
         {SORTS.map(([k, label]) => {
           const on = k === sort;
@@ -230,45 +324,14 @@ export default function ServicesScreen({ explore, navigate }) {
         </Text>
       ) : null}
 
-      {list.map((p) => {
-        const on = sel && p.id === sel.id;
-        return (
-          <TouchableOpacity key={p.id} activeOpacity={0.9} onPress={() => setSelId(p.id)} style={[styles.pCard, on && styles.pCardOn]}>
-            <Row>
-              <View style={[styles.num, on && { backgroundColor: colors.primary }]}>
-                <Text style={[styles.numText, on && { color: colors.onPrimary }]}>{num[p.id]}</Text>
-              </View>
-              <Photo uri={p.photo} style={styles.avatar} fallback="🧑" />
-              <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={styles.pName}>{p.name}</Text>
-                <Text style={styles.pMeta}>
-                  <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {ratingText(p.rating)}</Text> ({reviewsCount(p)}) · {kmText(p.distanceKm)} · ~{etaMin(p)} min
-                </Text>
-                <Text style={styles.pPrice}>{priceText(p)}</Text>
-              </View>
-            </Row>
-            <View style={styles.badges}>
-              {nearestP && p.id === nearestP.id ? <Badge label="Mais próximo" color={colors.primary} /> : null}
-              {p.id === bestId ? <Badge label="Melhor avaliado" color={colors.accent} /> : null}
-              {p.id === cheapestId && byDist.length > 1 ? <Badge label="Menor preço" color={colors.success} /> : null}
-            </View>
-            <Text style={styles.pFunc} numberOfLines={2}>
-              {p.functions.join(' · ')}
-            </Text>
-            <View style={styles.actions}>
-              <TouchableOpacity style={[styles.act, styles.actMain]} onPress={() => hire(p)}>
-                <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 13 }}>Contratar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.act} onPress={() => quote(p)}>
-                <Text style={styles.actText}>Orçamento</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.act, { marginRight: 0 }]} onPress={() => setProfile(p)}>
-                <Text style={styles.actText}>Ver perfil</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        );
-      })}
+      {sponsoredP ? (
+        <>
+          <Text style={styles.blockTitle}>Patrocinado</Text>
+          {renderCard(sponsoredP, true)}
+          <Text style={styles.blockTitle}>Ranking por mérito</Text>
+        </>
+      ) : null}
+      {list.map((p) => renderCard(p, false))}
 
       <Card style={{ backgroundColor: colors.primaryLight, borderColor: 'rgba(168,121,10,0.3)', marginTop: 6 }}>
         <Row>
@@ -287,6 +350,7 @@ export default function ServicesScreen({ explore, navigate }) {
         onQuote={quote}
         onMessage={message}
       />
+      <VisitRequestSheet provider={visitFor} visible={!!visitFor} onClose={() => setVisitFor(null)} address={address} />
       <TrackingScreen call={tracking} visible={!!tracking} onClose={() => setTracking(null)} onOpenProfile={(p) => setProfile(p)} />
     </Screen>
   );
@@ -425,6 +489,10 @@ const styles = StyleSheet.create({
   pPrice: { color: colors.primary, fontWeight: '800', fontSize: 13, marginTop: 2 },
   badges: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 },
   pFunc: { color: colors.muted, fontSize: 12, marginTop: 6 },
+  pStats: { color: colors.muted, fontSize: 11, marginTop: 2 },
+  blockTitle: { color: colors.text, fontWeight: '800', fontSize: 15, marginBottom: 8, marginTop: 4 },
+  howBox: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: colors.primaryLight, borderRadius: 16, padding: 12, marginBottom: 12 },
+  howText: { color: colors.text, fontSize: 13, marginLeft: 8, flex: 1, lineHeight: 18 },
   actions: { flexDirection: 'row', marginTop: 10 },
   act: {
     flex: 1,

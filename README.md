@@ -15,6 +15,17 @@
 | **Prestador** | Serviços, Feed, Community, Perfil | **Cadastro profissional** (tipo de serviço, o que faz e quanto cobra: por hora, serviço, diária, m²…), ligar o GPS para ficar disponível, aceitar pedidos, ver ganhos |
 | **Fornecedor** | Propostas, Feed, Community, Perfil | **Destacar produtos** (aparecem primeiro no catálogo das empresas), cadastrar produto, **enviar proposta direto para uma ou várias empresas** (quantidade, desconto, validade e mensagem), acompanhar as enviadas e responder as propostas recebidas |
 
+**Serviços por visita (aba Serviços):** eletricista, encanador, diarista, técnico, agrônomo e os outros prestadores que vão até o cliente funcionam por **taxa de visita** (transporte continua como corrida). As regras ficam em `src/serviceVisits.js`.
+
+- **Pedir visita:** o cliente conta o problema, o endereço e quando, e paga a taxa de visita pelo saldo Realys. O valor **fica retido**.
+- **O prestador aceita ou recusa.** Recusou: a taxa volta na hora e o pedido não recebe avaliação. Aceitou: o telefone é liberado (antes disso, só o chat do Realys).
+- **O cliente confirma a visita.** Só então a taxa é dividida: **15% para o Realys** (`REALYS_FEE_PCT`) e o resto para o prestador. Se o prestador não veio, a taxa volta para o cliente e ele perde posição no ranking.
+- **O valor do serviço** é combinado direto entre os dois, sem taxa do Realys. O prestador pode marcar que **desconta a taxa de visita** se for contratado.
+- **Avaliação nos dois sentidos:** serviço concluído, o cliente avalia o prestador e o prestador avalia o cliente.
+- **Ranking (Recomendados):** soma nota, serviços finalizados nos últimos 90 dias, taxa e tempo de resposta e proximidade, separado por categoria e região. Nota pesa mais que quantidade. Recusar não tira pontos; faltar tira. Prestador novo tem **impulso nos primeiros 30 dias**.
+- **Plano de destaque** (R$ 49,90/mês, no painel do Prestador): aparece no topo como **Patrocinado**, separado do ranking por mérito.
+- Na demonstração, as respostas do outro lado (prestador aceitou, cliente confirmou) são simuladas por botões no próprio cartão.
+
 **Perfil em dois sistemas (aba Perfil):**
 
 - **Editar perfil:** foto, @usuário, profissão, cidade, "sobre você" e link. O nome vem do documento e da biometria e não muda.

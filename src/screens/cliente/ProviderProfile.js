@@ -8,6 +8,8 @@ import { serviceType, priceText, useStore } from '../../store';
 import { providerTarget } from '../../components/GiftSheet';
 import { Photo } from '../../components/ui';
 import { reviewsCount, jobsDone, kmText, ratingText, sampleReviews, etaMin } from '../../providerInfo';
+import { brl } from '../../theme';
+import { isVisitService, visitFee, visitDiscount, providerStats, isNewProvider, rankPosition } from '../../serviceVisits';
 
 const TABS = [
   ['serv', 'Serviços e valores'],
@@ -17,12 +19,15 @@ const TABS = [
 
 // Perfil completo do prestador: o que faz, quanto cobra, avaliações e fotos.
 export default function ProviderProfile({ provider: p, visible, onClose, onHire, onQuote, onMessage }) {
-  const { dispatch } = useStore();
+  const { state, dispatch } = useStore();
   const [tab, setTab] = useState('serv');
   const [fav, setFav] = useState(false);
   const insets = useSafeAreaInsets();
   if (!p) return null;
   const type = serviceType(p.service) || { label: 'Prestador', ion: 'person-outline' };
+  const byVisit = isVisitService(p.service);
+  const st = providerStats(p);
+  const rank = rankPosition(state.providers, p);
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
@@ -65,6 +70,25 @@ export default function ProviderProfile({ provider: p, visible, onClose, onHire,
               <Stat value={String(jobsDone(p))} label="serviços feitos" />
               <Stat value={`R$ ${p.price}`} label={`por ${p.priceUnit}`} />
             </View>
+
+            {byVisit ? (
+              <View style={styles.visitBox}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={{ color: colors.text, fontWeight: '800' }}>Taxa de visita</Text>
+                  <Text style={styles.price}>{brl(visitFee(p))}</Text>
+                </View>
+                <Text style={styles.visitLine}>
+                  {st.sponsored ? 'Patrocinado · ' : ''}
+                  {rank.pos ? `#${rank.pos} de ${rank.total} em ${type.label.toLowerCase()} na região` : ''}
+                  {isNewProvider(p) ? ' · Novo no Realys' : ''}
+                </Text>
+                <Text style={styles.visitLine}>
+                  {st.done90} serviços nos últimos 90 dias · responde {st.responseRate}% dos pedidos em ~{st.responseMin} min
+                </Text>
+                {visitDiscount(p) ? <Text style={[styles.visitLine, { color: colors.success }]}>Desconta a taxa de visita do serviço se for contratado</Text> : null}
+                <Text style={styles.visitLine}>Telefone liberado depois que a taxa de visita é paga. Antes disso, converse pelo chat do Realys.</Text>
+              </View>
+            ) : null}
 
             <View style={styles.tabs}>
               {TABS.map(([k, label]) => {
@@ -137,7 +161,9 @@ export default function ProviderProfile({ provider: p, visible, onClose, onHire,
             <Text style={{ color: colors.primary, fontWeight: '700' }}>Orçamento</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.barBtn, styles.barMain]} onPress={() => onHire(p)}>
-            <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Contratar {p.name.split(' ')[0]}</Text>
+            <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>
+              {byVisit ? 'Pedir visita' : `Contratar ${p.name.split(' ')[0]}`}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -252,6 +278,8 @@ const styles = StyleSheet.create({
   itemName: { color: colors.text, fontWeight: '600', fontSize: 14 },
   price: { color: colors.primary, fontWeight: '800', fontSize: 13 },
   note: { color: colors.muted, fontSize: 11, marginTop: 4 },
+  visitBox: { marginTop: 10, padding: 12, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(168,121,10,0.4)', backgroundColor: 'rgba(168,121,10,0.06)' },
+  visitLine: { color: colors.muted, fontSize: 12, marginTop: 4, lineHeight: 17 },
   review: {
     padding: 14,
     borderRadius: 16,

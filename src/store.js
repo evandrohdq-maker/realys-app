@@ -11,6 +11,7 @@ import { initialLoyalty, onDelivered } from './loyalty';
 import { conversations as initialConversations, communityPosts as initialCommunityPosts } from './homeData';
 import * as J from './jobsData';
 import { initialTestimonials, myInitialGallery } from './testimonialsData';
+import { visitFee, visitDiscount, providerStats, splitFee, SAMPLE_VISIT_REQUESTS, HIGHLIGHT_PLAN } from './serviceVisits';
 
 const StoreContext = createContext(null);
 
@@ -51,6 +52,12 @@ const WALLET_CAT = {
   VENUE_ORDER: ['Food', (a) => `Pedido na mesa: ${a.items.map((it) => `${it.qty} ${it.name}`).join(', ')}`],
   BUY_TICKET: ['Eventos e passagens', (a) => (a.ticket && (a.ticket.title || a.ticket.name)) || 'Ingresso ou passagem'],
   SECTOR_ORDER: ['Compras', (a) => (a.item && a.item.title) || 'Compra'],
+  // Módulo de Serviços (src/serviceVisits.js)
+  VISIT_REQUEST: ['Serviços', (a) => `Taxa de visita retida: ${a.provider.name}`],
+  VISIT_RESPOND: ['Serviços', () => 'Taxa de visita devolvida (pedido recusado)'],
+  VISIT_NO_SHOW: ['Serviços', () => 'Taxa de visita devolvida (prestador não veio)'],
+  PROVIDER_VISIT_CONFIRMED: ['Serviço prestado', (a) => `Taxa de visita liberada (sua parte)${a.client ? ` - ${a.client}` : ''}`],
+  SET_HIGHLIGHT: ['Serviços', () => `Plano ${HIGHLIGHT_PLAN.name} (mensal)`],
 };
 
 const initialState = {
@@ -117,6 +124,10 @@ const initialState = {
   orders: D.initialOrders,
   rideRequests: D.rideRequests,
   rides: [],
+  // Serviços por visita: os pedidos do cliente, os que chegam para o prestador e os que ele aceitou.
+  visits: [],
+  visitRequests: SAMPLE_VISIT_REQUESTS,
+  myVisits: [],
   available: false,
   myProvider: null, // cadastro profissional de quem usa o perfil Prestador
   cart: [], // [{ productId, qty }]
@@ -230,6 +241,12 @@ const withUserRole = (user) => {
   if (!roles.includes('cliente')) roles = [...roles, 'cliente'];
   return { ...user, roles };
 };
+
+// Atualiza o cadastro do prestador e a lista que os clientes veem (se ele está disponível).
+function withMyProvider(state, me) {
+  const others = state.providers.filter((p) => p.id !== 'me');
+  return { ...state, myProvider: me, providers: state.available ? [...others, me] : others };
+}
 
 // Food chama um motoboy já cadastrado no Realys: o mais perto que faz entregas.
 function pickCourier(state) {
@@ -774,6 +791,14 @@ function baseReducer(state, a) {
         vehicle: null,
         plate: null,
         photo: null,
+        // Prestador novo: começa com o impulso de visibilidade dos primeiros 30 dias.
+        done90: 0,
+        responseRate: 100,
+        responseMin: 0,
+        noShows: 0,
+        joinedDays: 0,
+        sponsored: false,
+        ...(state.myProvider || {}),
         ...a.profile,
       };
       const others = state.providers.filter((p) => p.id !== 'me');
@@ -928,6 +953,7 @@ function baseReducer(state, a) {
         rateOpen: null,
         orders: a.kind === 'pedido' ? state.orders.map((o) => (o.id === a.refId ? { ...o, rated: true } : o)) : state.orders,
         rides: a.kind === 'servico' ? state.rides.map((r) => (r.id === a.refId ? { ...r, rated: true } : r)) : state.rides,
+        visits: a.kind === 'visita' ? state.visits.map((v) => (v.id === a.refId ? { ...v, rated: true } : v)) : state.visits,
       };
     }
     // Troca pontos por um crédito promocional de um parceiro.
@@ -943,6 +969,103 @@ function baseReducer(state, a) {
     }
     case 'REQUEST_RIDE':
       return { ...state, rides: [a.ride, ...state.rides] };
+
+    // ---------- Serviços por visita (src/serviceVisits.js) ----------
+    // Cliente pede a visita: a taxa sai do saldo e fica retida até a visita ser confirmada.
+    case 'VISIT_REQUEST': {
+      const p = a.provider;
+      const fee = visitFee(p);
+      if (state.wallet < fee) return state;
+      const visit = {
+        id: newId('vs'),
+        providerId: p.id,
+        provider: p,
+        serviceKey: p.service,
+        serviceLabel: a.serviceLabel || p.service,
+        fee,
+        discount: visitDiscount(p),
+        address: a.address || '',
+        problem: a.problem || '',
+        when: a.when || 'Assim que possível',
+        status: 'aguardando',
+        at: Date.now(),
+      };
+      return { ...state, wallet: +(state.wallet - fee).toFixed(2), visits: [visit, ...state.visits] };
+    }
+    // Resposta do prestador. Recusou: a taxa volta e o pedido não recebe avaliação (recusar não pune).
+    case 'VISIT_RESPOND': {
+      const v = state.visits.find((x) => x.id === a.id);
+      if (!v || v.status !== 'aguardando') return state;
+      const visits = state.visits.map((x) => (x.id === a.id ? { ...x, status: a.accept ? 'aceita' : 'recusada' } : x));
+      return { ...state, visits, wallet: a.accept ? state.wallet : +(state.wallet + v.fee).toFixed(2) };
+    }
+    // Prestador aceitou e não foi: a taxa volta e ele perde posição no ranking.
+    case 'VISIT_NO_SHOW': {
+      const v = state.visits.find((x) => x.id === a.id);
+      if (!v || v.status !== 'aceita') return state;
+      return {
+        ...state,
+        wallet: +(state.wallet + v.fee).toFixed(2),
+        visits: state.visits.map((x) => (x.id === a.id ? { ...x, status: 'faltou' } : x)),
+        providers: state.providers.map((p) => (p.id === v.providerId ? { ...p, noShows: providerStats(p).noShows + 1 } : p)),
+      };
+    }
+    // Cliente confirma que a visita aconteceu: a taxa é dividida entre o Realys e o prestador.
+    case 'VISIT_CONFIRM': {
+      const v = state.visits.find((x) => x.id === a.id);
+      if (!v || v.status !== 'aceita') return state;
+      return { ...state, visits: state.visits.map((x) => (x.id === a.id ? { ...x, status: 'confirmada', split: splitFee(x.fee) } : x)) };
+    }
+    // Serviço feito (valor combinado entre os dois): conta no ranking e abre a avaliação.
+    case 'VISIT_DONE': {
+      const v = state.visits.find((x) => x.id === a.id);
+      if (!v || v.status !== 'confirmada') return state;
+      return {
+        ...state,
+        visits: state.visits.map((x) => (x.id === a.id ? { ...x, status: 'concluida' } : x)),
+        providers: state.providers.map((p) => (p.id === v.providerId ? { ...p, done90: providerStats(p).done90 + 1 } : p)),
+        rateOpen: { kind: 'visita', refId: a.id },
+      };
+    }
+    // Prestador responde um pedido de visita. Responder rápido melhora a posição, mesmo recusando.
+    case 'PROVIDER_VISIT_RESPOND': {
+      const req = state.visitRequests.find((r) => r.id === a.id);
+      if (!req || !state.myProvider) return state;
+      const fee = visitFee(state.myProvider);
+      const me = { ...state.myProvider, responseRate: 100, responseMin: 2 };
+      return {
+        ...withMyProvider(state, me),
+        visitRequests: state.visitRequests.filter((r) => r.id !== a.id),
+        myVisits: a.accept ? [{ ...req, fee, split: splitFee(fee), status: 'aceita' }, ...state.myVisits] : state.myVisits,
+      };
+    }
+    // Cliente confirmou a visita: a parte do prestador é liberada na carteira.
+    case 'PROVIDER_VISIT_CONFIRMED': {
+      const v = state.myVisits.find((x) => x.id === a.id);
+      if (!v || v.status !== 'aceita') return state;
+      return {
+        ...state,
+        wallet: +(state.wallet + v.split.provider).toFixed(2),
+        myVisits: state.myVisits.map((x) => (x.id === a.id ? { ...x, status: 'confirmada' } : x)),
+      };
+    }
+    case 'PROVIDER_VISIT_DONE': {
+      const v = state.myVisits.find((x) => x.id === a.id);
+      if (!v || v.status !== 'confirmada' || !state.myProvider) return state;
+      const me = { ...state.myProvider, done90: (state.myProvider.done90 || 0) + 1 };
+      return { ...withMyProvider(state, me), myVisits: state.myVisits.map((x) => (x.id === a.id ? { ...x, status: 'concluida' } : x)) };
+    }
+    // O prestador também avalia o cliente.
+    case 'PROVIDER_RATE_CLIENT':
+      return { ...state, myVisits: state.myVisits.map((x) => (x.id === a.id ? { ...x, clientStars: a.stars, clientText: a.text || '' } : x)) };
+    // Plano de destaque: aparece como "Patrocinado", separado do ranking por mérito.
+    case 'SET_HIGHLIGHT': {
+      if (!state.myProvider) return state;
+      if (a.on && state.wallet < HIGHLIGHT_PLAN.price) return state;
+      const me = { ...state.myProvider, sponsored: !!a.on };
+      const next = withMyProvider(state, me);
+      return a.on ? { ...next, wallet: +(state.wallet - HIGHLIGHT_PLAN.price).toFixed(2) } : next;
+    }
 
     // Empresa anuncia (ou tira) um produto da vitrine de Lançamentos do Shop.
     case 'TOGGLE_LAUNCH':

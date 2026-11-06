@@ -36,7 +36,9 @@ export default function RateSheet() {
   if (!open) return null;
 
   const order = open.kind === 'pedido' ? state.orders.find((o) => o.id === open.refId) : null;
-  const call = open.kind === 'servico' ? state.rides.find((r) => r.id === open.refId) : null;
+  // Serviço por visita (src/serviceVisits.js) tem o mesmo formato do chamado: provider, serviceKey, serviceLabel.
+  const call =
+    open.kind === 'servico' ? state.rides.find((r) => r.id === open.refId) : open.kind === 'visita' ? (state.visits || []).find((v) => v.id === open.refId) : null;
   if (!order && !call) return null;
   const targets = order ? orderTargets(state, order) : callTargets(call);
   const close = () => dispatch({ type: 'CLOSE_RATE' });
