@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Speech from 'expo-speech';
 import { useStore, buildServiceCall, callReply, serviceType, priceText, detectService } from '../../store';
 import { SearchBar, GlobalResults } from '../../components/Search';
 import { serviceTypes } from '../../data';
-import { colors } from '../../theme';
-import { Screen, Title, Card, Row, Input, Photo, Badge } from '../../components/ui';
+import { colors, brl } from '../../theme';
+import { Screen, Card, Row, Photo, Badge } from '../../components/ui';
 import { etaMin, mapPos, kmText, ratingText, reviewsCount } from '../../providerInfo';
 import ProviderProfile from './ProviderProfile';
 import TrackingScreen from './TrackingScreen';
 import { speakSoft } from '../../voice';
-import { brl } from '../../theme';
 import { isVisitService, rankProviders, providerStats, isNewProvider, visitFee, visitDiscount } from '../../serviceVisits';
 import { VisitRequestSheet, VisitCard } from '../../components/VisitSheet';
 
@@ -45,11 +43,25 @@ export function ServiceCallCard({ call }) {
 }
 
 const SORTS = [
-  ['rank', 'Recomendados'],
-  ['dist', 'Mais próximo'],
-  ['rating', 'Melhor avaliado'],
-  ['price', 'Menor preço'],
+  ['rank', 'Recomendados', 'ribbon-outline'],
+  ['dist', 'Perto', 'navigate-outline'],
+  ['rating', 'Nota', 'star-outline'],
+  ['price', 'Preço', 'pricetag-outline'],
 ];
+
+// Grupos de serviço na ordem em que aparecem (Casa e reparos, Veículos, Agro…).
+const GROUPS = serviceTypes.reduce((acc, t) => (acc.includes(t.group) ? acc : [...acc, t.group]), []);
+const GROUP_ION = {
+  'Casa e reparos': 'home-outline',
+  Veículos: 'car-outline',
+  Agro: 'leaf-outline',
+  Tecnologia: 'hardware-chip-outline',
+  'Festas e eventos': 'musical-notes-outline',
+  Aulas: 'school-outline',
+  Transporte: 'bus-outline',
+};
+const NIGHT = '#141C33';
+const first = (name) => String(name || '').split(' ')[0];
 
 export default function ServicesScreen({ explore, navigate }) {
   const { state, dispatch } = useStore();
@@ -63,6 +75,8 @@ export default function ServicesScreen({ explore, navigate }) {
   const [q, setQ] = useState('');
   const [searched, setSearched] = useState('');
   const [found, setFound] = useState(null); // tipo de serviço achado pela pesquisa
+  const [howOpen, setHowOpen] = useState(false);
+  const [showMap, setShowMap] = useState(true);
 
   // Veio do menu ⋮ (ex.: Serviços gerais → Eletricista)
   useEffect(() => {
@@ -71,6 +85,13 @@ export default function ServicesScreen({ explore, navigate }) {
   useEffect(() => setSelId(null), [selected]);
 
   const type = serviceType(selected);
+  const group = type.group;
+  const groupTypes = serviceTypes.filter((t) => t.group === group);
+  const pickGroup = (g) => {
+    const t = serviceTypes.find((x) => x.group === g);
+    if (t) setSelected(t.key);
+  };
+
   const byDist = [...state.providers].filter((p) => p.service === selected).sort((a, b) => a.distanceKm - b.distanceKm);
   // Ranking por mérito (nota + serviços em 90 dias + resposta + proximidade + impulso de novato)
   // e, separado, quem paga o plano de destaque.
@@ -92,6 +113,8 @@ export default function ServicesScreen({ explore, navigate }) {
   const toRate = state.rides.find((r) => r.provider && r.serviceKey && r.done && !r.rated);
   // Visitas em andamento primeiro; as encerradas somem depois de avaliadas.
   const myVisits = (state.visits || []).filter((v) => !(v.status === 'concluida' && v.rated)).slice(0, 4);
+  const minFee = isVisit && byDist.length ? Math.min(...byDist.map(visitFee)) : null;
+  const onlineNow = state.providers.length;
 
   const hire = (p) => {
     if (!p) return;
@@ -110,73 +133,109 @@ export default function ServicesScreen({ explore, navigate }) {
     setProfile(null);
     setTracking(c);
   };
-  const quote = (p) =>
-    Alert.alert('Orçamento pedido', `${p.name} recebeu seu pedido. A proposta chega no chat do Realys.`);
-  const message = (p) => Alert.alert('Mensagem', `Conversa com ${p.name.split(' ')[0]} aberta no chat do Realys.`);
+  const quote = (p) => Alert.alert('Orçamento pedido', `${p.name} recebeu seu pedido. A proposta chega no chat do Realys.`);
+  const message = (p) => Alert.alert('Mensagem', `Conversa com ${first(p.name)} aberta no chat do Realys.`);
 
   // Cartão de um prestador na lista (também usado no bloco Patrocinado).
   const renderCard = (p, isSponsored) => {
     const visitService = isVisitService(p.service);
     const stats = providerStats(p);
-    const on = sel && p.id === sel.id;
+    const on = sel && p.id === sel.id && !isSponsored;
+    const badges = [];
+    if (isSponsored) badges.push(['Patrocinado', colors.sponsored]);
+    else if (sort === 'rank' && meritPos[p.id]) badges.push([`#${meritPos[p.id]} por mérito`, colors.primary]);
+    if (isNewProvider(p)) badges.push(['Novo no Realys', colors.violet]);
+    if (nearestP && p.id === nearestP.id) badges.push(['Mais perto', colors.accent]);
+    if (p.id === bestId && sort !== 'rank') badges.push(['Melhor nota', colors.accent]);
+    if (p.id === cheapestId && byDist.length > 1) badges.push(['Menor preço', colors.success]);
+    if (visitService && visitDiscount(p)) badges.push(['Visita descontada', colors.success]);
+
     return (
-      <TouchableOpacity key={(isSponsored ? 'sp-' : '') + p.id} activeOpacity={0.9} onPress={() => setSelId(p.id)} style={[styles.pCard, on && styles.pCardOn]}>
-        <Row>
-          <View style={[styles.num, on && { backgroundColor: colors.primary }]}>
-            <Text style={[styles.numText, on && { color: colors.onPrimary }]}>{num[p.id]}</Text>
+      <TouchableOpacity
+        key={(isSponsored ? 'sp-' : '') + p.id}
+        activeOpacity={0.92}
+        onPress={() => setSelId(p.id)}
+        style={[styles.pCard, on && styles.pCardOn, isSponsored && styles.pCardSponsored]}
+      >
+        <Row style={{ alignItems: 'flex-start' }}>
+          <View>
+            <Photo uri={p.photo} style={styles.avatar} fallback="🧑" />
+            <View style={[styles.numDot, on && { backgroundColor: colors.primary, borderColor: colors.primary }]}>
+              <Text style={[styles.numText, on && { color: colors.onPrimary }]}>{num[p.id]}</Text>
+            </View>
           </View>
-          <Photo uri={p.photo} style={styles.avatar} fallback="🧑" />
-          <View style={{ flex: 1, marginLeft: 10 }}>
-            <Text style={styles.pName}>{p.name}</Text>
-            <Text style={styles.pMeta}>
-              <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {ratingText(p.rating)}</Text> ({reviewsCount(p)}) · {kmText(p.distanceKm)} · ~{etaMin(p)} min
-            </Text>
-            <Text style={styles.pPrice}>
-              {priceText(p)}
-              {visitService ? <Text style={{ color: colors.text }}> · visita {brl(visitFee(p))}</Text> : null}
-            </Text>
-            {visitService ? (
-              <Text style={styles.pStats}>
-                {stats.done90} serviços em 90 dias · responde {stats.responseRate}% · ~{stats.responseMin} min
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <Row>
+              <Text style={styles.pName} numberOfLines={1}>
+                {p.name}
               </Text>
-            ) : null}
+              <Ionicons name="shield-checkmark" size={14} color={colors.primary} style={{ marginLeft: 4 }} />
+            </Row>
+            <Text style={styles.pMeta}>
+              {kmText(p.distanceKm)} · ~{etaMin(p)} min · {reviewsCount(p)} avaliações
+            </Text>
+            <Text style={styles.pPrice}>{priceText(p)}</Text>
+          </View>
+          <View style={styles.rating}>
+            <Ionicons name="star" size={12} color={colors.gold} />
+            <Text style={styles.ratingText}>{ratingText(p.rating)}</Text>
           </View>
         </Row>
-        <View style={styles.badges}>
-          {isSponsored ? <Badge label="Patrocinado" color={colors.sponsored} /> : null}
-          {!isSponsored && sort === 'rank' && meritPos[p.id] ? <Badge label={`#${meritPos[p.id]} por mérito`} color={colors.primary} /> : null}
-          {isNewProvider(p) ? <Badge label="Novo no Realys" color={colors.violet} /> : null}
-          {visitService && visitDiscount(p) ? <Badge label="Visita descontada se contratar" color={colors.success} /> : null}
-          {nearestP && p.id === nearestP.id ? <Badge label="Mais próximo" color={colors.primary} /> : null}
-          {p.id === bestId ? <Badge label="Melhor avaliado" color={colors.accent} /> : null}
-          {p.id === cheapestId && byDist.length > 1 ? <Badge label="Menor preço" color={colors.success} /> : null}
-        </View>
-        <Text style={styles.pFunc} numberOfLines={2}>
+
+        {badges.length ? (
+          <View style={styles.badges}>
+            {badges.slice(0, 3).map(([label, color]) => (
+              <Badge key={label} label={label} color={color} />
+            ))}
+          </View>
+        ) : null}
+
+        <Text style={styles.pFunc} numberOfLines={1}>
           {p.functions.join(' · ')}
         </Text>
+        {visitService ? (
+          <View style={styles.statsRow}>
+            <MiniStat icon="checkmark-done-outline" text={`${stats.done90} em 90 dias`} />
+            <MiniStat icon="flash-outline" text={`responde ${stats.responseRate}%`} />
+            <MiniStat icon="time-outline" text={`~${stats.responseMin} min`} />
+          </View>
+        ) : null}
+
         <View style={styles.actions}>
-          <TouchableOpacity style={[styles.act, styles.actMain]} onPress={() => hire(p)}>
-            <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 13 }}>{visitService ? 'Pedir visita' : 'Contratar'}</Text>
+          <TouchableOpacity style={styles.actMain} onPress={() => hire(p)}>
+            <Ionicons name={visitService ? 'home-outline' : 'flash'} size={16} color={colors.onPrimary} />
+            <Text style={styles.actMainText} numberOfLines={1}>
+              {visitService ? `Pedir visita · ${brl(visitFee(p))}` : 'Contratar agora'}
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.act} onPress={() => quote(p)}>
-            <Text style={styles.actText}>Orçamento</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.act, { marginRight: 0 }]} onPress={() => setProfile(p)}>
-            <Text style={styles.actText}>Ver perfil</Text>
-          </TouchableOpacity>
+          <IconBtn icon="document-text-outline" label={`Pedir orçamento a ${p.name}`} onPress={() => quote(p)} />
+          <IconBtn icon="person-outline" label={`Ver perfil de ${p.name}`} onPress={() => setProfile(p)} />
         </View>
       </TouchableOpacity>
     );
   };
 
+  const hasActivity = toRate || lastCall || myVisits.length;
+
   return (
     <Screen>
-      <Title sub="Escolha quem você quer: veja nota, distância e preço de cada um">Serviços</Title>
+      {/* Topo: o que é a aba e quanta gente está disponível */}
+      <View style={styles.hero}>
+        <View style={styles.heroGlow} />
+        <Text style={styles.heroKicker}>PRESTAÇÃO DE SERVIÇOS</Text>
+        <Text style={styles.heroTitle}>Quem você precisa hoje?</Text>
+        <Text style={styles.heroSub}>Profissionais com ID biométrico verificado, perto de você.</Text>
+        <View style={styles.heroStats}>
+          <HeroStat icon="people" value={String(onlineNow)} label="disponíveis" />
+          <HeroStat icon="shield-checkmark" value="100%" label="verificados" />
+          <HeroStat icon="lock-closed" value="Retido" label="pagamento" />
+        </View>
+      </View>
 
       <SearchBar
         value={q}
         onChangeText={setQ}
-        placeholder="Pesquisar: eletricista, hotel, Pedro…"
+        placeholder="Eletricista, vazamento, diarista, Pedro…"
         voicePrompt="Que serviço você procura?"
         onSubmit={(text) => {
           setSearched(text);
@@ -189,321 +248,343 @@ export default function ServicesScreen({ explore, navigate }) {
         <>
           {found ? (
             <Text style={{ color: colors.accent, fontWeight: '700', marginBottom: 8 }}>
-              Mostrando {serviceType(found).label.toLowerCase()} perto de você no mapa abaixo ↓
+              Mostrando {serviceType(found).label.toLowerCase()} perto de você ↓
             </Text>
           ) : null}
           <GlobalResults query={searched} navigate={navigate} max={found ? 4 : 8} title={found ? 'Também no Realys' : 'Resultados da pesquisa'} hideEmpty={!!found} />
         </>
       ) : null}
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12, marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
-        {serviceTypes.map((s) => {
-          const on = s.key === selected;
-          return (
-            <TouchableOpacity key={s.key} onPress={() => setSelected(s.key)} style={[styles.typeChip, on && styles.typeChipOn]}>
-              <Ionicons name={s.ion} size={18} color={on ? colors.onPrimary : colors.primary} />
-              <Text style={[styles.typeText, on && { color: colors.onPrimary }]}>{s.label}</Text>
+      {/* Acompanhando: visitas, chamado no GPS e avaliação pendente, sempre no topo */}
+      {hasActivity ? (
+        <View style={{ marginBottom: 8 }}>
+          <SectionHead title="Acompanhando" />
+          {toRate ? (
+            <TouchableOpacity style={[styles.activeCall, { borderColor: colors.gold }]} onPress={() => dispatch({ type: 'OPEN_RATE', kind: 'servico', refId: toRate.id })} activeOpacity={0.85}>
+              <View style={[styles.activeIcon, { backgroundColor: 'rgba(226,182,73,0.18)' }]}>
+                <Ionicons name="star" size={18} color={colors.gold} />
+              </View>
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={styles.activeTitle}>
+                  Avalie {first(toRate.provider.name)} · {toRate.serviceLabel}
+                </Text>
+                <Text style={styles.activeSub}>Serviço concluído. Sua nota vale pontos Realys.</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.muted} />
             </TouchableOpacity>
-          );
-        })}
-        {/* Hotelaria faz parte da prestação de serviços */}
-        <TouchableOpacity onPress={() => navigate && navigate({ tab: 'home', top: 'anuncios', kind: 'hotel' })} style={styles.typeChip}>
-          <Ionicons name="bed-outline" size={18} color={colors.primary} />
-          <Text style={styles.typeText}>Hotéis e pousadas</Text>
-        </TouchableOpacity>
-      </ScrollView>
-
-      <Input placeholder="Endereço (opcional): Rua Augusta, 1200" value={address} onChangeText={setAddress} />
-
-      {/* Mapa com os prestadores próximos */}
-      <View style={styles.map}>
-        {[...Array(14)].map((_, i) => (
-          <View key={'v' + i} style={[styles.gridV, { left: `${i * 7.5}%` }]} />
-        ))}
-        {[...Array(8)].map((_, i) => (
-          <View key={'h' + i} style={[styles.gridH, { top: `${i * 14}%` }]} />
-        ))}
-        <View style={[styles.road, { top: '46%', transform: [{ rotate: '-8deg' }] }]} />
-        <View style={[styles.roadV, { left: '38%', transform: [{ rotate: '14deg' }] }]} />
-        <View style={styles.me}>
-          <View style={styles.meDot} />
-        </View>
-        {byDist.map((p) => {
-          const pos = mapPos(p);
-          const on = sel && p.id === sel.id;
-          return (
-            <TouchableOpacity
-              key={p.id}
-              onPress={() => setSelId(p.id)}
-              accessibilityLabel={`Selecionar ${p.name}`}
-              style={[
-                styles.pin,
-                { left: `${Math.min(92, Math.max(4, pos.left))}%`, top: `${Math.min(84, Math.max(6, pos.top))}%` },
-                on && styles.pinOn,
-              ]}
-            >
-              <Text style={[styles.pinText, on && { color: colors.onPrimary }]}>{num[p.id]}</Text>
+          ) : null}
+          {lastCall ? (
+            <TouchableOpacity style={styles.activeCall} onPress={() => setTracking(lastCall)} activeOpacity={0.85}>
+              <View style={styles.activeIcon}>
+                <Ionicons name="navigate" size={18} color={colors.primary} />
+              </View>
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={styles.activeTitle}>
+                  {first(lastCall.provider.name)} · {lastCall.serviceLabel}
+                </Text>
+                <Text style={styles.activeSub}>Toque para acompanhar pelo GPS</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.muted} />
             </TouchableOpacity>
-          );
-        })}
-        <Text style={styles.mapLabel}>
-          {byDist.length} {type.label.toLowerCase()}(s) com GPS ligado · você em roxo
-        </Text>
-      </View>
-
-      {byDist.length ? (
-        <View style={styles.quickRow}>
-          <TouchableOpacity style={[styles.quickBtn, styles.quickGhost]} onPress={() => hire(nearestP)}>
-            <Ionicons name="flash" size={16} color={colors.primary} />
-            <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 6 }}>O mais próximo</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.quickBtn, styles.quickMain]} onPress={() => hire(sel)}>
-            <Text style={{ color: colors.onPrimary, fontWeight: '800' }} numberOfLines={1}>
-              {isVisit ? 'Pedir visita a' : 'Contratar'} {sel.name.split(' ')[0]}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      ) : null}
-
-      {toRate ? (
-        <TouchableOpacity style={[styles.activeCall, { borderColor: colors.gold }]} onPress={() => dispatch({ type: 'OPEN_RATE', kind: 'servico', refId: toRate.id })} activeOpacity={0.85}>
-          <Ionicons name="star" size={20} color={colors.gold} />
-          <View style={{ flex: 1, marginLeft: 10 }}>
-            <Text style={{ fontWeight: '800', color: colors.text }}>Avalie {toRate.provider.name.split(' ')[0]} · {toRate.serviceLabel}</Text>
-            <Text style={{ color: colors.muted, fontSize: 12 }}>Serviço concluído. Sua nota vale pontos Realys.</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.muted} />
-        </TouchableOpacity>
-      ) : null}
-      {lastCall ? (
-        <TouchableOpacity style={styles.activeCall} onPress={() => setTracking(lastCall)} activeOpacity={0.85}>
-          <Ionicons name="navigate-circle" size={26} color={colors.primary} />
-          <View style={{ flex: 1, marginLeft: 10 }}>
-            <Text style={{ color: colors.text, fontWeight: '700' }}>
-              {lastCall.provider.name.split(' ')[0]} · {lastCall.serviceLabel}
-            </Text>
-            <Text style={{ color: colors.muted, fontSize: 12 }}>Toque para acompanhar pelo GPS</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.muted} />
-        </TouchableOpacity>
-      ) : null}
-
-      {myVisits.length ? (
-        <View style={{ marginBottom: 6 }}>
-          <Text style={styles.blockTitle}>Minhas visitas</Text>
+          ) : null}
           {myVisits.map((v) => (
             <VisitCard key={v.id} visit={v} />
           ))}
         </View>
       ) : null}
 
-      {isVisit ? (
-        <View style={styles.howBox}>
-          <Ionicons name="shield-checkmark-outline" size={18} color={colors.primary} />
-          <Text style={styles.howText}>
-            Você paga só a <Text style={{ fontWeight: '800' }}>taxa de visita</Text>, que fica retida até a visita acontecer. Se o prestador recusar ou
-            não vier, o valor volta. O preço do serviço vocês combinam direto, sem taxa do Realys.
-          </Text>
-        </View>
-      ) : null}
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
-        {SORTS.map(([k, label]) => {
-          const on = k === sort;
+      {/* Categorias: primeiro o grupo, depois o tipo */}
+      <SectionHead title="Categorias" />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10, marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
+        {GROUPS.map((g) => {
+          const on = g === group;
           return (
-            <TouchableOpacity key={k} onPress={() => setSort(k)} style={[styles.sort, on && styles.sortOn]}>
-              <Text style={[styles.sortText, on && { color: colors.primary }]}>{label}</Text>
+            <TouchableOpacity key={g} onPress={() => pickGroup(g)} style={[styles.groupPill, on && styles.groupPillOn]}>
+              <Ionicons name={GROUP_ION[g] || 'grid-outline'} size={15} color={on ? '#FFFFFF' : colors.text} />
+              <Text style={[styles.groupText, on && { color: '#FFFFFF' }]}>{g}</Text>
             </TouchableOpacity>
           );
         })}
+        {/* Hotelaria faz parte da prestação de serviços */}
+        <TouchableOpacity onPress={() => navigate && navigate({ tab: 'home', top: 'anuncios', kind: 'hotel' })} style={styles.groupPill}>
+          <Ionicons name="bed-outline" size={15} color={colors.text} />
+          <Text style={styles.groupText}>Hotelaria</Text>
+        </TouchableOpacity>
       </ScrollView>
+      <View style={styles.typeGrid}>
+        {groupTypes.map((t) => {
+          const on = t.key === selected;
+          const count = state.providers.filter((p) => p.service === t.key).length;
+          return (
+            <TouchableOpacity key={t.key} onPress={() => setSelected(t.key)} style={[styles.typeTile, on && styles.typeTileOn]} accessibilityLabel={t.label}>
+              <View style={[styles.typeIcon, on && { backgroundColor: colors.primary }]}>
+                <Ionicons name={t.ion} size={20} color={on ? colors.onPrimary : colors.primary} />
+              </View>
+              <Text style={[styles.typeLabel, on && { color: colors.primaryDark }]} numberOfLines={2}>
+                {t.label}
+              </Text>
+              <Text style={styles.typeCount}>{count ? `${count} perto` : 'em breve'}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {/* Onde: endereço + mapa (dá para esconder o mapa) */}
+      <View style={styles.whereCard}>
+        <Row>
+          <Ionicons name="location" size={18} color={colors.primary} />
+          <TextInput
+            placeholder="Seu endereço (opcional): Rua Augusta, 1200"
+            placeholderTextColor={colors.muted}
+            value={address}
+            onChangeText={setAddress}
+            style={styles.addrInput}
+          />
+          <TouchableOpacity onPress={() => setShowMap(!showMap)} style={styles.mapToggle} accessibilityLabel={showMap ? 'Esconder mapa' : 'Mostrar mapa'}>
+            <Ionicons name={showMap ? 'map' : 'map-outline'} size={16} color={colors.primary} />
+          </TouchableOpacity>
+        </Row>
+        {showMap ? (
+          <View style={styles.map}>
+            {[...Array(14)].map((_, i) => (
+              <View key={'v' + i} style={[styles.gridV, { left: `${i * 7.5}%` }]} />
+            ))}
+            {[...Array(8)].map((_, i) => (
+              <View key={'h' + i} style={[styles.gridH, { top: `${i * 14}%` }]} />
+            ))}
+            <View style={[styles.road, { top: '46%', transform: [{ rotate: '-8deg' }] }]} />
+            <View style={[styles.roadV, { left: '38%', transform: [{ rotate: '14deg' }] }]} />
+            <View style={styles.me}>
+              <View style={styles.meDot} />
+            </View>
+            {byDist.map((p) => {
+              const pos = mapPos(p);
+              const on = sel && p.id === sel.id;
+              return (
+                <TouchableOpacity
+                  key={p.id}
+                  onPress={() => setSelId(p.id)}
+                  accessibilityLabel={`Selecionar ${p.name}`}
+                  style={[styles.pin, { left: `${Math.min(92, Math.max(4, pos.left))}%`, top: `${Math.min(84, Math.max(6, pos.top))}%` }, on && styles.pinOn]}
+                >
+                  <Text style={[styles.pinText, on && { color: colors.onPrimary }]}>{num[p.id]}</Text>
+                </TouchableOpacity>
+              );
+            })}
+            <Text style={styles.mapLabel}>
+              {byDist.length} {type.label.toLowerCase()}(s) com GPS ligado · você em roxo
+            </Text>
+          </View>
+        ) : null}
+        {byDist.length ? (
+          <View style={styles.quickRow}>
+            <TouchableOpacity style={[styles.quickBtn, styles.quickGhost]} onPress={() => hire(nearestP)}>
+              <Ionicons name="flash" size={16} color={colors.primary} />
+              <Text style={{ color: colors.primary, fontWeight: '800', marginLeft: 6 }}>Mais perto</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.quickBtn, styles.quickMain]} onPress={() => hire(sel)}>
+              <Text style={{ color: colors.onPrimary, fontWeight: '800' }} numberOfLines={1}>
+                {isVisit ? 'Pedir visita a' : 'Contratar'} {first(sel.name)}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+      </View>
+
+      {/* Como funciona a visita (abre e fecha) */}
+      {isVisit ? (
+        <TouchableOpacity style={styles.howBox} onPress={() => setHowOpen(!howOpen)} activeOpacity={0.85}>
+          <Row>
+            <Ionicons name="shield-checkmark" size={18} color={colors.primary} />
+            <Text style={styles.howTitle}>
+              Pagamento protegido{minFee != null ? ` · visita a partir de ${brl(minFee)}` : ''}
+            </Text>
+            <Ionicons name={howOpen ? 'chevron-up' : 'chevron-down'} size={18} color={colors.muted} />
+          </Row>
+          {howOpen ? (
+            <View style={{ marginTop: 8 }}>
+              <HowStep n="1" text="Você paga só a taxa de visita. Ela fica retida no Realys." />
+              <HowStep n="2" text="O prestador aceita ou recusa. Recusou, o valor volta na hora." />
+              <HowStep n="3" text="Depois da visita, você confirma. Se ele não vier, o valor volta." />
+              <HowStep n="4" text="O preço do serviço vocês combinam direto, sem taxa do Realys." />
+            </View>
+          ) : null}
+        </TouchableOpacity>
+      ) : null}
+
+      {/* Lista */}
+      <SectionHead title={`${type.label} perto de você`} right={`${byDist.length} disponível(is)`} />
+      <View style={styles.segment}>
+        {SORTS.map(([k, label, icon]) => {
+          const on = k === sort;
+          return (
+            <TouchableOpacity key={k} onPress={() => setSort(k)} style={[styles.segBtn, on && styles.segBtnOn]}>
+              <Ionicons name={icon} size={13} color={on ? colors.primaryDark : colors.muted} />
+              <Text style={[styles.segText, on && { color: colors.primaryDark }]}>{label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
       {!list.length ? (
-        <Text style={{ color: colors.muted, textAlign: 'center', padding: 20 }}>
-          Nenhum {type.label.toLowerCase()} disponível agora perto de você.
-        </Text>
+        <View style={styles.empty}>
+          <Ionicons name="search-outline" size={28} color={colors.muted} />
+          <Text style={{ color: colors.muted, textAlign: 'center', marginTop: 8 }}>Nenhum {type.label.toLowerCase()} disponível agora perto de você.</Text>
+        </View>
       ) : null}
 
       {sponsoredP ? (
         <>
-          <Text style={styles.blockTitle}>Patrocinado</Text>
+          <Text style={styles.listLabel}>PATROCINADO</Text>
           {renderCard(sponsoredP, true)}
-          <Text style={styles.blockTitle}>Ranking por mérito</Text>
+          <Text style={styles.listLabel}>RANKING POR MÉRITO</Text>
         </>
       ) : null}
       {list.map((p) => renderCard(p, false))}
 
-      <Card style={{ backgroundColor: colors.primaryLight, borderColor: 'rgba(168,121,10,0.3)', marginTop: 6 }}>
-        <Row>
-          <Ionicons name="mic-outline" size={18} color={colors.primary} />
-          <Text style={{ color: colors.text, fontSize: 13, marginLeft: 8, flex: 1 }}>
-            Pela voz também funciona: "abrir Lotus, preciso de um eletricista na Rua Tamandaré".
-          </Text>
-        </Row>
-      </Card>
+      <View style={styles.voiceTip}>
+        <View style={styles.voiceIcon}>
+          <Ionicons name="mic" size={16} color={NIGHT} />
+        </View>
+        <Text style={styles.voiceText}>Pela voz também funciona: "abrir Lotus, preciso de um eletricista na Rua Tamandaré".</Text>
+      </View>
 
-      <ProviderProfile
-        provider={profile}
-        visible={!!profile}
-        onClose={() => setProfile(null)}
-        onHire={hire}
-        onQuote={quote}
-        onMessage={message}
-      />
+      <ProviderProfile provider={profile} visible={!!profile} onClose={() => setProfile(null)} onHire={hire} onQuote={quote} onMessage={message} />
       <VisitRequestSheet provider={visitFor} visible={!!visitFor} onClose={() => setVisitFor(null)} address={address} />
       <TrackingScreen call={tracking} visible={!!tracking} onClose={() => setTracking(null)} onOpenProfile={(p) => setProfile(p)} />
     </Screen>
   );
 }
 
+function SectionHead({ title, right }) {
+  return (
+    <View style={styles.sectionHead}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {right ? <Text style={styles.sectionRight}>{right}</Text> : null}
+    </View>
+  );
+}
+
+function HeroStat({ icon, value, label }) {
+  return (
+    <View style={styles.heroStat}>
+      <Ionicons name={icon} size={14} color={colors.gold} />
+      <Text style={styles.heroStatValue}>{value}</Text>
+      <Text style={styles.heroStatLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function MiniStat({ icon, text }) {
+  return (
+    <View style={styles.miniStat}>
+      <Ionicons name={icon} size={12} color={colors.muted} />
+      <Text style={styles.miniStatText}>{text}</Text>
+    </View>
+  );
+}
+
+function IconBtn({ icon, label, onPress }) {
+  return (
+    <TouchableOpacity style={styles.iconBtn} onPress={onPress} accessibilityLabel={label}>
+      <Ionicons name={icon} size={19} color={colors.text} />
+    </TouchableOpacity>
+  );
+}
+
+function HowStep({ n, text }) {
+  return (
+    <Row style={{ alignItems: 'flex-start', marginTop: 6 }}>
+      <View style={styles.howNum}>
+        <Text style={{ color: colors.onPrimary, fontWeight: '900', fontSize: 11 }}>{n}</Text>
+      </View>
+      <Text style={{ color: colors.text, fontSize: 13, flex: 1, lineHeight: 18 }}>{text}</Text>
+    </Row>
+  );
+}
+
 const styles = StyleSheet.create({
   avatarSm: { width: 48, height: 48, borderRadius: 16 },
-  avatar: { width: 48, height: 48, borderRadius: 15 },
-  typeChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 40,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginRight: 8,
-  },
-  typeChipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  typeText: { color: colors.text, fontWeight: '600', fontSize: 13, marginLeft: 6 },
-  map: {
-    height: 200,
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: '#FFFFFF',
-    overflow: 'hidden',
-    marginBottom: 12,
-  },
+  // Topo
+  hero: { backgroundColor: NIGHT, borderRadius: 24, padding: 18, marginBottom: 14, overflow: 'hidden' },
+  heroGlow: { position: 'absolute', right: -60, top: -60, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(226,182,73,0.18)' },
+  heroKicker: { color: colors.gold, fontSize: 11, fontWeight: '800', letterSpacing: 1.6 },
+  heroTitle: { color: '#FFFFFF', fontSize: 24, fontWeight: '900', marginTop: 6 },
+  heroSub: { color: 'rgba(255,255,255,0.72)', fontSize: 13, marginTop: 4 },
+  heroStats: { flexDirection: 'row', marginTop: 14, marginHorizontal: -4 },
+  heroStat: { flex: 1, marginHorizontal: 4, backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 14, paddingVertical: 10, paddingHorizontal: 10, borderWidth: 1, borderColor: 'rgba(226,182,73,0.25)' },
+  heroStatValue: { color: '#FFFFFF', fontWeight: '900', fontSize: 15, marginTop: 4 },
+  heroStatLabel: { color: 'rgba(255,255,255,0.65)', fontSize: 11 },
+  sectionHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10, marginTop: 4 },
+  sectionTitle: { color: colors.text, fontWeight: '900', fontSize: 17 },
+  sectionRight: { color: colors.muted, fontSize: 12, fontWeight: '600' },
+  // Categorias
+  groupPill: { flexDirection: 'row', alignItems: 'center', height: 36, paddingHorizontal: 13, borderRadius: 18, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, marginRight: 8 },
+  groupPillOn: { backgroundColor: NIGHT, borderColor: NIGHT },
+  groupText: { color: colors.text, fontWeight: '700', fontSize: 13, marginLeft: 6 },
+  typeGrid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -4, marginBottom: 10 },
+  typeTile: { width: '23%', marginHorizontal: '1%', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 4, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, marginBottom: 8 },
+  typeTileOn: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
+  typeIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(168,121,10,0.1)', alignItems: 'center', justifyContent: 'center' },
+  typeLabel: { color: colors.text, fontWeight: '700', fontSize: 11.5, textAlign: 'center', marginTop: 6, lineHeight: 14 },
+  typeCount: { color: colors.muted, fontSize: 10, marginTop: 2 },
+  // Endereço e mapa
+  whereCard: { backgroundColor: colors.card, borderRadius: 22, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 12 },
+  addrInput: { flex: 1, color: colors.text, fontSize: 14, marginLeft: 8, paddingVertical: 6 },
+  mapToggle: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  map: { height: 180, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: '#FFFFFF', overflow: 'hidden', marginTop: 10 },
   gridV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(168,121,10,0.06)' },
   gridH: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: 'rgba(168,121,10,0.06)' },
   road: { position: 'absolute', left: -30, right: -30, height: 10, backgroundColor: '#F5EFE2' },
   roadV: { position: 'absolute', top: -30, bottom: -30, width: 10, backgroundColor: '#F5EFE2' },
-  me: {
-    position: 'absolute',
-    left: '50%',
-    top: '50%',
-    marginLeft: -15,
-    marginTop: -15,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: 'rgba(108,92,231,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  me: { position: 'absolute', left: '50%', top: '50%', marginLeft: -15, marginTop: -15, width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(108,92,231,0.2)', alignItems: 'center', justifyContent: 'center' },
   meDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#6C5CE7', borderWidth: 2, borderColor: colors.bg },
-  pin: {
-    position: 'absolute',
-    marginLeft: -15,
-    marginTop: -15,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: colors.card,
-    borderWidth: 1.5,
-    borderColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pinOn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    marginLeft: -19,
-    marginTop: -19,
-    backgroundColor: colors.primary,
-    borderColor: '#FFFFFF',
-    borderWidth: 2,
-    shadowColor: colors.primary,
-    shadowOpacity: 0.8,
-    shadowRadius: 12,
-    elevation: 8,
-  },
+  pin: { position: 'absolute', marginLeft: -15, marginTop: -15, width: 30, height: 30, borderRadius: 15, backgroundColor: colors.card, borderWidth: 1.5, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  pinOn: { width: 38, height: 38, borderRadius: 19, marginLeft: -19, marginTop: -19, backgroundColor: colors.primary, borderColor: '#FFFFFF', borderWidth: 2, shadowColor: colors.primary, shadowOpacity: 0.8, shadowRadius: 12, elevation: 8 },
   pinText: { color: colors.primary, fontWeight: '800', fontSize: 12 },
-  mapLabel: {
-    position: 'absolute',
-    left: 10,
-    bottom: 10,
-    color: colors.text,
-    fontSize: 11,
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  quickRow: { flexDirection: 'row', marginBottom: 12 },
-  quickBtn: { flex: 1, height: 50, borderRadius: 15, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
-  quickGhost: { borderWidth: 1, borderColor: 'rgba(168,121,10,0.55)', marginRight: 10 },
-  quickMain: { backgroundColor: colors.primary, paddingHorizontal: 10 },
-  activeCall: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryLight,
-    marginBottom: 12,
-  },
-  sort: {
-    height: 36,
-    paddingHorizontal: 14,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  sortOn: { borderColor: colors.primary, backgroundColor: 'rgba(168,121,10,0.12)' },
-  sortText: { color: colors.text, fontSize: 13, fontWeight: '600' },
-  pCard: {
-    backgroundColor: colors.card,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 12,
-    marginBottom: 10,
-  },
-  pCardOn: { borderColor: colors.primary, backgroundColor: '#FFFFFF' },
-  num: {
-    width: 28,
-    height: 28,
-    borderRadius: 9,
-    backgroundColor: 'rgba(168,121,10,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  numText: { color: colors.primary, fontWeight: '800', fontSize: 13 },
-  pName: { color: colors.text, fontWeight: '700', fontSize: 15 },
-  pMeta: { color: colors.muted, fontSize: 12, marginTop: 2 },
-  pPrice: { color: colors.primary, fontWeight: '800', fontSize: 13, marginTop: 2 },
-  badges: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 },
-  pFunc: { color: colors.muted, fontSize: 12, marginTop: 6 },
-  pStats: { color: colors.muted, fontSize: 11, marginTop: 2 },
-  blockTitle: { color: colors.text, fontWeight: '800', fontSize: 15, marginBottom: 8, marginTop: 4 },
-  howBox: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: colors.primaryLight, borderRadius: 16, padding: 12, marginBottom: 12 },
-  howText: { color: colors.text, fontSize: 13, marginLeft: 8, flex: 1, lineHeight: 18 },
-  actions: { flexDirection: 'row', marginTop: 10 },
-  act: {
-    flex: 1,
-    height: 40,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#EADFC8',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  actMain: { backgroundColor: colors.primary, borderColor: colors.primary },
-  actText: { color: colors.text, fontWeight: '600', fontSize: 13 },
+  mapLabel: { position: 'absolute', left: 10, bottom: 10, color: colors.text, fontSize: 11, backgroundColor: 'rgba(255,255,255,0.92)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, overflow: 'hidden' },
+  quickRow: { flexDirection: 'row', marginTop: 10 },
+  quickBtn: { flex: 1, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
+  quickGhost: { borderWidth: 1, borderColor: 'rgba(168,121,10,0.55)', marginRight: 8 },
+  quickMain: { flex: 1.4, backgroundColor: colors.primary, paddingHorizontal: 10 },
+  // Acompanhando
+  activeCall: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 16, borderWidth: 1, borderColor: colors.primary, backgroundColor: colors.card, marginBottom: 10 },
+  activeIcon: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  activeTitle: { color: colors.text, fontWeight: '800' },
+  activeSub: { color: colors.muted, fontSize: 12, marginTop: 1 },
+  // Como funciona
+  howBox: { backgroundColor: colors.primaryLight, borderRadius: 16, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: 'rgba(168,121,10,0.25)' },
+  howTitle: { color: colors.text, fontWeight: '800', fontSize: 13, marginLeft: 8, flex: 1 },
+  howNum: { width: 20, height: 20, borderRadius: 10, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginRight: 8, marginTop: -1 },
+  // Lista
+  segment: { flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 14, padding: 4, marginBottom: 12 },
+  segBtn: { flex: 1, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
+  segBtnOn: { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 4, elevation: 1 },
+  segText: { color: colors.muted, fontWeight: '800', fontSize: 12, marginLeft: 4 },
+  listLabel: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1.4, marginBottom: 8, marginTop: 2 },
+  empty: { alignItems: 'center', padding: 24, borderRadius: 18, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.border, marginBottom: 12 },
+  pCard: { backgroundColor: colors.card, borderRadius: 22, borderWidth: 1, borderColor: colors.border, padding: 14, marginBottom: 12 },
+  pCardOn: { borderColor: colors.primary, borderWidth: 1.5 },
+  pCardSponsored: { borderColor: 'rgba(108,92,231,0.45)', backgroundColor: '#FBFAFF' },
+  avatar: { width: 60, height: 60, borderRadius: 20 },
+  numDot: { position: 'absolute', right: -6, bottom: -6, minWidth: 24, height: 24, borderRadius: 12, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  numText: { color: colors.primary, fontWeight: '900', fontSize: 11 },
+  pName: { color: colors.text, fontWeight: '800', fontSize: 16, flexShrink: 1 },
+  pMeta: { color: colors.muted, fontSize: 12, marginTop: 3 },
+  pPrice: { color: colors.primary, fontWeight: '800', fontSize: 13, marginTop: 3 },
+  rating: { flexDirection: 'row', alignItems: 'center', backgroundColor: NIGHT, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, marginLeft: 8 },
+  ratingText: { color: '#FFFFFF', fontWeight: '900', fontSize: 12, marginLeft: 3 },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
+  pFunc: { color: colors.text, fontSize: 12.5, marginTop: 8 },
+  statsRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 },
+  miniStat: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 3, marginRight: 6, marginBottom: 4 },
+  miniStatText: { color: colors.muted, fontSize: 11, marginLeft: 4, fontWeight: '600' },
+  actions: { flexDirection: 'row', marginTop: 12 },
+  actMain: { flex: 1, height: 46, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', paddingHorizontal: 10 },
+  actMainText: { color: colors.onPrimary, fontWeight: '900', fontSize: 14, marginLeft: 6 },
+  iconBtn: { width: 46, height: 46, borderRadius: 14, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', marginLeft: 8, backgroundColor: '#FFFFFF' },
+  // Voz
+  voiceTip: { flexDirection: 'row', alignItems: 'center', backgroundColor: NIGHT, borderRadius: 18, padding: 12, marginTop: 4 },
+  voiceIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
+  voiceText: { color: 'rgba(255,255,255,0.85)', fontSize: 13, marginLeft: 10, flex: 1, lineHeight: 18 },
 });

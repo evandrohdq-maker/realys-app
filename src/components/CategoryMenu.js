@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Pressable } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Pressable, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, ROLE_LABELS } from '../theme';
 import { serviceTypes } from '../data';
@@ -221,7 +222,7 @@ export const CATEGORIES = [
       { label: 'Mensagens', hint: 'Conversas e chamadas de vídeo', icon: 'mail-outline', go: { tab: 'stories', seg: 'msgs' } },
       { label: 'Contatos', hint: 'Sua lista de contatos', icon: 'person-add-outline', go: { tab: 'stories', seg: 'contatos' } },
       { label: 'Lives', hint: 'Assista ou abra a sua', icon: 'radio-outline', go: { tab: 'home', top: 'lives' } },
-      { label: 'Community', hint: 'Stories e a comunidade de quem está no Realys', icon: 'people-circle-outline', go: { tab: 'stories' } },
+      { label: 'Stories', hint: 'Stories e a comunidade de quem está no Realys', icon: 'people-circle-outline', go: { tab: 'stories' } },
       { label: 'Date', hint: 'Relacionamentos com quem passa perto', icon: 'heart-outline', go: { tab: 'encontros' } },
     ],
   },
@@ -243,140 +244,325 @@ export const CATEGORIES = [
 
 const ROLE_ICON = { cliente: 'person-outline', empresa: 'storefront-outline', prestador: 'construct-outline', fornecedor: 'cube-outline', admin: 'shield-checkmark-outline' };
 
+// Cor de cada classe no menu (o ícone ganha um fundo da mesma cor, bem clarinho).
+const TINT = {
+  servicos: '#A8790A',
+  restaurantes: '#E4572E',
+  lojas: '#6C5CE7',
+  transporte: '#2F74D0',
+  socorro: '#D9534F',
+  tecnologia: '#0E8BC9',
+  agro: '#1E9E63',
+  empresa: '#1F2A44',
+  empregos: '#7B6CF6',
+  eventos: '#D9468F',
+  social: '#2F74D0',
+  artistas: '#C77D0A',
+  aulas: '#0D9488',
+  imoveis: '#7A5806',
+  locacao: '#55607A',
+};
+const tintOf = (key) => TINT[key] || '#6C5CE7';
+
+// Seções do menu: cada classe aparece uma vez. O que não estiver aqui cai em "Mais".
+const SECTIONS = [
+  { title: 'Dia a dia', keys: ['servicos', 'restaurantes', 'lojas', 'transporte', 'socorro'] },
+  { title: 'Compras por setor', keys: SHOP_SECTOR_KEYS },
+  { title: 'Trabalho e negócios', keys: ['empregos', 'tecnologia', 'agro', 'empresa'] },
+  { title: 'Lazer e comunidade', keys: ['eventos', 'social', 'artistas', 'aulas'] },
+  { title: 'Anúncios', keys: ['imoveis', 'locacao'] },
+];
+const sectionsWithRest = () => {
+  const used = new Set(SECTIONS.flatMap((s) => s.keys));
+  const rest = CATEGORIES.filter((c) => !used.has(c.key)).map((c) => c.key);
+  return rest.length ? [...SECTIONS, { title: 'Mais', keys: rest }] : SECTIONS;
+};
+
+// Atalhos de um toque, no topo do menu.
+const SHORTCUTS = [
+  { label: 'Serviços', icon: 'construct', tint: TINT.servicos, go: { tab: 'servicos' } },
+  { label: 'Food', icon: 'restaurant', tint: TINT.restaurantes, go: { tab: 'food', cat: 'Todos', q: '' } },
+  { label: 'Shop', icon: 'bag-handle', tint: TINT.lojas, go: { tab: 'loja', cat: 'Todos', q: '' } },
+  { label: 'Vagas', icon: 'briefcase', tint: TINT.empregos, go: { tab: 'vagas', area: 'todas', seg: 'vagas' } },
+  { label: 'Ônibus', icon: 'bus', tint: TINT.transporte, go: { tab: 'transporte', scope: 'municipal' } },
+  { label: 'SOS', icon: 'alert-circle', tint: TINT.socorro, go: { tab: 'socorro', seg: 'emergencia' } },
+];
+
+const norm = (t) =>
+  String(t || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '');
+
 export default function CategoryMenu({ visible, onClose, onPick, roles = [], activeRole, onRole }) {
+  const insets = useSafeAreaInsets();
   const [cat, setCat] = useState(null);
+  const [q, setQ] = useState('');
   useEffect(() => {
-    if (!visible) setCat(null);
+    if (!visible) {
+      setCat(null);
+      setQ('');
+    }
   }, [visible]);
 
+  const byKey = useMemo(() => Object.fromEntries(CATEGORIES.map((c) => [c.key, c])), []);
+  const sections = useMemo(sectionsWithRest, []);
+  // Busca dentro do menu: procura em todas as opções de todas as classes.
+  const results = useMemo(() => {
+    const t = norm(q.trim());
+    if (!t) return [];
+    const seen = new Set();
+    const out = [];
+    CATEGORIES.forEach((c) => {
+      const catHit = norm(c.title).includes(t);
+      c.subs.forEach((s) => {
+        if (!(catHit || norm(s.label).includes(t) || norm(s.hint).includes(t))) return;
+        const k = c.key + s.label;
+        if (seen.has(k)) return;
+        seen.add(k);
+        out.push({ ...s, catTitle: c.title, catKey: c.key });
+      });
+    });
+    return out.slice(0, 40);
+  }, [q]);
+
+  const back = () => (cat ? setCat(null) : onClose());
+
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={() => (cat ? setCat(null) : onClose())}>
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        <Pressable style={styles.panel} onPress={() => {}}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={back} statusBarTranslucent>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
+        <Pressable style={{ flex: 1 }} onPress={onClose} />
+        <View style={[styles.sheet, { paddingBottom: 12 + insets.bottom }]}>
+          <View style={styles.grip} />
           {!cat ? (
             <>
-              {/* Cabeçalho do menu: escolher como usar o app (Usuário, Empresa, Prestador…). */}
               <View style={styles.head}>
-                <Text style={styles.kicker}>ACESSAR COMO</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.title}>Explorar Realys</Text>
+                  <Text style={styles.hint}>Tudo do app em um lugar</Text>
+                </View>
                 <TouchableOpacity onPress={onClose} style={styles.iconBtn} accessibilityLabel="Fechar">
-                  <Ionicons name="close" size={18} color={colors.text} />
+                  <Ionicons name="close" size={20} color={colors.text} />
                 </TouchableOpacity>
               </View>
-              <View style={styles.roles}>
-                {roles.map((r) => {
-                  const on = r === activeRole;
-                  return (
-                    <TouchableOpacity key={r} onPress={() => onRole && onRole(r)} style={[styles.role, on && styles.roleOn]} accessibilityLabel={`Usar como ${ROLE_LABELS[r]}`}>
-                      <Ionicons name={ROLE_ICON[r] || 'person-outline'} size={15} color={on ? colors.onPrimary : colors.primary} />
-                      <Text style={[styles.roleTxt, on && { color: colors.onPrimary }]}>{ROLE_LABELS[r]}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
+
+              <View style={styles.search}>
+                <Ionicons name="search" size={18} color={colors.muted} />
+                <TextInput
+                  value={q}
+                  onChangeText={setQ}
+                  placeholder="Buscar: eletricista, pizza, hotel, vaga…"
+                  placeholderTextColor={colors.muted}
+                  style={styles.searchInput}
+                  returnKeyType="search"
+                />
+                {q ? (
+                  <TouchableOpacity onPress={() => setQ('')} accessibilityLabel="Limpar busca">
+                    <Ionicons name="close-circle" size={18} color={colors.muted} />
+                  </TouchableOpacity>
+                ) : null}
               </View>
-              <View style={[styles.head, { marginTop: 4 }]}>
-                <Text style={styles.kicker}>EXPLORAR REALYS</Text>
-              </View>
-              <ScrollView style={{ maxHeight: 520 }}>
-              {CATEGORIES.map((c) => (
-                <TouchableOpacity key={c.key} style={styles.row} onPress={() => setCat(c)} activeOpacity={0.8}>
-                  <View style={styles.rowIcon}>
-                    <Ionicons name={c.icon} size={21} color={colors.primary} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.rowTitle}>{c.title}</Text>
-                    <Text style={styles.rowHint}>{c.hint}</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={18} color={colors.muted} />
-                </TouchableOpacity>
-              ))}
+
+              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                {q.trim() ? (
+                  <>
+                    <Text style={styles.kicker}>{results.length ? `${results.length} RESULTADO(S)` : 'NADA ENCONTRADO'}</Text>
+                    {results.map((s) => {
+                      const tint = tintOf(s.catKey);
+                      return (
+                        <TouchableOpacity key={s.catKey + s.label} style={styles.result} onPress={() => onPick(s.go)} activeOpacity={0.8}>
+                          <View style={[styles.resIcon, { backgroundColor: tint + '1A' }]}>
+                            <Ionicons name={s.icon} size={19} color={tint} />
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.resTitle}>{s.label}</Text>
+                            <Text style={styles.resHint} numberOfLines={1}>
+                              {s.catTitle} · {s.hint}
+                            </Text>
+                          </View>
+                          <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </>
+                ) : (
+                  <>
+                    {roles.length > 1 ? (
+                      <>
+                        <Text style={styles.kicker}>ACESSAR COMO</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
+                          {roles.map((r) => {
+                            const on = r === activeRole;
+                            return (
+                              <TouchableOpacity key={r} onPress={() => onRole && onRole(r)} style={[styles.role, on && styles.roleOn]} accessibilityLabel={`Usar como ${ROLE_LABELS[r]}`}>
+                                <Ionicons name={ROLE_ICON[r] || 'person-outline'} size={15} color={on ? colors.onPrimary : colors.primary} />
+                                <Text style={[styles.roleTxt, on && { color: colors.onPrimary }]}>{ROLE_LABELS[r]}</Text>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </ScrollView>
+                      </>
+                    ) : null}
+
+                    <Text style={styles.kicker}>ATALHOS</Text>
+                    <View style={styles.shortcuts}>
+                      {SHORTCUTS.map((s) => (
+                        <TouchableOpacity key={s.label} style={styles.shortcut} onPress={() => onPick(s.go)} accessibilityLabel={`Abrir ${s.label}`}>
+                          <View style={[styles.shortIcon, { backgroundColor: s.tint }]}>
+                            <Ionicons name={s.icon} size={22} color="#FFFFFF" />
+                          </View>
+                          <Text style={styles.shortLabel} numberOfLines={1}>
+                            {s.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+
+                    {sections.map((sec) => (
+                      <View key={sec.title} style={{ marginBottom: 6 }}>
+                        <Text style={styles.kicker}>{sec.title.toUpperCase()}</Text>
+                        <View style={styles.grid3}>
+                          {sec.keys
+                            .map((k) => byKey[k])
+                            .filter(Boolean)
+                            .map((c) => {
+                              const tint = tintOf(c.key);
+                              return (
+                                <TouchableOpacity key={c.key} style={styles.catTile} onPress={() => setCat(c)} activeOpacity={0.8} accessibilityLabel={c.title}>
+                                  <View style={[styles.catIcon, { backgroundColor: tint + '1A' }]}>
+                                    <Ionicons name={c.icon} size={22} color={tint} />
+                                  </View>
+                                  <Text style={styles.catTitle} numberOfLines={2}>
+                                    {c.title}
+                                  </Text>
+                                  <Text style={styles.catCount}>{c.subs.length} opções</Text>
+                                </TouchableOpacity>
+                              );
+                            })}
+                        </View>
+                      </View>
+                    ))}
+                  </>
+                )}
               </ScrollView>
             </>
           ) : (
             <>
-              <View style={styles.head}>
-                <TouchableOpacity onPress={() => setCat(null)} style={styles.iconBtn} accessibilityLabel="Voltar">
+              <View style={[styles.catHead, { backgroundColor: tintOf(cat.key) + '14', borderColor: tintOf(cat.key) + '40' }]}>
+                <TouchableOpacity onPress={() => setCat(null)} style={styles.iconBtnLight} accessibilityLabel="Voltar">
                   <Ionicons name="arrow-back" size={18} color={colors.text} />
                 </TouchableOpacity>
+                <View style={[styles.catHeadIcon, { backgroundColor: tintOf(cat.key) }]}>
+                  <Ionicons name={cat.icon} size={22} color="#FFFFFF" />
+                </View>
                 <View style={{ flex: 1, marginLeft: 10 }}>
                   <Text style={styles.subTitle}>{cat.title}</Text>
-                  <Text style={styles.rowHint}>Que tipo você está procurando?</Text>
+                  <Text style={styles.hint} numberOfLines={1}>
+                    {cat.hint}
+                  </Text>
                 </View>
-                <TouchableOpacity onPress={onClose} style={styles.iconBtn} accessibilityLabel="Fechar">
+                <TouchableOpacity onPress={onClose} style={styles.iconBtnLight} accessibilityLabel="Fechar">
                   <Ionicons name="close" size={18} color={colors.text} />
                 </TouchableOpacity>
               </View>
-              <ScrollView style={{ maxHeight: 460 }} contentContainerStyle={styles.grid}>
-                {cat.subs.map((s) => (
-                  <TouchableOpacity key={s.label} style={styles.tile} onPress={() => onPick(s.go)} activeOpacity={0.8}>
-                    <Ionicons name={s.icon} size={20} color={colors.primary} />
-                    <Text style={styles.tileTitle}>{s.label}</Text>
-                    <Text style={[styles.tileHint, s.soon && { color: colors.accent }]}>{s.hint}</Text>
-                  </TouchableOpacity>
-                ))}
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.grid2}>
+                {cat.subs.map((s) => {
+                  const tint = tintOf(cat.key);
+                  return (
+                    <TouchableOpacity key={s.label} style={styles.tile} onPress={() => onPick(s.go)} activeOpacity={0.8}>
+                      <View style={[styles.tileIcon, { backgroundColor: tint + '1A' }]}>
+                        <Ionicons name={s.icon} size={19} color={tint} />
+                      </View>
+                      <Text style={styles.tileTitle} numberOfLines={2}>
+                        {s.label}
+                      </Text>
+                      <Text style={[styles.tileHint, s.soon && { color: colors.accent }]} numberOfLines={2}>
+                        {s.hint}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </ScrollView>
             </>
           )}
-        </Pressable>
-      </Pressable>
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  roles: { flexDirection: 'row', flexWrap: 'wrap', paddingBottom: 10, marginBottom: 6, borderBottomWidth: 1, borderBottomColor: colors.border },
-  role: { flexDirection: 'row', alignItems: 'center', height: 34, paddingHorizontal: 12, borderRadius: 17, borderWidth: 1, borderColor: 'rgba(168,121,10,0.45)', backgroundColor: 'rgba(168,121,10,0.08)', marginRight: 6, marginBottom: 6 },
-  roleOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  roleTxt: { color: colors.primary, fontWeight: '800', fontSize: 12, marginLeft: 5 },
-  backdrop: { flex: 1, backgroundColor: 'rgba(31,42,68,0.35)', alignItems: 'flex-end', paddingTop: 90, paddingHorizontal: 12 },
-  panel: {
-    width: '100%',
-    maxWidth: 360,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
+  backdrop: { flex: 1, backgroundColor: 'rgba(16,22,40,0.45)' },
+  sheet: {
+    height: '88%',
+    backgroundColor: colors.bg,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 16,
+    paddingTop: 8,
     borderWidth: 1,
-    borderColor: 'rgba(168,121,10,0.3)',
-    padding: 14,
-    shadowColor: colors.primary,
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 12,
+    borderColor: 'rgba(226,182,73,0.45)',
   },
-  head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  kicker: { color: colors.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1.6 },
-  iconBtn: { width: 38, height: 38, borderRadius: 11, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
-  row: {
+  grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: 12 },
+  head: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  title: { color: colors.text, fontSize: 22, fontWeight: '900' },
+  hint: { color: colors.muted, fontSize: 12, marginTop: 2 },
+  iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
+  iconBtnLight: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  search: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
+    height: 48,
     borderRadius: 16,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: colors.border,
+    paddingHorizontal: 14,
+    marginBottom: 14,
+  },
+  searchInput: { flex: 1, color: colors.text, fontSize: 15, marginLeft: 8, paddingVertical: 0 },
+  kicker: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1.4, marginBottom: 8 },
+  role: { flexDirection: 'row', alignItems: 'center', height: 34, paddingHorizontal: 12, borderRadius: 17, borderWidth: 1, borderColor: 'rgba(168,121,10,0.45)', backgroundColor: 'rgba(168,121,10,0.08)', marginRight: 6 },
+  roleOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  roleTxt: { color: colors.primary, fontWeight: '800', fontSize: 12, marginLeft: 5 },
+  shortcuts: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 18 },
+  shortcut: { alignItems: 'center', width: '16%' },
+  shortIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+  shortLabel: { color: colors.text, fontSize: 11, fontWeight: '700', marginTop: 5 },
+  grid3: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -4, marginBottom: 8 },
+  catTile: {
+    width: '31.3%',
+    marginHorizontal: '1%',
+    minHeight: 112,
+    padding: 10,
+    borderRadius: 18,
     backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: colors.border,
     marginBottom: 8,
   },
-  rowIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 13,
-    backgroundColor: 'rgba(168,121,10,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  rowTitle: { color: colors.text, fontWeight: '700', fontSize: 15 },
-  rowHint: { color: colors.muted, fontSize: 12, marginTop: 2 },
-  subTitle: { color: colors.text, fontWeight: '800', fontSize: 17 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  catIcon: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  catTitle: { color: colors.text, fontWeight: '800', fontSize: 12.5, marginTop: 8, lineHeight: 16 },
+  catCount: { color: colors.muted, fontSize: 10.5, marginTop: 2 },
+  result: { flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.border, marginBottom: 8 },
+  resIcon: { width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  resTitle: { color: colors.text, fontWeight: '800', fontSize: 14 },
+  resHint: { color: colors.muted, fontSize: 12, marginTop: 2 },
+  catHead: { flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 20, borderWidth: 1, marginBottom: 12 },
+  catHeadIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  subTitle: { color: colors.text, fontWeight: '900', fontSize: 17 },
+  grid2: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingBottom: 12 },
   tile: {
     width: '48.5%',
-    minHeight: 92,
+    minHeight: 108,
     padding: 12,
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: '#FFFFFF',
-    marginBottom: 8,
+    marginBottom: 10,
   },
-  tileTitle: { color: colors.text, fontWeight: '700', fontSize: 13, marginTop: 6 },
-  tileHint: { color: colors.muted, fontSize: 11, marginTop: 2 },
+  tileIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  tileTitle: { color: colors.text, fontWeight: '800', fontSize: 13.5, marginTop: 8 },
+  tileHint: { color: colors.muted, fontSize: 11, marginTop: 2, lineHeight: 15 },
 });
