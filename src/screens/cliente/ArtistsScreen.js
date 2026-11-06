@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
-import { colors } from '../../theme';
+import { colors, soft } from '../../theme';
 import { Screen, Title, Photo, Badge, Row } from '../../components/ui';
 import { artists, artMedia, ART_KINDS } from '../../extraData';
 import { MediaList } from '../../components/CompanyProfile';
@@ -72,11 +72,11 @@ export default function ArtistsScreen({ explore, navigate }) {
 }
 
 const styles = StyleSheet.create({
-  artist: { width: 160, backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: colors.border, marginRight: 10, overflow: 'hidden' },
+  artist: { width: 160, backgroundColor: '#FFFFFF', borderRadius: 16, marginRight: 10, overflow: 'hidden', ...soft },
   artistImg: { width: '100%', height: 90 },
-  name: { fontWeight: '800', color: colors.text },
+  name: { fontWeight: '700', color: colors.text },
   sub: { color: colors.muted, fontSize: 12, marginTop: 2 },
-  h2: { fontSize: 16, fontWeight: '800', color: colors.text, marginBottom: 8 },
+  h2: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 8 },
   chip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, height: 34, borderRadius: 17, borderWidth: 1, borderColor: colors.border, backgroundColor: '#FFFFFF', marginRight: 6, marginBottom: 6 },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipText: { marginLeft: 5, fontWeight: '700', color: colors.primary, fontSize: 12 },

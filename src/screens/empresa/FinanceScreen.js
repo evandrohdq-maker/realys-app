@@ -33,7 +33,7 @@ export default function FinanceScreen() {
 
       <Card style={{ backgroundColor: colors.dark, borderColor: colors.primary }}>
         <Text style={{ color: '#B8C6CF' }}>Saldo da empresa</Text>
-        <Text style={{ color: '#fff', fontSize: 30, fontWeight: '900', marginTop: 2 }}>{brl(saldo)}</Text>
+        <Text style={{ color: '#fff', fontSize: 30, fontWeight: '800', marginTop: 2 }}>{brl(saldo)}</Text>
         <Text style={{ color: '#B8C6CF', fontSize: 12, marginTop: 4 }}>Separado das suas contas pessoais</Text>
       </Card>
 
@@ -58,7 +58,7 @@ export default function FinanceScreen() {
                 <Text style={{ color: colors.text, fontWeight: '700' }}>{b.desc}</Text>
                 <Text style={{ color: colors.muted, fontSize: 12 }}>Vence {b.due}</Text>
               </View>
-              <Text style={{ fontWeight: '800', color: colors.danger }}>{brl(b.value)}</Text>
+              <Text style={{ fontWeight: '700', color: colors.danger }}>{brl(b.value)}</Text>
             </Row>
           </Card>
         ))}
@@ -85,7 +85,7 @@ export default function FinanceScreen() {
                 <Text style={{ color: colors.text, fontWeight: '600' }}>{f.desc}</Text>
                 <Text style={{ color: colors.muted, fontSize: 12 }}>{f.date}</Text>
               </View>
-              <Text style={{ fontWeight: '800', color: f.type === 'entrada' ? colors.success : colors.danger }}>
+              <Text style={{ fontWeight: '700', color: f.type === 'entrada' ? colors.success : colors.danger }}>
                 {f.type === 'entrada' ? '+' : '−'} {brl(f.value)}
               </Text>
             </Row>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Pressable, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, ROLE_LABELS } from '../theme';
+import { colors, ROLE_LABELS, soft } from '../theme';
 import { serviceTypes } from '../data';
 import { SHOP_SECTORS, SHOP_SECTOR_KEYS } from '../shopSectorsData';
 
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
   },
   grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: 12 },
   head: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  title: { color: colors.text, fontSize: 22, fontWeight: '900' },
+  title: { color: colors.text, fontSize: 22, fontWeight: '800' },
   hint: { color: colors.muted, fontSize: 12, marginTop: 2 },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
   iconBtnLight: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
@@ -521,10 +521,10 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   searchInput: { flex: 1, color: colors.text, fontSize: 15, marginLeft: 8, paddingVertical: 0 },
-  kicker: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1.4, marginBottom: 8 },
+  kicker: { color: colors.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1.4, marginBottom: 8 },
   role: { flexDirection: 'row', alignItems: 'center', height: 34, paddingHorizontal: 12, borderRadius: 17, borderWidth: 1, borderColor: 'rgba(168,121,10,0.45)', backgroundColor: 'rgba(168,121,10,0.08)', marginRight: 6 },
   roleOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  roleTxt: { color: colors.primary, fontWeight: '800', fontSize: 12, marginLeft: 5 },
+  roleTxt: { color: colors.primary, fontWeight: '700', fontSize: 12, marginLeft: 5 },
   shortcuts: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 18 },
   shortcut: { alignItems: 'center', width: '16%' },
   shortIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
@@ -537,32 +537,30 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 18,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: 8,
+    ...soft,
   },
   catIcon: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  catTitle: { color: colors.text, fontWeight: '800', fontSize: 12.5, marginTop: 8, lineHeight: 16 },
+  catTitle: { color: colors.text, fontWeight: '700', fontSize: 12.5, marginTop: 8, lineHeight: 16 },
   catCount: { color: colors.muted, fontSize: 10.5, marginTop: 2 },
-  result: { flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.border, marginBottom: 8 },
+  result: { flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 16, backgroundColor: '#FFFFFF', marginBottom: 8, ...soft },
   resIcon: { width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  resTitle: { color: colors.text, fontWeight: '800', fontSize: 14 },
+  resTitle: { color: colors.text, fontWeight: '700', fontSize: 14 },
   resHint: { color: colors.muted, fontSize: 12, marginTop: 2 },
   catHead: { flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 20, borderWidth: 1, marginBottom: 12 },
   catHeadIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  subTitle: { color: colors.text, fontWeight: '900', fontSize: 17 },
+  subTitle: { color: colors.text, fontWeight: '800', fontSize: 17 },
   grid2: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingBottom: 12 },
   tile: {
     width: '48.5%',
     minHeight: 108,
     padding: 12,
     borderRadius: 18,
-    borderWidth: 1,
-    borderColor: colors.border,
     backgroundColor: '#FFFFFF',
     marginBottom: 10,
+    ...soft,
   },
   tileIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  tileTitle: { color: colors.text, fontWeight: '800', fontSize: 13.5, marginTop: 8 },
+  tileTitle: { color: colors.text, fontWeight: '700', fontSize: 13.5, marginTop: 8 },
   tileHint: { color: colors.muted, fontSize: 11, marginTop: 2, lineHeight: 15 },
 });

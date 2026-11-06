@@ -5,7 +5,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Keyboard
 import { Ionicons } from '@expo/vector-icons';
 import * as IntentLauncher from 'expo-intent-launcher';
 import { useStore } from '../store';
-import { colors } from '../theme';
+import { colors, soft } from '../theme';
 import { Photo } from './ui';
 import { searchAll } from '../search';
 
@@ -104,16 +104,16 @@ export function GlobalResults({ query, navigate, title = 'Encontrado no Realys',
 }
 
 const styles = StyleSheet.create({
-  bar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingLeft: 4, paddingRight: 4, minHeight: 48, marginBottom: 12 },
+  bar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, paddingLeft: 4, paddingRight: 4, minHeight: 48, marginBottom: 12, ...soft },
   icon: { padding: 8 },
   input: { flex: 1, color: colors.text, fontSize: 15, paddingVertical: 10 },
   mic: { width: 38, height: 38, borderRadius: 12, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center', marginLeft: 2 },
-  title: { fontSize: 15, fontWeight: '800', color: colors.text, marginBottom: 8 },
-  row: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 10, marginBottom: 8 },
+  title: { fontSize: 15, fontWeight: '700', color: colors.text, marginBottom: 8 },
+  row: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, padding: 10, marginBottom: 8, ...soft },
   photo: { width: 52, height: 52, borderRadius: 10 },
-  section: { color: colors.accent, fontSize: 11, fontWeight: '800' },
+  section: { color: colors.accent, fontSize: 11, fontWeight: '700' },
   name: { color: colors.text, fontWeight: '700' },
   sub: { color: colors.muted, fontSize: 12 },
-  price: { color: colors.primary, fontWeight: '800', fontSize: 12, marginTop: 2 },
+  price: { color: colors.primary, fontWeight: '700', fontSize: 12, marginTop: 2 },
   empty: { color: colors.muted, marginVertical: 10 },
 });

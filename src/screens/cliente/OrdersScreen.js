@@ -18,7 +18,7 @@ function CourierCard({ order: o }) {
     <View style={styles.courier}>
       <Photo uri={p && p.photo} style={styles.courierPhoto} fallback="🛵" />
       <View style={{ flex: 1, marginLeft: 10 }}>
-        <Text style={{ color: colors.text, fontWeight: '800' }}>🛵 {o.courier}{p ? ` · ★ ${String(p.rating).replace('.', ',')}` : ''}</Text>
+        <Text style={{ color: colors.text, fontWeight: '700' }}>🛵 {o.courier}{p ? ` · ★ ${String(p.rating).replace('.', ',')}` : ''}</Text>
         <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={2}>
           {p ? `${p.vehicle} · ${p.plate}` : 'Motoboy do Realys'}
           {o.requestedBy ? ` · chamado por ${o.requestedBy}` : ''}
@@ -47,7 +47,7 @@ function ServiceOrder({ r, onTrack }) {
   return (
     <Card>
       <Row style={{ justifyContent: 'space-between', marginBottom: 8 }}>
-        <Text style={{ color: colors.text, fontWeight: '800', flex: 1 }}>{r.icon || '🧑‍🔧'} {r.serviceLabel}</Text>
+        <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{r.icon || '🧑‍🔧'} {r.serviceLabel}</Text>
         <Badge label={status} color={r.done ? colors.success : r.when ? colors.primary : colors.accent} />
       </Row>
       <Row>
@@ -61,7 +61,7 @@ function ServiceOrder({ r, onTrack }) {
         </View>
       </Row>
       <Row style={{ justifyContent: 'space-between', marginTop: 10 }}>
-        <Text style={{ fontWeight: '800', color: colors.primary }}>{r.price ? brl(r.price) : ''}</Text>
+        <Text style={{ fontWeight: '700', color: colors.primary }}>{r.price ? brl(r.price) : ''}</Text>
         <Row>
           {!r.done ? <Button small variant="light" title="Acompanhar" onPress={onTrack} /> : null}
           {r.done && !r.rated ? <Button small title="Avaliar" onPress={() => dispatch({ type: 'OPEN_RATE', kind: 'servico', refId: r.id })} /> : null}
@@ -98,7 +98,7 @@ export default function OrdersScreen({ navigate }) {
         return (
           <Card key={o.id}>
             <Row style={{ justifyContent: 'space-between', marginBottom: 6 }}>
-              <Text style={{ color: colors.text, fontWeight: '800', flex: 1 }}>{o.store}</Text>
+              <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{o.store}</Text>
               <Badge label={o.status} color={o.status === 'Entregue' ? colors.success : colors.accent} />
             </Row>
             {o.items.map((i) => (
@@ -126,7 +126,7 @@ export default function OrdersScreen({ navigate }) {
             {o.courier ? <CourierCard order={o} /> : null}
             {o.promoOff ? <Text style={{ marginTop: 6, color: colors.success, fontSize: 12, fontWeight: '700' }}>🏷️ Crédito de parceiro usado: − {brl(o.promoOff)}</Text> : null}
             <Row style={{ justifyContent: 'space-between', marginTop: 10 }}>
-              <Text style={{ fontWeight: '800', color: colors.primary }}>{brl(o.total)}</Text>
+              <Text style={{ fontWeight: '700', color: colors.primary }}>{brl(o.total)}</Text>
               {o.status === 'Entregue' ? (
                 o.rated ? (
                   <Badge label="Avaliado ⭐" color={colors.success} />
@@ -151,9 +151,9 @@ export default function OrdersScreen({ navigate }) {
 }
 
 const styles = StyleSheet.create({
-  h2: { fontSize: 16, fontWeight: '800', color: colors.text, marginTop: 4, marginBottom: 8 },
+  h2: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: 4, marginBottom: 8 },
   courier: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, borderRadius: 14, padding: 10, marginTop: 10 },
   courierPhoto: { width: 44, height: 44, borderRadius: 22 },
   tipBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E2B649', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 7, borderWidth: 1, borderColor: '#E2B649', marginLeft: 8 },
-  tipText: { color: '#0B1124', fontWeight: '900', fontSize: 12, marginLeft: 4 },
+  tipText: { color: '#0B1124', fontWeight: '800', fontSize: 12, marginLeft: 4 },
 });

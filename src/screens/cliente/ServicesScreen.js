@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useStore, buildServiceCall, callReply, serviceType, priceText, detectService } from '../../store';
 import { SearchBar, GlobalResults } from '../../components/Search';
 import { serviceTypes } from '../../data';
-import { colors, brl } from '../../theme';
+import { colors, brl, soft } from '../../theme';
 import { Screen, Card, Row, Photo, Badge } from '../../components/ui';
 import { etaMin, mapPos, kmText, ratingText, reviewsCount } from '../../providerInfo';
 import ProviderProfile from './ProviderProfile';
@@ -20,19 +20,19 @@ export function ServiceCallCard({ call }) {
     <Card style={{ borderColor: colors.primary, borderWidth: 1.5 }}>
       <Row style={{ marginBottom: 8 }}>
         <Ionicons name={(serviceType(call.serviceKey) || {}).ion || 'navigate'} size={16} color={colors.primary} />
-        <Text style={{ fontWeight: '800', color: colors.primary, marginLeft: 6 }}>{call.status}</Text>
+        <Text style={{ fontWeight: '700', color: colors.primary, marginLeft: 6 }}>{call.status}</Text>
       </Row>
       <Row>
         <Photo uri={p.photo} style={styles.avatarSm} fallback="🧑" />
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={{ fontWeight: '700', color: colors.text }}>
-            {p.name} · <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {ratingText(p.rating)}</Text>
+            {p.name} · <Text style={{ color: colors.accent, fontWeight: '700' }}>★ {ratingText(p.rating)}</Text>
           </Text>
           <Text style={{ color: colors.muted, fontSize: 13 }}>
             {call.serviceLabel}
             {p.vehicle ? ` · ${p.vehicle}` : ''}
           </Text>
-          {p.plate ? <Text style={{ fontWeight: '800', letterSpacing: 1, color: colors.text }}>Placa {p.plate}</Text> : null}
+          {p.plate ? <Text style={{ fontWeight: '700', letterSpacing: 1, color: colors.text }}>Placa {p.plate}</Text> : null}
         </View>
       </Row>
       <Text style={{ color: colors.muted, marginTop: 10, fontSize: 13 }}>
@@ -380,10 +380,10 @@ export default function ServicesScreen({ explore, navigate }) {
           <View style={styles.quickRow}>
             <TouchableOpacity style={[styles.quickBtn, styles.quickGhost]} onPress={() => hire(nearestP)}>
               <Ionicons name="flash" size={16} color={colors.primary} />
-              <Text style={{ color: colors.primary, fontWeight: '800', marginLeft: 6 }}>Mais perto</Text>
+              <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 6 }}>Mais perto</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.quickBtn, styles.quickMain]} onPress={() => hire(sel)}>
-              <Text style={{ color: colors.onPrimary, fontWeight: '800' }} numberOfLines={1}>
+              <Text style={{ color: colors.onPrimary, fontWeight: '700' }} numberOfLines={1}>
                 {isVisit ? 'Pedir visita a' : 'Contratar'} {first(sel.name)}
               </Text>
             </TouchableOpacity>
@@ -496,7 +496,7 @@ function HowStep({ n, text }) {
   return (
     <Row style={{ alignItems: 'flex-start', marginTop: 6 }}>
       <View style={styles.howNum}>
-        <Text style={{ color: colors.onPrimary, fontWeight: '900', fontSize: 11 }}>{n}</Text>
+        <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 11 }}>{n}</Text>
       </View>
       <Text style={{ color: colors.text, fontSize: 13, flex: 1, lineHeight: 18 }}>{text}</Text>
     </Row>
@@ -508,31 +508,31 @@ const styles = StyleSheet.create({
   // Topo
   hero: { backgroundColor: NIGHT, borderRadius: 24, padding: 18, marginBottom: 14, overflow: 'hidden' },
   heroGlow: { position: 'absolute', right: -60, top: -60, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(226,182,73,0.18)' },
-  heroKicker: { color: colors.gold, fontSize: 11, fontWeight: '800', letterSpacing: 1.6 },
-  heroTitle: { color: '#FFFFFF', fontSize: 24, fontWeight: '900', marginTop: 6 },
+  heroKicker: { color: colors.gold, fontSize: 11, fontWeight: '700', letterSpacing: 1.6 },
+  heroTitle: { color: '#FFFFFF', fontSize: 24, fontWeight: '800', marginTop: 6 },
   heroSub: { color: 'rgba(255,255,255,0.72)', fontSize: 13, marginTop: 4 },
   heroStats: { flexDirection: 'row', marginTop: 14, marginHorizontal: -4 },
   heroStat: { flex: 1, marginHorizontal: 4, backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 14, paddingVertical: 10, paddingHorizontal: 10, borderWidth: 1, borderColor: 'rgba(226,182,73,0.25)' },
-  heroStatValue: { color: '#FFFFFF', fontWeight: '900', fontSize: 15, marginTop: 4 },
+  heroStatValue: { color: '#FFFFFF', fontWeight: '800', fontSize: 15, marginTop: 4 },
   heroStatLabel: { color: 'rgba(255,255,255,0.65)', fontSize: 11 },
   sectionHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10, marginTop: 4 },
-  sectionTitle: { color: colors.text, fontWeight: '900', fontSize: 17 },
+  sectionTitle: { color: colors.text, fontWeight: '800', fontSize: 17 },
   sectionRight: { color: colors.muted, fontSize: 12, fontWeight: '600' },
   // Categorias
   groupPill: { flexDirection: 'row', alignItems: 'center', height: 36, paddingHorizontal: 13, borderRadius: 18, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, marginRight: 8 },
   groupPillOn: { backgroundColor: NIGHT, borderColor: NIGHT },
   groupText: { color: colors.text, fontWeight: '700', fontSize: 13, marginLeft: 6 },
   typeGrid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -4, marginBottom: 10 },
-  typeTile: { width: '23%', marginHorizontal: '1%', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 4, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, marginBottom: 8 },
+  typeTile: { width: '23%', marginHorizontal: '1%', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 4, borderRadius: 16, backgroundColor: colors.card, marginBottom: 8, ...soft },
   typeTileOn: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
   typeIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(168,121,10,0.1)', alignItems: 'center', justifyContent: 'center' },
   typeLabel: { color: colors.text, fontWeight: '700', fontSize: 11.5, textAlign: 'center', marginTop: 6, lineHeight: 14 },
   typeCount: { color: colors.muted, fontSize: 10, marginTop: 2 },
   // Endereço e mapa
-  whereCard: { backgroundColor: colors.card, borderRadius: 22, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 12 },
+  whereCard: { backgroundColor: colors.card, borderRadius: 22, padding: 12, marginBottom: 12, ...soft },
   addrInput: { flex: 1, color: colors.text, fontSize: 14, marginLeft: 8, paddingVertical: 6 },
   mapToggle: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
-  map: { height: 180, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: '#FFFFFF', overflow: 'hidden', marginTop: 10 },
+  map: { height: 180, borderRadius: 16, backgroundColor: '#FFFFFF', overflow: 'hidden', marginTop: 10, ...soft },
   gridV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(168,121,10,0.06)' },
   gridH: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: 'rgba(168,121,10,0.06)' },
   road: { position: 'absolute', left: -30, right: -30, height: 10, backgroundColor: '#F5EFE2' },
@@ -541,7 +541,7 @@ const styles = StyleSheet.create({
   meDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#6C5CE7', borderWidth: 2, borderColor: colors.bg },
   pin: { position: 'absolute', marginLeft: -15, marginTop: -15, width: 30, height: 30, borderRadius: 15, backgroundColor: colors.card, borderWidth: 1.5, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   pinOn: { width: 38, height: 38, borderRadius: 19, marginLeft: -19, marginTop: -19, backgroundColor: colors.primary, borderColor: '#FFFFFF', borderWidth: 2, shadowColor: colors.primary, shadowOpacity: 0.8, shadowRadius: 12, elevation: 8 },
-  pinText: { color: colors.primary, fontWeight: '800', fontSize: 12 },
+  pinText: { color: colors.primary, fontWeight: '700', fontSize: 12 },
   mapLabel: { position: 'absolute', left: 10, bottom: 10, color: colors.text, fontSize: 11, backgroundColor: 'rgba(255,255,255,0.92)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, overflow: 'hidden' },
   quickRow: { flexDirection: 'row', marginTop: 10 },
   quickBtn: { flex: 1, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
@@ -550,30 +550,30 @@ const styles = StyleSheet.create({
   // Acompanhando
   activeCall: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 16, borderWidth: 1, borderColor: colors.primary, backgroundColor: colors.card, marginBottom: 10 },
   activeIcon: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
-  activeTitle: { color: colors.text, fontWeight: '800' },
+  activeTitle: { color: colors.text, fontWeight: '700' },
   activeSub: { color: colors.muted, fontSize: 12, marginTop: 1 },
   // Como funciona
   howBox: { backgroundColor: colors.primaryLight, borderRadius: 16, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: 'rgba(168,121,10,0.25)' },
-  howTitle: { color: colors.text, fontWeight: '800', fontSize: 13, marginLeft: 8, flex: 1 },
+  howTitle: { color: colors.text, fontWeight: '700', fontSize: 13, marginLeft: 8, flex: 1 },
   howNum: { width: 20, height: 20, borderRadius: 10, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginRight: 8, marginTop: -1 },
   // Lista
   segment: { flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 14, padding: 4, marginBottom: 12 },
   segBtn: { flex: 1, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
   segBtnOn: { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 4, elevation: 1 },
-  segText: { color: colors.muted, fontWeight: '800', fontSize: 12, marginLeft: 4 },
-  listLabel: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1.4, marginBottom: 8, marginTop: 2 },
+  segText: { color: colors.muted, fontWeight: '700', fontSize: 12, marginLeft: 4 },
+  listLabel: { color: colors.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1.4, marginBottom: 8, marginTop: 2 },
   empty: { alignItems: 'center', padding: 24, borderRadius: 18, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.border, marginBottom: 12 },
-  pCard: { backgroundColor: colors.card, borderRadius: 22, borderWidth: 1, borderColor: colors.border, padding: 14, marginBottom: 12 },
+  pCard: { backgroundColor: colors.card, borderRadius: 22, padding: 14, marginBottom: 12, ...soft },
   pCardOn: { borderColor: colors.primary, borderWidth: 1.5 },
   pCardSponsored: { borderColor: 'rgba(108,92,231,0.45)', backgroundColor: '#FBFAFF' },
   avatar: { width: 60, height: 60, borderRadius: 20 },
   numDot: { position: 'absolute', right: -6, bottom: -6, minWidth: 24, height: 24, borderRadius: 12, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
-  numText: { color: colors.primary, fontWeight: '900', fontSize: 11 },
-  pName: { color: colors.text, fontWeight: '800', fontSize: 16, flexShrink: 1 },
+  numText: { color: colors.primary, fontWeight: '800', fontSize: 11 },
+  pName: { color: colors.text, fontWeight: '700', fontSize: 16, flexShrink: 1 },
   pMeta: { color: colors.muted, fontSize: 12, marginTop: 3 },
-  pPrice: { color: colors.primary, fontWeight: '800', fontSize: 13, marginTop: 3 },
+  pPrice: { color: colors.primary, fontWeight: '700', fontSize: 13, marginTop: 3 },
   rating: { flexDirection: 'row', alignItems: 'center', backgroundColor: NIGHT, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, marginLeft: 8 },
-  ratingText: { color: '#FFFFFF', fontWeight: '900', fontSize: 12, marginLeft: 3 },
+  ratingText: { color: '#FFFFFF', fontWeight: '800', fontSize: 12, marginLeft: 3 },
   badges: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
   pFunc: { color: colors.text, fontSize: 12.5, marginTop: 8 },
   statsRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 },
@@ -581,7 +581,7 @@ const styles = StyleSheet.create({
   miniStatText: { color: colors.muted, fontSize: 11, marginLeft: 4, fontWeight: '600' },
   actions: { flexDirection: 'row', marginTop: 12 },
   actMain: { flex: 1, height: 46, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', paddingHorizontal: 10 },
-  actMainText: { color: colors.onPrimary, fontWeight: '900', fontSize: 14, marginLeft: 6 },
+  actMainText: { color: colors.onPrimary, fontWeight: '800', fontSize: 14, marginLeft: 6 },
   iconBtn: { width: 46, height: 46, borderRadius: 14, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', marginLeft: 8, backgroundColor: '#FFFFFF' },
   // Voz
   voiceTip: { flexDirection: 'row', alignItems: 'center', backgroundColor: NIGHT, borderRadius: 18, padding: 12, marginTop: 4 },

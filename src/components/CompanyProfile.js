@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert } fr
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
-import { colors, brl } from '../theme';
+import { colors, brl, soft } from '../theme';
 import { Photo, ProductThumb, Badge, Row } from './ui';
 import { artists, artMedia, companyPages } from '../extraData';
 import { MY_COMPANY_ID } from '../data';
@@ -171,7 +171,7 @@ export function CompanyProfileModal() {
           </View>
           <Text style={styles.name}>{p.name}</Text>
           <Text style={styles.sub}>
-            {isArtist ? 'Artista' : 'Empresa'} · {p.category} · {p.city} · <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {p.rating}</Text>
+            {isArtist ? 'Artista' : 'Empresa'} · {p.category} · {p.city} · <Text style={{ color: colors.accent, fontWeight: '700' }}>★ {p.rating}</Text>
           </Text>
           <Row style={{ marginTop: 8, flexWrap: 'wrap' }}>
             {p.verified ? <Badge label={isArtist ? 'Artista verificado' : 'CNPJ verificado'} /> : null}
@@ -209,7 +209,7 @@ export function CompanyProfileModal() {
                   <View key={x.id} style={styles.pCard}>
                     <ProductThumb product={x} size={84} />
                     <Text style={styles.title} numberOfLines={2}>{x.name}</Text>
-                    <Text style={{ color: colors.primary, fontWeight: '800', marginVertical: 4 }}>{brl(x.price)}</Text>
+                    <Text style={{ color: colors.primary, fontWeight: '700', marginVertical: 4 }}>{brl(x.price)}</Text>
                     {x.stock > 0 ? (
                       <TouchableOpacity style={styles.addBtn} onPress={() => add(x.id)}>
                         <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 12 }}>+ Carrinho</Text>
@@ -252,22 +252,22 @@ export function CompanyProfileModal() {
 const styles = StyleSheet.create({
   back: { position: 'absolute', left: 14, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   logo: { width: 76, height: 76, borderRadius: 22, backgroundColor: '#FFFFFF', borderWidth: 2, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center', marginTop: -38 },
-  name: { fontSize: 22, fontWeight: '800', color: colors.text, marginTop: 8 },
+  name: { fontSize: 22, fontWeight: '700', color: colors.text, marginTop: 8 },
   sub: { color: colors.muted, fontSize: 12, marginTop: 2 },
   bio: { color: colors.text, marginTop: 10, lineHeight: 20 },
   btn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 10, borderWidth: 1, borderColor: colors.primary },
   btnOff: { backgroundColor: '#FFFFFF' },
-  btnText: { color: '#FFFFFF', fontWeight: '800', marginLeft: 6 },
+  btnText: { color: '#FFFFFF', fontWeight: '700', marginLeft: 6 },
   tabs: { marginTop: 16, marginBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.border },
   tab: { flex: 1, alignItems: 'center', paddingVertical: 10, borderBottomWidth: 2, borderBottomColor: 'transparent' },
   tabOn: { borderBottomColor: colors.primary },
   tabText: { fontWeight: '700', color: colors.muted, fontSize: 13 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  pCard: { width: '48.5%', backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 10, marginBottom: 10, alignItems: 'center' },
+  pCard: { width: '48.5%', backgroundColor: '#FFFFFF', borderRadius: 14, padding: 10, marginBottom: 10, alignItems: 'center', ...soft },
   addBtn: { backgroundColor: colors.primary, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 6 },
-  post: { backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: colors.border, marginBottom: 12, overflow: 'hidden' },
+  post: { backgroundColor: '#FFFFFF', borderRadius: 14, marginBottom: 12, overflow: 'hidden', ...soft },
   empty: { color: colors.muted, textAlign: 'center', marginVertical: 20 },
-  row: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 10, marginBottom: 8 },
+  row: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, padding: 10, marginBottom: 8, ...soft },
   cover: { width: 56, height: 56, borderRadius: 10 },
   art: { width: 72, height: 72, borderRadius: 8 },
   playDot: { position: 'absolute', right: -4, bottom: -4, width: 24, height: 24, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFFFFF' },
@@ -275,8 +275,8 @@ const styles = StyleSheet.create({
   track: { height: 4, borderRadius: 2, backgroundColor: colors.border, marginTop: 6, overflow: 'hidden' },
   trackFill: { height: 4, backgroundColor: colors.primary },
   buy: { backgroundColor: colors.primaryLight, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, marginLeft: 8 },
-  buyText: { color: colors.primaryDark, fontWeight: '800', fontSize: 12 },
-  videoCard: { backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: colors.border, marginBottom: 10, overflow: 'hidden' },
+  buyText: { color: colors.primaryDark, fontWeight: '700', fontSize: 12 },
+  videoCard: { backgroundColor: '#FFFFFF', borderRadius: 14, marginBottom: 10, overflow: 'hidden', ...soft },
   video: { width: '100%', height: 180 },
   videoOverlay: { position: 'absolute', top: 0, left: 0, right: 0, height: 180, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(31,42,68,0.25)' },
   videoBar: { position: 'absolute', top: 177, left: 0, height: 3, backgroundColor: colors.primary },

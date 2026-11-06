@@ -6,7 +6,7 @@ import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, TextInput,
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
-import { colors, brl } from '../theme';
+import { colors, brl, soft } from '../theme';
 import { Photo } from './ui';
 import { members } from '../people';
 import { serviceTypes, MY_COMPANY_ID } from '../data';
@@ -95,7 +95,7 @@ export default function GiftSheet() {
                 </View>
                 {!open.to ? (
                   <TouchableOpacity onPress={() => setTo(null)}>
-                    <Text style={{ color: colors.primary, fontWeight: '800' }}>Trocar</Text>
+                    <Text style={{ color: colors.primary, fontWeight: '700' }}>Trocar</Text>
                   </TouchableOpacity>
                 ) : null}
               </View>
@@ -171,24 +171,24 @@ function Row({ label, value, strong }) {
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 2 }}>
       <Text style={{ color: strong ? '#FFFFFF' : 'rgba(255,255,255,0.75)', fontWeight: strong ? '900' : '600' }}>{label}</Text>
-      <Text style={{ color: strong ? colors.gold : '#FFFFFF', fontWeight: '900' }}>{value}</Text>
+      <Text style={{ color: strong ? colors.gold : '#FFFFFF', fontWeight: '800' }}>{value}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(16,22,40,0.45)' },
-  sheet: { backgroundColor: '#FFFDF8', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 18, paddingTop: 8, maxHeight: '90%', borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
+  sheet: { backgroundColor: '#FFFDF8', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 18, paddingTop: 8, maxHeight: '90%' },
   grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: 10 },
   head: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
   giftIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: NIGHT, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.gold },
-  title: { fontSize: 18, fontWeight: '900', color: colors.text },
+  title: { fontSize: 18, fontWeight: '800', color: colors.text },
   sub: { color: colors.muted, fontSize: 12, marginTop: 1 },
   closeBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cardAlt },
-  label: { color: colors.muted, fontSize: 11, fontWeight: '900', letterSpacing: 1.2, textTransform: 'uppercase', marginTop: 14, marginBottom: 8 },
-  toCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 10 },
+  label: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1.2, textTransform: 'uppercase', marginTop: 14, marginBottom: 8 },
+  toCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 10, ...soft },
   avatar: { width: 44, height: 44, borderRadius: 22 },
-  name: { fontWeight: '800', color: colors.text },
+  name: { fontWeight: '700', color: colors.text },
   pick: { width: 76, alignItems: 'center', marginRight: 8 },
   pickPhoto: { width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: colors.gold },
   pickName: { color: colors.text, fontWeight: '700', fontSize: 12, marginTop: 4 },
@@ -198,12 +198,12 @@ const styles = StyleSheet.create({
   chipText: { color: colors.primaryDark, fontWeight: '700', fontSize: 12 },
   amount: { minWidth: 72, alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)', marginRight: 6, marginBottom: 6, backgroundColor: '#FFFFFF' },
   amountOn: { backgroundColor: colors.gold, borderColor: colors.gold },
-  amountText: { color: colors.primaryDark, fontWeight: '900' },
-  otherInput: { minWidth: 110, color: colors.text, fontWeight: '800', textAlign: 'center' },
+  amountText: { color: colors.primaryDark, fontWeight: '800' },
+  otherInput: { minWidth: 110, color: colors.text, fontWeight: '700', textAlign: 'center' },
   message: { borderWidth: 1, borderColor: colors.border, borderRadius: 14, padding: 10, minHeight: 56, color: colors.text, backgroundColor: '#FFFFFF', marginTop: 4, textAlignVertical: 'top' },
   summary: { backgroundColor: NIGHT, borderRadius: 18, padding: 14, marginTop: 14, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
   sumLine: { height: 1, backgroundColor: 'rgba(255,255,255,0.15)', marginVertical: 6 },
   note: { color: 'rgba(255,255,255,0.7)', fontSize: 11, marginTop: 8, lineHeight: 16 },
   sendBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 16, paddingVertical: 14, marginTop: 14 },
-  sendText: { color: NIGHT, fontWeight: '900', marginLeft: 8, fontSize: 15 },
+  sendText: { color: NIGHT, fontWeight: '800', marginLeft: 8, fontSize: 15 },
 });

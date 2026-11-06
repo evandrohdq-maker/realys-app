@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Alert, StyleSheet } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
 import { MY_SUPPLIER_ID } from '../../data';
-import { colors, brl } from '../../theme';
+import { colors, brl, soft } from '../../theme';
 import { Screen, Title, Card, Row, Button, Input, Badge, Section, Stat, Empty } from '../../components/ui';
 import { STATUS_COLOR } from '../empresa/B2BScreen';
 
@@ -145,7 +145,7 @@ function SendOffer({ items, onSent }) {
                 <Text numberOfLines={2} style={{ color: colors.text, fontWeight: '700', fontSize: 12, marginTop: 4 }}>
                   {i.name}
                 </Text>
-                <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 12, marginTop: 2 }}>{brl(i.unitPrice)}/un.</Text>
+                <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 12, marginTop: 2 }}>{brl(i.unitPrice)}/un.</Text>
               </TouchableOpacity>
             );
           })}
@@ -170,7 +170,7 @@ function SendOffer({ items, onSent }) {
               <View style={{ flex: 1 }}>
                 <Text style={{ color: colors.text, fontWeight: '700' }}>{c.name}</Text>
                 <Text style={{ color: colors.muted, fontSize: 12 }}>
-                  {c.category} · {c.city} · <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {c.rating}</Text>
+                  {c.category} · {c.city} · <Text style={{ color: colors.accent, fontWeight: '700' }}>★ {c.rating}</Text>
                 </Text>
               </View>
               <Ionicons name={on ? 'checkbox' : 'square-outline'} size={22} color={on ? colors.primary : colors.muted} />
@@ -197,11 +197,11 @@ function SendOffer({ items, onSent }) {
 
       {item ? (
         <Card style={{ backgroundColor: colors.primaryLight, borderColor: 'rgba(226,182,73,0.6)' }}>
-          <Text style={{ color: colors.primaryDark, fontWeight: '800' }}>Resumo</Text>
+          <Text style={{ color: colors.primaryDark, fontWeight: '700' }}>Resumo</Text>
           <Text style={{ color: colors.text, marginTop: 4 }}>
             {q}× {item.name} por {brl(unit)}/un.{d ? ` (${d}% off)` : ''}
           </Text>
-          <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16, marginTop: 2 }}>
+          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 16, marginTop: 2 }}>
             {brl(q * unit)} por empresa{chosen.length > 1 ? ` · ${chosen.length} empresas` : ''}
           </Text>
         </Card>
@@ -298,7 +298,7 @@ function MyProducts({ items }) {
 
       {adding ? (
         <Card>
-          <Text style={{ color: colors.text, fontWeight: '800', marginBottom: 8 }}>Novo produto</Text>
+          <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 8 }}>Novo produto</Text>
           <Input placeholder="Nome (ex.: Açúcar Refinado 1kg)" value={name} onChangeText={setName} />
           <Row>
             <Input placeholder="Preço por unidade" keyboardType="decimal-pad" value={price} onChangeText={setPrice} style={{ flex: 1, marginRight: 6 }} />
@@ -326,7 +326,7 @@ function MyProducts({ items }) {
             <Text style={{ fontSize: 28, marginRight: 10 }}>{i.emoji}</Text>
             <View style={{ flex: 1 }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>{i.name}</Text>
-              <Text style={{ color: colors.primary, fontWeight: '800' }}>
+              <Text style={{ color: colors.primary, fontWeight: '700' }}>
                 {brl(i.unitPrice)} /un. · mín. {i.minQty}
               </Text>
               {i.tiers.length ? <Text style={{ fontSize: 11, color: colors.muted }}>{i.tiers.map((t) => `${t.off}% acima de ${t.qty}`).join(' · ')}</Text> : null}
@@ -337,7 +337,7 @@ function MyProducts({ items }) {
               accessibilityLabel={i.featured ? 'Tirar do destaque' : 'Destacar produto'}
             >
               <Ionicons name={i.featured ? 'star' : 'star-outline'} size={16} color={i.featured ? colors.onPrimary : colors.primary} />
-              <Text style={{ color: i.featured ? colors.onPrimary : colors.primary, fontSize: 11, fontWeight: '800', marginLeft: 4 }}>
+              <Text style={{ color: i.featured ? colors.onPrimary : colors.primary, fontSize: 11, fontWeight: '700', marginLeft: 4 }}>
                 {i.featured ? 'Destaque' : 'Destacar'}
               </Text>
             </TouchableOpacity>
@@ -362,17 +362,16 @@ const styles = StyleSheet.create({
   },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipText: { color: colors.text, fontWeight: '600', fontSize: 12, marginLeft: 6 },
-  prod: { width: 118, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, padding: 10, marginRight: 8 },
+  prod: { width: 118, borderRadius: 16, backgroundColor: colors.card, padding: 10, marginRight: 8, ...soft },
   prodOn: { borderColor: colors.primary, borderWidth: 2, backgroundColor: colors.primaryLight },
   company: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.card,
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
     padding: 12,
     marginBottom: 8,
+    ...soft,
   },
   companyOn: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
   small: { height: 32, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', marginRight: 6, marginBottom: 6 },

@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
-import { colors } from '../theme';
+import { colors, soft } from '../theme';
 import { Photo } from './ui';
 
 // ---------- Ícone futurista: núcleo com brilho, anel e um ponto em órbita ----------
@@ -164,7 +164,7 @@ export function ProfileEditor({ visible, onClose }) {
           </TouchableOpacity>
           <Text style={styles.modalTitle}>Editar perfil</Text>
           <TouchableOpacity onPress={save} style={styles.saveBtn} accessibilityLabel="Salvar perfil">
-            <Text style={{ color: colors.onPrimary, fontWeight: '900' }}>Salvar</Text>
+            <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Salvar</Text>
           </TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 + insets.bottom }} keyboardShouldPersistTaps="handled">
@@ -177,12 +177,12 @@ export function ProfileEditor({ visible, onClose }) {
             accessibilityLabel="Trocar foto do perfil"
           >
             <View style={styles.avatarRing}>
-              {f.photo ? <Photo uri={f.photo} style={styles.avatar} /> : <Text style={{ fontSize: 36, fontWeight: '900', color: colors.primary }}>{(state.user.name || '?')[0]}</Text>}
+              {f.photo ? <Photo uri={f.photo} style={styles.avatar} /> : <Text style={{ fontSize: 36, fontWeight: '800', color: colors.primary }}>{(state.user.name || '?')[0]}</Text>}
               <View style={styles.camBadge}>
                 <Ionicons name="camera" size={14} color="#FFFFFF" />
               </View>
             </View>
-            <Text style={{ color: colors.primary, fontWeight: '800', marginTop: 8 }}>Trocar foto</Text>
+            <Text style={{ color: colors.primary, fontWeight: '700', marginTop: 8 }}>Trocar foto</Text>
           </TouchableOpacity>
 
           <Text style={styles.label}>Nome</Text>
@@ -291,7 +291,7 @@ function CreationComposer({ visible, kind, onClose }) {
           </TouchableOpacity>
           <Text style={styles.modalTitle}>Nova {k.label.toLowerCase()}</Text>
           <TouchableOpacity onPress={save} style={styles.saveBtn} accessibilityLabel="Publicar">
-            <Text style={{ color: colors.onPrimary, fontWeight: '900' }}>Publicar</Text>
+            <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Publicar</Text>
           </TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 + insets.bottom }} keyboardShouldPersistTaps="handled">
@@ -301,7 +301,7 @@ function CreationComposer({ visible, kind, onClose }) {
             ) : (
               <View style={{ alignItems: 'center' }}>
                 <FutureIcon name={media ? 'checkmark' : k.icon} size={56} active={!!media} spin />
-                <Text style={{ color: colors.text, fontWeight: '800', marginTop: 10 }}>{media ? media.name : kind === 'musica' ? 'Escolher a faixa' : kind === 'video' ? 'Escolher o vídeo' : 'Escolher a imagem'}</Text>
+                <Text style={{ color: colors.text, fontWeight: '700', marginTop: 10 }}>{media ? media.name : kind === 'musica' ? 'Escolher a faixa' : kind === 'video' ? 'Escolher o vídeo' : 'Escolher a imagem'}</Text>
                 <Text style={styles.small}>{k.hint}</Text>
               </View>
             )}
@@ -468,20 +468,20 @@ export function LockedPanel({ name, audience, exposed }) {
 }
 
 const styles = StyleSheet.create({
-  h3: { color: colors.text, fontWeight: '800', fontSize: 15 },
+  h3: { color: colors.text, fontWeight: '700', fontSize: 15 },
   small: { color: colors.muted, fontSize: 12, lineHeight: 17, marginBottom: 4 },
-  label: { color: colors.text, fontWeight: '800', marginTop: 14, marginBottom: 6 },
+  label: { color: colors.text, fontWeight: '700', marginTop: 14, marginBottom: 6 },
   input: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingHorizontal: 14, height: 48, color: colors.text, fontSize: 15 },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: 20 },
 
   exposeRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFDF6', borderRadius: 18, borderWidth: 1, borderColor: 'rgba(226,182,73,0.5)', padding: 12, marginBottom: 6 },
   audRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-  aud: { flex: 1, alignItems: 'center', paddingVertical: 10, marginHorizontal: 3, borderRadius: 18, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card },
+  aud: { flex: 1, alignItems: 'center', paddingVertical: 10, marginHorizontal: 3, borderRadius: 18, backgroundColor: colors.card, ...soft },
   audOn: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
-  audLabel: { color: colors.text, fontWeight: '800', fontSize: 12, marginTop: 4 },
+  audLabel: { color: colors.text, fontWeight: '700', fontSize: 12, marginTop: 4 },
 
   modalHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
-  modalTitle: { color: colors.text, fontWeight: '900', fontSize: 18 },
+  modalTitle: { color: colors.text, fontWeight: '800', fontSize: 18 },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
   saveBtn: { height: 38, borderRadius: 19, paddingHorizontal: 16, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   avatarRing: { width: 104, height: 104, borderRadius: 52, borderWidth: 3, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primaryLight },
@@ -489,20 +489,20 @@ const styles = StyleSheet.create({
   camBadge: { position: 'absolute', bottom: 2, right: 2, width: 28, height: 28, borderRadius: 14, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFFFFF' },
 
   createTile: { width: 82, alignItems: 'center', marginRight: 6 },
-  createLabel: { color: colors.text, fontWeight: '800', fontSize: 12, marginTop: 4 },
+  createLabel: { color: colors.text, fontWeight: '700', fontSize: 12, marginTop: 4 },
   filter: { height: 32, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, justifyContent: 'center', marginRight: 8 },
   filterOn: { backgroundColor: colors.text, borderColor: colors.text },
   filterTxt: { color: colors.text, fontWeight: '700', fontSize: 12 },
-  card: { backgroundColor: colors.card, borderRadius: 18, borderWidth: 1, borderColor: colors.border, padding: 10, marginBottom: 10 },
+  card: { backgroundColor: colors.card, borderRadius: 18, padding: 10, marginBottom: 10, ...soft },
   cover: { width: 72, height: 72, borderRadius: 14, overflow: 'hidden', backgroundColor: colors.cardAlt },
   coverTag: { position: 'absolute', left: 5, bottom: 5, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(31,42,68,0.7)', alignItems: 'center', justifyContent: 'center' },
-  kTag: { color: colors.accent, fontSize: 10, fontWeight: '900', letterSpacing: 1.2 },
+  kTag: { color: colors.accent, fontSize: 10, fontWeight: '800', letterSpacing: 1.2 },
   chip: { flexDirection: 'row', alignItems: 'center', height: 30, paddingHorizontal: 10, borderRadius: 15, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)', backgroundColor: colors.primaryLight, marginRight: 6 },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipTxt: { color: colors.primaryDark, fontWeight: '800', fontSize: 12, marginLeft: 4 },
+  chipTxt: { color: colors.primaryDark, fontWeight: '700', fontSize: 12, marginLeft: 4 },
   empty: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: 14, padding: 12, marginTop: 8 },
   drop: { height: 200, borderRadius: 22, borderWidth: 1.5, borderStyle: 'dashed', borderColor: 'rgba(168,121,10,0.5)', backgroundColor: '#FFFDF6', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  destRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 18, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, padding: 10, marginTop: 8 },
+  destRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 18, backgroundColor: colors.card, padding: 10, marginTop: 8, ...soft },
   destOn: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
   locked: { alignItems: 'center', backgroundColor: '#FFFDF6', borderRadius: 22, borderWidth: 1, borderColor: 'rgba(226,182,73,0.5)', padding: 22, marginTop: 14 },
 });

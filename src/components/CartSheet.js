@@ -6,7 +6,7 @@ import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert } fr
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore, cartTotal, storeOf } from '../store';
-import { colors, brl } from '../theme';
+import { colors, brl, soft } from '../theme';
 import { ProductThumb } from './ui';
 import { promoDiscount } from '../rewards';
 
@@ -100,7 +100,7 @@ export default function CartSheet({ onOrders }) {
                   <Text style={styles.sumValue}>{brl(fromWallet)}</Text>
                 </View>
                 <View style={[styles.sumRow, { marginTop: 4 }]}>
-                  <Text style={[styles.sumLabel, { color: '#FFFFFF', fontWeight: '900' }]}>Total</Text>
+                  <Text style={[styles.sumLabel, { color: '#FFFFFF', fontWeight: '800' }]}>Total</Text>
                   <Text style={[styles.sumValue, { color: colors.gold, fontSize: 17 }]}>{brl(total)}</Text>
                 </View>
               </View>
@@ -125,7 +125,7 @@ export function CartIcon({ style }) {
   if (!count) return null;
   return (
     <TouchableOpacity onPress={() => dispatch({ type: 'OPEN_CART' })} style={style} accessibilityLabel={`Abrir carrinho, ${count} itens`}>
-      <Ionicons name="bag-handle-outline" size={19} color={colors.text} />
+      <Ionicons name="bag-handle-outline" size={21} color={colors.text} />
       <View style={styles.badge}>
         <Text style={styles.badgeText}>{count > 9 ? '9+' : count}</Text>
       </View>
@@ -135,25 +135,25 @@ export function CartIcon({ style }) {
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(16,22,40,0.4)' },
-  sheet: { backgroundColor: '#FFFDF8', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 16, paddingTop: 8, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
+  sheet: { backgroundColor: '#FFFDF8', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 16, paddingTop: 8 },
   grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: 10 },
   head: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   icon: { width: 36, height: 36, borderRadius: 18, backgroundColor: NIGHT, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 17, fontWeight: '900', color: colors.text },
+  title: { fontSize: 17, fontWeight: '800', color: colors.text },
   sub: { color: colors.muted, fontSize: 12 },
   closeBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cardAlt },
   line: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
-  name: { fontWeight: '800', color: colors.text },
-  price: { color: colors.primary, fontWeight: '900', marginTop: 1 },
-  qty: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: 12, backgroundColor: '#FFFFFF' },
+  name: { fontWeight: '700', color: colors.text },
+  price: { color: colors.primary, fontWeight: '800', marginTop: 1 },
+  qty: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, backgroundColor: '#FFFFFF', ...soft },
   qBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  qNum: { minWidth: 18, textAlign: 'center', fontWeight: '900', color: colors.text },
+  qNum: { minWidth: 18, textAlign: 'center', fontWeight: '800', color: colors.text },
   sum: { backgroundColor: NIGHT, borderRadius: 16, padding: 12, marginTop: 10 },
   sumRow: { flexDirection: 'row', justifyContent: 'space-between', marginVertical: 2 },
   sumLabel: { color: 'rgba(255,255,255,0.75)', fontWeight: '600', fontSize: 13 },
-  sumValue: { color: '#FFFFFF', fontWeight: '900' },
+  sumValue: { color: '#FFFFFF', fontWeight: '800' },
   payBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 14, paddingVertical: 13, marginTop: 10 },
-  payText: { color: NIGHT, fontWeight: '900', marginLeft: 6, fontSize: 15 },
+  payText: { color: NIGHT, fontWeight: '800', marginLeft: 6, fontSize: 15 },
   badge: { position: 'absolute', top: 4, right: 3, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3, borderWidth: 1.5, borderColor: '#FFFDF8' },
-  badgeText: { color: NIGHT, fontSize: 9, fontWeight: '900' },
+  badgeText: { color: NIGHT, fontSize: 9, fontWeight: '800' },
 });

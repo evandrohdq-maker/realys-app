@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
-import { colors } from '../theme';
+import { colors, soft } from '../theme';
 import { Photo } from '../components/ui';
 import { checkText } from '../lm/factCheck';
 import { stories, contacts } from '../homeData';
@@ -83,7 +83,7 @@ export default function StoriesScreen({ navigate, explore }) {
               <Photo uri={myPhoto} style={styles.meImg} fallback="🙂" />
             ) : (
               <View style={[styles.meImg, { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }]}>
-                <Text style={{ color: colors.onPrimary, fontWeight: '900', fontSize: 18 }}>{userName.charAt(0).toUpperCase()}</Text>
+                <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 18 }}>{userName.charAt(0).toUpperCase()}</Text>
               </View>
             )}
             <View style={styles.mePlus}>
@@ -100,7 +100,7 @@ export default function StoriesScreen({ navigate, explore }) {
             const isSeen = !!seen[g.id];
             return (
               <TouchableOpacity key={g.id} style={styles.item} onPress={() => open(g)} activeOpacity={0.85} accessibilityLabel={`Story de ${g.name}`}>
-                <View style={[styles.ring, { borderColor: isSeen ? colors.border : g.sponsored ? colors.sponsored : colors.gold, borderWidth: isSeen ? 1.5 : 3 }]}>
+                <View style={[styles.ring, { borderColor: isSeen ? colors.border : g.sponsored ? colors.sponsored : colors.gold, borderWidth: isSeen ? 1.5 : 2.5 }]}>
                   <Photo uri={g.avatar} style={styles.avatar} fallback="🙂" />
                 </View>
                 <Text numberOfLines={1} style={[styles.name, isSeen && { color: colors.muted }]}>
@@ -182,7 +182,7 @@ function AddSheet({ visible, onClose, onPick }) {
                 <Ionicons name={icon} size={22} color={colors.primary} />
               </View>
               <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>{title}</Text>
+                <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{title}</Text>
                 <Text style={{ color: colors.muted, fontSize: 12 }}>{hint}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.muted} />
@@ -228,7 +228,7 @@ function PostComposer({ visible, onClose, onPublish }) {
             onPress={() => onPublish({ id: 'n' + Date.now(), text: text.trim(), image, likes: 0, comments: 0, time: 'agora' })}
             style={[styles.publishBtn, !ok && { opacity: 0.4 }]}
           >
-            <Text style={{ color: colors.onPrimary, fontWeight: '900' }}>Publicar</Text>
+            <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Publicar</Text>
           </TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
@@ -251,7 +251,7 @@ function PostComposer({ visible, onClose, onPublish }) {
           ) : null}
           <TouchableOpacity style={styles.photoBtn} onPress={pick}>
             <Ionicons name="image-outline" size={18} color={colors.primary} />
-            <Text style={{ color: colors.primary, fontWeight: '800', marginLeft: 8 }}>{image ? 'Trocar foto' : 'Adicionar foto'}</Text>
+            <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>{image ? 'Trocar foto' : 'Adicionar foto'}</Text>
           </TouchableOpacity>
           <Text style={{ color: colors.muted, fontSize: 11, marginTop: 10 }}>Só pessoas verificadas por biometria veem e comentam.</Text>
         </ScrollView>
@@ -276,7 +276,7 @@ function Grid({ title, groups, onOpen, seen }) {
               </View>
               {g.sponsored ? (
                 <View style={styles.sponsored}>
-                  <Text style={{ color: '#fff', fontSize: 9, fontWeight: '800' }}>PATROCINADO</Text>
+                  <Text style={{ color: '#fff', fontSize: 9, fontWeight: '700' }}>PATROCINADO</Text>
                 </View>
               ) : null}
               <View style={styles.cardFoot}>
@@ -305,17 +305,17 @@ const styles = StyleSheet.create({
   plusBtn: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginLeft: 10, elevation: 3, shadowColor: colors.primary, shadowOpacity: 0.35, shadowRadius: 6, shadowOffset: { width: 0, height: 2 } },
   backdrop: { flex: 1, backgroundColor: 'rgba(31,42,68,0.35)', justifyContent: 'flex-end' },
   sheet: { backgroundColor: colors.bg, borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 16 },
-  sheetTitle: { color: colors.text, fontWeight: '900', fontSize: 18, marginBottom: 6 },
-  opt: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 16, padding: 12, marginTop: 8 },
+  sheetTitle: { color: colors.text, fontWeight: '800', fontSize: 18, marginBottom: 6 },
+  opt: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 16, padding: 14, marginTop: 8, ...soft },
   optIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
   postHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
-  closeBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  closeBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
   publishBtn: { height: 38, paddingHorizontal: 16, borderRadius: 19, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   postInput: { minHeight: 140, textAlignVertical: 'top', color: colors.text, fontSize: 17, lineHeight: 24 },
-  photoBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 46, borderRadius: 14, borderWidth: 1.5, borderColor: colors.primary, marginTop: 14 },
+  photoBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 46, borderRadius: 14, backgroundColor: colors.primaryLight, marginTop: 14 },
   removeImg: { position: 'absolute', top: 8, right: 8, width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' },
-  title: { color: colors.text, fontSize: 26, fontWeight: '900' },
-  postBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 28, paddingVertical: 6, paddingLeft: 6, paddingRight: 14 },
+  title: { color: colors.text, fontSize: 26, fontWeight: '800' },
+  postBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 28, paddingVertical: 6, paddingLeft: 6, paddingRight: 16, ...soft },
   meRing: { width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center' },
   meImg: { width: 42, height: 42, borderRadius: 21 },
   mePlus: { position: 'absolute', right: -2, bottom: -2, width: 20, height: 20, borderRadius: 10, backgroundColor: colors.accent, borderWidth: 2, borderColor: colors.card, alignItems: 'center', justifyContent: 'center' },
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   newBtn: { flexDirection: 'row', alignItems: 'center', height: 38, paddingHorizontal: 14, borderRadius: 19, backgroundColor: colors.primary, marginLeft: 10 },
   strip: { paddingHorizontal: 12, paddingVertical: 14 },
   item: { width: 76, alignItems: 'center', marginRight: 4 },
-  ring: { width: AV + 8, height: AV + 8, borderRadius: (AV + 8) / 2, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
+  ring: { width: AV + 8, height: AV + 8, borderRadius: (AV + 8) / 2, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
   avatar: { width: AV, height: AV, borderRadius: AV / 2 },
   meAvatar: { width: AV, height: AV, borderRadius: AV / 2, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   plus: {
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   name: { color: colors.text, fontSize: 11, fontWeight: '600', marginTop: 5, maxWidth: 72 },
-  section: { color: colors.text, fontSize: 17, fontWeight: '800', marginBottom: 10 },
+  section: { color: colors.text, fontSize: 17, fontWeight: '700', marginBottom: 10 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   card: { width: '48.5%', height: 250, borderRadius: 18, overflow: 'hidden', marginBottom: 12, backgroundColor: colors.cardAlt },
   cardShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.18)' },
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
   cardAvatar: { width: 33, height: 33, borderRadius: 17 },
   sponsored: { position: 'absolute', top: 12, right: 10, backgroundColor: colors.sponsored, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
   cardFoot: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: 10, backgroundColor: 'rgba(0,0,0,0.38)' },
-  cardName: { color: '#fff', fontWeight: '800', fontSize: 13 },
+  cardName: { color: '#fff', fontWeight: '700', fontSize: 13 },
   cardCaption: { color: '#fff', fontSize: 12, marginTop: 2 },
   cardMeta: { color: 'rgba(255,255,255,0.8)', fontSize: 10, marginTop: 4 },
 });

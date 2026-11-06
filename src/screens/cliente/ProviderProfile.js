@@ -3,7 +3,7 @@ import { LiveNowBadge } from '../../components/LiveBits';
 import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../../theme';
+import { colors, soft } from '../../theme';
 import { serviceType, priceText, useStore } from '../../store';
 import { providerTarget } from '../../components/GiftSheet';
 import { Photo } from '../../components/ui';
@@ -74,7 +74,7 @@ export default function ProviderProfile({ provider: p, visible, onClose, onHire,
             {byVisit ? (
               <View style={styles.visitBox}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={{ color: colors.text, fontWeight: '800' }}>Taxa de visita</Text>
+                  <Text style={{ color: colors.text, fontWeight: '700' }}>Taxa de visita</Text>
                   <Text style={styles.price}>{brl(visitFee(p))}</Text>
                 </View>
                 <Text style={styles.visitLine}>
@@ -161,7 +161,7 @@ export default function ProviderProfile({ provider: p, visible, onClose, onHire,
             <Text style={{ color: colors.primary, fontWeight: '700' }}>Orçamento</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.barBtn, styles.barMain]} onPress={() => onHire(p)}>
-            <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>
+            <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>
               {byVisit ? 'Pedir visita' : `Contratar ${p.name.split(' ')[0]}`}
             </Text>
           </TouchableOpacity>
@@ -174,7 +174,7 @@ export default function ProviderProfile({ provider: p, visible, onClose, onHire,
 function Stat({ value, label, color = colors.text }) {
   return (
     <View style={styles.stat}>
-      <Text style={{ color, fontSize: 18, fontWeight: '800' }}>{value}</Text>
+      <Text style={{ color, fontSize: 18, fontWeight: '700' }}>{value}</Text>
       <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 11, marginTop: 2 }}>
         {label}
       </Text>
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   avatar: { width: '100%', height: '100%' },
-  name: { color: colors.text, fontSize: 23, fontWeight: '800', marginTop: 12 },
+  name: { color: colors.text, fontSize: 23, fontWeight: '700', marginTop: 12 },
   role: { color: colors.muted, fontSize: 13, marginTop: 3 },
   badges: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
   pill: {
@@ -239,9 +239,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
     backgroundColor: colors.card,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
     padding: 12,
+    ...soft,
   },
   tabs: {
     flexDirection: 'row',
@@ -250,8 +249,7 @@ const styles = StyleSheet.create({
     padding: 4,
     backgroundColor: colors.card,
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
+    ...soft,
   },
   tab: { flex: 1, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   tabOn: { backgroundColor: colors.primary },
@@ -261,10 +259,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
     backgroundColor: colors.card,
     marginBottom: 8,
+    ...soft,
   },
   itemIcon: {
     width: 36,
@@ -276,17 +273,16 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   itemName: { color: colors.text, fontWeight: '600', fontSize: 14 },
-  price: { color: colors.primary, fontWeight: '800', fontSize: 13 },
+  price: { color: colors.primary, fontWeight: '700', fontSize: 13 },
   note: { color: colors.muted, fontSize: 11, marginTop: 4 },
   visitBox: { marginTop: 10, padding: 12, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(168,121,10,0.4)', backgroundColor: 'rgba(168,121,10,0.06)' },
   visitLine: { color: colors.muted, fontSize: 12, marginTop: 4, lineHeight: 17 },
   review: {
     padding: 14,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
     backgroundColor: colors.card,
     marginBottom: 8,
+    ...soft,
   },
   photos: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   photoTile: {

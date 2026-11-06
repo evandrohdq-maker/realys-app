@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../theme';
+import { colors, soft } from '../../theme';
 import { Screen, Title, Photo, Badge, Row } from '../../components/ui';
 import { SearchBar, GlobalResults } from '../../components/Search';
 import { SHOP_SECTORS, shopSectorItems } from '../../shopSectorsData';
@@ -163,23 +163,23 @@ const styles = StyleSheet.create({
   hero: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 12, marginBottom: 12, borderWidth: 1 },
   heroText: { flex: 1, marginLeft: 10, color: colors.text, fontSize: 13 },
   groupBtn: { alignItems: 'center', justifyContent: 'center', width: 86, height: 70, borderRadius: 16, borderWidth: 1, backgroundColor: '#FFFFFF', marginRight: 8, paddingHorizontal: 4 },
-  groupText: { fontWeight: '800', fontSize: 11, marginTop: 3 },
-  kicker: { color: colors.muted, fontSize: 10, fontWeight: '800', letterSpacing: 0.8, marginBottom: 6 },
-  launch: { width: 140, backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: colors.border, marginRight: 8, overflow: 'hidden' },
+  groupText: { fontWeight: '700', fontSize: 11, marginTop: 3 },
+  kicker: { color: colors.muted, fontSize: 10, fontWeight: '700', letterSpacing: 0.8, marginBottom: 6 },
+  launch: { width: 140, backgroundColor: '#FFFFFF', borderRadius: 14, marginRight: 8, overflow: 'hidden', ...soft },
   launchImg: { width: '100%', height: 84 },
   launchTitle: { color: colors.text, fontWeight: '700', fontSize: 12, paddingHorizontal: 8, marginTop: 6 },
-  launchPrice: { fontWeight: '800', fontSize: 12, paddingHorizontal: 8, marginTop: 2, marginBottom: 8 },
+  launchPrice: { fontWeight: '700', fontSize: 12, paddingHorizontal: 8, marginTop: 2, marginBottom: 8 },
   count: { color: colors.muted, fontSize: 12, fontWeight: '700' },
   toggle: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.success, borderRadius: 14, paddingHorizontal: 10, height: 28, backgroundColor: '#FFFFFF' },
-  toggleText: { fontSize: 11, fontWeight: '800', marginLeft: 4 },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: colors.border, marginBottom: 12, overflow: 'hidden' },
+  toggleText: { fontSize: 11, fontWeight: '700', marginLeft: 4 },
+  card: { backgroundColor: '#FFFFFF', borderRadius: 16, marginBottom: 12, overflow: 'hidden', ...soft },
   cardImg: { width: '100%', height: 130 },
-  cardTitle: { color: colors.text, fontWeight: '800', fontSize: 15, marginTop: 2 },
+  cardTitle: { color: colors.text, fontWeight: '700', fontSize: 15, marginTop: 2 },
   who: { fontWeight: '700', fontSize: 12, marginTop: 3 },
   detail: { color: colors.muted, fontSize: 13, marginTop: 4 },
-  price: { color: colors.primary, fontWeight: '800', fontSize: 14, flex: 1 },
+  price: { color: colors.primary, fontWeight: '700', fontSize: 14, flex: 1 },
   cta: { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 10 },
-  ctaText: { color: '#FFFFFF', fontWeight: '800', fontSize: 13 },
+  ctaText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
   empty: { color: colors.muted, textAlign: 'center', padding: 20 },
   tipBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, borderRadius: 14, padding: 12, marginTop: 4 },
 });

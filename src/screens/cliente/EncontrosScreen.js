@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Switch, Al
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../../store';
-import { colors } from '../../theme';
+import { colors, soft } from '../../theme';
 import { Screen, Card, Row, Button, Photo, Section, Empty } from '../../components/ui';
 import { encounterPeople } from '../../homeData';
 import { ENCONTROS_TERMS, TERMS_VERSION, RELATIONSHIP_STATUS, statusAllowed } from '../../encontrosTerms';
@@ -81,7 +81,7 @@ function Onboarding({ openTerms }) {
         <Card style={{ backgroundColor: colors.cardAlt }}>
           <Row>
             <Ionicons name="notifications-off-outline" size={22} color={colors.muted} />
-            <Text style={{ color: colors.text, fontWeight: '800', marginLeft: 8, flex: 1 }}>O Encontros fica desligado para você</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', marginLeft: 8, flex: 1 }}>O Encontros fica desligado para você</Text>
           </Row>
           <Text style={{ color: colors.muted, marginTop: 6, lineHeight: 19 }}>
             Por respeito ao seu relacionamento, quem está namorando, em união estável ou casado não aparece para ninguém e não recebe nenhuma notificação de encontros. O resto do Realys continua igual.
@@ -109,7 +109,7 @@ function Onboarding({ openTerms }) {
             <TouchableOpacity style={styles.termsLink} onPress={openTerms}>
               <Ionicons name="document-text-outline" size={20} color={colors.primary} />
               <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={{ color: colors.primary, fontWeight: '800' }}>Ler os termos completos</Text>
+                <Text style={{ color: colors.primary, fontWeight: '700' }}>Ler os termos completos</Text>
                 <Text style={{ color: colors.muted, fontSize: 11 }}>{TERMS_VERSION}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.muted} />
@@ -217,7 +217,7 @@ function Main({ openTerms }) {
                 <Ionicons name={e.radar ? 'radio' : 'radio-outline'} size={22} color={e.radar ? '#fff' : ROSE} />
               </View>
               <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={{ color: colors.text, fontWeight: '800' }}>Radar de encontros {e.radar ? 'ligado' : 'desligado'}</Text>
+                <Text style={{ color: colors.text, fontWeight: '700' }}>Radar de encontros {e.radar ? 'ligado' : 'desligado'}</Text>
                 <Text style={{ color: colors.muted, fontSize: 12 }}>
                   {e.radar ? `Usando o GPS para achar quem passa até ${e.maxKm} km de você` : 'Ligue para ver quem cruzar com você'}
                 </Text>
@@ -245,7 +245,7 @@ function Main({ openTerms }) {
             />
           ) : (
             <Card>
-              <Text style={{ color: colors.text, fontWeight: '800', textAlign: 'center' }}>Por enquanto é isso por perto</Text>
+              <Text style={{ color: colors.text, fontWeight: '700', textAlign: 'center' }}>Por enquanto é isso por perto</Text>
               <Text style={{ color: colors.muted, textAlign: 'center', marginTop: 4 }}>
                 Deixe o radar ligado: quando alguém do Encontros passar perto, você recebe um aviso.
               </Text>
@@ -265,7 +265,7 @@ function Main({ openTerms }) {
                 <Row>
                   <Photo uri={p.photo} style={styles.matchAvatar} fallback="🙂" />
                   <View style={{ flex: 1, marginLeft: 12 }}>
-                    <Text style={{ color: colors.text, fontWeight: '800' }}>
+                    <Text style={{ color: colors.text, fontWeight: '700' }}>
                       {p.name}, {p.age} <Ionicons name="shield-checkmark" size={12} color={colors.primary} />
                     </Text>
                     <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 12 }}>
@@ -298,7 +298,7 @@ function Main({ openTerms }) {
         <TouchableOpacity style={[styles.banner, { top: 8 }]} onPress={() => (setBanner(null), setSeg('radar'))} activeOpacity={0.9}>
           <Photo uri={banner.photo} style={styles.bannerAvatar} fallback="💘" />
           <View style={{ flex: 1, marginLeft: 10 }}>
-            <Text style={{ color: colors.text, fontWeight: '800' }}>💘 Alguém do Encontros está perto</Text>
+            <Text style={{ color: colors.text, fontWeight: '700' }}>💘 Alguém do Encontros está perto</Text>
             <Text style={{ color: colors.muted, fontSize: 12 }}>
               {banner.name}, {banner.age}, {approx(banner.km)}. Toque para ver.
             </Text>
@@ -361,7 +361,7 @@ function PersonCard({ p, onLike, onPass, onReport, onOpen }) {
       </View>
       <View style={{ padding: 14 }}>
         <Row style={{ justifyContent: 'space-between' }}>
-          <Text style={{ color: colors.text, fontSize: 22, fontWeight: '900' }}>
+          <Text style={{ color: colors.text, fontSize: 22, fontWeight: '800' }}>
             {p.name}, {p.age} <Ionicons name="shield-checkmark" size={16} color={colors.primary} />
           </Text>
           <TouchableOpacity onPress={onReport} accessibilityLabel="Denunciar">
@@ -414,7 +414,7 @@ function MatchModal({ p, onClose, onChat }) {
       <View style={styles.backdrop}>
         <View style={styles.matchBox}>
           <Text style={{ fontSize: 44 }}>💘</Text>
-          <Text style={{ color: ROSE, fontSize: 26, fontWeight: '900', marginTop: 4 }}>É um match!</Text>
+          <Text style={{ color: ROSE, fontSize: 26, fontWeight: '800', marginTop: 4 }}>É um match!</Text>
           <Photo uri={p.photo} style={styles.matchBig} fallback="🙂" />
           <Text style={{ color: colors.text, textAlign: 'center', marginTop: 10 }}>Você e {p.name} se curtiram. A conversa está liberada.</Text>
           <Text style={{ color: colors.muted, fontSize: 12, textAlign: 'center', marginTop: 6 }}>
@@ -492,7 +492,7 @@ function Settings({ openTerms, openProfile }) {
       <TouchableOpacity style={styles.termsLink} onPress={openTerms}>
         <Ionicons name="document-text-outline" size={20} color={colors.primary} />
         <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={{ color: colors.primary, fontWeight: '800' }}>Termos do Encontros</Text>
+          <Text style={{ color: colors.primary, fontWeight: '700' }}>Termos do Encontros</Text>
           <Text style={{ color: colors.muted, fontSize: 11 }}>Aceitos · {e.termsVersion}</Text>
         </View>
         <Ionicons name="chevron-forward" size={18} color={colors.muted} />
@@ -510,8 +510,8 @@ function ScoreBar({ score, onPress }) {
     <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={[styles.score, low && { borderColor: '#F3C77A', backgroundColor: '#FFF8EA' }]}>
       <Row>
         <Ionicons name={low ? 'alert-circle-outline' : 'sparkles'} size={20} color={low ? '#C77D12' : ROSE} />
-        <Text style={{ color: colors.text, fontWeight: '800', flex: 1, marginLeft: 8 }}>Perfil de namoro {score}% completo</Text>
-        <Text style={{ color: ROSE, fontWeight: '800' }}>{score >= 100 ? 'Editar' : 'Completar'}</Text>
+        <Text style={{ color: colors.text, fontWeight: '700', flex: 1, marginLeft: 8 }}>Perfil de namoro {score}% completo</Text>
+        <Text style={{ color: ROSE, fontWeight: '700' }}>{score >= 100 ? 'Editar' : 'Completar'}</Text>
       </Row>
       <View style={styles.track}>
         <View style={[styles.fill, { width: `${score}%`, backgroundColor: low ? '#E0A32E' : ROSE }]} />
@@ -556,7 +556,7 @@ function ProfileEditor({ visible, onClose }) {
           <TouchableOpacity onPress={onClose} style={styles.iconBtn} accessibilityLabel="Voltar">
             <Ionicons name="arrow-back" size={20} color={colors.text} />
           </TouchableOpacity>
-          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800', marginLeft: 12, flex: 1 }}>Meu perfil de namoro</Text>
+          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700', marginLeft: 12, flex: 1 }}>Meu perfil de namoro</Text>
         </View>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 + insets.bottom }} keyboardShouldPersistTaps="handled">
           <ScoreBar score={score} />
@@ -619,7 +619,7 @@ function PersonModal({ p, onClose, onLike, onPass }) {
           <Ionicons name="arrow-back" size={20} color={colors.text} />
         </TouchableOpacity>
         <View style={{ padding: 16 }}>
-          <Text style={{ color: colors.text, fontSize: 24, fontWeight: '900' }}>
+          <Text style={{ color: colors.text, fontSize: 24, fontWeight: '800' }}>
             {p.name}, {p.age} <Ionicons name="shield-checkmark" size={18} color={colors.primary} />
           </Text>
           {p.job ? <Text style={{ color: colors.muted, marginTop: 2 }}>{p.job}</Text> : null}
@@ -677,7 +677,7 @@ function PersonModal({ p, onClose, onLike, onPass }) {
 function SafetyCard() {
   return (
     <Card style={{ backgroundColor: colors.primaryLight, borderColor: 'rgba(226,182,73,0.6)', marginTop: 8 }}>
-      <Text style={{ color: colors.primaryDark, fontWeight: '800', marginBottom: 4 }}>🛡️ Encontro seguro</Text>
+      <Text style={{ color: colors.primaryDark, fontWeight: '700', marginBottom: 4 }}>🛡️ Encontro seguro</Text>
       <Text style={{ color: colors.text, fontSize: 13, lineHeight: 19 }}>
         Primeiro encontro em lugar público · avise alguém de confiança · vá e volte por conta própria · nunca envie dinheiro · em perigo, ligue 190.
       </Text>
@@ -692,7 +692,7 @@ function TermsModal({ visible, onClose }) {
       <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
         <View style={styles.termsHead}>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.text, fontSize: 18, fontWeight: '900' }}>Termos de Uso do Realys Encontros</Text>
+            <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>Termos de Uso do Realys Encontros</Text>
             <Text style={{ color: colors.muted, fontSize: 12 }}>{TERMS_VERSION}</Text>
           </View>
           <TouchableOpacity onPress={onClose} style={styles.closeBtn} accessibilityLabel="Fechar">
@@ -707,7 +707,7 @@ function TermsModal({ visible, onClose }) {
           </Card>
           {ENCONTROS_TERMS.map((t) => (
             <View key={t.title} style={{ marginBottom: 16 }}>
-              <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15, marginBottom: 4 }}>{t.title}</Text>
+              <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15, marginBottom: 4 }}>{t.title}</Text>
               <Text style={{ color: colors.text, lineHeight: 21 }}>{t.body}</Text>
             </View>
           ))}
@@ -747,25 +747,25 @@ function Check({ on, onPress, text }) {
 const styles = StyleSheet.create({
   hero: { backgroundColor: '#FFF0F4', borderRadius: 22, borderWidth: 1, borderColor: '#F6C6D3', padding: 18, marginBottom: 18 },
   heroIcon: { width: 52, height: 52, borderRadius: 18, backgroundColor: ROSE, alignItems: 'center', justifyContent: 'center' },
-  heroTitle: { color: colors.text, fontSize: 28, fontWeight: '900', marginTop: 10 },
+  heroTitle: { color: colors.text, fontSize: 28, fontWeight: '800', marginTop: 10 },
   heroSub: { color: colors.muted, fontSize: 13, marginTop: 4, lineHeight: 18 },
   wrap: { flexDirection: 'row', flexWrap: 'wrap' },
-  h: { color: colors.text, fontSize: 15, fontWeight: '800', marginTop: 14, marginBottom: 8 },
+  h: { color: colors.text, fontSize: 15, fontWeight: '700', marginTop: 14, marginBottom: 8 },
   groupTitle: { color: colors.muted, fontWeight: '700', fontSize: 12, marginBottom: 6, marginTop: 4, textTransform: 'uppercase' },
   score: { backgroundColor: colors.card, borderRadius: 16, borderWidth: 1, borderColor: '#F6C6D3', padding: 12, marginBottom: 12 },
   track: { height: 8, borderRadius: 4, backgroundColor: colors.cardAlt, marginVertical: 8, overflow: 'hidden' },
   fill: { height: 8, borderRadius: 4 },
-  input: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: 12, color: colors.text, fontSize: 15, textAlignVertical: 'top' },
+  input: { backgroundColor: colors.card, borderRadius: 12, padding: 12, color: colors.text, fontSize: 15, textAlignVertical: 'top', borderWidth: 1, borderColor: colors.border },
   modalHead: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
   detTag: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF0F4' },
   crossBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF0F4', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, marginTop: 12 },
   detGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  detItem: { width: '48.5%', flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 12, borderWidth: 1, borderColor: colors.border, padding: 10, marginBottom: 8 },
+  detItem: { width: '48.5%', flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 12, padding: 10, marginBottom: 8, ...soft },
   label: { color: colors.muted, fontSize: 12, marginTop: 6, marginBottom: 6 },
   pill: { height: 34, paddingHorizontal: 14, borderRadius: 17, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', marginRight: 6, marginBottom: 6 },
   pillOn: { backgroundColor: ROSE, borderColor: ROSE },
-  termsLink: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 10 },
+  termsLink: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, padding: 12, marginBottom: 10, ...soft },
   check: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 8 },
   segRow: { flexDirection: 'row', paddingHorizontal: 12, paddingTop: 10, paddingBottom: 4 },
   seg: { flexDirection: 'row', alignItems: 'center', height: 36, paddingHorizontal: 12, borderRadius: 18, borderWidth: 1, borderColor: '#F6C6D3', backgroundColor: colors.card, marginRight: 6 },
@@ -773,7 +773,7 @@ const styles = StyleSheet.create({
   segText: { color: colors.text, fontWeight: '700', fontSize: 12, marginLeft: 5 },
   radarCard: { borderWidth: 1.5 },
   radarIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#FFF0F4', alignItems: 'center', justifyContent: 'center' },
-  person: { backgroundColor: colors.card, borderRadius: 24, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', marginBottom: 14 },
+  person: { backgroundColor: colors.card, borderRadius: 24, overflow: 'hidden', marginBottom: 14, ...soft },
   personPhoto: { width: '100%', height: 340 },
   personCross: { position: 'absolute', top: 12, left: 12, right: 12, flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 5 },
   tag: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, backgroundColor: colors.cardAlt, marginRight: 6, marginBottom: 6 },

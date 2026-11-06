@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, allJobs } from '../../store';
-import { colors } from '../../theme';
+import { colors, soft } from '../../theme';
 import { Screen, Title, Badge, Row, Button, Input, Empty } from '../../components/ui';
 import { SearchBar } from '../../components/Search';
 import { JOB_AREAS, salaryText } from '../../jobsData';
@@ -191,20 +191,20 @@ const styles = StyleSheet.create({
   chip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, height: 34, borderRadius: 17, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, marginRight: 6 },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipText: { marginLeft: 5, fontWeight: '700', color: colors.primary, fontSize: 12 },
-  card: { backgroundColor: colors.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 14, marginBottom: 10 },
+  card: { backgroundColor: colors.card, borderRadius: 16, padding: 14, marginBottom: 10, ...soft },
   logo: { width: 48, height: 48, borderRadius: 14, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
-  title: { fontWeight: '800', color: colors.text, fontSize: 15 },
+  title: { fontWeight: '700', color: colors.text, fontSize: 15 },
   meta: { color: colors.muted, fontSize: 12, marginTop: 2 },
-  salarySmall: { color: colors.primary, fontWeight: '800', marginTop: 4 },
+  salarySmall: { color: colors.primary, fontWeight: '700', marginTop: 4 },
   posted: { color: colors.muted, fontSize: 11, marginLeft: 'auto' },
   cta: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, borderRadius: 14, padding: 12, marginTop: 8 },
   ctaText: { flex: 1, marginLeft: 8, color: colors.muted, fontSize: 12 },
   backdrop: { flex: 1, backgroundColor: 'rgba(31,42,68,0.45)', justifyContent: 'flex-end' },
   sheet: { backgroundColor: colors.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 18, maxHeight: '88%' },
-  sheetTitle: { fontSize: 22, fontWeight: '800', color: colors.text, marginTop: 10 },
-  salary: { fontSize: 20, fontWeight: '900', color: colors.primary, marginBottom: 6 },
+  sheetTitle: { fontSize: 22, fontWeight: '700', color: colors.text, marginTop: 10 },
+  salary: { fontSize: 20, fontWeight: '800', color: colors.primary, marginBottom: 6 },
   line: { color: colors.text, marginBottom: 4 },
-  h3: { fontWeight: '800', color: colors.text, marginTop: 12, marginBottom: 6 },
+  h3: { fontWeight: '700', color: colors.text, marginTop: 12, marginBottom: 6 },
   body: { color: colors.text, lineHeight: 20 },
   hint: { color: colors.muted, fontSize: 12, marginBottom: 10 },
   sent: { flexDirection: 'row', alignItems: 'center', marginVertical: 12 },

@@ -64,7 +64,7 @@ export default function DriverScreen() {
       <Card style={{ backgroundColor: state.available ? colors.primaryLight : colors.card }}>
         <Row style={{ justifyContent: 'space-between' }}>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 16 }}>
               {state.available ? '🟢 Disponível (GPS ligado)' : '⚪ Indisponível'}
             </Text>
             <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
@@ -125,10 +125,10 @@ export default function DriverScreen() {
           </Card>
         ) : (
           <Card>
-            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 16 }}>
               {serviceType(me.service).icon} {serviceType(me.service).label}
             </Text>
-            <Text style={{ color: colors.primary, fontWeight: '800', marginTop: 4 }}>{priceText(me)}</Text>
+            <Text style={{ color: colors.primary, fontWeight: '700', marginTop: 4 }}>{priceText(me)}</Text>
             <Text style={{ color: colors.text, marginTop: 6 }}>{me.functions.join(' · ')}</Text>
             {isVisitService(me.service) ? (
               <Text style={{ color: colors.muted, marginTop: 6, fontSize: 13 }}>
@@ -170,7 +170,7 @@ export default function DriverScreen() {
                 {r.to ? ` → ${r.to}` : ''}
               </Text>
               <Row style={{ justifyContent: 'space-between', marginTop: 8 }}>
-                <Text style={{ fontWeight: '800', color: colors.primary }}>
+                <Text style={{ fontWeight: '700', color: colors.primary }}>
                   {brl(r.price)} · {r.distanceKm} km
                 </Text>
                 <Button small title="Aceitar" onPress={() => dispatch({ type: 'ACCEPT_RIDE_REQUEST', id: r.id })} />
@@ -224,7 +224,7 @@ function VisitPanel() {
     <>
       <Section title="Seu ranking">
         <Card>
-          <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>
+          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 16 }}>
             {state.available && rank.pos ? `#${rank.pos} de ${rank.total} na sua categoria e região` : 'Fique disponível para entrar no ranking'}
           </Text>
           <Text style={{ color: colors.muted, fontSize: 13, marginTop: 6, lineHeight: 18 }}>
@@ -289,8 +289,8 @@ function VisitPanel() {
       <Section title="Plano de destaque">
         <Card style={st.sponsored ? { borderColor: colors.sponsored, borderWidth: 1.5 } : null}>
           <Row style={{ justifyContent: 'space-between' }}>
-            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15, flex: 1 }}>{HIGHLIGHT_PLAN.name}</Text>
-            <Text style={{ color: colors.primary, fontWeight: '800' }}>{brl(HIGHLIGHT_PLAN.price)}/mês</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15, flex: 1 }}>{HIGHLIGHT_PLAN.name}</Text>
+            <Text style={{ color: colors.primary, fontWeight: '700' }}>{brl(HIGHLIGHT_PLAN.price)}/mês</Text>
           </Row>
           <Text style={{ color: colors.muted, fontSize: 13, marginTop: 6, lineHeight: 18 }}>
             Apareça no topo das buscas da sua categoria, com selo e perfil completo. Você aparece como "Patrocinado", separado de quem está no topo

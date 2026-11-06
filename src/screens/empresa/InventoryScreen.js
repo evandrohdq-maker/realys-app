@@ -34,7 +34,7 @@ export default function InventoryScreen() {
 
       {adding ? (
         <Card>
-          <Text style={{ color: colors.text, fontWeight: '800', marginBottom: 8 }}>Novo produto</Text>
+          <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 8 }}>Novo produto</Text>
           <Button small variant="light" title="📷 Ler código de barras (em breve)" onPress={() => Alert.alert('Em breve', 'A leitura pela câmera entra na próxima versão.')} style={{ marginBottom: 10 }} />
           <Input placeholder="Nome do produto" value={form.name} onChangeText={(name) => setForm({ ...form, name })} />
           <Row>
@@ -114,6 +114,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  qtyTxt: { fontSize: 18, fontWeight: '800', color: colors.primaryDark },
-  qty: { width: 36, textAlign: 'center', fontWeight: '800', fontSize: 16 },
+  qtyTxt: { fontSize: 18, fontWeight: '700', color: colors.primaryDark },
+  qty: { width: 36, textAlign: 'center', fontWeight: '700', fontSize: 16 },
 });

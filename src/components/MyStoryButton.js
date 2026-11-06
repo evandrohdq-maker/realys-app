@@ -38,7 +38,7 @@ export default function MyStoryButton() {
           </View>
         ) : (
           <View style={[styles.inner, { backgroundColor: colors.primary }]}>
-            <Text style={{ color: colors.onPrimary, fontWeight: '900', fontSize: 16 }}>{name[0].toUpperCase()}</Text>
+            <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 16 }}>{name[0].toUpperCase()}</Text>
           </View>
         )}
       </TouchableOpacity>
@@ -71,7 +71,7 @@ export default function MyStoryButton() {
 const styles = StyleSheet.create({
   ring: { width: SIZE + 6, height: SIZE + 6, borderRadius: (SIZE + 6) / 2, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
   inner: { width: SIZE, height: SIZE, borderRadius: SIZE / 2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  status: { color: '#fff', fontWeight: '900', fontSize: 9, textAlign: 'center' },
+  status: { color: '#fff', fontWeight: '800', fontSize: 9, textAlign: 'center' },
   plus: {
     position: 'absolute',
     right: -2,

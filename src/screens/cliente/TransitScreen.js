@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
-import { colors, brl } from '../../theme';
+import { colors, brl, soft } from '../../theme';
 import { Screen, Title, Card, Row, Badge, Input, Button } from '../../components/ui';
 import { SearchBar, GlobalResults } from '../../components/Search';
 import { TRANSIT_SCOPES, transitCompanies, busStops, transitLines, trips, MY_SPOT } from '../../extraData';
@@ -164,7 +164,7 @@ export default function TransitScreen({ explore, navigate }) {
               <Card key={t.id}>
                 <Row style={{ justifyContent: 'space-between' }}>
                   <Text style={styles.name}>{c.logo} {c.name}</Text>
-                  <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {c.rating.toFixed(1).replace('.', ',')}</Text>
+                  <Text style={{ color: colors.accent, fontWeight: '700' }}>★ {c.rating.toFixed(1).replace('.', ',')}</Text>
                 </Row>
                 <Row style={{ marginTop: 10, alignItems: 'center' }}>
                   <View>
@@ -179,7 +179,7 @@ export default function TransitScreen({ explore, navigate }) {
                 </Row>
                 <Row style={{ marginTop: 10, justifyContent: 'space-between' }}>
                   <Text style={styles.sub}>{t.kind} · {t.seatsLeft} poltronas livres · GPS da frota</Text>
-                  <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 16 }}>{brl(t.price)}</Text>
+                  <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 16 }}>{brl(t.price)}</Text>
                 </Row>
                 <Row style={{ marginTop: 10 }}>
                   <Button
@@ -236,7 +236,7 @@ function TrackView({ tr, onBack }) {
       <Card style={{ marginTop: 12, borderColor: colors.accent, borderWidth: 1.5 }}>
         <Row>
           <Ionicons name="bus" size={22} color={colors.accent} />
-          <Text style={{ marginLeft: 8, fontWeight: '800', color: colors.text, fontSize: 16, flex: 1 }}>
+          <Text style={{ marginLeft: 8, fontWeight: '700', color: colors.text, fontSize: 16, flex: 1 }}>
             {left > 0 ? `Chega ${isTrip ? 'na plataforma' : 'no seu ponto'} em ${left} min` : 'O ônibus chegou! 🚏'}
           </Text>
         </Row>
@@ -253,7 +253,7 @@ function TrackView({ tr, onBack }) {
                 <View style={[styles.railLine, i === 0 && { top: '50%' }, i === stops.length - 1 && { bottom: '50%' }, passed && { backgroundColor: colors.accent }]} />
                 <View style={[styles.dot, passed && { backgroundColor: colors.accent, borderColor: colors.accent }, i === myIdx && styles.dotMe]} />
               </View>
-              <Text style={[styles.stopName, i === myIdx && { color: colors.primary, fontWeight: '800' }]}>
+              <Text style={[styles.stopName, i === myIdx && { color: colors.primary, fontWeight: '700' }]}>
                 {s}
                 {i === myIdx ? '  · você está aqui' : ''}
               </Text>
@@ -297,19 +297,19 @@ function TicketView({ t, onBack, onTrack }) {
 const styles = StyleSheet.create({
   gps: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, backgroundColor: 'rgba(47,116,208,0.08)', marginBottom: 12 },
   gpsText: { color: colors.accent, fontWeight: '600', fontSize: 12, marginLeft: 6, flex: 1 },
-  scope: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 14, borderWidth: 1, borderColor: colors.border, backgroundColor: '#FFFFFF', marginHorizontal: 3 },
+  scope: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 14, backgroundColor: '#FFFFFF', marginHorizontal: 3, ...soft },
   scopeOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   scopeText: { fontSize: 12, fontWeight: '700', color: colors.primary, marginTop: 4 },
-  h1: { fontSize: 20, fontWeight: '800', color: colors.text },
-  h2: { fontSize: 16, fontWeight: '800', color: colors.text, marginBottom: 8, marginTop: 4 },
-  name: { fontWeight: '800', color: colors.text },
+  h1: { fontSize: 20, fontWeight: '700', color: colors.text },
+  h2: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 8, marginTop: 4 },
+  name: { fontWeight: '700', color: colors.text },
   sub: { color: colors.muted, fontSize: 12, marginTop: 2 },
   arr: { flexDirection: 'row', alignItems: 'center', paddingVertical: 9, borderTopWidth: 1, borderTopColor: colors.border, marginTop: 8 },
   codeBox: { backgroundColor: colors.primaryLight, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5 },
-  code: { color: colors.primaryDark, fontWeight: '800', fontSize: 12 },
-  min: { fontWeight: '900', color: colors.text, fontSize: 16 },
+  code: { color: colors.primaryDark, fontWeight: '700', fontSize: 12 },
+  min: { fontWeight: '800', color: colors.text, fontSize: 16 },
   live: { color: colors.success, fontSize: 11, fontWeight: '700' },
-  time: { fontSize: 20, fontWeight: '900', color: colors.text },
+  time: { fontSize: 20, fontWeight: '800', color: colors.text },
   dash: { flex: 1, height: 2, backgroundColor: colors.border, marginHorizontal: 12 },
   tkRow: { flexDirection: 'row', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border, marginTop: 6 },
   back: { color: colors.primary, fontWeight: '700', marginBottom: 10 },
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
   stopName: { marginLeft: 10, color: colors.text, flex: 1 },
   busTag: { backgroundColor: colors.accent, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4 },
   kicker: { color: colors.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1.6, marginBottom: 6 },
-  qr: { width: 154, height: 154, flexDirection: 'row', flexWrap: 'wrap', marginVertical: 14, padding: 7, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.border },
+  qr: { width: 154, height: 154, flexDirection: 'row', flexWrap: 'wrap', marginVertical: 14, padding: 7, backgroundColor: '#FFFFFF', ...soft },
   qrCell: { width: 20, height: 20 },
-  code2: { fontWeight: '900', letterSpacing: 2, color: colors.text, fontSize: 16, marginBottom: 6 },
+  code2: { fontWeight: '800', letterSpacing: 2, color: colors.text, fontSize: 16, marginBottom: 6 },
 });

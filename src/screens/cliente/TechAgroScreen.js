@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
-import { colors, brl } from '../../theme';
+import { colors, brl, soft } from '../../theme';
 import { Screen, Title, Photo, Badge, Row } from '../../components/ui';
 import { SearchBar, GlobalResults } from '../../components/Search';
 import { useBack } from '../../back';
@@ -282,27 +282,27 @@ const styles = StyleSheet.create({
   chipText: { marginLeft: 5, fontWeight: '700', fontSize: 12 },
   bridge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(46,139,87,0.08)', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(46,139,87,0.3)', padding: 10, marginBottom: 12 },
   bridgeIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(46,139,87,0.12)', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
-  bridgeTitle: { color: GREEN, fontWeight: '800', fontSize: 14 },
+  bridgeTitle: { color: GREEN, fontWeight: '700', fontSize: 14 },
   bridgeText: { color: colors.text, fontSize: 12, marginTop: 1 },
-  bridgeBtn: { color: GREEN, fontWeight: '800', fontSize: 12, marginLeft: 6 },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: colors.border, marginBottom: 12, overflow: 'hidden' },
+  bridgeBtn: { color: GREEN, fontWeight: '700', fontSize: 12, marginLeft: 6 },
+  card: { backgroundColor: '#FFFFFF', borderRadius: 16, marginBottom: 12, overflow: 'hidden', ...soft },
   cardImg: { width: '100%', height: 130 },
-  cardTitle: { color: colors.text, fontWeight: '800', fontSize: 15, marginTop: 2 },
+  cardTitle: { color: colors.text, fontWeight: '700', fontSize: 15, marginTop: 2 },
   who: { color: colors.accent, fontWeight: '700', fontSize: 12, marginTop: 3 },
   detail: { color: colors.muted, fontSize: 13, marginTop: 4 },
-  price: { color: colors.primary, fontWeight: '800', fontSize: 14, flex: 1 },
+  price: { color: colors.primary, fontWeight: '700', fontSize: 14, flex: 1 },
   cta: { backgroundColor: colors.primary, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 10 },
-  ctaText: { color: '#FFFFFF', fontWeight: '800', fontSize: 13 },
+  ctaText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
   empty: { color: colors.muted, textAlign: 'center', padding: 20 },
-  box: { backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 10 },
-  boxKicker: { color: colors.muted, fontSize: 10, fontWeight: '800', letterSpacing: 0.8 },
-  boxBig: { color: colors.text, fontSize: 24, fontWeight: '900', marginTop: 2 },
+  box: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 10, ...soft },
+  boxKicker: { color: colors.muted, fontSize: 10, fontWeight: '700', letterSpacing: 0.8 },
+  boxBig: { color: colors.text, fontSize: 24, fontWeight: '800', marginTop: 2 },
   boxSmall: { color: colors.muted, fontSize: 11 },
   quoteName: { color: colors.text, fontSize: 12, fontWeight: '600', flex: 1 },
   quoteVal: { color: colors.text, fontSize: 12, fontWeight: '700' },
   doctor: { backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(47,116,208,0.25)', padding: 12, marginBottom: 12 },
   chainBtn: { alignItems: 'center', justifyContent: 'center', width: 78, height: 70, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(46,139,87,0.3)', backgroundColor: '#FFFFFF', marginRight: 8 },
   chainOn: { backgroundColor: GREEN, borderColor: GREEN },
-  chainText: { color: GREEN, fontWeight: '800', fontSize: 12, marginTop: 3 },
+  chainText: { color: GREEN, fontWeight: '700', fontSize: 12, marginTop: 3 },
   tipBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, borderRadius: 14, padding: 12, marginTop: 4 },
 });

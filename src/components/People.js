@@ -5,7 +5,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, TextInput,
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
-import { colors } from '../theme';
+import { colors, soft } from '../theme';
 import { Photo, Empty } from './ui';
 import { members, memberById, postsOf, searchMembers } from '../people';
 import { ChatModal } from '../screens/cliente/home/Social';
@@ -182,7 +182,7 @@ export function UserProfileModal() {
 function Stat({ n, label }) {
   return (
     <View style={{ flex: 1, alignItems: 'center' }}>
-      <Text style={{ color: colors.text, fontWeight: '900', fontSize: 18 }}>{n.toLocaleString('pt-BR')}</Text>
+      <Text style={{ color: colors.text, fontWeight: '800', fontSize: 18 }}>{n.toLocaleString('pt-BR')}</Text>
       <Text style={{ color: colors.muted, fontSize: 12 }}>{label}</Text>
     </View>
   );
@@ -283,7 +283,7 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
                 {CLASSES.filter((c) => members.some((m) => m.social && (m.social.cls === c.id || (m.social.extra || []).includes(c.id)))).map((c) => (
                   <TouchableOpacity key={c.id} onPress={() => setQ(c.label)} style={[styles.classChip, { borderColor: c.color + '66' }]} activeOpacity={0.85}>
                     <Ionicons name={c.icon} size={15} color={c.color} />
-                    <Text style={{ color: c.color, fontWeight: '800', fontSize: 13, marginLeft: 5 }}>{c.label}</Text>
+                    <Text style={{ color: c.color, fontWeight: '700', fontSize: 13, marginLeft: 5 }}>{c.label}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -325,25 +325,25 @@ const styles = StyleSheet.create({
   btnSm: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 10 },
   btnSolid: { backgroundColor: colors.primary, borderColor: colors.primary },
   btnLine: { backgroundColor: colors.card, borderColor: colors.primary },
-  btnText: { fontWeight: '800', marginLeft: 6, fontSize: 14 },
+  btnText: { fontWeight: '700', marginLeft: 6, fontSize: 14 },
   back: { position: 'absolute', left: 14, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   avatarRing: { width: 104, height: 104, borderRadius: 52, borderWidth: 3, borderColor: colors.gold, backgroundColor: colors.bg, marginTop: -52, alignItems: 'center', justifyContent: 'center' },
   avatar: { width: 94, height: 94, borderRadius: 47 },
-  name: { color: colors.text, fontSize: 22, fontWeight: '900' },
+  name: { color: colors.text, fontSize: 22, fontWeight: '800' },
   handle: { color: colors.muted, marginTop: 2 },
   bio: { color: colors.text, marginTop: 8, lineHeight: 20 },
-  stats: { flexDirection: 'row', backgroundColor: colors.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border, paddingVertical: 12, marginTop: 14 },
+  stats: { flexDirection: 'row', backgroundColor: colors.card, borderRadius: 16, paddingVertical: 12, marginTop: 14, ...soft },
   ask: { color: colors.primaryDark, fontWeight: '700', marginTop: 12 },
   msgBtn: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.card, borderRadius: 12, paddingVertical: 11, paddingHorizontal: 14, marginLeft: 8 },
-  section: { color: colors.text, fontWeight: '800', fontSize: 16, marginTop: 18, marginBottom: 8 },
-  post: { backgroundColor: colors.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 10 },
+  section: { color: colors.text, fontWeight: '700', fontSize: 16, marginTop: 18, marginBottom: 8 },
+  post: { backgroundColor: colors.card, borderRadius: 16, padding: 12, marginBottom: 10, ...soft },
   postImg: { width: '100%', height: 200, borderRadius: 12, marginTop: 8 },
   meta: { color: colors.muted, fontSize: 12, marginLeft: 4 },
   searchHead: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
   searchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingHorizontal: 12, marginLeft: 10, height: 44 },
   searchInput: { flex: 1, color: colors.text, fontSize: 15, marginLeft: 8 },
-  row: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 10, marginBottom: 8 },
+  row: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, padding: 10, marginBottom: 8, ...soft },
   rowAvatar: { width: 46, height: 46, borderRadius: 23 },
   tip: { color: colors.muted, fontSize: 12, textAlign: 'center', marginTop: 14 },
 });

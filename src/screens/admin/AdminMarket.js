@@ -98,7 +98,7 @@ export default function AdminMarket() {
       ))}
       {m.sectors.length > 8 ? (
         <TouchableOpacity onPress={() => setAllSectors(!allSectors)} style={styles.more}>
-          <Text style={{ color: colors.primary, fontWeight: '800' }}>{allSectors ? 'Mostrar menos' : `Ver todos os ${m.sectors.length} setores`}</Text>
+          <Text style={{ color: colors.primary, fontWeight: '700' }}>{allSectors ? 'Mostrar menos' : `Ver todos os ${m.sectors.length} setores`}</Text>
         </TouchableOpacity>
       ) : null}
 
@@ -108,7 +108,7 @@ export default function AdminMarket() {
         <Card key={x.lead}>
           <Row style={{ justifyContent: 'space-between' }}>
             <Text style={styles.name}>{x.label}</Text>
-            <Text style={{ color: colors.danger, fontWeight: '900' }}>+{x.stats.spreadPct}%</Text>
+            <Text style={{ color: colors.danger, fontWeight: '800' }}>+{x.stats.spreadPct}%</Text>
           </Row>
           <Text style={styles.sub}>
             {brl(x.stats.min)} ({x.stats.cheapest.seller}) até {brl(x.stats.max)} ({x.stats.priciest.seller}) · {x.stats.n} ofertas
@@ -136,7 +136,7 @@ export default function AdminMarket() {
               <Text style={styles.name}>{o.name}</Text>
               <Text style={styles.sub}>{o.category} · {o.count} depoimentos</Text>
             </View>
-            <Text style={{ color: colors.primary, fontWeight: '900' }}>★ {String(o.rating).replace('.', ',')}</Text>
+            <Text style={{ color: colors.primary, fontWeight: '800' }}>★ {String(o.rating).replace('.', ',')}</Text>
           </Row>
         </Card>
       ))}
@@ -191,7 +191,7 @@ export default function AdminMarket() {
           <Row key={r.title} style={{ alignItems: 'flex-start', marginBottom: 12 }}>
             <Ionicons name={r.icon} size={18} color={colors.gold} style={{ marginTop: 1 }} />
             <View style={{ flex: 1, marginLeft: 10 }}>
-              <Text style={{ color: '#FFFFFF', fontWeight: '800' }}>{r.title}</Text>
+              <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{r.title}</Text>
               <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12, marginTop: 2, lineHeight: 17 }}>{r.text}</Text>
             </View>
           </Row>
@@ -202,25 +202,25 @@ export default function AdminMarket() {
 }
 
 const styles = StyleSheet.create({
-  name: { fontWeight: '800', color: colors.text },
+  name: { fontWeight: '700', color: colors.text },
   sub: { color: colors.muted, fontSize: 12, marginTop: 2 },
-  h2: { fontSize: 16, fontWeight: '800', color: colors.text, marginLeft: 8, flex: 1 },
+  h2: { fontSize: 16, fontWeight: '700', color: colors.text, marginLeft: 8, flex: 1 },
   headIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: NIGHT, alignItems: 'center', justifyContent: 'center' },
-  avg: { color: colors.primary, fontWeight: '900' },
+  avg: { color: colors.primary, fontWeight: '800' },
   track: { height: 4, borderRadius: 2, backgroundColor: colors.border, marginTop: 8, overflow: 'hidden' },
   fill: { height: 4, backgroundColor: colors.gold },
   more: { alignItems: 'center', paddingVertical: 8 },
   hero: { backgroundColor: NIGHT, borderRadius: 22, padding: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
   glowGold: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(226,182,73,0.25)', top: -100, right: -60 },
   glowBlue: { position: 'absolute', width: 170, height: 170, borderRadius: 85, backgroundColor: 'rgba(47,116,208,0.25)', bottom: -90, left: -50 },
-  heroTitle: { color: '#FFFFFF', fontWeight: '900', fontSize: 17, marginLeft: 8 },
+  heroTitle: { color: '#FFFFFF', fontWeight: '800', fontSize: 17, marginLeft: 8 },
   heroSub: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 6, lineHeight: 17 },
   heroStat: { flex: 1, alignItems: 'center' },
   heroSep: { borderLeftWidth: 1, borderLeftColor: 'rgba(255,255,255,0.14)' },
-  heroValue: { color: '#FFFFFF', fontSize: 18, fontWeight: '900' },
+  heroValue: { color: '#FFFFFF', fontSize: 18, fontWeight: '800' },
   heroLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '700', textAlign: 'center', marginTop: 2 },
   word: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 5, marginRight: 6, marginBottom: 6 },
-  wordText: { color: colors.primaryDark, fontWeight: '800', fontSize: 12 },
+  wordText: { color: colors.primaryDark, fontWeight: '700', fontSize: 12 },
   wordCount: { color: colors.muted, fontSize: 11, marginLeft: 5 },
   rules: { backgroundColor: NIGHT, borderRadius: 20, padding: 16, paddingBottom: 6, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
 });

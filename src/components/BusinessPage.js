@@ -8,7 +8,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, Ani
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
-import { colors, brl } from '../theme';
+import { colors, brl, soft } from '../theme';
 import { Photo, ProductThumb } from './ui';
 import { MY_COMPANY_ID } from '../data';
 import { memberById } from '../people';
@@ -291,7 +291,7 @@ function WriteReview({ company, onClose }) {
           <Text style={styles.ctaText}>Enviar depoimento</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.ctaGhost, { marginLeft: 8 }]} onPress={onClose}>
-          <Text style={{ color: colors.primary, fontWeight: '800' }}>Cancelar</Text>
+          <Text style={{ color: colors.primary, fontWeight: '700' }}>Cancelar</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -313,7 +313,7 @@ function ProductCard({ x, onAdd, big }) {
           <Text style={styles.addText}>Carrinho</Text>
         </TouchableOpacity>
       ) : (
-        <Text style={[styles.sub, { color: colors.danger, fontWeight: '800' }]}>Esgotado</Text>
+        <Text style={[styles.sub, { color: colors.danger, fontWeight: '700' }]}>Esgotado</Text>
       )}
     </View>
   );
@@ -475,7 +475,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
                 </View>
                 {products.length > showcase.length ? (
                   <TouchableOpacity style={styles.more} onPress={() => setTab('produtos')}>
-                    <Text style={{ color: colors.primary, fontWeight: '800' }}>Ver todos os {products.length} produtos</Text>
+                    <Text style={{ color: colors.primary, fontWeight: '700' }}>Ver todos os {products.length} produtos</Text>
                     <Ionicons name="chevron-forward" size={16} color={colors.primary} />
                   </TouchableOpacity>
                 ) : null}
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
   orbitDot: { position: 'absolute', width: 8, height: 8, borderRadius: 4 },
   logo: { width: 84, height: 84, borderRadius: 42, backgroundColor: '#FFFDF8', borderWidth: 2, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
 
-  heroName: { color: '#FFFFFF', fontSize: 26, fontWeight: '900', marginTop: 12, letterSpacing: 0.3 },
+  heroName: { color: '#FFFFFF', fontSize: 26, fontWeight: '800', marginTop: 12, letterSpacing: 0.3 },
   tagline: { color: colors.gold, fontSize: 14, fontWeight: '700', marginTop: 4 },
   badges: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
   glassBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: GLASS, borderWidth: 1, borderColor: GLASS_BD, borderRadius: 14, paddingHorizontal: 9, paddingVertical: 4, marginRight: 6, marginBottom: 6 },
@@ -566,24 +566,24 @@ const styles = StyleSheet.create({
   stats: { flexDirection: 'row', backgroundColor: GLASS, borderWidth: 1, borderColor: GLASS_BD, borderRadius: 18, paddingVertical: 12, marginTop: 8 },
   stat: { flex: 1, alignItems: 'center' },
   statSep: { borderLeftWidth: 1, borderLeftColor: 'rgba(255,255,255,0.12)' },
-  statValue: { color: '#FFFFFF', fontSize: 16, fontWeight: '900' },
+  statValue: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
   statLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '700', letterSpacing: 0.8, marginTop: 2, textTransform: 'uppercase' },
 
   cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.gold },
   ctaOn: { backgroundColor: 'transparent' },
-  ctaText: { color: NIGHT, fontWeight: '900', marginLeft: 6 },
+  ctaText: { color: NIGHT, fontWeight: '800', marginLeft: 6 },
   ctaGhost: { borderRadius: 14, paddingVertical: 11, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   glassBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: GLASS, borderRadius: 14, paddingVertical: 11, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
-  glassBtnText: { color: '#FFFFFF', fontWeight: '800', marginLeft: 6 },
+  glassBtnText: { color: '#FFFFFF', fontWeight: '700', marginLeft: 6 },
 
   bio: { color: 'rgba(255,255,255,0.88)', marginTop: 14, lineHeight: 20 },
   hours: { color: 'rgba(255,255,255,0.6)', fontSize: 12, marginTop: 6 },
-  heroH: { color: 'rgba(226,182,73,0.9)', fontSize: 11, fontWeight: '900', letterSpacing: 2.5, marginTop: 20, marginBottom: 10 },
+  heroH: { color: 'rgba(226,182,73,0.9)', fontSize: 11, fontWeight: '800', letterSpacing: 2.5, marginTop: 20, marginBottom: 10 },
 
   sector: { width: 220, backgroundColor: NIGHT2, borderRadius: 18, borderWidth: 1, borderColor: GLASS_BD, padding: 12, marginRight: 10 },
   sectorHead: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   sectorIcon: { width: 34, height: 34, borderRadius: 17, borderWidth: 1, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(226,182,73,0.12)' },
-  sectorLabel: { color: '#FFFFFF', fontWeight: '800', marginLeft: 8, flex: 1 },
+  sectorLabel: { color: '#FFFFFF', fontWeight: '700', marginLeft: 8, flex: 1 },
   segWrap: { flexDirection: 'row', flexWrap: 'wrap' },
   seg: { backgroundColor: 'rgba(95,162,255,0.14)', borderWidth: 1, borderColor: 'rgba(95,162,255,0.4)', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4, marginRight: 5, marginBottom: 5 },
   segText: { color: '#CFE2FF', fontSize: 11, fontWeight: '700' },
@@ -597,27 +597,27 @@ const styles = StyleSheet.create({
   tabsBar: { backgroundColor: '#FFFDF8', borderBottomWidth: 1, borderBottomColor: colors.border, marginBottom: 12 },
   tab: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 13, paddingVertical: 8, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)', marginRight: 8 },
   tabOn: { backgroundColor: colors.gold, borderColor: colors.gold },
-  tabText: { color: colors.primaryDark, fontWeight: '800', fontSize: 13, marginLeft: 5 },
+  tabText: { color: colors.primaryDark, fontWeight: '700', fontSize: 13, marginLeft: 5 },
 
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  pCard: { width: '48.5%', backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 10, marginBottom: 10, alignItems: 'center' },
+  pCard: { width: '48.5%', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 10, marginBottom: 10, alignItems: 'center', ...soft },
   pCardBig: { width: '100%', borderColor: colors.gold, borderWidth: 1.5, paddingVertical: 16, overflow: 'hidden' },
   pGlow: { position: 'absolute', width: 220, height: 220, borderRadius: 110, backgroundColor: 'rgba(226,182,73,0.16)', top: -90 },
-  launch: { color: colors.accent, fontSize: 10, fontWeight: '900', letterSpacing: 1.2, marginTop: 4 },
-  price: { color: colors.primary, fontWeight: '900', marginVertical: 5, fontSize: 15 },
+  launch: { color: colors.accent, fontSize: 10, fontWeight: '800', letterSpacing: 1.2, marginTop: 4 },
+  price: { color: colors.primary, fontWeight: '800', marginVertical: 5, fontSize: 15 },
   addBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6 },
-  addText: { color: '#FFFFFF', fontWeight: '800', fontSize: 12, marginLeft: 4 },
+  addText: { color: '#FFFFFF', fontWeight: '700', fontSize: 12, marginLeft: 4 },
   more: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10 },
 
   summary: { flexDirection: 'row', alignItems: 'center', backgroundColor: NIGHT, borderRadius: 18, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: GLASS_BD },
-  avg: { color: '#FFFFFF', fontSize: 34, fontWeight: '900' },
+  avg: { color: '#FFFFFF', fontSize: 34, fontWeight: '800' },
   barLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 11, width: 12 },
   barTrack: { flex: 1, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.12)', overflow: 'hidden' },
   barFill: { height: 6, backgroundColor: colors.gold },
-  review: { backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 10 },
+  review: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 12, marginBottom: 10, ...soft },
   avatar: { width: 40, height: 40, borderRadius: 20 },
   verified: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(30,158,99,0.1)', borderRadius: 10, paddingHorizontal: 7, paddingVertical: 3 },
-  verifiedText: { color: colors.success, fontSize: 10, fontWeight: '800', marginLeft: 3 },
+  verifiedText: { color: colors.success, fontSize: 10, fontWeight: '700', marginLeft: 3 },
   reviewText: { color: colors.text, marginTop: 10, lineHeight: 20 },
   reviewProduct: { color: colors.primary, fontSize: 12, fontWeight: '700', marginTop: 6 },
   write: { backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1.5, borderColor: colors.gold, padding: 12, marginBottom: 12 },
@@ -627,10 +627,10 @@ const styles = StyleSheet.create({
   adImg: { width: '100%', height: 200 },
   adShade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 90, backgroundColor: 'rgba(11,17,36,0.72)' },
   adTag: { position: 'absolute', top: 10, left: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.gold, borderRadius: 10, paddingHorizontal: 7, paddingVertical: 3 },
-  adTagText: { color: NIGHT, fontSize: 10, fontWeight: '900', letterSpacing: 1, marginLeft: 3 },
+  adTagText: { color: NIGHT, fontSize: 10, fontWeight: '800', letterSpacing: 1, marginLeft: 3 },
   adPlay: { position: 'absolute', top: 64, alignSelf: 'center', width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(11,17,36,0.55)', borderWidth: 1.5, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
   adInfo: { position: 'absolute', left: 12, right: 12, bottom: 10 },
-  adTitle: { color: '#FFFFFF', fontWeight: '900', fontSize: 15 },
+  adTitle: { color: '#FFFFFF', fontWeight: '800', fontSize: 15 },
   adSub: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 },
   adBar: { position: 'absolute', bottom: 0, left: 0, height: 3, backgroundColor: colors.gold },
 
@@ -641,17 +641,17 @@ const styles = StyleSheet.create({
   factValue: { color: '#FFFFFF', fontSize: 12, fontWeight: '600', flex: 1 },
   gType: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)', paddingHorizontal: 10, paddingVertical: 6, marginRight: 6, marginBottom: 6 },
   gTypeOn: { backgroundColor: NIGHT, borderColor: NIGHT },
-  gTypeText: { color: colors.primaryDark, fontWeight: '800', fontSize: 12, marginLeft: 4 },
-  gItem: { width: '48.5%', backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: colors.border, marginBottom: 10, overflow: 'hidden' },
+  gTypeText: { color: colors.primaryDark, fontWeight: '700', fontSize: 12, marginLeft: 4 },
+  gItem: { width: '48.5%', backgroundColor: '#FFFFFF', borderRadius: 16, marginBottom: 10, overflow: 'hidden', ...soft },
   gImg: { width: '100%', height: 140 },
   gTag: { position: 'absolute', top: 8, left: 8, backgroundColor: 'rgba(11,17,36,0.75)', borderRadius: 10, paddingHorizontal: 7, paddingVertical: 2, borderWidth: 1, borderColor: GLASS_BD },
-  gTagText: { color: colors.gold, fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
+  gTagText: { color: colors.gold, fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
   gCaption: { color: colors.text, fontSize: 12, fontWeight: '600', padding: 8 },
   viewer: { flex: 1, backgroundColor: 'rgba(11,17,36,0.94)', alignItems: 'center', justifyContent: 'center', padding: 16 },
   viewerImg: { width: '100%', height: 360, borderRadius: 16 },
   viewerText: { color: '#FFFFFF', fontWeight: '700', marginTop: 12, textAlign: 'center' },
-  post: { backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: colors.border, marginBottom: 12, overflow: 'hidden' },
-  title: { fontWeight: '800', color: colors.text },
+  post: { backgroundColor: '#FFFFFF', borderRadius: 14, marginBottom: 12, overflow: 'hidden', ...soft },
+  title: { fontWeight: '700', color: colors.text },
   sub: { color: colors.muted, fontSize: 12, marginTop: 2 },
   empty: { color: colors.muted, textAlign: 'center', marginVertical: 20 },
 });

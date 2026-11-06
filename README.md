@@ -6,6 +6,17 @@
 
 ---
 
+## Visual
+
+Tema claro, com as cores de sempre: fundo marfim, dourado de glória e azul-céu. O layout é **clean**:
+
+- **Cartões sem contorno:** uma sombra leve e quente (`soft`, em `src/theme.js`) no lugar das bordas, com mais respiro entre os blocos.
+- **Topo limpo:** só a logo, o REALYS com um check dourado de ID verificado e os ícones soltos (busca, carrinho e menu ⋮), sem caixinhas. A faixa de avisos (comanda do evento, mãos livres) só aparece quando tem algo.
+- **Barra de baixo** arredondada e sem linha; a aba ativa fica com o ícone dourado numa pílula clarinha. As abas do topo da Community seguem o mesmo estilo.
+- **Textos mais leves** (menos negrito) e chips em marfim, sem contorno.
+
+---
+
 ## O que tem no app
 
 | Perfil | Abas | O que dá para mostrar |

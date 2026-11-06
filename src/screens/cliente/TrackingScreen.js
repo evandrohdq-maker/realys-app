@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Animated, Easing, Alert, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../../theme';
+import { colors, soft } from '../../theme';
 import { Photo } from '../../components/ui';
 import { arrivalCode, ratingText } from '../../providerInfo';
 import { useStore } from '../../store';
@@ -148,7 +148,7 @@ export default function TrackingScreen({ call, visible, onClose, onOpenProfile }
                 <Ionicons name="shield-checkmark" size={14} color={colors.primary} style={{ marginLeft: 6 }} />
               </View>
               <Text style={styles.pMeta} numberOfLines={1}>
-                <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {ratingText(p.rating)}</Text> · {call.serviceLabel}
+                <Text style={{ color: colors.accent, fontWeight: '700' }}>★ {ratingText(p.rating)}</Text> · {call.serviceLabel}
                 {p.vehicle ? ` · ${p.vehicle}` : ''}
               </Text>
               {p.plate ? <Text style={styles.plate}>Placa {p.plate}</Text> : null}
@@ -270,12 +270,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
   },
-  handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: '#EADFC8', marginBottom: 12 },
+  handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: '#F0E9DA', marginBottom: 12 },
   etaRow: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 14 },
   small: { color: colors.muted, fontSize: 12 },
-  eta: { color: colors.text, fontSize: 30, fontWeight: '800', marginTop: 2 },
+  eta: { color: colors.text, fontSize: 30, fontWeight: '700', marginTop: 2 },
   codeLabel: { color: colors.muted, fontSize: 10, letterSpacing: 1 },
-  code: { color: colors.primary, fontSize: 21, fontWeight: '800', letterSpacing: 4, marginTop: 2 },
+  code: { color: colors.primary, fontSize: 21, fontWeight: '700', letterSpacing: 4, marginTop: 2 },
   steps: { flexDirection: 'row', marginHorizontal: -3, marginBottom: 14 },
   stepBar: { height: 4, borderRadius: 2, backgroundColor: '#F5EFE2' },
   stepBarOn: { backgroundColor: colors.primary },
@@ -286,14 +286,13 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 18,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: 12,
+    ...soft,
   },
   avatar: { width: 50, height: 50, borderRadius: 16 },
   pName: { color: colors.text, fontWeight: '700', fontSize: 15 },
   pMeta: { color: colors.muted, fontSize: 12, marginTop: 2 },
-  plate: { color: colors.text, fontWeight: '800', fontSize: 12, letterSpacing: 1, marginTop: 2 },
+  plate: { color: colors.text, fontWeight: '700', fontSize: 12, letterSpacing: 1, marginTop: 2 },
   profileBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -305,13 +304,13 @@ const styles = StyleSheet.create({
   },
   profileText: { color: colors.primary, fontWeight: '700', fontSize: 13, marginLeft: 6 },
   mainBtn: { height: 48, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  mainText: { color: colors.onPrimary, fontWeight: '800' },
+  mainText: { color: colors.onPrimary, fontWeight: '700' },
   action: {
     flex: 1,
     height: 48,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#EADFC8',
+    borderColor: '#F0E9DA',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

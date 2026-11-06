@@ -333,8 +333,8 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     elevation: 8,
   },
-  logo: { fontSize: 36, fontWeight: '800', color: colors.text, letterSpacing: 8 },
-  headline: { fontSize: 30, color: colors.text, fontWeight: '900', marginTop: 18, letterSpacing: -0.5, textAlign: 'center' },
+  logo: { fontSize: 36, fontWeight: '700', color: colors.text, letterSpacing: 8 },
+  headline: { fontSize: 30, color: colors.text, fontWeight: '800', marginTop: 18, letterSpacing: -0.5, textAlign: 'center' },
   tagline: { fontSize: 17, color: colors.accent, fontWeight: '700', marginTop: 6 },
   tabs: {
     flexDirection: 'row',
@@ -367,8 +367,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  avatarText: { color: colors.onPrimary, fontWeight: '900', fontSize: 18 },
-  savedName: { color: colors.text, fontWeight: '800', fontSize: 16 },
+  avatarText: { color: colors.onPrimary, fontWeight: '800', fontSize: 18 },
+  savedName: { color: colors.text, fontWeight: '700', fontSize: 16 },
   savedLogin: { color: colors.muted, fontSize: 12, marginLeft: 4 },
   trash: { marginLeft: 10, padding: 4 },
   otherBtn: {
@@ -381,5 +381,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 6,
   },
-  otherText: { color: colors.primary, fontWeight: '800', fontSize: 15, marginLeft: 8 },
+  otherText: { color: colors.primary, fontWeight: '700', fontSize: 15, marginLeft: 8 },
 });

@@ -5,7 +5,7 @@ import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, TextInput,
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
-import { colors } from '../theme';
+import { colors, soft } from '../theme';
 import { Photo } from './ui';
 import { RATE_TAGS, STAR_LABEL, orderTargets, callTargets } from '../ratings';
 import { pointsFor, POINTS_PER_RATING, POINTS_COMMENT_BONUS } from '../rewards';
@@ -155,21 +155,21 @@ export default function RateSheet() {
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(16,22,40,0.45)' },
-  sheet: { backgroundColor: '#FFFDF8', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 16, paddingTop: 8, maxHeight: '90%', borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
+  sheet: { backgroundColor: '#FFFDF8', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 16, paddingTop: 8, maxHeight: '90%' },
   grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: 10 },
   head: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   icon: { width: 36, height: 36, borderRadius: 18, backgroundColor: NIGHT, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 17, fontWeight: '900', color: colors.text },
+  title: { fontSize: 17, fontWeight: '800', color: colors.text },
   sub: { color: colors.muted, fontSize: 12 },
   closeBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cardAlt },
-  target: { backgroundColor: '#FFFFFF', borderRadius: 18, borderWidth: 1, borderColor: colors.border, padding: 12, marginTop: 10 },
+  target: { backgroundColor: '#FFFFFF', borderRadius: 18, padding: 12, marginTop: 10, ...soft },
   avatar: { width: 44, height: 44, borderRadius: 22 },
   logo: { width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFDF8' },
-  tType: { color: colors.muted, fontSize: 10, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase' },
-  name: { fontWeight: '800', color: colors.text },
-  starLabel: { color: colors.primary, fontWeight: '900' },
+  tType: { color: colors.muted, fontSize: 10, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
+  name: { fontWeight: '700', color: colors.text },
+  starLabel: { color: colors.primary, fontWeight: '800' },
   stars: { flexDirection: 'row', justifyContent: 'center', marginVertical: 8 },
-  ask: { color: colors.text, fontWeight: '800', marginBottom: 6 },
+  ask: { color: colors.text, fontWeight: '700', marginBottom: 6 },
   tag: { paddingHorizontal: 11, paddingVertical: 6, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)', marginRight: 6, marginBottom: 6 },
   tagOn: { backgroundColor: colors.success, borderColor: colors.success },
   tagBad: { backgroundColor: colors.danger, borderColor: colors.danger },
@@ -178,5 +178,5 @@ const styles = StyleSheet.create({
   points: { flexDirection: 'row', alignItems: 'center', backgroundColor: NIGHT, borderRadius: 14, padding: 10, marginTop: 12 },
   pointsText: { color: 'rgba(255,255,255,0.85)', fontSize: 12, marginLeft: 8, flex: 1, lineHeight: 17 },
   sendBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 14, paddingVertical: 13, marginTop: 14 },
-  sendText: { color: NIGHT, fontWeight: '900', marginLeft: 6, fontSize: 15 },
+  sendText: { color: NIGHT, fontWeight: '800', marginLeft: 6, fontSize: 15 },
 });

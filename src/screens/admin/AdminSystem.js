@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, Share, Alert, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
-import { colors } from '../../theme';
+import { colors, soft } from '../../theme';
 import { Screen, Title } from '../../components/ui';
 import { VERSION_LABEL } from '../../updates';
 
@@ -134,7 +134,7 @@ export function NoteModal({ visible, where, onClose }) {
               <Text style={{ color: colors.text, fontWeight: '600' }}>Cancelar</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.btn, styles.btnMain]} onPress={save}>
-              <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Salvar anotação</Text>
+              <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>Salvar anotação</Text>
             </TouchableOpacity>
           </View>
         </Pressable>
@@ -171,7 +171,7 @@ export function AdminSystem({ openArea }) {
           const on = filter === k;
           return (
             <TouchableOpacity key={k} style={[styles.statusBox, on && { borderColor: s.color }]} onPress={() => setFilter(on ? 'todos' : k)}>
-              <Text style={{ color: s.color, fontSize: 22, fontWeight: '900' }}>{count(k)}</Text>
+              <Text style={{ color: s.color, fontSize: 22, fontWeight: '800' }}>{count(k)}</Text>
               <Text style={{ color: colors.muted, fontSize: 11, marginTop: 2 }}>{s.label}</Text>
             </TouchableOpacity>
           );
@@ -187,7 +187,7 @@ export function AdminSystem({ openArea }) {
         </View>
         <TouchableOpacity style={styles.shareBtn} onPress={share}>
           <Ionicons name="share-social-outline" size={16} color={colors.onPrimary} />
-          <Text style={{ color: colors.onPrimary, fontWeight: '800', marginLeft: 6, fontSize: 13 }}>Enviar</Text>
+          <Text style={{ color: colors.onPrimary, fontWeight: '700', marginLeft: 6, fontSize: 13 }}>Enviar</Text>
         </TouchableOpacity>
       </View>
       {!state.notes.length ? (
@@ -232,7 +232,7 @@ export function AdminSystem({ openArea }) {
                     <Text style={styles.itemName}>{i.name}</Text>
                     {nNotes ? (
                       <View style={styles.noteCount}>
-                        <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '800' }}>{nNotes}</Text>
+                        <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '700' }}>{nNotes}</Text>
                       </View>
                     ) : null}
                   </View>
@@ -245,7 +245,7 @@ export function AdminSystem({ openArea }) {
                     {i.role ? (
                       <TouchableOpacity style={[styles.smallBtn, styles.smallMain]} onPress={() => openArea(i.role, i.tab, i.top)}>
                         <Ionicons name="open-outline" size={14} color={colors.onPrimary} />
-                        <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 12, marginLeft: 5 }}>Abrir tela</Text>
+                        <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>Abrir tela</Text>
                       </TouchableOpacity>
                     ) : null}
                     <TouchableOpacity style={styles.smallBtn} onPress={() => setNoteFor(i.name)}>
@@ -282,12 +282,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
     padding: 12,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
     backgroundColor: colors.card,
+    ...soft,
   },
   notesHead: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  h2: { color: colors.text, fontSize: 17, fontWeight: '800' },
+  h2: { color: colors.text, fontSize: 17, fontWeight: '700' },
   shareBtn: { flexDirection: 'row', alignItems: 'center', height: 38, paddingHorizontal: 14, borderRadius: 12, backgroundColor: colors.primary },
   tip: {
     flexDirection: 'row',
@@ -304,12 +303,11 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 14,
     backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: 8,
+    ...soft,
   },
-  group: { color: colors.muted, fontSize: 12, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 },
-  item: { backgroundColor: colors.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 8 },
+  group: { color: colors.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 },
+  item: { backgroundColor: colors.card, borderRadius: 16, padding: 12, marginBottom: 8, ...soft },
   dot: { width: 9, height: 9, borderRadius: 5, marginRight: 8 },
   itemName: { color: colors.text, fontWeight: '700', fontSize: 15, flexShrink: 1 },
   noteCount: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', marginLeft: 8, paddingHorizontal: 4 },
@@ -322,13 +320,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#EADFC8',
+    borderColor: '#F0E9DA',
     marginRight: 8,
   },
   smallMain: { backgroundColor: colors.primary, borderColor: colors.primary },
   backdrop: { flex: 1, backgroundColor: 'rgba(31,42,68,0.35)', justifyContent: 'center', padding: 20 },
   noteCard: { backgroundColor: '#FFFFFF', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)', padding: 18 },
-  noteTitle: { color: colors.text, fontSize: 18, fontWeight: '800' },
+  noteTitle: { color: colors.text, fontSize: 18, fontWeight: '700' },
   wherePill: {
     flexDirection: 'row',
     alignItems: 'center',

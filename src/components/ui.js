@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, ScrollView, Image } from 'react-native';
-import { colors } from '../theme';
+import { colors, soft } from '../theme';
 
 export function Screen({ children, scroll = true }) {
   if (!scroll) return <View style={styles.screen}>{children}</View>;
@@ -13,7 +13,7 @@ export function Screen({ children, scroll = true }) {
 
 export function Title({ children, sub }) {
   return (
-    <View style={{ marginBottom: 14 }}>
+    <View style={{ marginBottom: 18 }}>
       <Text style={styles.title}>{children}</Text>
       {sub ? <Text style={styles.sub}>{sub}</Text> : null}
     </View>
@@ -22,7 +22,7 @@ export function Title({ children, sub }) {
 
 export function Section({ title, right, children }) {
   return (
-    <View style={{ marginBottom: 18 }}>
+    <View style={{ marginBottom: 22 }}>
       <View style={styles.sectionHead}>
         <Text style={styles.sectionTitle}>{title}</Text>
         {right}
@@ -47,7 +47,7 @@ export function Button({ title, onPress, variant = 'primary', small, style, disa
     outline: { bg: 'transparent', fg: colors.primary, bd: colors.primary },
     danger: { bg: colors.danger, fg: colors.onPrimary, bd: colors.danger },
     light: { bg: colors.primaryLight, fg: colors.primaryDark, bd: colors.primaryLight },
-    dark: { bg: colors.cardAlt, fg: colors.text, bd: colors.border },
+    dark: { bg: colors.cardAlt, fg: colors.text, bd: colors.cardAlt },
   }[variant];
   return (
     <TouchableOpacity
@@ -162,59 +162,56 @@ export function Empty({ text }) {
 
 const styles = StyleSheet.create({
   screenScroll: { flex: 1, backgroundColor: colors.bg },
-  screen: { padding: 16, paddingBottom: 110, backgroundColor: colors.bg, flexGrow: 1 },
-  title: { fontSize: 24, fontWeight: '800', color: colors.text },
-  sub: { fontSize: 14, color: colors.muted, marginTop: 4 },
-  sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: colors.text },
+  screen: { padding: 18, paddingBottom: 110, backgroundColor: colors.bg, flexGrow: 1 },
+  title: { fontSize: 24, fontWeight: '700', color: colors.text, letterSpacing: -0.3 },
+  sub: { fontSize: 14, color: colors.muted, marginTop: 4, lineHeight: 20 },
+  sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.text, letterSpacing: -0.2 },
+  // Cartão clean: sem contorno, só uma sombra leve e quente.
   card: {
     backgroundColor: colors.card,
-    borderRadius: 18,
-    padding: 14,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 12,
+    ...soft,
   },
-  btn: { paddingVertical: 13, paddingHorizontal: 18, borderRadius: 12, alignItems: 'center', borderWidth: 1.5 },
-  btnSmall: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: 9 },
-  btnText: { fontWeight: '700', fontSize: 15 },
+  btn: { paddingVertical: 13, paddingHorizontal: 18, borderRadius: 14, alignItems: 'center', borderWidth: 1 },
+  btnSmall: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: 10 },
+  btnText: { fontWeight: '700', fontSize: 15, letterSpacing: 0.2 },
   badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20, alignSelf: 'flex-start', marginRight: 6, marginBottom: 4 },
   badgeText: { fontSize: 11, fontWeight: '700' },
   input: {
     backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: 14,
     paddingHorizontal: 14,
-    paddingVertical: 11,
+    paddingVertical: 12,
     fontSize: 15,
     color: colors.text,
     marginBottom: 10,
+    borderWidth: 1, borderColor: colors.border,
   },
   stat: {
     flex: 1,
     backgroundColor: colors.card,
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: 16,
+    padding: 14,
     marginHorizontal: 4,
+    ...soft,
   },
   statLabel: { fontSize: 12, color: colors.muted },
-  statValue: { fontSize: 18, fontWeight: '800', marginTop: 4 },
+  statValue: { fontSize: 18, fontWeight: '700', marginTop: 4 },
   statHint: { fontSize: 11, color: colors.muted, marginTop: 2 },
   barValue: { fontSize: 9, color: colors.muted, marginBottom: 3 },
   barLabel: { flex: 1, textAlign: 'center', fontSize: 11, color: colors.muted },
-  thumb: { borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  thumb: { borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  // Chip clean: fundo marfim, sem contorno; ativo fica dourado.
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: colors.cardAlt,
     marginRight: 8,
   },
-  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipActive: { backgroundColor: colors.primary },
   chipText: { fontSize: 13, fontWeight: '600', color: colors.text },
 });

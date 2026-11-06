@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useStore } from '../store';
-import { colors } from '../theme';
+import { colors, soft } from '../theme';
 import { Photo, Empty } from './ui';
 import { members, memberById } from '../people';
 import { analyzeTestimonial, galleryOf } from '../testimonialsData';
@@ -32,7 +32,7 @@ function Avatar({ person, size = 40, onPress }) {
     <Photo uri={person.photo} style={{ width: size, height: size, borderRadius: size / 2 }} fallback="🙂" />
   ) : (
     <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ color: colors.onPrimary, fontWeight: '900', fontSize: size * 0.42 }}>{person.name[0].toUpperCase()}</Text>
+      <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: size * 0.42 }}>{person.name[0].toUpperCase()}</Text>
     </View>
   );
   return onPress ? (
@@ -121,7 +121,7 @@ export function TestimonialCard({ t, hideTarget, ownerTools }) {
         <View style={{ marginTop: 6 }}>
           {(open ? t.comments : t.comments.slice(-1)).map((c) => (
             <View key={c.id} style={styles.comment}>
-              <Text style={{ color: colors.text, fontWeight: '800', fontSize: 12 }}>{c.mine ? person('me').name : c.who}</Text>
+              <Text style={{ color: colors.text, fontWeight: '700', fontSize: 12 }}>{c.mine ? person('me').name : c.who}</Text>
               <Text style={{ color: colors.text, fontSize: 13, marginTop: 1 }}>{c.text}</Text>
             </View>
           ))}
@@ -226,7 +226,7 @@ export function TestimonialComposer({ visible, onClose, toId }) {
                 <View style={styles.toRow}>
                   <Photo uri={target.photo} style={{ width: 44, height: 44, borderRadius: 22 }} fallback="🙂" />
                   <View style={{ flex: 1, marginLeft: 10 }}>
-                    <Text style={{ color: colors.text, fontWeight: '800' }}>{target.name}</Text>
+                    <Text style={{ color: colors.text, fontWeight: '700' }}>{target.name}</Text>
                     <Text style={{ color: colors.muted, fontSize: 12 }}>@{target.handle}</Text>
                   </View>
                   {toId ? null : (
@@ -305,7 +305,7 @@ export function TestimonialFeed() {
         </View>
         <TouchableOpacity style={styles.writeBtn} onPress={() => setWriting(true)} accessibilityLabel="Escrever depoimento">
           <Ionicons name="create-outline" size={16} color={colors.onPrimary} />
-          <Text style={{ color: colors.onPrimary, fontWeight: '800', marginLeft: 4, fontSize: 13 }}>Escrever</Text>
+          <Text style={{ color: colors.onPrimary, fontWeight: '700', marginLeft: 4, fontSize: 13 }}>Escrever</Text>
         </TouchableOpacity>
       </View>
       {pendingMine ? (
@@ -373,7 +373,7 @@ function TestimonialsTab({ ownerId }) {
                         ])
                       }
                     >
-                      <Text style={{ color: colors.danger, fontWeight: '800' }}>Recusar</Text>
+                      <Text style={{ color: colors.danger, fontWeight: '700' }}>Recusar</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -522,7 +522,7 @@ function HighlightComposer({ visible, onClose }) {
           </TouchableOpacity>
           <Text style={styles.modalTitle}>Novo destaque</Text>
           <TouchableOpacity onPress={save} disabled={!title.trim() || !chosen.length}>
-            <Text style={{ color: colors.primary, fontWeight: '900', opacity: title.trim() && chosen.length ? 1 : 0.4 }}>Salvar</Text>
+            <Text style={{ color: colors.primary, fontWeight: '800', opacity: title.trim() && chosen.length ? 1 : 0.4 }}>Salvar</Text>
           </TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 + insets.bottom }} keyboardShouldPersistTaps="handled">
@@ -539,7 +539,7 @@ function HighlightComposer({ visible, onClose }) {
                     <Photo uri={o.preview} style={StyleSheet.absoluteFill} />
                   ) : (
                     <View style={[StyleSheet.absoluteFill, { backgroundColor: o.story.bg || colors.primary, alignItems: 'center', justifyContent: 'center', padding: 6 }]}>
-                      <Text numberOfLines={4} style={{ color: '#fff', fontWeight: '800', fontSize: 11, textAlign: 'center' }}>
+                      <Text numberOfLines={4} style={{ color: '#fff', fontWeight: '700', fontSize: 11, textAlign: 'center' }}>
                         {o.story.text}
                       </Text>
                     </View>
@@ -616,7 +616,7 @@ function MediaGallery({ ownerId, kind }) {
       {mine ? (
         <TouchableOpacity style={[styles.lineBtn, { alignSelf: 'stretch', marginBottom: 10, flexDirection: 'row', justifyContent: 'center' }]} onPress={add}>
           <Ionicons name={kind === 'videos' ? 'videocam-outline' : 'images-outline'} size={18} color={colors.primary} />
-          <Text style={{ color: colors.primary, fontWeight: '800', marginLeft: 8 }}>{kind === 'videos' ? 'Adicionar vídeos do celular' : 'Adicionar fotos do celular'}</Text>
+          <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>{kind === 'videos' ? 'Adicionar vídeos do celular' : 'Adicionar fotos do celular'}</Text>
         </TouchableOpacity>
       ) : null}
       {!items.length ? <Empty text={kind === 'videos' ? 'Nenhum vídeo na galeria ainda.' : 'Nenhuma foto na galeria ainda.'} /> : null}
@@ -685,7 +685,7 @@ function MediaViewer({ items, index, kind, onClose }) {
             <View style={[styles.play, { position: 'relative', width: 64, height: 64, borderRadius: 32, top: 0, left: 0 }]}>
               <Ionicons name="play" size={30} color="#fff" />
             </View>
-            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 16, marginTop: 12 }}>{it.title}</Text>
+            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16, marginTop: 12 }}>{it.title}</Text>
             <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 4, textAlign: 'center' }}>
               {it.duration} · {it.views} visualizações · o player de vídeo entra na próxima versão da demonstração
             </Text>
@@ -756,7 +756,7 @@ export function ProfileSocial({ ownerId, postsSlot, postsCount, ownerName }) {
               </Text>
               {t.alert ? (
                 <View style={styles.dot}>
-                  <Text style={{ color: '#fff', fontSize: 10, fontWeight: '900' }}>{t.alert}</Text>
+                  <Text style={{ color: '#fff', fontSize: 10, fontWeight: '800' }}>{t.alert}</Text>
                 </View>
               ) : null}
             </TouchableOpacity>
@@ -774,16 +774,16 @@ export function ProfileSocial({ ownerId, postsSlot, postsCount, ownerName }) {
 }
 
 const styles = StyleSheet.create({
-  section: { color: colors.text, fontSize: 17, fontWeight: '800' },
-  sub: { color: colors.text, fontWeight: '800', fontSize: 15, marginBottom: 8 },
+  section: { color: colors.text, fontSize: 17, fontWeight: '700' },
+  sub: { color: colors.text, fontWeight: '700', fontSize: 15, marginBottom: 8 },
   hint: { color: colors.muted, fontSize: 12, marginBottom: 10, lineHeight: 17 },
   feedHead: { flexDirection: 'row', alignItems: 'center', marginTop: 6, marginBottom: 10 },
   writeBtn: { flexDirection: 'row', alignItems: 'center', height: 36, paddingHorizontal: 12, borderRadius: 18, backgroundColor: colors.primary, marginLeft: 10 },
   pendingBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: 12, padding: 10, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(168,121,10,0.3)' },
 
-  tCard: { backgroundColor: colors.card, borderRadius: 18, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 12 },
+  tCard: { backgroundColor: colors.card, borderRadius: 18, padding: 12, marginBottom: 12, ...soft },
   tHead: { flexDirection: 'row', alignItems: 'center' },
-  tWho: { color: colors.text, fontWeight: '800', fontSize: 14 },
+  tWho: { color: colors.text, fontWeight: '700', fontSize: 14 },
   tVerb: { color: colors.muted, fontWeight: '500' },
   tTime: { color: colors.muted, fontSize: 11, marginTop: 2 },
   quote: { backgroundColor: colors.primaryLight, borderRadius: 14, padding: 12, marginTop: 10, borderLeftWidth: 4, borderLeftColor: colors.gold },
@@ -799,17 +799,17 @@ const styles = StyleSheet.create({
   commentInput: { flex: 1, color: colors.text, height: 40, fontSize: 14 },
 
   modalHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
-  modalTitle: { color: colors.text, fontWeight: '900', fontSize: 18 },
+  modalTitle: { color: colors.text, fontWeight: '800', fontSize: 18 },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-  label: { color: colors.text, fontWeight: '800', marginBottom: 8 },
-  toRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 14, padding: 10 },
+  label: { color: colors.text, fontWeight: '700', marginBottom: 8 },
+  toRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, padding: 10, ...soft },
   pick: { width: 72, alignItems: 'center', marginRight: 6 },
-  area: { minHeight: 150, textAlignVertical: 'top', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 14, padding: 12, color: colors.text, fontSize: 15, lineHeight: 21 },
+  area: { minHeight: 150, textAlignVertical: 'top', backgroundColor: colors.card, borderRadius: 14, padding: 12, color: colors.text, fontSize: 15, lineHeight: 21, borderWidth: 1, borderColor: colors.border },
   input: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 14, height: 46, color: colors.text, fontSize: 15 },
   err: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FDECEC', borderRadius: 10, padding: 10, marginTop: 8 },
   info: { flexDirection: 'row', backgroundColor: colors.primaryLight, borderRadius: 12, padding: 10, marginTop: 12 },
   primaryBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 48, borderRadius: 14, backgroundColor: colors.primary, marginTop: 14, paddingHorizontal: 14 },
-  primaryTxt: { color: colors.onPrimary, fontWeight: '900', fontSize: 15 },
+  primaryTxt: { color: colors.onPrimary, fontWeight: '800', fontSize: 15 },
   lineBtn: { height: 48, borderRadius: 14, borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
   okCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   waiting: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: 12, padding: 10, marginBottom: 10 },
@@ -826,7 +826,7 @@ const styles = StyleSheet.create({
   tileTag: { position: 'absolute', left: 6, bottom: 6, color: '#fff', fontSize: 10, fontWeight: '700', textShadowColor: 'rgba(0,0,0,0.7)', textShadowRadius: 4 },
   videoTile: { width: '48.5%', aspectRatio: 16 / 11, borderRadius: 12, overflow: 'hidden', marginBottom: 10, backgroundColor: colors.dark },
   play: { position: 'absolute', top: '32%', left: '42%', width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', alignSelf: 'center' },
-  dur: { position: 'absolute', top: 6, right: 6, color: '#fff', fontSize: 10, fontWeight: '800', backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4, overflow: 'hidden' },
+  dur: { position: 'absolute', top: 6, right: 6, color: '#fff', fontSize: 10, fontWeight: '700', backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4, overflow: 'hidden' },
   videoFoot: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: 7, backgroundColor: 'rgba(0,0,0,0.45)' },
   viewerTop: { position: 'absolute', left: 14, right: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   viewerClose: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf } from '../../store';
-import { colors, brl } from '../../theme';
+import { colors, brl, soft } from '../../theme';
 import { Photo, ProductThumb } from '../../components/ui';
 import { isFoodStore } from '../../data';
 import { foodPromos, barSpots, foodPosts } from '../../foodData';
@@ -161,7 +161,7 @@ export function FoodHighlights({ filter, onOpenStore, onAdd }) {
                 <Text style={[styles.price, { fontSize: 14 }]}>{brl(p.price)}</Text>
                 <TouchableOpacity style={styles.add} onPress={() => onAdd(p.id)}>
                   <Ionicons name="add" size={16} color={colors.onPrimary} />
-                  <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 12 }}>Pedir</Text>
+                  <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 12 }}>Pedir</Text>
                 </TouchableOpacity>
               </View>
             ))}
@@ -198,32 +198,32 @@ function Head({ title }) {
 const styles = StyleSheet.create({
   banner: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(226,182,73,0.55)', padding: 12, marginBottom: 14 },
   bannerIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  bannerTitle: { color: colors.primaryDark, fontWeight: '900', fontSize: 18 },
+  bannerTitle: { color: colors.primaryDark, fontWeight: '800', fontSize: 18 },
   bannerSub: { color: colors.muted, fontSize: 12, marginTop: 2 },
-  head: { color: colors.text, fontSize: 17, fontWeight: '800', marginBottom: 10, marginTop: 4 },
+  head: { color: colors.text, fontSize: 17, fontWeight: '700', marginBottom: 10, marginTop: 4 },
   hScroll: { marginHorizontal: -16, marginBottom: 16 },
-  promoCard: { width: 210, marginRight: 12, backgroundColor: colors.card, borderRadius: 18, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
+  promoCard: { width: 210, marginRight: 12, backgroundColor: colors.card, borderRadius: 18, overflow: 'hidden', ...soft },
   promoPhoto: { width: '100%', height: 115 },
   deal: { position: 'absolute', left: 10, top: 10, backgroundColor: '#FF3B5C', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
-  dealText: { color: '#fff', fontWeight: '800', fontSize: 11 },
+  dealText: { color: '#fff', fontWeight: '700', fontSize: 11 },
   sponsored: { position: 'absolute', right: 10, top: 10, backgroundColor: colors.sponsored, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
-  sponsoredText: { color: colors.onPrimary, fontSize: 10, fontWeight: '800' },
+  sponsoredText: { color: colors.onPrimary, fontSize: 10, fontWeight: '700' },
   cardTitle: { color: colors.text, fontWeight: '700', fontSize: 14 },
   cardMeta: { color: colors.muted, fontSize: 12, marginTop: 2 },
-  price: { color: colors.accent, fontWeight: '900', fontSize: 17 },
+  price: { color: colors.accent, fontWeight: '800', fontSize: 17 },
   from: { color: colors.muted, fontSize: 12, textDecorationLine: 'line-through', marginLeft: 8 },
-  bar: { backgroundColor: colors.card, borderRadius: 20, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', marginBottom: 14 },
+  bar: { backgroundColor: colors.card, borderRadius: 20, overflow: 'hidden', marginBottom: 14, ...soft },
   barPhoto: { width: '100%', height: 140 },
   liveNow: { position: 'absolute', left: 10, bottom: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(3,5,10,0.65)', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#3DDC84', marginRight: 6 },
   liveNowText: { color: '#fff', fontSize: 11, fontWeight: '700' },
-  barName: { color: colors.text, fontWeight: '800', fontSize: 16 },
+  barName: { color: colors.text, fontWeight: '700', fontSize: 16 },
   barVibe: { color: colors.primary, fontWeight: '700', fontSize: 13, marginTop: 2 },
   btn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 38, borderRadius: 19, borderWidth: 1, borderColor: colors.primary, marginRight: 8 },
   btnOn: { backgroundColor: colors.primary },
   btnText: { color: colors.primary, fontWeight: '700', fontSize: 12, marginLeft: 4 },
-  newCard: { width: 140, marginRight: 10, backgroundColor: colors.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 10 },
+  newCard: { width: 140, marginRight: 10, backgroundColor: colors.card, borderRadius: 16, padding: 10, ...soft },
   add: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 32, borderRadius: 16, backgroundColor: colors.primary, marginTop: 6 },
-  post: { backgroundColor: colors.card, borderRadius: 18, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 12 },
+  post: { backgroundColor: colors.card, borderRadius: 18, padding: 12, marginBottom: 12, ...soft },
   postImg: { width: '100%', height: 180, borderRadius: 14, marginTop: 10 },
 });

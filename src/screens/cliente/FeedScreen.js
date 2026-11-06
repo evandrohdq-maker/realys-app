@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useStore } from '../../store';
-import { colors, brl } from '../../theme';
+import { colors, brl, soft } from '../../theme';
 import { Screen, Photo, Badge, Row, Button } from '../../components/ui';
 import { memberByName } from '../../people';
 
@@ -39,7 +39,7 @@ export default function FeedScreen({ goTo }) {
             >
             <Row style={{ padding: 12 }}>
               <View style={styles.avatar}>
-                <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>{p.author[0]}</Text>
+                <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>{p.author[0]}</Text>
               </View>
               <View style={{ flex: 1 }}>
                 <Row>
@@ -77,7 +77,7 @@ export default function FeedScreen({ goTo }) {
                 <View style={styles.productBar}>
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontWeight: '700', color: colors.text }}>{product.name}</Text>
-                    <Text style={{ color: colors.primary, fontWeight: '800' }}>{brl(product.price)}</Text>
+                    <Text style={{ color: colors.primary, fontWeight: '700' }}>{brl(product.price)}</Text>
                   </View>
                   <Button
                     small
@@ -95,7 +95,7 @@ export default function FeedScreen({ goTo }) {
       })}
 
       <View style={styles.trust}>
-        <Text style={{ fontWeight: '800', color: colors.primaryDark }}>🛡️ Feed protegido</Text>
+        <Text style={{ fontWeight: '700', color: colors.primaryDark }}>🛡️ Feed protegido</Text>
         <Text style={{ color: colors.text, fontSize: 13, marginTop: 4 }}>
           Todos os perfis são verificados por biometria. A IA do Realys confere as notícias com fontes reais e quem
           espalhar fake news comprovada é bloqueado.
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   storyName: { fontSize: 11, marginTop: 4, color: colors.text },
-  post: { backgroundColor: colors.card, borderRadius: 16, marginBottom: 14, overflow: 'hidden', borderWidth: 1, borderColor: colors.border },
+  post: { backgroundColor: colors.card, borderRadius: 16, marginBottom: 14, overflow: 'hidden', ...soft },
   avatar: {
     width: 38,
     height: 38,

@@ -74,11 +74,11 @@ export default function ProfileScreen({ navigate, explore }) {
             {prof.photo ? (
               <Photo uri={prof.photo} style={{ width: 60, height: 60, borderRadius: 30 }} />
             ) : (
-              <Text style={{ color: colors.onPrimary, fontSize: 24, fontWeight: '900' }}>{u.name[0]}</Text>
+              <Text style={{ color: colors.onPrimary, fontSize: 24, fontWeight: '800' }}>{u.name[0]}</Text>
             )}
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 18 }}>{u.name}</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 18 }}>{u.name}</Text>
             {prof.handle || prof.profession ? (
               <Text style={{ color: colors.muted, fontSize: 12, marginBottom: 3 }} numberOfLines={1}>
                 {[prof.handle ? '@' + prof.handle : '', prof.profession].filter(Boolean).join(' · ')}
@@ -107,7 +107,7 @@ export default function ProfileScreen({ navigate, explore }) {
               elevation: 10,
             }}
           >
-            <Text style={{ color: '#FFFFFF', fontWeight: '900', fontSize: 12, letterSpacing: 0.5 }}>SOS</Text>
+            <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 12, letterSpacing: 0.5 }}>SOS</Text>
           </TouchableOpacity>
         </Row>
         {/* Perfil social: classe e subclasse definidas pelo questionário do cadastro. */}
@@ -121,7 +121,7 @@ export default function ProfileScreen({ navigate, explore }) {
         ) : (
           <TouchableOpacity onPress={() => setQuizOpen(true)} style={styles.quizCta} activeOpacity={0.85}>
             <Ionicons name="planet-outline" size={18} color={colors.primary} />
-            <Text style={{ color: colors.primary, fontWeight: '800', marginLeft: 6, flex: 1 }}>Descubra seu perfil social (Gamer, Artista, Estudante…)</Text>
+            <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 6, flex: 1 }}>Descubra seu perfil social (Gamer, Artista, Estudante…)</Text>
             <Ionicons name="chevron-forward" size={16} color={colors.primary} />
           </TouchableOpacity>
         )}
@@ -130,11 +130,11 @@ export default function ProfileScreen({ navigate, explore }) {
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
           <TouchableOpacity onPress={() => setEditing(true)} style={styles.editBtn} activeOpacity={0.85} accessibilityLabel="Editar perfil">
             <Ionicons name="create-outline" size={16} color={colors.onPrimary} />
-            <Text style={{ color: colors.onPrimary, fontWeight: '900', marginLeft: 6 }}>Editar perfil</Text>
+            <Text style={{ color: colors.onPrimary, fontWeight: '800', marginLeft: 6 }}>Editar perfil</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => dispatch({ type: 'SET_PRIVACY', privacy: { exposed: !priv.exposed } })} style={[styles.privPill, !priv.exposed && { borderColor: colors.accent }]} accessibilityLabel={priv.exposed ? 'Deixar perfil invisível' : 'Expor meu perfil'}>
             <Ionicons name={priv.exposed ? 'eye' : 'eye-off'} size={15} color={priv.exposed ? colors.primary : colors.accent} />
-            <Text style={{ color: priv.exposed ? colors.primaryDark : colors.accent, fontWeight: '800', fontSize: 12, marginLeft: 5 }}>{priv.exposed ? 'Exposto' : 'Invisível'}</Text>
+            <Text style={{ color: priv.exposed ? colors.primaryDark : colors.accent, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>{priv.exposed ? 'Exposto' : 'Invisível'}</Text>
           </TouchableOpacity>
         </View>
         {/* Carteira em destaque: o saldo só aparece aqui no Perfil. */}
@@ -144,10 +144,10 @@ export default function ProfileScreen({ navigate, explore }) {
           </View>
           <View style={{ flex: 1, marginLeft: 12 }}>
             <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, fontWeight: '600' }}>Carteira Realys</Text>
-            <Text style={{ color: '#FFFFFF', fontWeight: '900', fontSize: 22 }}>{brl(state.wallet)}</Text>
+            <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 22 }}>{brl(state.wallet)}</Text>
           </View>
           <View style={styles.walletBtn}>
-            <Text style={{ color: colors.primary, fontWeight: '900', fontSize: 12 }}>Gerenciar</Text>
+            <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 12 }}>Gerenciar</Text>
             <Ionicons name="chevron-forward" size={14} color={colors.primary} />
           </View>
         </TouchableOpacity>
@@ -159,7 +159,7 @@ export default function ProfileScreen({ navigate, explore }) {
         <Row>
           <FutureIcon name="rocket" size={40} spin />
           <View style={{ flex: 1, marginLeft: 10 }}>
-            <Text style={{ color: colors.text, fontWeight: '900', fontSize: 16 }}>Estúdio Realys</Text>
+            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>Estúdio Realys</Text>
             <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
               Crie seu portfólio e publique músicas, vídeos e artes. Você escolhe se cada criação vai para o Social, o Portfólio{u.roles.includes('empresa') ? ' ou a parte Empresarial' : ''}.
             </Text>
@@ -170,7 +170,7 @@ export default function ProfileScreen({ navigate, explore }) {
 
       {/* Quem vê o perfil: exposto ou invisível; vida social e portfólio para todos, só amigos ou só eu. */}
       <Card>
-        <Text style={{ color: colors.text, fontWeight: '900', fontSize: 16, marginBottom: 2 }}>Quem vê meu perfil</Text>
+        <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16, marginBottom: 2 }}>Quem vê meu perfil</Text>
         <Text style={{ color: colors.muted, fontSize: 12, marginBottom: 10 }}>
           Agora: vida social para {audienceLabel(priv.social).toLowerCase()}, portfólio para {audienceLabel(priv.portfolio).toLowerCase()}{priv.exposed ? '' : ' (perfil invisível)'}.
         </Text>
@@ -179,14 +179,14 @@ export default function ProfileScreen({ navigate, explore }) {
 
       {/* Perfil social: destaques, galeria de fotos, galeria de vídeos e depoimentos aceitos. */}
       <Card>
-        <Text style={{ color: colors.text, fontWeight: '900', fontSize: 16 }}>Meu perfil na Comunidade</Text>
+        <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>Meu perfil na Comunidade</Text>
         <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
           É o que seus amigos veem ao abrir seu perfil. Depoimentos só aparecem depois que você aceita.
         </Text>
         <ProfileSocial ownerId="me" />
       </Card>
 
-      <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16, marginVertical: 8 }}>Trocar de perfil</Text>
+      <Text style={{ color: colors.text, fontWeight: '700', fontSize: 16, marginVertical: 8 }}>Trocar de perfil</Text>
       <Text style={{ color: colors.muted, fontSize: 13, marginBottom: 10 }}>
         Uma conta só, com acessos diferentes. Troque para ver o app como cada tipo de usuário.
       </Text>
@@ -213,7 +213,7 @@ export default function ProfileScreen({ navigate, explore }) {
       <Card style={{ backgroundColor: colors.primaryLight, borderColor: 'rgba(168,121,10,0.35)', marginTop: 8 }}>
         <Row>
           <View style={{ flex: 1, paddingRight: 10 }}>
-            <Text style={{ fontWeight: '800', color: colors.text, fontSize: 15 }}>Acionar falando "abrir Lotus"</Text>
+            <Text style={{ fontWeight: '700', color: colors.text, fontSize: 15 }}>Acionar falando "abrir Lotus"</Text>
             <Text style={{ color: colors.muted, fontSize: 12, marginTop: 4 }}>
               Com o app aberto, diga "abrir Lotus, preciso de um eletricista" e a Lotus, assistente do Realys, atende com voz suave, sem tocar na tela e sem "Ok Google".
             </Text>
@@ -242,7 +242,7 @@ export default function ProfileScreen({ navigate, explore }) {
         <Row>
           <Ionicons name="people-outline" size={22} color={colors.primary} style={{ marginRight: 10 }} />
           <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>Trocar usuário</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>Trocar usuário</Text>
             <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
               Celular compartilhado (ex.: aparelho da empresa)? Saia da sua conta e outra pessoa entra com a dela. As contas salvas aparecem na entrada.
             </Text>

@@ -166,9 +166,9 @@ function Pill({ label, on, onPress }) {
 }
 
 const styles = StyleSheet.create({
-  h3: { color: colors.text, fontWeight: '800', marginBottom: 8, fontSize: 16 },
+  h3: { color: colors.text, fontWeight: '700', marginBottom: 8, fontSize: 16 },
   label: { color: colors.muted, fontSize: 12, fontWeight: '700', marginBottom: 6 },
-  title: { color: colors.text, fontWeight: '800', fontSize: 15 },
+  title: { color: colors.text, fontWeight: '700', fontSize: 15 },
   meta: { color: colors.muted, fontSize: 12, marginTop: 2 },
   exp: { color: colors.text, fontSize: 12, marginTop: 2 },
   cand: { borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 10, marginTop: 10 },

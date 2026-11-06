@@ -6,7 +6,7 @@ import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, TextInput,
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
-import { colors, brl } from '../theme';
+import { colors, brl, soft } from '../theme';
 import { GIFT_FEE_PCT, LIVE_CONVERT_MIN, liveGiftOf } from '../gifts';
 import { PARTNER_OFFERS, POINTS_PER_RATING, POINTS_COMMENT_BONUS } from '../rewards';
 import { levelOf, nextLevel, ORDERS_FOR_BONUS, BONUS, STAMPS_FOR_REWARD, STAMP_BACK_PCT, initialLoyalty } from '../loyalty';
@@ -107,7 +107,7 @@ export default function WalletScreen({ visible, onClose }) {
               <Ionicons name="gift" size={22} color="#E2B649" />
               <View style={{ flex: 1, marginLeft: 10 }}>
                 <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12, fontWeight: '700' }}>Créditos de presente</Text>
-                <Text style={{ color: '#FFFFFF', fontSize: 24, fontWeight: '900' }}>{brl(state.giftCredits)}</Text>
+                <Text style={{ color: '#FFFFFF', fontSize: 24, fontWeight: '800' }}>{brl(state.giftCredits)}</Text>
               </View>
             </View>
             <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11, marginTop: 6, lineHeight: 16 }}>
@@ -125,7 +125,7 @@ export default function WalletScreen({ visible, onClose }) {
                     {g.dir === 'enviado' ? ` · taxa ${brl(g.fee)}` : ''}
                   </Text>
                 </View>
-                <Text style={{ color: g.dir === 'recebido' ? '#7BE0B0' : '#FFFFFF', fontWeight: '900' }}>
+                <Text style={{ color: g.dir === 'recebido' ? '#7BE0B0' : '#FFFFFF', fontWeight: '800' }}>
                   {g.dir === 'recebido' ? '+' : '−'} {brl(g.amount)}
                 </Text>
               </View>
@@ -143,7 +143,7 @@ export default function WalletScreen({ visible, onClose }) {
               </View>
               <View style={{ flex: 1, marginLeft: 10 }}>
                 <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '700' }}>Créditos de live</Text>
-                <Text style={{ color: colors.text, fontSize: 24, fontWeight: '900' }}>{brl(state.liveCredits)}</Text>
+                <Text style={{ color: colors.text, fontSize: 24, fontWeight: '800' }}>{brl(state.liveCredits)}</Text>
               </View>
               <TouchableOpacity
                 style={[styles.convertBtn, state.liveCredits < LIVE_CONVERT_MIN && { opacity: 0.45 }]}
@@ -172,7 +172,7 @@ export default function WalletScreen({ visible, onClose }) {
                     <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }} numberOfLines={1}>{g.from} · {lg.name}{g.qty > 1 ? ` x${g.qty}` : ''}</Text>
                     <Text style={{ color: colors.muted, fontSize: 11 }} numberOfLines={1}>{g.live} · {fmtDate(g.at)}</Text>
                   </View>
-                  <Text style={{ color: '#1E9E63', fontWeight: '900' }}>+ {brl(g.value)}</Text>
+                  <Text style={{ color: '#1E9E63', fontWeight: '800' }}>+ {brl(g.value)}</Text>
                 </View>
               );
             })}
@@ -191,7 +191,7 @@ export default function WalletScreen({ visible, onClose }) {
                   <Text style={{ fontSize: 26 }}>{lvl.icon}</Text>
                   <View style={{ flex: 1, marginLeft: 10 }}>
                     <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '700' }}>Clube Realys · nível {lvl.label}</Text>
-                    <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '900' }}>{ly.orders} pedidos entregues</Text>
+                    <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '800' }}>{ly.orders} pedidos entregues</Text>
                   </View>
                 </View>
                 <Text style={styles.clubLabel}>Faltam {toBonus} {toBonus === 1 ? 'pedido' : 'pedidos'} para ganhar {BONUS.pct}% no próximo (até {brl(BONUS.cap)})</Text>
@@ -224,7 +224,7 @@ export default function WalletScreen({ visible, onClose }) {
               <Ionicons name="trophy" size={22} color={colors.primary} />
               <View style={{ flex: 1, marginLeft: 10 }}>
                 <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '700' }}>Pontos Realys</Text>
-                <Text style={{ color: colors.text, fontSize: 24, fontWeight: '900' }}>{state.points} pontos</Text>
+                <Text style={{ color: colors.text, fontSize: 24, fontWeight: '800' }}>{state.points} pontos</Text>
               </View>
             </View>
             <Text style={{ color: colors.muted, fontSize: 11, marginTop: 4, lineHeight: 16 }}>
@@ -237,10 +237,10 @@ export default function WalletScreen({ visible, onClose }) {
                   <View key={pc.id} style={styles.offer}>
                     <Text style={{ fontSize: 20, width: 30 }}>{pc.icon}</Text>
                     <View style={{ flex: 1 }}>
-                      <Text style={{ color: colors.text, fontWeight: '800' }}>{pc.title}</Text>
+                      <Text style={{ color: colors.text, fontWeight: '700' }}>{pc.title}</Text>
                       <Text style={{ color: colors.muted, fontSize: 11 }}>{pc.partner} · {pc.kind === 'loja' ? 'desconta sozinho na próxima compra lá' : pc.kind === 'cupom' ? `pedido mínimo de ${brl(pc.minOrder || 0)}, desconta sozinho` : 'vale no próximo serviço'}</Text>
                     </View>
-                    <Text style={{ color: colors.success, fontWeight: '900' }}>{brl(pc.value)}</Text>
+                    <Text style={{ color: colors.success, fontWeight: '800' }}>{brl(pc.value)}</Text>
                   </View>
                 ))}
               </>
@@ -252,7 +252,7 @@ export default function WalletScreen({ visible, onClose }) {
                 <View key={o.id} style={styles.offer}>
                   <Text style={{ fontSize: 20, width: 30 }}>{o.icon}</Text>
                   <View style={{ flex: 1 }}>
-                    <Text style={{ color: colors.text, fontWeight: '800' }}>{o.title}</Text>
+                    <Text style={{ color: colors.text, fontWeight: '700' }}>{o.title}</Text>
                     <Text style={{ color: colors.muted, fontSize: 11 }}>{o.partner}{o.supplier ? ' · fornecedor' : o.kind === 'servico' ? ' · prestadores' : ''}</Text>
                   </View>
                   <TouchableOpacity
@@ -265,7 +265,7 @@ export default function WalletScreen({ visible, onClose }) {
                     }
                     style={[styles.redeem, !can && { opacity: 0.45 }]}
                   >
-                    <Text style={{ color: '#FFFFFF', fontWeight: '900', fontSize: 12 }}>{o.points} pts</Text>
+                    <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 12 }}>{o.points} pts</Text>
                   </TouchableOpacity>
                 </View>
               );
@@ -290,10 +290,10 @@ export default function WalletScreen({ visible, onClose }) {
           <View style={[styles.card, { flexDirection: 'row', alignItems: 'center' }]}>
             <Ionicons name={balance >= 0 ? 'trending-up' : 'trending-down'} size={22} color={balance >= 0 ? colors.success : colors.danger} />
             <View style={{ flex: 1, marginLeft: 10 }}>
-              <Text style={{ color: colors.text, fontWeight: '800' }}>Resultado do período</Text>
+              <Text style={{ color: colors.text, fontWeight: '700' }}>Resultado do período</Text>
               <Text style={{ color: colors.muted, fontSize: 12 }}>Entradas (depósitos + recebidos) menos saídas (gastos + saques)</Text>
             </View>
-            <Text style={{ color: balance >= 0 ? colors.success : colors.danger, fontWeight: '900', fontSize: 16 }}>
+            <Text style={{ color: balance >= 0 ? colors.success : colors.danger, fontWeight: '800', fontSize: 16 }}>
               {balance >= 0 ? '+' : '−'}
               {brl(Math.abs(balance))}
             </Text>
@@ -302,9 +302,9 @@ export default function WalletScreen({ visible, onClose }) {
           {/* Limite de gastos */}
           <View style={styles.card}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={{ color: colors.text, fontWeight: '800', flex: 1 }}>Limite de gastos do mês</Text>
+              <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>Limite de gastos do mês</Text>
               <TouchableOpacity onPress={() => setAction('limite')}>
-                <Text style={{ color: colors.primary, fontWeight: '800' }}>Ajustar</Text>
+                <Text style={{ color: colors.primary, fontWeight: '700' }}>Ajustar</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.track}>
@@ -321,7 +321,7 @@ export default function WalletScreen({ visible, onClose }) {
 
           {byCat.length ? (
             <View style={styles.card}>
-              <Text style={{ color: colors.text, fontWeight: '800', marginBottom: 8 }}>Para onde foi o dinheiro</Text>
+              <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 8 }}>Para onde foi o dinheiro</Text>
               {byCat.map(([cat, v]) => (
                 <View key={cat} style={{ marginBottom: 8 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -363,7 +363,7 @@ export default function WalletScreen({ visible, onClose }) {
                       {t.cat} · {fmtDate(t.ts)}
                     </Text>
                   </View>
-                  <Text style={{ color: k.color, fontWeight: '900' }}>
+                  <Text style={{ color: k.color, fontWeight: '800' }}>
                     {k.sign} {brl(t.amount)}
                   </Text>
                 </View>
@@ -387,7 +387,7 @@ function BigBtn({ icon, label, onPress, style }) {
   return (
     <TouchableOpacity style={[styles.bigBtn, style]} onPress={onPress} activeOpacity={0.85} accessibilityLabel={label}>
       <Ionicons name={icon} size={20} color={colors.primary} />
-      <Text style={{ color: colors.primary, fontWeight: '900', marginLeft: 6 }}>{label}</Text>
+      <Text style={{ color: colors.primary, fontWeight: '800', marginLeft: 6 }}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -397,7 +397,7 @@ function Tile({ label, value, color, icon }) {
     <View style={styles.tile}>
       <Ionicons name={icon} size={18} color={color} />
       <Text style={{ color: colors.muted, fontSize: 11, marginTop: 4 }}>{label}</Text>
-      <Text style={{ color, fontWeight: '900', fontSize: 16, marginTop: 2 }}>{brl(value)}</Text>
+      <Text style={{ color, fontWeight: '800', fontSize: 16, marginTop: 2 }}>{brl(value)}</Text>
     </View>
   );
 }
@@ -507,7 +507,7 @@ function ActionSheet({ kind, onClose, wallet, limit, dispatch }) {
 const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-  title: { color: colors.text, fontWeight: '900', fontSize: 18 },
+  title: { color: colors.text, fontWeight: '800', fontSize: 18 },
   clubCard: { backgroundColor: '#0B1124', borderRadius: 20, padding: 16, marginTop: 10, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
   clubLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: '700', marginTop: 12 },
   clubSmall: { color: 'rgba(255,255,255,0.55)', fontSize: 11, marginTop: 6 },
@@ -516,35 +516,35 @@ const styles = StyleSheet.create({
   stamp: { flex: 1, height: 10, borderRadius: 5, marginRight: 3, borderWidth: 1, borderColor: 'rgba(226,182,73,0.5)' },
   stampOn: { backgroundColor: '#E2B649' },
   pointsCard: { backgroundColor: colors.card, borderRadius: 20, padding: 16, marginTop: 10, borderWidth: 1.5, borderColor: colors.gold },
-  pointsH: { color: colors.muted, fontSize: 11, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase', marginTop: 14, marginBottom: 4 },
+  pointsH: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', marginTop: 14, marginBottom: 4 },
   offer: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border },
   redeem: { backgroundColor: colors.primary, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 7, marginLeft: 8 },
   giftCard: { backgroundColor: '#0B1124', borderRadius: 20, padding: 16, marginTop: 10, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
   liveCard: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 16, marginTop: 10, borderWidth: 1, borderColor: 'rgba(255,59,92,0.35)' },
   liveIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#FF3B5C', alignItems: 'center', justifyContent: 'center' },
   convertBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E2B649', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 8 },
-  convertText: { color: '#0B1124', fontWeight: '900', fontSize: 12, marginLeft: 4 },
+  convertText: { color: '#0B1124', fontWeight: '800', fontSize: 12, marginLeft: 4 },
   liveRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border, marginTop: 6 },
   giftRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', marginTop: 6 },
   balanceCard: { backgroundColor: colors.primary, borderRadius: 20, padding: 16 },
-  balance: { color: '#fff', fontSize: 32, fontWeight: '900', marginVertical: 4 },
+  balance: { color: '#fff', fontSize: 32, fontWeight: '800', marginVertical: 4 },
   bigBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 44, borderRadius: 14, backgroundColor: '#fff' },
   periods: { flexDirection: 'row', marginTop: 16 },
-  section: { color: colors.text, fontWeight: '800', fontSize: 16, marginTop: 14, marginBottom: 8 },
+  section: { color: colors.text, fontWeight: '700', fontSize: 16, marginTop: 14, marginBottom: 8 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  tile: { width: '48.5%', backgroundColor: colors.card, borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 8 },
-  card: { backgroundColor: colors.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 10 },
+  tile: { width: '48.5%', backgroundColor: colors.card, borderRadius: 14, padding: 12, marginBottom: 8, ...soft },
+  card: { backgroundColor: colors.card, borderRadius: 16, padding: 12, marginBottom: 10, ...soft },
   track: { height: 10, borderRadius: 6, backgroundColor: colors.cardAlt, overflow: 'hidden', marginTop: 10 },
   fill: { height: '100%', borderRadius: 6 },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, marginRight: 8, marginBottom: 6 },
+  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18, backgroundColor: colors.card, marginRight: 8, marginBottom: 6, ...soft },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipTxt: { color: colors.text, fontWeight: '700', fontSize: 13 },
-  txRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 10, marginBottom: 8 },
+  txRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, padding: 10, marginBottom: 8, ...soft },
   txIcon: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   sheet: { backgroundColor: colors.bg, borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 16 },
   label: { color: colors.text, fontWeight: '700', marginBottom: 6 },
   input: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 14, height: 48, color: colors.text, fontSize: 16 },
   primary: { height: 50, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginTop: 16 },
-  primaryTxt: { color: colors.onPrimary, fontWeight: '900', fontSize: 15 },
+  primaryTxt: { color: colors.onPrimary, fontWeight: '800', fontSize: 15 },
 });

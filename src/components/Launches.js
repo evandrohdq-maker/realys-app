@@ -64,17 +64,17 @@ export function LaunchStrip({ title = '🚀 Lançamentos das lojas' }) {
 
 const styles = StyleSheet.create({
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  title: { fontSize: 17, fontWeight: '800', color: colors.text },
+  title: { fontSize: 17, fontWeight: '700', color: colors.text },
   count: { fontSize: 12, color: colors.muted, fontWeight: '600' },
   card: { width: 170, backgroundColor: colors.card, borderRadius: 16, borderWidth: 1.5, borderColor: colors.gold, padding: 10, marginRight: 10 },
   media: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cardAlt, borderRadius: 12, paddingVertical: 10 },
   newTag: { position: 'absolute', top: 8, left: 8, backgroundColor: colors.primary, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2 },
-  newText: { color: colors.onPrimary, fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+  newText: { color: colors.onPrimary, fontSize: 10, fontWeight: '800', letterSpacing: 1 },
   play: { position: 'absolute', bottom: 8, right: 8, width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(31,42,68,0.75)', alignItems: 'center', justifyContent: 'center' },
   name: { fontWeight: '700', color: colors.text, marginTop: 8, minHeight: 36 },
   store: { fontSize: 11, color: colors.accent, fontWeight: '700', marginTop: 2 },
   note: { fontSize: 11, color: colors.muted, marginTop: 4, minHeight: 28 },
   footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 },
-  price: { fontWeight: '900', color: colors.primary, fontSize: 15 },
+  price: { fontWeight: '800', color: colors.primary, fontSize: 15 },
   add: { width: 32, height: 32, borderRadius: 10, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
 });

@@ -443,7 +443,7 @@ export default function PageScreen() {
             <Input value={price} onChangeText={setPrice} keyboardType="decimal-pad" placeholder={kind === 'obra' ? 'Preço da obra (R$)' : 'Preço para baixar (R$) · vazio = grátis'} />
             <Row style={{ justifyContent: 'space-between', marginBottom: 10 }}>
               <Text style={styles.sub}>Custo do servidor</Text>
-              <Text style={{ fontWeight: '800', color: fee ? colors.text : colors.success }}>{fee ? brl(fee) : 'Incluso no plano'}</Text>
+              <Text style={{ fontWeight: '700', color: fee ? colors.text : colors.success }}>{fee ? brl(fee) : 'Incluso no plano'}</Text>
             </Row>
             <Button title={fee ? `Pagar ${brl(fee)} e publicar` : 'Publicar'} onPress={upload} />
           </Card>
@@ -473,11 +473,11 @@ export default function PageScreen() {
 }
 
 const styles = StyleSheet.create({
-  name: { fontWeight: '800', color: colors.text },
+  name: { fontWeight: '700', color: colors.text },
   sub: { color: colors.muted, fontSize: 12, marginTop: 2 },
   label: { color: colors.muted, fontSize: 12, fontWeight: '700', marginBottom: 4 },
-  h2: { fontSize: 16, fontWeight: '800', color: colors.text, marginTop: 8, marginBottom: 4 },
-  h2Inline: { fontSize: 16, fontWeight: '800', color: colors.text, marginLeft: 8, flex: 1 },
+  h2: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: 8, marginBottom: 4 },
+  h2Inline: { fontSize: 16, fontWeight: '700', color: colors.text, marginLeft: 8, flex: 1 },
   headIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: NIGHT, alignItems: 'center', justifyContent: 'center' },
   kind: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 12, borderWidth: 1, borderColor: colors.border, marginHorizontal: 3 },
   kindOn: { backgroundColor: colors.primary, borderColor: colors.primary },
@@ -488,11 +488,11 @@ const styles = StyleSheet.create({
   previewGlowGold: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(226,182,73,0.28)', top: -90, right: -60 },
   previewGlowBlue: { position: 'absolute', width: 160, height: 160, borderRadius: 80, backgroundColor: 'rgba(47,116,208,0.28)', bottom: -80, left: -50 },
   previewLogo: { width: 58, height: 58, borderRadius: 29, backgroundColor: '#FFFDF8', borderWidth: 2, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
-  previewName: { color: '#FFFFFF', fontWeight: '900', fontSize: 18 },
+  previewName: { color: '#FFFFFF', fontWeight: '800', fontSize: 18 },
   previewTag: { color: colors.gold, fontWeight: '700', fontSize: 12, marginTop: 2 },
   previewSub: { color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 4 },
   previewBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 12, paddingVertical: 9, marginTop: 14 },
-  previewBtnText: { color: NIGHT, fontWeight: '900', marginLeft: 6 },
+  previewBtnText: { color: NIGHT, fontWeight: '800', marginLeft: 6 },
 
   pick: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 11, paddingVertical: 7, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)', backgroundColor: 'rgba(251,241,214,0.5)', marginRight: 6, marginBottom: 6 },
   pickSmall: { paddingHorizontal: 9, paddingVertical: 5 },
@@ -503,11 +503,11 @@ const styles = StyleSheet.create({
   gGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   gItem: { width: '31.5%', marginBottom: 8, borderRadius: 12, overflow: 'hidden' },
   gImg: { width: '100%', height: 90 },
-  gTag: { position: 'absolute', left: 4, bottom: 4, backgroundColor: 'rgba(11,17,36,0.75)', color: colors.gold, fontSize: 9, fontWeight: '900', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, overflow: 'hidden' },
+  gTag: { position: 'absolute', left: 4, bottom: 4, backgroundColor: 'rgba(11,17,36,0.75)', color: colors.gold, fontSize: 9, fontWeight: '800', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 6, overflow: 'hidden' },
   gDel: { position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(217,83,79,0.9)', alignItems: 'center', justifyContent: 'center' },
   prodRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
-  order: { color: colors.primary, fontWeight: '900', marginRight: 8 },
+  order: { color: colors.primary, fontWeight: '800', marginRight: 8 },
   expose: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 9, paddingVertical: 5 },
   exposeOn: { backgroundColor: colors.success, borderColor: colors.success },
-  exposeText: { color: colors.muted, fontWeight: '800', fontSize: 11, marginLeft: 4 },
+  exposeText: { color: colors.muted, fontWeight: '700', fontSize: 11, marginLeft: 4 },
 });

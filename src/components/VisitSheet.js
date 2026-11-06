@@ -5,7 +5,7 @@ import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, Key
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore, serviceType } from '../store';
-import { colors, brl } from '../theme';
+import { colors, brl, soft } from '../theme';
 import { Photo, Input, Chip, Row } from './ui';
 import { visitFee, visitDiscount, splitFee, REALYS_FEE_PCT, VISIT_STATUS } from '../serviceVisits';
 
@@ -127,7 +127,7 @@ export function VisitCard({ visit: v }) {
     <View style={[styles.card, { borderColor: st.color }]}>
       <Row>
         <Ionicons name={st.icon} size={16} color={st.color} />
-        <Text style={{ color: st.color, fontWeight: '800', marginLeft: 6, flex: 1 }}>{st.label}</Text>
+        <Text style={{ color: st.color, fontWeight: '700', marginLeft: 6, flex: 1 }}>{st.label}</Text>
         <Text style={{ color: colors.muted, fontSize: 12 }}>{brl(v.fee)}</Text>
       </Row>
       <Row style={{ marginTop: 8 }}>
@@ -159,10 +159,10 @@ export function VisitCard({ visit: v }) {
           <View style={styles.phone}>
             <Ionicons name="call-outline" size={15} color={colors.success} />
             <Text style={{ color: colors.text, marginLeft: 8, flex: 1, fontSize: 13 }}>
-              Telefone liberado: <Text style={{ fontWeight: '800' }}>{phoneOf(v.providerId)}</Text>
+              Telefone liberado: <Text style={{ fontWeight: '700' }}>{phoneOf(v.providerId)}</Text>
             </Text>
             <TouchableOpacity onPress={() => Alert.alert('Chat do Realys', `Conversa com ${first} aberta.`)}>
-              <Text style={{ color: colors.primary, fontWeight: '800' }}>Chat</Text>
+              <Text style={{ color: colors.primary, fontWeight: '700' }}>Chat</Text>
             </TouchableOpacity>
           </View>
           <Text style={styles.hint}>Depois que {first} passar aí, confirme a visita. Só então o valor é liberado.</Text>
@@ -208,7 +208,7 @@ export function VisitCard({ visit: v }) {
 function Small({ title, onPress, main, danger }) {
   return (
     <TouchableOpacity onPress={onPress} style={[styles.small, main && styles.smallMain, danger && styles.smallDanger]}>
-      <Text style={{ color: main ? colors.onPrimary : danger ? colors.danger : colors.text, fontWeight: '800', fontSize: 12 }} numberOfLines={1}>
+      <Text style={{ color: main ? colors.onPrimary : danger ? colors.danger : colors.text, fontWeight: '700', fontSize: 12 }} numberOfLines={1}>
         {title}
       </Text>
     </TouchableOpacity>
@@ -217,19 +217,19 @@ function Small({ title, onPress, main, danger }) {
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(16,22,40,0.45)' },
-  sheet: { backgroundColor: '#FFFDF8', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 16, paddingTop: 8, maxHeight: '92%', borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
+  sheet: { backgroundColor: '#FFFDF8', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 16, paddingTop: 8, maxHeight: '92%' },
   grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: 10 },
   avatar: { width: 46, height: 46, borderRadius: 15 },
   avatarSm: { width: 40, height: 40, borderRadius: 13 },
-  title: { fontSize: 17, fontWeight: '900', color: colors.text },
+  title: { fontSize: 17, fontWeight: '800', color: colors.text },
   sub: { color: colors.muted, fontSize: 12 },
   closeBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cardAlt },
   label: { color: colors.text, fontWeight: '700', marginBottom: 6 },
-  feeBox: { backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 12, marginTop: 4 },
-  feeLabel: { color: colors.text, fontWeight: '800', fontSize: 15 },
-  feeValue: { color: colors.primary, fontWeight: '900', fontSize: 18 },
+  feeBox: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 12, marginTop: 4, ...soft },
+  feeLabel: { color: colors.text, fontWeight: '700', fontSize: 15 },
+  feeValue: { color: colors.primary, fontWeight: '800', fontSize: 18 },
   sendBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 14, marginTop: 14 },
-  sendText: { color: colors.onPrimary, fontWeight: '900', marginLeft: 8, fontSize: 15 },
+  sendText: { color: colors.onPrimary, fontWeight: '800', marginLeft: 8, fontSize: 15 },
   saldo: { color: colors.muted, fontSize: 12, textAlign: 'center', marginTop: 8, marginBottom: 4 },
   card: { backgroundColor: colors.card, borderRadius: 16, borderWidth: 1.5, padding: 12, marginBottom: 10 },
   hint: { color: colors.muted, fontSize: 12, marginTop: 8, lineHeight: 17 },

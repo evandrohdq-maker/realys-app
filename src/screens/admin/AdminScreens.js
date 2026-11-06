@@ -35,7 +35,7 @@ export function AdminOverview() {
       </Row>
 
       <Card>
-        <Text style={{ color: colors.text, fontWeight: '800', marginBottom: 10 }}>Novos cadastros por dia</Text>
+        <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 10 }}>Novos cadastros por dia</Text>
         <BarChart
           data={[
             { label: 'Qua', value: 210 },
@@ -50,7 +50,7 @@ export function AdminOverview() {
       </Card>
 
       <Card style={{ backgroundColor: '#FFF4DC', borderColor: '#E9CF95' }}>
-        <Text style={{ color: colors.text, fontWeight: '800', marginBottom: 4 }}>⚠️ Precisa da sua atenção</Text>
+        <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 4 }}>⚠️ Precisa da sua atenção</Text>
         <Text style={{ color: colors.text }}>• {openReports} denúncias abertas (aba Moderação)</Text>
         <Text style={{ color: colors.text }}>• {pending} cadastros aguardando aprovação (aba Cadastros)</Text>
       </Card>
@@ -66,7 +66,7 @@ export function AdminOverview() {
           <Card key={label}>
             <Row style={{ justifyContent: 'space-between' }}>
               <Text style={{ color: colors.text, flex: 1 }}>{label}</Text>
-              <Text style={{ fontWeight: '800', color: colors.success }}>{brl(v)}</Text>
+              <Text style={{ fontWeight: '700', color: colors.success }}>{brl(v)}</Text>
             </Row>
           </Card>
         ))}
@@ -101,7 +101,7 @@ export function AdminModeration() {
             <Badge label={r.kind} color={KIND_COLOR[r.kind] || colors.primary} />
             <Text style={{ color: colors.muted, fontSize: 12 }}>{r.count} denúncia(s)</Text>
           </Row>
-          <Text style={{ color: colors.text, fontWeight: '800' }}>{r.target}</Text>
+          <Text style={{ color: colors.text, fontWeight: '700' }}>{r.target}</Text>
           <Text style={{ color: colors.text, marginTop: 4 }}>{r.detail}</Text>
           <Text style={{ marginTop: 6, fontSize: 12, color: r.aiScore >= 80 ? colors.danger : colors.muted, fontWeight: '700' }}>
             🤖 IA: {r.aiScore}% de chance de ser {r.kind === 'Fake news' ? 'falso' : 'irregular'}
@@ -144,7 +144,7 @@ export function AdminSignups() {
       {state.signups.map((g) => (
         <Card key={g.id}>
           <Row style={{ justifyContent: 'space-between' }}>
-            <Text style={{ color: colors.text, fontWeight: '800', flex: 1 }}>{g.name}</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{g.name}</Text>
             <Badge
               label={g.status}
               color={g.status === 'aprovado' ? colors.success : g.status === 'recusado' ? colors.danger : colors.accent}

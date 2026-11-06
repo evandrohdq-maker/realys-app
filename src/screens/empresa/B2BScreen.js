@@ -52,14 +52,14 @@ export default function B2BScreen() {
             <Card key={o.id} style={o.status === 'pendente' ? { borderColor: 'rgba(226,182,73,0.8)', borderWidth: 1.5 } : null}>
               <Row style={{ justifyContent: 'space-between' }}>
                 <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>
-                  {sup.logo} {sup.name} <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {sup.rating}</Text>
+                  {sup.logo} {sup.name} <Text style={{ color: colors.accent, fontWeight: '700' }}>★ {sup.rating}</Text>
                 </Text>
                 <Badge label={o.status} color={STATUS_COLOR[o.status]} />
               </Row>
               <Text style={{ color: colors.text, marginTop: 4 }}>
                 {o.qty}× {item.emoji} {item.name}
               </Text>
-              <Text style={{ color: colors.primary, fontWeight: '800', marginTop: 2 }}>
+              <Text style={{ color: colors.primary, fontWeight: '700', marginTop: 2 }}>
                 {brl(unit)}/un. ({o.discount}% off) · total {brl(o.qty * unit)}
               </Text>
               <Text style={{ color: colors.muted, fontSize: 12 }}>Válida até {o.validUntil} · {o.createdAt}</Text>
@@ -102,7 +102,7 @@ export default function B2BScreen() {
       </Section>
 
       <Card style={{ backgroundColor: '#EFEAFF', borderColor: '#CFC6FF' }}>
-        <Text style={{ fontWeight: '800', color: colors.sponsored }}>🤝 Compra coletiva aberta</Text>
+        <Text style={{ fontWeight: '700', color: colors.sponsored }}>🤝 Compra coletiva aberta</Text>
         <Text style={{ marginTop: 4, color: colors.text, fontSize: 13 }}>
           7 mercados da sua região estão juntando pedido de Óleo de Soja 900ml para pagar preço de atacado: 380 de 500
           unidades.
@@ -140,9 +140,9 @@ export default function B2BScreen() {
                       ) : null}
                     </Row>
                     <Text style={{ color: colors.muted, fontSize: 12 }}>
-                      {sup.logo} {sup.name} · <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {sup.rating}</Text>
+                      {sup.logo} {sup.name} · <Text style={{ color: colors.accent, fontWeight: '700' }}>★ {sup.rating}</Text>
                     </Text>
-                    <Text style={{ color: colors.primary, fontWeight: '800' }}>
+                    <Text style={{ color: colors.primary, fontWeight: '700' }}>
                       {brl(item.unitPrice)} /un. · mín. {item.minQty}
                     </Text>
                     <Text style={{ fontSize: 11, color: colors.muted }}>

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput, Share } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf } from '../../../store';
-import { colors, brl } from '../../../theme';
+import { soft, colors, brl } from '../../../theme';
 import { Screen, Photo, ProductThumb, Badge } from '../../../components/ui';
 import { venueOfEvent, freeTable, ticketPrice } from '../../../venueData';
 import { promos, listings, LISTING_KINDS, LISTING_CTA, communityPosts, contacts, lives, events, EVENT_GROUPS } from '../../../homeData';
@@ -45,8 +45,8 @@ export function TopTabs({ items, value, onChange }) {
         const on = t.key === value;
         return (
           <TouchableOpacity key={t.key} style={[styles.topTab, on && styles.topTabOn]} onPress={() => onChange(t.key)} accessibilityLabel={t.label}>
-            <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={19} color={on ? colors.onPrimary : colors.primary} />
-            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.topTabText, on && { color: colors.onPrimary }]}>
+            <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={19} color={on ? colors.primary : colors.muted} />
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.topTabText, on && { color: colors.primaryDark, fontWeight: '700' }]}>
               {t.label}
             </Text>
           </TouchableOpacity>
@@ -184,7 +184,7 @@ function ShopTab({ goTo }) {
           <View style={{ flex: 1, marginLeft: 12 }}>
             <Text style={styles.storeName}>{s.name}</Text>
             <Text style={styles.storeMeta}>
-              {s.category} · <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {s.rating}</Text>
+              {s.category} · <Text style={{ color: colors.accent, fontWeight: '700' }}>★ {s.rating}</Text>
               {s.shipsBrazil ? ' · envia p/ todo o Brasil' : ''}
             </Text>
           </View>
@@ -233,7 +233,7 @@ function EventsTab({ group, setGroup, onContact }) {
       <View style={styles.evBanner}>
         <Ionicons name="sparkles" size={24} color={colors.onPrimary} />
         <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={{ color: colors.onPrimary, fontWeight: '900', fontSize: 17 }}>Eventos e festas</Text>
+          <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 17 }}>Eventos e festas</Text>
           <Text style={{ color: colors.onPrimary, fontSize: 12, marginTop: 2 }}>Festas com desconto, listas VIP e promoções da noite</Text>
         </View>
       </View>
@@ -294,7 +294,7 @@ function EventPromoCard({ e, onPress }) {
         </View>
         {e.sponsored ? (
           <View style={styles.adSponsored}>
-            <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '800' }}>PATROCINADO</Text>
+            <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '700' }}>PATROCINADO</Text>
           </View>
         ) : null}
       </View>
@@ -306,7 +306,7 @@ function EventPromoCard({ e, onPress }) {
           {e.from ? <Text style={styles.evFrom}>{e.from}</Text> : null}
         </View>
         <View style={[styles.adBtn, styles.adBtnMain, { flex: 0, marginRight: 0, marginTop: 8, height: 36 }]}>
-          <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 12 }}>{e.cta}</Text>
+          <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 12 }}>{e.cta}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -325,7 +325,7 @@ function EventRow({ e, big, onAct, onContact }) {
         ) : null}
         {e.sponsored ? (
           <View style={styles.adSponsored}>
-            <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '800' }}>PATROCINADO</Text>
+            <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '700' }}>PATROCINADO</Text>
           </View>
         ) : null}
       </View>
@@ -345,7 +345,7 @@ function EventRow({ e, big, onAct, onContact }) {
         </View>
         <View style={{ flexDirection: 'row', marginTop: 12 }}>
           <TouchableOpacity style={[styles.adBtn, styles.adBtnMain]} onPress={onAct}>
-            <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>{e.cta}</Text>
+            <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>{e.cta}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.adBtn, { marginRight: 0 }]} onPress={onContact}>
             <Text style={{ color: colors.text, fontWeight: '600' }}>Mensagem</Text>
@@ -364,7 +364,7 @@ function PromoTab() {
       <View style={styles.promoBanner}>
         <Ionicons name="flash" size={22} color={colors.onPrimary} />
         <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 16 }}>Ofertas relâmpago</Text>
+          <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 16 }}>Ofertas relâmpago</Text>
           <Text style={{ color: colors.onPrimary, fontSize: 12 }}>Preços exclusivos para quem compra pelo Realys</Text>
         </View>
       </View>
@@ -435,7 +435,7 @@ function AdsTab({ kind, setKind, onContact }) {
             </View>
             {l.sponsored ? (
               <View style={styles.adSponsored}>
-                <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '800' }}>PATROCINADO</Text>
+                <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '700' }}>PATROCINADO</Text>
               </View>
             ) : null}
           </View>
@@ -452,7 +452,7 @@ function AdsTab({ kind, setKind, onContact }) {
             </View>
             <View style={{ flexDirection: 'row', marginTop: 12 }}>
               <TouchableOpacity style={[styles.adBtn, styles.adBtnMain]} onPress={() => onContact(l)}>
-                <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Tenho interesse</Text>
+                <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>Tenho interesse</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.adBtn, { marginRight: 0 }]}
@@ -584,7 +584,7 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
               <Text style={[styles.segText, on && { color: colors.primary }]}>{label}</Text>
               {unread ? (
                 <View style={styles.unread}>
-                  <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '800' }}>{unread}</Text>
+                  <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '700' }}>{unread}</Text>
                 </View>
               ) : null}
             </TouchableOpacity>
@@ -592,7 +592,7 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
         })}
         <TouchableOpacity style={styles.liveBtn} onPress={onGoLive} accessibilityLabel="Abrir live">
           <Ionicons name="radio" size={15} color="#fff" />
-          <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12, marginLeft: 4 }}>Live</Text>
+          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12, marginLeft: 4 }}>Live</Text>
         </TouchableOpacity>
       </View>
 
@@ -622,7 +622,7 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
                     <Photo uri={memberByName(it.p.author).photo} style={[styles.avatar, { padding: 0 }]} fallback="🙂" />
                   ) : (
                     <View style={styles.avatar}>
-                      <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>{it.p.author[0]}</Text>
+                      <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>{it.p.author[0]}</Text>
                     </View>
                   )}
                   <View style={{ flex: 1, marginLeft: 10 }}>
@@ -663,7 +663,7 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
                 </View>
                 {(cmts[it.p.id] || []).map((c, k) => (
                   <View key={k} style={styles.cmt}>
-                    <Text style={{ color: colors.text, fontWeight: '800', fontSize: 12 }}>{userName}</Text>
+                    <Text style={{ color: colors.text, fontWeight: '700', fontSize: 12 }}>{userName}</Text>
                     <Text style={{ color: colors.text, fontSize: 13 }}>{c}</Text>
                   </View>
                 ))}
@@ -718,7 +718,7 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
                   <Text style={{ color: colors.muted, fontSize: 11 }}>{last ? last.time : ''}</Text>
                   {c.unread ? (
                     <View style={[styles.unread, { marginTop: 4, marginLeft: 0 }]}>
-                      <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '800' }}>{c.unread}</Text>
+                      <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '700' }}>{c.unread}</Text>
                     </View>
                   ) : null}
                 </View>
@@ -801,7 +801,7 @@ function LivesTab({ filter, setFilter, onWatch, onGoLive }) {
           <Ionicons name="radio" size={24} color="#fff" />
         </View>
         <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>Abrir minha live</Text>
+          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 16 }}>Abrir minha live</Text>
           <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Dê uma aula, mostre seus produtos ou converse com a comunidade</Text>
         </View>
         <Ionicons name="chevron-forward" size={18} color={colors.muted} />
@@ -828,7 +828,7 @@ function LivesTab({ filter, setFilter, onWatch, onGoLive }) {
           <View style={styles.liveOverlay}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <View style={styles.liveTag}>
-                <Text style={{ color: '#fff', fontWeight: '800', fontSize: 11 }}>AO VIVO</Text>
+                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 11 }}>AO VIVO</Text>
               </View>
               <View style={styles.liveViewers}>
                 <Ionicons name="eye" size={12} color="#fff" />
@@ -836,7 +836,7 @@ function LivesTab({ filter, setFilter, onWatch, onGoLive }) {
               </View>
               {l.sponsored ? (
                 <View style={[styles.liveViewers, { backgroundColor: colors.sponsored }]}>
-                  <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '800' }}>PATROCINADO</Text>
+                  <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '700' }}>PATROCINADO</Text>
                 </View>
               ) : null}
             </View>
@@ -872,12 +872,12 @@ const styles = StyleSheet.create({
   circleItem: { width: '25%', alignItems: 'center', paddingHorizontal: 4, marginBottom: 12 },
   circle: { width: 46, height: 46, borderRadius: 23, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   circleLabel: { color: colors.text, fontWeight: '700', fontSize: 11, marginTop: 5, textAlign: 'center' },
+  // Abas do topo clean: sem caixinhas; a ativa ganha uma pílula clarinha e o ícone dourado.
   topTabs: {
     flexDirection: 'row',
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingHorizontal: 10,
+    paddingTop: 4,
+    paddingBottom: 8,
   },
   topTab: {
     flex: 1,
@@ -886,37 +886,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
     marginHorizontal: 2,
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
   },
-  topTabOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  topTabText: { color: colors.text, fontSize: 10, fontWeight: '700', marginTop: 3 },
+  topTabOn: { backgroundColor: colors.primaryLight },
+  topTabText: { color: colors.muted, fontSize: 10, fontWeight: '600', marginTop: 3 },
   hero: {
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(226,182,73,0.55)',
     backgroundColor: colors.primaryLight,
     paddingVertical: 8,
     paddingHorizontal: 14,
     marginBottom: 12,
   },
-  heroTitle: { color: colors.primaryDark, fontSize: 17, fontWeight: '900', letterSpacing: -0.3 },
+  heroTitle: { color: colors.primaryDark, fontSize: 17, fontWeight: '800', letterSpacing: -0.3 },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, marginTop: 4 },
-  sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '800' },
+  sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '700' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 10 },
   prod: {
     width: '48.5%',
     backgroundColor: colors.card,
     borderRadius: 18,
-    borderWidth: 1,
-    borderColor: colors.border,
     padding: 10,
+    ...soft,
     marginBottom: 10,
   },
   prodName: { color: colors.text, fontWeight: '700', fontSize: 13, marginTop: 8 },
   prodStore: { color: colors.muted, fontSize: 11, marginTop: 2 },
-  prodPrice: { color: colors.primary, fontWeight: '800', fontSize: 15, marginTop: 4 },
+  prodPrice: { color: colors.primary, fontWeight: '700', fontSize: 15, marginTop: 4 },
   addBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -926,16 +920,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     marginTop: 8,
   },
-  addText: { color: colors.onPrimary, fontWeight: '800', fontSize: 12, marginLeft: 2 },
+  addText: { color: colors.onPrimary, fontWeight: '700', fontSize: 12, marginLeft: 2 },
   storeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.card,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
     padding: 12,
     marginBottom: 8,
+    ...soft,
   },
   storeLogo: { width: 44, height: 44, borderRadius: 13, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
   storeName: { color: colors.text, fontWeight: '700' },
@@ -953,14 +946,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.card,
     borderRadius: 18,
-    borderWidth: 1,
-    borderColor: colors.border,
     padding: 12,
     marginBottom: 10,
+    ...soft,
   },
   offBadge: { position: 'absolute', top: -6, left: -6, backgroundColor: '#FF3B5C', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 },
-  offText: { color: '#fff', fontWeight: '800', fontSize: 11 },
-  promoPrice: { color: colors.accent, fontWeight: '900', fontSize: 17 },
+  offText: { color: '#fff', fontWeight: '700', fontSize: 11 },
+  promoPrice: { color: colors.accent, fontWeight: '800', fontSize: 17 },
   addRound: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   chip: {
     flexDirection: 'row',
@@ -969,8 +961,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 19,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
+    borderColor: 'transparent',
+    backgroundColor: colors.cardAlt,
     marginRight: 8,
   },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
@@ -992,15 +984,15 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(168,121,10,0.5)',
     marginBottom: 12,
   },
-  ad: { backgroundColor: colors.card, borderRadius: 20, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', marginBottom: 14 },
+  ad: { backgroundColor: colors.card, borderRadius: 20, overflow: 'hidden', marginBottom: 16, ...soft },
   adPhoto: { width: '100%', height: 170 },
   adKind: { position: 'absolute', left: 10, top: 10, backgroundColor: 'rgba(255,255,255,0.92)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
   adSponsored: { position: 'absolute', right: 10, top: 10, backgroundColor: colors.sponsored, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
-  adPrice: { color: colors.accent, fontSize: 20, fontWeight: '900' },
+  adPrice: { color: colors.accent, fontSize: 20, fontWeight: '800' },
   adTitle: { color: colors.text, fontWeight: '700', fontSize: 15, marginTop: 2 },
   adDetail: { color: colors.muted, fontSize: 12, marginTop: 2 },
   adPlace: { color: colors.muted, fontSize: 12, marginTop: 4 },
-  adBtn: { flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: '#EADFC8', alignItems: 'center', justifyContent: 'center', marginRight: 8 },
+  adBtn: { flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: '#F0E9DA', alignItems: 'center', justifyContent: 'center', marginRight: 8 },
   adBtnMain: { backgroundColor: colors.primary, borderColor: colors.primary },
   segRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 10 },
   seg: {
@@ -1017,16 +1009,16 @@ const styles = StyleSheet.create({
   segText: { color: colors.muted, fontWeight: '700', fontSize: 12, marginLeft: 5 },
   unread: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginLeft: 5, paddingHorizontal: 4 },
   liveBtn: { flexDirection: 'row', alignItems: 'center', height: 32, paddingHorizontal: 10, borderRadius: 16, backgroundColor: '#FF3B5C', marginLeft: 'auto' },
-  composer: { backgroundColor: colors.card, borderRadius: 18, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 12 },
+  composer: { backgroundColor: colors.card, borderRadius: 18, padding: 12, marginBottom: 12, ...soft },
   findPeople: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingHorizontal: 12, height: 46, marginBottom: 6 },
-  contactsTitle: { color: colors.text, fontWeight: '800', fontSize: 15, marginTop: 12, marginBottom: 8 },
+  contactsTitle: { color: colors.text, fontWeight: '700', fontSize: 15, marginTop: 12, marginBottom: 8 },
   composerInput: { color: colors.text, fontSize: 15, minHeight: 44, textAlignVertical: 'top' },
   depBtn: { flexDirection: 'row', alignItems: 'center', height: 36, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1.5, borderColor: colors.primary, marginTop: 6, marginRight: 8 },
   pendingBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: 12, padding: 10, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(168,121,10,0.3)' },
   cmt: { backgroundColor: colors.cardAlt, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 7, marginTop: 8 },
   cmtBox: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: 20, paddingLeft: 12, marginTop: 8, backgroundColor: colors.bg },
   publish: { alignSelf: 'flex-end', height: 36, paddingHorizontal: 16, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
-  post: { backgroundColor: colors.card, borderRadius: 18, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 12 },
+  post: { backgroundColor: colors.card, borderRadius: 18, padding: 12, marginBottom: 12, ...soft },
   avatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   postImg: { width: '100%', height: 200, borderRadius: 14, marginTop: 10 },
   postAct: { flexDirection: 'row', alignItems: 'center', marginRight: 18 },
@@ -1036,10 +1028,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.card,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
     padding: 12,
     marginBottom: 8,
+    ...soft,
   },
   convAvatar: { width: 46, height: 46, borderRadius: 23 },
   onlineDot: { position: 'absolute', right: 0, bottom: 0, width: 12, height: 12, borderRadius: 6, backgroundColor: colors.success, borderWidth: 2, borderColor: colors.card },
@@ -1055,7 +1046,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   goLiveIcon: { width: 48, height: 48, borderRadius: 16, backgroundColor: '#FF3B5C', alignItems: 'center', justifyContent: 'center' },
-  liveCard: { backgroundColor: colors.card, borderRadius: 20, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', marginBottom: 14 },
+  liveCard: { backgroundColor: colors.card, borderRadius: 20, overflow: 'hidden', marginBottom: 14, ...soft },
   livePhoto: { width: '100%', height: 180 },
   liveOverlay: { position: 'absolute', left: 10, top: 10, right: 10 },
   liveTag: { backgroundColor: '#FF3B5C', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },

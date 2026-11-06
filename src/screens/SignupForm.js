@@ -305,6 +305,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   kindOn: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
-  kindTitle: { color: colors.text, fontWeight: '800', fontSize: 15, marginTop: 6 },
+  kindTitle: { color: colors.text, fontWeight: '700', fontSize: 15, marginTop: 6 },
   kindSub: { color: colors.muted, fontSize: 11, marginTop: 2 },
 });

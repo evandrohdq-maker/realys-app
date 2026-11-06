@@ -7,7 +7,7 @@ import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, TextInput,
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
-import { colors, brl } from '../theme';
+import { colors, brl, soft } from '../theme';
 import { MENUS } from '../venueData';
 
 const NIGHT = '#0B1124';
@@ -87,7 +87,7 @@ export default function VenueSheet() {
                 <Text style={[styles.tableText, { flex: 0 }]}>Mesa:</Text>
                 <TextInput value={tableText} onChangeText={setTableText} placeholder="nº" placeholderTextColor="rgba(255,255,255,0.4)" keyboardType="number-pad" style={styles.tableInput} />
                 <TouchableOpacity onPress={setTable} style={styles.tableBtn}>
-                  <Text style={{ color: NIGHT, fontWeight: '900', fontSize: 12 }}>OK</Text>
+                  <Text style={{ color: NIGHT, fontWeight: '800', fontSize: 12 }}>OK</Text>
                 </TouchableOpacity>
                 <Text style={[styles.tableText, { fontSize: 11, color: 'rgba(255,255,255,0.6)' }]}>ou retire no balcão</Text>
               </>
@@ -146,7 +146,7 @@ export default function VenueSheet() {
                         <View key={s} style={[styles.step, i <= FLOW.indexOf(o.status) && styles.stepOn]} />
                       ))}
                     </View>
-                    <Text style={[styles.sub, { marginTop: 4, color: colors.primary, fontWeight: '800' }]}>{o.status}</Text>
+                    <Text style={[styles.sub, { marginTop: 4, color: colors.primary, fontWeight: '700' }]}>{o.status}</Text>
                   </View>
                 ))
               ) : (
@@ -165,12 +165,12 @@ export default function VenueSheet() {
                       <View key={f.id} style={styles.feed}>
                         <Ionicons name="notifications" size={16} color={colors.gold} />
                         <View style={{ flex: 1, marginLeft: 8 }}>
-                          <Text style={{ color: '#FFFFFF', fontWeight: '800' }}>{f.text}</Text>
+                          <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{f.text}</Text>
                           <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11 }}>{brl(f.total)} · pago pelo Realys · {o.status}</Text>
                         </View>
                         {next ? (
                           <TouchableOpacity onPress={() => dispatch({ type: 'VENUE_ORDER_STATUS', id: o.id, status: next })} style={styles.feedBtn}>
-                            <Text style={{ color: NIGHT, fontWeight: '900', fontSize: 11 }}>{next === 'Entregue' ? 'Entregar' : next.split(' ')[0]}</Text>
+                            <Text style={{ color: NIGHT, fontWeight: '800', fontSize: 11 }}>{next === 'Entregue' ? 'Entregar' : next.split(' ')[0]}</Text>
                           </TouchableOpacity>
                         ) : null}
                       </View>
@@ -221,33 +221,33 @@ export function VenuePill({ style, textStyle }) {
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(16,22,40,0.45)' },
-  sheet: { backgroundColor: '#FFFDF8', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 16, paddingTop: 8, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
+  sheet: { backgroundColor: '#FFFDF8', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 16, paddingTop: 8 },
   grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: 10 },
   head: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   icon: { width: 36, height: 36, borderRadius: 18, backgroundColor: NIGHT, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 17, fontWeight: '900', color: colors.text },
+  title: { fontSize: 17, fontWeight: '800', color: colors.text },
   sub: { color: colors.muted, fontSize: 12 },
   closeBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cardAlt },
   table: { flexDirection: 'row', alignItems: 'center', backgroundColor: NIGHT, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 },
   tableText: { color: '#FFFFFF', fontWeight: '700', marginLeft: 8, flex: 1, fontSize: 13 },
-  tableInput: { width: 48, height: 32, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(226,182,73,0.6)', color: '#FFFFFF', textAlign: 'center', fontWeight: '900', marginLeft: 8 },
+  tableInput: { width: 48, height: 32, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(226,182,73,0.6)', color: '#FFFFFF', textAlign: 'center', fontWeight: '800', marginLeft: 8 },
   tableBtn: { backgroundColor: colors.gold, borderRadius: 10, paddingHorizontal: 10, height: 32, alignItems: 'center', justifyContent: 'center', marginLeft: 6 },
   tab: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)', marginRight: 6 },
   tabOn: { backgroundColor: NIGHT, borderColor: NIGHT },
-  tabText: { color: colors.primaryDark, fontWeight: '800', fontSize: 12 },
-  cat: { color: colors.muted, fontSize: 11, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase', marginTop: 10, marginBottom: 2 },
+  tabText: { color: colors.primaryDark, fontWeight: '700', fontSize: 12 },
+  cat: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', marginTop: 10, marginBottom: 2 },
   item: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
-  name: { fontWeight: '800', color: colors.text },
-  price: { color: colors.primary, fontWeight: '900', marginTop: 1 },
+  name: { fontWeight: '700', color: colors.text },
+  price: { color: colors.primary, fontWeight: '800', marginTop: 1 },
   addBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
-  qty: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: 12, backgroundColor: '#FFFFFF' },
+  qty: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, backgroundColor: '#FFFFFF', ...soft },
   qBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  qNum: { minWidth: 18, textAlign: 'center', fontWeight: '900', color: colors.text },
-  order: { backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 10, marginBottom: 8 },
+  qNum: { minWidth: 18, textAlign: 'center', fontWeight: '800', color: colors.text },
+  order: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 10, marginBottom: 8, ...soft },
   step: { flex: 1, height: 5, borderRadius: 3, backgroundColor: colors.border, marginRight: 4 },
   stepOn: { backgroundColor: colors.primary },
   feed: { flexDirection: 'row', alignItems: 'center', backgroundColor: NIGHT, borderRadius: 14, padding: 10, marginBottom: 8 },
   feedBtn: { backgroundColor: colors.gold, borderRadius: 10, paddingHorizontal: 9, paddingVertical: 6, marginLeft: 6 },
   payBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 14, paddingVertical: 13, marginTop: 10 },
-  payText: { color: NIGHT, fontWeight: '900', marginLeft: 6, fontSize: 15 },
+  payText: { color: NIGHT, fontWeight: '800', marginLeft: 6, fontSize: 15 },
 });

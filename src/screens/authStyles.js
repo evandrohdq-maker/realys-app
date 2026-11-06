@@ -35,7 +35,7 @@ export const authStyles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 18,
   },
-  btnText: { color: colors.onPrimary, fontWeight: '800', fontSize: 16, marginLeft: 8 },
+  btnText: { color: colors.onPrimary, fontWeight: '700', fontSize: 16, marginLeft: 8 },
   link: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 16 },
   linkText: { color: colors.accent, fontWeight: '700', fontSize: 14, marginLeft: 6 },
 });

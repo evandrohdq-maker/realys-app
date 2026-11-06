@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as IntentLauncher from 'expo-intent-launcher';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 import { useStore, buildServiceCall, callReply, searchReply, detectService, serviceType, priceText, myProducts, cartTotal } from '../store';
-import { colors, brl } from '../theme';
+import { colors, brl, soft } from '../theme';
 import { ServiceCallCard } from './cliente/ServicesScreen';
 import { Photo } from '../components/ui';
 import { searchAll, contentReply, CONTENT_WORDS } from '../search';
@@ -858,7 +858,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
                         <Photo uri={p.photo} style={styles.pPhoto} fallback="🧑" />
                         <View style={{ flex: 1, marginLeft: 10 }}>
                           <Text style={styles.itemTitle}>
-                            {p.name} · <Text style={{ color: colors.primary, fontWeight: '800' }}>★ {p.rating}</Text>
+                            {p.name} · <Text style={{ color: colors.primary, fontWeight: '700' }}>★ {p.rating}</Text>
                           </Text>
                           <Text style={styles.itemSub}>
                             {p.distanceKm.toFixed(1)} km · {p.functions.join(', ')}
@@ -996,7 +996,7 @@ const styles = StyleSheet.create({
   },
   grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: 8 },
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  brand: { fontSize: 18, fontWeight: '900', letterSpacing: 6, color: colors.text },
+  brand: { fontSize: 18, fontWeight: '800', letterSpacing: 6, color: colors.text },
   brandSub: { fontSize: 11, color: colors.muted, letterSpacing: 1.2, marginTop: 1 },
   closeBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cardAlt },
 
@@ -1044,7 +1044,7 @@ const styles = StyleSheet.create({
   pauseRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 8, paddingHorizontal: 10 },
   pauseHint: { flex: 1, color: colors.muted, fontSize: 12, marginRight: 8 },
   pauseBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 7 },
-  pauseBtnText: { color: colors.onPrimary, fontWeight: '800', fontSize: 12, marginLeft: 4 },
+  pauseBtnText: { color: colors.onPrimary, fontWeight: '700', fontSize: 12, marginLeft: 4 },
   livePlaceholder: { color: 'rgba(110,120,145,0.6)', fontStyle: 'italic', fontWeight: '500' },
 
   chip: {
@@ -1062,21 +1062,21 @@ const styles = StyleSheet.create({
 
   userLine: { alignSelf: 'flex-end', backgroundColor: colors.text, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 16, borderBottomRightRadius: 4, maxWidth: '85%', marginBottom: 6 },
   userText: { color: '#FFFFFF', fontSize: 14 },
-  botCard: { flexDirection: 'row', backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 6 },
+  botCard: { flexDirection: 'row', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 12, marginBottom: 6, ...soft },
   botBar: { width: 3, borderRadius: 2, backgroundColor: colors.gold, marginRight: 10 },
   botText: { color: colors.text, fontSize: 14, lineHeight: 20 },
   sense: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: 'rgba(47,116,208,0.08)', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, marginBottom: 6 },
-  senseTxt: { color: colors.accent, fontSize: 11, fontWeight: '800', marginLeft: 4 },
+  senseTxt: { color: colors.accent, fontSize: 11, fontWeight: '700', marginLeft: 4 },
 
-  item: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 10, marginBottom: 6, borderWidth: 1, borderColor: colors.border },
-  itemTag: { color: colors.accent, fontSize: 10, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' },
+  item: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 10, marginBottom: 6, ...soft },
+  itemTag: { color: colors.accent, fontSize: 10, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
   itemTitle: { color: colors.text, fontWeight: '700' },
   itemSub: { color: colors.muted, fontSize: 12 },
-  itemPrice: { color: colors.primary, fontWeight: '800', fontSize: 13 },
+  itemPrice: { color: colors.primary, fontWeight: '700', fontSize: 13 },
   pPhoto: { width: 44, height: 44, borderRadius: 22 },
   rPhoto: { width: 54, height: 54, borderRadius: 14 },
   callBtn: { backgroundColor: colors.primary, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 8 },
-  callText: { color: colors.onPrimary, fontWeight: '800', fontSize: 12 },
+  callText: { color: colors.onPrimary, fontWeight: '700', fontSize: 12 },
 
   inputBar: {
     flexDirection: 'row',

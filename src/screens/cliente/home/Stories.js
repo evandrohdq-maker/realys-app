@@ -117,7 +117,7 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
           <View style={styles.header}>
             {isMine && gi === 0 && group.mine ? (
               <View style={[styles.headAvatar, { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }]}>
-                <Text style={{ color: '#fff', fontWeight: '900' }}>{group.name[0]}</Text>
+                <Text style={{ color: '#fff', fontWeight: '800' }}>{group.name[0]}</Text>
               </View>
             ) : (
               <Photo uri={group.avatar} style={styles.headAvatar} fallback="🙂" />
@@ -140,7 +140,7 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
           {group.cta ? (
             <TouchableOpacity style={styles.cta} onPress={() => onCta && onCta(group)}>
               <Ionicons name="chevron-up" size={16} color={colors.onPrimary} />
-              <Text style={{ color: colors.onPrimary, fontWeight: '800', marginLeft: 6 }}>{group.cta}</Text>
+              <Text style={{ color: colors.onPrimary, fontWeight: '700', marginLeft: 6 }}>{group.cta}</Text>
             </TouchableOpacity>
           ) : null}
           {group.mine ? (
@@ -199,9 +199,9 @@ export function StoryComposer({ visible, onClose, onPublish }) {
           <TouchableOpacity style={styles.close} onPress={onClose} accessibilityLabel="Cancelar">
             <Ionicons name="close" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={{ color: '#fff', fontWeight: '800', fontSize: 16 }}>Novo story</Text>
+          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>Novo story</Text>
           <TouchableOpacity style={[styles.publish, !(text.trim() || image) && { opacity: 0.5 }]} onPress={publish}>
-            <Text style={{ color: colors.primary, fontWeight: '900' }}>Publicar</Text>
+            <Text style={{ color: colors.primary, fontWeight: '800' }}>Publicar</Text>
           </TouchableOpacity>
         </View>
 
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   barFill: { height: 3, backgroundColor: '#fff' },
   header: { flexDirection: 'row', alignItems: 'center', marginTop: 10, paddingHorizontal: 4 },
   headAvatar: { width: 36, height: 36, borderRadius: 18, borderWidth: 1.5, borderColor: '#fff' },
-  headName: { color: '#fff', fontWeight: '800', fontSize: 14, textShadowColor: 'rgba(0,0,0,0.5)', textShadowRadius: 4 },
+  headName: { color: '#fff', fontWeight: '700', fontSize: 14, textShadowColor: 'rgba(0,0,0,0.5)', textShadowRadius: 4 },
   headTime: { color: 'rgba(255,255,255,0.85)', fontSize: 11 },
   close: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.25)' },
   bottom: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 14 },
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
   reply: { flex: 1, height: 46, borderRadius: 23, borderWidth: 1, borderColor: 'rgba(255,255,255,0.7)', paddingHorizontal: 16, color: '#fff', backgroundColor: 'rgba(0,0,0,0.25)' },
   sendBtn: { width: 46, height: 46, alignItems: 'center', justifyContent: 'center', marginLeft: 6 },
   seenBy: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', backgroundColor: 'rgba(0,0,0,0.35)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18 },
-  textStory: { color: '#fff', fontSize: 28, fontWeight: '900', textAlign: 'center', lineHeight: 36 },
+  textStory: { color: '#fff', fontSize: 28, fontWeight: '800', textAlign: 'center', lineHeight: 36 },
   textOnPhoto: { textShadowColor: 'rgba(0,0,0,0.7)', textShadowRadius: 8 },
 
   composerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14 },

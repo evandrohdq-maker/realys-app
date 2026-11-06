@@ -39,6 +39,6 @@ export function HostChip({ live, onOpen, dark }) {
 const styles = StyleSheet.create({
   chip: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: colors.cardAlt, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4, marginTop: 6, maxWidth: '100%' },
   chipDark: { backgroundColor: 'rgba(255,255,255,0.14)' },
-  chipType: { fontSize: 10, fontWeight: '900', marginLeft: 3, marginRight: 5, letterSpacing: 0.4 },
+  chipType: { fontSize: 10, fontWeight: '800', marginLeft: 3, marginRight: 5, letterSpacing: 0.4 },
   chipName: { color: colors.text, fontSize: 12, fontWeight: '700', flexShrink: 1, marginRight: 2 },
 });

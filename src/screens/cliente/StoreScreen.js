@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useStore, storeOf, cartTotal } from '../../store';
-import { colors, brl } from '../../theme';
+import { colors, brl, soft } from '../../theme';
 import { SearchBar, GlobalResults } from '../../components/Search';
 import { Screen, Photo, Badge, Row, Button, Input, ProductThumb, Chip, Card, Section, Empty } from '../../components/ui';
 import { LaunchStrip } from '../../components/Launches';
@@ -134,8 +134,8 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
             </Row>
           ) : null}
           <Row style={{ justifyContent: 'space-between', marginTop: 6 }}>
-            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>Total</Text>
-            <Text style={{ fontWeight: '800', fontSize: 16, color: colors.primary }}>{brl(total)}</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 16 }}>Total</Text>
+            <Text style={{ fontWeight: '700', fontSize: 16, color: colors.primary }}>{brl(total)}</Text>
           </Row>
         </Card>
         <Button title="Pagar com saldo Realys" onPress={checkout} disabled={!state.cart.length} />
@@ -158,10 +158,10 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
           </Text>
         </Row>
         <Text style={{ color: colors.muted, marginBottom: 6 }}>
-          {s.category} · {s.city} · <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {s.rating}</Text>
+          {s.category} · {s.city} · <Text style={{ color: colors.accent, fontWeight: '700' }}>★ {s.rating}</Text>
         </Text>
         <TouchableOpacity style={styles.pageBtn} onPress={() => dispatch({ type: 'OPEN_COMPANY', id: s.id })}>
-          <Text style={{ color: colors.primary, fontWeight: '800' }}>Ver página da empresa ›</Text>
+          <Text style={{ color: colors.primary, fontWeight: '700' }}>Ver página da empresa ›</Text>
           <Text style={{ color: colors.muted, fontSize: 12 }}>Apresentação, conteúdos, vídeos e seguir</Text>
         </TouchableOpacity>
         <Row style={{ marginBottom: 14 }}>
@@ -240,7 +240,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
                 <Text style={styles.storeName}>
                   {s.logo} {s.name}
                 </Text>
-                <Text style={{ color: colors.accent, fontWeight: '800' }}>★ {s.rating}</Text>
+                <Text style={{ color: colors.accent, fontWeight: '700' }}>★ {s.rating}</Text>
               </Row>
               <Text style={{ color: colors.muted, fontSize: 12, marginVertical: 4 }}>
                 {s.category} · {s.city}
@@ -264,15 +264,15 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
 function CartBar({ count, total, onPress }) {
   return (
     <TouchableOpacity onPress={onPress} style={styles.cartBar} activeOpacity={0.9}>
-      <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>🛍️ Ver carrinho ({count})</Text>
-      <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>{brl(total)}</Text>
+      <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>🛍️ Ver carrinho ({count})</Text>
+      <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>{brl(total)}</Text>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   pageBtn: { borderWidth: 1, borderColor: colors.primary, borderRadius: 12, padding: 10, marginBottom: 10, backgroundColor: colors.primaryLight },
-  h1: { fontSize: 22, fontWeight: '800', color: colors.text, marginBottom: 6 },
+  h1: { fontSize: 22, fontWeight: '700', color: colors.text, marginBottom: 6 },
   back: { color: colors.primary, fontWeight: '700', marginBottom: 10, fontSize: 15 },
   mic: {
     width: 48,
@@ -288,18 +288,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderRadius: 14,
     padding: 10,
-    borderWidth: 1,
-    borderColor: colors.border,
     width: '48.5%',
     marginBottom: 10,
     alignItems: 'flex-start',
+    ...soft,
   },
   pName: { fontWeight: '600', color: colors.text, marginTop: 8, minHeight: 36 },
   pStore: { fontSize: 11, color: colors.muted },
-  pPrice: { fontWeight: '800', color: colors.primary, fontSize: 16, marginVertical: 6 },
-  storeCard: { backgroundColor: colors.card, borderRadius: 16, overflow: 'hidden', marginBottom: 12, borderWidth: 1, borderColor: colors.border },
+  pPrice: { fontWeight: '700', color: colors.primary, fontSize: 16, marginVertical: 6 },
+  storeCard: { backgroundColor: colors.card, borderRadius: 16, overflow: 'hidden', marginBottom: 12, ...soft },
   storeImg: { width: '100%', height: 130 },
-  storeName: { fontWeight: '800', fontSize: 16, color: colors.text },
+  storeName: { fontWeight: '700', fontSize: 16, color: colors.text },
   cover: { width: '100%', height: 170, borderRadius: 16 },
   cartBar: {
     flexDirection: 'row',

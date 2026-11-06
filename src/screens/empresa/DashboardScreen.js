@@ -36,19 +36,19 @@ export default function DashboardScreen() {
       <TouchableOpacity activeOpacity={0.9} onPress={() => dispatch({ type: 'OPEN_GIFT', asCompany: true })} style={{ backgroundColor: '#0B1124', borderRadius: 18, padding: 14, marginBottom: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' }}>
         <Ionicons name="gift" size={24} color="#E2B649" />
         <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={{ color: '#FFFFFF', fontWeight: '900' }}>Presentear clientes</Text>
+          <Text style={{ color: '#FFFFFF', fontWeight: '800' }}>Presentear clientes</Text>
           <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 }}>Mande créditos para um cliente fiel. Ele usa só em compras no Realys.</Text>
         </View>
         <Ionicons name="chevron-forward" size={18} color="#E2B649" />
       </TouchableOpacity>
 
       <Card>
-        <Text style={{ color: colors.text, fontWeight: '800', marginBottom: 10 }}>Faturamento por dia</Text>
+        <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 10 }}>Faturamento por dia</Text>
         <BarChart data={state.salesByDay} format={(v) => (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : Math.round(v))} />
       </Card>
 
       <Card style={{ backgroundColor: '#FFF4DC', borderColor: '#E9CF95' }}>
-        <Text style={{ color: colors.text, fontWeight: '800', marginBottom: 6 }}>🤖 Lotus · assistente do Realys</Text>
+        <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>🤖 Lotus · assistente do Realys</Text>
         {low.map((p) => (
           <Text key={p.id} style={{ color: colors.text, marginBottom: 4 }}>
             • Seu estoque de <Text style={{ fontWeight: '700' }}>{p.name}</Text> está baixo ({p.stock} un.). Veja ofertas de

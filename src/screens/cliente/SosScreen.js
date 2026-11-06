@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Share, AppState } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, brl } from '../../theme';
+import { colors, brl, soft } from '../../theme';
 import { Screen, Title, Card, Row, Photo, Badge, Chip } from '../../components/ui';
 import { emergencyNumbers, SOS_SEGMENTS, hospitals, specialists, SPECIALTIES, responders, MY_SPOT } from '../../extraData';
 import { hasCallPermission, askCallPermission, confirmCall, demoCall, openRoute } from '../../phone';
@@ -236,22 +236,22 @@ function Action({ icon, label, color, onPress }) {
 
 const styles = StyleSheet.create({
   permCard: { borderColor: colors.danger, borderWidth: 1.5, backgroundColor: '#FFF5F5' },
-  permTitle: { fontWeight: '800', color: colors.text, marginLeft: 8, fontSize: 15 },
+  permTitle: { fontWeight: '700', color: colors.text, marginLeft: 8, fontSize: 15 },
   permText: { color: colors.muted, marginTop: 6, fontSize: 13 },
   permBtn: { marginTop: 10, backgroundColor: colors.danger, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
-  permBtnText: { color: '#FFFFFF', fontWeight: '800' },
+  permBtnText: { color: '#FFFFFF', fontWeight: '700' },
   okPill: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, backgroundColor: 'rgba(30,158,99,0.1)', marginBottom: 12 },
   okText: { color: colors.success, fontWeight: '700', fontSize: 12, marginLeft: 5 },
   seg: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, height: 38, borderRadius: 19, borderWidth: 1, borderColor: 'rgba(217,83,79,0.4)', backgroundColor: '#FFFFFF', marginRight: 8 },
   segOn: { backgroundColor: colors.danger, borderColor: colors.danger },
   segText: { marginLeft: 6, fontWeight: '700', color: colors.danger, fontSize: 13 },
   sosBig: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.danger, borderRadius: 20, padding: 18, marginBottom: 12, elevation: 6, shadowColor: colors.danger, shadowOpacity: 0.4, shadowRadius: 12 },
-  sosBigTitle: { color: '#FFFFFF', fontWeight: '900', fontSize: 20 },
+  sosBigTitle: { color: '#FFFFFF', fontWeight: '800', fontSize: 20 },
   sosBigHint: { color: 'rgba(255,255,255,0.9)', fontSize: 13, marginTop: 2 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  emTile: { width: '48.5%', backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 10 },
+  emTile: { width: '48.5%', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 12, marginBottom: 10, ...soft },
   emIcon: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  emNum: { fontSize: 22, fontWeight: '900', color: colors.text, marginTop: 6 },
+  emNum: { fontSize: 22, fontWeight: '800', color: colors.text, marginTop: 6 },
   emLabel: { fontWeight: '700', color: colors.text },
   emHint: { color: colors.muted, fontSize: 11, marginTop: 2 },
   shareBtn: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
   gpsLine: { color: colors.accent, fontWeight: '700', marginBottom: 10 },
   hPhoto: { width: 64, height: 64, borderRadius: 12 },
   avatar: { width: 56, height: 56, borderRadius: 28 },
-  name: { fontWeight: '800', color: colors.text },
+  name: { fontWeight: '700', color: colors.text },
   sub: { color: colors.muted, fontSize: 12, marginTop: 2 },
   rIcon: { width: 44, height: 44, borderRadius: 13, backgroundColor: 'rgba(217,83,79,0.1)', alignItems: 'center', justifyContent: 'center' },
   action: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 7, marginRight: 8 },

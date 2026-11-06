@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 14,
   },
-  title: { color: colors.text, fontSize: 19, fontWeight: '800', textAlign: 'center' },
+  title: { color: colors.text, fontSize: 19, fontWeight: '700', textAlign: 'center' },
   text: { color: colors.muted, fontSize: 14, textAlign: 'center', marginTop: 8, lineHeight: 20 },
   notes: {
     color: colors.text,
@@ -137,5 +137,5 @@ const styles = StyleSheet.create({
   btnGhost: { flex: 1, borderWidth: 1, borderColor: colors.border, marginRight: 10 },
   btnGhostText: { color: colors.text, fontWeight: '600' },
   btnMain: { backgroundColor: colors.primary, alignSelf: 'stretch' },
-  btnMainText: { color: colors.onPrimary, fontWeight: '800', fontSize: 15 },
+  btnMainText: { color: colors.onPrimary, fontWeight: '700', fontSize: 15 },
 });

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, brl } from '../../../theme';
+import { colors, brl, soft } from '../../../theme';
 import { LIVE_GIFTS, LIVE_GIFT_QTY, liveGiftCost, liveGiftOf } from '../../../gifts';
 import { Photo } from '../../../components/ui';
 import { liveComments } from '../../../homeData';
@@ -317,7 +317,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
           <View style={styles.goLive}>
             <Text style={styles.goLiveTitle}>Abrir uma live</Text>
             <Text style={{ color: colors.muted, marginBottom: 12 }}>Seus contatos e seguidores recebem o aviso na hora.</Text>
-            <Text style={{ color: colors.text, fontWeight: '800', marginBottom: 6 }}>Assunto</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Assunto</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
               {LIVE_CATS.filter((c) => c.key !== 'noite').map((c) => {
                 const on = cat === c.key;
@@ -329,7 +329,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                 );
               })}
             </ScrollView>
-            <Text style={{ color: colors.text, fontWeight: '800', marginBottom: 6 }}>Transmitir como</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Transmitir como</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 }}>
               {hosts.map((h) => {
                 const on = me.type === h.type;
@@ -352,7 +352,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
             />
             <TouchableOpacity style={styles.goLiveBtn} onPress={start}>
               <Ionicons name="radio-outline" size={20} color="#fff" />
-              <Text style={{ color: '#fff', fontWeight: '800', fontSize: 16, marginLeft: 8 }}>Iniciar live</Text>
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16, marginLeft: 8 }}>Iniciar live</Text>
             </TouchableOpacity>
           </View>
         ) : null}
@@ -411,7 +411,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
                   {LIVE_GIFT_QTY.map((q) => (
                     <TouchableOpacity key={q} style={[styles.qty, qty === q && styles.qtyOn]} onPress={() => setQty(q)}>
-                      <Text style={{ color: qty === q ? '#0B1124' : '#FFFFFF', fontWeight: '900', fontSize: 12 }}>x{q}</Text>
+                      <Text style={{ color: qty === q ? '#0B1124' : '#FFFFFF', fontWeight: '800', fontSize: 12 }}>x{q}</Text>
                     </TouchableOpacity>
                   ))}
                   <View style={{ flex: 1 }} />
@@ -436,7 +436,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
               />
               {mine ? (
                 <TouchableOpacity style={styles.endLive} onPress={close}>
-                  <Text style={{ color: '#fff', fontWeight: '800' }}>Encerrar</Text>
+                  <Text style={{ color: '#fff', fontWeight: '700' }}>Encerrar</Text>
                 </TouchableOpacity>
               ) : (
                 <>
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
   secure: { color: colors.muted, fontSize: 11, textAlign: 'center', marginBottom: 14 },
   bubble: { maxWidth: '80%', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 9, marginBottom: 8 },
   mine: { alignSelf: 'flex-end', backgroundColor: colors.primary, borderBottomRightRadius: 6 },
-  theirs: { alignSelf: 'flex-start', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderBottomLeftRadius: 6 },
+  theirs: { alignSelf: 'flex-start', backgroundColor: colors.card, borderBottomLeftRadius: 6, ...soft },
   time: { color: colors.muted, fontSize: 10, marginTop: 3, alignSelf: 'flex-end' },
   composer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.border },
   composerInput: {
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   sendBtn: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
-  callName: { color: '#fff', fontSize: 24, fontWeight: '800' },
+  callName: { color: '#fff', fontSize: 24, fontWeight: '700' },
   callStatus: { color: '#DDE5F2', fontSize: 14, marginTop: 4 },
   selfTile: {
     position: 'absolute',
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
   callBtn: { width: 62, height: 62, borderRadius: 31, backgroundColor: 'rgba(15,21,34,0.85)', alignItems: 'center', justifyContent: 'center' },
   liveTop: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16 },
   liveBadge: { backgroundColor: '#FF3B5C', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
-  liveBadgeText: { color: '#fff', fontWeight: '800', fontSize: 12, letterSpacing: 1 },
+  liveBadgeText: { color: '#fff', fontWeight: '700', fontSize: 12, letterSpacing: 1 },
   viewers: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
   },
   iconBtnDark: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(3,5,10,0.6)', alignItems: 'center', justifyContent: 'center' },
   hostRow: { paddingHorizontal: 16, marginTop: 12 },
-  hostName: { color: '#fff', fontWeight: '800', fontSize: 16 },
+  hostName: { color: '#fff', fontWeight: '700', fontSize: 16 },
   liveTitle: { color: '#E8EEF8', fontSize: 13, marginTop: 2, marginBottom: 8 },
   goLive: {
     position: 'absolute',
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(168,121,10,0.3)',
     padding: 18,
   },
-  goLiveTitle: { color: colors.text, fontSize: 20, fontWeight: '800', marginBottom: 4 },
+  goLiveTitle: { color: colors.text, fontSize: 20, fontWeight: '700', marginBottom: 4 },
   goLiveInput: {
     height: 50,
     borderRadius: 14,
@@ -554,22 +554,22 @@ const styles = StyleSheet.create({
   typeChipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   goLiveBtn: { height: 52, borderRadius: 16, backgroundColor: '#FF3B5C', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   earned: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E2B649', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4, marginLeft: 8 },
-  earnedText: { color: '#0B1124', fontWeight: '900', fontSize: 12, marginLeft: 4 },
+  earnedText: { color: '#0B1124', fontWeight: '800', fontSize: 12, marginLeft: 4 },
   giftComment: { backgroundColor: 'rgba(226,182,73,0.22)', borderWidth: 1, borderColor: 'rgba(226,182,73,0.6)' },
   tray: { backgroundColor: 'rgba(11,17,36,0.94)', borderRadius: 20, padding: 12, marginTop: 8, borderWidth: 1, borderColor: 'rgba(226,182,73,0.5)' },
-  trayTitle: { color: '#FFFFFF', fontWeight: '900', fontSize: 14 },
-  trayBalance: { color: '#E2B649', fontWeight: '800', fontSize: 12 },
+  trayTitle: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
+  trayBalance: { color: '#E2B649', fontWeight: '700', fontSize: 12 },
   giftItem: { width: 76, alignItems: 'center', paddingVertical: 8, borderRadius: 16, marginRight: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
   giftItemOn: { borderColor: '#E2B649', backgroundColor: 'rgba(226,182,73,0.18)' },
   giftName: { color: '#FFFFFF', fontSize: 11, fontWeight: '700', marginTop: 2 },
-  giftValue: { color: '#E2B649', fontSize: 11, fontWeight: '900' },
+  giftValue: { color: '#E2B649', fontSize: 11, fontWeight: '800' },
   qty: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)', marginRight: 6 },
   qtyOn: { backgroundColor: '#E2B649', borderColor: '#E2B649' },
   giftSend: { backgroundColor: '#E2B649', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10 },
-  giftSendText: { color: '#0B1124', fontWeight: '900', fontSize: 13 },
+  giftSendText: { color: '#0B1124', fontWeight: '800', fontSize: 13 },
   trayNote: { color: 'rgba(255,255,255,0.6)', fontSize: 10, marginTop: 8, lineHeight: 14 },
   burst: { position: 'absolute', alignSelf: 'center', top: '30%', alignItems: 'center' },
-  burstText: { color: '#FFFFFF', fontWeight: '900', fontSize: 15, backgroundColor: 'rgba(11,17,36,0.7)', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14, overflow: 'hidden', marginTop: 4 },
+  burstText: { color: '#FFFFFF', fontWeight: '800', fontSize: 15, backgroundColor: 'rgba(11,17,36,0.7)', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14, overflow: 'hidden', marginTop: 4 },
   liveBottom: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 14 },
   comment: {
     flexDirection: 'row',

@@ -5,7 +5,7 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { StoreProvider, useStore } from './src/store';
-import { colors, brl, ROLE_LABELS } from './src/theme';
+import { colors, brl, ROLE_LABELS, soft } from './src/theme';
 
 import LoginScreen from './src/screens/LoginScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
@@ -254,34 +254,32 @@ function Shell() {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         {/* Logo do Realys à esquerda (o R dourado, mesmo ícone do app). */}
-        <View style={{ flexDirection: 'row', alignItems: 'center' }} accessibilityLabel="Realys">
+        <View style={{ flexDirection: 'row', alignItems: 'center' }} accessibilityLabel="Realys, ID biométrico verificado">
           <Image source={require('./assets/icon.png')} style={styles.logoImg} />
           <Text style={styles.brand}>REALYS</Text>
+          {/* Selo de ID verificado: só um check discreto ao lado da marca */}
+          <Ionicons name="checkmark-circle" size={14} color={colors.gold} style={{ marginLeft: 5 }} />
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {/* Carrinho discreto: só aparece quando há itens */}
-          <CartIcon style={[styles.dots, { marginRight: 6, width: 40, height: 40 }]} />
-          <TouchableOpacity onPress={() => setSearching(true)} style={[styles.dots, { marginRight: 6, width: 40, height: 40 }]} accessibilityLabel="Buscar pessoas na rede Realys">
-            <Ionicons name="search" size={19} color={colors.text} />
+          <CartIcon style={styles.iconBtn} />
+          <TouchableOpacity onPress={() => setSearching(true)} style={styles.iconBtn} accessibilityLabel="Buscar pessoas na rede Realys">
+            <Ionicons name="search-outline" size={21} color={colors.text} />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setMenu(true)}
-            style={[styles.dots, menu && styles.dotsOn]}
+            style={[styles.iconBtn, menu && styles.iconBtnOn]}
             accessibilityLabel="Abrir menu: perfis de acesso e categorias"
           >
             <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
           </TouchableOpacity>
         </View>
       </View>
+      {/* Faixa de avisos: só aparece quando há algo (comanda do evento, mãos livres). */}
       <View style={styles.subHeader}>
-        <View style={styles.idPill}>
-          <Ionicons name="scan-outline" size={12} color={colors.primary} />
-          <Text style={styles.idText}>ID biométrico verificado</Text>
-        </View>
-        {/* No evento ou bar: atalho discreto para a comanda */}
-        <VenuePill style={[styles.idPill, { borderColor: colors.gold }]} textStyle={[styles.idText, { color: colors.primary }]} />
+        <VenuePill style={[styles.idPill, { marginRight: 6 }]} textStyle={styles.idText} />
         {state.handsFree ? (
-          <View style={[styles.idPill, { borderColor: hearing ? colors.accent : colors.border }]}>
+          <View style={[styles.idPill, hearing && { backgroundColor: 'rgba(47,116,208,0.1)' }]}>
             <Ionicons name={hearing ? 'ear' : 'ear-outline'} size={12} color={hearing ? colors.accent : colors.muted} />
             <Text style={[styles.idText, { color: hearing ? colors.accent : colors.muted }]}>{hearing ? 'Diga "abrir Lotus"' : 'Mãos livres'}</Text>
           </View>
@@ -298,7 +296,7 @@ function Shell() {
         activeOpacity={0.85}
         accessibilityLabel="Falar com a Lotus"
       >
-        <Ionicons name="mic" size={26} color={colors.primary} />
+        <Ionicons name="mic" size={24} color={colors.primary} />
       </TouchableOpacity>
 
       {isAdmin ? (
@@ -327,8 +325,11 @@ function Shell() {
               if (t.key === 'stories') setExplore({ tab: 'stories', at: Date.now() });
               setTab(t.key);
             }}>
-              <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={22} color={on ? colors.primary : colors.muted} />
-              <Text style={[styles.tabLabel, on && { color: colors.primary, fontWeight: '700' }]}>{t.label}</Text>
+              {/* Aba ativa: ícone dourado dentro de uma pílula clarinha */}
+              <View style={[styles.tabIcon, on && styles.tabIconOn]}>
+                <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={21} color={on ? colors.primary : colors.muted} />
+              </View>
+              <Text numberOfLines={1} style={[styles.tabLabel, on && { color: colors.primaryDark, fontWeight: '700' }]}>{t.label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -448,55 +449,22 @@ export default function App() {
 const styles = StyleSheet.create({
   header: {
     backgroundColor: colors.bg,
-    paddingHorizontal: 16,
-    paddingBottom: 8,
+    paddingHorizontal: 18,
+    paddingBottom: 4,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  logoMark: {
-    width: 28,
-    height: 28,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(168,121,10,0.45)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  brand: { color: colors.text, fontSize: 17, fontWeight: '800', letterSpacing: 2 },
-  logoImg: { width: 30, height: 30, borderRadius: 9, marginRight: 7 },
-  roleChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 36,
-    paddingHorizontal: 12,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(168,121,10,0.45)',
-    backgroundColor: 'rgba(168,121,10,0.08)',
-    marginRight: 8,
-  },
-  roleChipText: { color: colors.primary, fontWeight: '700', fontSize: 12, marginLeft: 5, maxWidth: 72 },
-  dots: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dotsOn: { borderColor: colors.primary, backgroundColor: 'rgba(168,121,10,0.14)' },
+  brand: { color: colors.text, fontSize: 16, fontWeight: '700', letterSpacing: 3 },
+  logoImg: { width: 28, height: 28, borderRadius: 8, marginRight: 8 },
+  // Ícones do topo soltos, sem caixinha (visual clean).
+  iconBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginLeft: 2 },
+  iconBtnOn: { backgroundColor: colors.primaryLight },
   subHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingHorizontal: 18,
+    paddingBottom: 6,
   },
   idPill: {
     flexDirection: 'row',
@@ -504,50 +472,53 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(168,121,10,0.3)',
+    backgroundColor: colors.primaryLight,
   },
-  idText: { color: colors.primary, fontSize: 11, fontWeight: '600', marginLeft: 5 },
-  wallet: { color: colors.muted, fontSize: 12, fontWeight: '600' },
+  idText: { color: colors.primaryDark, fontSize: 11, fontWeight: '600', marginLeft: 5 },
   tabbar: {
     flexDirection: 'row',
     backgroundColor: colors.card,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
     paddingTop: 8,
+    paddingHorizontal: 4,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    elevation: 12,
+    shadowColor: '#7A5806',
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: -3 },
   },
   tab: { flex: 1, alignItems: 'center' },
+  tabIcon: { width: 44, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  tabIconOn: { backgroundColor: colors.primaryLight },
   tabLabel: { fontSize: 10, color: colors.muted, marginTop: 3 },
   adminTools: { position: 'absolute', left: 18, alignItems: 'center' },
   adminBtn: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 8,
-    shadowColor: colors.accent,
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 0 },
+    ...soft,
+    elevation: 4,
   },
   fab: {
     position: 'absolute',
     right: 18,
     bottom: 84,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: colors.bg,
-    borderWidth: 2,
-    borderColor: colors.primary,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.card,
+    borderWidth: 1.5,
+    borderColor: colors.gold,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 10,
+    elevation: 6,
     shadowColor: colors.primary,
-    shadowOpacity: 0.6,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
   },
 });
