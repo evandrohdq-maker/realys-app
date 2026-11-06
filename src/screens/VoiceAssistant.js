@@ -10,6 +10,7 @@ import { useStore, buildServiceCall, callReply, searchReply, detectService, serv
 import { colors, brl, soft } from '../theme';
 import { ServiceCallCard } from './cliente/ServicesScreen';
 import { Photo } from '../components/ui';
+import ProviderPreview from '../components/ProviderPreview';
 import { searchAll, contentReply, CONTENT_WORDS } from '../search';
 import { stripWake, findCall, hearCall } from '../wakeMatch';
 import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences } from '../voice';
@@ -417,6 +418,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
   // O que ela está falando agora (frases e em qual está) e, quando pausada, de onde continuar.
   const talking = useRef(null); // { parts, index, res }
   const [paused, setPaused] = useState(null);
+  // Prestador cuja prévia do perfil de trabalho está aberta (toque num resultado).
+  const [preview, setPreview] = useState(null);
   const pausedRef = useRef(null);
   pausedRef.current = paused;
   const restPhase = () => (pausedRef.current ? 'paused' : 'idle');
@@ -507,6 +510,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
   };
 
   const close = () => {
+    setPreview(null);
     speechId.current += 1;
     talking.current = null;
     setPaused(null);
@@ -777,11 +781,20 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     return () => clearTimeout(t);
   }, [visible, initialCommand && initialCommand.at]);
 
+  // Chamar um prestador sempre passa pela Lotus (contato taxado pela plataforma).
+  const callProvider = (p) => {
+    setPreview(null);
+    const call = buildServiceCall(state, '', p.service);
+    call.provider = p;
+    dispatch({ type: 'REQUEST_RIDE', ride: call });
+    run(`Chamar ${p.name}`, { reply: callReply(call), call });
+  };
+
   const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [36, 0] });
   const last = history[0];
 
   return (
-    <Modal visible={visible} animationType="fade" transparent onRequestClose={close} statusBarTranslucent>
+    <Modal visible={visible} animationType="fade" transparent onRequestClose={() => (preview ? setPreview(null) : close())} statusBarTranslucent>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
         <Pressable style={{ flex: 1 }} onPress={close} />
         <Animated.View style={[styles.sheet, { opacity: enter, transform: [{ translateY }] }]}>
@@ -854,7 +867,13 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
                 </View>
                 {h.list
                   ? h.list.map((p) => (
-                      <View key={p.id} style={styles.item}>
+                      <TouchableOpacity
+                        key={p.id}
+                        style={styles.item}
+                        activeOpacity={0.85}
+                        onPress={() => setPreview(p)}
+                        accessibilityLabel={`Ver prévia do perfil de ${p.name}`}
+                      >
                         <Photo uri={p.photo} style={styles.pPhoto} fallback="🧑" />
                         <View style={{ flex: 1, marginLeft: 10 }}>
                           <Text style={styles.itemTitle}>
@@ -865,18 +884,10 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
                           </Text>
                           <Text style={styles.itemPrice}>{priceText(p)}</Text>
                         </View>
-                        <TouchableOpacity
-                          style={styles.callBtn}
-                          onPress={() => {
-                            const call = buildServiceCall(state, '', p.service);
-                            call.provider = p;
-                            dispatch({ type: 'REQUEST_RIDE', ride: call });
-                            run(`Chamar ${p.name}`, { reply: callReply(call), call });
-                          }}
-                        >
+                        <TouchableOpacity style={styles.callBtn} onPress={() => callProvider(p)}>
                           <Text style={styles.callText}>Chamar</Text>
                         </TouchableOpacity>
-                      </View>
+                      </TouchableOpacity>
                     ))
                   : null}
                 {h.results
@@ -969,6 +980,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
               </TouchableOpacity>
             )}
           </View>
+          <ProviderPreview provider={preview} onClose={() => setPreview(null)} onCall={callProvider} />
         </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
