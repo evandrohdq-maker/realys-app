@@ -13,9 +13,22 @@ function seeded(seed) {
   };
 }
 
+// Céu conforme a hora: estrelado à noite (19h às 5h) e com tom de amanhecer durante o dia.
+export function skyMode(date = new Date()) {
+  const h = date.getHours();
+  return h >= 19 || h < 5 ? 'night' : 'dawn';
+}
+
+// Cor de fundo da caixa da Lotus para cada céu (sempre translúcida).
+export const SKY_BG = {
+  night: 'rgba(12,18,42,0.86)',
+  dawn: 'rgba(52,34,88,0.84)',
+};
+
 const GROUPS = 3; // estrelas piscam em 3 ritmos diferentes (leve para o celular)
 
-export default function StarField({ count = 46, active = true }) {
+export default function StarField({ count = 46, active = true, mode = 'night' }) {
+  const dawn = mode === 'dawn';
   const twinkle = useRef([...Array(GROUPS)].map(() => new Animated.Value(0))).current;
   const shoot = useRef(new Animated.Value(0)).current;
 
@@ -48,21 +61,34 @@ export default function StarField({ count = 46, active = true }) {
       ]),
     );
     loops.forEach((l) => l.start());
-    s.start();
+    if (!dawn) s.start();
     return () => {
       loops.forEach((l) => l.stop());
       s.stop();
     };
-  }, [active]);
+  }, [active, dawn]);
 
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      {/* Nebulosas: manchas de luz bem suaves */}
-      <View style={[styles.nebula, { width: 260, height: 260, borderRadius: 130, top: -60, left: -80, backgroundColor: 'rgba(123,108,246,0.16)' }]} />
-      <View style={[styles.nebula, { width: 220, height: 220, borderRadius: 110, top: 120, right: -90, backgroundColor: 'rgba(47,116,208,0.16)' }]} />
-      <View style={[styles.nebula, { width: 200, height: 200, borderRadius: 100, bottom: 40, left: -60, backgroundColor: 'rgba(226,182,73,0.10)' }]} />
+      {dawn ? (
+        <>
+          {/* Amanhecer: luz alaranjada subindo do horizonte e nuvens rosadas */}
+          <View style={[styles.nebula, { width: 520, height: 320, borderRadius: 260, bottom: -170, left: -80, backgroundColor: 'rgba(251,146,60,0.30)' }]} />
+          <View style={[styles.nebula, { width: 380, height: 220, borderRadius: 190, bottom: -90, left: 10, backgroundColor: 'rgba(253,186,116,0.30)' }]} />
+          <View style={[styles.nebula, { width: 240, height: 120, borderRadius: 120, bottom: -40, left: 70, backgroundColor: 'rgba(254,240,138,0.25)' }]} />
+          <View style={[styles.nebula, { width: 260, height: 260, borderRadius: 130, top: -70, left: -70, backgroundColor: 'rgba(244,114,182,0.20)' }]} />
+          <View style={[styles.nebula, { width: 220, height: 220, borderRadius: 110, top: 90, right: -90, backgroundColor: 'rgba(196,181,253,0.18)' }]} />
+        </>
+      ) : (
+        <>
+          {/* Nebulosas: manchas de luz bem suaves */}
+          <View style={[styles.nebula, { width: 260, height: 260, borderRadius: 130, top: -60, left: -80, backgroundColor: 'rgba(123,108,246,0.16)' }]} />
+          <View style={[styles.nebula, { width: 220, height: 220, borderRadius: 110, top: 120, right: -90, backgroundColor: 'rgba(47,116,208,0.16)' }]} />
+          <View style={[styles.nebula, { width: 200, height: 200, borderRadius: 100, bottom: 40, left: -60, backgroundColor: 'rgba(226,182,73,0.10)' }]} />
+        </>
+      )}
 
-      {stars.map((st, i) => (
+      {(dawn ? stars.filter((st, i) => i % 3 === 0 && parseFloat(st.top) < 45) : stars).map((st, i) => (
         <Animated.View
           key={i}
           style={{
@@ -73,13 +99,13 @@ export default function StarField({ count = 46, active = true }) {
             height: st.size,
             borderRadius: st.size,
             backgroundColor: st.gold ? '#FDE68A' : '#FFFFFF',
-            opacity: twinkle[st.group].interpolate({ inputRange: [0, 1], outputRange: i % 2 ? [0.25, 0.95] : [0.9, 0.3] }),
+            opacity: twinkle[st.group].interpolate({ inputRange: [0, 1], outputRange: dawn ? [0.15, 0.55] : i % 2 ? [0.25, 0.95] : [0.9, 0.3] }),
           }}
         />
       ))}
 
-      {/* Estrela cadente */}
-      <Animated.View
+      {/* Estrela cadente (só à noite) */}
+      {dawn ? null : <Animated.View
         style={[
           styles.shooting,
           {
@@ -91,7 +117,7 @@ export default function StarField({ count = 46, active = true }) {
             ],
           },
         ]}
-      />
+      />}
     </View>
   );
 }

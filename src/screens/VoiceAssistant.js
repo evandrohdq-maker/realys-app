@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View, Text, Modal, TouchableOpacity, StyleSheet, ScrollView, Platform, KeyboardAvoidingView,
-  Animated, Easing, TextInput, Pressable,
+  Animated, Easing, TextInput, Pressable, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as IntentLauncher from 'expo-intent-launcher';
@@ -11,8 +11,8 @@ import { colors, brl, soft } from '../theme';
 import { ServiceCallCard } from './cliente/ServicesScreen';
 import { Photo } from '../components/ui';
 import ProviderPreview from '../components/ProviderPreview';
-import LotusFlower from '../components/LotusFlower';
-import StarField from '../components/StarField';
+import LotusFlower, { FlyingPetal, MOODS } from '../components/LotusFlower';
+import StarField, { skyMode, SKY_BG } from '../components/StarField';
 import { searchAll, contentReply, CONTENT_WORDS } from '../search';
 import { stripWake, findCall, hearCall } from '../wakeMatch';
 import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences } from '../voice';
@@ -342,6 +342,20 @@ const PHASE_TEXT = {
   paused: 'Em pausa',
 };
 
+// Assunto da conversa pinta a flor: verde no Agro, vermelha no SOS, dourada no Shop.
+const SOS_RE = /(socorro|\bsos\b|samu|emerg|hospita|ambul[aâ]ncia|bombeir|infarto|acidente|pronto.?socorro|ajuda urgente)/;
+const AGRO_RE = /(\bagro|pecu[aá]ria|caf[eé](?![a-z])|hortifr|fazenda|trator|\bgado\b|planta[çc]|colheita|safra|semente|lavoura)/;
+const SHOP_RE = /(\bshop\b|compr|carrinho|produto|\bloja|promo[çc]|oferta|ingresso|sacola)/;
+function moodOf(h) {
+  if (!h) return 'padrao';
+  const t = String(h.q || '').toLowerCase();
+  const tab = ((h.results || [])[0] || {}).go ? h.results[0].go.tab : null;
+  if (SOS_RE.test(t) || tab === 'socorro') return 'sos';
+  if (AGRO_RE.test(t) || tab === 'agro') return 'agro';
+  if (SHOP_RE.test(t) || tab === 'loja' || (h.pending && /cart|checkout/.test(h.pending.type))) return 'shop';
+  return 'padrao';
+}
+
 export default function VoiceAssistant({ visible, onClose, initialCommand, handsFree, onNavigate, onVoiceNav, canOpen }) {
   const { state, dispatch } = useStore();
   const [text, setText] = useState('');
@@ -364,6 +378,18 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
   const [paused, setPaused] = useState(null);
   // Prestador cuja prévia do perfil de trabalho está aberta (toque num resultado).
   const [preview, setPreview] = useState(null);
+  // Céu da caixa conforme a hora (confere toda vez que a Lotus abre).
+  const sky = useMemo(() => skyMode(), [visible]);
+  // Pétala voando até o carrinho: dispara quando algo entra no carrinho, uma compra
+  // é finalizada ou um prestador é chamado com a caixa aberta.
+  const [fly, setFly] = useState(0);
+  const counts = useRef(null);
+  useEffect(() => {
+    const now = { cart: state.cart.reduce((n, c) => n + c.qty, 0), rides: state.rides.length, buys: state.nfeSeq || 0 };
+    const prev = counts.current;
+    counts.current = now;
+    if (prev && visible && (now.cart > prev.cart || now.rides > prev.rides || now.buys > prev.buys)) setFly((n) => n + 1);
+  }, [state.cart, state.rides, state.nfeSeq, visible]);
   const pausedRef = useRef(null);
   pausedRef.current = paused;
   const restPhase = () => (pausedRef.current ? 'paused' : 'idle');
@@ -736,13 +762,15 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
 
   const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [36, 0] });
   const last = history[0];
+  const mood = moodOf(last);
+  const win = Dimensions.get('window');
 
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={() => (preview ? setPreview(null) : close())} statusBarTranslucent>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
         <Pressable style={{ flex: 1 }} onPress={close} />
-        <Animated.View style={[styles.sheet, { opacity: enter, transform: [{ translateY }] }]}>
-          <StarField active={visible} />
+        <Animated.View style={[styles.sheet, { backgroundColor: SKY_BG[sky], opacity: enter, transform: [{ translateY }] }]}>
+          <StarField active={visible} mode={sky} />
           <View style={styles.grip} />
           <View style={styles.head}>
             <View>
@@ -754,7 +782,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
             </TouchableOpacity>
           </View>
 
-          <LotusFlower phase={phase} level={level} onPress={listen} visible={visible} />
+          <LotusFlower phase={phase} level={level} onPress={listen} visible={visible} mood={mood} />
           <View style={styles.statusRow}>
             <View style={[styles.statusDot, { backgroundColor: phase === 'listening' ? '#60A5FA' : phase === 'idle' ? 'rgba(255,255,255,0.4)' : colors.gold }]} />
             <Text style={styles.status}>{PHASE_TEXT[phase]}</Text>
@@ -927,6 +955,13 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
           </View>
           <ProviderPreview provider={preview} onClose={() => setPreview(null)} onCall={callProvider} />
         </Animated.View>
+        {/* Sai da flor (no meio da caixa) e voa até a sacola, no topo do app */}
+        <FlyingPetal
+          trigger={fly}
+          from={{ x: win.width / 2, y: win.height * 0.16 + 130 }}
+          to={{ x: win.width - 122, y: 48 }}
+          color={MOODS[mood].mid}
+        />
       </KeyboardAvoidingView>
     </Modal>
   );
