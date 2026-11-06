@@ -18,6 +18,7 @@
     "expo-image-picker": "*",
     "expo-intent-launcher": "*",
     "expo-local-authentication": "*",
+    "expo-location": "*",
     "expo-secure-store": "*",
     "expo-speech": "*",
     "expo-speech-recognition": "*",

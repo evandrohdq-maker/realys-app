@@ -21,7 +21,9 @@
         "RECORD_AUDIO",
         "INTERNET",
         "CALL_PHONE",
-        "REQUEST_INSTALL_PACKAGES"
+        "REQUEST_INSTALL_PACKAGES",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
       ]
     },
     "plugins": [
@@ -45,6 +47,12 @@
         {
           "photosPermission": "O Realys acessa suas fotos e vídeos para você montar a galeria do seu perfil.",
           "cameraPermission": "O Realys usa a câmera para fotos do seu perfil."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "O Realys usa sua localização para mostrar o tempo e a temperatura onde você está e os prestadores mais próximos."
         }
       ]
     ],

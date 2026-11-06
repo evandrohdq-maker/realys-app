@@ -12,7 +12,8 @@ import { ServiceCallCard } from './cliente/ServicesScreen';
 import { Photo } from '../components/ui';
 import ProviderPreview from '../components/ProviderPreview';
 import LotusFlower, { FlyingPetal, MOODS } from '../components/LotusFlower';
-import StarField, { skyMode, SKY_BG } from '../components/StarField';
+import StarField, { skyBg } from '../components/StarField';
+import { getWeather, skyOf, weatherIcon } from '../weather';
 import { searchAll, contentReply, CONTENT_WORDS } from '../search';
 import { stripWake, findCall, hearCall } from '../wakeMatch';
 import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences } from '../voice';
@@ -378,8 +379,18 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
   const [paused, setPaused] = useState(null);
   // Prestador cuja prévia do perfil de trabalho está aberta (toque num resultado).
   const [preview, setPreview] = useState(null);
-  // Céu da caixa conforme a hora (confere toda vez que a Lotus abre).
-  const sky = useMemo(() => skyMode(), [visible]);
+  // Céu da caixa conforme o tempo no local do usuário (GPS): sol, lua, nublado ou chuvoso.
+  // Confere toda vez que a Lotus abre; sem GPS/internet, segue a hora do celular.
+  const [weather, setWeather] = useState(null);
+  useEffect(() => {
+    if (!visible) return;
+    let on = true;
+    getWeather().then((w) => on && w && setWeather(w)).catch(() => {});
+    return () => {
+      on = false;
+    };
+  }, [visible]);
+  const sky = useMemo(() => skyOf(weather), [visible, weather]);
   // Pétala voando até o carrinho: dispara quando algo entra no carrinho, uma compra
   // é finalizada ou um prestador é chamado com a caixa aberta.
   const [fly, setFly] = useState(0);
@@ -769,17 +780,25 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     <Modal visible={visible} animationType="fade" transparent onRequestClose={() => (preview ? setPreview(null) : close())} statusBarTranslucent>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
         <Pressable style={{ flex: 1 }} onPress={close} />
-        <Animated.View style={[styles.sheet, { backgroundColor: SKY_BG[sky], opacity: enter, transform: [{ translateY }] }]}>
-          <StarField active={visible} mode={sky} />
+        <Animated.View style={[styles.sheet, { backgroundColor: skyBg(sky), opacity: enter, transform: [{ translateY }] }]}>
+          <StarField active={visible} sky={sky} south={!weather || weather.south !== false} />
           <View style={styles.grip} />
           <View style={styles.head}>
             <View>
               <Text style={styles.brand}>LOTUS</Text>
               <Text style={styles.brandSub}>assistente do Realys</Text>
             </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              {weather ? (
+                <View style={styles.tempChip} accessibilityLabel={`Temperatura agora: ${weather.temp} graus`}>
+                  <Ionicons name={weatherIcon(sky)} size={14} color="#FFFFFF" />
+                  <Text style={styles.tempText}>{weather.temp}°</Text>
+                </View>
+              ) : null}
             <TouchableOpacity onPress={close} style={styles.closeBtn} accessibilityLabel="Fechar a Lotus">
               <Ionicons name="close" size={20} color="#FFFFFF" />
             </TouchableOpacity>
+            </View>
           </View>
 
           <LotusFlower phase={phase} level={level} onPress={listen} visible={visible} mood={mood} />
@@ -968,10 +987,10 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(6,10,24,0.28)' },
+  backdrop: { flex: 1, backgroundColor: 'rgba(6,10,24,0.14)' },
   sheet: {
-    // Céu noturno translúcido: dá para ver o app por trás, como um vidro estrelado.
-    backgroundColor: 'rgba(12,18,42,0.86)',
+    // Céu translúcido (cor vem do tempo): dá para ver o app por trás, como um vidro.
+    backgroundColor: 'rgba(10,16,40,0.62)',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     paddingHorizontal: 18,
@@ -986,14 +1005,16 @@ const styles = StyleSheet.create({
   },
   grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.25)', marginBottom: 8 },
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  brand: { fontSize: 18, fontWeight: '800', letterSpacing: 6, color: '#FFFFFF' },
+  brand: { fontSize: 18, fontWeight: '800', letterSpacing: 6, color: '#FFFFFF', textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 6 },
   brandSub: { fontSize: 11, color: 'rgba(253,230,138,0.85)', letterSpacing: 1.2, marginTop: 1 },
+  tempChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(10,16,38,0.38)', borderRadius: 14, paddingHorizontal: 9, paddingVertical: 5, marginRight: 8 },
+  tempText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700', marginLeft: 4 },
   closeBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.12)' },
 
   statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 2 },
   statusDot: { width: 7, height: 7, borderRadius: 4, marginRight: 6 },
-  status: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase' },
-  live: { textAlign: 'center', color: '#FFFFFF', fontSize: 19, fontWeight: '600', marginTop: 8, paddingHorizontal: 10, minHeight: 26 },
+  status: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 6 },
+  live: { textAlign: 'center', color: '#FFFFFF', fontSize: 19, fontWeight: '600', marginTop: 8, paddingHorizontal: 10, minHeight: 26, textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 6 },
   pauseRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 8, paddingHorizontal: 10 },
   pauseHint: { flex: 1, color: 'rgba(255,255,255,0.7)', fontSize: 12, marginRight: 8 },
   pauseBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 7 },
@@ -1006,7 +1027,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(253,230,138,0.35)',
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(10,16,38,0.48)',
     marginRight: 8,
     marginBottom: 6,
   },
@@ -1015,7 +1036,7 @@ const styles = StyleSheet.create({
 
   userLine: { alignSelf: 'flex-end', backgroundColor: 'rgba(255,255,255,0.92)', paddingHorizontal: 14, paddingVertical: 9, borderRadius: 16, borderBottomRightRadius: 4, maxWidth: '85%', marginBottom: 6 },
   userText: { color: colors.text, fontSize: 14 },
-  botCard: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.09)', borderRadius: 16, padding: 12, marginBottom: 6 },
+  botCard: { flexDirection: 'row', backgroundColor: 'rgba(10,16,38,0.58)', borderRadius: 16, padding: 12, marginBottom: 6 },
   botBar: { width: 3, borderRadius: 2, backgroundColor: colors.gold, marginRight: 10 },
   botText: { color: '#FFFFFF', fontSize: 14, lineHeight: 20 },
   sense: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: 'rgba(147,197,253,0.14)', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, marginBottom: 6 },
@@ -1034,7 +1055,7 @@ const styles = StyleSheet.create({
   inputBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(10,16,38,0.58)',
     borderRadius: 26,
     borderWidth: 1,
     borderColor: 'rgba(253,230,138,0.3)',

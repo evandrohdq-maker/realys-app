@@ -4,7 +4,7 @@ import FRAMES, { MINI } from './lotus/frames';
 
 // Flor de lótus da Lotus em 3D (quadros em assets/lotus, gerados por tools/lotus3d).
 
-const SIZE = 236; // largura da área da flor
+const SIZE = 206; // a flor é vista de frente (de cima), formando um círculo no centro da caixa
 
 // Cores da flor conforme o assunto da conversa.
 export const MOODS = {
@@ -55,8 +55,8 @@ function Pollen({ x, delay, active }) {
 // - Ativa (ouvindo, pensando, falando): fica aberta e "respira" devagar; falando, respira mais
 //   rápido, o brilho acompanha a voz e sobe pólen dourado.
 // - Em repouso: fecha de novo até ficar entreaberta.
-const LAST = 11; // último quadro do desabrochar
-const REST = 4; // quadro de repouso (entreaberta)
+const LAST = 7; // último quadro do desabrochar
+const REST = 3; // quadro de repouso (entreaberta)
 
 export default function LotusFlower({ phase, level, onPress, visible = true, mood = 'padrao' }) {
   const set = FRAMES[mood] || FRAMES.padrao;
@@ -74,7 +74,7 @@ export default function LotusFlower({ phase, level, onPress, visible = true, moo
   // Abriu a caixa (ou mudou o assunto/cor): começa do botão fechado.
   useEffect(() => {
     if (!visible) return;
-    pos.current = mood === 'padrao' ? 0 : 5;
+    pos.current = mood === 'padrao' ? 0 : 3;
     setFrame({ kind: 'bloom', i: pos.current });
   }, [visible, mood]);
 
@@ -87,7 +87,7 @@ export default function LotusFlower({ phase, level, onPress, visible = true, moo
       else if (t === LAST) {
         tick.current += 1;
         if (tick.current % every.current) return;
-        idle.current = (idle.current + 1) % 8;
+        idle.current = (idle.current + 1) % set.idle.length;
         setFrame({ kind: 'idle', i: idle.current });
         return;
       } else return;
@@ -211,9 +211,9 @@ export function MiniLotus({ hearing, open }) {
 const styles = StyleSheet.create({
   miniGlow: { position: 'absolute', width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(96,165,250,0.28)' },
   mini: { position: 'absolute', width: 32, height: 30 },
-  wrap: { alignSelf: 'center', width: SIZE, height: SIZE * 354 / 432, marginTop: 2 },
-  flower: { position: 'absolute', left: 0, top: 0, width: SIZE, height: SIZE * 354 / 432 },
-  glow: { position: 'absolute', width: 130, height: 130, borderRadius: 65, left: SIZE / 2 - 65, top: 22 },
-  glowSoft: { position: 'absolute', width: 200, height: 200, borderRadius: 100, left: SIZE / 2 - 100, top: -12, backgroundColor: 'rgba(255,240,210,0.07)' },
-  pollen: { position: 'absolute', top: 70, width: 4, height: 4, borderRadius: 2, backgroundColor: '#FDE68A' },
+  wrap: { alignSelf: 'center', width: SIZE, height: SIZE, marginTop: 2, alignItems: 'center', justifyContent: 'center' },
+  flower: { position: 'absolute', left: 0, top: 0, width: SIZE, height: SIZE },
+  glow: { position: 'absolute', width: 120, height: 120, borderRadius: 60, left: SIZE / 2 - 60, top: SIZE / 2 - 60 },
+  glowSoft: { position: 'absolute', width: 190, height: 190, borderRadius: 95, left: SIZE / 2 - 95, top: SIZE / 2 - 95, backgroundColor: 'rgba(255,240,210,0.07)' },
+  pollen: { position: 'absolute', top: SIZE / 2 - 2, width: 4, height: 4, borderRadius: 2, backgroundColor: '#FDE68A' },
 });
