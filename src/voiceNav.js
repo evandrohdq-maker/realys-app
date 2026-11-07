@@ -43,7 +43,10 @@ export const NAV_TARGETS = [
   T('Imóveis para alugar', { tab: 'home', top: 'anuncios', kind: 'imovel-aluguel' }, ['aluguel de imoveis', 'imoveis para alugar', 'locacao de imoveis']),
   T('Aluguel de carros', { tab: 'home', top: 'anuncios', kind: 'carro-aluguel' }, ['aluguel de carros', 'aluguel de carro', 'locadora']),
   T('Aluguel de máquinas', { tab: 'home', top: 'anuncios', kind: 'maquina-aluguel' }, ['aluguel de maquinas', 'aluguel de maquina', 'locacao de maquinas']),
-  T('Cursos', { tab: 'home', top: 'anuncios', kind: 'curso' }, ['cursos', 'curso', 'cursos online', 'faculdade', 'faculdades', 'faculdade online']),
+  T('Cursos', { tab: 'servicos', seg: 'cursos' }, ['cursos', 'curso', 'cursos online', 'faculdade', 'faculdades', 'faculdade online']),
+  T('Atendimento online', { tab: 'servicos', seg: 'online' }, ['atendimento online', 'atendimentos online', 'consulta online', 'consultas online', 'servicos online', 'aba online', 'chamada de video com profissional']),
+  T('Visita técnica', { tab: 'servicos', seg: 'visitas' }, ['visita tecnica', 'visitas tecnicas', 'aba visitas', 'aba de visitas']),
+  T('Aulas', { tab: 'servicos', seg: 'aulas' }, ['aulas particulares', 'aba aulas', 'aba de aulas']),
 
   // Comunidade (dentro dos Stories)
   T('Comunidade', { tab: 'stories', seg: 'posts' }, ['comunidade', 'posts', 'postagens', 'feed', 'depoimentos']),

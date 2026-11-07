@@ -38,7 +38,8 @@ const DEMO_SPONSORED = ['v13'];
 // Transporte (motorista, motoboy, frete) continua como corrida. O resto funciona por visita.
 export function isVisitService(serviceKey) {
   const t = serviceTypes.find((s) => s.key === serviceKey);
-  return !!t && t.group !== 'Transporte';
+  // Transporte é chamado na hora; atendimento online é por chamada de vídeo: nenhum dos dois tem visita.
+  return !!t && t.group !== 'Transporte' && t.mode !== 'online';
 }
 
 // Taxa de visita: o prestador informa no cadastro. Nos exemplos, quem cobra "por visita" usa esse valor.

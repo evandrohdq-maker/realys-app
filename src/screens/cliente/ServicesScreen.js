@@ -13,6 +13,10 @@ import TrackingScreen from './TrackingScreen';
 import { speakSoft } from '../../voice';
 import { isVisitService, rankProviders, providerStats, isNewProvider, visitFee, visitDiscount } from '../../serviceVisits';
 import { VisitRequestSheet, VisitCard } from '../../components/VisitSheet';
+import { SegTabs } from '../../components/AdKit';
+import { useBack } from '../../back';
+import { lives } from '../../homeData';
+import { SERVICE_TABS, SERVICE_TAB_KEYS, TAB_TYPES, isOnlineType, tabOfType, TabIntro, OnlineTab, CoursesTab, LiveClasses } from './ServiceTabs';
 
 // Cartão do chamado (usado também pelo assistente de voz).
 export function ServiceCallCard({ call }) {
@@ -60,6 +64,8 @@ const GROUP_ION = {
   'Festas e eventos': 'musical-notes-outline',
   Aulas: 'school-outline',
   Transporte: 'bus-outline',
+  'Saúde e bem-estar': 'heart-circle-outline',
+  'Jurídico e finanças': 'briefcase-outline',
 };
 const NIGHT = '#141C33';
 const first = (name) => String(name || '').split(' ')[0];
@@ -79,18 +85,38 @@ export default function ServicesScreen({ explore, navigate }) {
   const [found, setFound] = useState(null); // tipo de serviço achado pela pesquisa
   const [howOpen, setHowOpen] = useState(false);
   const [showMap, setShowMap] = useState(true);
+  // Abas: Serviços (geral, tudo) | Cursos | Visitas | Aulas | Online
+  const [tab, setTab] = useState('servicos');
+  const [appts, setAppts] = useState([]); // atendimentos online agendados
+  const [onlineFocus, setOnlineFocus] = useState(null);
+  useBack(tab !== 'servicos', () => setTab('servicos'));
 
   // Veio do menu ⋮ (ex.: Serviços gerais → Eletricista)
   useEffect(() => {
     if (explore && explore.service) setSelected(explore.service);
+    if (explore && SERVICE_TAB_KEYS.includes(explore.seg)) setTab(explore.seg);
   }, [explore]);
+  // Visitas e Aulas mostram só as funções compatíveis; se a função escolhida não cabe na aba, pega a primeira.
+  const tabKeys = TAB_TYPES[tab] || null;
+  useEffect(() => {
+    if (tabKeys && !tabKeys.includes(selected)) setSelected(tabKeys[0]);
+  }, [tab]);
+  const changeTab = (k) => {
+    setTab(k);
+    setQ('');
+    setSearched('');
+    setFound(null);
+  };
   useEffect(() => setSelId(null), [selected]);
 
   const type = serviceType(selected);
   const group = type.group;
-  const groupTypes = serviceTypes.filter((t) => t.group === group);
+  const inTab = (t) => !tabKeys || tabKeys.includes(t.key);
+  const groupTypes = serviceTypes.filter((t) => t.group === group && inTab(t));
+  const tabGroups = GROUPS.filter((g) => serviceTypes.some((t) => t.group === g && inTab(t)));
+  const onlineSel = isOnlineType(selected);
   const pickGroup = (g) => {
-    const t = serviceTypes.find((x) => x.group === g);
+    const t = serviceTypes.find((x) => x.group === g && inTab(x));
     if (t) setSelected(t.key);
   };
 
@@ -120,6 +146,13 @@ export default function ServicesScreen({ explore, navigate }) {
 
   const hire = (p) => {
     if (!p) return;
+    // Atendimento online: agenda a chamada de vídeo na aba Online.
+    if (isOnlineType(p.service)) {
+      setProfile(null);
+      setOnlineFocus(p.id);
+      changeTab('online');
+      return;
+    }
     // Serviços por visita: o cliente paga a taxa de visita, que fica retida até a visita acontecer.
     if (isVisitService(p.service)) {
       setProfile(null);
@@ -151,6 +184,7 @@ export default function ServicesScreen({ explore, navigate }) {
     if (p.id === bestId && sort !== 'rank') badges.push(['Melhor nota', colors.accent]);
     if (p.id === cheapestId && byDist.length > 1) badges.push(['Menor preço', colors.success]);
     if (visitService && visitDiscount(p)) badges.push(['Visita descontada', colors.success]);
+    if (p.online) badges.unshift([isOnlineType(p.service) ? 'Só online' : 'Também online', colors.primary]);
 
     return (
       <TouchableOpacity
@@ -208,9 +242,9 @@ export default function ServicesScreen({ explore, navigate }) {
 
         <View style={styles.actions}>
           <TouchableOpacity style={styles.actMain} onPress={() => hire(p)}>
-            <Ionicons name={visitService ? 'home-outline' : 'flash'} size={16} color={colors.onPrimary} />
+            <Ionicons name={isOnlineType(p.service) ? 'videocam' : visitService ? 'home-outline' : 'flash'} size={16} color={colors.onPrimary} />
             <Text style={styles.actMainText} numberOfLines={1}>
-              {visitService ? `Pedir visita · ${brl(visitFee(p))}` : 'Contratar agora'}
+              {isOnlineType(p.service) ? 'Agendar por vídeo' : visitService ? `Pedir visita · ${brl(visitFee(p))}` : 'Contratar agora'}
             </Text>
           </TouchableOpacity>
           <IconBtn icon="document-text-outline" label={`Pedir orçamento a ${p.name}`} onPress={() => quote(p)} />
@@ -221,10 +255,25 @@ export default function ServicesScreen({ explore, navigate }) {
   };
 
   const hasActivity = toRate || lastCall || myVisits.length;
+  const menu = <SegTabs items={SERVICE_TABS} value={tab} onChange={changeTab} />;
+
+  // Cursos e Online têm conteúdo próprio (não usam mapa nem visita).
+  if (tab === 'cursos' || tab === 'online') {
+    return (
+      <Screen>
+        {menu}
+        <TabIntro tab={tab} />
+        {tab === 'online' ? <OnlineTab appts={appts} setAppts={setAppts} focus={onlineFocus} /> : <CoursesTab navigate={navigate} />}
+      </Screen>
+    );
+  }
 
   return (
     <Screen>
+      {menu}
+      {tab !== 'servicos' ? <TabIntro tab={tab} /> : null}
       {/* Topo: o que é a aba e quanta gente está disponível */}
+      {tab === 'servicos' ? (
       <View style={styles.hero}>
         <View style={styles.heroGlow} />
         <Text style={styles.heroKicker}>PRESTAÇÃO DE SERVIÇOS</Text>
@@ -236,6 +285,8 @@ export default function ServicesScreen({ explore, navigate }) {
           <HeroStat icon="lock-closed" value="Retido" label="pagamento" />
         </View>
       </View>
+      ) : null}
+      {tab === 'servicos' ? <TabIntro tab="servicos" /> : null}
 
       <SearchBar
         value={q}
@@ -246,7 +297,10 @@ export default function ServicesScreen({ explore, navigate }) {
           setSearched(text);
           const key = text ? detectService(text) : null;
           setFound(key);
-          if (key) setSelected(key);
+          if (key) {
+            if (tabKeys && !tabKeys.includes(key)) setTab('servicos'); // o geral tem tudo
+            setSelected(key);
+          }
         }}
       />
       {searched ? (
@@ -301,7 +355,7 @@ export default function ServicesScreen({ explore, navigate }) {
       {/* Categorias: primeiro o grupo, depois o tipo */}
       <SectionHead title="Categorias" />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10, marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
-        {GROUPS.map((g) => {
+        {tabGroups.map((g) => {
           const on = g === group;
           return (
             <TouchableOpacity key={g} onPress={() => pickGroup(g)} style={[styles.groupPill, on && styles.groupPillOn]}>
@@ -310,11 +364,13 @@ export default function ServicesScreen({ explore, navigate }) {
             </TouchableOpacity>
           );
         })}
-        {/* Hotelaria faz parte da prestação de serviços */}
+        {/* Hotelaria faz parte da prestação de serviços (só no geral) */}
+        {tab === 'servicos' ? (
         <TouchableOpacity onPress={() => navigate && navigate({ tab: 'home', top: 'anuncios', kind: 'hotel' })} style={styles.groupPill}>
           <Ionicons name="bed-outline" size={15} color={colors.text} />
           <Text style={styles.groupText}>Hotelaria</Text>
         </TouchableOpacity>
+        ) : null}
       </ScrollView>
       <View style={styles.typeGrid}>
         {groupTypes.map((t) => {
@@ -334,7 +390,19 @@ export default function ServicesScreen({ explore, navigate }) {
         })}
       </View>
 
+      {/* Função online (psicólogo, advogado…): não tem endereço nem mapa, é por chamada de vídeo */}
+      {onlineSel ? (
+        <TouchableOpacity style={styles.howBox} onPress={() => changeTab('online')} activeOpacity={0.85}>
+          <Row>
+            <Ionicons name="videocam" size={18} color={colors.primary} />
+            <Text style={styles.howTitle}>Atendimento por chamada de vídeo · ver horários na aba Online</Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+          </Row>
+        </TouchableOpacity>
+      ) : null}
+
       {/* Onde: endereço + mapa (dá para esconder o mapa) */}
+      {!onlineSel ? (
       <View style={styles.whereCard}>
         <Row>
           <Ionicons name="location" size={18} color={colors.primary} />
@@ -395,6 +463,7 @@ export default function ServicesScreen({ explore, navigate }) {
           </View>
         ) : null}
       </View>
+      ) : null}
 
       {/* Como funciona a visita (abre e fecha) */}
       {isVisit ? (
@@ -418,7 +487,7 @@ export default function ServicesScreen({ explore, navigate }) {
       ) : null}
 
       {/* Lista */}
-      <SectionHead title={`${type.label} perto de você`} right={`${byDist.length} disponível(is)`} />
+      <SectionHead title={onlineSel ? `${type.label} online` : `${type.label} perto de você`} right={`${byDist.length} disponível(is)`} />
       <View style={styles.segment}>
         {SORTS.map(([k, label, icon]) => {
           const on = k === sort;
@@ -446,6 +515,8 @@ export default function ServicesScreen({ explore, navigate }) {
         </>
       ) : null}
       {list.map((p) => renderCard(p, false))}
+
+      {tab === 'aulas' ? <LiveClasses items={lives.filter((l) => l.aula)} navigate={navigate} /> : null}
 
       <View style={styles.voiceTip}>
         <View style={styles.voiceIcon}>

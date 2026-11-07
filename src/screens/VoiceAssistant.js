@@ -251,6 +251,19 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
   // "Alugar um carro", "hotel", "curso"… é busca de conteúdo, não chamada de prestador.
   const contentFirst = CONTENT_WORDS.test(t);
   const serviceKey = contentFirst ? null : detectService(t);
+  if (serviceKey && serviceType(serviceKey).mode === 'online') {
+    // Psicólogo, advogado, contador…: atendimento por vídeo. Mostra as opções e leva até a aba Online
+    // para escolher o horário (nunca agenda sozinha).
+    const type = serviceType(serviceKey);
+    const list = state.providers.filter((p) => p.service === serviceKey).sort((a, b) => b.rating - a.rating);
+    if (!list.length) return { reply: `Ainda não tem ${type.label.toLowerCase()} atendendo online no Realys.` };
+    const f = list[0];
+    let reply = `Encontrei ${list.length === 1 ? 'um' : list.length} ${type.label.toLowerCase()}${list.length === 1 ? '' : 's'} com atendimento online, por chamada de vídeo. ${f.name}, nota ${String(f.rating).replace('.', ',')}, cobra ${priceText(f)}`;
+    reply += f.slots && f.slots[0] ? ` e tem horário ${f.slots[0].toLowerCase()}.` : '.';
+    if (list[1]) reply += ` Também tem ${list[1].name}, por ${priceText(list[1])}.`;
+    reply += ' Os horários estão na aba Online, em Serviços.';
+    return { reply, list, nav: { label: 'Serviços Online', go: { tab: 'servicos', seg: 'online' } } };
+  }
   if (serviceKey) {
     const transport = serviceType(serviceKey).group === 'Transporte';
     // Nunca chama nem agenda sozinha: mostra quem está perto, o que faz e quanto cobra,
