@@ -87,7 +87,7 @@ async function api(method, path, { who, body, raw, type } = {}) {
 }
 
 async function person(key, cpf, username) {
-  const d = await api('POST', '/auth/signup', { body: { kind: 'pessoa', name: 'Pessoa ' + key, doc: cpf, username, email: `${username}@realys.com`, password: 'senha1234', aceiteTermos: '2026-11-adesao-v1' } });
+  const d = await api('POST', '/auth/signup', { body: { kind: 'pessoa', name: 'Pessoa ' + key, doc: cpf, username, email: `${username}@realys.com`, password: 'senha1234', aceiteTermos: '2026-11-adesao-v2' } });
   assert.equal(d.status, 201, JSON.stringify(d.data));
   S[key] = { token: d.data.accessToken, id: d.data.user.id };
 }
@@ -210,7 +210,7 @@ test('manutenção: integridade, backup, retenção e rotação de chave', async
 });
 
 test('produtos do mercado: seção validada, filtrada e editável', async () => {
-  const comp = await api('POST', '/auth/signup', { body: { kind: 'empresa', name: 'Mercadinho Teste', doc: '11.222.333/0001-81', username: 'mercadinho', email: 'loja@realys.com', password: 'senha1234', aceiteTermos: '2026-11-adesao-v1', segment: 'Mercado de bairro' } });
+  const comp = await api('POST', '/auth/signup', { body: { kind: 'empresa', name: 'Mercadinho Teste', doc: '11.222.333/0001-81', username: 'mercadinho', email: 'loja@realys.com', password: 'senha1234', aceiteTermos: '2026-11-adesao-v2', segment: 'Mercado de bairro' } });
   assert.equal(comp.status, 201, JSON.stringify(comp.data));
   S.loja = { token: comp.data.accessToken, id: comp.data.user.id };
   const bad = await api('POST', '/products', { who: 'loja', body: { name: 'Coisa', price: 5, secao: 'eletronicos' } });
@@ -343,7 +343,7 @@ test('scan do dia a dia: movimento e rosto certo verificam; vídeo parado e rost
 test('termo de adesão: publicado, e o cadastro exige o aceite', async () => {
   const t = await api('GET', '/termos/adesao');
   assert.equal(t.status, 200);
-  assert.equal(t.data.versao, '2026-11-adesao-v1');
+  assert.equal(t.data.versao, '2026-11-adesao-v2');
   const semAceite = await api('POST', '/auth/signup', { body: { kind: 'pessoa', name: 'Sem Termo', doc: '000.000.001-91', username: 'semtermo', email: 's@realys.com', password: 'senha1234' } });
   assert.equal(semAceite.status, 400);
   assert.equal(semAceite.data.code, 'termos');

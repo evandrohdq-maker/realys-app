@@ -1,7 +1,7 @@
 // Termo de adesão do Realys (texto igual ao do servidor: server/src/termos.js). Gerado a partir dele.
 export const TERMO_ADESAO_VERSAO = "2026-11-adesao-v1";
 export const TERMO_ADESAO = {
-  "versao": "2026-11-adesao-v1",
+  "versao": "2026-11-adesao-v2",
   "titulo": "Termo de Adesão ao aplicativo Realys",
   "atualizado": "7 de novembro de 2026",
   "itens": [
@@ -46,14 +46,22 @@ export const TERMO_ADESAO = {
       "texto": "Este termo pode ser atualizado. Quando houver mudança relevante, você será convidado a ler e aceitar a nova versão antes de continuar usando as funções afetadas."
     },
     {
-      "titulo": "11. Foro",
+      "titulo": "11. Prazos de guarda e suporte",
+      "texto": "As fotos usadas na verificação são apagadas logo após a análise. Revisões que ficam paradas por mais de 30 dias são recusadas e as fotos apagadas. Os registros de auditoria, que não contêm imagens, são mantidos por até 5 anos, pelo prazo de segurança e das obrigações legais. Para exercer seus direitos ou tirar dúvidas, use o canal de suporte do aplicativo. Respondemos no prazo previsto na LGPD."
+    },
+    {
+      "titulo": "12. Disputas, reembolso e avaliações",
+      "texto": "Problemas com um serviço ou uma compra devem ser comunicados pelo chat do pedido ou pelo suporte. Quando houver cobrança indevida, cancelamento ou serviço não prestado, o Realys analisa a situação com as partes e os registros do atendimento, e pode orientar o reembolso. Avaliações devem refletir a experiência real; avaliações falsas ou ofensivas podem ser removidas."
+    },
+    {
+      "titulo": "13. Foro",
       "texto": "Fica eleito o foro da comarca de domicílio do usuário consumidor, nos termos do Código de Defesa do Consumidor, para dirimir questões decorrentes deste termo."
     }
   ]
 };
-export const TERMO_EMPRESA_VERSAO = "2026-11-empresa-v1";
+export const TERMO_EMPRESA_VERSAO = "2026-11-empresa-v2";
 export const TERMO_EMPRESA = {
-  "versao": "2026-11-empresa-v1",
+  "versao": "2026-11-empresa-v2",
   "titulo": "Termo de Responsabilidade da Empresa Prestadora",
   "atualizado": "7 de novembro de 2026",
   "itens": [
@@ -98,7 +106,11 @@ export const TERMO_EMPRESA = {
       "texto": "Este termo pode ser atualizado. Quando houver mudança relevante, a empresa será convidada a ler e aceitar a nova versão antes de continuar atendendo pelo Realys."
     },
     {
-      "titulo": "11. Foro",
+      "titulo": "11. Disputas e suporte",
+      "texto": "Reclamações de clientes sobre os atendimentos são registradas no pedido e analisadas com a empresa, com base nos registros de horário, local e verificação. O Realys pode orientar o reembolso e a empresa será comunicada para se manifestar. Dúvidas e solicitações podem ser enviadas pelo canal de suporte do aplicativo."
+    },
+    {
+      "titulo": "12. Foro",
       "texto": "Fica eleito o foro da comarca de domicílio do consumidor, quando aplicável, ou o foro da sede do Realys nas demais relações, para dirimir questões decorrentes deste termo."
     }
   ]
