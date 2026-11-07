@@ -4,16 +4,15 @@ import FRAMES, { FAB, LIGHT } from './lotus/frames';
 
 // Flor de lótus da Lotus em 3D (quadros em assets/lotus, gerados por tools/lotus3d).
 
-// Posição: a flor fica no ponto em que a Lotus vermelha aparecia no celular (aprovado pelo
-// Evandro), com a luz, os raios e a flor juntos, todos com o mesmo centro.
-const BOX = 166; // quadro de referência dentro da caixa (não mexer: define a posição)
-const ANCHOR = 150; // centro da flor dentro desse quadro
+// Posição: luz, raios e flor juntos, com o mesmo centro, no meio da caixa na horizontal.
+const BOX = 166; // quadro de referência dentro da caixa
+const ANCHOR = BOX / 2; // centro da flor = centro do quadro (centralizada)
 const SIZE = 240; // tamanho da flor (20% menor do que aparecia)
 const STAGE = 250; // faixa da caixa onde a flor fica
 const HALO = Math.round(SIZE * 1.5); // luz branca atrás da flor
 const RAYS = Math.round(SIZE * 1.8); // raios de luz que giram devagar
-const NUDGE_X = -8;
-const NUDGE_Y = -14;
+const NUDGE_X = 0;
+const NUDGE_Y = -24; // um pouco mais para cima
 
 // Cores da flor conforme o assunto da conversa.
 export const MOODS = {

@@ -4,6 +4,7 @@ import {
   Animated, Easing, TextInput, Pressable, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as IntentLauncher from 'expo-intent-launcher';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 import { useStore, buildServiceCall, callReply, searchReply, detectService, serviceType, priceText, myProducts, cartTotal } from '../store';
@@ -393,6 +394,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
   const { state, dispatch } = useStore();
   const [text, setText] = useState('');
   const [history, setHistory] = useState([]);
+  // A caixa desce até o fim da tela: a barra de digitar sobe acima dos botões do celular.
+  const insets = useSafeAreaInsets();
   // Conversa limpa: na rolagem ficam só as últimas mensagens; o resto fica no histórico (relógio).
   const [showHist, setShowHist] = useState(false);
   const [now, setNow] = useState(Date.now());
@@ -821,7 +824,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     <Modal visible={visible} animationType="fade" transparent onRequestClose={() => (preview ? setPreview(null) : close())} statusBarTranslucent>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
         <Pressable style={{ flex: 1 }} onPress={close} />
-        <Animated.View style={[styles.sheet, { backgroundColor: skyBg(sky), opacity: enter, transform: [{ translateY }] }]}>
+        <Animated.View style={[styles.sheet, { backgroundColor: skyBg(sky), paddingBottom: 16 + insets.bottom, opacity: enter, transform: [{ translateY }] }]}>
           <StarField active={visible} sky={sky} south={!weather || weather.south !== false} />
           <View style={styles.grip} />
           <View style={styles.head}>
