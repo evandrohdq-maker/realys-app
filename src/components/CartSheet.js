@@ -63,12 +63,25 @@ export default function CartSheet({ onOrders }) {
               <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
                 {lines.map(({ p, qty }) => (
                   <View key={p.id} style={styles.line}>
-                    <ProductThumb product={p} size={46} />
-                    <View style={{ flex: 1, marginLeft: 10 }}>
-                      <Text style={styles.name} numberOfLines={1}>{p.name}</Text>
-                      <Text style={styles.sub} numberOfLines={1}>{(storeOf(state, p.storeId) || {}).name}</Text>
-                      <Text style={styles.price}>{brl(p.price * qty)}</Text>
-                    </View>
+                    {/* Tocar no produto leva à página da loja que vende, para ver mais produtos dela. */}
+                    <TouchableOpacity
+                      style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
+                      activeOpacity={0.7}
+                      onPress={() => {
+                        close();
+                        dispatch({ type: 'OPEN_COMPANY', id: p.storeId, product: p.id });
+                      }}
+                      accessibilityLabel={`Ver ${p.name} na loja`}
+                    >
+                      <ProductThumb product={p} size={46} />
+                      <View style={{ flex: 1, marginLeft: 10 }}>
+                        <Text style={styles.name} numberOfLines={1}>{p.name}</Text>
+                        <Text style={styles.sub} numberOfLines={1}>
+                          {(storeOf(state, p.storeId) || {}).name} · <Text style={{ color: colors.gold, fontWeight: '700' }}>ver loja ›</Text>
+                        </Text>
+                        <Text style={styles.price}>{brl(p.price * qty)}</Text>
+                      </View>
+                    </TouchableOpacity>
                     <View style={styles.qty}>
                       <TouchableOpacity onPress={() => dispatch({ type: 'CART_QTY', productId: p.id, delta: -1 })} style={styles.qBtn} accessibilityLabel={`Tirar um ${p.name}`}>
                         <Ionicons name={qty === 1 ? 'trash-outline' : 'remove'} size={15} color={qty === 1 ? colors.danger : colors.text} />

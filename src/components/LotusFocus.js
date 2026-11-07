@@ -5,12 +5,12 @@ import { colors } from '../theme';
 
 // Moldura dourada em volta do produto que a pessoa pediu pela Lotus ("tênis" → abre Calçados com
 // o tênis destacado no topo da lista).
-export default function LotusFocus({ children }) {
+export default function LotusFocus({ children, label = 'Encontrado pela Lotus', icon = 'sparkles' }) {
   return (
     <View style={styles.wrap}>
       <View style={styles.tag}>
-        <Ionicons name="sparkles" size={12} color="#FFFFFF" />
-        <Text style={styles.tagText}>Encontrado pela Lotus</Text>
+        <Ionicons name={icon} size={12} color="#FFFFFF" />
+        <Text style={styles.tagText}>{label}</Text>
       </View>
       {children}
     </View>

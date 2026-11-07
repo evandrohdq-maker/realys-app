@@ -11,6 +11,7 @@ import { useStore } from '../store';
 import { colors, brl, soft } from '../theme';
 import { Photo, ProductThumb } from './ui';
 import { ShopProductCard } from './ShopKit';
+import LotusFocus from './LotusFocus';
 import { MY_COMPANY_ID } from '../data';
 import { memberById } from '../people';
 import { businessOf, showcaseOf, sectorByKey, SERVE_MODES, ratingOf, GALLERY_TYPES } from '../companyBusiness';
@@ -359,9 +360,30 @@ export function BusinessPageModal({ p, media, MediaList }) {
     Alert.alert('No carrinho', 'Produto adicionado. Finalize na aba Loja.');
   };
 
+  // Veio de um produto (carrinho, pedidos): mostra esse produto primeiro, dentro da loja.
+  const focus = state.viewProduct ? products.find((x) => x.id === state.viewProduct) : null;
+
   return (
     <Modal visible animationType="slide" onRequestClose={close}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
+        {focus ? (
+          <View style={{ paddingTop: insets.top + 10, paddingHorizontal: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+              <TouchableOpacity onPress={close} style={styles.focusBack} accessibilityLabel="Voltar">
+                <Ionicons name="arrow-back" size={20} color={colors.text} />
+              </TouchableOpacity>
+              <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16, marginLeft: 10, flex: 1 }} numberOfLines={1}>
+                {p.name}
+              </Text>
+            </View>
+            <LotusFocus label="Seu produto nesta loja">
+              <View style={{ alignItems: 'center', paddingBottom: 8 }}>
+                <ProductCard x={focus} onAdd={add} big />
+              </View>
+            </LotusFocus>
+            <Text style={{ color: colors.muted, fontSize: 12, textAlign: 'center', marginBottom: 12 }}>Role para ver a loja e mais produtos de {p.name}</Text>
+          </View>
+        ) : null}
         {/* Topo noturno com brilho dourado e azul */}
         <View style={styles.hero}>
           {/* Foto da empresa (estrutura), nunca uma foto pessoal */}
@@ -546,6 +568,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
 }
 
 const styles = StyleSheet.create({
+  focusBack: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', ...soft },
   hero: { backgroundColor: NIGHT, overflow: 'hidden', paddingBottom: 22 },
   heroImg: { position: 'absolute', top: 0, left: 0, right: 0, height: 260, opacity: 0.55 },
   heroShade: { position: 'absolute', top: 120, left: 0, right: 0, height: 140, backgroundColor: NIGHT, opacity: 0.55 },

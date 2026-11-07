@@ -101,11 +101,24 @@ export default function OrdersScreen({ navigate }) {
               <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{o.store}</Text>
               <Badge label={o.status} color={o.status === 'Entregue' ? colors.success : colors.accent} />
             </Row>
-            {o.items.map((i) => (
-              <Text key={i.name} style={{ color: colors.muted }}>
-                {i.qty}× {i.name}
-              </Text>
-            ))}
+            {o.items.map((i) => {
+              // Tocar no item leva ao produto dentro da loja de quem vendeu (para ver mais produtos dela).
+              const prod = state.products.find((x) => x.name === i.name);
+              const store = (state.stores || []).find((x) => (prod && x.id === prod.storeId) || x.name === o.store);
+              return (
+                <TouchableOpacity
+                  key={i.name}
+                  disabled={!store}
+                  onPress={() => store && dispatch({ type: 'OPEN_COMPANY', id: store.id, product: prod ? prod.id : null })}
+                  accessibilityLabel={`Ver ${i.name} na loja`}
+                >
+                  <Text style={{ color: colors.muted }}>
+                    {i.qty}× {i.name}
+                    {store ? <Text style={{ color: colors.gold, fontWeight: '700' }}>  ver na loja ›</Text> : null}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
             <Row style={{ marginTop: 10 }}>
               {STEPS.map((s, i) => (
                 <View

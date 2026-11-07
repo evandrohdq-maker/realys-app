@@ -610,9 +610,10 @@ function baseReducer(state, a) {
 
     // Páginas de empresas e artistas.
     case 'OPEN_COMPANY':
-      return { ...state, viewCompany: a.id };
+      // product: abre a loja já mostrando esse produto em destaque (ex.: tocou no item do carrinho).
+      return { ...state, viewCompany: a.id, viewProduct: a.product || null };
     case 'CLOSE_COMPANY':
-      return { ...state, viewCompany: null };
+      return { ...state, viewCompany: null, viewProduct: null };
     case 'FOLLOW': {
       const following = { ...state.following };
       if (following[a.id]) delete following[a.id];
