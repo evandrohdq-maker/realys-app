@@ -12,8 +12,6 @@ with sync_playwright() as p:
     for j in jobs:
         im = Image.open(io.BytesIO(base64.b64decode(pg.evaluate('o=>render(o)', j['o']).split(',')[1]))).convert('RGBA')
         name = os.path.basename(j['f']).replace('.png', '.webp')
-        if name.startswith('mini'):
-            continue  # florzinha do cabeçalho fica como está
         # recorte quadrado fixo e centrado: a flor fica sempre no meio
         im = im.crop((64, 64, 960, 960)).resize((300, 300), Image.LANCZOS)
         im.save(os.path.join(OUT, name), 'WEBP', quality=78, method=6)
@@ -30,5 +28,5 @@ for m in ['padrao', 'agro', 'sos', 'shop']:
         js += [f"      require('../../../assets/lotus/{n}')," for n in names if n.startswith(f'{m}_{k}_')]
         js.append('    ],')
     js.append('  },')
-js += ['};', 'export default F;', "export const MINI = [require('../../../assets/lotus/mini_0.webp'), require('../../../assets/lotus/mini_1.webp')];", '']
+js += ['};', 'export default F;', "export const FAB = [require('../../../assets/lotus/fab_0.webp'), require('../../../assets/lotus/fab_1.webp')];", '']
 open(os.path.join(HERE, '..', '..', 'src', 'components', 'lotus', 'frames.js'), 'w').write('\n'.join(js))

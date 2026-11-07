@@ -82,4 +82,4 @@ const F = {
   },
 };
 export default F;
-export const MINI = [require('../../../assets/lotus/mini_0.webp'), require('../../../assets/lotus/mini_1.webp')];
+export const FAB = [require('../../../assets/lotus/fab_0.webp'), require('../../../assets/lotus/fab_1.webp')];

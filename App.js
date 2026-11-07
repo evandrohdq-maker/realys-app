@@ -10,7 +10,7 @@ import { colors, brl, ROLE_LABELS, soft } from './src/theme';
 import LoginScreen from './src/screens/LoginScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import VoiceAssistant from './src/screens/VoiceAssistant';
-import { MiniLotus } from './src/components/LotusFlower';
+import { LotusMic } from './src/components/LotusFlower';
 import FeedScreen from './src/screens/cliente/FeedScreen';
 import HomeScreen from './src/screens/cliente/home/HomeScreen';
 import StoriesScreen from './src/screens/StoriesScreen';
@@ -262,11 +262,6 @@ function Shell() {
           <Ionicons name="checkmark-circle" size={14} color={colors.gold} style={{ marginLeft: 5 }} />
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          {/* Florzinha da Lotus: fechada em repouso, entreabre quando o mãos livres
-              está ouvindo e desabrocha quando a Lotus abre ("abrir Lotus" ou toque). */}
-          <TouchableOpacity onPress={() => setVoice(true)} style={styles.iconBtn} accessibilityLabel="Abrir a Lotus">
-            <MiniLotus hearing={state.handsFree && hearing} open={voice} />
-          </TouchableOpacity>
           {/* Carrinho discreto: só aparece quando há itens */}
           <CartIcon style={styles.iconBtn} />
           <TouchableOpacity onPress={() => setSearching(true)} style={styles.iconBtn} accessibilityLabel="Buscar pessoas na rede Realys">
@@ -302,7 +297,8 @@ function Shell() {
         activeOpacity={0.85}
         accessibilityLabel="Falar com a Lotus"
       >
-        <Ionicons name="mic" size={24} color={colors.primary} />
+        {/* A Lotus é o microfone: flor preta, azul e dourada no lugar do antigo ícone de mic. */}
+        <LotusMic hearing={state.handsFree && hearing} open={voice} />
       </TouchableOpacity>
 
       {isAdmin ? (
@@ -516,13 +512,14 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.card,
+    backgroundColor: '#05070D',
     borderWidth: 1.5,
     borderColor: colors.gold,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
     elevation: 6,
-    shadowColor: colors.primary,
+    shadowColor: '#2F86FF',
     shadowOpacity: 0.25,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },

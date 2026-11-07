@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Image, StyleSheet, Animated, Easing, Pressable } from 'react-native';
-import FRAMES, { MINI } from './lotus/frames';
+import FRAMES, { FAB } from './lotus/frames';
 
 // Flor de lótus da Lotus em 3D (quadros em assets/lotus, gerados por tools/lotus3d).
 
@@ -8,7 +8,8 @@ const SIZE = 206; // a flor é vista de frente (de cima), formando um círculo n
 
 // Cores da flor conforme o assunto da conversa.
 export const MOODS = {
-  padrao: { back: '#E0709F', mid: '#F29BBE', front: '#FFC9DC', center: '#FFF0F5', shineBack: 'rgba(255,190,215,0.6)', shineMid: 'rgba(255,225,238,0.75)', glow: 'rgba(253,224,150,0.22)', seed: '#FDE7A8', icon: '#A8790A' },
+  // Padrão do Realys: preto por dentro, azul em volta e dourado no meio.
+  padrao: { back: '#0E1A3A', mid: '#2F86FF', front: '#7DB8FF', center: '#E2B649', shineBack: 'rgba(47,134,255,0.5)', shineMid: 'rgba(125,184,255,0.7)', glow: 'rgba(226,182,73,0.22)', seed: '#E2B649', icon: '#E2B649' },
   agro: { back: '#2E9E62', mid: '#4CBF7E', front: '#A7E8BF', center: '#E6F9EE', shineBack: 'rgba(190,240,205,0.55)', shineMid: 'rgba(225,250,232,0.7)', glow: 'rgba(110,231,160,0.24)', seed: '#FDE7A8', icon: '#1E7A48' },
   sos: { back: '#C62828', mid: '#E53935', front: '#FF8A80', center: '#FFE1DE', shineBack: 'rgba(255,170,160,0.5)', shineMid: 'rgba(255,215,210,0.7)', glow: 'rgba(248,113,113,0.30)', seed: '#FFF1C1', icon: '#C62828' },
   shop: { back: '#B8860B', mid: '#D4A017', front: '#F5D272', center: '#FFF5D6', shineBack: 'rgba(255,230,160,0.55)', shineMid: 'rgba(255,245,210,0.75)', glow: 'rgba(253,210,100,0.30)', seed: '#FFFFFF', icon: '#A8790A' },
@@ -52,8 +53,8 @@ function Pollen({ x, delay, active }) {
 
 // Flor de lótus 3D realista (quadros renderizados em 3D, com luz, sombra e translucidez).
 // - Ao abrir a caixa, desabrocha a partir do botão fechado.
-// - Ativa (ouvindo, pensando, falando): fica aberta e "respira" devagar; falando, respira mais
-//   rápido, o brilho acompanha a voz e sobe pólen dourado.
+// - Ativa (ouvindo, pensando, falando): fica aberta e "respira"; no lugar dos antigos círculos de
+//   voz, a própria flor balança e pulsa com a voz (de quem fala ou da Lotus) e sobe pólen dourado.
 // - Em repouso: fecha de novo até ficar entreaberta.
 const LAST = 7; // último quadro do desabrochar
 const REST = 3; // quadro de repouso (entreaberta)
@@ -96,34 +97,72 @@ export default function LotusFlower({ phase, level, onPress, visible = true, moo
     return () => clearInterval(id);
   }, [visible]);
 
-  const listening = phase === 'listening';
   const speaking = phase === 'speaking';
-  const glowColor = listening ? 'rgba(96,165,250,0.32)' : (MOODS[mood] || MOODS.padrao).glow;
+  // A flor "fala": em vez dos círculos de voz, a própria flor balança no ritmo da voz.
+  // Ouvindo, acompanha o volume de quem fala (level); falando, cada sílaba da Lotus dá um tremor.
   const breath = useRef(new Animated.Value(0)).current;
+  const talk = useRef(new Animated.Value(0)).current; // força da "sílaba" da Lotus (0 a 1)
+  const tilt = useRef(new Animated.Value(0)).current; // lado do balanço (-1 a 1)
   useEffect(() => {
     const b = Animated.loop(
       Animated.sequence([
-        Animated.timing(breath, { toValue: 1, duration: active ? 700 : 2000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        Animated.timing(breath, { toValue: 0, duration: active ? 700 : 2000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(breath, { toValue: 1, duration: active ? 900 : 2000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(breath, { toValue: 0, duration: active ? 900 : 2000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
       ]),
     );
     b.start();
     return () => b.stop();
   }, [active]);
-  const glowScale = Animated.add(
-    breath.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1.06] }),
-    level.interpolate({ inputRange: [0, 1], outputRange: [0, 0.3] }),
+  useEffect(() => {
+    if (!visible || !active) {
+      Animated.parallel([
+        Animated.timing(talk, { toValue: 0, duration: 200, useNativeDriver: true }),
+        Animated.timing(tilt, { toValue: 0, duration: 300, useNativeDriver: true }),
+      ]).start();
+      return;
+    }
+    if (!speaking) Animated.timing(talk, { toValue: 0, duration: 200, useNativeDriver: true }).start();
+    let alive = true;
+    let id;
+    const beat = () => {
+      if (!alive) return;
+      const dur = speaking ? 90 + Math.random() * 90 : 260 + Math.random() * 200;
+      const anims = [Animated.timing(tilt, { toValue: Math.random() * 2 - 1, duration: dur, easing: Easing.inOut(Easing.quad), useNativeDriver: true })];
+      if (speaking) {
+        // sílaba: sobe rápido e solta; de vez em quando uma pausa curta, como entre palavras
+        const amp = Math.random() < 0.15 ? 0.05 : 0.35 + Math.random() * 0.65;
+        anims.push(
+          Animated.sequence([
+            Animated.timing(talk, { toValue: amp, duration: dur * 0.4, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+            Animated.timing(talk, { toValue: amp * 0.25, duration: dur * 0.6, easing: Easing.in(Easing.quad), useNativeDriver: true }),
+          ]),
+        );
+      }
+      Animated.parallel(anims).start();
+      id = setTimeout(beat, dur);
+    };
+    beat();
+    return () => {
+      alive = false;
+      clearTimeout(id);
+    };
+  }, [visible, active, speaking]);
+  const voice = Animated.add(level, talk); // 0 (quieta) a ~1 (voz forte)
+  const flowerScale = Animated.add(
+    breath.interpolate({ inputRange: [0, 1], outputRange: [1, active ? 1.025 : 1.012] }),
+    voice.interpolate({ inputRange: [0, 2], outputRange: [0, 0.2], extrapolate: 'clamp' }),
   );
-  const flowerScale = level.interpolate({ inputRange: [0, 1], outputRange: [1, 1.05] });
+  // Balanço: um pouquinho sempre que está ativa e bem mais forte com a voz.
+  const sway = Animated.multiply(tilt, voice.interpolate({ inputRange: [0, 1], outputRange: [0.15, 1], extrapolate: 'clamp' }));
+  const rotate = sway.interpolate({ inputRange: [-1, 1], outputRange: ['-7deg', '7deg'], extrapolate: 'clamp' });
+  const lift = voice.interpolate({ inputRange: [0, 1], outputRange: [0, -5], extrapolate: 'clamp' });
   const pollen = useMemo(() => [-22, -10, 0, 9, 20, -15, 14].map((x, i) => ({ x, delay: i * 230 })), []);
 
   // Todos os quadros ficam empilhados e só o atual aparece: troca sem piscar.
   const all = [...set.bloom.map((src, i) => ['bloom', i, src]), ...set.idle.map((src, i) => ['idle', i, src])];
   return (
     <Pressable onPress={onPress} accessibilityLabel="Falar com a Lotus" style={styles.wrap}>
-      <Animated.View pointerEvents="none" style={[styles.glow, { backgroundColor: glowColor, transform: [{ scale: glowScale }] }]} />
-      <Animated.View pointerEvents="none" style={[styles.glowSoft, { transform: [{ scale: glowScale }] }]} />
-      <Animated.View style={[styles.flower, { transform: [{ scale: flowerScale }] }]}>
+      <Animated.View style={[styles.flower, { transform: [{ translateY: lift }, { rotate }, { scale: flowerScale }] }]}>
         {all.map(([k, i, src]) => (
           <Image
             key={mood + k + i}
@@ -187,33 +226,40 @@ export function FlyingPetal({ trigger, from, to, color = '#F29BBE' }) {
   );
 }
 
-// Florzinha de lótus 3D do cabeçalho: botão fechado em repouso, cresce com brilho azul
-// quando o mãos livres está ouvindo e desabrocha quando a Lotus abre.
-export function MiniLotus({ hearing, open }) {
-  const o = useRef(new Animated.Value(open ? 1 : 0)).current;
+// Botão flutuante da Lotus (canto inferior direito): uma flor de lótus preta, azul e dourada
+// que funciona como microfone. Respira devagar em repouso e brilha azul quando o mãos livres
+// está ouvindo o "abrir Lotus". Tocar abre o comando de voz.
+export function LotusMic({ hearing, open }) {
+  const b = useRef(new Animated.Value(0)).current;
   const g = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    Animated.spring(o, { toValue: open ? 1 : 0, friction: 7, tension: 60, useNativeDriver: true }).start();
-  }, [open]);
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(b, { toValue: 1, duration: 1800, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(b, { toValue: 0, duration: 1800, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, []);
   useEffect(() => {
     Animated.timing(g, { toValue: hearing || open ? 1 : 0, duration: 220, useNativeDriver: true }).start();
   }, [hearing, open]);
-  const budScale = Animated.add(o.interpolate({ inputRange: [0, 1], outputRange: [1, 0.7] }), g.interpolate({ inputRange: [0, 1], outputRange: [0, 0.1] }));
+  const scale = Animated.add(b.interpolate({ inputRange: [0, 1], outputRange: [1, 1.06] }), g.interpolate({ inputRange: [0, 1], outputRange: [0, 0.06] }));
   return (
-    <View style={{ width: 34, height: 32, alignItems: 'center', justifyContent: 'center' }} pointerEvents="none">
-      <Animated.View style={[styles.miniGlow, { opacity: g }, open && { backgroundColor: 'rgba(253,224,150,0.45)' }]} />
-      <Animated.Image source={MINI[0]} fadeDuration={0} resizeMode="contain" style={[styles.mini, { opacity: o.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }), transform: [{ scale: budScale }] }]} />
-      <Animated.Image source={MINI[1]} fadeDuration={0} resizeMode="contain" style={[styles.mini, { opacity: o, transform: [{ scale: o.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1.12] }) }] }]} />
+    <View style={styles.micWrap} pointerEvents="none">
+      <Animated.View style={[styles.micGlow, { opacity: g }]} />
+      <Animated.Image source={FAB[0]} fadeDuration={0} resizeMode="contain" style={[styles.micFlower, { opacity: g.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }), transform: [{ scale }] }]} />
+      <Animated.Image source={FAB[1]} fadeDuration={0} resizeMode="contain" style={[styles.micFlower, { opacity: g, transform: [{ scale }] }]} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  miniGlow: { position: 'absolute', width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(96,165,250,0.28)' },
-  mini: { position: 'absolute', width: 32, height: 30 },
+  micWrap: { width: 52, height: 52, alignItems: 'center', justifyContent: 'center' },
+  micGlow: { position: 'absolute', width: 52, height: 52, borderRadius: 26, backgroundColor: 'rgba(47,134,255,0.35)' },
+  micFlower: { position: 'absolute', width: 50, height: 50 },
   wrap: { alignSelf: 'center', width: SIZE, height: SIZE, marginTop: 2, alignItems: 'center', justifyContent: 'center' },
   flower: { position: 'absolute', left: 0, top: 0, width: SIZE, height: SIZE },
-  glow: { position: 'absolute', width: 120, height: 120, borderRadius: 60, left: SIZE / 2 - 60, top: SIZE / 2 - 60 },
-  glowSoft: { position: 'absolute', width: 190, height: 190, borderRadius: 95, left: SIZE / 2 - 95, top: SIZE / 2 - 95, backgroundColor: 'rgba(255,240,210,0.07)' },
   pollen: { position: 'absolute', top: SIZE / 2 - 2, width: 4, height: 4, borderRadius: 2, backgroundColor: '#FDE68A' },
 });
