@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Switch, Alert, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Switch, Alert, TextInput, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../../store';
 import { colors, soft } from '../../theme';
 import { Screen, Card, Row, Button, Photo, Section, Empty } from '../../components/ui';
-import { encounterPeople } from '../../homeData';
+import { datePeople, datePerson, DATE_SPOTS, CHARMS_PER_DAY, minutesAgo } from '../../dateData';
 import { ENCONTROS_TERMS, TERMS_VERSION, RELATIONSHIP_STATUS, statusAllowed } from '../../encontrosTerms';
 import { ChatModal, VideoCallModal } from './home/Social';
 import { PROFILE_FIELDS, INTEREST_GROUPS, profileScore } from '../../encontrosProfile';
@@ -18,6 +18,12 @@ const INTEREST = [
   ['todos', 'Todos'],
 ];
 const KMS = [1, 3, 5, 10];
+const AGES = [
+  [18, 25],
+  [25, 35],
+  [35, 45],
+  [45, 99],
+];
 
 // Distância sempre aproximada: nunca a posição exata (está nos termos).
 const approx = (km) => (km < 0.5 ? 'a menos de 500 m' : km < 1 ? 'a menos de 1 km' : `a cerca de ${Math.round(km)} km`);
@@ -133,12 +139,15 @@ function Onboarding({ openTerms }) {
   );
 }
 
-// Já participa: radar, matches e ajustes.
+// Já participa: estilo Happn. Cruzamentos (quem passou perto, do mais recente para o mais antigo),
+// Mapa (onde vocês se cruzaram, sempre aproximado), Crushes (quem curtiu você e as conversas) e Ajustes.
+// Curtir é secreto: a pessoa só fica sabendo se curtir de volta (crush). O Charme avisa na hora.
+
 function Main({ openTerms }) {
   const { state, dispatch } = useStore();
   const insets = useSafeAreaInsets();
   const e = state.encontros;
-  const [seg, setSeg] = useState('radar');
+  const [seg, setSeg] = useState('cruzamentos');
   const [match, setMatch] = useState(null);
   const [chat, setChat] = useState(null);
   const [video, setVideo] = useState(null);
@@ -147,21 +156,30 @@ function Main({ openTerms }) {
   const [person, setPerson] = useState(null);
   const [editProfile, setEditProfile] = useState(false);
   const myScore = profileScore(e);
+  const charms = e.charms || {};
+  const charmsLeft = Math.max(0, CHARMS_PER_DAY - (e.charmDay === new Date().toDateString() ? e.charmsUsed || 0 : 0));
 
   // Só aparece quem também aceitou os termos e está disponível. Casados e namorando ficam de fora.
-  const nearby = encounterPeople.filter(
-    (p) => p.optIn && statusAllowed(p.status) && !e.blocked[p.id] && p.km <= e.maxKm && (e.interest === 'todos' || p.gender === e.interest)
+  const visible = datePeople.filter(
+    (p) =>
+      p.optIn &&
+      statusAllowed(p.status) &&
+      !e.blocked[p.id] &&
+      p.km <= e.maxKm &&
+      (e.interest === 'todos' || p.gender === e.interest) &&
+      p.age >= (e.ageMin || 18) &&
+      p.age <= (e.ageMax || 99)
   );
-  // Perfis de namoro mais completos aparecem primeiro; os vazios ficam para o fim.
-  const queue = nearby.filter((p) => !e.liked[p.id] && !e.passed[p.id]).sort((a, b) => profileScore(b) - profileScore(a));
-  const current = queue[0];
-  const matches = e.matches.map((id) => encounterPeople.find((p) => p.id === id)).filter(Boolean);
+  // Linha do tempo: quem cruzou com você por último aparece primeiro. Quem você passou some.
+  const crossed = visible.filter((p) => !e.passed[p.id]).sort((a, b) => minutesAgo(a.when) - minutesAgo(b.when));
+  const likedYou = visible.filter((p) => p.likesYou && !e.liked[p.id] && !e.passed[p.id]);
+  const matches = e.matches.map((id) => datePerson(id)).filter(Boolean);
 
-  // Notificação simulada: com o radar ligado, avisa quando alguém do Encontros passa perto.
+  // Notificação simulada: com o radar ligado, avisa quando alguém do Date passa perto.
   useEffect(() => {
-    if (!e.radar || !queue.length) return;
-    const p = queue[0];
-    const t = setTimeout(() => setBanner(p), 2500);
+    const fresh = crossed.find((p) => !e.liked[p.id]);
+    if (!e.radar || !fresh) return;
+    const t = setTimeout(() => setBanner(fresh), 2500);
     const h = setTimeout(() => setBanner(null), 8000);
     return () => {
       clearTimeout(t);
@@ -178,8 +196,16 @@ function Main({ openTerms }) {
   const like = (p) => {
     dispatch({ type: 'ENC_LIKE', id: p.id, mutual: p.likesYou });
     if (p.likesYou) setMatch(p);
-    else setNote(`Curtida enviada para ${p.name}. Se for recíproco, vira match.`);
+    else setNote(`Você curtiu ${p.name}. É segredo: só vira crush se for recíproco.`);
   };
+  const charm = (p) => {
+    if (charms[p.id]) return setNote(`Você já mandou um Charme para ${p.name}.`);
+    if (!charmsLeft) return Alert.alert('Charmes de hoje acabaram', `Você pode mandar ${CHARMS_PER_DAY} Charmes por dia. Amanhã tem mais.`);
+    dispatch({ type: 'ENC_CHARM', id: p.id, mutual: p.likesYou });
+    if (p.likesYou) setMatch(p);
+    else setNote(`✨ Charme enviado! ${p.name} é avisado(a) agora que você se interessou.`);
+  };
+  const pass = (p) => dispatch({ type: 'ENC_PASS', id: p.id });
   const report = (p) =>
     Alert.alert('Denunciar ' + p.name, 'Nossa equipe analisa em até 24 h. A pessoa não fica sabendo quem denunciou.', [
       { text: 'Cancelar', style: 'cancel' },
@@ -189,14 +215,16 @@ function Main({ openTerms }) {
         onPress: () => dispatch({ type: 'ENC_UNMATCH', id: p.id, block: true }),
       },
     ]);
-  const contactOf = (p) => ({ id: 'enc-' + p.id, name: p.name, status: 'match do Encontros', photo: p.photo });
+  const contactOf = (p) => ({ id: 'enc-' + p.id, name: p.name, status: 'crush do Date', photo: p.photo });
+  const actions = { onLike: like, onPass: pass, onCharm: charm, onOpen: setPerson, onReport: report };
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={styles.segRow}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={styles.segRow}>
         {[
-          ['radar', 'Radar', 'radio-outline'],
-          ['matches', `Matches${matches.length ? ` (${matches.length})` : ''}`, 'heart-outline'],
+          ['cruzamentos', 'Cruzamentos', 'footsteps-outline'],
+          ['mapa', 'Mapa', 'map-outline'],
+          ['crushes', `Crushes${matches.length + likedYou.length ? ` (${matches.length + likedYou.length})` : ''}`, 'heart-outline'],
           ['ajustes', 'Ajustes', 'options-outline'],
         ].map(([k, label, icon]) => {
           const on = k === seg;
@@ -207,69 +235,86 @@ function Main({ openTerms }) {
             </TouchableOpacity>
           );
         })}
-      </View>
+      </ScrollView>
 
-      {seg === 'radar' ? (
+      {seg === 'cruzamentos' ? (
         <Screen>
-          <Card style={[styles.radarCard, e.radar && { borderColor: ROSE }]}>
-            <Row>
-              <View style={[styles.radarIcon, e.radar && { backgroundColor: ROSE }]}>
-                <Ionicons name={e.radar ? 'radio' : 'radio-outline'} size={22} color={e.radar ? '#fff' : ROSE} />
-              </View>
-              <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={{ color: colors.text, fontWeight: '700' }}>Radar de encontros {e.radar ? 'ligado' : 'desligado'}</Text>
-                <Text style={{ color: colors.muted, fontSize: 12 }}>
-                  {e.radar ? `Usando o GPS para achar quem passa até ${e.maxKm} km de você` : 'Ligue para ver quem cruzar com você'}
-                </Text>
-              </View>
-              <Switch
-                value={e.radar}
-                onValueChange={(v) => dispatch({ type: 'ENC_SET', patch: { radar: v } })}
-                trackColor={{ true: ROSE, false: colors.border }}
-                thumbColor="#fff"
-              />
-            </Row>
-          </Card>
-
-          <ScoreBar score={myScore} onPress={() => setEditProfile(true)} />
-
+          <RadarRow on={e.radar} km={e.maxKm} onChange={(v) => dispatch({ type: 'ENC_SET', patch: { radar: v } })} />
+          {myScore < 70 ? <ScoreBar score={myScore} onPress={() => setEditProfile(true)} /> : null}
           {!e.radar ? (
-            <Empty text="Com o radar desligado você não aparece para ninguém e não recebe avisos de encontros." />
-          ) : current ? (
-            <PersonCard
-              p={current}
-              onLike={() => like(current)}
-              onPass={() => dispatch({ type: 'ENC_PASS', id: current.id })}
-              onReport={() => report(current)}
-              onOpen={() => setPerson(current)}
-            />
-          ) : (
+            <Empty text="Com o radar desligado você não aparece para ninguém e não vê quem cruzou com você." />
+          ) : !crossed.length ? (
             <Card>
-              <Text style={{ color: colors.text, fontWeight: '700', textAlign: 'center' }}>Por enquanto é isso por perto</Text>
+              <Text style={{ color: colors.text, fontWeight: '700', textAlign: 'center' }}>Ninguém cruzou com você ainda</Text>
               <Text style={{ color: colors.muted, textAlign: 'center', marginTop: 4 }}>
-                Deixe o radar ligado: quando alguém do Encontros passar perto, você recebe um aviso.
+                Deixe o radar ligado e saia por aí: quem passar perto aparece aqui, do mais recente para o mais antigo.
               </Text>
             </Card>
+          ) : (
+            <>
+              <Row style={{ justifyContent: 'space-between', marginBottom: 10 }}>
+                <Text style={styles.kicker}>{crossed.length} PESSOAS CRUZARAM COM VOCÊ</Text>
+                <Text style={[styles.kicker, { color: colors.gold }]}>✨ {charmsLeft} charmes hoje</Text>
+              </Row>
+              {crossed.map((p) => (
+                <DateCard key={p.id} p={p} liked={!!e.liked[p.id]} charmed={!!charms[p.id]} matched={e.matches.includes(p.id)} {...actions} />
+              ))}
+              <Text style={{ color: colors.muted, fontSize: 11, textAlign: 'center', marginBottom: 10 }}>
+                Curtir é secreto: a pessoa só fica sabendo se curtir você também.
+              </Text>
+            </>
           )}
         </Screen>
       ) : null}
 
-      {seg === 'matches' ? (
+      {seg === 'mapa' ? (
         <Screen>
-          {!matches.length ? <Empty text="Quando vocês dois curtirem, o match aparece aqui e a conversa é liberada." /> : null}
+          <CrossMap people={crossed} onOpen={setPerson} />
+        </Screen>
+      ) : null}
+
+      {seg === 'crushes' ? (
+        <Screen>
+          <Text style={styles.h}>Curtiram você {likedYou.length ? `(${likedYou.length})` : ''}</Text>
+          {likedYou.length ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 6 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
+              {likedYou.map((p) => (
+                <TouchableOpacity key={p.id} style={styles.likedTile} onPress={() => setPerson(p)} activeOpacity={0.9} accessibilityLabel={`${p.name} curtiu você`}>
+                  <Photo uri={p.photo} style={styles.likedImg} fallback="🙂" />
+                  <View style={styles.likedHeart}>
+                    <Ionicons name="heart" size={13} color="#fff" />
+                  </View>
+                  <Text style={styles.likedName} numberOfLines={1}>
+                    {p.name}, {p.age}
+                  </Text>
+                  <TouchableOpacity style={styles.likedBack} onPress={() => like(p)} accessibilityLabel={`Curtir ${p.name} de volta`}>
+                    <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>Curtir de volta</Text>
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          ) : (
+            <Text style={{ color: colors.muted, fontSize: 13, marginBottom: 8 }}>Quando alguém curtir você, aparece aqui. Curta de volta para virar crush.</Text>
+          )}
+
+          <Text style={styles.h}>Seus crushes {matches.length ? `(${matches.length})` : ''}</Text>
+          {!matches.length ? <Empty text="Crush é quando vocês dois se curtem. A conversa é liberada na hora." /> : null}
           {matches.map((p) => {
             const msgs = e.chats[p.id] || [];
             const last = msgs[msgs.length - 1];
             return (
               <Card key={p.id}>
                 <Row>
-                  <Photo uri={p.photo} style={styles.matchAvatar} fallback="🙂" />
+                  <TouchableOpacity onPress={() => setPerson(p)} accessibilityLabel={`Ver perfil de ${p.name}`}>
+                    <Photo uri={p.photo} style={styles.matchAvatar} fallback="🙂" />
+                  </TouchableOpacity>
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text style={{ color: colors.text, fontWeight: '700' }}>
                       {p.name}, {p.age} <Ionicons name="shield-checkmark" size={12} color={colors.primary} />
+                      {charms[p.id] ? <Text style={{ color: colors.gold }}> ✨</Text> : null}
                     </Text>
                     <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 12 }}>
-                      {last ? (last.from === 'me' ? 'Você: ' : '') + last.text : `Vocês deram match · ${p.looking}`}
+                      {last ? (last.from === 'me' ? 'Você: ' : '') + last.text : `Crush! Vocês se cruzaram ${p.crossings.length}x · diga oi`}
                     </Text>
                   </View>
                   <TouchableOpacity style={styles.msgBtn} onPress={() => setChat(p)} accessibilityLabel={`Conversar com ${p.name}`}>
@@ -278,7 +323,7 @@ function Main({ openTerms }) {
                 </Row>
                 <Row style={{ marginTop: 10 }}>
                   <TouchableOpacity onPress={() => dispatch({ type: 'ENC_UNMATCH', id: p.id })}>
-                    <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '600' }}>Desfazer match</Text>
+                    <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '600' }}>Desfazer crush</Text>
                   </TouchableOpacity>
                   <Text style={{ color: colors.border, marginHorizontal: 8 }}>|</Text>
                   <TouchableOpacity onPress={() => report(p)}>
@@ -295,12 +340,12 @@ function Main({ openTerms }) {
       {seg === 'ajustes' ? <Settings openTerms={openTerms} openProfile={() => setEditProfile(true)} /> : null}
 
       {banner && e.radar ? (
-        <TouchableOpacity style={[styles.banner, { top: 8 }]} onPress={() => (setBanner(null), setSeg('radar'))} activeOpacity={0.9}>
+        <TouchableOpacity style={[styles.banner, { top: 8 }]} onPress={() => (setBanner(null), setPerson(banner))} activeOpacity={0.9}>
           <Photo uri={banner.photo} style={styles.bannerAvatar} fallback="💘" />
           <View style={{ flex: 1, marginLeft: 10 }}>
-            <Text style={{ color: colors.text, fontWeight: '700' }}>💘 Alguém do Encontros está perto</Text>
+            <Text style={{ color: colors.text, fontWeight: '700' }}>💘 Você cruzou com alguém</Text>
             <Text style={{ color: colors.muted, fontSize: 12 }}>
-              {banner.name}, {banner.age}, {approx(banner.km)}. Toque para ver.
+              {banner.name}, {banner.age}, {banner.place}. Toque para ver.
             </Text>
           </View>
         </TouchableOpacity>
@@ -313,15 +358,28 @@ function Main({ openTerms }) {
 
       <PersonModal
         p={person}
+        liked={person ? !!e.liked[person.id] : false}
+        charmed={person ? !!charms[person.id] : false}
+        matched={person ? e.matches.includes(person.id) : false}
         onClose={() => setPerson(null)}
         onLike={() => {
           const p = person;
           setPerson(null);
           like(p);
         }}
-        onPass={() => {
-          dispatch({ type: 'ENC_PASS', id: person.id });
+        onCharm={() => {
+          const p = person;
           setPerson(null);
+          charm(p);
+        }}
+        onPass={() => {
+          pass(person);
+          setPerson(null);
+        }}
+        onChat={() => {
+          const p = person;
+          setPerson(null);
+          setChat(p);
         }}
       />
       <ProfileEditor visible={editProfile} onClose={() => setEditProfile(false)} />
@@ -346,63 +404,166 @@ function Main({ openTerms }) {
   );
 }
 
-function PersonCard({ p, onLike, onPass, onReport, onOpen }) {
-  const det = PROFILE_FIELDS.filter((f) => p.details && p.details[f.key]).slice(0, 3);
+// Radar compacto no topo dos Cruzamentos.
+function RadarRow({ on, km, onChange }) {
+  return (
+    <Card style={[styles.radarCard, on && { borderColor: ROSE }]}>
+      <Row>
+        <View style={[styles.radarIcon, on && { backgroundColor: ROSE }]}>
+          <Ionicons name={on ? 'radio' : 'radio-outline'} size={22} color={on ? '#fff' : ROSE} />
+        </View>
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <Text style={{ color: colors.text, fontWeight: '700' }}>Radar {on ? 'ligado' : 'desligado'}</Text>
+          <Text style={{ color: colors.muted, fontSize: 12 }}>{on ? `Mostrando quem cruzou com você até ${km} km` : 'Ligue para ver quem cruzar com você'}</Text>
+        </View>
+        <Switch value={on} onValueChange={onChange} trackColor={{ true: ROSE, false: colors.border }} thumbColor="#fff" />
+      </Row>
+    </Card>
+  );
+}
+
+// Cartão da linha do tempo (estilo Happn): foto grande, quando e onde vocês se cruzaram, e as ações.
+function DateCard({ p, liked, charmed, matched, onLike, onPass, onCharm, onOpen, onReport }) {
+  const last = p.crossings[0];
   return (
     <View style={styles.person}>
-      <TouchableOpacity activeOpacity={0.9} onPress={onOpen} accessibilityLabel={`Ver perfil completo de ${p.name}`}>
+      <TouchableOpacity activeOpacity={0.92} onPress={() => onOpen(p)} accessibilityLabel={`Ver perfil completo de ${p.name}`}>
         <Photo uri={p.photo} style={styles.personPhoto} fallback="🙂" />
-      </TouchableOpacity>
-      <View style={styles.personCross}>
-        <Ionicons name="location" size={12} color="#fff" />
-        <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700', marginLeft: 4 }}>
-          Cruzou com você {p.when} · {p.place}
-        </Text>
-      </View>
-      <View style={{ padding: 14 }}>
-        <Row style={{ justifyContent: 'space-between' }}>
-          <Text style={{ color: colors.text, fontSize: 22, fontWeight: '800' }}>
-            {p.name}, {p.age} <Ionicons name="shield-checkmark" size={16} color={colors.primary} />
+        <View style={styles.personCross}>
+          <Ionicons name="footsteps" size={12} color="#fff" />
+          <Text style={{ color: '#fff', fontSize: 11, fontWeight: '800', marginLeft: 5 }}>
+            {p.crossings.length > 1 ? `Cruzaram ${p.crossings.length} vezes · ` : 'Cruzou com você · '}
+            {last.when}
           </Text>
-          <TouchableOpacity onPress={onReport} accessibilityLabel="Denunciar">
-            <Ionicons name="flag-outline" size={18} color={colors.muted} />
-          </TouchableOpacity>
-        </Row>
-        <Text style={{ color: ROSE, fontWeight: '700', fontSize: 12, marginTop: 2 }}>
-          {approx(p.km)} · procura {p.looking.toLowerCase()}
-        </Text>
-        {p.job ? <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>{p.job}</Text> : null}
-        <Text style={{ color: colors.text, marginTop: 8, lineHeight: 20 }}>{p.bio}</Text>
-        {det.length ? (
-          <View style={[styles.wrap, { marginTop: 10 }]}>
-            {det.map((f) => (
-              <View key={f.key} style={[styles.tag, styles.detTag]}>
-                <Ionicons name={f.icon} size={12} color={ROSE} />
-                <Text style={{ color: colors.text, fontSize: 12, marginLeft: 4 }}>{p.details[f.key]}</Text>
+        </View>
+        <View style={styles.personShade}>
+          <Text style={styles.personName}>
+            {p.name}, {p.age} <Ionicons name="shield-checkmark" size={16} color="#fff" />
+          </Text>
+          <Text style={styles.personSub} numberOfLines={1}>
+            {p.job ? `${p.job} · ` : ''}
+            {last.place}
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <View style={{ paddingHorizontal: 14, paddingTop: 10, paddingBottom: 14 }}>
+        {p.bio ? (
+          <Text style={{ color: colors.text, lineHeight: 20 }} numberOfLines={2}>
+            {p.bio}
+          </Text>
+        ) : null}
+        {p.tags.length ? (
+          <View style={[styles.wrap, { marginTop: 8 }]}>
+            {p.tags.slice(0, 3).map((t) => (
+              <View key={t} style={styles.tag}>
+                <Text style={{ color: colors.text, fontSize: 12 }}>{t}</Text>
               </View>
             ))}
           </View>
         ) : null}
-        <View style={[styles.wrap, { marginTop: 6 }]}>
-          {p.tags.map((t) => (
-            <View key={t} style={styles.tag}>
-              <Text style={{ color: colors.text, fontSize: 12 }}>{t}</Text>
-            </View>
-          ))}
-        </View>
-        <TouchableOpacity onPress={onOpen}>
-          <Text style={{ color: ROSE, fontWeight: '700', textAlign: 'center', marginTop: 6 }}>Ver perfil completo</Text>
+        {matched ? (
+          <View style={styles.likedRow}>
+            <Ionicons name="heart" size={16} color={ROSE} />
+            <Text style={{ color: ROSE, fontWeight: '800', marginLeft: 6 }}>Crush! A conversa está liberada em Crushes</Text>
+          </View>
+        ) : liked ? (
+          <View style={styles.likedRow}>
+            <Ionicons name={charmed ? 'sparkles' : 'heart'} size={16} color={charmed ? colors.gold : ROSE} />
+            <Text style={{ color: colors.muted, fontWeight: '700', marginLeft: 6 }}>{charmed ? 'Você mandou um Charme' : 'Você curtiu (em segredo)'}</Text>
+          </View>
+        ) : (
+          <Row style={{ justifyContent: 'center', marginTop: 12 }}>
+            <TouchableOpacity style={[styles.round, { borderColor: colors.border }]} onPress={() => onPass(p)} accessibilityLabel={`Passar ${p.name}`}>
+              <Ionicons name="close" size={28} color={colors.muted} />
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.roundSm, { marginLeft: 18 }]} onPress={() => onCharm(p)} accessibilityLabel={`Mandar um Charme para ${p.name}`}>
+              <Ionicons name="sparkles" size={20} color={colors.gold} />
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.round, { backgroundColor: ROSE, borderColor: ROSE, marginLeft: 18 }]} onPress={() => onLike(p)} accessibilityLabel={`Curtir ${p.name}`}>
+              <Ionicons name="heart" size={28} color="#fff" />
+            </TouchableOpacity>
+          </Row>
+        )}
+        <TouchableOpacity onPress={() => onReport(p)} style={{ alignSelf: 'center', marginTop: 8 }} hitSlop={8}>
+          <Text style={{ color: colors.muted, fontSize: 11 }}>Denunciar</Text>
         </TouchableOpacity>
-        <Row style={{ justifyContent: 'center', marginTop: 14 }}>
-          <TouchableOpacity style={[styles.round, { borderColor: colors.border }]} onPress={onPass} accessibilityLabel="Passar">
-            <Ionicons name="close" size={30} color={colors.muted} />
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.round, { backgroundColor: ROSE, borderColor: ROSE, marginLeft: 28 }]} onPress={onLike} accessibilityLabel="Curtir">
-            <Ionicons name="heart" size={30} color="#fff" />
-          </TouchableOpacity>
-        </Row>
-        <Text style={{ color: colors.muted, fontSize: 11, textAlign: 'center', marginTop: 8 }}>A outra pessoa não fica sabendo se você passou.</Text>
       </View>
+    </View>
+  );
+}
+
+// Mapa dos cruzamentos: os lugares onde vocês se cruzaram, sempre aproximados (nunca a posição exata).
+function CrossMap({ people, onOpen }) {
+  const [sel, setSel] = useState(null);
+  const at = (key) => people.filter((p) => p.crossings.some((c) => c.spot === key));
+  const spots = DATE_SPOTS.map((s) => ({ ...s, people: at(s.key) })).filter((s) => s.people.length);
+  const chosen = spots.find((s) => s.key === sel) || null;
+  const H = 360;
+  return (
+    <View>
+      <View style={[styles.map, { height: H }]}>
+        {/* Ruas e parques desenhados (sem mostrar endereço exato) */}
+        {[0.18, 0.46, 0.74].map((y) => (
+          <View key={'h' + y} style={[styles.street, { top: H * y, left: 0, right: 0, height: 10 }]} />
+        ))}
+        {[0.25, 0.55, 0.82].map((x) => (
+          <View key={'v' + x} style={[styles.street, { left: `${x * 100}%`, top: 0, bottom: 0, width: 10 }]} />
+        ))}
+        <View style={[styles.street, { left: '-10%', right: '-10%', top: H * 0.58, height: 14, transform: [{ rotate: '-18deg' }] }]} />
+        <View style={[styles.park, { left: '50%', top: H * 0.62, width: 90, height: 70 }]} />
+        <View style={[styles.park, { left: '4%', top: H * 0.52, width: 70, height: 60 }]} />
+        <View style={[styles.water, { left: '-6%', top: H * 0.84, width: 160, height: 40 }]} />
+        {/* Você no meio */}
+        <View style={[styles.me, { left: '46%', top: H * 0.5 - 14 }]}>
+          <View style={styles.meDot} />
+        </View>
+        {spots.map((s) => {
+          const on = s.key === sel;
+          return (
+            <TouchableOpacity
+              key={s.key}
+              style={[styles.pin, { left: `${s.x * 80}%`, top: s.y * (H - 70) }, on && { transform: [{ scale: 1.15 }] }]}
+              onPress={() => setSel(on ? null : s.key)}
+              activeOpacity={0.85}
+              accessibilityLabel={`${s.people.length} cruzamentos perto de ${s.label}`}
+            >
+              <Photo uri={s.people[0].photo} style={[styles.pinImg, on && { borderColor: colors.gold }]} fallback="💘" />
+              <View style={styles.pinCount}>
+                <Text style={{ color: '#fff', fontSize: 10, fontWeight: '900' }}>{s.people.length}</Text>
+              </View>
+              <Text style={styles.pinLabel} numberOfLines={1}>
+                {s.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      <Text style={{ color: colors.muted, fontSize: 11, textAlign: 'center', marginVertical: 8 }}>Lugares aproximados: ninguém vê a sua posição exata.</Text>
+      {chosen ? (
+        <>
+          <Text style={styles.h}>Cruzaram com você perto de {chosen.label}</Text>
+          {chosen.people.map((p) => {
+            const c = p.crossings.find((x) => x.spot === chosen.key);
+            return (
+              <TouchableOpacity key={p.id} style={styles.spotRow} onPress={() => onOpen(p)} activeOpacity={0.85}>
+                <Photo uri={p.photo} style={styles.matchAvatar} fallback="🙂" />
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={{ color: colors.text, fontWeight: '700' }}>
+                    {p.name}, {p.age}
+                  </Text>
+                  <Text style={{ color: colors.muted, fontSize: 12 }}>
+                    {c ? c.when : ''}
+                    {p.job ? ` · ${p.job}` : ''}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+              </TouchableOpacity>
+            );
+          })}
+        </>
+      ) : (
+        <Text style={{ color: colors.muted, textAlign: 'center' }}>Toque num ponto do mapa para ver quem cruzou com você ali.</Text>
+      )}
     </View>
   );
 }
@@ -414,15 +575,15 @@ function MatchModal({ p, onClose, onChat }) {
       <View style={styles.backdrop}>
         <View style={styles.matchBox}>
           <Text style={{ fontSize: 44 }}>💘</Text>
-          <Text style={{ color: ROSE, fontSize: 26, fontWeight: '800', marginTop: 4 }}>É um match!</Text>
+          <Text style={{ color: ROSE, fontSize: 26, fontWeight: '800', marginTop: 4 }}>É um crush!</Text>
           <Photo uri={p.photo} style={styles.matchBig} fallback="🙂" />
-          <Text style={{ color: colors.text, textAlign: 'center', marginTop: 10 }}>Você e {p.name} se curtiram. A conversa está liberada.</Text>
+          <Text style={{ color: colors.text, textAlign: 'center', marginTop: 10 }}>Você e {p.name} se curtiram e já se cruzaram {p.crossings ? p.crossings.length : 1}x. A conversa está liberada.</Text>
           <Text style={{ color: colors.muted, fontSize: 12, textAlign: 'center', marginTop: 6 }}>
             Dica: no primeiro encontro, escolha um lugar público e avise alguém de confiança.
           </Text>
           <Button title={`Mandar mensagem para ${p.name}`} onPress={onChat} style={{ marginTop: 14, alignSelf: 'stretch', backgroundColor: ROSE, borderColor: ROSE }} />
           <TouchableOpacity onPress={onClose} style={{ marginTop: 12 }}>
-            <Text style={{ color: colors.muted, fontWeight: '700' }}>Continuar no radar</Text>
+            <Text style={{ color: colors.muted, fontWeight: '700' }}>Continuar vendo os cruzamentos</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -472,6 +633,18 @@ function Settings({ openTerms, openProfile }) {
           {INTEREST.map(([k, l]) => (
             <Pill key={k} label={l} on={e.interest === k} onPress={() => dispatch({ type: 'ENC_SET', patch: { interest: k } })} />
           ))}
+        </View>
+        <Text style={styles.label}>Idade de quem aparece</Text>
+        <View style={styles.wrap}>
+          {AGES.map(([lo, hi]) => (
+            <Pill
+              key={lo}
+              label={hi >= 99 ? `${lo}+` : `${lo} a ${hi}`}
+              on={(e.ageMin || 18) === lo && (e.ageMax || 60) === hi}
+              onPress={() => dispatch({ type: 'ENC_SET', patch: { ageMin: lo, ageMax: hi } })}
+            />
+          ))}
+          <Pill label="Todas" on={(e.ageMin || 18) === 18 && (e.ageMax || 60) >= 60} onPress={() => dispatch({ type: 'ENC_SET', patch: { ageMin: 18, ageMax: 99 } })} />
         </View>
         <Text style={styles.label}>Distância máxima</Text>
         <View style={styles.wrap}>
@@ -607,33 +780,65 @@ function ProfileEditor({ visible, onClose }) {
 }
 
 // Perfil completo de quem cruzou com você.
-function PersonModal({ p, onClose, onLike, onPass }) {
+// Perfil completo de quem cruzou com você: fotos (arraste para o lado), onde e quando vocês se
+// cruzaram, sobre, estilo de vida e gostos.
+function PersonModal({ p, liked, charmed, matched, onClose, onLike, onPass, onCharm, onChat }) {
   const insets = useSafeAreaInsets();
+  const [page, setPage] = useState(0);
+  useEffect(() => setPage(0), [p && p.id]);
   if (!p) return null;
+  const W = Dimensions.get('window').width;
   const det = PROFILE_FIELDS.filter((f) => p.details && p.details[f.key]);
+  const photos = p.photos || [p.photo];
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
-        <Photo uri={p.photo} style={{ width: '100%', height: 380 }} fallback="🙂" />
-        <TouchableOpacity onPress={onClose} style={[styles.iconBtn, { position: 'absolute', left: 14, top: insets.top + 10 }]} accessibilityLabel="Voltar">
-          <Ionicons name="arrow-back" size={20} color={colors.text} />
-        </TouchableOpacity>
+        <View>
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={(ev) => setPage(Math.round(ev.nativeEvent.contentOffset.x / W))}
+          >
+            {photos.map((u, i) => (
+              <Photo key={i} uri={u} style={{ width: W, height: 420 }} fallback="🙂" />
+            ))}
+          </ScrollView>
+          <View style={styles.dots}>
+            {photos.map((_, i) => (
+              <View key={i} style={[styles.dot, i === page && styles.dotOn]} />
+            ))}
+          </View>
+          <TouchableOpacity onPress={onClose} style={[styles.iconBtn, { position: 'absolute', left: 14, top: insets.top + 10 }]} accessibilityLabel="Voltar">
+            <Ionicons name="arrow-back" size={20} color={colors.text} />
+          </TouchableOpacity>
+        </View>
         <View style={{ padding: 16 }}>
           <Text style={{ color: colors.text, fontSize: 24, fontWeight: '800' }}>
             {p.name}, {p.age} <Ionicons name="shield-checkmark" size={18} color={colors.primary} />
           </Text>
           {p.job ? <Text style={{ color: colors.muted, marginTop: 2 }}>{p.job}</Text> : null}
           <Text style={{ color: ROSE, fontWeight: '700', fontSize: 12, marginTop: 4 }}>
-            {approx(p.km)} · procura {p.looking.toLowerCase()}
+            {approx(p.km)}
+            {p.looking ? ` · procura ${p.looking.toLowerCase()}` : ''}
           </Text>
-          <View style={styles.crossBox}>
-            <Ionicons name="footsteps-outline" size={15} color={ROSE} />
-            <Text style={{ color: colors.text, fontSize: 12.5, marginLeft: 6, flex: 1 }}>
-              Cruzou com você {p.when} · {p.place}
-            </Text>
-          </View>
-          <Text style={styles.h}>Sobre</Text>
-          <Text style={{ color: colors.text, lineHeight: 20 }}>{p.bio}</Text>
+
+          <Text style={styles.h}>Onde vocês se cruzaram</Text>
+          {(p.crossings || [{ when: p.when, place: p.place }]).map((c, i) => (
+            <View key={i} style={styles.crossBox}>
+              <Ionicons name="footsteps-outline" size={15} color={ROSE} />
+              <Text style={{ color: colors.text, fontSize: 12.5, marginLeft: 6, flex: 1 }}>
+                {c.place} · {c.when}
+              </Text>
+            </View>
+          ))}
+
+          {p.bio ? (
+            <>
+              <Text style={styles.h}>Sobre</Text>
+              <Text style={{ color: colors.text, lineHeight: 20 }}>{p.bio}</Text>
+            </>
+          ) : null}
           {det.length ? (
             <>
               <Text style={styles.h}>Estilo de vida</Text>
@@ -652,22 +857,39 @@ function PersonModal({ p, onClose, onLike, onPass }) {
           ) : (
             <Text style={{ color: colors.muted, fontSize: 12, marginTop: 10 }}>{p.name} ainda não preencheu o estilo de vida.</Text>
           )}
-          <Text style={styles.h}>Gostos</Text>
-          <View style={styles.wrap}>
-            {p.tags.map((t) => (
-              <View key={t} style={styles.tag}>
-                <Text style={{ color: colors.text, fontSize: 12 }}>{t}</Text>
+          {p.tags.length ? (
+            <>
+              <Text style={styles.h}>Gostos</Text>
+              <View style={styles.wrap}>
+                {p.tags.map((t) => (
+                  <View key={t} style={styles.tag}>
+                    <Text style={{ color: colors.text, fontSize: 12 }}>{t}</Text>
+                  </View>
+                ))}
               </View>
-            ))}
-          </View>
-          <Row style={{ justifyContent: 'center', marginTop: 16 }}>
-            <TouchableOpacity style={[styles.round, { borderColor: colors.border }]} onPress={onPass} accessibilityLabel="Passar">
-              <Ionicons name="close" size={30} color={colors.muted} />
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.round, { backgroundColor: ROSE, borderColor: ROSE, marginLeft: 28 }]} onPress={onLike} accessibilityLabel="Curtir">
-              <Ionicons name="heart" size={30} color="#fff" />
-            </TouchableOpacity>
-          </Row>
+            </>
+          ) : null}
+
+          {matched ? (
+            <Button title={`Conversar com ${p.name}`} onPress={onChat} style={{ marginTop: 16, backgroundColor: ROSE, borderColor: ROSE }} />
+          ) : liked ? (
+            <View style={[styles.likedRow, { justifyContent: 'center', marginTop: 16 }]}>
+              <Ionicons name={charmed ? 'sparkles' : 'heart'} size={16} color={charmed ? colors.gold : ROSE} />
+              <Text style={{ color: colors.muted, fontWeight: '700', marginLeft: 6 }}>{charmed ? 'Você mandou um Charme' : 'Você curtiu (em segredo)'}</Text>
+            </View>
+          ) : (
+            <Row style={{ justifyContent: 'center', marginTop: 16 }}>
+              <TouchableOpacity style={[styles.round, { borderColor: colors.border }]} onPress={onPass} accessibilityLabel="Passar">
+                <Ionicons name="close" size={30} color={colors.muted} />
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.roundSm, { marginLeft: 18 }]} onPress={onCharm} accessibilityLabel="Mandar um Charme">
+                <Ionicons name="sparkles" size={20} color={colors.gold} />
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.round, { backgroundColor: ROSE, borderColor: ROSE, marginLeft: 18 }]} onPress={onLike} accessibilityLabel="Curtir">
+                <Ionicons name="heart" size={30} color="#fff" />
+              </TouchableOpacity>
+            </Row>
+          )}
         </View>
       </ScrollView>
     </Modal>
@@ -745,6 +967,31 @@ function Check({ on, onPress, text }) {
 }
 
 const styles = StyleSheet.create({
+  kicker: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  personShade: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 14, paddingTop: 30, paddingBottom: 12, backgroundColor: 'rgba(0,0,0,0.38)' },
+  personName: { color: '#fff', fontSize: 24, fontWeight: '800', textShadowColor: 'rgba(0,0,0,0.4)', textShadowRadius: 6 },
+  personSub: { color: 'rgba(255,255,255,0.92)', fontSize: 13, fontWeight: '600', marginTop: 2 },
+  roundSm: { width: 48, height: 48, borderRadius: 24, borderWidth: 1.5, borderColor: 'rgba(226,182,73,0.7)', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFBEF' },
+  likedRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12, alignSelf: 'center' },
+  likedTile: { width: 132, marginRight: 10 },
+  likedImg: { width: 132, height: 170, borderRadius: 18 },
+  likedHeart: { position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: 12, backgroundColor: ROSE, alignItems: 'center', justifyContent: 'center' },
+  likedName: { color: colors.text, fontWeight: '700', marginTop: 6 },
+  likedBack: { marginTop: 6, backgroundColor: ROSE, borderRadius: 12, paddingVertical: 7, alignItems: 'center' },
+  map: { backgroundColor: '#EEF1E8', borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: '#DDE3D3' },
+  street: { position: 'absolute', backgroundColor: '#FFFFFF', opacity: 0.95 },
+  park: { position: 'absolute', backgroundColor: '#CDE8C4', borderRadius: 30 },
+  water: { position: 'absolute', backgroundColor: '#C9E0F2', borderRadius: 30 },
+  me: { position: 'absolute', width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(224,86,122,0.25)', alignItems: 'center', justifyContent: 'center' },
+  meDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: ROSE, borderWidth: 2, borderColor: '#fff' },
+  pin: { position: 'absolute', alignItems: 'center', width: 84 },
+  pinImg: { width: 46, height: 46, borderRadius: 23, borderWidth: 3, borderColor: ROSE },
+  pinCount: { position: 'absolute', top: -4, right: 14, minWidth: 20, height: 20, borderRadius: 10, backgroundColor: ROSE, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderWidth: 2, borderColor: '#fff' },
+  pinLabel: { marginTop: 3, fontSize: 10, fontWeight: '800', color: colors.text, backgroundColor: 'rgba(255,255,255,0.9)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, overflow: 'hidden' },
+  spotRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 16, padding: 10, marginBottom: 8, ...soft },
+  dots: { position: 'absolute', bottom: 12, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center' },
+  dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.55)', marginHorizontal: 3 },
+  dotOn: { backgroundColor: '#fff', width: 18 },
   hero: { backgroundColor: '#FFF0F4', borderRadius: 22, borderWidth: 1, borderColor: '#F6C6D3', padding: 18, marginBottom: 18 },
   heroIcon: { width: 52, height: 52, borderRadius: 18, backgroundColor: ROSE, alignItems: 'center', justifyContent: 'center' },
   heroTitle: { color: colors.text, fontSize: 28, fontWeight: '800', marginTop: 10 },
@@ -767,14 +1014,14 @@ const styles = StyleSheet.create({
   pillOn: { backgroundColor: ROSE, borderColor: ROSE },
   termsLink: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, padding: 12, marginBottom: 10, ...soft },
   check: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 8 },
-  segRow: { flexDirection: 'row', paddingHorizontal: 12, paddingTop: 10, paddingBottom: 4 },
+  segRow: { flexDirection: 'row', paddingHorizontal: 12, paddingTop: 10, paddingBottom: 6 },
   seg: { flexDirection: 'row', alignItems: 'center', height: 36, paddingHorizontal: 12, borderRadius: 18, borderWidth: 1, borderColor: '#F6C6D3', backgroundColor: colors.card, marginRight: 6 },
   segOn: { backgroundColor: ROSE, borderColor: ROSE },
   segText: { color: colors.text, fontWeight: '700', fontSize: 12, marginLeft: 5 },
   radarCard: { borderWidth: 1.5 },
   radarIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#FFF0F4', alignItems: 'center', justifyContent: 'center' },
   person: { backgroundColor: colors.card, borderRadius: 24, overflow: 'hidden', marginBottom: 14, ...soft },
-  personPhoto: { width: '100%', height: 340 },
+  personPhoto: { width: '100%', height: 400 },
   personCross: { position: 'absolute', top: 12, left: 12, right: 12, flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 5 },
   tag: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, backgroundColor: colors.cardAlt, marginRight: 6, marginBottom: 6 },
   round: { width: 64, height: 64, borderRadius: 32, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card },

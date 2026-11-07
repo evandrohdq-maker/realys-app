@@ -120,6 +120,11 @@ const initialState = {
     matches: [], // ids das pessoas
     chats: {}, // conversas do Encontros ficam só aqui, separadas da Comunidade
     blocked: {},
+    charms: {}, // charmes enviados (curtida especial: a pessoa é avisada na hora)
+    charmDay: '', // dia dos charmes usados (renova todo dia)
+    charmsUsed: 0,
+    ageMin: 18, // faixa de idade de quem aparece
+    ageMax: 60,
   },
   orders: D.initialOrders,
   rideRequests: D.rideRequests,
@@ -541,6 +546,24 @@ function baseReducer(state, a) {
       const e = state.encontros;
       const match = a.mutual && !e.matches.includes(a.id);
       return { ...state, encontros: { ...e, liked: { ...e.liked, [a.id]: true }, matches: match ? [a.id, ...e.matches] : e.matches } };
+    }
+    case 'ENC_CHARM': {
+      // Charme: curtida especial, limitada por dia. Se a pessoa já curtiu você, vira crush na hora.
+      const e = state.encontros;
+      const today = new Date().toDateString();
+      const used = e.charmDay === today ? e.charmsUsed : 0;
+      const match = a.mutual && !e.matches.includes(a.id);
+      return {
+        ...state,
+        encontros: {
+          ...e,
+          liked: { ...e.liked, [a.id]: true },
+          charms: { ...e.charms, [a.id]: true },
+          charmDay: today,
+          charmsUsed: used + 1,
+          matches: match ? [a.id, ...e.matches] : e.matches,
+        },
+      };
     }
     case 'ENC_PASS':
       return { ...state, encontros: { ...state.encontros, passed: { ...state.encontros.passed, [a.id]: true } } };
