@@ -73,7 +73,7 @@ export default function VenueSheet() {
           <View style={styles.grip} />
           <View style={styles.head}>
             <View style={styles.icon}>
-              <Ionicons name="restaurant" size={17} color={colors.gold} />
+              <Ionicons name="restaurant" size={17} color={colors.primary} />
             </View>
             <View style={{ flex: 1, marginLeft: 10 }}>
               <Text style={styles.title} numberOfLines={1}>{v.name}</Text>
@@ -86,17 +86,17 @@ export default function VenueSheet() {
 
           {/* Mesa */}
           <View style={styles.table}>
-            <Ionicons name={v.table ? 'checkmark-circle' : 'help-circle-outline'} size={18} color={v.table ? '#7BE0B0' : colors.gold} />
+            <Ionicons name={v.table ? 'checkmark-circle' : 'help-circle-outline'} size={18} color={v.table ? colors.success : colors.primary} />
             {v.table ? (
-              <Text style={styles.tableText}>Você está na <Text style={{ color: colors.gold }}>mesa {v.table}</Text>. O pedido chega aqui.</Text>
+              <Text style={styles.tableText}>Você está na <Text style={{ color: colors.primary }}>mesa {v.table}</Text>. O pedido chega aqui.</Text>
             ) : (
               <>
                 <Text style={[styles.tableText, { flex: 0 }]}>Mesa:</Text>
-                <TextInput value={tableText} onChangeText={setTableText} placeholder="nº" placeholderTextColor="rgba(255,255,255,0.4)" keyboardType="number-pad" style={styles.tableInput} />
+                <TextInput value={tableText} onChangeText={setTableText} placeholder="nº" placeholderTextColor={colors.muted} keyboardType="number-pad" style={styles.tableInput} />
                 <TouchableOpacity onPress={setTable} style={styles.tableBtn}>
                   <Text style={{ color: NIGHT, fontWeight: '800', fontSize: 12 }}>OK</Text>
                 </TouchableOpacity>
-                <Text style={[styles.tableText, { fontSize: 11, color: 'rgba(255,255,255,0.6)' }]}>ou retire no balcão</Text>
+                <Text style={[styles.tableText, { fontSize: 11, color: colors.muted }]}>ou retire no balcão</Text>
               </>
             )}
           </View>
@@ -170,10 +170,10 @@ export default function VenueSheet() {
                     const next = FLOW[FLOW.indexOf(o.status) + 1];
                     return (
                       <View key={f.id} style={styles.feed}>
-                        <Ionicons name="notifications" size={16} color={colors.gold} />
+                        <Ionicons name="notifications" size={16} color={colors.primary} />
                         <View style={{ flex: 1, marginLeft: 8 }}>
-                          <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{f.text}</Text>
-                          <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11 }}>{brl(f.total)} · pago pelo Realys · {o.status}</Text>
+                          <Text style={{ color: colors.text, fontWeight: '700' }}>{f.text}</Text>
+                          <Text style={{ color: colors.muted, fontSize: 11 }}>{brl(f.total)} · pago pelo Realys · {o.status}</Text>
                         </View>
                         {next ? (
                           <TouchableOpacity onPress={() => dispatch({ type: 'VENUE_ORDER_STATUS', id: o.id, status: next })} style={styles.feedBtn}>
@@ -231,16 +231,16 @@ const styles = StyleSheet.create({
   sheet: { backgroundColor: '#FFFDF8', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 16, paddingTop: 8 },
   grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: 10 },
   head: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  icon: { width: 36, height: 36, borderRadius: 18, backgroundColor: NIGHT, alignItems: 'center', justifyContent: 'center' },
+  icon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 17, fontWeight: '800', color: colors.text },
   sub: { color: colors.muted, fontSize: 12 },
   closeBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cardAlt },
-  table: { flexDirection: 'row', alignItems: 'center', backgroundColor: NIGHT, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 },
-  tableText: { color: '#FFFFFF', fontWeight: '700', marginLeft: 8, flex: 1, fontSize: 13 },
-  tableInput: { width: 48, height: 32, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(226,182,73,0.6)', color: '#FFFFFF', textAlign: 'center', fontWeight: '800', marginLeft: 8 },
+  table: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10, ...soft },
+  tableText: { color: colors.text, fontWeight: '700', marginLeft: 8, flex: 1, fontSize: 13 },
+  tableInput: { width: 48, height: 32, borderRadius: 10, borderWidth: 1, borderColor: colors.borderStrong, color: colors.text, textAlign: 'center', fontWeight: '800', marginLeft: 8 },
   tableBtn: { backgroundColor: colors.gold, borderRadius: 10, paddingHorizontal: 10, height: 32, alignItems: 'center', justifyContent: 'center', marginLeft: 6 },
   tab: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)', marginRight: 6 },
-  tabOn: { backgroundColor: NIGHT, borderColor: NIGHT },
+  tabOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   tabText: { color: colors.primaryDark, fontWeight: '700', fontSize: 12 },
   cat: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', marginTop: 10, marginBottom: 2 },
   item: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   order: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 10, marginBottom: 8, ...soft },
   step: { flex: 1, height: 5, borderRadius: 3, backgroundColor: colors.border, marginRight: 4 },
   stepOn: { backgroundColor: colors.primary },
-  feed: { flexDirection: 'row', alignItems: 'center', backgroundColor: NIGHT, borderRadius: 14, padding: 10, marginBottom: 8 },
+  feed: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, padding: 10, marginBottom: 8, ...soft },
   feedBtn: { backgroundColor: colors.gold, borderRadius: 10, paddingHorizontal: 9, paddingVertical: 6, marginLeft: 6 },
   payBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 14, paddingVertical: 13, marginTop: 10 },
   payText: { color: NIGHT, fontWeight: '800', marginLeft: 6, fontSize: 15 },

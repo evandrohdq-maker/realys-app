@@ -104,23 +104,23 @@ export default function WalletScreen({ visible, onClose }) {
           {/* Créditos de presente: não sacam, só compram no Realys */}
           <View style={styles.giftCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="gift" size={22} color="#E2B649" />
+              <Ionicons name="gift" size={22} color={colors.primary} />
               <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12, fontWeight: '700' }}>Créditos de presente</Text>
-                <Text style={{ color: '#FFFFFF', fontSize: 24, fontWeight: '800' }}>{brl(state.giftCredits)}</Text>
+                <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '700' }}>Créditos de presente</Text>
+                <Text style={{ color: colors.text, fontSize: 24, fontWeight: '800' }}>{brl(state.giftCredits)}</Text>
               </View>
             </View>
-            <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11, marginTop: 6, lineHeight: 16 }}>
+            <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6, lineHeight: 16 }}>
               Só para comprar produtos no Realys (lojas, Food, Shop, Tecnologia e Agro). Não podem ser sacados. Nas compras eles são usados primeiro, antes do saldo.
             </Text>
             {state.gifts.slice(0, 6).map((g) => (
               <View key={g.id} style={styles.giftRow}>
                 <Text style={{ fontSize: 16, width: 26 }}>{g.dir === 'recebido' ? (g.from.logo || '🎁') : g.dir === 'enviado' ? '💝' : '🛍️'}</Text>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13 }} numberOfLines={1}>
+                  <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }} numberOfLines={1}>
                     {g.dir === 'recebido' ? `De ${g.from.name}` : g.dir === 'enviado' ? `Para ${g.to.name}${g.to.tip ? ' (gorjeta)' : ''}` : `Usado em ${g.desc}`}
                   </Text>
-                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11 }} numberOfLines={1}>
+                  <Text style={{ color: colors.muted, fontSize: 11 }} numberOfLines={1}>
                     {g.dir === 'usado' ? fmtDate(g.at) : `${g.occasion || 'Presente'}${g.message ? ` · ${g.message}` : ''}`}
                     {g.dir === 'enviado' ? ` · taxa ${brl(g.fee)}` : ''}
                   </Text>
@@ -130,7 +130,7 @@ export default function WalletScreen({ visible, onClose }) {
                 </Text>
               </View>
             ))}
-            <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 10, marginTop: 8 }}>
+            <Text style={{ color: colors.muted, fontSize: 10, marginTop: 8 }}>
               Presentear sai do seu saldo, com taxa de {GIFT_FEE_PCT}% do Realys. Quem recebe não precisa aceitar: entra na hora.
             </Text>
           </View>
@@ -190,8 +190,8 @@ export default function WalletScreen({ visible, onClose }) {
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <Text style={{ fontSize: 26 }}>{lvl.icon}</Text>
                   <View style={{ flex: 1, marginLeft: 10 }}>
-                    <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '700' }}>Clube Realys · nível {lvl.label}</Text>
-                    <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '800' }}>{ly.orders} pedidos entregues</Text>
+                    <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '700' }}>Clube Realys · nível {lvl.label}</Text>
+                    <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{ly.orders} pedidos entregues</Text>
                   </View>
                 </View>
                 <Text style={styles.clubLabel}>Faltam {toBonus} {toBonus === 1 ? 'pedido' : 'pedidos'} para ganhar {BONUS.pct}% no próximo (até {brl(BONUS.cap)})</Text>
@@ -205,7 +205,7 @@ export default function WalletScreen({ visible, onClose }) {
                   return (
                     <View key={id} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
                       <Text style={{ width: 26, fontSize: 16 }}>{st.logo || '🏪'}</Text>
-                      <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '700', width: 120 }} numberOfLines={1}>{st.name}</Text>
+                      <Text style={{ color: colors.text, fontSize: 12, fontWeight: '700', width: 120 }} numberOfLines={1}>{st.name}</Text>
                       <View style={{ flex: 1, flexDirection: 'row' }}>
                         {Array.from({ length: STAMPS_FOR_REWARD }).map((_, i) => (
                           <View key={i} style={[styles.stamp, i < v.count && styles.stampOn]} />
@@ -508,10 +508,10 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
   title: { color: colors.text, fontWeight: '800', fontSize: 18 },
-  clubCard: { backgroundColor: '#0B1124', borderRadius: 20, padding: 16, marginTop: 10, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
-  clubLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: '700', marginTop: 12 },
-  clubSmall: { color: 'rgba(255,255,255,0.55)', fontSize: 11, marginTop: 6 },
-  clubTrack: { height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.12)', marginTop: 6, overflow: 'hidden' },
+  clubCard: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 16, marginTop: 10, borderWidth: 1, borderColor: colors.border },
+  clubLabel: { color: colors.text, fontSize: 12, fontWeight: '700', marginTop: 12 },
+  clubSmall: { color: colors.muted, fontSize: 11, marginTop: 6 },
+  clubTrack: { height: 8, borderRadius: 4, backgroundColor: colors.cardAlt, marginTop: 6, overflow: 'hidden' },
   clubFill: { height: 8, backgroundColor: '#E2B649' },
   stamp: { flex: 1, height: 10, borderRadius: 5, marginRight: 3, borderWidth: 1, borderColor: 'rgba(226,182,73,0.5)' },
   stampOn: { backgroundColor: '#E2B649' },
@@ -519,13 +519,13 @@ const styles = StyleSheet.create({
   pointsH: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', marginTop: 14, marginBottom: 4 },
   offer: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border },
   redeem: { backgroundColor: colors.primary, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 7, marginLeft: 8 },
-  giftCard: { backgroundColor: '#0B1124', borderRadius: 20, padding: 16, marginTop: 10, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
+  giftCard: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 16, marginTop: 10, borderWidth: 1, borderColor: colors.border },
   liveCard: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 16, marginTop: 10, borderWidth: 1, borderColor: 'rgba(255,59,92,0.35)' },
   liveIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#FF3B5C', alignItems: 'center', justifyContent: 'center' },
   convertBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E2B649', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 8 },
   convertText: { color: '#0B1124', fontWeight: '800', fontSize: 12, marginLeft: 4 },
   liveRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border, marginTop: 6 },
-  giftRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', marginTop: 6 },
+  giftRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border, marginTop: 6 },
   balanceCard: { backgroundColor: colors.primary, borderRadius: 20, padding: 16 },
   balance: { color: '#fff', fontSize: 32, fontWeight: '800', marginVertical: 4 },
   bigBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 44, borderRadius: 14, backgroundColor: '#fff' },

@@ -18,7 +18,7 @@ function Head({ icon, title, sub }) {
     <View style={{ marginTop: 16, marginBottom: 8 }}>
       <Row>
         <View style={styles.headIcon}>
-          <Ionicons name={icon} size={15} color={colors.gold} />
+          <Ionicons name={icon} size={15} color={colors.primary} />
         </View>
         <Text style={styles.h2}>{title}</Text>
       </Row>
@@ -42,7 +42,7 @@ export default function AdminMarket() {
         <View style={styles.glowGold} />
         <View style={styles.glowBlue} />
         <Row>
-          <Ionicons name="sparkles" size={18} color={colors.gold} />
+          <Ionicons name="sparkles" size={18} color={colors.primary} />
           <Text style={styles.heroTitle}>Conhecimento da Lotus</Text>
         </Row>
         <Text style={styles.heroSub}>Atualiza sozinho a cada produto, preço, serviço, depoimento ou post publicado. Última atualização agora.</Text>
@@ -189,10 +189,10 @@ export default function AdminMarket() {
       <View style={styles.rules}>
         {KNOWLEDGE_RULES.map((r) => (
           <Row key={r.title} style={{ alignItems: 'flex-start', marginBottom: 12 }}>
-            <Ionicons name={r.icon} size={18} color={colors.gold} style={{ marginTop: 1 }} />
+            <Ionicons name={r.icon} size={18} color={colors.primary} style={{ marginTop: 1 }} />
             <View style={{ flex: 1, marginLeft: 10 }}>
-              <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{r.title}</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12, marginTop: 2, lineHeight: 17 }}>{r.text}</Text>
+              <Text style={{ color: colors.text, fontWeight: '700' }}>{r.title}</Text>
+              <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2, lineHeight: 17 }}>{r.text}</Text>
             </View>
           </Row>
         ))}
@@ -205,22 +205,22 @@ const styles = StyleSheet.create({
   name: { fontWeight: '700', color: colors.text },
   sub: { color: colors.muted, fontSize: 12, marginTop: 2 },
   h2: { fontSize: 16, fontWeight: '700', color: colors.text, marginLeft: 8, flex: 1 },
-  headIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: NIGHT, alignItems: 'center', justifyContent: 'center' },
+  headIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
   avg: { color: colors.primary, fontWeight: '800' },
   track: { height: 4, borderRadius: 2, backgroundColor: colors.border, marginTop: 8, overflow: 'hidden' },
   fill: { height: 4, backgroundColor: colors.gold },
   more: { alignItems: 'center', paddingVertical: 8 },
-  hero: { backgroundColor: NIGHT, borderRadius: 22, padding: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
-  glowGold: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(226,182,73,0.25)', top: -100, right: -60 },
-  glowBlue: { position: 'absolute', width: 170, height: 170, borderRadius: 85, backgroundColor: 'rgba(47,116,208,0.25)', bottom: -90, left: -50 },
-  heroTitle: { color: '#FFFFFF', fontWeight: '800', fontSize: 17, marginLeft: 8 },
-  heroSub: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 6, lineHeight: 17 },
+  hero: { backgroundColor: '#FFFFFF', borderRadius: 22, padding: 16, overflow: 'hidden', borderWidth: 1, borderColor: colors.border },
+  glowGold: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(226,182,73,0.10)', top: -100, right: -60 },
+  glowBlue: { position: 'absolute', width: 170, height: 170, borderRadius: 85, backgroundColor: 'rgba(47,116,208,0.05)', bottom: -90, left: -50 },
+  heroTitle: { color: colors.text, fontWeight: '800', fontSize: 17, marginLeft: 8 },
+  heroSub: { color: colors.muted, fontSize: 12, marginTop: 6, lineHeight: 17 },
   heroStat: { flex: 1, alignItems: 'center' },
-  heroSep: { borderLeftWidth: 1, borderLeftColor: 'rgba(255,255,255,0.14)' },
-  heroValue: { color: '#FFFFFF', fontSize: 18, fontWeight: '800' },
-  heroLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '700', textAlign: 'center', marginTop: 2 },
+  heroSep: { borderLeftWidth: 1, borderLeftColor: colors.border },
+  heroValue: { color: colors.text, fontSize: 18, fontWeight: '800' },
+  heroLabel: { color: colors.muted, fontSize: 10, fontWeight: '700', textAlign: 'center', marginTop: 2 },
   word: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 5, marginRight: 6, marginBottom: 6 },
   wordText: { color: colors.primaryDark, fontWeight: '700', fontSize: 12 },
   wordCount: { color: colors.muted, fontSize: 11, marginLeft: 5 },
-  rules: { backgroundColor: NIGHT, borderRadius: 20, padding: 16, paddingBottom: 6, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
+  rules: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 16, paddingBottom: 6, borderWidth: 1, borderColor: colors.border },
 });

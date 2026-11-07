@@ -43,9 +43,9 @@ const styles = StyleSheet.create({
   chipDark: { backgroundColor: 'rgba(255,255,255,0.14)' },
   chipType: { fontSize: 10, fontWeight: '800', marginLeft: 3, marginRight: 5, letterSpacing: 0.4 },
   chipName: { color: colors.text, fontSize: 12, fontWeight: '700', flexShrink: 1, marginRight: 2 },
-  badge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0B1124', borderRadius: 14, padding: 10, marginTop: 10, borderWidth: 1, borderColor: 'rgba(217,83,79,0.7)' },
+  badge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, padding: 10, marginTop: 10, borderWidth: 1, borderColor: 'rgba(217,83,79,0.45)' },
   dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#E5484D' },
-  badgeTitle: { color: '#FF8A80', fontSize: 10, fontWeight: '800', letterSpacing: 0.8 },
-  badgeText: { color: '#FFFFFF', fontWeight: '700', marginTop: 1 },
+  badgeTitle: { color: '#D9534F', fontSize: 10, fontWeight: '800', letterSpacing: 0.8 },
+  badgeText: { color: colors.text, fontWeight: '700', marginTop: 1 },
   watch: { color: '#0B1124', backgroundColor: '#E2B649', fontWeight: '800', fontSize: 12, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, overflow: 'hidden', marginLeft: 8 },
 });

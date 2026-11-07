@@ -31,10 +31,10 @@ export default function FinanceScreen() {
     <Screen>
       <Title sub="Entradas do app entram aqui automaticamente">Fluxo de caixa</Title>
 
-      <Card style={{ backgroundColor: colors.dark, borderColor: colors.primary }}>
-        <Text style={{ color: '#B8C6CF' }}>Saldo da empresa</Text>
-        <Text style={{ color: '#fff', fontSize: 30, fontWeight: '800', marginTop: 2 }}>{brl(saldo)}</Text>
-        <Text style={{ color: '#B8C6CF', fontSize: 12, marginTop: 4 }}>Separado das suas contas pessoais</Text>
+      <Card style={{ backgroundColor: colors.primaryLight, borderColor: colors.borderStrong }}>
+        <Text style={{ color: colors.muted }}>Saldo da empresa</Text>
+        <Text style={{ color: colors.primaryDark, fontSize: 30, fontWeight: '800', marginTop: 2 }}>{brl(saldo)}</Text>
+        <Text style={{ color: colors.muted, fontSize: 12, marginTop: 4 }}>Separado das suas contas pessoais</Text>
       </Card>
 
       <Row style={{ marginHorizontal: -4, marginBottom: 14 }}>

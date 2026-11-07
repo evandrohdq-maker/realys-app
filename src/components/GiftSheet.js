@@ -72,7 +72,7 @@ export default function GiftSheet() {
           <View style={styles.grip} />
           <View style={styles.head}>
             <View style={styles.giftIcon}>
-              <Ionicons name="gift" size={20} color={colors.gold} />
+              <Ionicons name="gift" size={20} color={colors.primary} />
             </View>
             <View style={{ flex: 1, marginLeft: 10 }}>
               <Text style={styles.title}>{to && to.tip ? 'Dar gorjeta' : asCompany ? 'Presentear cliente' : 'Presentear'}</Text>
@@ -151,7 +151,7 @@ export default function GiftSheet() {
               <View style={styles.sumLine} />
               <Row label="Sai da sua carteira" value={brl(total)} strong />
               <Text style={styles.note}>
-                <Ionicons name="information-circle-outline" size={12} color="rgba(255,255,255,0.7)" /> Chega na hora, sem precisar aceitar. Quem recebe usa os créditos só para comprar produtos no Realys: eles não podem ser sacados.
+                <Ionicons name="information-circle-outline" size={12} color={colors.muted} /> Chega na hora, sem precisar aceitar. Quem recebe usa os créditos só para comprar produtos no Realys: eles não podem ser sacados.
               </Text>
             </View>
 
@@ -170,8 +170,8 @@ export default function GiftSheet() {
 function Row({ label, value, strong }) {
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 2 }}>
-      <Text style={{ color: strong ? '#FFFFFF' : 'rgba(255,255,255,0.75)', fontWeight: strong ? '900' : '600' }}>{label}</Text>
-      <Text style={{ color: strong ? colors.gold : '#FFFFFF', fontWeight: '800' }}>{value}</Text>
+      <Text style={{ color: strong ? colors.text : colors.muted, fontWeight: strong ? '900' : '600' }}>{label}</Text>
+      <Text style={{ color: strong ? colors.primary : colors.text, fontWeight: '800' }}>{value}</Text>
     </View>
   );
 }
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   sheet: { backgroundColor: '#FFFDF8', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 18, paddingTop: 8, maxHeight: '90%' },
   grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: 10 },
   head: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-  giftIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: NIGHT, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.gold },
+  giftIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 18, fontWeight: '800', color: colors.text },
   sub: { color: colors.muted, fontSize: 12, marginTop: 1 },
   closeBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cardAlt },
@@ -194,16 +194,16 @@ const styles = StyleSheet.create({
   pickName: { color: colors.text, fontWeight: '700', fontSize: 12, marginTop: 4 },
   pickRole: { color: colors.muted, fontSize: 10 },
   chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)', marginRight: 6, marginBottom: 6 },
-  chipOn: { backgroundColor: NIGHT, borderColor: NIGHT },
+  chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipText: { color: colors.primaryDark, fontWeight: '700', fontSize: 12 },
   amount: { minWidth: 72, alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)', marginRight: 6, marginBottom: 6, backgroundColor: '#FFFFFF' },
   amountOn: { backgroundColor: colors.gold, borderColor: colors.gold },
   amountText: { color: colors.primaryDark, fontWeight: '800' },
   otherInput: { minWidth: 110, color: colors.text, fontWeight: '700', textAlign: 'center' },
   message: { borderWidth: 1, borderColor: colors.border, borderRadius: 14, padding: 10, minHeight: 56, color: colors.text, backgroundColor: '#FFFFFF', marginTop: 4, textAlignVertical: 'top' },
-  summary: { backgroundColor: NIGHT, borderRadius: 18, padding: 14, marginTop: 14, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
-  sumLine: { height: 1, backgroundColor: 'rgba(255,255,255,0.15)', marginVertical: 6 },
-  note: { color: 'rgba(255,255,255,0.7)', fontSize: 11, marginTop: 8, lineHeight: 16 },
+  summary: { backgroundColor: '#FFFFFF', borderRadius: 18, padding: 14, marginTop: 14, borderWidth: 1, borderColor: colors.border },
+  sumLine: { height: 1, backgroundColor: colors.border, marginVertical: 6 },
+  note: { color: colors.muted, fontSize: 11, marginTop: 8, lineHeight: 16 },
   sendBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 16, paddingVertical: 14, marginTop: 14 },
   sendText: { color: NIGHT, fontWeight: '800', marginLeft: 8, fontSize: 15 },
 });

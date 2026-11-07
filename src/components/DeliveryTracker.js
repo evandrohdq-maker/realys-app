@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Animated, Easing, Alert, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../theme';
+import { colors, soft } from '../theme';
 import { Photo } from './ui';
 
 // Acompanhar a entrega ao vivo: o motoboy, o entregador, o motorista ou o prestador aparece se
@@ -123,7 +123,7 @@ export default function DeliveryTracker({ visible, onClose, who = {}, kind = 'mo
               ]}
             />
             <View style={styles.moverIcon}>
-              <Ionicons name={k.icon} size={17} color={GOLD} />
+              <Ionicons name={k.icon} size={17} color={colors.primary} />
             </View>
           </View>
         </View>
@@ -199,18 +199,18 @@ const styles = StyleSheet.create({
   street: { position: 'absolute', backgroundColor: '#fff' },
   park: { position: 'absolute', backgroundColor: '#CDE8C4', borderRadius: 28 },
   routeDot: { position: 'absolute', width: 6, height: 6, borderRadius: 3, marginLeft: -3, marginTop: -3 },
-  pin: { position: 'absolute', width: 28, height: 28, borderRadius: 14, marginLeft: -14, marginTop: -14, backgroundColor: NIGHT, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fff' },
+  pin: { position: 'absolute', width: 28, height: 28, borderRadius: 14, marginLeft: -14, marginTop: -14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fff' },
   pinHome: { backgroundColor: GOLD },
   mover: { position: 'absolute', width: 36, height: 36, marginLeft: -18, marginTop: -18, alignItems: 'center', justifyContent: 'center' },
   moverPulse: { position: 'absolute', width: 36, height: 36, borderRadius: 18, backgroundColor: GOLD },
-  moverIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: NIGHT, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: GOLD },
-  eta: { marginHorizontal: 16, marginTop: 12, backgroundColor: NIGHT, borderRadius: 18, padding: 14, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
-  etaBig: { color: GOLD, fontWeight: '900', fontSize: 26 },
-  etaSub: { color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 2 },
-  bar: { height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.15)', marginTop: 10, overflow: 'hidden' },
+  moverIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.primary },
+  eta: { marginHorizontal: 16, marginTop: 12, backgroundColor: colors.card, borderRadius: 18, padding: 14, ...soft },
+  etaBig: { color: colors.primary, fontWeight: '900', fontSize: 26 },
+  etaSub: { color: colors.text, fontSize: 13, marginTop: 2 },
+  bar: { height: 6, borderRadius: 3, backgroundColor: colors.cardAlt, marginTop: 10, overflow: 'hidden' },
   barFill: { height: 6, borderRadius: 3, backgroundColor: GOLD },
-  small: { color: 'rgba(255,255,255,0.6)', fontSize: 10.5, maxWidth: '48%' },
-  who: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginTop: 10, backgroundColor: colors.card, borderRadius: 16, padding: 10 },
+  small: { color: colors.muted, fontSize: 10.5, maxWidth: '48%' },
+  who: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginTop: 10, backgroundColor: colors.card, borderRadius: 16, padding: 10, ...soft },
   whoPhoto: { width: 46, height: 46, borderRadius: 23 },
   round: { width: 42, height: 42, borderRadius: 21, backgroundColor: GOLD, alignItems: 'center', justifyContent: 'center' },
   confirm: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 16, marginTop: 10, backgroundColor: GOLD, borderRadius: 16, paddingVertical: 13 },

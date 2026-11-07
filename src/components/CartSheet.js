@@ -50,7 +50,7 @@ export default function CartSheet({ onOrders }) {
           <View style={styles.grip} />
           <View style={styles.head}>
             <View style={styles.icon}>
-              <Ionicons name="bag-handle" size={18} color={colors.gold} />
+              <Ionicons name="bag-handle" size={18} color={colors.primary} />
             </View>
             <View style={{ flex: 1, marginLeft: 10 }}>
               <Text style={styles.title}>Seu carrinho</Text>
@@ -85,7 +85,7 @@ export default function CartSheet({ onOrders }) {
                       <View style={{ flex: 1, marginLeft: 10 }}>
                         <Text style={styles.name} numberOfLines={1}>{p.name}</Text>
                         <Text style={styles.sub} numberOfLines={1}>
-                          {(storeOf(state, p.storeId) || {}).name} · <Text style={{ color: colors.gold, fontWeight: '700' }}>ver loja ›</Text>
+                          {(storeOf(state, p.storeId) || {}).name} · <Text style={{ color: colors.primary, fontWeight: '700' }}>ver loja ›</Text>
                         </Text>
                         <Text style={styles.price}>{brl(p.price * qty)}</Text>
                       </View>
@@ -121,8 +121,8 @@ export default function CartSheet({ onOrders }) {
                   <Text style={styles.sumValue}>{brl(fromWallet)}</Text>
                 </View>
                 <View style={[styles.sumRow, { marginTop: 4 }]}>
-                  <Text style={[styles.sumLabel, { color: '#FFFFFF', fontWeight: '800' }]}>Total</Text>
-                  <Text style={[styles.sumValue, { color: colors.gold, fontSize: 17 }]}>{brl(total)}</Text>
+                  <Text style={[styles.sumLabel, { color: colors.text, fontWeight: '800' }]}>Total</Text>
+                  <Text style={[styles.sumValue, { color: colors.primary, fontSize: 17 }]}>{brl(total)}</Text>
                 </View>
               </View>
 
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   sheet: { backgroundColor: '#FFFDF8', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 16, paddingTop: 8 },
   grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: 10 },
   head: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  icon: { width: 36, height: 36, borderRadius: 18, backgroundColor: NIGHT, alignItems: 'center', justifyContent: 'center' },
+  icon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 17, fontWeight: '800', color: colors.text },
   sub: { color: colors.muted, fontSize: 12 },
   closeBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cardAlt },
@@ -169,10 +169,10 @@ const styles = StyleSheet.create({
   qty: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, backgroundColor: '#FFFFFF', ...soft },
   qBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   qNum: { minWidth: 18, textAlign: 'center', fontWeight: '800', color: colors.text },
-  sum: { backgroundColor: NIGHT, borderRadius: 16, padding: 12, marginTop: 10 },
+  sum: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 12, marginTop: 10, borderWidth: 1, borderColor: colors.border },
   sumRow: { flexDirection: 'row', justifyContent: 'space-between', marginVertical: 2 },
-  sumLabel: { color: 'rgba(255,255,255,0.75)', fontWeight: '600', fontSize: 13 },
-  sumValue: { color: '#FFFFFF', fontWeight: '800' },
+  sumLabel: { color: colors.muted, fontWeight: '600', fontSize: 13 },
+  sumValue: { color: colors.text, fontWeight: '800' },
   payBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 14, paddingVertical: 13, marginTop: 10 },
   payText: { color: NIGHT, fontWeight: '800', marginLeft: 6, fontSize: 15 },
   badge: { position: 'absolute', top: 4, right: 3, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3, borderWidth: 1.5, borderColor: '#FFFDF8' },

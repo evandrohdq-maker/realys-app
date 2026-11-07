@@ -30,7 +30,7 @@ function Head({ icon, title, sub }) {
     <View style={{ marginTop: 14, marginBottom: 8 }}>
       <Row>
         <View style={styles.headIcon}>
-          <Ionicons name={icon} size={15} color={colors.gold} />
+          <Ionicons name={icon} size={15} color={colors.primary} />
         </View>
         <Text style={styles.h2Inline}>{title}</Text>
       </Row>
@@ -478,19 +478,19 @@ const styles = StyleSheet.create({
   label: { color: colors.muted, fontSize: 12, fontWeight: '700', marginBottom: 4 },
   h2: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: 8, marginBottom: 4 },
   h2Inline: { fontSize: 16, fontWeight: '700', color: colors.text, marginLeft: 8, flex: 1 },
-  headIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: NIGHT, alignItems: 'center', justifyContent: 'center' },
+  headIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
   kind: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 12, borderWidth: 1, borderColor: colors.border, marginHorizontal: 3 },
   kindOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   kindText: { fontSize: 11, fontWeight: '700', color: colors.primary, marginTop: 3 },
   file: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderStyle: 'dashed', borderColor: colors.primary, borderRadius: 12, padding: 12, marginBottom: 10 },
 
-  preview: { backgroundColor: NIGHT, borderRadius: 22, padding: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
+  preview: { backgroundColor: '#FFFFFF', borderRadius: 22, padding: 16, overflow: 'hidden', borderWidth: 1, borderColor: colors.border },
   previewGlowGold: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(226,182,73,0.28)', top: -90, right: -60 },
   previewGlowBlue: { position: 'absolute', width: 160, height: 160, borderRadius: 80, backgroundColor: 'rgba(47,116,208,0.28)', bottom: -80, left: -50 },
   previewLogo: { width: 58, height: 58, borderRadius: 29, backgroundColor: '#FFFDF8', borderWidth: 2, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
-  previewName: { color: '#FFFFFF', fontWeight: '800', fontSize: 18 },
-  previewTag: { color: colors.gold, fontWeight: '700', fontSize: 12, marginTop: 2 },
-  previewSub: { color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 4 },
+  previewName: { color: colors.text, fontWeight: '800', fontSize: 18 },
+  previewTag: { color: colors.primary, fontWeight: '700', fontSize: 12, marginTop: 2 },
+  previewSub: { color: colors.muted, fontSize: 11, marginTop: 4 },
   previewBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 12, paddingVertical: 9, marginTop: 14 },
   previewBtnText: { color: NIGHT, fontWeight: '800', marginLeft: 6 },
 

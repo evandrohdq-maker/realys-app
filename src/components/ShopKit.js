@@ -60,9 +60,8 @@ export function CategoryPicker({ items, onPick, news }) {
   return (
     <>
       <TouchableOpacity style={styles.catBar} onPress={() => setOpen(true)} activeOpacity={0.9} accessibilityLabel="Escolher o tipo de produto">
-        <View style={styles.catGlow} />
         <View style={styles.catIcon}>
-          <Ionicons name="grid" size={18} color={NIGHT} />
+          <Ionicons name="grid-outline" size={18} color={colors.primary} />
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={styles.catTitle}>Você no comando.</Text>
@@ -74,7 +73,8 @@ export function CategoryPicker({ items, onPick, news }) {
             <Text style={styles.catNumSub}>novidades</Text>
           </View>
         ) : null}
-        <Ionicons name="chevron-down" size={18} color={GOLD} />
+        <Text style={styles.catSwap}>Ver</Text>
+        <Ionicons name="chevron-down" size={16} color={colors.primary} />
       </TouchableOpacity>
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)} statusBarTranslucent>
         <View style={styles.pickBack}>
@@ -84,7 +84,7 @@ export function CategoryPicker({ items, onPick, news }) {
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
               <Text style={styles.pickTitle}>O que você procura?</Text>
               <TouchableOpacity onPress={() => setOpen(false)} style={styles.pickX} accessibilityLabel="Fechar">
-                <Ionicons name="close" size={18} color="#fff" />
+                <Ionicons name="close" size={18} color={colors.text} />
               </TouchableOpacity>
             </View>
             <ScrollView style={{ maxHeight: 460 }} showsVerticalScrollIndicator={false}>
@@ -101,7 +101,7 @@ export function CategoryPicker({ items, onPick, news }) {
                     accessibilityLabel={c.label}
                   >
                     <View style={styles.pickCircle}>
-                      <Ionicons name={c.ion} size={20} color={GOLD} />
+                      <Ionicons name={c.ion} size={22} color={colors.primary} />
                     </View>
                     <Text style={styles.pickLabel} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
                       {c.label}
@@ -219,20 +219,20 @@ const styles = StyleSheet.create({
   },
   prodSp: { borderWidth: 1, borderColor: 'rgba(108,92,231,0.35)' },
   prodSpGold: { borderWidth: 1.5, borderColor: 'rgba(226,182,73,0.85)' },
-  catBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: NIGHT, borderRadius: 20, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)', overflow: 'hidden' },
-  catGlow: { position: 'absolute', right: -40, top: -50, width: 140, height: 140, borderRadius: 70, backgroundColor: 'rgba(226,182,73,0.18)' },
-  catIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: GOLD, alignItems: 'center', justifyContent: 'center' },
-  catTitle: { color: '#fff', fontWeight: '900', fontSize: 15 },
-  catSub: { color: 'rgba(255,255,255,0.7)', fontSize: 11.5, marginTop: 1 },
-  catNum: { color: GOLD, fontWeight: '900', fontSize: 17 },
-  catNumSub: { color: 'rgba(255,255,255,0.6)', fontSize: 9 },
-  pickBack: { flex: 1, backgroundColor: 'rgba(6,10,24,0.5)' },
-  pickSheet: { backgroundColor: NIGHT, borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 16, paddingTop: 8, borderTopWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
-  pickGrip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.25)', marginBottom: 12 },
-  pickTitle: { flex: 1, color: '#fff', fontWeight: '900', fontSize: 17 },
-  pickX: { width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' },
-  pickCircle: { width: 52, height: 52, borderRadius: 26, borderWidth: 1.5, borderColor: 'rgba(226,182,73,0.75)', backgroundColor: 'rgba(226,182,73,0.12)', alignItems: 'center', justifyContent: 'center' },
-  pickLabel: { color: '#fff', fontWeight: '700', fontSize: 11, marginTop: 6, textAlign: 'center' },
+  catBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 20, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: colors.border, ...soft },
+  catIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  catTitle: { color: colors.text, fontWeight: '800', fontSize: 15 },
+  catSub: { color: colors.muted, fontSize: 11.5, marginTop: 1 },
+  catNum: { color: colors.primary, fontWeight: '900', fontSize: 17 },
+  catNumSub: { color: colors.muted, fontSize: 9 },
+  catSwap: { color: colors.primary, fontWeight: '800', fontSize: 13, marginRight: 2 },
+  pickBack: { flex: 1, backgroundColor: 'rgba(31,42,68,0.25)' },
+  pickSheet: { backgroundColor: colors.bg, borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 16, paddingTop: 8 },
+  pickGrip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: colors.borderStrong, marginBottom: 12 },
+  pickTitle: { flex: 1, color: colors.text, fontWeight: '900', fontSize: 17 },
+  pickX: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
+  pickCircle: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.card, borderWidth: 1.5, borderColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center', ...soft },
+  pickLabel: { color: colors.text, fontWeight: '700', fontSize: 11, marginTop: 6, textAlign: 'center' },
   spTag: { position: 'absolute', top: 8, right: 8, backgroundColor: colors.sponsored, borderRadius: 7, paddingHorizontal: 6, paddingVertical: 2 },
   spTagText: { color: colors.onPrimary, fontSize: 9, fontWeight: '800' },
   launch: { color: colors.accent, fontSize: 9, fontWeight: '800', letterSpacing: 0.6, marginTop: 6 },

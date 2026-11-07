@@ -72,7 +72,7 @@ export default function RateSheet() {
           <View style={styles.grip} />
           <View style={styles.head}>
             <View style={styles.icon}>
-              <Ionicons name="star" size={18} color={colors.gold} />
+              <Ionicons name="star" size={18} color={colors.primary} />
             </View>
             <View style={{ flex: 1, marginLeft: 10 }}>
               <Text style={styles.title}>{order ? 'Como foi o seu pedido?' : 'Como foi o serviço?'}</Text>
@@ -134,7 +134,7 @@ export default function RateSheet() {
             })}
 
             <View style={styles.points}>
-              <Ionicons name="trophy-outline" size={16} color={colors.gold} />
+              <Ionicons name="trophy-outline" size={16} color={colors.primary} />
               <Text style={styles.pointsText}>
                 Ganhe {POINTS_PER_RATING} pontos por nota e +{POINTS_COMMENT_BONUS} com comentário. Os pontos viram créditos com os parceiros do Realys.
               </Text>
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   sheet: { backgroundColor: '#FFFDF8', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 16, paddingTop: 8, maxHeight: '90%' },
   grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: 10 },
   head: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  icon: { width: 36, height: 36, borderRadius: 18, backgroundColor: NIGHT, alignItems: 'center', justifyContent: 'center' },
+  icon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 17, fontWeight: '800', color: colors.text },
   sub: { color: colors.muted, fontSize: 12 },
   closeBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cardAlt },
@@ -175,8 +175,8 @@ const styles = StyleSheet.create({
   tagBad: { backgroundColor: colors.danger, borderColor: colors.danger },
   tagText: { color: colors.primaryDark, fontWeight: '700', fontSize: 12 },
   input: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: 10, minHeight: 50, color: colors.text, marginTop: 4, textAlignVertical: 'top' },
-  points: { flexDirection: 'row', alignItems: 'center', backgroundColor: NIGHT, borderRadius: 14, padding: 10, marginTop: 12 },
-  pointsText: { color: 'rgba(255,255,255,0.85)', fontSize: 12, marginLeft: 8, flex: 1, lineHeight: 17 },
+  points: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: 14, padding: 10, marginTop: 12 },
+  pointsText: { color: colors.text, fontSize: 12, marginLeft: 8, flex: 1, lineHeight: 17 },
   sendBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 14, paddingVertical: 13, marginTop: 14 },
   sendText: { color: NIGHT, fontWeight: '800', marginLeft: 6, fontSize: 15 },
 });

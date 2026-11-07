@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   chooser: { backgroundColor: colors.card, borderRadius: 14, padding: 10, marginTop: 6, ...soft },
   secTitle: { color: colors.text, fontWeight: '800', fontSize: 12, marginBottom: 4 },
   pill: { borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 5, marginRight: 5, marginBottom: 5, backgroundColor: colors.card },
-  pillOn: { backgroundColor: '#1F2A44', borderColor: '#1F2A44' },
+  pillOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   pillText: { color: colors.text, fontSize: 11.5 },
   novo: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EEF6EF', borderRadius: 12, padding: 10, marginTop: 8 },
   shipRow: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6, marginTop: 8 },

@@ -35,13 +35,15 @@ export default function DashboardScreen() {
       </Row>
 
       {/* Presentear clientes: créditos que o cliente usa só para comprar no Realys */}
-      <TouchableOpacity activeOpacity={0.9} onPress={() => dispatch({ type: 'OPEN_GIFT', asCompany: true })} style={{ backgroundColor: '#0B1124', borderRadius: 18, padding: 14, marginBottom: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' }}>
-        <Ionicons name="gift" size={24} color="#E2B649" />
-        <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={{ color: '#FFFFFF', fontWeight: '800' }}>Presentear clientes</Text>
-          <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 }}>Mande créditos para um cliente fiel. Ele usa só em compras no Realys.</Text>
+      <TouchableOpacity activeOpacity={0.9} onPress={() => dispatch({ type: 'OPEN_GIFT', asCompany: true })} style={{ backgroundColor: '#FFFFFF', borderRadius: 18, padding: 14, marginBottom: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border }}>
+        <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' }}>
+          <Ionicons name="gift" size={22} color={colors.primary} />
         </View>
-        <Ionicons name="chevron-forward" size={18} color="#E2B649" />
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <Text style={{ color: colors.text, fontWeight: '800' }}>Presentear clientes</Text>
+          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Mande créditos para um cliente fiel. Ele usa só em compras no Realys.</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.primary} />
       </TouchableOpacity>
 
       <Card>

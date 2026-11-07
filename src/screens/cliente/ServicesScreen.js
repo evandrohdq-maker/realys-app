@@ -80,7 +80,6 @@ const GROUP_ION = {
   'Saúde e bem-estar': 'heart-circle-outline',
   'Jurídico e finanças': 'briefcase-outline',
 };
-const NIGHT = '#141C33';
 const first = (name) => String(name || '').split(' ')[0];
 
 export default function ServicesScreen({ explore, navigate }) {
@@ -588,7 +587,7 @@ export default function ServicesScreen({ explore, navigate }) {
 
       <View style={styles.voiceTip}>
         <View style={styles.voiceIcon}>
-          <Ionicons name="mic" size={16} color={NIGHT} />
+          <Ionicons name="mic" size={16} color={colors.primary} />
         </View>
         <Text style={styles.voiceText}>Pela voz também funciona: "abrir Lotus, preciso de um eletricista na Rua Tamandaré".</Text>
       </View>
@@ -613,7 +612,7 @@ function SectionHead({ title, right }) {
 function HeroStat({ icon, value, label }) {
   return (
     <View style={styles.heroStat}>
-      <Ionicons name={icon} size={14} color={colors.gold} />
+      <Ionicons name={icon} size={14} color={colors.primary} />
       <Text style={styles.heroStatValue}>{value}</Text>
       <Text style={styles.heroStatLabel}>{label}</Text>
     </View>
@@ -651,21 +650,21 @@ function HowStep({ n, text }) {
 const styles = StyleSheet.create({
   avatarSm: { width: 48, height: 48, borderRadius: 16 },
   // Topo
-  hero: { backgroundColor: NIGHT, borderRadius: 24, padding: 18, marginBottom: 14, overflow: 'hidden' },
-  heroGlow: { position: 'absolute', right: -60, top: -60, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(226,182,73,0.18)' },
-  heroKicker: { color: colors.gold, fontSize: 11, fontWeight: '700', letterSpacing: 1.6 },
-  heroTitle: { color: '#FFFFFF', fontSize: 24, fontWeight: '800', marginTop: 6 },
-  heroSub: { color: 'rgba(255,255,255,0.72)', fontSize: 13, marginTop: 4 },
+  hero: { backgroundColor: colors.card, borderRadius: 24, padding: 18, marginBottom: 14, overflow: 'hidden', ...soft },
+  heroGlow: { position: 'absolute', right: -60, top: -60, width: 180, height: 180, borderRadius: 90, backgroundColor: colors.primaryLight },
+  heroKicker: { color: colors.primary, fontSize: 11, fontWeight: '700', letterSpacing: 1.6 },
+  heroTitle: { color: colors.text, fontSize: 24, fontWeight: '800', marginTop: 6 },
+  heroSub: { color: colors.muted, fontSize: 13, marginTop: 4 },
   heroStats: { flexDirection: 'row', marginTop: 14, marginHorizontal: -4 },
-  heroStat: { flex: 1, marginHorizontal: 4, backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 14, paddingVertical: 10, paddingHorizontal: 10, borderWidth: 1, borderColor: 'rgba(226,182,73,0.25)' },
-  heroStatValue: { color: '#FFFFFF', fontWeight: '800', fontSize: 15, marginTop: 4 },
-  heroStatLabel: { color: 'rgba(255,255,255,0.65)', fontSize: 11 },
+  heroStat: { flex: 1, marginHorizontal: 4, backgroundColor: colors.bg, borderRadius: 14, paddingVertical: 10, paddingHorizontal: 10, borderWidth: 1, borderColor: colors.border },
+  heroStatValue: { color: colors.text, fontWeight: '800', fontSize: 15, marginTop: 4 },
+  heroStatLabel: { color: colors.muted, fontSize: 11 },
   sectionHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10, marginTop: 4 },
   sectionTitle: { color: colors.text, fontWeight: '800', fontSize: 17 },
   sectionRight: { color: colors.muted, fontSize: 12, fontWeight: '600' },
   // Categorias
   groupPill: { flexDirection: 'row', alignItems: 'center', height: 36, paddingHorizontal: 13, borderRadius: 18, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, marginRight: 8 },
-  groupPillOn: { backgroundColor: NIGHT, borderColor: NIGHT },
+  groupPillOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   groupText: { color: colors.text, fontWeight: '700', fontSize: 13, marginLeft: 6 },
   typeGrid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -4, marginBottom: 10 },
   typeTile: { width: '23%', marginHorizontal: '1%', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 4, borderRadius: 16, backgroundColor: colors.card, marginBottom: 8, ...soft },
@@ -732,8 +731,8 @@ const styles = StyleSheet.create({
   pName: { color: colors.text, fontWeight: '700', fontSize: 16, flexShrink: 1 },
   pMeta: { color: colors.muted, fontSize: 12, marginTop: 3 },
   pPrice: { color: colors.primary, fontWeight: '700', fontSize: 13, marginTop: 3 },
-  rating: { flexDirection: 'row', alignItems: 'center', backgroundColor: NIGHT, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, marginLeft: 8 },
-  ratingText: { color: '#FFFFFF', fontWeight: '800', fontSize: 12, marginLeft: 3 },
+  rating: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, marginLeft: 8 },
+  ratingText: { color: colors.primaryDark, fontWeight: '800', fontSize: 12, marginLeft: 3 },
   badges: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
   pFunc: { color: colors.text, fontSize: 12.5, marginTop: 8 },
   statsRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 },
@@ -744,7 +743,7 @@ const styles = StyleSheet.create({
   actMainText: { color: colors.onPrimary, fontWeight: '800', fontSize: 14, marginLeft: 6 },
   iconBtn: { width: 46, height: 46, borderRadius: 14, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', marginLeft: 8, backgroundColor: '#FFFFFF' },
   // Voz
-  voiceTip: { flexDirection: 'row', alignItems: 'center', backgroundColor: NIGHT, borderRadius: 18, padding: 12, marginTop: 4 },
-  voiceIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
-  voiceText: { color: 'rgba(255,255,255,0.85)', fontSize: 13, marginLeft: 10, flex: 1, lineHeight: 18 },
+  voiceTip: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 18, padding: 12, marginTop: 4, ...soft },
+  voiceIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  voiceText: { color: colors.text, fontSize: 13, marginLeft: 10, flex: 1, lineHeight: 18 },
 });

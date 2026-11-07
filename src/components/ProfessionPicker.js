@@ -6,9 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { PROF_CLASSES } from '../professionsData';
 import { serviceTypes } from '../data';
+import { colors, soft } from '../theme';
 
-const NIGHT = '#0B1124';
-const GOLD = '#E2B649';
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 // types: as profissões que cabem na aba atual; counts: { chave: prestadores perto }
@@ -40,9 +39,8 @@ export default function ProfessionPicker({ selected, types, counts = {}, onPick,
   return (
     <>
       <TouchableOpacity style={styles.bar} onPress={() => setOpen(true)} activeOpacity={0.9} accessibilityLabel="Escolher o tipo de profissional">
-        <View style={styles.glow} />
         <View style={styles.barIcon}>
-          <Text style={{ fontSize: 19 }}>{sel ? sel.icon : '🧰'}</Text>
+          <Ionicons name={sel ? sel.ion : 'briefcase-outline'} size={20} color={colors.primary} />
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={styles.barTitle} numberOfLines={1}>{sel ? sel.label : 'Escolha o profissional'}</Text>
@@ -50,11 +48,8 @@ export default function ProfessionPicker({ selected, types, counts = {}, onPick,
             {sel ? `${sel.group} · trocar profissão` : `${classes.length} classes · ${total} profissões`}
           </Text>
         </View>
-        <View style={{ alignItems: 'flex-end', marginRight: 8 }}>
-          <Text style={styles.barNum}>{total}</Text>
-          <Text style={styles.barNumSub}>profissões</Text>
-        </View>
-        <Ionicons name="chevron-down" size={18} color={GOLD} />
+        <Text style={styles.barSwap}>Trocar</Text>
+        <Ionicons name="chevron-down" size={16} color={colors.primary} />
       </TouchableOpacity>
 
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => (cls || q ? (setCls(null), setQ('')) : close())} statusBarTranslucent>
@@ -65,28 +60,28 @@ export default function ProfessionPicker({ selected, types, counts = {}, onPick,
             <View style={styles.headRow}>
               {current && !found ? (
                 <TouchableOpacity onPress={() => setCls(null)} style={styles.roundBtn} accessibilityLabel="Voltar às classes">
-                  <Ionicons name="chevron-back" size={18} color="#fff" />
+                  <Ionicons name="chevron-back" size={18} color={colors.text} />
                 </TouchableOpacity>
               ) : null}
               <Text style={styles.title} numberOfLines={1}>
-                {found ? 'Resultados' : current ? `${current.emoji} ${current.label}` : 'Qual profissional você precisa?'}
+                {found ? 'Resultados' : current ? current.label : 'Qual profissional você precisa?'}
               </Text>
               <TouchableOpacity onPress={close} style={styles.roundBtn} accessibilityLabel="Fechar">
-                <Ionicons name="close" size={18} color="#fff" />
+                <Ionicons name="close" size={18} color={colors.text} />
               </TouchableOpacity>
             </View>
             <View style={styles.search}>
-              <Ionicons name="search" size={16} color={GOLD} />
+              <Ionicons name="search" size={16} color={colors.muted} />
               <TextInput
                 value={q}
                 onChangeText={setQ}
                 placeholder="Buscar profissão: manicure, pedreiro, babá…"
-                placeholderTextColor="rgba(255,255,255,0.45)"
+                placeholderTextColor={colors.muted}
                 style={styles.searchInput}
               />
               {q ? (
                 <TouchableOpacity onPress={() => setQ('')}>
-                  <Ionicons name="close-circle" size={16} color="rgba(255,255,255,0.6)" />
+                  <Ionicons name="close-circle" size={16} color={colors.muted} />
                 </TouchableOpacity>
               ) : null}
             </View>
@@ -100,7 +95,7 @@ export default function ProfessionPicker({ selected, types, counts = {}, onPick,
                     return (
                       <TouchableOpacity key={t.key} style={[styles.subRow, on && styles.subRowOn]} onPress={() => pick(t.key)} activeOpacity={0.8} accessibilityLabel={t.label}>
                         <View style={styles.subIcon}>
-                          <Text style={{ fontSize: 18 }}>{t.icon}</Text>
+                          <Ionicons name={t.ion || 'briefcase-outline'} size={18} color={colors.primary} />
                         </View>
                         <View style={{ flex: 1, marginLeft: 10 }}>
                           <Text style={styles.subLabel} numberOfLines={1}>{t.label}</Text>
@@ -109,8 +104,8 @@ export default function ProfessionPicker({ selected, types, counts = {}, onPick,
                             {found ? ` · ${t.group}` : ''}
                           </Text>
                         </View>
-                        <Text style={[styles.subCount, !n && { color: 'rgba(255,255,255,0.45)' }]}>{n ? `${n} perto` : 'em breve'}</Text>
-                        <Ionicons name="chevron-forward" size={16} color={GOLD} style={{ marginLeft: 6 }} />
+                        <Text style={[styles.subCount, !n && { color: colors.muted, fontWeight: '600' }]}>{n ? `${n} perto` : 'em breve'}</Text>
+                        <Ionicons name="chevron-forward" size={16} color={colors.muted} style={{ marginLeft: 4 }} />
                       </TouchableOpacity>
                     );
                   })
@@ -124,8 +119,8 @@ export default function ProfessionPicker({ selected, types, counts = {}, onPick,
                     const on = sel && sel.group === c.label;
                     return (
                       <TouchableOpacity key={c.key} style={styles.item} onPress={() => setCls(c.key)} activeOpacity={0.8} accessibilityLabel={c.label}>
-                        <View style={[styles.circle, on && { backgroundColor: GOLD }]}>
-                          <Ionicons name={c.ion} size={20} color={on ? NIGHT : GOLD} />
+                        <View style={[styles.circle, on && styles.circleOn]}>
+                          <Ionicons name={c.ion} size={22} color={colors.primary} />
                         </View>
                         <Text style={styles.itemLabel} numberOfLines={2}>{c.label}</Text>
                         <Text style={styles.itemSub}>{c.types.length} tipos{n ? ` · ${n} perto` : ''}</Text>
@@ -136,7 +131,7 @@ export default function ProfessionPicker({ selected, types, counts = {}, onPick,
                     ? extra.map((x) => (
                         <TouchableOpacity key={x.label} style={styles.item} onPress={() => (close(), x.onPress())} activeOpacity={0.8} accessibilityLabel={x.label}>
                           <View style={styles.circle}>
-                            <Ionicons name={x.ion} size={20} color={GOLD} />
+                            <Ionicons name={x.ion} size={22} color={colors.primary} />
                           </View>
                           <Text style={styles.itemLabel} numberOfLines={2}>{x.label}</Text>
                           <Text style={styles.itemSub}>{x.sub || ''}</Text>
@@ -154,31 +149,30 @@ export default function ProfessionPicker({ selected, types, counts = {}, onPick,
 }
 
 const styles = StyleSheet.create({
-  bar: { flexDirection: 'row', alignItems: 'center', backgroundColor: NIGHT, borderRadius: 20, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)', overflow: 'hidden' },
-  glow: { position: 'absolute', right: -40, top: -50, width: 140, height: 140, borderRadius: 70, backgroundColor: 'rgba(226,182,73,0.18)' },
-  barIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: GOLD, alignItems: 'center', justifyContent: 'center' },
-  barTitle: { color: '#fff', fontWeight: '900', fontSize: 15 },
-  barSub: { color: 'rgba(255,255,255,0.7)', fontSize: 11.5, marginTop: 1 },
-  barNum: { color: GOLD, fontWeight: '900', fontSize: 17 },
-  barNumSub: { color: 'rgba(255,255,255,0.6)', fontSize: 9 },
-  back: { flex: 1, backgroundColor: 'rgba(6,10,24,0.5)' },
-  sheet: { backgroundColor: NIGHT, borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 16, paddingTop: 8, borderTopWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
-  grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.25)', marginBottom: 12 },
+  bar: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 20, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: colors.border, ...soft },
+  barIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  barTitle: { color: colors.text, fontWeight: '800', fontSize: 15 },
+  barSub: { color: colors.muted, fontSize: 11.5, marginTop: 1 },
+  barSwap: { color: colors.primary, fontWeight: '800', fontSize: 13, marginRight: 2 },
+  back: { flex: 1, backgroundColor: 'rgba(31,42,68,0.25)' },
+  sheet: { backgroundColor: colors.bg, borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 16, paddingTop: 8 },
+  grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: colors.borderStrong, marginBottom: 12 },
   headRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  title: { flex: 1, color: '#fff', fontWeight: '900', fontSize: 17, marginHorizontal: 6 },
-  roundBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' },
-  search: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14, paddingHorizontal: 12, height: 42, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(226,182,73,0.3)' },
-  searchInput: { flex: 1, color: '#fff', marginLeft: 8, fontSize: 14 },
+  title: { flex: 1, color: colors.text, fontWeight: '900', fontSize: 17, marginHorizontal: 6 },
+  roundBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
+  search: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, paddingHorizontal: 12, height: 42, marginBottom: 14, ...soft },
+  searchInput: { flex: 1, color: colors.text, marginLeft: 8, fontSize: 14 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -4 },
   item: { width: '33.33%', alignItems: 'center', paddingHorizontal: 4, marginBottom: 14 },
-  circle: { width: 54, height: 54, borderRadius: 27, borderWidth: 1.5, borderColor: 'rgba(226,182,73,0.75)', backgroundColor: 'rgba(226,182,73,0.12)', alignItems: 'center', justifyContent: 'center' },
-  itemLabel: { color: '#fff', fontWeight: '700', fontSize: 11.5, marginTop: 6, textAlign: 'center' },
-  itemSub: { color: 'rgba(255,255,255,0.55)', fontSize: 10, marginTop: 1, textAlign: 'center' },
-  subRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 10, borderRadius: 14, marginBottom: 6, backgroundColor: 'rgba(255,255,255,0.05)' },
-  subRowOn: { borderWidth: 1, borderColor: GOLD, backgroundColor: 'rgba(226,182,73,0.12)' },
-  subIcon: { width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(226,182,73,0.15)', alignItems: 'center', justifyContent: 'center' },
-  subLabel: { color: '#fff', fontWeight: '800', fontSize: 14 },
-  subMeta: { color: 'rgba(255,255,255,0.55)', fontSize: 11, marginTop: 1 },
-  subCount: { color: GOLD, fontWeight: '800', fontSize: 12 },
-  empty: { color: 'rgba(255,255,255,0.6)', textAlign: 'center', marginVertical: 24 },
+  circle: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.card, borderWidth: 1.5, borderColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center', ...soft },
+  circleOn: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
+  itemLabel: { color: colors.text, fontWeight: '700', fontSize: 11.5, marginTop: 6, textAlign: 'center' },
+  itemSub: { color: colors.muted, fontSize: 10, marginTop: 1, textAlign: 'center' },
+  subRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 10, borderRadius: 16, marginBottom: 8, backgroundColor: colors.card, borderWidth: 1.5, borderColor: 'transparent', ...soft },
+  subRowOn: { borderColor: colors.primary },
+  subIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  subLabel: { color: colors.text, fontWeight: '800', fontSize: 14 },
+  subMeta: { color: colors.muted, fontSize: 11, marginTop: 1 },
+  subCount: { color: colors.primary, fontWeight: '800', fontSize: 12 },
+  empty: { color: colors.muted, textAlign: 'center', marginVertical: 24 },
 });
