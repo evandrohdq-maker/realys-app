@@ -41,7 +41,7 @@ Lista consolidada do que falta para finalizar. Detalhes de procedimentos estão 
 ## Decisões a confirmar com você
 - [x] Primeiro cadastro segue o limiar de 80%. Abaixo disso, vai para revisão humana; nenhuma aprovação automática abaixo de 80%.
 - [ ] Prazo de resposta aos direitos do titular (confirmar com o advogado).
-- [ ] Prazo interno de análise de disputas (sugestão: 5 dias úteis).
+- [x] Prazo interno de análise de disputas: 7 dias úteis.
 
 ## Jurídico e operacional
 - [ ] Parecer de advogado sobre os termos, a base legal da LGPD, a responsabilidade da empresa, as regras de transporte e de MEI, e a licença dos modelos.

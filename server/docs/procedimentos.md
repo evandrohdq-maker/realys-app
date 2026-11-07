@@ -75,7 +75,7 @@ Passo a passo:
 5. Reembolso ou ajuste quando couber.
 6. Avaliações falsas ou ofensivas podem ser removidas.
 
-Pendente: definir o prazo interno de análise (sugestão: 5 dias úteis) e quem decide os casos.
+Prazo interno de análise: **7 dias úteis**. Pendente: definir quem decide os casos.
 
 ## 8. Regras de operação já definidas no código
 
