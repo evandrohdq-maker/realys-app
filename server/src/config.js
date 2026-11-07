@@ -49,6 +49,19 @@ export function loadConfig(overrides = {}) {
     // Administrador criado na primeira vez que o servidor sobe.
     adminUsername: env.ADMIN_USERNAME || 'admin',
     adminPassword: env.ADMIN_PASSWORD || '',
+    // Biometria: chaves de criptografia ("1:<hex64>,2:<hex64>"), serviço de IA e limiares.
+    biometricKeys: env.BIOMETRIA_KEYS || '',
+    biometricServiceUrl: env.BIOMETRIA_SERVICE_URL || '',
+    biometricMatchMin: num(env.BIOMETRIA_MATCH_MIN, 0.45),
+    biometricDupMin: num(env.BIOMETRIA_DUP_MIN, 0.6),
+    biometricTimeoutMs: num(env.BIOMETRIA_TIMEOUT_MS, 15000),
+    // Manutenção: backups, retenção e rotina diária.
+    backupDir: resolve(ROOT, env.BACKUP_DIR || 'data/backups'),
+    backupKeep: num(env.BACKUP_KEEP, 14),
+    maintenanceEnabled: bool(env.MAINTENANCE_ENABLED, true),
+    maintenanceHours: num(env.MAINTENANCE_HOURS, 24),
+    reviewMaxDays: num(env.BIOMETRIA_REVIEW_MAX_DAYS, 30),   // revisão parada além disso é recusada e as fotos apagadas
+    auditKeepDays: num(env.AUDIT_KEEP_DAYS, 1825),           // trilha de auditoria: 5 anos
     ...overrides,
   };
   if (!cfg.jwtSecret) throw new Error('Defina JWT_SECRET no arquivo .env (o script de instalação gera um).');

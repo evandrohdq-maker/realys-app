@@ -15,6 +15,11 @@ import servicesRoutes from './routes/services.js';
 import livesRoutes from './routes/lives.js';
 import mediaRoutes from './routes/media.js';
 import adminRoutes from './routes/admin.js';
+import biometriaRoutes from './routes/biometria.js';
+import { makeCipher, parseKeys } from './crypto.js';
+import { makeMatcher } from './biometria/matcher.js';
+import { makeBiometria } from './biometria/service.js';
+import { makeMaintenance } from './maintenance.js';
 
 // Dados públicos de uma pessoa (nunca devolve hash de senha nem documento completo).
 export function publicUser(u, { self = false } = {}) {
@@ -48,7 +53,10 @@ export function createApp(cfg) {
     return u && u.status === 'ativo' ? u : null;
   };
 
-  const deps = { db, cfg, wallet, hub, userById, publicUser };
+  const cipher = makeCipher(parseKeys(cfg.biometricKeys));
+  const matcher = cfg.matcher || makeMatcher(cfg);
+  const biometria = makeBiometria({ db, cfg, matcher, cipher });
+  const deps = { db, cfg, wallet, hub, userById, publicUser, cipher, matcher, biometria };
   // Tentativas de login por IP (proteção contra quem tenta adivinhar senha).
   const attempts = new Map();
   deps.limitLogin = (key) => {
@@ -59,7 +67,7 @@ export function createApp(cfg) {
     attempts.set(key, a);
   };
   deps.clearLogin = (key) => attempts.delete(key);
-  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes].forEach((r) => r(router, deps));
+  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes].forEach((r) => r(router, deps));
   router.get('/health', () => ({ ok: true, name: 'Realys', time: now() }), { auth: false });
 
   // Administrador inicial (ADMIN_PASSWORD no .env).
@@ -71,6 +79,10 @@ export function createApp(cfg) {
     wallet.ensure(id);
   }
 
+
+  const maintenance = makeMaintenance({ db, cfg, cipher, biometria, matcher });
+  router.get('/admin/manutencao', () => maintenance.history(), { auth: 'admin' });
+  router.post('/admin/manutencao/:job', ({ params }) => maintenance.run(params.job), { auth: 'admin' });
 
   const server = createServer(async (req, res) => {
     const cors = cfg.corsOrigin;
@@ -130,5 +142,5 @@ export function createApp(cfg) {
       server.closeAllConnections?.();
     });
 
-  return { server, db, hub, wallet, close };
+  return { server, db, hub, wallet, close, maintenance, biometria };
 }

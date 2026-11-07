@@ -7,6 +7,9 @@ const app = createApp(cfg);
 app.server.listen(cfg.port, cfg.host, () => {
   console.log(`Realys no ar em http://${cfg.host}:${cfg.port}  (dados em ${cfg.dataDir})`);
   if (cfg.testDeposits) console.log('Fase de testes: depósitos entram na hora, sem Pix de verdade (TEST_DEPOSITS=true).');
+  if (cfg.production && !cfg.biometricKeys) console.log('Aviso: BIOMETRIA_KEYS não configurada. Cadastros biométricos ficam parados até configurar.');
+  if (cfg.production && !cfg.biometricServiceUrl) console.log('Aviso: BIOMETRIA_SERVICE_URL não configurada. Todo cadastro biométrico vai para revisão manual.');
+  app.maintenance.start();
 });
 
 const stop = async () => {

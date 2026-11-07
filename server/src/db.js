@@ -263,6 +263,44 @@ const MIGRATIONS = [
     decided_at INTEGER
   );
   `,
+  // 2: biometria (cadastro facial com documento) e trilha de auditoria da manutenção
+  `
+  CREATE TABLE biometria (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL UNIQUE REFERENCES users(id),
+    status TEXT NOT NULL CHECK (status IN ('sem_consentimento','pendente','em_analise','aprovado','recusado','revogado')),
+    consent_version TEXT,
+    consent_at INTEGER,
+    selfie_media TEXT,            -- foto do rosto (apagada depois da decisão)
+    doc_media TEXT,               -- foto do documento (apagada depois da decisão)
+    template TEXT,                -- vetor do rosto, CIFRADO (nunca em texto puro)
+    template_kid TEXT,            -- número da chave usada no template
+    checks TEXT,                  -- JSON: resultados (prova de vida, semelhança, duplicado)
+    reason TEXT,
+    submitted_at INTEGER,
+    decided_at INTEGER,
+    decided_by TEXT,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE INDEX biometria_status ON biometria(status);
+
+  CREATE TABLE biometria_log (
+    id TEXT PRIMARY KEY,
+    user_id TEXT,
+    event TEXT NOT NULL,          -- consentimento, envio, decisao, revogacao, manutencao...
+    detail TEXT DEFAULT '',
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX biometria_log_user ON biometria_log(user_id, created_at DESC);
+
+  CREATE TABLE maintenance_runs (
+    id TEXT PRIMARY KEY,
+    job TEXT NOT NULL,
+    result TEXT NOT NULL,         -- JSON com o que foi feito
+    ok INTEGER NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+  `,
 ];
 
 export function openDb(file) {
