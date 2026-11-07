@@ -14,6 +14,8 @@ import { speakSoft } from '../../voice';
 import { isVisitService, rankProviders, providerStats, isNewProvider, visitFee, visitDiscount } from '../../serviceVisits';
 import { VisitRequestSheet, VisitCard } from '../../components/VisitSheet';
 import { SegTabs } from '../../components/AdKit';
+import ProfessionPicker from '../../components/ProfessionPicker';
+import { CAR_FEATURES, featuresOf, featureIcon, featureLabel, hasAll, isPassenger } from '../../vehicleInfo';
 import { useBack } from '../../back';
 import { lives } from '../../homeData';
 import { SERVICE_TABS, SERVICE_TAB_KEYS, TAB_TYPES, isOnlineType, tabOfType, TabIntro, OnlineTab, CoursesTab, LiveClasses } from './ServiceTabs';
@@ -40,6 +42,17 @@ export function ServiceCallCard({ call }) {
           {p.plate ? <Text style={{ fontWeight: '700', letterSpacing: 1, color: colors.text }}>Placa {p.plate}</Text> : null}
         </View>
       </Row>
+      {call.forOther ? (
+        <Text style={{ color: colors.text, marginTop: 10, fontSize: 13, fontWeight: '700' }}>
+          👤 Para {call.forOther.name}
+          {call.forOther.phone ? ` · ${call.forOther.phone}` : ''}
+          {'\n'}
+          <Text style={{ fontWeight: '400', color: colors.muted }}>
+            Buscar em {call.from}
+            {call.to && call.to !== '-' ? ` → ${call.to}` : ''}
+          </Text>
+        </Text>
+      ) : null}
       <Text style={{ color: colors.muted, marginTop: 10, fontSize: 13 }}>
         Chega em {call.eta} min · {priceText(p)} · acompanhe pelo GPS na aba Serviços
       </Text>
@@ -85,6 +98,10 @@ export default function ServicesScreen({ explore, navigate }) {
   const [found, setFound] = useState(null); // tipo de serviço achado pela pesquisa
   const [howOpen, setHowOpen] = useState(false);
   const [showMap, setShowMap] = useState(true);
+  // Pedir para outra pessoa (buscar a esposa, os filhos…) e o que o carro precisa ter.
+  const [forOther, setForOther] = useState(false);
+  const [other, setOther] = useState({ name: '', phone: '', from: '', to: '' });
+  const [needs, setNeeds] = useState([]);
   // Abas: Serviços (geral, tudo) | Cursos | Visitas | Aulas | Online
   const [tab, setTab] = useState('servicos');
   const [appts, setAppts] = useState([]); // atendimentos online agendados
@@ -120,10 +137,19 @@ export default function ServicesScreen({ explore, navigate }) {
     if (t) setSelected(t.key);
   };
 
-  const byDist = [...state.providers].filter((p) => p.service === selected).sort((a, b) => a.distanceKm - b.distanceKm);
+  const transport = type.group === 'Transporte';
+  const passenger = isPassenger(selected);
+  const activeNeeds = passenger ? needs : [];
+  const pool = state.providers.filter((p) => hasAll(p, activeNeeds));
+  const counts = {};
+  state.providers.forEach((p) => (counts[p.service] = (counts[p.service] || 0) + 1));
+  const toggleNeed = (k) => setNeeds((n) => (n.includes(k) ? n.filter((x) => x !== k) : [...n, k]));
+  const setO = (k) => (v) => setOther((o) => ({ ...o, [k]: v }));
+
+  const byDist = [...pool].filter((p) => p.service === selected).sort((a, b) => a.distanceKm - b.distanceKm);
   // Ranking por mérito (nota + serviços em 90 dias + resposta + proximidade + impulso de novato)
   // e, separado, quem paga o plano de destaque.
-  const ranking = rankProviders(state.providers, selected);
+  const ranking = rankProviders(pool, selected);
   const meritPos = {};
   ranking.merit.forEach((p, i) => (meritPos[p.id] = i + 1));
   const sponsoredP = sort === 'rank' ? ranking.sponsored[0] : null;
@@ -159,10 +185,19 @@ export default function ServicesScreen({ explore, navigate }) {
       setVisitFor(p);
       return;
     }
-    const c = buildServiceCall(state, address.trim(), p.service);
+    if (transport && forOther && (!other.name.trim() || !other.from.trim())) {
+      Alert.alert('Para quem é?', `Informe o nome da pessoa e o endereço onde ${selected === 'motoboy' ? 'o motoboy vai buscar' : 'ela vai ser buscada'}.`);
+      return;
+    }
+    const c = buildServiceCall(state, (transport && forOther ? other.from : address).trim(), p.service);
     if (!c) return;
     c.provider = p;
     c.eta = etaMin(p);
+    if (transport && forOther) {
+      c.forOther = { name: other.name.trim(), phone: other.phone.trim() };
+      c.to = other.to.trim() || '-';
+    }
+    if (activeNeeds.length) c.needs = activeNeeds;
     dispatch({ type: 'REQUEST_RIDE', ride: c });
     speakSoft(callReply(c));
     setProfile(null);
@@ -232,6 +267,16 @@ export default function ServicesScreen({ explore, navigate }) {
         <Text style={styles.pFunc} numberOfLines={1}>
           {p.functions.join(' · ')}
         </Text>
+        {featuresOf(p).length ? (
+          <View style={styles.carRow}>
+            {p.car && p.car.seats ? <Text style={styles.carChip}>💺 {p.car.seats} lugares</Text> : null}
+            {featuresOf(p).map((k) => (
+              <Text key={k} style={[styles.carChip, activeNeeds.includes(k) && styles.carChipOn]}>
+                {featureIcon(k)} {featureLabel(k)}
+              </Text>
+            ))}
+          </View>
+        ) : null}
         {visitService ? (
           <View style={styles.statsRow}>
             <MiniStat icon="checkmark-done-outline" text={`${stats.done90} em 90 dias`} />
@@ -352,43 +397,66 @@ export default function ServicesScreen({ explore, navigate }) {
         </View>
       ) : null}
 
-      {/* Categorias: primeiro o grupo, depois o tipo */}
-      <SectionHead title="Categorias" />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10, marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
-        {tabGroups.map((g) => {
-          const on = g === group;
-          return (
-            <TouchableOpacity key={g} onPress={() => pickGroup(g)} style={[styles.groupPill, on && styles.groupPillOn]}>
-              <Ionicons name={GROUP_ION[g] || 'grid-outline'} size={15} color={on ? '#FFFFFF' : colors.text} />
-              <Text style={[styles.groupText, on && { color: '#FFFFFF' }]}>{g}</Text>
-            </TouchableOpacity>
-          );
-        })}
-        {/* Hotelaria faz parte da prestação de serviços (só no geral) */}
-        {tab === 'servicos' ? (
-        <TouchableOpacity onPress={() => navigate && navigate({ tab: 'home', top: 'anuncios', kind: 'hotel' })} style={styles.groupPill}>
-          <Ionicons name="bed-outline" size={15} color={colors.text} />
-          <Text style={styles.groupText}>Hotelaria</Text>
-        </TouchableOpacity>
-        ) : null}
-      </ScrollView>
-      <View style={styles.typeGrid}>
-        {groupTypes.map((t) => {
-          const on = t.key === selected;
-          const count = state.providers.filter((p) => p.service === t.key).length;
-          return (
-            <TouchableOpacity key={t.key} onPress={() => setSelected(t.key)} style={[styles.typeTile, on && styles.typeTileOn]} accessibilityLabel={t.label}>
-              <View style={[styles.typeIcon, on && { backgroundColor: colors.primary }]}>
-                <Ionicons name={t.ion} size={20} color={on ? colors.onPrimary : colors.primary} />
-              </View>
-              <Text style={[styles.typeLabel, on && { color: colors.primaryDark }]} numberOfLines={2}>
-                {t.label}
+      {/* Profissões em classes e subclasses: o botão abre a tela por cima */}
+      <ProfessionPicker
+        selected={selected}
+        types={serviceTypes.filter(inTab)}
+        counts={counts}
+        onPick={setSelected}
+        extra={
+          tab === 'servicos'
+            ? [{ label: 'Hotelaria', ion: 'bed-outline', sub: 'hotéis e pousadas', onPress: () => navigate && navigate({ tab: 'home', top: 'anuncios', kind: 'hotel' }) }]
+            : null
+        }
+      />
+
+      {/* Transporte: pedir para outra pessoa (esposa, filhos…) e o que o veículo precisa ter */}
+      {transport ? (
+        <View style={styles.otherCard}>
+          <Text style={styles.otherTitle}>{selected === 'motoboy' || selected === 'frete' || selected === 'bikeentrega' ? 'Onde buscar e entregar?' : 'Para quem é a corrida?'}</Text>
+          <View style={styles.otherSeg}>
+            {[
+              [false, 'Para mim', 'person'],
+              [true, selected === 'motoboy' || selected === 'frete' || selected === 'bikeentrega' ? 'Outro endereço' : 'Outra pessoa', 'people'],
+            ].map(([v, label, icon]) => (
+              <TouchableOpacity key={label} onPress={() => setForOther(v)} style={[styles.otherSegBtn, forOther === v && styles.otherSegOn]}>
+                <Ionicons name={icon} size={14} color={forOther === v ? '#fff' : colors.text} />
+                <Text style={[styles.otherSegText, forOther === v && { color: '#fff' }]}>{label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {forOther ? (
+            <>
+              <Text style={styles.otherHint}>
+                {passenger
+                  ? 'Você paga pelo Realys e acompanha a corrida. A pessoa recebe o nome do motorista, a placa e o código de embarque por mensagem.'
+                  : 'O motoboy busca no endereço indicado e entrega onde você pedir. Você acompanha tudo pelo GPS.'}
               </Text>
-              <Text style={styles.typeCount}>{count ? `${count} perto` : 'em breve'}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+              <TextInput placeholder={passenger ? 'Nome de quem vai (ex.: Ana, minha esposa)' : 'Quem entrega / recebe (nome)'} placeholderTextColor={colors.muted} value={other.name} onChangeText={setO('name')} style={styles.otherInput} />
+              <TextInput placeholder="Telefone da pessoa (opcional)" placeholderTextColor={colors.muted} value={other.phone} onChangeText={setO('phone')} keyboardType="phone-pad" style={styles.otherInput} />
+              <TextInput placeholder={passenger ? 'Buscar em (ex.: Escola Pequeno Príncipe)' : 'Retirar em'} placeholderTextColor={colors.muted} value={other.from} onChangeText={setO('from')} style={styles.otherInput} />
+              <TextInput placeholder={passenger ? 'Levar para (ex.: minha casa)' : 'Entregar em'} placeholderTextColor={colors.muted} value={other.to} onChangeText={setO('to')} style={styles.otherInput} />
+            </>
+          ) : null}
+          {passenger ? (
+            <>
+              <Text style={[styles.otherTitle, { fontSize: 13, marginTop: 10 }]}>O veículo precisa ter</Text>
+              <View style={styles.needRow}>
+                {CAR_FEATURES.map(([k, label, icon]) => {
+                  const on = needs.includes(k);
+                  return (
+                    <TouchableOpacity key={k} onPress={() => toggleNeed(k)} style={[styles.needChip, on && styles.needChipOn]} accessibilityLabel={label}>
+                      <Text style={[styles.needText, on && { color: '#fff' }]}>
+                        {icon} {label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </>
+          ) : null}
+        </View>
+      ) : null}
 
       {/* Função online (psicólogo, advogado…): não tem endereço nem mapa, é por chamada de vídeo */}
       {onlineSel ? (
@@ -407,7 +475,7 @@ export default function ServicesScreen({ explore, navigate }) {
         <Row>
           <Ionicons name="location" size={18} color={colors.primary} />
           <TextInput
-            placeholder="Seu endereço (opcional): Rua Augusta, 1200"
+            placeholder={transport && forOther ? 'Seu endereço (só para referência)' : 'Seu endereço (opcional): Rua Augusta, 1200'}
             placeholderTextColor={colors.muted}
             value={address}
             onChangeText={setAddress}
@@ -606,6 +674,21 @@ const styles = StyleSheet.create({
   typeLabel: { color: colors.text, fontWeight: '700', fontSize: 11.5, textAlign: 'center', marginTop: 6, lineHeight: 14 },
   typeCount: { color: colors.muted, fontSize: 10, marginTop: 2 },
   // Endereço e mapa
+  otherCard: { backgroundColor: colors.card, borderRadius: 22, padding: 12, marginBottom: 12, ...soft },
+  otherTitle: { color: colors.text, fontWeight: '800', fontSize: 15, marginBottom: 8 },
+  otherSeg: { flexDirection: 'row', backgroundColor: colors.bg, borderRadius: 14, padding: 3 },
+  otherSegBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 8, borderRadius: 11 },
+  otherSegOn: { backgroundColor: colors.primary },
+  otherSegText: { color: colors.text, fontWeight: '700', marginLeft: 6, fontSize: 13 },
+  otherHint: { color: colors.muted, fontSize: 12, marginTop: 8, marginBottom: 4 },
+  otherInput: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9, marginTop: 6, color: colors.text, fontSize: 14 },
+  needRow: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -3 },
+  needChip: { borderWidth: 1, borderColor: colors.border, borderRadius: 16, paddingHorizontal: 10, paddingVertical: 6, margin: 3 },
+  needChipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  needText: { color: colors.text, fontSize: 12, fontWeight: '600' },
+  carRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6, marginHorizontal: -2 },
+  carChip: { fontSize: 11, color: colors.text, backgroundColor: colors.bg, borderRadius: 10, paddingHorizontal: 7, paddingVertical: 3, margin: 2, overflow: 'hidden' },
+  carChipOn: { backgroundColor: colors.primaryLight, color: colors.primaryDark, fontWeight: '700' },
   whereCard: { backgroundColor: colors.card, borderRadius: 22, padding: 12, marginBottom: 12, ...soft },
   addrInput: { flex: 1, color: colors.text, fontSize: 14, marginLeft: 8, paddingVertical: 6 },
   mapToggle: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },

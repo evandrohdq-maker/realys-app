@@ -18,7 +18,10 @@ import {
   VISIT_STATUS,
 } from '../../serviceVisits';
 
-const UNITS = ['hora', 'serviço', 'diária (8h)', 'm²', 'visita', 'corrida + R$ 2,50/km'];
+import ProfessionPicker from '../../components/ProfessionPicker';
+import { CAR_FEATURES, featuresOf, featureIcon, featureLabel } from '../../vehicleInfo';
+
+const UNITS = ['mês', 'hora', 'serviço', 'diária (8h)', 'm²', 'visita', 'corrida + R$ 2,50/km'];
 
 export default function DriverScreen() {
   const { state, dispatch } = useStore();
@@ -31,6 +34,14 @@ export default function DriverScreen() {
   const [fee, setFee] = useState(me && me.visitFee != null ? String(me.visitFee) : '');
   const [discount, setDiscount] = useState(me ? !!me.visitDiscount : true);
   const byVisit = isVisitService(service);
+  // Veículo (motorista, motoboy, frete…): modelo, placa, ano, lugares e recursos (cadeirinha, pet…).
+  const moves = (serviceType(service) || {}).group === 'Transporte';
+  const [vehicle, setVehicle] = useState(me && me.vehicle ? me.vehicle : '');
+  const [plate, setPlate] = useState(me && me.plate ? me.plate : '');
+  const [year, setYear] = useState(me && me.car && me.car.year ? String(me.car.year) : '');
+  const [seats, setSeats] = useState(me && me.car && me.car.seats ? String(me.car.seats) : '');
+  const [feats, setFeats] = useState(me ? featuresOf(me) : []);
+  const toggleFeat = (k) => setFeats((f) => (f.includes(k) ? f.filter((x) => x !== k) : [...f, k]));
 
   const accepted = state.rides.filter((r) => !r.provider);
   const earnings = accepted.reduce((s, r) => s + r.price, 0);
@@ -44,9 +55,21 @@ export default function DriverScreen() {
     if (!list.length || isNaN(v)) return Alert.alert('Informe o que você faz e quanto cobra.');
     const f = parseFloat(fee.replace(',', '.'));
     if (byVisit && (isNaN(f) || f <= 0)) return Alert.alert('Informe a taxa de visita', 'É o valor que o cliente paga para você ir até ele avaliar o serviço.');
+    if (moves && (!vehicle.trim() || !plate.trim())) return Alert.alert('Dados do veículo', 'Informe o modelo e a placa. O cliente vê esses dados antes de embarcar.');
+    const car = {};
+    feats.forEach((k) => (car[k] = true));
+    if (parseInt(year, 10)) car.year = parseInt(year, 10);
+    if (parseInt(seats, 10)) car.seats = parseInt(seats, 10);
     dispatch({
       type: 'SAVE_MY_PROVIDER',
-      profile: { service, functions: list, price: v, priceUnit: unit, ...(byVisit ? { visitFee: f, visitDiscount: discount } : {}) },
+      profile: {
+        service,
+        functions: list,
+        price: v,
+        priceUnit: unit,
+        ...(byVisit ? { visitFee: f, visitDiscount: discount } : {}),
+        ...(moves ? { vehicle: vehicle.trim(), plate: plate.trim().toUpperCase(), car } : {}),
+      },
     });
     setEditing(false);
     Alert.alert(
@@ -86,11 +109,35 @@ export default function DriverScreen() {
               de mim?".
             </Text>
             <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Tipo de serviço</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
-              {serviceTypes.map((s) => (
-                <Chip key={s.key} label={`${s.icon} ${s.label}`} active={service === s.key} onPress={() => setService(s.key)} />
-              ))}
-            </ScrollView>
+            <ProfessionPicker selected={service} types={serviceTypes} onPick={setService} />
+            {moves ? (
+              <>
+                <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Seu veículo</Text>
+                <Input placeholder="Modelo e cor (ex.: Chevrolet Onix prata)" value={vehicle} onChangeText={setVehicle} />
+                <Row style={{ marginHorizontal: -4 }}>
+                  <View style={{ flex: 1, marginHorizontal: 4 }}>
+                    <Input placeholder="Placa" value={plate} onChangeText={setPlate} autoCapitalize="characters" />
+                  </View>
+                  <View style={{ flex: 1, marginHorizontal: 4 }}>
+                    <Input placeholder="Ano" keyboardType="number-pad" value={year} onChangeText={setYear} />
+                  </View>
+                  <View style={{ flex: 1, marginHorizontal: 4 }}>
+                    <Input placeholder="Lugares" keyboardType="number-pad" value={seats} onChangeText={setSeats} />
+                  </View>
+                </Row>
+                <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>O que o seu veículo tem</Text>
+                <Text style={{ color: colors.muted, fontSize: 12, marginBottom: 8 }}>
+                  O cliente filtra por isso. Ex.: quem pede para buscar os filhos só vê motoristas com cadeirinha.
+                </Text>
+                <Row style={{ flexWrap: 'wrap', marginBottom: 12 }}>
+                  {CAR_FEATURES.map(([k, label, icon]) => (
+                    <View key={k} style={{ marginBottom: 8 }}>
+                      <Chip label={`${icon} ${label}`} active={feats.includes(k)} onPress={() => toggleFeat(k)} />
+                    </View>
+                  ))}
+                </Row>
+              </>
+            ) : null}
             <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>O que você faz (separe por vírgula)</Text>
             <Input
               placeholder="Ex.: Instalação de chuveiro, tomadas, quadro de luz"
@@ -130,6 +177,17 @@ export default function DriverScreen() {
             </Text>
             <Text style={{ color: colors.primary, fontWeight: '700', marginTop: 4 }}>{priceText(me)}</Text>
             <Text style={{ color: colors.text, marginTop: 6 }}>{me.functions.join(' · ')}</Text>
+            {me.vehicle ? (
+              <Text style={{ color: colors.muted, marginTop: 6, fontSize: 13 }}>
+                🚗 {me.vehicle}
+                {me.plate ? ` · ${me.plate}` : ''}
+                {me.car && me.car.year ? ` · ${me.car.year}` : ''}
+                {me.car && me.car.seats ? ` · ${me.car.seats} lugares` : ''}
+              </Text>
+            ) : null}
+            {featuresOf(me).length ? (
+              <Text style={{ color: colors.text, marginTop: 4, fontSize: 12 }}>{featuresOf(me).map((k) => `${featureIcon(k)} ${featureLabel(k)}`).join('   ')}</Text>
+            ) : null}
             {isVisitService(me.service) ? (
               <Text style={{ color: colors.muted, marginTop: 6, fontSize: 13 }}>
                 Taxa de visita {brl(visitFee(me))}

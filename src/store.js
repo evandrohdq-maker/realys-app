@@ -1316,7 +1316,14 @@ export function detectService(text) {
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
-  const found = D.serviceTypes.find((s) => s.words.some((w) => t.includes(w)));
+  // 1º frases específicas do catálogo ("limpeza de pele", "vidro do carro"), depois as palavras de
+  // sempre, por fim palavras soltas do catálogo como palavra inteira ("tosa" não casa com "tosado").
+  const cat = D.serviceTypes.filter((s) => s.exact);
+  const whole = (w) => new RegExp('(^|[^a-z0-9])' + w.replace(/[^a-z0-9 ]/g, '.') + '($|[^a-z0-9])').test(t);
+  const found =
+    cat.find((s) => s.words.some((w) => w.includes(' ') && t.includes(w))) ||
+    D.serviceTypes.find((s) => !s.exact && s.words.some((w) => t.includes(w))) ||
+    cat.find((s) => s.words.some((w) => !w.includes(' ') && whole(w)));
   return found ? found.key : null;
 }
 

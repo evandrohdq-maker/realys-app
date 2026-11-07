@@ -72,6 +72,11 @@ function ServiceOrder({ r, onTrack }) {
           <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={2}>
             {p.vehicle ? `${p.vehicle}${p.plate ? ` · ${p.plate}` : ''} · ` : ''}{r.from && r.from !== 'Sua localização atual' ? `saindo de ${r.from}` : 'no seu endereço'}
           </Text>
+          {r.forOther ? (
+            <Text style={{ color: colors.text, fontSize: 12, fontWeight: '700' }} numberOfLines={2}>
+              👤 Para {r.forOther.name}{r.to && r.to !== '-' ? ` · até ${r.to}` : ''}
+            </Text>
+          ) : null}
           {!r.done && !r.when ? <Text style={{ color: colors.muted, fontSize: 12 }}>Chega em cerca de {r.eta} min</Text> : null}
         </View>
       </Row>

@@ -1,3 +1,4 @@
+import { catalogTypes } from './professionsData';
 // Dados de demonstração do Realys. Tudo aqui é fictício, para apresentação.
 // Fotos vêm do picsum.photos (precisam de internet no celular).
 
@@ -194,7 +195,7 @@ export const posts = [
 
 // Tipos de serviço. O assistente de voz reconhece qualquer um pelas palavras-chave.
 // A ordem importa: os mais específicos vêm antes (ex.: "carro quebrou" = mecânico, não corrida).
-export const serviceTypes = [
+const baseServiceTypes = [
   { key: 'mecanico', label: 'Mecânico', icon: '🔧', ion: 'construct-outline', group: 'Veículos', words: ['mecanico', 'oficina', 'pneu', 'carro quebrou', 'carro nao liga', 'carro parou', 'bateria do carro', 'guincho', 'problema no motor'] },
   { key: 'eletricista', label: 'Eletricista', icon: '💡', ion: 'flash-outline', group: 'Casa e reparos', words: ['eletricista', 'eletrica', 'tomada', 'chuveiro', 'disjuntor', 'fiacao', 'curto', 'sem luz'] },
   { key: 'encanador', label: 'Encanador', icon: '🚰', ion: 'water-outline', group: 'Casa e reparos', words: ['encanador', 'vazamento', 'vazando', 'cano', 'torneira', 'esgoto', 'entupi', 'descarga'] },
@@ -223,9 +224,12 @@ export const serviceTypes = [
   { key: 'motorista', label: 'Motorista', icon: '🚗', ion: 'car-sport-outline', group: 'Transporte', words: ['uber', 'carro', 'motorista', 'corrida', 'taxi', 'carona'] },
 ];
 
+// Catálogo completo de profissões (classes e subclasses): src/professionsData.js
+export const serviceTypes = [...baseServiceTypes, ...catalogTypes(baseServiceTypes)];
+
 export const providers = [
-  { id: 'v1', name: 'Carlos Lima', service: 'motorista', rating: 4.9, distanceKm: 0.8, vehicle: 'Chevrolet Onix prata', plate: 'BRA2E19', functions: ['Corridas na cidade', 'Aeroporto', 'Viagens intermunicipais'], price: 8, priceUnit: 'corrida + R$ 2,50/km', photo: photo('realys-carlos', 200, 200) },
-  { id: 'v3', name: 'Juliana Rocha', service: 'motorista', rating: 4.7, distanceKm: 2.1, vehicle: 'Hyundai HB20 branco', plate: 'QWE7C31', functions: ['Corridas na cidade', 'Carro com cadeirinha infantil'], price: 8, priceUnit: 'corrida + R$ 2,50/km', photo: photo('realys-juliana', 200, 200) },
+  { id: 'v1', name: 'Carlos Lima', service: 'motorista', rating: 4.9, distanceKm: 0.8, vehicle: 'Chevrolet Onix prata', plate: 'BRA2E19', functions: ['Corridas na cidade', 'Aeroporto', 'Viagens intermunicipais'], car: { year: 2022, seats: 4, ar: true, portaMalas: true }, price: 8, priceUnit: 'corrida + R$ 2,50/km', photo: photo('realys-carlos', 200, 200) },
+  { id: 'v3', name: 'Juliana Rocha', service: 'motorista', rating: 4.7, distanceKm: 2.1, vehicle: 'Hyundai HB20 branco', plate: 'QWE7C31', functions: ['Corridas na cidade', 'Carro com cadeirinha infantil', 'Buscar crianças na escola'], car: { year: 2021, seats: 4, cadeirinha: true, elevacao: true, bebeConforto: true, ar: true, mulher: true }, price: 8, priceUnit: 'corrida + R$ 2,50/km', photo: photo('realys-juliana', 200, 200) },
   { id: 'v2', name: 'Marcos Silva', service: 'motoboy', rating: 4.8, distanceKm: 1.2, vehicle: 'Honda CG 160 preta', plate: 'RLY4A22', functions: ['Entregas rápidas', 'Documentos', 'Compras no mercado'], price: 7, priceUnit: 'entrega + R$ 1,50/km', photo: photo('realys-marcos', 200, 200) },
   { id: 'v5', name: 'Rafael Costa', service: 'motoboy', rating: 4.6, distanceKm: 3.9, vehicle: 'Yamaha Factor azul', plate: 'MTO1B08', functions: ['Entregas rápidas', 'Delivery de restaurantes'], price: 7, priceUnit: 'entrega + R$ 1,50/km', photo: photo('realys-rafael', 200, 200) },
   { id: 'v4', name: 'Pedro Alves', service: 'eletricista', rating: 4.9, distanceKm: 3.4, vehicle: 'Fiat Fiorino branca', plate: 'ELT3D45', functions: ['Instalação de chuveiro', 'Tomadas e interruptores', 'Quadro de luz e disjuntores', 'Fiação nova'], price: 80, priceUnit: 'hora', photo: photo('realys-pedro', 200, 200) },
@@ -259,6 +263,19 @@ export const providers = [
   { id: 'v43', online: true, slots: ['Hoje 17h', 'Amanhã 11h'], name: 'Dr. Felipe Andrade · OAB', service: 'advogado', rating: 4.8, distanceKm: 5.6, vehicle: null, plate: null, functions: ['Direito do consumidor', 'Trabalhista', 'Contratos e aluguel'], price: 200, priceUnit: 'consulta (40 min)', photo: photo('realys-felipe', 200, 200) },
   { id: 'v44', online: true, slots: ['Amanhã 9h', 'Amanhã 15h', 'Sexta 10h'], name: 'Renata Lima · Contadora CRC', service: 'contador', rating: 4.9, distanceKm: 2.7, vehicle: null, plate: null, functions: ['Abertura de MEI e empresa', 'Imposto de renda', 'Folha e impostos do mês'], price: 100, priceUnit: 'consulta', photo: photo('realys-renata', 200, 200) },
   { id: 'v45', online: true, slots: ['Hoje 20h', 'Sábado 10h'], name: 'Marcos Vieira · Mentor de negócios', service: 'consultor', rating: 4.7, distanceKm: 6.0, vehicle: null, plate: null, functions: ['Plano de negócios', 'Vendas no Realys', 'Carreira e currículo'], price: 180, priceUnit: 'sessão (1h)', photo: photo('realys-marcosv', 200, 200) },
+  // Catálogo novo de profissões (classes e subclasses) — alguns prestadores de exemplo.
+  { id: 'v50', name: 'Sérgio Ramos', service: 'motorista', rating: 4.8, distanceKm: 1.7, vehicle: 'Chevrolet Spin cinza', plate: 'SPN6K40', functions: ['Corridas na cidade', 'Família com crianças', 'Aceita pet'], car: { year: 2020, seats: 6, cadeirinha: true, elevacao: true, pet: true, portaMalas: true, ar: true }, price: 9, priceUnit: 'corrida + R$ 2,70/km', photo: photo('realys-sergio', 200, 200) },
+  { id: 'v51', name: 'Adriana Lopes', service: 'motorista', rating: 4.9, distanceKm: 3.0, vehicle: 'Renault Kwid E-Tech branco', plate: 'ELE3T77', functions: ['Corridas na cidade', 'Motorista mulher'], car: { year: 2024, seats: 4, ar: true, mulher: true, eletrico: true }, price: 8, priceUnit: 'corrida + R$ 2,50/km', photo: photo('realys-adriana', 200, 200) },
+  { id: 'v52', name: 'Van Acessível Mobilidade', service: 'acessivel', rating: 4.9, distanceKm: 5.4, vehicle: 'Fiat Ducato adaptada', plate: 'ACS1V22', functions: ['Rampa para cadeira de rodas', 'Consultas e hemodiálise', 'Acompanhante incluso'], car: { year: 2021, seats: 8, acessivel: true, ar: true, portaMalas: true }, price: 25, priceUnit: 'corrida + R$ 3,50/km', photo: photo('realys-van', 200, 200) },
+  { id: 'v53', name: 'Tio Márcio Escolar', service: 'escolar', rating: 5.0, distanceKm: 2.2, vehicle: 'Renault Master escolar', plate: 'ESC8M15', functions: ['Ida e volta da escola', 'Monitora no veículo', 'Cadeirinhas para os pequenos'], car: { year: 2019, seats: 15, cadeirinha: true, elevacao: true, ar: true }, price: 320, priceUnit: 'mês', photo: photo('realys-marcio', 200, 200) },
+  { id: 'v54', name: 'Lia Cabeleireira', service: 'cabeleireiro', rating: 4.9, distanceKm: 1.1, vehicle: null, plate: null, functions: ['Corte e escova', 'Progressiva', 'Atende em casa'], price: 70, priceUnit: 'serviço', photo: photo('realys-lia', 200, 200) },
+  { id: 'v55', name: 'Bia Unhas', service: 'manicure', rating: 4.8, distanceKm: 0.9, vehicle: null, plate: null, functions: ['Mão e pé', 'Unha em gel', 'Atende em casa'], price: 45, priceUnit: 'serviço', photo: photo('realys-bia', 200, 200) },
+  { id: 'v56', name: 'Dona Rosa · Babá', service: 'baba', rating: 5.0, distanceKm: 2.4, vehicle: null, plate: null, functions: ['Bebês e crianças', 'Noites e fins de semana', 'Primeiros socorros'], price: 30, priceUnit: 'hora', photo: photo('realys-rosa', 200, 200) },
+  { id: 'v57', name: 'Cláudia · Cuidadora', service: 'cuidadoridoso', rating: 4.9, distanceKm: 3.1, vehicle: null, plate: null, functions: ['Acompanhamento diurno', 'Medicação nos horários', 'Plantão 12h'], price: 180, priceUnit: 'diária (8h)', photo: photo('realys-claudia', 200, 200) },
+  { id: 'v58', name: 'Zé Pedreiro', service: 'pedreiro', rating: 4.7, distanceKm: 4.0, vehicle: 'Fiat Strada branca', plate: 'OBR4Z61', functions: ['Reformas', 'Piso e revestimento', 'Muros'], price: 220, priceUnit: 'diária (8h)', photo: photo('realys-ze', 200, 200) },
+  { id: 'v59', name: 'Pet Spa Focinho', service: 'banhotosa', rating: 4.8, distanceKm: 1.9, vehicle: 'Van leva e traz', plate: 'PET2F09', functions: ['Banho e tosa', 'Busca e entrega o pet', 'Hidratação'], price: 60, priceUnit: 'serviço', photo: photo('realys-focinho', 200, 200) },
+  { id: 'v60', name: 'Montagem Express', service: 'montador', rating: 4.7, distanceKm: 3.3, vehicle: null, plate: null, functions: ['Guarda-roupa', 'Cozinha', 'Painel de TV'], price: 90, priceUnit: 'serviço', photo: photo('realys-montagem', 200, 200) },
+  { id: 'v61', name: 'Ateliê da Neide', service: 'costureira', rating: 4.9, distanceKm: 1.6, vehicle: null, plate: null, functions: ['Barras e ajustes', 'Zíper', 'Roupas sob medida'], price: 25, priceUnit: 'serviço', photo: photo('realys-neide', 200, 200) },
 ];
 
 export const suppliers = [

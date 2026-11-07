@@ -24,7 +24,7 @@ export const SERVICE_TAB_KEYS = SERVICE_TABS.map((t) => t.key);
 export const TAB_TYPES = {
   servicos: null,
   visitas: ['eletricista', 'encanador', 'pintor', 'mecanico', 'tecnico', 'agronomo', 'veterinario', 'droneagro'],
-  aulas: ['professor', 'personal'],
+  aulas: serviceTypes.filter((t) => t.group === 'Aulas').map((t) => t.key),
 };
 export const isOnlineType = (key) => (serviceTypes.find((t) => t.key === key) || {}).mode === 'online';
 

@@ -152,6 +152,12 @@ export default function TrackingScreen({ call, visible, onClose, onOpenProfile }
                 {p.vehicle ? ` · ${p.vehicle}` : ''}
               </Text>
               {p.plate ? <Text style={styles.plate}>Placa {p.plate}</Text> : null}
+              {call.forOther ? (
+                <Text style={styles.pMeta} numberOfLines={2}>
+                  👤 Para {call.forOther.name} · buscar em {call.from}
+                  {call.to && call.to !== '-' ? ` → ${call.to}` : ''}
+                </Text>
+              ) : null}
             </View>
             <TouchableOpacity style={styles.profileBtn} onPress={() => onOpenProfile(p)}>
               <Ionicons name="person-outline" size={15} color={colors.primary} />
