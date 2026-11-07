@@ -1,4 +1,8 @@
 // Atualização do APK por dentro do próprio app.
+// Com o módulo nativo RealysUpdater (Android 12+), a atualização é automática: o app baixa,
+// se instala por cima sozinho (sem a tela "Deseja atualizar?"), apaga o arquivo e reabre.
+// O Android só exige, uma única vez, a chave "Instalar apps desconhecidos" do Realys ligada.
+// Sem o módulo (ou Android antigo), cai no instalador normal do Android, como antes.
 // Cada APK sabe o número da própria versão (src/build.json, gravado pelo GitHub na hora de gerar).
 // Ao abrir, o app pergunta ao GitHub qual é a versão mais nova publicada em Releases.
 // Se for maior, o próprio Realys baixa o APK para a pasta interna dele (não vai para Downloads),
@@ -8,6 +12,43 @@ import { Platform } from 'react-native';
 import { File, Paths } from 'expo-file-system';
 import * as IntentLauncher from 'expo-intent-launcher';
 import BUILD from './build.json';
+
+let Native = null;
+try {
+  // eslint-disable-next-line global-require
+  Native = require('expo-modules-core').requireOptionalNativeModule('RealysUpdater');
+} catch (e) {
+  Native = null;
+}
+
+// O celular aceita atualizar o Realys sozinho, sem perguntar? (Android 12+ com o módulo)
+export const supportsAutoUpdate = () => {
+  try {
+    return Platform.OS === 'android' && !!Native && Native.supportsSilentUpdate();
+  } catch (e) {
+    return false;
+  }
+};
+// A chave "Instalar apps desconhecidos" do Realys já foi ligada?
+export const hasInstallPermission = () => {
+  try {
+    return !Native || Native.canRequestInstalls();
+  } catch (e) {
+    return true;
+  }
+};
+// Abre direto a chave nas configurações (só precisa uma vez na vida do app).
+export const openInstallPermission = () => {
+  try {
+    Native && Native.openInstallPermission();
+  } catch (e) {}
+};
+// Acompanha o resultado: 'success' | 'confirm' | 'cancelled' | 'failed'.
+export const onInstallStatus = (fn) => {
+  if (!Native || !Native.addListener) return () => {};
+  const sub = Native.addListener('onInstallStatus', (e) => fn(e && e.status, e && e.message));
+  return () => sub && sub.remove && sub.remove();
+};
 
 export const REPO = 'evandrohdq-maker/realys-app';
 export const CURRENT_BUILD = Number(BUILD.build) || 0;
@@ -63,6 +104,15 @@ export async function installUpdate(url, onStage) {
   const file = await File.downloadFileAsync(url, apkFile(), { idempotent: true });
 
   onStage && onStage('installing');
+  if (Native) {
+    try {
+      // Instala por cima pelo PackageInstaller e já apaga o arquivo baixado.
+      await Native.install(file.uri);
+      return 'native';
+    } catch (e) {
+      // se o módulo falhar, segue pelo instalador normal abaixo
+    }
+  }
   // VIEW + tipo de pacote abre o instalador do sistema. O flag 1 (FLAG_GRANT_READ_URI_PERMISSION)
   // deixa o instalador ler o arquivo, que continua privado do Realys.
   await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
@@ -72,4 +122,5 @@ export async function installUpdate(url, onStage) {
   });
   // Não apaga aqui: o instalador ainda pode estar lendo o arquivo.
   // Ele fica na pasta privada do Realys (invisível para a pessoa) e é apagado na próxima abertura.
+  return 'intent';
 }

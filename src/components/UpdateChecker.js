@@ -1,10 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, Platform, AppState } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
-import { checkForUpdate, installUpdate, cleanupOldUpdate } from '../updates';
+import {
+  checkForUpdate,
+  installUpdate,
+  cleanupOldUpdate,
+  supportsAutoUpdate,
+  hasInstallPermission,
+  openInstallPermission,
+  onInstallStatus,
+} from '../updates';
 
-// Aviso de "nova versão disponível". Roda sozinho toda vez que o app abre.
+// Atualização ao abrir o app. No Android 12+ é automática: achou versão nova, baixa,
+// instala por cima sozinha, apaga o arquivo e o Realys reabre atualizado.
+// Só na primeira vez pede para ligar a chave "Instalar apps desconhecidos" do Realys.
 // Também pode ser aberto à mão (Perfil → Verificar atualizações) com `manual`.
 export default function UpdateChecker({ manual = false, onDone }) {
   const [info, setInfo] = useState(null);
@@ -18,13 +28,50 @@ export default function UpdateChecker({ manual = false, onDone }) {
       .then((r) => {
         if (!alive) return;
         setInfo(r);
-        setStatus(r.available ? 'available' : manual ? 'uptodate' : 'idle');
+        if (!r.available) return setStatus(manual ? 'uptodate' : 'idle');
+        if (!supportsAutoUpdate()) return setStatus('available');
+        // Automático: sem botão "Atualizar agora". Falta a chave? pede uma vez só.
+        if (hasInstallPermission()) start(r);
+        else setStatus('permission');
       })
       .catch(() => alive && setStatus(manual ? 'error' : 'idle'));
     return () => {
       alive = false;
     };
   }, [manual]);
+
+  // Resultado da instalação automática.
+  useEffect(
+    () =>
+      onInstallStatus((st) => {
+        if (st === 'failed') setStatus('failed');
+        else if (st === 'cancelled') setStatus('idle');
+        else if (st === 'confirm') setStatus('installing');
+      }),
+    []
+  );
+
+  // Voltou das configurações depois de ligar a chave: segue com a atualização.
+  useEffect(() => {
+    if (status !== 'permission') return;
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active' && hasInstallPermission() && info) start(info);
+    });
+    return () => sub.remove();
+  }, [status, info]);
+
+  async function start(r) {
+    try {
+      const how = await installUpdate(r.url, (st) => setStatus(st === 'installing' ? 'auto' : st));
+      // Instalador normal (Android antigo): voltou dele = cancelou ou terminou. Fecha o aviso.
+      if (how === 'intent') {
+        setStatus('idle');
+        onDone && onDone();
+      }
+    } catch (e) {
+      setStatus('failed');
+    }
+  }
 
   const close = () => {
     setStatus('idle');
@@ -57,6 +104,16 @@ export default function UpdateChecker({ manual = false, onDone }) {
       title: 'Baixando a atualização…',
       text: `Aguarde um instante${mb}. O Realys baixa a versão nova por dentro do app, sem encher o celular de arquivos.`,
     },
+    permission: {
+      icon: 'shield-checkmark-outline',
+      title: 'Ative as atualizações automáticas',
+      text: 'Só uma vez: ligue "Permitir desta fonte" para o Realys. Depois disso, toda versão nova se instala sozinha quando você abrir o app, sem perguntar nada.',
+    },
+    auto: {
+      icon: 'sparkles-outline',
+      title: 'Atualizando o Realys…',
+      text: 'O app vai fechar por um instante e abrir de novo já na versão nova. Seus dados continuam aqui.',
+    },
     installing: {
       icon: 'construct-outline',
       title: 'Instalando',
@@ -82,7 +139,16 @@ export default function UpdateChecker({ manual = false, onDone }) {
           <Text style={styles.text}>{content.text}</Text>
           {status === 'available' && info.notes ? <Text style={styles.notes}>{info.notes}</Text> : null}
 
-          {status === 'available' ? (
+          {status === 'permission' ? (
+            <View style={styles.row}>
+              <TouchableOpacity style={[styles.btn, styles.btnGhost]} onPress={close}>
+                <Text style={styles.btnGhostText}>Depois</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.btn, styles.btnMain, { flex: 1 }]} onPress={openInstallPermission}>
+                <Text style={styles.btnMainText}>Ativar</Text>
+              </TouchableOpacity>
+            </View>
+          ) : status === 'available' ? (
             <View style={styles.row}>
               <TouchableOpacity style={[styles.btn, styles.btnGhost]} onPress={close}>
                 <Text style={styles.btnGhostText}>Depois</Text>
@@ -91,7 +157,7 @@ export default function UpdateChecker({ manual = false, onDone }) {
                 <Text style={styles.btnMainText}>Atualizar agora</Text>
               </TouchableOpacity>
             </View>
-          ) : !['checking', 'downloading'].includes(status) ? (
+          ) : !['checking', 'downloading', 'auto'].includes(status) ? (
             <TouchableOpacity style={[styles.btn, styles.btnMain, { marginTop: 16 }]} onPress={close}>
               <Text style={styles.btnMainText}>Ok</Text>
             </TouchableOpacity>
