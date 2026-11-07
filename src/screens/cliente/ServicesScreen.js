@@ -167,7 +167,6 @@ export default function ServicesScreen({ explore, navigate }) {
   // Visitas em andamento primeiro; as encerradas somem depois de avaliadas.
   const myVisits = (state.visits || []).filter((v) => !(v.status === 'concluida' && v.rated)).slice(0, 4);
   const minFee = isVisit && byDist.length ? Math.min(...byDist.map(visitFee)) : null;
-  const onlineNow = state.providers.length;
 
   const hire = (p) => {
     if (!p) return;
@@ -315,22 +314,8 @@ export default function ServicesScreen({ explore, navigate }) {
   return (
     <Screen>
       {menu}
+      {/* Na aba geral (Serviços) vai direto para a pesquisa; as outras abas mantêm a explicação */}
       {tab !== 'servicos' ? <TabIntro tab={tab} /> : null}
-      {/* Topo: o que é a aba e quanta gente está disponível */}
-      {tab === 'servicos' ? (
-      <View style={styles.hero}>
-        <View style={styles.heroGlow} />
-        <Text style={styles.heroKicker}>PRESTAÇÃO DE SERVIÇOS</Text>
-        <Text style={styles.heroTitle}>Quem você precisa hoje?</Text>
-        <Text style={styles.heroSub}>Profissionais com ID biométrico verificado, perto de você.</Text>
-        <View style={styles.heroStats}>
-          <HeroStat icon="people" value={String(onlineNow)} label="disponíveis" />
-          <HeroStat icon="shield-checkmark" value="100%" label="verificados" />
-          <HeroStat icon="lock-closed" value="Retido" label="pagamento" />
-        </View>
-      </View>
-      ) : null}
-      {tab === 'servicos' ? <TabIntro tab="servicos" /> : null}
 
       <SearchBar
         value={q}
@@ -609,16 +594,6 @@ function SectionHead({ title, right }) {
   );
 }
 
-function HeroStat({ icon, value, label }) {
-  return (
-    <View style={styles.heroStat}>
-      <Ionicons name={icon} size={14} color={colors.primary} />
-      <Text style={styles.heroStatValue}>{value}</Text>
-      <Text style={styles.heroStatLabel}>{label}</Text>
-    </View>
-  );
-}
-
 function MiniStat({ icon, text }) {
   return (
     <View style={styles.miniStat}>
@@ -649,16 +624,6 @@ function HowStep({ n, text }) {
 
 const styles = StyleSheet.create({
   avatarSm: { width: 48, height: 48, borderRadius: 16 },
-  // Topo
-  hero: { backgroundColor: colors.card, borderRadius: 24, padding: 18, marginBottom: 14, overflow: 'hidden', ...soft },
-  heroGlow: { position: 'absolute', right: -60, top: -60, width: 180, height: 180, borderRadius: 90, backgroundColor: colors.primaryLight },
-  heroKicker: { color: colors.primary, fontSize: 11, fontWeight: '700', letterSpacing: 1.6 },
-  heroTitle: { color: colors.text, fontSize: 24, fontWeight: '800', marginTop: 6 },
-  heroSub: { color: colors.muted, fontSize: 13, marginTop: 4 },
-  heroStats: { flexDirection: 'row', marginTop: 14, marginHorizontal: -4 },
-  heroStat: { flex: 1, marginHorizontal: 4, backgroundColor: colors.bg, borderRadius: 14, paddingVertical: 10, paddingHorizontal: 10, borderWidth: 1, borderColor: colors.border },
-  heroStatValue: { color: colors.text, fontWeight: '800', fontSize: 15, marginTop: 4 },
-  heroStatLabel: { color: colors.muted, fontSize: 11 },
   sectionHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10, marginTop: 4 },
   sectionTitle: { color: colors.text, fontWeight: '800', fontSize: 17 },
   sectionRight: { color: colors.muted, fontSize: 12, fontWeight: '600' },
