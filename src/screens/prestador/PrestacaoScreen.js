@@ -13,6 +13,7 @@ import ScanFacial from '../../components/ScanFacial';
 import TermoAdesaoModal from '../../components/TermoAdesaoModal';
 import { TERMO_EMPRESA } from '../../termoAdesao';
 import { getDevicePoint } from '../../geo';
+import { REALYS_FEE_PCT } from '../../serviceVisits';
 import { TIPOS_CADASTRO, CATEGORIAS_CNH, SERVICOS_CNH, SERVICOS_PASSAGEIROS, statusCadastro, docsFaltantes, hojeISO } from '../../prestacaoRegras';
 import { EMPRESA_DEMO, FUNCIONARIOS_DEMO, MANDADOS_DEMO, EXEMPLOS_CADASTRO_DEMO } from '../../empresaDemo';
 
@@ -178,18 +179,47 @@ function EmpresaPanel({ aceita, setAceita, funcionarios, setFuncionarios }) {
   );
 }
 
+// Prazo: 24 horas, contadas a partir do aceite do mandado. Dentro desse prazo o prestador finaliza
+// com o QR Code do cliente e faz a biometria, que libera o repasse. Fora do prazo, vai para revisão.
+const PRAZO_MS = 24 * 3600 * 1000;
+
 function MandadosPanel({ aceita, funcionarios, mandados, setMandados }) {
   const [alvo, setAlvo] = useState(null); // { ordem, tipo: 'aceite' | 'finalizacao' }
+  const [leitura, setLeitura] = useState({}); // código do QR digitado (demo), por mandado
+  const mudar = (id, fn) => setMandados((lista) => lista.map((m) => (m.id === id ? fn(m) : m)));
+  const anotar = (m, texto) => ({ ...m, registro: [...(m.registro || []), texto] });
+
   const registrar = async (payload) => {
     const { ordem, tipo } = alvo;
     setAlvo(null);
     const p = await getDevicePoint().catch(() => null);
     const local = p && p.lat != null ? `${Number(p.lat).toFixed(4)}, ${Number(p.lon).toFixed(4)}` : 'local não informado';
     const quando = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    const novoStatus = tipo === 'aceite' ? 'Aceito' : 'Concluído';
-    const nota = `${tipo === 'aceite' ? 'Aceite' : 'Finalização'} com biometria às ${quando}, em ${local} (${payload.videos.length} vídeos, ${payload.photos.length} fotos). Responsável: ${EMPRESA_DEMO.nome}.`;
-    setMandados(mandados.map((m) => (m.id === ordem.id ? { ...m, status: novoStatus, registro: [...(m.registro || []), nota] } : m)));
+    const agora = Date.now();
+    mudar(ordem.id, (m) => {
+      if (tipo === 'aceite') {
+        const qr = 'QR-' + m.id.toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+        return anotar({ ...m, status: 'Aceito', prazo: agora + PRAZO_MS, qr }, `Aceite com biometria às ${quando}, em ${local}. Prazo para finalizar: 24 h. Responsável: ${EMPRESA_DEMO.nome}.`);
+      }
+      if (agora > m.prazo) {
+        return anotar({ ...m, status: 'Vencido' }, `Biometria de conclusão fora do prazo de 24 h (às ${quando}). Sem repasse; vai para revisão.`);
+      }
+      const recebido = m.valor * (1 - REALYS_FEE_PCT / 100);
+      return anotar({ ...m, status: 'Concluído', recebido }, `Conclusão com biometria às ${quando}, em ${local} (${payload.videos.length} vídeos, ${payload.photos.length} fotos). Repasse liberado: R$ ${recebido.toFixed(2)}.`);
+    });
   };
+
+  // Lê o QR Code do cliente (demo: o código digitado). Só finaliza dentro do prazo.
+  const lerQr = (m) => {
+    const codigo = (leitura[m.id] || '').trim().toUpperCase();
+    if (codigo !== m.qr) return Alert.alert('QR não confere', 'Use o código do QR que aparece na tela do cliente.');
+    if (Date.now() > m.prazo) {
+      mudar(m.id, (x) => anotar({ ...x, status: 'Vencido' }, 'QR lido depois do prazo de 24 h. Vai para revisão.'));
+      return Alert.alert('Prazo de 24 h vencido', 'O serviço não pode mais ser finalizado sem revisão.');
+    }
+    mudar(m.id, (x) => anotar({ ...x, status: 'Aguardando biometria' }, `Serviço finalizado com o QR do cliente. Faça a biometria até ${new Date(m.prazo).toLocaleString('pt-BR')} para receber.`));
+  };
+
   if (!funcionarios.length) return <Empty text="Cadastre um funcionário para receber mandados." />;
   return (
     <View>
@@ -198,20 +228,34 @@ function MandadosPanel({ aceita, funcionarios, mandados, setMandados }) {
         const f = funcionarios.find((x) => x.id === m.funcionarioId) || funcionarios[0];
         const faltam = f ? docsFaltantes({ tipo: 'pf', servico: m.servico, titular: f.titular, cnh: f.cnh }) : ['Sem funcionário'];
         const pode = aceita && faltam.length === 0;
+        const vencido = m.status !== 'Recebido' && m.status !== 'Concluído' && m.prazo && Date.now() > m.prazo;
+        const exibido = vencido && m.status !== 'Vencido' ? 'Vencido' : m.status;
         return (
           <Card key={m.id}>
             <Row style={{ justifyContent: 'space-between' }}>
               <Text style={styles.nome}>{nomeServico(m.servico)} · {m.cliente}</Text>
-              <Badge label={m.status} color={m.status === 'Concluído' ? colors.primaryDark : colors.primary} />
+              <Badge label={exibido} color={exibido === 'Concluído' ? colors.primaryDark : exibido === 'Vencido' ? colors.danger : colors.primary} />
             </Row>
             <Text style={styles.dica}>{m.endereco} · R$ {m.valor}</Text>
             <Text style={styles.dica}>Funcionário: {f ? f.nome : '—'} · Responsável: {EMPRESA_DEMO.nome}</Text>
-            {faltam.length ? <View style={{ marginTop: 6 }}><Faltas faltam={faltam} /></View> : null}
+            {m.prazo && m.status !== 'Concluído' ? <Text style={styles.dica}>Prazo: {new Date(m.prazo).toLocaleString('pt-BR')}</Text> : null}
+            {m.recebido != null ? <Text style={styles.dica}>Repasse após taxa de {REALYS_FEE_PCT}%: R$ {m.recebido.toFixed(2)}</Text> : null}
+            {m.status === 'Recebido' && faltam.length ? <View style={{ marginTop: 6 }}><Faltas faltam={faltam} /></View> : null}
             {m.status === 'Recebido' ? (
               <Button title="Aceitar mandado (biometria)" disabled={!pode} onPress={() => setAlvo({ ordem: m, tipo: 'aceite' })} style={{ marginTop: 10 }} />
             ) : null}
-            {m.status === 'Aceito' ? (
-              <Button title="Concluir serviço (biometria)" onPress={() => setAlvo({ ordem: m, tipo: 'finalizacao' })} style={{ marginTop: 10 }} />
+            {m.status === 'Aceito' && !vencido ? (
+              <View style={{ marginTop: 10 }}>
+                <Text style={styles.dica}>Código do QR do cliente (demo): {m.qr}</Text>
+                <Input value={leitura[m.id] || ''} onChangeText={(v) => setLeitura({ ...leitura, [m.id]: v })} placeholder="Leia o QR do cliente" style={{ marginTop: 6 }} autoCapitalize="characters" />
+                <Button title="Finalizar com o QR do cliente" onPress={() => lerQr(m)} style={{ marginTop: 8 }} />
+              </View>
+            ) : null}
+            {m.status === 'Aguardando biometria' && !vencido ? (
+              <Button title="Fazer biometria para receber" onPress={() => setAlvo({ ordem: m, tipo: 'finalizacao' })} style={{ marginTop: 10 }} />
+            ) : null}
+            {(m.status === 'Aceito' || m.status === 'Aguardando biometria') && !vencido ? (
+              <Button title="Simular prazo de 24 h vencido (teste)" variant="outline" small onPress={() => mudar(m.id, (x) => ({ ...x, prazo: Date.now() - 1000 }))} style={{ marginTop: 8 }} />
             ) : null}
             {(m.registro || []).map((r, i) => (
               <Text key={i} style={styles.registro}>{r}</Text>
@@ -221,11 +265,11 @@ function MandadosPanel({ aceita, funcionarios, mandados, setMandados }) {
       })}
       <ScanFacial
         visible={!!alvo}
-        title={alvo && alvo.tipo === 'aceite' ? 'Biometria: aceite do mandado' : 'Biometria: conclusão do serviço'}
+        title={alvo && alvo.tipo === 'aceite' ? 'Biometria: aceite do mandado' : 'Biometria: recebimento'}
         onFrames={registrar}
         onClose={() => setAlvo(null)}
       />
-      <Text style={styles.dica}>Demonstração: a biometria não é enviada ao servidor aqui. Com o servidor ligado, ela é checada de verdade.</Text>
+      <Text style={styles.dica}>Demonstração: a biometria e o QR não são enviados ao servidor aqui. Com o servidor ligado, a checagem e o repasse são feitos de verdade.</Text>
     </View>
   );
 }
