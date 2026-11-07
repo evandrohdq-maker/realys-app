@@ -4,45 +4,45 @@ import FRAMES, { FAB, LIGHT } from './lotus/frames';
 
 // Flor de lótus da Lotus em 3D (quadros em assets/lotus, gerados por tools/lotus3d).
 
-const SIZE = 206; // a flor é vista de frente (de cima), formando um círculo no centro da caixa
-const STAGE = 250; // faixa da caixa onde a flor fica, sempre centralizada
-const HALO = Math.round(SIZE * 1.6); // luz branca atrás da flor
-const RAYS = Math.round(SIZE * 1.95); // raios de luz que giram devagar
+const SIZE = 184; // a flor é vista de frente (de cima), formando um círculo no centro da caixa
+const STAGE = 240; // faixa da caixa onde a flor fica, sempre centralizada
+const HALO = Math.round(SIZE * 1.75); // luz branca atrás da flor
+const RAYS = Math.round(SIZE * 2.1); // raios de luz que giram devagar
 // Ajuste fino da posição na caixa (no celular ela aparecia um pouco à direita e para baixo).
 const NUDGE_X = -8;
 const NUDGE_Y = -14;
-// Ondas sonoras douradas em volta do miolo (no lugar dos antigos traços amarelos).
-const WAVE_N = 32;
-const WAVE_R0 = Math.round(SIZE * 0.083); // começa logo depois do círculo dourado
-const WAVE_L = Math.round(SIZE * 0.08); // comprimento máximo de cada barrinha
-const WAVE_W = 2.6;
+// Ondas sonoras douradas em círculo, no lugar do antigo círculo do miolo. Elas chacoalham para
+// dentro e para fora, sempre dentro do espaço escuro do miolo (nunca passam desse limite).
+const WAVE_N = 24;
+const WAVE_IN = SIZE * 0.035; // limite de dentro
+const WAVE_OUT = SIZE * 0.135; // limite de fora (borda do miolo escuro)
+const WAVE_L = Math.round(SIZE * 0.042); // comprimento de cada barrinha
+const WAVE_W = 2.4;
+const R_MIN = WAVE_IN + WAVE_L / 2; // centro da barrinha mais para dentro
+const R_MAX = WAVE_OUT - WAVE_L / 2; // centro da barrinha mais para fora
 
-// Ondas sonoras em círculo: cada barrinha cresce e encolhe com a voz (de quem fala ou da Lotus);
-// quieta, ondula de leve.
+// Cada barrinha vai e volta no raio (para dentro e para fora). As vizinhas seguem uma depois da
+// outra, formando uma onda que corre em volta do círculo; com voz o vaivém fica maior e mais rápido.
+const STEPS = 12;
+const T_IN = [...Array(STEPS + 1)].map((_, k) => k / STEPS);
 function SoundRing({ voice, active, show }) {
-  const w = useRef([0, 1, 2, 3].map(() => new Animated.Value(0))).current;
+  const t = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    const loops = w.map((v, i) =>
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(v, { toValue: 1, duration: (active ? 260 : 900) + i * 90, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-          Animated.timing(v, { toValue: 0, duration: (active ? 260 : 900) + i * 90, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        ]),
-      ),
-    );
-    loops.forEach((l) => l.start());
-    return () => loops.forEach((l) => l.stop());
+    t.setValue(0);
+    const loop = Animated.loop(Animated.timing(t, { toValue: 1, duration: active ? 700 : 2600, easing: Easing.linear, useNativeDriver: true }));
+    loop.start();
+    return () => loop.stop();
   }, [active]);
+  // Força do vaivém: pequena em silêncio, máxima com voz forte.
+  const amp = voice.interpolate({ inputRange: [0, 1], outputRange: [0.35, 1], extrapolate: 'clamp' });
   const bars = useMemo(
     () =>
       [...Array(WAVE_N)].map((_, i) => {
-        // desenho de onda: altos e baixos alternados em volta do círculo
-        const shape = 0.45 + 0.55 * Math.abs(Math.sin((i * Math.PI * 3) / WAVE_N + 0.4));
-        const s = Animated.add(
-          w[i % 4].interpolate({ inputRange: [0, 1], outputRange: [0.18 + 0.12 * shape, 0.3 + 0.25 * shape] }),
-          voice.interpolate({ inputRange: [0, 1], outputRange: [0, 0.75 * shape], extrapolate: 'clamp' }),
-        ).interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolate: 'clamp' });
-        return { deg: `${(i * 360) / WAVE_N}deg`, s, ty: s.interpolate({ inputRange: [0, 1], outputRange: [WAVE_L / 2, 0] }) };
+        const phase = (i * 3) / WAVE_N; // 3 cristas de onda em volta do círculo
+        const osc = t.interpolate({ inputRange: T_IN, outputRange: T_IN.map((k) => Math.sin(2 * Math.PI * (k + phase))) });
+        const pos = Animated.add(0.5, Animated.multiply(osc, Animated.multiply(amp, 0.5)));
+        const r = pos.interpolate({ inputRange: [0, 1], outputRange: [R_MIN, R_MAX], extrapolate: 'clamp' });
+        return { deg: `${(i * 360) / WAVE_N}deg`, ty: Animated.multiply(r, -1) };
       }),
     [],
   );
@@ -50,7 +50,7 @@ function SoundRing({ voice, active, show }) {
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, { opacity: show ? 1 : 0 }]}>
       {bars.map((b, i) => (
         <View key={i} style={[StyleSheet.absoluteFill, { transform: [{ rotate: b.deg }] }]}>
-          <Animated.View style={[styles.wave, { transform: [{ translateY: b.ty }, { scaleY: b.s }] }]} />
+          <Animated.View style={[styles.wave, { transform: [{ translateY: b.ty }] }]} />
         </View>
       ))}
     </View>
@@ -242,14 +242,14 @@ export default function LotusFlower({ phase, level, onPress, visible = true, moo
           fadeDuration={0}
           resizeMode="contain"
           pointerEvents="none"
-          style={[styles.rays, { opacity: raysOpacity, transform: [{ rotate: raysRotate }, { scale: haloScale }] }]}
+          style={[styles.rays, { opacity: raysOpacity, transform: [{ translateY: lift }, { rotate: raysRotate }, { scale: haloScale }] }]}
         />
         <Animated.Image
           source={LIGHT.halo}
           fadeDuration={0}
           resizeMode="contain"
           pointerEvents="none"
-          style={[styles.halo, { opacity: haloOpacity, transform: [{ scale: haloScale }] }]}
+          style={[styles.halo, { opacity: haloOpacity, transform: [{ translateY: lift }, { scale: haloScale }] }]}
         />
         <Pressable onPress={onPress} accessibilityLabel="Falar com a Lotus" style={styles.wrap}>
           <Animated.View style={[styles.flower, { transform: [{ translateY: lift }, { rotate }, { scale: flowerScale }] }]}>
@@ -354,11 +354,12 @@ const styles = StyleSheet.create({
   micFlower: { position: 'absolute', width: 50, height: 50 },
   // Faixa da largura inteira da caixa; a flor fica no meio exato, na horizontal e na vertical.
   stage: { alignSelf: 'stretch', height: STAGE, alignItems: 'center', justifyContent: 'center' },
-  center: { width: SIZE, height: SIZE, alignItems: 'center', justifyContent: 'center', transform: [{ translateX: NUDGE_X }, { translateY: NUDGE_Y }] },
-  wave: { position: 'absolute', left: SIZE / 2 - WAVE_W / 2, top: SIZE / 2 - WAVE_R0 - WAVE_L, width: WAVE_W, height: WAVE_L, borderRadius: WAVE_W / 2, backgroundColor: '#FFC928' },
+  // Luz, raios e flor ficam todos no mesmo quadro, com o mesmo centro exato.
+  center: { width: SIZE, height: SIZE, transform: [{ translateX: NUDGE_X }, { translateY: NUDGE_Y }] },
+  wave: { position: 'absolute', left: SIZE / 2 - WAVE_W / 2, top: SIZE / 2 - WAVE_L / 2, width: WAVE_W, height: WAVE_L, borderRadius: WAVE_W / 2, backgroundColor: '#FFC928' },
   halo: { position: 'absolute', width: HALO, height: HALO, left: (SIZE - HALO) / 2, top: (SIZE - HALO) / 2 },
   rays: { position: 'absolute', width: RAYS, height: RAYS, left: (SIZE - RAYS) / 2, top: (SIZE - RAYS) / 2 },
-  wrap: { width: SIZE, height: SIZE },
+  wrap: { position: 'absolute', left: 0, top: 0, width: SIZE, height: SIZE },
   flower: { position: 'absolute', left: 0, top: 0, width: SIZE, height: SIZE },
   pollen: { position: 'absolute', top: SIZE / 2 - 2, width: 4, height: 4, borderRadius: 2, backgroundColor: '#FDE68A' },
 });

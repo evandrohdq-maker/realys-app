@@ -63,6 +63,24 @@ def clear_stamens(im, bars=False):
     return out
 
 
+def clear_disk(im):
+    """Tira o círculo dourado do miolo: o centro fica escuro, liso, e o app desenha ali ondas
+    sonoras douradas em círculo, que se mexem para dentro e para fora com a voz."""
+    im = im.convert('RGBA')
+    a = np.asarray(im).astype(np.float32)
+    W = im.width
+    k = W / 300
+    yy, xx = np.mgrid[0:im.height, 0:W]
+    d = np.hypot(xx - W / 2, yy - im.height / 2)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    m = (r - b > 35) & (g > 60) & (d < 30 * k)
+    mi = Image.fromarray((m * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(7)).filter(ImageFilter.GaussianBlur(1.5 * k))
+    mm = np.asarray(mi).astype(np.float32)[..., None] / 255
+    dark = np.array([10, 13, 24], np.float32)
+    a[..., :3] = a[..., :3] * (1 - mm) + dark * mm
+    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGBA')
+
+
 def halo(path, size=600):
     # luz branca suave atrás da flor (um "sol" difuso)
     y, x = np.mgrid[0:size, 0:size] / (size - 1) * 2 - 1
