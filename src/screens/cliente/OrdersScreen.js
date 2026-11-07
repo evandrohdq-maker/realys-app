@@ -8,11 +8,20 @@ import { promoDiscount } from '../../rewards';
 import { isFoodStore } from '../../data';
 import { useBack } from '../../back';
 import { askPix } from '../../components/PixPay';
+import DeliveryTracker from '../../components/DeliveryTracker';
 import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Button, Badge, Empty, Photo } from '../../components/ui';
 import { providerTarget } from '../../components/GiftSheet';
 
 const STEPS = ['Pagamento protegido', 'Preparando', 'A caminho', 'Entregue'];
+// Como o cliente vê cada passo: primeiro a loja aceita, depois o motoboy/entregador leva.
+const statusText = (o, food) =>
+  ({
+    'Pagamento protegido': food ? 'Aguardando o restaurante aceitar' : 'Aguardando a loja aceitar',
+    Preparando: food ? 'Aceito · preparando' : 'Aceito · separando o pedido',
+    'A caminho': food ? 'Com o motoboy · a caminho' : 'Com o entregador · a caminho',
+    Entregue: 'Entregue',
+  }[o.status] || o.status);
 
 // Motoboy cadastrado no Realys que o restaurante chamou para a entrega. O cliente pode dar gorjeta
 // em créditos de presente (sai do saldo, com a taxa do Realys).
@@ -29,7 +38,7 @@ function CourierCard({ order: o }) {
           {p ? `${p.vehicle} · ${p.plate}` : 'Motoboy do Realys'}
           {o.requestedBy ? ` · chamado por ${o.requestedBy}` : ''}
         </Text>
-        <Text style={{ color: colors.muted, fontSize: 11, marginTop: 2 }}>{o.status === 'Entregue' ? 'Entrega concluída' : o.status === 'A caminho' ? 'A caminho com o seu pedido' : 'Aguardando o pedido ficar pronto'}</Text>
+        <Text style={{ color: colors.muted, fontSize: 11, marginTop: 2 }}>{o.status === 'Entregue' ? 'Entrega concluída' : o.status === 'A caminho' ? 'A caminho com o seu pedido · GPS ligado' : o.status === 'Preparando' ? 'Indo buscar o pedido no restaurante' : 'Aguardando o restaurante aceitar o pedido'}</Text>
       </View>
       {p ? (
         <TouchableOpacity
@@ -69,7 +78,7 @@ function ServiceOrder({ r, onTrack }) {
       <Row style={{ justifyContent: 'space-between', marginTop: 10 }}>
         <Text style={{ fontWeight: '700', color: colors.primary }}>{r.price ? brl(r.price) : ''}</Text>
         <Row>
-          {!r.done ? <Button small variant="light" title="Acompanhar" onPress={onTrack} /> : null}
+          {!r.done && !r.when ? <Button small variant="light" title="📍 Acompanhar no mapa" onPress={onTrack} /> : null}
           {r.done && !r.rated ? <Button small title="Avaliar" onPress={() => dispatch({ type: 'OPEN_RATE', kind: 'servico', refId: r.id })} /> : null}
           {r.done && r.rated ? <Badge label="Avaliado ⭐" color={colors.success} /> : null}
           <TouchableOpacity
@@ -181,6 +190,9 @@ export default function OrdersScreen({ navigate, explore }) {
     { key: 'servicos', label: 'Serviços', icon: 'construct-outline', badge: services.filter((r) => !r.done).length || null },
   ];
   const list = seg === 'comida' ? food : buys;
+  // Acompanhar ao vivo: { order } para entregas, { ride } para motorista e prestadores.
+  const [track, setTrack] = useState(null);
+  const courierOf = (o) => (state.providers || []).find((x) => x.id === o.courierId) || (state.providers || []).find((x) => x.name === o.courier) || { name: o.courier || 'Entregador Realys' };
   return (
     <Screen>
       <Title sub="Pagamento só é liberado para a loja ou o prestador quando você confirma a entrega">Meus pedidos</Title>
@@ -190,7 +202,7 @@ export default function OrdersScreen({ navigate, explore }) {
 
       {seg === 'servicos' ? (
         services.length ? (
-          services.map((r) => <ServiceOrder key={r.id} r={r} onTrack={() => navigate && navigate({ tab: 'servicos', service: r.serviceKey })} />)
+          services.map((r) => <ServiceOrder key={r.id} r={r} onTrack={() => setTrack({ ride: r })} />)
         ) : (
           <Empty text="Nenhum serviço contratado ainda. Peça um eletricista, motorista ou outro prestador em Serviços ou pela Lotus." />
         )
@@ -205,7 +217,7 @@ export default function OrdersScreen({ navigate, explore }) {
           <Card key={o.id}>
             <Row style={{ justifyContent: 'space-between', marginBottom: 6 }}>
               <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>{o.store}</Text>
-              <Badge label={o.status} color={o.status === 'Entregue' ? colors.success : colors.accent} />
+              <Badge label={statusText(o, isFood(o))} color={o.status === 'Entregue' ? colors.success : colors.accent} />
             </Row>
             {o.items.map((i) => {
               // Tocar no item leva ao produto dentro da loja de quem vendeu (para ver mais produtos dela).
@@ -225,6 +237,13 @@ export default function OrdersScreen({ navigate, explore }) {
                 </TouchableOpacity>
               );
             })}
+            {o.status === 'A caminho' ? (
+              <TouchableOpacity style={styles.trackBtn} onPress={() => setTrack({ order: o })} activeOpacity={0.85} accessibilityLabel="Acompanhar a entrega no mapa">
+                <Ionicons name="navigate" size={16} color="#0B1124" />
+                <Text style={styles.trackText}>Acompanhar {isFood(o) ? 'o motoboy' : 'a entrega'} no mapa</Text>
+                <View style={styles.trackLive} />
+              </TouchableOpacity>
+            ) : null}
             <Row style={{ marginTop: 10 }}>
               {STEPS.map((s, i) => (
                 <View
@@ -257,7 +276,7 @@ export default function OrdersScreen({ navigate, explore }) {
                 <Button
                   small
                   variant="light"
-                  title={o.status === 'A caminho' ? 'Confirmar entrega' : 'Simular próximo passo'}
+                  title={o.status === 'A caminho' ? 'Confirmar entrega' : o.status === 'Preparando' ? 'Simular: saiu para entrega' : 'Simular: loja aceitou'}
                   onPress={() => dispatch({ type: 'ADVANCE_ORDER', id: o.id })}
                 />
               ) : null}
@@ -265,11 +284,42 @@ export default function OrdersScreen({ navigate, explore }) {
           </Card>
         );
       })}
+      {track && track.order ? (
+        <DeliveryTracker
+          visible
+          onClose={() => setTrack(null)}
+          trackId={track.order.id}
+          kind={isFood(track.order) ? 'motoboy' : 'entregador'}
+          who={courierOf(track.order)}
+          from={track.order.store}
+          to="Seu endereço"
+          etaMin={isFood(track.order) ? 14 : 25}
+          onArrived={() => {
+            dispatch({ type: 'ADVANCE_ORDER', id: track.order.id });
+            setTrack(null);
+          }}
+        />
+      ) : null}
+      {track && track.ride ? (
+        <DeliveryTracker
+          visible
+          onClose={() => setTrack(null)}
+          trackId={track.ride.id}
+          kind={/motorista|carro|transporte|uber/i.test(`${track.ride.serviceKey} ${track.ride.serviceLabel}`) ? 'motorista' : /motoboy|entrega/i.test(`${track.ride.serviceKey} ${track.ride.serviceLabel}`) ? 'motoboy' : 'prestador'}
+          who={track.ride.provider}
+          from={track.ride.from && track.ride.from !== 'Sua localização atual' ? track.ride.from : `Saindo de perto de você`}
+          to={track.ride.to || track.ride.address || 'Seu endereço'}
+          etaMin={track.ride.eta || 10}
+        />
+      ) : null}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  trackBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#E2B649', borderRadius: 12, paddingVertical: 10, marginTop: 10 },
+  trackText: { color: '#0B1124', fontWeight: '800', marginLeft: 6 },
+  trackLive: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#16A34A', marginLeft: 8 },
   qBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
   qNum: { width: 26, textAlign: 'center', fontWeight: '800', color: colors.text },
   sumRow: { justifyContent: 'space-between', paddingVertical: 3 },
