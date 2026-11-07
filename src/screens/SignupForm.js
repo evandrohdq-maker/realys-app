@@ -15,6 +15,7 @@ import {
   usernameProblem,
   passwordProblem,
   createAccount,
+  ageFromBirth,
   confirmBiometric,
 } from '../accounts';
 import { ProfileQuiz } from '../components/SocialClass';
@@ -26,6 +27,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
   const [kind, setKind] = useState('pessoa'); // pessoa | empresa
   const [name, setName] = useState('');
   const [doc, setDoc] = useState('');
+  const [birth, setBirth] = useState(''); // DD/MM/AAAA: o Realys é só para maiores de 18
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -53,6 +55,11 @@ export default function SignupForm({ onDone, onGoLogin }) {
     if (name.trim().length < 3) return empresa ? 'Digite o nome da empresa.' : 'Digite seu nome completo.';
     if (!empresa && name.trim().split(/\s+/).length < 2) return 'Digite nome e sobrenome.';
     if (!docOk) return empresa ? 'CNPJ inválido. Confira os números.' : 'CPF inválido. Confira os números.';
+    if (!empresa) {
+      const age = ageFromBirth(birth);
+      if (age == null) return 'Digite sua data de nascimento (dia/mês/ano).';
+      if (age < 18) return 'O Realys é só para maiores de 18 anos.';
+    }
     const u = usernameProblem(username);
     if (u) return u;
     if (!validEmail(email)) return 'Digite um e-mail válido.';
@@ -73,7 +80,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
       if (bio === 'falhou') return Alert.alert('Biometria não confirmada', 'A conta só é criada depois de confirmar que é você.');
       // Pessoa: o perfil social sai do questionário (Gamer, Artista, Estudante...).
       const social = empresa ? null : quiz.manual && quiz.social ? quiz.social : classifyProfile(`${quiz.about} ${quiz.work}`, quiz.hobbies);
-      const { account, error } = await createAccount({ kind, name, doc, username, email, phone, password, social, about: empresa ? '' : quiz.about, work: empresa ? '' : quiz.work });
+      const { account, error } = await createAccount({ kind, name, doc, username, email, phone, password, birth: empresa ? null : birth, social, about: empresa ? '' : quiz.about, work: empresa ? '' : quiz.work });
       if (error) return Alert.alert('Não foi possível cadastrar', error);
       Alert.alert(
         'Conta criada!',
@@ -154,6 +161,35 @@ export default function SignupForm({ onDone, onGoLogin }) {
           />
         ),
       })}
+
+      {empresa
+        ? null
+        : Field({
+            icon: 'calendar-outline',
+            label: 'Data de nascimento',
+            ok: birth.length === 10 ? ageFromBirth(birth) >= 18 : undefined,
+            help:
+              birth.length === 10 && ageFromBirth(birth) == null
+                ? 'Data inválida.'
+                : birth.length === 10 && ageFromBirth(birth) < 18
+                ? 'O Realys é só para maiores de 18 anos.'
+                : 'O Realys é só para maiores de 18 anos.',
+            children: (
+              <TextInput
+                style={authStyles.input}
+                placeholder="DD/MM/AAAA"
+                placeholderTextColor={colors.muted}
+                value={birth}
+                onChangeText={(v) => {
+                  const d = v.replace(/\D/g, '').slice(0, 8);
+                  setBirth([d.slice(0, 2), d.slice(2, 4), d.slice(4, 8)].filter(Boolean).join('/'));
+                }}
+                keyboardType="number-pad"
+                maxLength={10}
+                returnKeyType="next"
+              />
+            ),
+          })}
 
       {Field({
         icon: 'at-outline',

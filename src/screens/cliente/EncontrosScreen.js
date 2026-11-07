@@ -10,6 +10,8 @@ import { ENCONTROS_TERMS, TERMS_VERSION, RELATIONSHIP_STATUS, statusAllowed } fr
 import { ChatModal, VideoCallModal } from './home/Social';
 import { PROFILE_FIELDS, INTEREST_GROUPS, profileScore } from '../../encontrosProfile';
 import { useBack } from '../../back';
+import * as ImagePicker from 'expo-image-picker';
+import { ageFromBirth } from '../../accounts';
 
 const ROSE = '#E0567A';
 const LOOKING = ['Amizade', 'Namoro', 'Relacionamento sério'];
@@ -294,6 +296,13 @@ function Main({ openTerms }) {
   const report = (p) =>
     Alert.alert('Denunciar ' + p.name, 'Nossa equipe analisa em até 24 h. A pessoa não fica sabendo quem denunciou.', [
       { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Tem foto com criança',
+        onPress: () => {
+          dispatch({ type: 'ENC_UNMATCH', id: p.id, block: true });
+          setNote('Obrigado. Foto com criança não é permitida no Date: a equipe tira a foto e avalia o perfil.');
+        },
+      },
       {
         text: 'Denunciar e bloquear',
         style: 'destructive',
@@ -786,6 +795,42 @@ function ScoreBar({ score, onPress }) {
 }
 
 // Editor do perfil de namoro. Tudo é opcional.
+// Fotos do celular para o álbum do Date.
+async function pickPhotos(limit) {
+  const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (!perm.granted) {
+    Alert.alert('Permissão necessária', 'Autorize o Realys a ver suas fotos para escolher as do Date.');
+    return [];
+  }
+  const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsMultipleSelection: true, selectionLimit: limit, quality: 0.8 });
+  if (res.canceled) return [];
+  return (res.assets || []).map((x, i) => ({ id: 'dp-' + Date.now() + '-' + i, uri: x.uri }));
+}
+const ALBUM_MAX = 6;
+const firstName = (state) => String((state.user && state.user.name) || 'Você').trim().split(/\s+/)[0];
+// Idade do cadastro (data de nascimento verificada): não dá para mudar no Date.
+const verifiedAge = (state) => (state.user && state.user.birth ? ageFromBirth(state.user.birth) : null);
+
+// Como o próprio usuário aparece para os outros no Date (usado na prévia "Como me veem").
+export function myDateProfile(state) {
+  const e = state.encontros;
+  const album = (e.album || []).map((x) => x.uri);
+  return {
+    id: 'me',
+    name: firstName(state),
+    age: verifiedAge(state) || e.age || '',
+    job: e.job,
+    bio: e.bio,
+    km: 0.4,
+    looking: e.looking || '',
+    details: e.details || {},
+    tags: e.interests || [],
+    photo: album[0] || null,
+    photos: album.length ? album : [null],
+    crossings: [{ when: 'hoje às 14h20', place: 'perto da Av. Paulista' }],
+  };
+}
+
 function ProfileEditor({ visible, onClose }) {
   const { state, dispatch } = useStore();
   const insets = useSafeAreaInsets();
@@ -794,19 +839,52 @@ function ProfileEditor({ visible, onClose }) {
   const [job, setJob] = useState(e.job);
   const [details, setDetails] = useState(e.details);
   const [interests, setInterests] = useState(e.interests);
+  const [album, setAlbum] = useState(e.album || []);
+  const [age, setAge] = useState(e.age ? String(e.age) : '');
+  const [noKids, setNoKids] = useState(!!e.noKids);
+  const [showSocial, setShowSocial] = useState(!!e.showSocial);
+  const [preview, setPreview] = useState(false);
   useEffect(() => {
     if (!visible) return;
     setBio(e.bio);
-    setJob(e.job);
+    setJob(e.job || (state.myProfile && state.myProfile.profession) || '');
     setDetails(e.details);
     setInterests(e.interests);
+    setAlbum(e.album || []);
+    setAge(e.age ? String(e.age) : '');
+    setNoKids(!!e.noKids);
+    setShowSocial(!!e.showSocial);
   }, [visible]);
   const score = profileScore({ bio: bio.trim(), job: job.trim(), details, interests });
   const toggle = (i) => setInterests(interests.includes(i) ? interests.filter((x) => x !== i) : [...interests, i]);
+  const gallery = ((state.myGallery && state.myGallery.photos) || []).slice(0, 12);
+  const inAlbum = (uri) => album.some((x) => x.uri === uri);
+  const useGallery = (g) => {
+    if (inAlbum(g.uri)) return setAlbum(album.filter((x) => x.uri !== g.uri));
+    if (album.length >= ALBUM_MAX) return Alert.alert('Álbum cheio', `O álbum do Date tem até ${ALBUM_MAX} fotos. Tire uma para colocar outra.`);
+    setAlbum([...album, { id: 'dg-' + g.id, uri: g.uri }]);
+    setNoKids(false); // foto nova: confirma de novo que não tem criança
+  };
+  const addFromPhone = async () => {
+    const free = ALBUM_MAX - album.length;
+    if (free <= 0) return Alert.alert('Álbum cheio', `O álbum do Date tem até ${ALBUM_MAX} fotos.`);
+    const picked = await pickPhotos(free);
+    if (picked.length) {
+      setAlbum([...album, ...picked].slice(0, ALBUM_MAX));
+      setNoKids(false);
+    }
+  };
+  const makeMain = (i) => setAlbum([album[i], ...album.filter((_, j) => j !== i)]);
+  const removeAt = (i) => setAlbum(album.filter((_, j) => j !== i));
+  const ageNum = parseInt(age, 10);
   const save = () => {
-    dispatch({ type: 'ENC_SET', patch: { bio: bio.trim(), job: job.trim(), details, interests } });
+    if (!verifiedAge(state) && age && (isNaN(ageNum) || ageNum < 18 || ageNum > 99)) return Alert.alert('Idade', 'O Date é só para maiores de 18 anos.');
+    if (album.length && !noKids)
+      return Alert.alert('Fotos com crianças não são permitidas', 'Confirme que nenhuma foto do seu álbum do Date mostra crianças. Se alguma mostrar, tire ela do álbum.');
+    dispatch({ type: 'ENC_SET', patch: { bio: bio.trim(), job: job.trim(), details, interests, album, age: ageNum || null, noKids, showSocial } });
     onClose();
   };
+  const me = { ...myDateProfile(state), bio: bio.trim(), job: job.trim(), details, tags: interests, age: verifiedAge(state) || ageNum || '', photo: album[0] ? album[0].uri : null, photos: album.length ? album.map((x) => x.uri) : [null] };
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -814,9 +892,96 @@ function ProfileEditor({ visible, onClose }) {
           <TouchableOpacity onPress={onClose} style={styles.iconBtn} accessibilityLabel="Voltar">
             <Ionicons name="arrow-back" size={20} color={colors.text} />
           </TouchableOpacity>
-          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700', marginLeft: 12, flex: 1 }}>Meu perfil de namoro</Text>
+          <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700', marginLeft: 12, flex: 1 }}>Meu perfil do Date</Text>
+          <TouchableOpacity onPress={() => setPreview(true)} style={styles.previewBtn} accessibilityLabel="Ver como os outros me veem">
+            <Ionicons name="eye-outline" size={14} color={ROSE} />
+            <Text style={{ color: ROSE, fontWeight: '800', fontSize: 12, marginLeft: 4 }}>Como me veem</Text>
+          </TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 + insets.bottom }} keyboardShouldPersistTaps="handled">
+          <Text style={styles.howKick}>COMO VOCÊ APARECE</Text>
+          <Card>
+            <Row style={{ justifyContent: 'space-between' }}>
+              <Text style={{ color: colors.text }}>Nome no Date</Text>
+              <Text style={{ color: colors.text, fontWeight: '800' }}>
+                {firstName(state)} <Ionicons name="lock-closed" size={11} color={colors.muted} />
+              </Text>
+            </Row>
+            <Text style={styles.note}>Só o primeiro nome, do seu cadastro verificado. O sobrenome nunca aparece.</Text>
+            <Row style={{ justifyContent: 'space-between', marginTop: 10 }}>
+              <Text style={{ color: colors.text }}>Idade</Text>
+              {verifiedAge(state) ? (
+                <Text style={{ color: colors.text, fontWeight: '800' }}>
+                  {verifiedAge(state)} <Ionicons name="lock-closed" size={11} color={colors.muted} />
+                </Text>
+              ) : (
+                <TextInput value={age} onChangeText={(t) => setAge(t.replace(/\D/g, '').slice(0, 2))} keyboardType="number-pad" placeholder="--" placeholderTextColor={colors.muted} style={styles.ageInput} />
+              )}
+            </Row>
+            <Text style={styles.note}>
+              {verifiedAge(state) ? 'Vem da data de nascimento do seu cadastro e não pode ser mudada.' : 'Contas antigas sem data de nascimento: informe aqui. O Date é só para maiores de 18.'}
+            </Text>
+          </Card>
+
+          <Text style={styles.howKick}>ÁLBUM DO DATE (ATÉ {ALBUM_MAX} FOTOS)</Text>
+          <View style={styles.albumGrid}>
+            {album.map((x, i) => (
+              <TouchableOpacity key={x.id} style={styles.albumSlot} onPress={() => makeMain(i)} activeOpacity={0.85} accessibilityLabel={i ? 'Tornar principal' : 'Foto principal'}>
+                <Photo uri={x.uri} style={styles.albumImg} fallback="🙂" />
+                {!i ? <Text style={styles.mainTag}>PRINCIPAL</Text> : null}
+                <TouchableOpacity style={styles.albumX} onPress={() => removeAt(i)} hitSlop={6} accessibilityLabel="Tirar do álbum">
+                  <Ionicons name="close" size={13} color="#fff" />
+                </TouchableOpacity>
+              </TouchableOpacity>
+            ))}
+            {album.length < ALBUM_MAX ? (
+              <TouchableOpacity style={[styles.albumSlot, styles.albumAdd]} onPress={addFromPhone} accessibilityLabel="Adicionar foto do celular">
+                <Ionicons name="add" size={30} color={ROSE} />
+                <Text style={{ color: ROSE, fontSize: 10, fontWeight: '700' }}>do celular</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+          {album.length > 1 ? <Text style={styles.note}>Toque numa foto para ela virar a principal.</Text> : null}
+
+          {gallery.length ? (
+            <>
+              <Text style={[styles.howKick, { marginTop: 12 }]}>SUGESTÕES DA SUA GALERIA · TOQUE PARA USAR</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
+                {gallery.map((g) => {
+                  const on = inAlbum(g.uri);
+                  return (
+                    <TouchableOpacity key={g.id} onPress={() => useGallery(g)} style={{ marginRight: 7 }} activeOpacity={0.85}>
+                      <Photo uri={g.uri} style={styles.sugImg} fallback="🖼️" />
+                      <View style={[styles.sugCk, on && { backgroundColor: ROSE }]}>{on ? <Ionicons name="checkmark" size={12} color="#fff" /> : null}</View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </>
+          ) : null}
+          <View style={styles.kidWarn}>
+            <Text style={{ color: '#7A5A1E', fontSize: 12, lineHeight: 17 }}>
+              Nada da sua galeria vai para o Date sem você escolher. <Text style={{ fontWeight: '800' }}>Fotos com crianças não são permitidas no Date</Text>, nem com seus filhos.
+            </Text>
+          </View>
+          {album.length ? <Check on={noKids} onPress={() => setNoKids(!noKids)} text="Confirmo que nenhuma foto do meu álbum do Date mostra crianças." /> : null}
+
+          <Text style={styles.howKick}>PRIVACIDADE</Text>
+          <Card>
+            <Row>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={{ color: colors.text, fontWeight: '700' }}>Mostrar meu perfil da Realys para meus crushes</Text>
+                <Text style={styles.note}>Desligado: ninguém do Date chega ao seu perfil social, nem depois do crush.</Text>
+              </View>
+              <Switch value={showSocial} onValueChange={setShowSocial} trackColor={{ true: ROSE, false: colors.border }} thumbColor="#fff" />
+            </Row>
+          </Card>
+          <View style={styles.shield}>
+            <Text style={{ color: colors.text, fontSize: 12, lineHeight: 17 }}>
+              🛡️ No Date ninguém vê seu sobrenome, seu @ ou seu perfil social, e você não aparece na busca de pessoas por ser do Date.
+            </Text>
+          </View>
+
           <ScoreBar score={score} />
           <Text style={styles.h}>Sobre mim</Text>
           <TextInput
@@ -854,11 +1019,12 @@ function ProfileEditor({ visible, onClose }) {
               </View>
             </View>
           ))}
-          <Button title="Salvar perfil de namoro" onPress={save} style={{ marginTop: 10, backgroundColor: ROSE, borderColor: ROSE }} />
+          <Button title="Salvar meu perfil do Date" onPress={save} style={{ marginTop: 10, backgroundColor: ROSE, borderColor: ROSE }} />
           <Text style={{ color: colors.muted, fontSize: 12, textAlign: 'center', marginTop: 8 }}>
-            Tudo aqui é opcional. Quanto mais completo, mais destaque e mais curtidas.
+            Quanto mais completo, mais destaque e mais curtidas.
           </Text>
         </ScrollView>
+        <PersonModal p={preview ? me : null} preview onClose={() => setPreview(false)} />
       </View>
     </Modal>
   );
@@ -867,7 +1033,7 @@ function ProfileEditor({ visible, onClose }) {
 // Perfil completo de quem cruzou com você.
 // Perfil completo de quem cruzou com você: fotos (arraste para o lado), onde e quando vocês se
 // cruzaram, sobre, estilo de vida e gostos.
-function PersonModal({ p, liked, charmed, matched, onClose, onLike, onPass, onCharm, onChat }) {
+function PersonModal({ p, liked, charmed, matched, preview, onClose, onLike, onPass, onCharm, onChat }) {
   const insets = useSafeAreaInsets();
   const [page, setPage] = useState(0);
   useEffect(() => setPage(0), [p && p.id]);
@@ -900,7 +1066,8 @@ function PersonModal({ p, liked, charmed, matched, onClose, onLike, onPass, onCh
         </View>
         <View style={{ padding: 16 }}>
           <Text style={{ color: colors.text, fontSize: 24, fontWeight: '800' }}>
-            {p.name}, {p.age} <Ionicons name="shield-checkmark" size={18} color={colors.primary} />
+            {p.name}
+            {p.age ? `, ${p.age}` : ''} <Ionicons name="shield-checkmark" size={18} color={colors.primary} />
           </Text>
           {p.job ? <Text style={{ color: colors.muted, marginTop: 2 }}>{p.job}</Text> : null}
           <Text style={{ color: ROSE, fontWeight: '700', fontSize: 12, marginTop: 4 }}>
@@ -955,7 +1122,15 @@ function PersonModal({ p, liked, charmed, matched, onClose, onLike, onPass, onCh
             </>
           ) : null}
 
-          {matched ? (
+          {preview ? (
+            <View style={[styles.shield, { marginTop: 16 }]}>
+              <Text style={{ color: colors.text, fontSize: 12, lineHeight: 18 }}>
+                Escondido no Date: <Text style={{ color: ROSE, fontWeight: '800' }}>sobrenome</Text>, <Text style={{ color: ROSE, fontWeight: '800' }}>@ do perfil</Text>,{' '}
+                <Text style={{ color: ROSE, fontWeight: '800' }}>amigos</Text>, <Text style={{ color: ROSE, fontWeight: '800' }}>publicações</Text> e{' '}
+                <Text style={{ color: ROSE, fontWeight: '800' }}>fotos que você não escolheu</Text>.
+              </Text>
+            </View>
+          ) : matched ? (
             <Button title={`Conversar com ${p.name}`} onPress={onChat} style={{ marginTop: 16, backgroundColor: ROSE, borderColor: ROSE }} />
           ) : liked ? (
             <View style={[styles.likedRow, { justifyContent: 'center', marginTop: 16 }]}>
@@ -1052,6 +1227,19 @@ function Check({ on, onPress, text }) {
 }
 
 const styles = StyleSheet.create({
+  previewBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF0F4', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 6 },
+  note: { color: colors.muted, fontSize: 11, marginTop: 3, lineHeight: 15 },
+  ageInput: { minWidth: 56, textAlign: 'center', borderWidth: 1.5, borderColor: ROSE, borderRadius: 10, paddingVertical: 4, color: colors.text, fontWeight: '800', fontSize: 15 },
+  albumGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  albumSlot: { width: '31.5%', height: 118, borderRadius: 14, overflow: 'hidden', marginBottom: 7 },
+  albumImg: { width: '100%', height: '100%' },
+  albumAdd: { borderWidth: 2, borderStyle: 'dashed', borderColor: '#F2B8C8', backgroundColor: '#FFF7F9', alignItems: 'center', justifyContent: 'center' },
+  mainTag: { position: 'absolute', left: 6, bottom: 6, backgroundColor: ROSE, color: '#fff', fontSize: 9, fontWeight: '900', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, overflow: 'hidden' },
+  albumX: { position: 'absolute', right: 5, top: 5, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
+  sugImg: { width: 72, height: 72, borderRadius: 12 },
+  sugCk: { position: 'absolute', right: 4, top: 4, width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#fff', backgroundColor: 'rgba(0,0,0,0.25)', alignItems: 'center', justifyContent: 'center' },
+  kidWarn: { backgroundColor: '#FFF6DE', borderRadius: 12, padding: 10, marginTop: 10 },
+  shield: { backgroundColor: '#EEF6EF', borderRadius: 12, padding: 10, marginTop: 10, marginBottom: 6 },
   show: { height: 318, borderRadius: 28, overflow: 'hidden', backgroundColor: ROSE, marginBottom: 4 },
   glow: { position: 'absolute', borderRadius: 200, opacity: 0.55 },
   bubble: { position: 'absolute', borderWidth: 3, borderColor: 'rgba(255,255,255,0.85)' },

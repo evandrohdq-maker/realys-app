@@ -123,7 +123,7 @@ export function userFromAccount(acc) {
   if (acc.kind === 'empresa') {
     return { id: acc.id, name: acc.name, username: acc.username, roles: ['empresa', 'fornecedor', 'cliente'], cnpj: formatCnpj(acc.doc) };
   }
-  return { id: acc.id, name: acc.name, username: acc.username, roles: ['cliente', 'prestador'], cpf: formatCpf(acc.doc), cnpj: '12.345.678/0001-90', social: acc.social || null, about: acc.about || '', work: acc.work || '' };
+  return { id: acc.id, name: acc.name, username: acc.username, roles: ['cliente', 'prestador'], cpf: formatCpf(acc.doc), cnpj: '12.345.678/0001-90', social: acc.social || null, about: acc.about || '', work: acc.work || '', birth: acc.birth || null };
 }
 
 // Acha a conta pelo que a pessoa digitou: usuário, CPF ou CNPJ.
@@ -141,7 +141,21 @@ export async function checkPassword(acc, password) {
 }
 
 // Cria a conta. Devolve { account } ou { error }.
-export async function createAccount({ kind, name, doc, username, email, phone, password, social = null, about = '', work = '' }) {
+// O Realys é só para maiores de 18 anos. Idade a partir de "DD/MM/AAAA" (null se a data for inválida).
+export function ageFromBirth(birth) {
+  const m = String(birth || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return null;
+  const [d, mo, y] = [+m[1], +m[2], +m[3]];
+  const date = new Date(y, mo - 1, d);
+  if (date.getFullYear() !== y || date.getMonth() !== mo - 1 || date.getDate() !== d) return null;
+  const now = new Date();
+  let age = now.getFullYear() - y;
+  if (now.getMonth() < mo - 1 || (now.getMonth() === mo - 1 && now.getDate() < d)) age -= 1;
+  return age >= 0 && age < 130 ? age : null;
+}
+
+export async function createAccount({ kind, name, doc, username, email, phone, password, social = null, about = '', work = '', birth = null }) {
+  if (kind !== 'empresa' && !(ageFromBirth(birth) >= 18)) return { error: 'O Realys é só para maiores de 18 anos.' };
   const list = await loadAccounts();
   const d = onlyDigits(doc);
   const u = cleanUsername(username);
@@ -163,6 +177,7 @@ export async function createAccount({ kind, name, doc, username, email, phone, p
     social, // perfil social: { cls, sub, extra } (ex.: Gamer · Streamer)
     about: about.trim(),
     work: work.trim(),
+    birth: kind === 'empresa' ? null : birth, // DD/MM/AAAA (na versão final, conferida no documento)
     createdAt: new Date().toISOString(),
   };
   await saveAccounts([...list, account]);

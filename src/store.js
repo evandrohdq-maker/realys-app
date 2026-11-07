@@ -125,6 +125,12 @@ const initialState = {
     charmsUsed: 0,
     ageMin: 18, // faixa de idade de quem aparece
     ageMax: 60,
+    // Perfil do Date: só o primeiro nome (do cadastro verificado), álbum próprio escolhido pela
+    // pessoa (nada da galeria vai sozinho) e, por padrão, o perfil social escondido dos crushes.
+    album: [], // [{ id, uri }]; a primeira é a principal
+    age: null, // na versão final vem da verificação do documento
+    noKids: false, // confirmou que nenhuma foto do álbum mostra crianças
+    showSocial: false, // mostrar o perfil da Realys para os crushes
   },
   orders: D.initialOrders,
   rideRequests: D.rideRequests,
