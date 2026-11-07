@@ -152,6 +152,7 @@ const initialState = {
   myLive: null, // { id, cat, hostType, hostId, host, title, viewers, mine: true }
   watchLive: null,
   viewProvider: null, // perfil de prestador aberto por cima de qualquer tela
+  previewProvider: null, // prévia do perfil de trabalho aberta pela pesquisa (só para analisar)
   liked: {},
   reports: D.reports,
   signups: D.pendingSignups,
@@ -683,6 +684,10 @@ function baseReducer(state, a) {
       return { ...state, viewProvider: a.id, watchLive: null };
     case 'CLOSE_PROVIDER':
       return { ...state, viewProvider: null };
+    case 'PREVIEW_PROVIDER':
+      return { ...state, previewProvider: a.id };
+    case 'CLOSE_PREVIEW_PROVIDER':
+      return { ...state, previewProvider: null };
     case 'BUY_TICKET':
       return { ...state, wallet: +(state.wallet - a.ticket.price).toFixed(2), tickets: [a.ticket, ...state.tickets] };
     // Compra, assinatura ou inscrição feita nas abas Tecnologia e Agro: vira um pedido.

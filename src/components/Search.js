@@ -81,6 +81,7 @@ export function GlobalResults({ query, navigate, title = 'Encontrado no Realys',
   const open = (r) => {
     if (r.profileId) return dispatch({ type: 'OPEN_PROFILE', id: r.profileId });
     if (r.companyId) return dispatch({ type: 'OPEN_COMPANY', id: r.companyId });
+    if (r.providerId) return dispatch({ type: 'PREVIEW_PROVIDER', id: r.providerId });
     if (r.go && navigate) navigate(r.go);
   };
   const priceOf = (r) => r.price || (r.priceValue != null ? `R$ ${r.priceValue.toFixed(2).replace('.', ',')}${r.priceUnit ? ' por ' + r.priceUnit : ''}` : '');

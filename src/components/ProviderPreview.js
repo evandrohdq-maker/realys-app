@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, Animated, Easing, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, brl, soft } from '../theme';
 import { serviceType, priceText } from '../store';
@@ -7,9 +7,10 @@ import { Photo } from './ui';
 import { reviewsCount, jobsDone, kmText, ratingText, sampleReviews, etaMin } from '../providerInfo';
 import { isVisitService, visitFee } from '../serviceVisits';
 
-// Prévia do perfil de TRABALHO do prestador, aberta ao tocar num resultado da Lotus.
-// Só mostra dados: não tem mensagem, telefone nem orçamento. O único contato é
-// "Chamar pela Lotus", que passa pela plataforma (e é taxado).
+// Prévia do perfil de TRABALHO do prestador, aberta ao tocar num resultado da Lotus
+// ou da pesquisa. Só mostra dados: não tem mensagem, telefone nem orçamento.
+// Na Lotus, o único contato é "Chamar pela Lotus" (passa pela plataforma e é taxado).
+// Na pesquisa (sem onCall), é só para analisar: nenhum botão de contato.
 export default function ProviderPreview({ provider: p, onClose, onCall }) {
   const anim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -26,7 +27,7 @@ export default function ProviderPreview({ provider: p, onClose, onCall }) {
 
   return (
     <View style={StyleSheet.absoluteFill}>
-      <Pressable style={styles.dim} onPress={onClose} accessibilityLabel="Fechar prévia" />
+      <Pressable style={[styles.dim, !onCall && styles.dimFull]} onPress={onClose} accessibilityLabel="Fechar prévia" />
       <Animated.View style={[styles.card, { opacity: anim, transform: [{ translateY }] }]}>
         <View style={styles.headRow}>
           <Text style={styles.tag}>PRÉVIA DO PERFIL DE TRABALHO</Text>
@@ -97,16 +98,35 @@ export default function ProviderPreview({ provider: p, onClose, onCall }) {
 
           <View style={styles.notice}>
             <Ionicons name="lock-closed-outline" size={12} color={colors.muted} />
-            <Text style={styles.noticeTxt}>O contato com o prestador é feito pela Lotus, dentro do Realys.</Text>
+            <Text style={styles.noticeTxt}>
+              {onCall ? 'O contato com o prestador é feito pela Lotus, dentro do Realys.' : 'Prévia só para analisar. Para contratar, volte à lista ou peça pela Lotus.'}
+            </Text>
           </View>
         </ScrollView>
 
-        <TouchableOpacity style={styles.callBtn} onPress={() => onCall(p)} accessibilityLabel={`Chamar ${p.name} pela Lotus`}>
-          <Ionicons name="sparkles" size={15} color={colors.onPrimary} />
-          <Text style={styles.callTxt}>Chamar {p.name.split(' ')[0]} pela Lotus</Text>
-        </TouchableOpacity>
+        {onCall ? (
+          <TouchableOpacity style={styles.callBtn} onPress={() => onCall(p)} accessibilityLabel={`Chamar ${p.name} pela Lotus`}>
+            <Ionicons name="sparkles" size={15} color={colors.onPrimary} />
+            <Text style={styles.callTxt}>Chamar {p.name.split(' ')[0]} pela Lotus</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.backBtn} onPress={onClose} accessibilityLabel="Voltar aos resultados">
+            <Ionicons name="arrow-back" size={15} color={colors.text} />
+            <Text style={styles.backTxt}>Voltar aos resultados</Text>
+          </TouchableOpacity>
+        )}
       </Animated.View>
     </View>
+  );
+}
+
+// Versão para usar fora da Lotus (pesquisa, lista de serviços): abre por cima da tela,
+// e o botão voltar do celular fecha só a prévia.
+export function ProviderPreviewModal({ provider, onClose }) {
+  return (
+    <Modal visible={!!provider} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
+      <ProviderPreview provider={provider} onClose={onClose} />
+    </Modal>
   );
 }
 
@@ -121,6 +141,7 @@ function Stat({ value, label, color = colors.text }) {
 
 const styles = StyleSheet.create({
   dim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(16,22,40,0.28)', borderTopLeftRadius: 30, borderTopRightRadius: 30 },
+  dimFull: { borderTopLeftRadius: 0, borderTopRightRadius: 0, backgroundColor: 'rgba(16,22,40,0.4)' },
   card: {
     position: 'absolute',
     left: 12,
@@ -161,4 +182,6 @@ const styles = StyleSheet.create({
   noticeTxt: { color: colors.muted, fontSize: 11, marginLeft: 5, flex: 1 },
   callBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 12, backgroundColor: colors.primary, borderRadius: 16, paddingVertical: 12 },
   callTxt: { color: colors.onPrimary, fontWeight: '700', marginLeft: 6 },
+  backBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 12, backgroundColor: colors.bg, borderRadius: 16, paddingVertical: 12 },
+  backTxt: { color: colors.text, fontWeight: '700', marginLeft: 6 },
 });

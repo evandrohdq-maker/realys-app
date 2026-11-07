@@ -224,7 +224,7 @@ function buildIndex(state) {
   (state.providers || []).forEach((p) => {
     const t = serviceTypes.find((x) => x.key === p.service) || {};
     add(
-      { id: 'v-' + p.id, section: t.label || 'Serviço', icon: t.icon || '🧑', title: p.name, subtitle: `${p.functions.slice(0, 2).join(', ')} · ${p.distanceKm.toFixed(1).replace('.', ',')} km`, priceValue: p.price, priceUnit: p.priceUnit, where: `a ${p.distanceKm.toFixed(1).replace('.', ',')} km`, photo: p.photo, go: { tab: 'servicos', service: p.service } },
+      { id: 'v-' + p.id, section: t.label || 'Serviço', icon: t.icon || '🧑', title: p.name, subtitle: `${p.functions.slice(0, 2).join(', ')} · ${p.distanceKm.toFixed(1).replace('.', ',')} km`, priceValue: p.price, priceUnit: p.priceUnit, where: `a ${p.distanceKm.toFixed(1).replace('.', ',')} km`, photo: p.photo, providerId: p.id, go: { tab: 'servicos', service: p.service } },
       p.name, t.label, t.group, p.functions.join(' '), (t.words || []).join(' '), 'servico prestador'
     );
   });

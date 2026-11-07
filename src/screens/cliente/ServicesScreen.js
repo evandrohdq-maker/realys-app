@@ -8,6 +8,7 @@ import { colors, brl, soft } from '../../theme';
 import { Screen, Card, Row, Photo, Badge } from '../../components/ui';
 import { etaMin, mapPos, kmText, ratingText, reviewsCount } from '../../providerInfo';
 import ProviderProfile from './ProviderProfile';
+import { ProviderPreviewModal } from '../../components/ProviderPreview';
 import TrackingScreen from './TrackingScreen';
 import { speakSoft } from '../../voice';
 import { isVisitService, rankProviders, providerStats, isNewProvider, visitFee, visitDiscount } from '../../serviceVisits';
@@ -71,6 +72,7 @@ export default function ServicesScreen({ explore, navigate }) {
   const [visitFor, setVisitFor] = useState(null); // prestador para quem o cliente está pedindo visita
   const [selId, setSelId] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [preview, setPreview] = useState(null); // prévia só para analisar (sem mensagem nem chamar)
   const [tracking, setTracking] = useState(null);
   const [q, setQ] = useState('');
   const [searched, setSearched] = useState('');
@@ -154,7 +156,10 @@ export default function ServicesScreen({ explore, navigate }) {
       <TouchableOpacity
         key={(isSponsored ? 'sp-' : '') + p.id}
         activeOpacity={0.92}
-        onPress={() => setSelId(p.id)}
+        onPress={() => {
+          setSelId(p.id);
+          setPreview(p);
+        }}
         style={[styles.pCard, on && styles.pCardOn, isSponsored && styles.pCardSponsored]}
       >
         <Row style={{ alignItems: 'flex-start' }}>
@@ -209,7 +214,7 @@ export default function ServicesScreen({ explore, navigate }) {
             </Text>
           </TouchableOpacity>
           <IconBtn icon="document-text-outline" label={`Pedir orçamento a ${p.name}`} onPress={() => quote(p)} />
-          <IconBtn icon="person-outline" label={`Ver perfil de ${p.name}`} onPress={() => setProfile(p)} />
+          <IconBtn icon="person-outline" label={`Ver prévia do perfil de ${p.name}`} onPress={() => setPreview(p)} />
         </View>
       </TouchableOpacity>
     );
@@ -450,6 +455,7 @@ export default function ServicesScreen({ explore, navigate }) {
       </View>
 
       <ProviderProfile provider={profile} visible={!!profile} onClose={() => setProfile(null)} onHire={hire} onQuote={quote} onMessage={message} />
+      <ProviderPreviewModal provider={preview} onClose={() => setPreview(null)} />
       <VisitRequestSheet provider={visitFor} visible={!!visitFor} onClose={() => setVisitFor(null)} address={address} />
       <TrackingScreen call={tracking} visible={!!tracking} onClose={() => setTracking(null)} onOpenProfile={(p) => setProfile(p)} />
     </Screen>

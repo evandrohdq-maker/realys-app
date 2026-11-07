@@ -43,6 +43,7 @@ import RateSheet, { LoyaltyNotifier } from './src/components/RateSheet';
 import VenueSheet, { VenuePill } from './src/components/VenueSheet';
 import { GlobalLive } from './src/components/LiveBits';
 import ProviderProfile from './src/screens/cliente/ProviderProfile';
+import { ProviderPreviewModal } from './src/components/ProviderPreview';
 import TransitScreen from './src/screens/cliente/TransitScreen';
 import SosScreen from './src/screens/cliente/SosScreen';
 import ArtistsScreen from './src/screens/cliente/ArtistsScreen';
@@ -401,6 +402,11 @@ function Shell() {
           onMessage={(p) => Alert.alert('Mensagem', `Conversa com ${p.name.split(' ')[0]} aberta no chat do Realys.`)}
         />
       ) : null}
+      {/* Prévia do prestador tocado na pesquisa: só para analisar, sem mensagem nem chamar */}
+      <ProviderPreviewModal
+        provider={state.previewProvider ? state.providers.find((x) => x.id === state.previewProvider) : null}
+        onClose={() => dispatch({ type: 'CLOSE_PREVIEW_PROVIDER' })}
+      />
       <CategoryMenu
         visible={menu}
         onClose={() => setMenu(false)}
