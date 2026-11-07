@@ -154,7 +154,7 @@ export default function GiftSheet() {
               <Row label="Quem recebe ganha" value={brl(net)} strong />
               {value > 0 ? (
                 <Text style={[styles.note, { color: colors.primary, fontWeight: '700' }]}>
-                  🏆 Você ganha +{giftPoints(value, state.gifts.filter((g) => g.dir === 'enviado').length).total} pontos Realys (troque por boosts e anúncios)
+                  🏆 Você ganha +{giftPoints(value, state.gifts.filter((g) => g.dir === 'enviado').length).total} pontos Realys (25% do valor, para boosts e anúncios)
                 </Text>
               ) : null}
               <Text style={styles.note}>

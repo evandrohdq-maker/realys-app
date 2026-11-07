@@ -24,7 +24,9 @@ export const STAMP_BACK_PCT = 10;
 export const STAMP_CAP = 30;
 export const ORDERS_FOR_BONUS = 20;
 export const BONUS = { pct: 15, cap: 25, minOrder: 30, days: 90 };
-export const POINTS_PER_REAIS = 10; // 1 ponto a cada R$ 10
+// Pontos por compra: 25% da taxa do Realys sobre o pedido (10%) = 2,5% da compra,
+// ou seja, 2,5 pontos por real (100 pontos = R$ 1 em boosts e anúncios).
+export const POINTS_PER_REAL_BUY = 2.5;
 
 export const LEVELS = [
   { key: 'bronze', label: 'Bronze', min: 0, mult: 1, icon: '🥉' },
@@ -41,7 +43,7 @@ export const initialLoyalty = { orders: 17, spent: 812.4, stamps: { e2: { count:
 export const LOYALTY_RULES = [
   { icon: 'ribbon-outline', title: `Selo por loja: ${STAMPS_FOR_REWARD} pedidos = ${STAMP_BACK_PCT}% de volta`, text: `Cada pedido entregue vale 1 selo naquela loja. Com ${STAMPS_FOR_REWARD} selos o cliente ganha ${STAMP_BACK_PCT}% do que gastou nesses pedidos (até R$ ${STAMP_CAP}) para usar na mesma loja. Pago pela loja · validade 12 meses. Igual ao "compre 10, ganhe 1" das pizzarias.` },
   { icon: 'gift-outline', title: `A cada ${ORDERS_FOR_BONUS} pedidos: ${BONUS.pct}% no próximo`, text: `Em qualquer empresa do Realys. Cupom de ${BONUS.pct}% (até R$ ${BONUS.cap}, pedido mínimo de R$ ${BONUS.minOrder}) para o próximo pedido em qualquer parceiro. Pago pelo Realys · ${BONUS.days} dias · 1 uso. Na linha do Clube iFood (25% até R$ 10).` },
-  { icon: 'trophy-outline', title: `Pontos: 1 a cada R$ ${POINTS_PER_REAIS} + avaliações`, text: '100 pontos = R$ 10 em créditos de parceiros (cerca de 1% de volta, abaixo da média de 5% do cashback de mercado). Nível Prata, Ouro e Diamante dá 10%, 25% e 50% a mais de pontos.' },
+  { icon: 'trophy-outline', title: `Pontos: ${POINTS_PER_REAL_BUY} por real + avaliações`, text: '100 pontos = R$ 1 em boosts e anúncios do Realys (2,5% de volta em pontos, que não viram dinheiro). Nível Prata, Ouro e Diamante dá 10%, 25% e 50% a mais de pontos.' },
   { icon: 'calculator-outline', title: 'Teto de ~3% do gasto do cliente', text: 'Selos (~1% para quem completa) + bônus de 20 pedidos (≤ R$ 25 a cada 20, ≈ 2,5% num ticket de R$ 50) + pontos (~1%) ficam perto de 3%. O brinde de cada pedido tem que custar menos que a margem que ele deixa.' },
 ];
 
@@ -74,7 +76,7 @@ export function onDelivered(state, order) {
     notes.push(`Parabéns: ${loyalty.orders} pedidos! Você ganhou ${BONUS.pct}% de desconto no próximo pedido em qualquer parceiro.`);
   }
   const lvl = levelOf(loyalty.orders);
-  const points = Math.floor((Math.floor(order.total / POINTS_PER_REAIS) || 0) * lvl.mult);
+  const points = Math.floor((order.total || 0) * POINTS_PER_REAL_BUY * lvl.mult);
   const before = levelOf(base.orders);
   if (lvl.key !== before.key) notes.push(`Você subiu para o nível ${lvl.label} ${lvl.icon}: ganha ${Math.round((lvl.mult - 1) * 100)}% a mais de pontos.`);
   return { loyalty, credits, points, notes };

@@ -9,14 +9,21 @@
 export const POINTS_PER_RATING = 10;
 export const POINTS_COMMENT_BONUS = 5;
 
-// Quem manda presentes ganha pontos a cada presente: 1 ponto por real enviado (mínimo 1)
-// e, a cada GIFT_STREAK_EVERY presentes enviados, um bônus de repetição.
-// Os pontos só valem em serviços do Realys (boosts e anúncios), então não saem do caixa.
-export const GIFT_POINTS_PER_REAL = 1;
+// ───────── Equivalência dos pontos (a plataforma nunca empata) ─────────
+// 1 ponto vale R$ 0,01 em serviços do Realys (100 pontos = R$ 1). Boosts e anúncios custam em
+// pontos exatamente o que custam em reais. Mas quem gasta ganha de volta só EARN_PCT% do valor
+// em pontos: gastou R$ 100, ganha 2.500 pontos = R$ 25 em boosts e anúncios.
+export const POINT_VALUE = 0.01;
+export const EARN_PCT = 25;
+export const pointsFromSpend = (amount) => Math.max(0, Math.floor((amount * EARN_PCT) / 100 / POINT_VALUE));
+export const pointsToReais = (pts) => +(pts * POINT_VALUE).toFixed(2);
+
+// Quem manda presentes ganha 25% do valor em pontos a cada presente e, a cada
+// GIFT_STREAK_EVERY presentes enviados, um bônus pequeno de repetição.
 export const GIFT_STREAK_EVERY = 10;
-export const GIFT_STREAK_BONUS = 50;
+export const GIFT_STREAK_BONUS = 50; // = R$ 0,50 em serviços
 export function giftPoints(amount, sentBefore) {
-  const base = Math.max(1, Math.floor(amount * GIFT_POINTS_PER_REAL));
+  const base = Math.max(1, pointsFromSpend(amount));
   const bonus = (sentBefore + 1) % GIFT_STREAK_EVERY === 0 ? GIFT_STREAK_BONUS : 0;
   return { base, bonus, total: base + bonus };
 }
@@ -46,6 +53,10 @@ export const POINT_SHOP = [
   { id: 'ba1', target: 'anuncio', icon: '📺', title: 'Anúncio de 30 s · horário padrão', desc: 'Entre os clipes do Shop e do Food, horário comercial', hours: 24, points: 1000, money: 19.9 },
   { id: 'ba2', target: 'anuncio', icon: '🌟', title: 'Anúncio de 30 s · horário nobre', desc: 'Das 18h às 22h, quando mais gente está no app', hours: 24, points: 2500, money: 49.9 },
 ];
+// Preço em pontos = preço em reais convertido (sem desconto): 1 anúncio de R$ 19,90 = 1.990 pontos.
+POINT_SHOP.forEach((o) => {
+  o.points = Math.round(o.money / POINT_VALUE);
+});
 export const BOOST_TARGETS = {
   prestador: 'Prestador de serviço',
   date: 'Date',
