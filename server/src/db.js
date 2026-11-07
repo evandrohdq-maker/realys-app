@@ -306,6 +306,19 @@ const MIGRATIONS = [
   ALTER TABLE products ADD COLUMN secao TEXT CHECK (secao IN ('mercearia','hortifruti','acougue','frios','padaria','congelados','limpeza','bebidas','outros'));
   CREATE INDEX products_secao ON products(secao);
   `,
+  // 4: verificação facial em cada serviço (aceite, finalização) e a cada 2 h para quem roda em transporte
+  `
+  ALTER TABLE biometria ADD COLUMN last_verified_at INTEGER;
+  CREATE TABLE biometria_checks (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    purpose TEXT NOT NULL CHECK (purpose IN ('aceite','finalizacao','periodica')),
+    call_id TEXT,
+    created_at INTEGER NOT NULL,
+    used_at INTEGER              -- cada verificação vale uma vez só
+  );
+  CREATE INDEX biometria_checks_user ON biometria_checks(user_id, purpose, created_at);
+  `,
 ];
 
 export function openDb(file) {

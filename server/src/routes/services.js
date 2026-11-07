@@ -14,7 +14,7 @@ export function distanceKm(lat1, lng1, lat2, lng2) {
   return 6371 * 2 * Math.asin(Math.sqrt(a));
 }
 
-export default function servicesRoutes(r, { db, wallet, hub, userById }) {
+export default function servicesRoutes(r, { db, wallet, hub, userById, biometria }) {
   const providerView = (p, from) => {
     const u = userById(p.user_id);
     const km = from && p.lat != null ? distanceKm(from.lat, from.lng, p.lat, p.lng) : null;
@@ -52,7 +52,13 @@ export default function servicesRoutes(r, { db, wallet, hub, userById }) {
     if (!p) fail(404, 'Cadastre-se como prestador primeiro.');
     const lat = coord(body.lat, 'latitude');
     const lng = coord(body.lng, 'longitude');
-    db.prepare('UPDATE providers SET lat = ?, lng = ?, available = ?, updated_at = ? WHERE user_id = ?').run(lat, lng, body.available === false ? 0 : 1, now(), user.id);
+    const going = body.available !== false;
+    // Entregador e motorista: sem verificação facial nas últimas 2 h, não ficam disponíveis.
+    if (going && TRANSPORT.includes(p.service) && !biometria.periodicOk(user.id)) {
+      db.prepare('UPDATE providers SET available = 0, updated_at = ? WHERE user_id = ?').run(now(), user.id);
+      fail(403, 'Confirme seu rosto para continuar disponível. Isso é feito a cada 2 horas.', 'verificacao_periodica');
+    }
+    db.prepare('UPDATE providers SET lat = ?, lng = ?, available = ?, updated_at = ? WHERE user_id = ?').run(lat, lng, going ? 1 : 0, now(), user.id);
     for (const c of db.prepare(`SELECT id, client_id FROM service_calls WHERE provider_id = ? AND status IN ('Aceito','A caminho')`).all(user.id)) {
       hub.send(c.client_id, 'tracking', { callId: c.id, lat, lng });
     }
@@ -104,6 +110,9 @@ export default function servicesRoutes(r, { db, wallet, hub, userById }) {
     if (!CALL_STATUS.includes(body.status)) fail(400, 'Status inválido.');
     if (['Concluído', 'Recusado', 'Cancelado'].includes(c.status)) fail(409, `Este chamado já está ${c.status.toLowerCase()}.`);
     if (c.client_id === user.id && body.status !== 'Cancelado') fail(403, 'Só o prestador muda esse status.');
+    // Verificação facial: o prestador confirma o rosto para aceitar e para finalizar cada serviço.
+    if (c.provider_id === user.id && c.status === 'Solicitado' && body.status === 'Aceito') biometria.consume(user.id, 'aceite', c.id);
+    if (c.provider_id === user.id && body.status === 'Concluído') biometria.consume(user.id, 'finalizacao', c.id);
     db.prepare('UPDATE service_calls SET status = ?, updated_at = ? WHERE id = ?').run(body.status, now(), c.id);
     const call = callView(db.prepare('SELECT * FROM service_calls WHERE id = ?').get(c.id));
     hub.send(user.id === c.client_id ? c.provider_id : c.client_id, 'call', call);

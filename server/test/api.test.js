@@ -173,6 +173,8 @@ test('social: amizade, depoimento aceito, mensagens com aviso em tempo real', as
 
 test('prestadores: GPS, mais próximos, chamado, pagamento e avaliação', async () => {
   await ok('PUT', '/providers/me', { who: 'beto', body: { service: 'motorista', functions: ['Corridas na cidade', 'Aeroporto'], price: 8, priceUnit: 'corrida', vehicle: 'Onix prata' } });
+  // Verificação facial (sem serviço de IA nos testes): cadastro aprovado e verificação recente.
+  app.db.prepare(`INSERT INTO biometria (id, user_id, status, updated_at, last_verified_at) VALUES ('bio_beto', ?, 'aprovado', ?, ?)`).run(S.beto.id, Date.now(), Date.now());
   await ok('POST', '/providers/me/location', { who: 'beto', body: { lat: -23.5505, lng: -46.6333 } });
   const near = await ok('GET', '/providers/nearby?service=motorista&lat=-23.56&lng=-46.64', { who: 'ana' });
   assert.equal(near[0].name, 'Beto Motorista');
@@ -181,7 +183,11 @@ test('prestadores: GPS, mais próximos, chamado, pagamento e avaliação', async
 
   const call = await ok('POST', '/calls', { who: 'ana', body: { providerId: S.beto.id, address: 'Rua Augusta, 1200' } });
   assert.equal((await api('PATCH', `/calls/${call.id}`, { who: 'ana', body: { status: 'Concluído' } })).status, 403);
+  assert.equal((await api('PATCH', `/calls/${call.id}`, { who: 'beto', body: { status: 'Aceito' } })).status, 403); // sem verificação do aceite
+  app.db.prepare(`INSERT INTO biometria_checks (id, user_id, purpose, call_id, created_at) VALUES ('ck_aceite', ?, 'aceite', ?, ?)`).run(S.beto.id, call.id, Date.now());
   await ok('PATCH', `/calls/${call.id}`, { who: 'beto', body: { status: 'Aceito' } });
+  assert.equal((await api('PATCH', `/calls/${call.id}`, { who: 'beto', body: { status: 'Concluído' } })).status, 403); // sem verificação da finalização
+  app.db.prepare(`INSERT INTO biometria_checks (id, user_id, purpose, call_id, created_at) VALUES ('ck_final', ?, 'finalizacao', ?, ?)`).run(S.beto.id, call.id, Date.now());
   await ok('PATCH', `/calls/${call.id}`, { who: 'beto', body: { status: 'Concluído' } });
   const before = (await ok('GET', '/wallet', { who: 'beto' })).balance;
   await ok('POST', `/calls/${call.id}/pay`, { who: 'ana', body: { amount: 18 } });

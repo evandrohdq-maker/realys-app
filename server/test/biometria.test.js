@@ -187,3 +187,61 @@ test('produtos do mercado: seção validada, filtrada e editável', async () => 
   assert.ok(list.data.some((p) => p.id === id));
   assert.ok(!(await api('GET', '/products?secao=hortifruti')).data.some((p) => p.id === id));
 });
+
+test('verificação do dia a dia: aceite, finalização e checagem a cada 2 h para quem roda em transporte', async () => {
+  // Motorista aprovado e sem verificação recente: não fica disponível.
+  await person('moto', '000.000.001-91', 'motorista');
+  await api('PUT', '/providers/me', { who: 'moto', body: { service: 'motorista', functions: ['Corridas'], price: 8, priceUnit: 'corrida' } });
+  const cadastro = await api('POST', '/biometria/consentimento', { who: 'moto', body: { version: CONSENT_VERSION } });
+  assert.equal(cadastro.status, 200);
+  const selfie = await upload('moto', 'ROSTO-A selfie');
+  const doc = await upload('moto', 'ROSTO-A documento');
+  assert.equal((await api('POST', '/biometria/envio', { who: 'moto', body: { selfie, doc } })).data.status, 'aprovado');
+
+  const sem = await api('POST', '/providers/me/location', { who: 'moto', body: { lat: -23.55, lng: -46.63 } });
+  assert.equal(sem.status, 403);
+  assert.equal(sem.data.code, 'verificacao_periodica');
+
+  // Verificação com a foto de quem é o cadastro: libera.
+  const v = await api('POST', '/biometria/verificar?purpose=periodica', { who: 'moto', raw: Buffer.from('ROSTO-A agora'), type: 'image/jpeg' });
+  assert.equal(v.status, 200, JSON.stringify(v.data));
+  assert.equal((await api('POST', '/providers/me/location', { who: 'moto', body: { lat: -23.55, lng: -46.63 } })).status, 200);
+
+  // Foto de outra pessoa: recusada, e nenhuma verificação é criada.
+  const outro = await api('POST', '/biometria/verificar?purpose=aceite&callId=x', { who: 'moto', raw: Buffer.from('ROSTO-B'), type: 'image/jpeg' });
+  assert.equal(outro.status, 403);
+  assert.equal(outro.data.code, 'rosto_nao_confere');
+
+  // Foto impressa: recusada pela prova de vida.
+  const impressa = await api('POST', '/biometria/verificar?purpose=periodica', { who: 'moto', raw: Buffer.from('ROSTO-A FOTO-IMPRESSA'), type: 'image/jpeg' });
+  assert.equal(impressa.status, 403);
+
+  // Verificação vencida (mais de 2 h): fica indisponível de novo.
+  app.db.prepare('UPDATE biometria SET last_verified_at = ? WHERE user_id = ?').run(Date.now() - 3 * 3600000, S.moto.id);
+  const vencida = await api('POST', '/providers/me/location', { who: 'moto', body: { lat: -23.55, lng: -46.63 } });
+  assert.equal(vencida.data.code, 'verificacao_periodica');
+  assert.equal(app.db.prepare('SELECT available FROM providers WHERE user_id = ?').get(S.moto.id).available, 0);
+
+  // Aceite: uma verificação vale uma vez só e só para o chamado indicado.
+  await api('POST', '/biometria/verificar?purpose=periodica', { who: 'moto', raw: Buffer.from('ROSTO-A'), type: 'image/jpeg' });
+  await api('POST', '/providers/me/location', { who: 'moto', body: { lat: -23.55, lng: -46.63 } });
+  await person('cli', '222.333.444-05', 'cliente');
+  const chamado = await api('POST', '/calls', { who: 'cli', body: { providerId: S.moto.id, address: 'Av. Paulista, 1000' } });
+  assert.equal(chamado.status, 201, JSON.stringify(chamado.data));
+  const semAceite = await api('PATCH', `/calls/${chamado.data.id}`, { who: 'moto', body: { status: 'Aceito' } });
+  assert.equal(semAceite.status, 403);
+  assert.equal(semAceite.data.code, 'verificacao_facial');
+  const va = await api('POST', `/biometria/verificar?purpose=aceite&callId=${chamado.data.id}`, { who: 'moto', raw: Buffer.from('ROSTO-A'), type: 'image/jpeg' });
+  assert.equal(va.status, 200);
+  assert.equal((await api('PATCH', `/calls/${chamado.data.id}`, { who: 'moto', body: { status: 'Aceito' } })).status, 200);
+  assert.equal((await api('PATCH', `/calls/${chamado.data.id}`, { who: 'moto', body: { status: 'Concluído' } })).status, 403); // finalização exige a sua verificação
+  await api('POST', `/biometria/verificar?purpose=finalizacao&callId=${chamado.data.id}`, { who: 'moto', raw: Buffer.from('ROSTO-A'), type: 'image/jpeg' });
+  assert.equal((await api('PATCH', `/calls/${chamado.data.id}`, { who: 'moto', body: { status: 'Concluído' } })).status, 200);
+});
+
+test('limiar de 80%: abaixo disso recusa, a partir disso aprova (cosseno)', async () => {
+  const { similarity } = await import('../src/biometria/matcher.js');
+  const a = Float32Array.from([1, 0]);
+  assert.ok(similarity(a, Float32Array.from([0.85, 0.5268])) >= 0.8);  // 85% aprova
+  assert.ok(similarity(a, Float32Array.from([0.75, 0.6614])) < 0.8);   // 75% reprova
+});

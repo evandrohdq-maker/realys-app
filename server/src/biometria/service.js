@@ -71,13 +71,15 @@ export function makeBiometria({ db, cfg, matcher, cipher }) {
     return m;
   }
 
-  async function submit(userId, selfieId, docId) {
+  // Cadastro: uma foto só, com a pessoa segurando o documento (sem pedir movimento de cabeça).
+  // docId é opcional: se vier, o rosto do documento também é comparado.
+  async function submit(userId, selfieId, docId = null) {
     const r = row(userId);
     if (!r || r.status === 'sem_consentimento' || r.status === 'revogado') fail(403, 'Aceite o termo de biometria antes de enviar as fotos.', 'sem_consentimento');
     if (r.status === 'aprovado') fail(409, 'Seu rosto já está cadastrado.');
     if (r.status === 'em_analise') fail(409, 'Seu envio já está em revisão. Aguarde.');
     checkImage(userId, selfieId, 'do rosto');
-    checkImage(userId, docId, 'do documento');
+    if (docId) checkImage(userId, docId, 'do documento');
 
     setStatus(r.id, 'em_analise', { selfie_media: selfieId, doc_media: docId, submitted_at: now(), reason: null });
     log(userId, 'envio');
@@ -112,19 +114,23 @@ export function makeBiometria({ db, cfg, matcher, cipher }) {
     if (!cipher.hasKey) return { status: 'em_analise', reason: 'Chave de criptografia não configurada. Revisão manual.' };
 
     const selfie = readMedia(selfieId);
-    const doc = readMedia(docId);
-    if (!selfie || !doc) return { status: 'em_analise', reason: 'Foto não encontrada no servidor. Revisão manual.' };
+    const doc = docId ? readMedia(docId) : null;
+    if (!selfie || (docId && !doc)) return { status: 'em_analise', reason: 'Foto não encontrada no servidor. Revisão manual.' };
 
     const live = await matcher.liveness(selfie);
     checks.prova_de_vida = Number(live.score);
     if (!live.live) return { status: 'recusado', reason: 'Prova de vida não confirmada. Tire a selfie de novo, com boa luz e sem óculos escuros.' };
 
     const eSelfie = await matcher.embed(selfie);
-    const eDoc = await matcher.embed(doc);
-    if (!eSelfie || !eDoc) return { status: 'em_analise', reason: 'Rosto não encontrado com clareza. Revisão manual.' };
-
-    checks.semelhanca = Math.round(similarity(eSelfie, eDoc) * 1000) / 1000;
-    if (checks.semelhanca < cfg.biometricMatchMin) return { status: 'em_analise', reason: 'O rosto da selfie não bate com o do documento. Revisão manual.' };
+    if (!eSelfie) return { status: 'em_analise', reason: 'Rosto não encontrado com clareza. Revisão manual.' };
+    if (doc) {
+      const eDoc = await matcher.embed(doc);
+      if (!eDoc) return { status: 'em_analise', reason: 'Rosto não encontrado no documento. Revisão manual.' };
+      checks.semelhanca = Math.round(similarity(eSelfie, eDoc) * 1000) / 1000;
+      if (checks.semelhanca < cfg.biometricMatchMin) return { status: 'em_analise', reason: 'O rosto da selfie não bate com o do documento. Revisão manual.' };
+    } else {
+      checks.modo = 'foto_unica';
+    }
 
     const dup = approvedTemplates(userId).find((t) => similarity(t.vec, eSelfie) >= cfg.biometricDupMin);
     if (dup) {
@@ -132,6 +138,50 @@ export function makeBiometria({ db, cfg, matcher, cipher }) {
       return { status: 'em_analise', reason: 'Possível cadastro duplicado. Revisão manual.' };
     }
     return { status: 'aprovado', template: sealVector(eSelfie) };
+  }
+
+  const openVec = (tpl) => new Float32Array(new Uint8Array(cipher.open(tpl)).buffer);
+  const PURPOSES = ['aceite', 'finalizacao', 'periodica'];
+
+  // Verificação do dia a dia (aceite, finalização, a cada 2 h). A foto é comparada e apagada na hora:
+  // não é guardada em lugar nenhum. Vale uma vez, por pouco tempo, e só para o chamado indicado.
+  async function verify(userId, buf, purpose, callId) {
+    const r = row(userId);
+    if (!r || r.status !== 'aprovado' || !r.template) fail(403, 'Seu rosto ainda não está cadastrado.', 'sem_cadastro');
+    if (!PURPOSES.includes(purpose)) fail(400, 'Motivo da verificação inválido.');
+    if (purpose !== 'periodica' && !callId) fail(400, 'Informe o chamado da verificação.');
+    if (!buf || !buf.length) fail(400, 'Envie a foto.');
+    if (!matcher.ready) fail(503, 'Verificação facial indisponível agora. Tente em instantes.', 'servico_fora');
+    const live = await matcher.liveness(buf);
+    const e = live.live ? await matcher.embed(buf) : null;
+    const sim = e ? similarity(openVec(r.template), e) : 0;
+    const ok = !!e && sim >= cfg.biometricVerifyMin;
+    log(userId, 'verificacao', `${purpose}${callId ? ' ' + callId : ''}: ${ok ? 'ok' : 'falhou'}`);
+    if (!ok) fail(403, 'Não reconhecemos o seu rosto. Tente de novo, com boa luz e sem óculos escuros.', 'rosto_nao_confere');
+    const t = now();
+    db.prepare('INSERT INTO biometria_checks (id, user_id, purpose, call_id, created_at) VALUES (?,?,?,?,?)').run(newId('ck'), userId, purpose, callId || null, t);
+    db.prepare('UPDATE biometria SET last_verified_at = ?, updated_at = ? WHERE id = ?').run(t, t, r.id);
+    return { ok: true, purpose, expiresInSec: cfg.biometricCheckTtlMin * 60 };
+  }
+
+  // Consome a verificação de uma ação (aceite ou finalização). Sem ela, a ação é recusada.
+  function consume(userId, purpose, callId) {
+    const since = now() - cfg.biometricCheckTtlMin * 60000;
+    const c = db
+      .prepare(`SELECT id FROM biometria_checks WHERE user_id = ? AND purpose = ? AND (call_id IS ? OR call_id = ?) AND used_at IS NULL AND created_at > ? ORDER BY created_at DESC LIMIT 1`)
+      .get(userId, purpose, callId || null, callId || null, since);
+    if (!c) {
+      const msg = purpose === 'aceite' ? 'Confirme seu rosto para aceitar o pedido.' : 'Confirme seu rosto para finalizar o serviço.';
+      fail(403, msg, 'verificacao_facial');
+    }
+    db.prepare('UPDATE biometria_checks SET used_at = ? WHERE id = ?').run(now(), c.id);
+    return true;
+  }
+
+  // Quem roda em transporte (entregador, motorista, motoboy) precisa de verificação a cada 2 h.
+  function periodicOk(userId) {
+    const r = row(userId);
+    return !!(r && r.last_verified_at && now() - r.last_verified_at < cfg.biometricPeriodicHours * 3600000);
   }
 
   function status(userId) {
@@ -198,5 +248,5 @@ export function makeBiometria({ db, cfg, matcher, cipher }) {
     return { ok: true };
   }
 
-  return { consent, submit, status, revoke, queue, decide, purgeImages, approvedTemplates, sealVector, setStatus, log, row, readMedia };
+  return { consent, submit, status, revoke, queue, decide, purgeImages, approvedTemplates, sealVector, setStatus, log, row, readMedia, verify, consume, periodicOk };
 }
