@@ -4,7 +4,7 @@ import { tx } from '../db.js';
 
 const brl = (c) => `R$ ${(c / 100).toFixed(2).replace('.', ',')}`;
 
-export default function walletRoutes(r, { db, cfg, wallet, hub, userById }) {
+export default function walletRoutes(r, { db, cfg, wallet, hub, userById, biometria }) {
   const view = (userId) => {
     const w = wallet.get(userId);
     return { balance: toReais(w.balance), giftCredits: toReais(w.gift_credits), liveCredits: toReais(w.live_credits), currency: 'RLS' };
@@ -37,6 +37,8 @@ export default function walletRoutes(r, { db, cfg, wallet, hub, userById }) {
   // Saque: só do saldo (créditos de presente não sacam). O dinheiro sai na hora da carteira
   // e o pagamento por Pix é feito pelo administrador (até haver integração com o banco).
   r.post('/wallet/withdraw', ({ user, body }) => {
+    // Saque: confirma o rosto antes de sair dinheiro da carteira.
+    biometria.consume(user.id, 'saque', null);
     const amount = money(body.amount, 'saque', { min: cfg.withdrawMin, max: 50000 });
     const pix = str(body.pixKey, 'a chave Pix', { min: 5, max: 80 });
     const id = newId('wd');

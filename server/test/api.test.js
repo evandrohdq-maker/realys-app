@@ -36,6 +36,8 @@ async function api(method, path, { who, body, headers = {}, raw } = {}) {
   }
   return { status: res.status, data };
 }
+let ckSeq = 0;
+const newCkId = () => 'ck_t' + ++ckSeq;
 const ok = async (...a) => {
   const r = await api(...a);
   assert.ok(r.status < 300, `${a[0]} ${a[1]} → ${r.status} ${JSON.stringify(r.data)}`);
@@ -44,14 +46,14 @@ const ok = async (...a) => {
 const keep = (who, d) => (S[who] = { token: d.accessToken, session: d.sessionToken, id: d.user.id });
 
 test('cadastro: usuário (CPF) e empresa (CNPJ), com validações', async () => {
-  keep('ana', await ok('POST', '/auth/signup', { body: { kind: 'pessoa', name: 'Ana Paula', doc: '529.982.247-25', username: '@Ana', email: 'ana@realys.com', password: 'senha1234' } }));
-  keep('beto', await ok('POST', '/auth/signup', { body: { kind: 'pessoa', name: 'Beto Motorista', doc: '111.444.777-35', username: 'beto', email: 'beto@realys.com', password: 'senha1234' } }));
-  const e = await ok('POST', '/auth/signup', { body: { kind: 'empresa', name: 'Pizzaria da Praça', doc: '11.222.333/0001-81', username: 'pizzaria', email: 'contato@pizzaria.com', password: 'senha1234', segment: 'Restaurante' } });
+  keep('ana', await ok('POST', '/auth/signup', { body: { kind: 'pessoa', name: 'Ana Paula', doc: '529.982.247-25', username: '@Ana', email: 'ana@realys.com', password: 'senha1234', aceiteTermos: '2026-11-adesao-v1' } }));
+  keep('beto', await ok('POST', '/auth/signup', { body: { kind: 'pessoa', name: 'Beto Motorista', doc: '111.444.777-35', username: 'beto', email: 'beto@realys.com', password: 'senha1234', aceiteTermos: '2026-11-adesao-v1' } }));
+  const e = await ok('POST', '/auth/signup', { body: { kind: 'empresa', name: 'Pizzaria da Praça', doc: '11.222.333/0001-81', username: 'pizzaria', email: 'contato@pizzaria.com', password: 'senha1234', aceiteTermos: '2026-11-adesao-v1', segment: 'Restaurante' } });
   keep('pizza', e);
   assert.deepEqual(e.user.roles, ['empresa', 'fornecedor', 'usuario']);
 
-  assert.equal((await api('POST', '/auth/signup', { body: { name: 'X', doc: '123.456.789-00', username: 'xx1', email: 'x@x.com', password: 'senha1234' } })).status, 400); // CPF inválido
-  assert.equal((await api('POST', '/auth/signup', { body: { name: 'Outra', doc: '123.456.789-09', username: 'ana', email: 'o@x.com', password: 'senha1234' } })).status, 409); // usuário em uso
+  assert.equal((await api('POST', '/auth/signup', { body: { name: 'X', doc: '123.456.789-00', username: 'xx1', email: 'x@x.com', password: 'senha1234', aceiteTermos: '2026-11-adesao-v1' } })).status, 400); // CPF inválido
+  assert.equal((await api('POST', '/auth/signup', { body: { name: 'Outra', doc: '123.456.789-09', username: 'ana', email: 'o@x.com', password: 'senha1234', aceiteTermos: '2026-11-adesao-v1' } })).status, 409); // usuário em uso
   assert.equal((await api('POST', '/auth/signup', { body: { name: 'Outra', doc: '123.456.789-09', username: 'outra', email: 'o@x.com', password: 'curta' } })).status, 400); // senha fraca
 });
 
@@ -79,6 +81,7 @@ test('carteira e presentes: taxa de 5%, entra como crédito de presente, não sa
   assert.equal(wb.giftCredits, 20);
   assert.equal(wb.balance, 0);
   // Crédito de presente não pode ser sacado nem usado para presentear.
+  app.db.prepare(`INSERT INTO biometria_checks (id, user_id, purpose, call_id, created_at) VALUES (?, ?, 'saque', NULL, ?)`).run(newCkId(), S.beto.id, Date.now());
   assert.equal((await api('POST', '/wallet/withdraw', { who: 'beto', body: { amount: 15, pixKey: 'beto@pix.com' } })).status, 402);
   assert.equal((await api('POST', '/gifts', { who: 'beto', body: { toId: S.ana.id, amount: 10 } })).status, 402);
   assert.equal((await api('POST', '/gifts', { who: 'ana', body: { toId: S.ana.id, amount: 10 } })).status, 400);
@@ -99,6 +102,7 @@ test('loja e pedidos: preço do servidor, presente primeiro, estoque, cancelamen
 
   const sold = await ok('GET', '/companies/me/orders', { who: 'pizza' });
   assert.equal(sold.length, 1);
+  app.db.prepare(`INSERT INTO biometria_checks (id, user_id, purpose, call_id, created_at) VALUES (?, ?, 'venda', ?, ?)`).run(newCkId(), S.pizza.id, o.orders[0].id, Date.now());
   await ok('PATCH', `/orders/${o.orders[0].id}`, { who: 'pizza', body: { status: 'Cancelado' } });
   const wb = await ok('GET', '/wallet', { who: 'beto' });
   assert.equal(wb.giftCredits, 20);
@@ -109,6 +113,7 @@ test('loja e pedidos: preço do servidor, presente primeiro, estoque, cancelamen
   // Entregue → o cliente avalia.
   const o2 = await ok('POST', '/orders', { who: 'beto', body: { items: [{ productId: p.id, qty: 1 }] } });
   assert.equal((await api('POST', '/ratings', { who: 'beto', body: { targetKind: 'order', targetId: o2.orders[0].id, stars: 5 } })).status, 409);
+  app.db.prepare(`INSERT INTO biometria_checks (id, user_id, purpose, call_id, created_at) VALUES (?, ?, 'venda', ?, ?)`).run(newCkId(), S.pizza.id, o2.orders[0].id, Date.now());
   await ok('PATCH', `/orders/${o2.orders[0].id}`, { who: 'pizza', body: { status: 'Entregue' } });
   await ok('POST', '/ratings', { who: 'beto', body: { targetKind: 'order', targetId: o2.orders[0].id, stars: 5, comment: 'Quentinha!' } });
 });
@@ -229,6 +234,7 @@ test('administrador: visão geral, denúncia procedente e bloqueio de conta', as
 });
 
 test('saque: sai do saldo e fica pendente até o administrador pagar', async () => {
+  app.db.prepare(`INSERT INTO biometria_checks (id, user_id, purpose, call_id, created_at) VALUES (?, ?, 'saque', NULL, ?)`).run(newCkId(), S.pizza.id, Date.now());
   const w = await ok('POST', '/wallet/withdraw', { who: 'pizza', body: { amount: 20, pixKey: '11.222.333/0001-81' } });
   assert.equal(w.status, 'pendente');
   const list = await ok('GET', '/admin/withdrawals', { who: 'admin' });

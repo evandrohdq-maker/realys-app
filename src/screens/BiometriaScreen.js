@@ -1,47 +1,53 @@
 // Cadastro biométrico do Realys, em tela cheia (aberta pelo Perfil).
-// Fluxo: termo de consentimento -> selfie -> foto do documento -> análise no servidor -> resultado.
+// Fluxo: termo -> scan do rosto (câmera centralizada) -> foto do documento e seus dados -> análise no servidor.
 // A decisão é sempre do servidor: o app só captura, envia e mostra o resultado.
 import React, { useEffect, useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, Alert } from 'react-native';
+import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { api, uploadMedia } from '../api';
+import ScanFacial from '../components/ScanFacial';
+import TermoAdesaoModal from '../components/TermoAdesaoModal';
 import { colors, soft } from '../theme';
 
 // Tem que ser igual a CONSENT_VERSION no servidor (server/src/biometria/service.js).
 const CONSENT_VERSION = '2026-11-v1';
 
+const DOC_TIPOS = [
+  { key: 'cnh', label: 'CNH' },
+  { key: 'cnh_digital', label: 'CNH digital' },
+  { key: 'rg', label: 'RG' },
+  { key: 'rg_digital', label: 'RG digital' },
+  { key: 'conselho', label: 'Conselho profissional' },
+  { key: 'brigada', label: 'Brigadista' },
+];
+
 const STATUS_TEXT = {
   sem_consentimento: 'Você ainda não cadastrou seu rosto.',
-  pendente: 'Consentimento registrado. Envie a selfie e o documento.',
+  pendente: 'Consentimento registrado. Faça o scan do rosto e envie o documento.',
   em_analise: 'Estamos conferindo seu cadastro. Isso pode levar um tempo.',
-  aprovado: 'Rosto cadastrado. Você pode entrar com biometria.',
+  aprovado: 'Rosto cadastrado. Você entra com usuário e senha; o rosto é pedido em serviços e vendas.',
   recusado: 'Não foi possível confirmar seu cadastro.',
   revogado: 'Cadastro biométrico apagado.',
 };
 
-const TERMO = [
-  'Vamos usar seu rosto para confirmar que é você e proteger sua conta.',
-  'Guardamos só um código matemático do seu rosto, criptografado. As fotos são apagadas assim que a análise termina.',
-  'Você pode apagar seu cadastro biométrico a qualquer momento, aqui no Perfil.',
-  'Seus dados são usados só para isso, conforme a LGPD.',
-];
+const DATA_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 export default function BiometriaScreen({ visible, onClose }) {
   const [info, setInfo] = useState(null);
-  const [step, setStep] = useState('termo'); // termo | selfie | doc | enviando
-  const [selfie, setSelfie] = useState(null);
+  const [step, setStep] = useState('inicio'); // inicio | scan | doc | enviando
+  const [frames, setFrames] = useState(null);
+  const [tipo, setTipo] = useState('cnh');
+  const [emissao, setEmissao] = useState('');
+  const [validade, setValidade] = useState('');
+  const [termoOpen, setTermoOpen] = useState(false);
   const [erro, setErro] = useState('');
   const [busy, setBusy] = useState(false);
 
   const load = async () => {
-    try {
-      setInfo(await api('GET', '/biometria'));
-    } catch (e) {
-      setErro(e.message || 'Não consegui falar com o servidor.');
-    }
+    try { setInfo(await api('GET', '/biometria')); } catch (e) { setErro(e.message || 'Não consegui falar com o servidor.'); }
   };
-  useEffect(() => { if (visible) { setErro(''); load(); } }, [visible]);
+  useEffect(() => { if (visible) { setErro(''); setStep('inicio'); load(); } }, [visible]);
 
   const status = info ? info.status : 'sem_consentimento';
 
@@ -49,44 +55,38 @@ export default function BiometriaScreen({ visible, onClose }) {
     setBusy(true); setErro('');
     try {
       setInfo(await api('POST', '/biometria/consentimento', { version: CONSENT_VERSION }));
-      setStep('selfie');
+      setStep('scan');
     } catch (e) { setErro(e.message); }
     setBusy(false);
   };
 
-  // Tira a foto com a câmera (frontal para a selfie, traseira para o documento).
-  const tirarFoto = async (frontal) => {
-    const perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (perm.status !== 'granted') {
-      Alert.alert('Câmera', 'Libere a câmera nas configurações do celular para continuar.');
-      return null;
-    }
-    const r = await ImagePicker.launchCameraAsync({
-      mediaTypes: ['images'], quality: 0.8, allowsEditing: false,
-      cameraType: frontal ? ImagePicker.CameraType.front : ImagePicker.CameraType.back,
-    });
-    return r.canceled ? null : r.assets[0];
-  };
+  const scanFeito = (lista) => { setFrames(lista); setStep('doc'); setErro(''); };
 
-  const enviarSelfie = async () => {
-    const f = await tirarFoto(true);
-    if (f) { setSelfie(f); setStep('doc'); }
+  const validarDoc = () => {
+    if (!DOC_TIPOS.some((t) => t.key === tipo)) return 'Escolha o tipo do documento.';
+    if (!DATA_RE.test(emissao)) return 'Informe a data de emissão (AAAA-MM-DD).';
+    if (validade && !DATA_RE.test(validade)) return 'A validade precisa estar em AAAA-MM-DD.';
+    return '';
   };
 
   const enviarTudo = async () => {
-    const d = await tirarFoto(false);
-    if (!d) return;
+    const problema = validarDoc();
+    if (problema) { setErro(problema); return; }
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (perm.status !== 'granted') { Alert.alert('Câmera', 'Libere a câmera nas configurações do celular.'); return; }
+    const d = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.8, allowsEditing: false, cameraType: ImagePicker.CameraType.back });
+    if (d.canceled) return;
     setStep('enviando'); setErro('');
     try {
-      const idOf = (url) => url.split('/').pop();
-      const s = await uploadMedia(selfie.uri, 'image/jpeg');
-      const doc = await uploadMedia(d.uri, 'image/jpeg');
-      setInfo(await api('POST', '/biometria/envio', { selfie: idOf(s), doc: idOf(doc) }));
+      const doc = (await uploadMedia(d.assets[0].uri, 'image/jpeg')).split('/').pop();
+      setInfo(await api('POST', '/biometria/envio-scan', {
+        frames, doc, documento: { tipo, emissao, validade: validade || undefined },
+      }));
     } catch (e) {
       setErro(e.message || 'Não deu para enviar. Tente de novo.');
     }
-    setSelfie(null);
-    setStep('termo');
+    setFrames(null);
+    setStep('inicio');
   };
 
   const revogar = () => {
@@ -98,7 +98,7 @@ export default function BiometriaScreen({ visible, onClose }) {
     ]);
   };
 
-  const showEnvio = status === 'pendente' || status === 'recusado' || status === 'sem_consentimento' || status === 'revogado';
+  const podeEnviar = status === 'pendente' || status === 'recusado' || status === 'sem_consentimento' || status === 'revogado';
 
   return (
     <Modal visible={!!visible} animationType="slide" onRequestClose={onClose}>
@@ -115,41 +115,47 @@ export default function BiometriaScreen({ visible, onClose }) {
 
           {erro ? <Text style={styles.erro}>{erro}</Text> : null}
 
-          {step === 'termo' && showEnvio ? (
+          {step === 'inicio' && podeEnviar ? (
             <View style={[styles.card, soft]}>
-              {TERMO.map((t) => <Text key={t} style={styles.termo}>• {t}</Text>)}
+              <Text style={styles.termo}>• Usamos seu rosto para confirmar que é você, e só em situações que exigem segurança.</Text>
+              <Text style={styles.termo}>• Guardamos um código matemático criptografado. As fotos são apagadas após a análise.</Text>
+              <Text style={styles.termo}>• Você pode apagar seu cadastro a qualquer momento.</Text>
+              <TouchableOpacity onPress={() => setTermoOpen(true)} hitSlop={8}><Text style={styles.link}>Ler o termo de adesão completo ›</Text></TouchableOpacity>
               {status === 'sem_consentimento' || status === 'revogado' ? (
                 <TouchableOpacity style={styles.btn} onPress={aceitar} disabled={busy} activeOpacity={0.85}>
                   {busy ? <ActivityIndicator color={colors.onPrimary} /> : <Text style={styles.btnText}>Aceito e quero cadastrar</Text>}
                 </TouchableOpacity>
               ) : (
-                <TouchableOpacity style={styles.btn} onPress={() => setStep('selfie')} activeOpacity={0.85}>
-                  <Text style={styles.btnText}>Enviar selfie e documento</Text>
+                <TouchableOpacity style={styles.btn} onPress={() => setStep('scan')} activeOpacity={0.85}>
+                  <Text style={styles.btnText}>Fazer o scan do rosto</Text>
                 </TouchableOpacity>
               )}
             </View>
           ) : null}
 
-          {step === 'selfie' ? (
-            <View style={[styles.card, soft]}>
-              <Text style={styles.h}>1 de 2: selfie</Text>
-              <Text style={styles.termo}>Olhe para a câmera, com boa luz, sem óculos escuros e sem boné. Pode piscar e mexer a cabeça devagar.</Text>
-              <TouchableOpacity style={styles.btn} onPress={enviarSelfie} activeOpacity={0.85}><Text style={styles.btnText}>Tirar selfie</Text></TouchableOpacity>
-            </View>
-          ) : null}
-
           {step === 'doc' ? (
             <View style={[styles.card, soft]}>
-              <Text style={styles.h}>2 de 2: documento</Text>
-              <Text style={styles.termo}>Fotografe seu documento (RG ou CNH) inteiro, com a foto visível, sem reflexo e em lugar bem iluminado.</Text>
-              <TouchableOpacity style={styles.btn} onPress={enviarTudo} activeOpacity={0.85}><Text style={styles.btnText}>Fotografar documento</Text></TouchableOpacity>
+              <Text style={styles.h}>Documento</Text>
+              <Text style={styles.termo}>Aceitos: RG, CNH, versões digitais e carteiras de conselho profissional ou de brigadista. O documento precisa estar válido e ter sido emitido há no máximo 10 anos.</Text>
+              <View style={styles.chips}>
+                {DOC_TIPOS.map((t) => (
+                  <TouchableOpacity key={t.key} onPress={() => setTipo(t.key)} style={[styles.chip, tipo === t.key && styles.chipOn]}>
+                    <Text style={[styles.chipText, tipo === t.key && { color: colors.onPrimary }]}>{t.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <Text style={styles.label}>Data de emissão</Text>
+              <TextInput style={styles.input} value={emissao} onChangeText={setEmissao} placeholder="AAAA-MM-DD" placeholderTextColor={colors.muted} autoCapitalize="none" />
+              <Text style={styles.label}>Validade (se houver)</Text>
+              <TextInput style={styles.input} value={validade} onChangeText={setValidade} placeholder="AAAA-MM-DD" placeholderTextColor={colors.muted} autoCapitalize="none" />
+              <TouchableOpacity style={styles.btn} onPress={enviarTudo} activeOpacity={0.85}><Text style={styles.btnText}>Fotografar o documento e enviar</Text></TouchableOpacity>
             </View>
           ) : null}
 
           {step === 'enviando' ? (
             <View style={[styles.card, soft, { alignItems: 'center' }]}>
               <ActivityIndicator color={colors.primary} />
-              <Text style={[styles.termo, { marginTop: 10 }]}>Enviando e conferindo suas fotos…</Text>
+              <Text style={[styles.termo, { marginTop: 10 }]}>Enviando e conferindo…</Text>
             </View>
           ) : null}
 
@@ -160,6 +166,8 @@ export default function BiometriaScreen({ visible, onClose }) {
           ) : null}
         </ScrollView>
       </View>
+      <ScanFacial visible={step === 'scan'} title="Scan do rosto" onFrames={scanFeito} onClose={() => setStep('inicio')} />
+      <TermoAdesaoModal visible={termoOpen} onClose={() => setTermoOpen(false)} />
     </Modal>
   );
 }
@@ -173,8 +181,15 @@ const styles = StyleSheet.create({
   reason: { color: colors.muted, fontSize: 13, marginTop: 6 },
   h: { color: colors.text, fontSize: 16, fontWeight: '700', marginBottom: 6 },
   termo: { color: colors.text, fontSize: 14, lineHeight: 20, marginBottom: 8 },
+  link: { color: colors.primary, fontWeight: '700', fontSize: 13, marginVertical: 6 },
+  label: { color: colors.muted, fontSize: 12, marginTop: 10, marginBottom: 4 },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, color: colors.text, backgroundColor: colors.bg },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 },
+  chip: { borderWidth: 1, borderColor: colors.primary, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7, marginRight: 8, marginBottom: 8 },
+  chipOn: { backgroundColor: colors.primary },
+  chipText: { color: colors.primary, fontWeight: '700', fontSize: 13 },
   erro: { color: '#B42318', marginBottom: 12, fontWeight: '600' },
-  btn: { backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 8 },
+  btn: { backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 10 },
   btnText: { color: colors.onPrimary, fontWeight: '700', fontSize: 15 },
   btnDanger: { borderWidth: 1, borderColor: '#B42318', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
   btnDangerText: { color: '#B42318', fontWeight: '700' },

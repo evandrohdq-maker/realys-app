@@ -9,6 +9,7 @@
 // acesso novo sem pedir senha. O acesso curto (1 h) é renovado sozinho quando expira.
 import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
+import * as Crypto from 'expo-crypto';
 
 const SESSION_KEY = 'realys.session';
 export const API_URL = String((Constants.expoConfig && Constants.expoConfig.extra && Constants.expoConfig.extra.apiUrl) || '').replace(/\/$/, '');
@@ -73,9 +74,28 @@ export async function api(method, path, body, headers) {
   }
 }
 
-export async function login(loginText, password, device = 'Android') {
+// Identificador deste aparelho (guardado no cofre). Aparelho novo pede a conferência do rosto antes da senha.
+const DEVICE_KEY = 'realys.deviceKey';
+export async function deviceKey() {
+  let k = await SecureStore.getItemAsync(DEVICE_KEY).catch(() => null);
+  if (!k) {
+    k = Crypto.randomUUID();
+    await SecureStore.setItemAsync(DEVICE_KEY, k).catch(() => {});
+  }
+  return k;
+}
+
+// Aparelho novo: confere o rosto contra o cadastro (não refaz o cadastro) e devolve o código para o login.
+export async function verificarAparelho(loginText, imageBuf) {
+  const key = await deviceKey();
+  const d = await raw('POST', `/auth/aparelho/verificar?login=${encodeURIComponent(loginText)}&deviceKey=${encodeURIComponent(key)}`, imageBuf, { 'Content-Type': 'image/jpeg' });
+  return d.aparelhoToken;
+}
+
+export async function login(loginText, password, device = 'Android', aparelhoToken = null) {
   accessToken = null;
-  const d = await raw('POST', '/auth/login', { login: loginText, password, device });
+  const key = await deviceKey();
+  const d = await raw('POST', '/auth/login', { login: loginText, password, device, deviceKey: key, aparelhoToken });
   accessToken = d.accessToken;
   await saveSession(d.sessionToken);
   return d.user;

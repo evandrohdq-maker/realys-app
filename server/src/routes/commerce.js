@@ -4,7 +4,7 @@ import { tx } from '../db.js';
 
 const ORDER_STATUS = ['Recebido', 'Preparando', 'A caminho', 'Entregue', 'Cancelado'];
 
-export default function commerceRoutes(r, { db, cfg, wallet, hub }) {
+export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria }) {
   const companyOf = (userId) => db.prepare('SELECT * FROM companies WHERE owner_id = ?').get(userId);
   const myCompany = (user) => {
     const c = companyOf(user.id);
@@ -163,6 +163,8 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub }) {
     if (!o) fail(404, 'Pedido não encontrado na sua loja.');
     if (!ORDER_STATUS.includes(body.status)) fail(400, 'Status inválido.');
     if (o.status === 'Cancelado' || o.status === 'Entregue') fail(409, `Este pedido já está ${o.status.toLowerCase()}.`);
+    // Venda: o lojista confirma o rosto para mexer no pedido.
+    biometria.consume(user.id, 'venda', o.id);
     tx(db, () => {
       if (body.status === 'Cancelado') {
         wallet.move(c.owner_id, 'saldo', -(o.total - o.fee), 'Vendas', `Pedido ${o.id} cancelado`, o.id);

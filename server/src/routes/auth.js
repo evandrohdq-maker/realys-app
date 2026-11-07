@@ -4,13 +4,14 @@
 // Na primeira vez entra com senha; o app guarda a sessão do aparelho no cofre do celular, protegida
 // pela biometria. Nas próximas vezes a biometria libera a sessão e o app troca por um token novo.
 import { str, fail, newId, now } from '../http.js';
+import { TERMO_ADESAO_VERSAO, TERMO_ADESAO } from '../termos.js';
 import {
   hashPassword, checkPassword, signToken, newSessionToken, sha256, onlyDigits, validCpf, validCnpj,
   cleanUsername, usernameProblem, passwordProblem, validEmail,
 } from '../auth.js';
 import { tx } from '../db.js';
 
-export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin, clearLogin }) {
+export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin, clearLogin, biometria }) {
   // Cria a sessão do aparelho e o token de acesso.
   const startSession = (user, device) => {
     const token = newSessionToken();
@@ -28,6 +29,7 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
 
   // Cadastro de usuário (CPF) ou empresa (CNPJ). Empresa já ganha a página da empresa.
   r.post('/auth/signup', ({ body }) => {
+    if (body.aceiteTermos !== TERMO_ADESAO_VERSAO) fail(400, 'Leia e aceite o termo de adesão para criar sua conta.', 'termos');
     const kind = body.kind === 'empresa' ? 'empresa' : 'pessoa';
     const name = str(body.name, kind === 'empresa' ? 'o nome da empresa' : 'seu nome', { min: 2, max: 80 });
     const doc = onlyDigits(body.doc);
@@ -58,6 +60,8 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
     return startSession(user, body.device);
   }, { auth: false, status: 201 });
 
+  r.get('/termos/adesao', () => TERMO_ADESAO, { auth: false });
+
   // Entrar com usuário, CPF ou CNPJ + senha.
   r.post('/auth/login', ({ body, ip }) => {
     const login = str(body.login, 'usuário, CPF ou CNPJ', { max: 40 });
@@ -70,9 +74,36 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
       : db.prepare('SELECT * FROM users WHERE username = ?').get(cleanUsername(login));
     if (!user || !checkPassword(String(body.password || ''), user.pass_hash)) fail(401, 'Usuário ou senha incorretos.');
     if (user.status !== 'ativo') fail(403, 'Esta conta está bloqueada. Fale com o suporte do Realys.');
+    // Aparelho novo, com biometria cadastrada: primeiro a conferência do rosto (sem refazer o cadastro).
+    const deviceKey = String(body.deviceKey || '').slice(0, 80);
+    if (biometria.hasBiometria(user.id)) {
+      const conhecido = deviceKey && db.prepare('SELECT 1 FROM devices WHERE user_id = ? AND device_key = ?').get(user.id, deviceKey);
+      if (!conhecido) {
+        if (!biometria.consumeDeviceToken(user.id, deviceKey, body.aparelhoToken)) fail(403, 'Este aparelho é novo. Confirme seu rosto para entrar.', 'biometria_aparelho');
+      }
+      if (deviceKey) {
+        if (conhecido) db.prepare('UPDATE devices SET last_seen_at = ? WHERE user_id = ? AND device_key = ?').run(now(), user.id, deviceKey);
+        else db.prepare('INSERT INTO devices (id, user_id, device_key, name, created_at, last_seen_at) VALUES (?,?,?,?,?,?)').run(newId('dv'), user.id, deviceKey, String(body.device || '').slice(0, 80), now(), now());
+      }
+    }
     clearLogin(key);
     return startSession(user, body.device);
   }, { auth: false });
+
+  // Aparelho novo: o rosto é conferido contra o cadastro já feito (não refaz o cadastro).
+  // Depois, o login recebe o código devolvido aqui (aparelhoToken) junto com usuário e senha.
+  r.post('/auth/aparelho/verificar', ({ raw, query, ip }) => {
+    const login = String(query.login || '').slice(0, 40);
+    const key = `${ip}|rosto|${login.toLowerCase()}`;
+    limitLogin(key);
+    const d = onlyDigits(login);
+    const u = /^[\d.\-\/\s]+$/.test(login) && (d.length === 11 || d.length === 14)
+      ? db.prepare('SELECT * FROM users WHERE doc = ?').get(d)
+      : db.prepare('SELECT * FROM users WHERE username = ?').get(cleanUsername(login));
+    const out = biometria.verifyDevice(login, raw, String(query.deviceKey || '').slice(0, 80), () => u);
+    clearLogin(key);
+    return out;
+  }, { auth: false, raw: true });
 
   // Troca a sessão do aparelho (liberada pela biometria) por um token de acesso novo.
   r.post('/auth/refresh', ({ body }) => {

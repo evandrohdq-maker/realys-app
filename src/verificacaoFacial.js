@@ -4,6 +4,12 @@
 import * as ImagePicker from 'expo-image-picker';
 import { api } from './api';
 
+// Scan do dia a dia: as fotos do ScanFacial vão para o servidor, que confere e apaga na hora.
+export async function enviarScanVerificacao(frames, purpose, callId) {
+  const q = `purpose=${encodeURIComponent(purpose)}` + (callId ? `&callId=${encodeURIComponent(callId)}` : '');
+  return api('POST', `/biometria/verificar-scan?${q}`, { frames });
+}
+
 export const isVerificacaoPendente = (err) => !!err && (err.code === 'verificacao_facial' || err.code === 'verificacao_periodica');
 
 // purpose: 'aceite' | 'finalizacao' | 'periodica'. callId é obrigatório para aceite e finalização.

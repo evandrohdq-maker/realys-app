@@ -19,9 +19,11 @@ const fakeMatcher = {
   ready: true,
   async embed(buf) {
     const s = buf.toString();
-    if (s.includes('ROSTO-A')) return Float32Array.from([1, 0, 0, 0]);
-    if (s.includes('ROSTO-B')) return Float32Array.from([0, 1, 0, 0]);
+    const mov = /MOV=([\d.]+)/.exec(s);
+    if (s.includes('ROSTO-A')) return Float32Array.from([1, mov ? Number(mov[1]) : 0, 0, 0]); // MOV = movimento entre fotos do scan
+    if (s.includes('ROSTO-B')) return Float32Array.from([0, 1, mov ? Number(mov[1]) : 0, 0]);
     if (s.includes('ROSTO-C')) return Float32Array.from([0.99, 0.05, 0, 0]); // quase igual ao A: duplicado
+    if (s.includes('ROSTO-D')) return Float32Array.from([0, 0, 1, mov ? Number(mov[1]) : 0]); // outra pessoa, sem parecido com as demais
     return null;
   },
   async liveness(buf) {
@@ -33,6 +35,7 @@ const fakeMatcher = {
 let app, base, dir;
 const S = {};
 
+const DOC = { tipo: 'cnh', emissao: '2024-01-10', validade: '2034-01-10' };
 const CPFS = ['529.982.247-25', '111.444.777-35', '123.456.789-09', '987.654.321-00'];
 
 before(async () => {
@@ -62,7 +65,7 @@ async function api(method, path, { who, body, raw, type } = {}) {
 }
 
 async function person(key, cpf, username) {
-  const d = await api('POST', '/auth/signup', { body: { kind: 'pessoa', name: 'Pessoa ' + key, doc: cpf, username, email: `${username}@realys.com`, password: 'senha1234' } });
+  const d = await api('POST', '/auth/signup', { body: { kind: 'pessoa', name: 'Pessoa ' + key, doc: cpf, username, email: `${username}@realys.com`, password: 'senha1234', aceiteTermos: '2026-11-adesao-v1' } });
   assert.equal(d.status, 201, JSON.stringify(d.data));
   S[key] = { token: d.data.accessToken, id: d.data.user.id };
 }
@@ -99,7 +102,7 @@ test('consentimento é obrigatório e precisa da versão atual do termo', async 
 test('cadastro verdadeiro é aprovado, guardado cifrado e as fotos são apagadas', async () => {
   const selfie = await upload('ana', 'ROSTO-A selfie');
   const doc = await upload('ana', 'ROSTO-A documento');
-  const r = await api('POST', '/biometria/envio', { who: 'ana', body: { selfie, doc } });
+  const r = await api('POST', '/biometria/envio', { who: 'ana', body: { selfie, doc, documento: DOC } });
   assert.equal(r.data.status, 'aprovado', JSON.stringify(r.data));
   assert.equal((await api('GET', `/media/${selfie}`)).status, 404);
   assert.equal((await api('GET', `/media/${doc}`)).status, 404);
@@ -112,7 +115,7 @@ test('mesmo rosto em outro cadastro vai para revisão (possível duplicado)', as
   await api('POST', '/biometria/consentimento', { who: 'bia', body: { version: CONSENT_VERSION } });
   const selfie = await upload('bia', 'ROSTO-C selfie');
   const doc = await upload('bia', 'ROSTO-C documento');
-  const r = await api('POST', '/biometria/envio', { who: 'bia', body: { selfie, doc } });
+  const r = await api('POST', '/biometria/envio', { who: 'bia', body: { selfie, doc, documento: DOC } });
   assert.equal(r.data.status, 'em_analise');
   assert.match(r.data.reason, /duplicado/);
 });
@@ -122,7 +125,7 @@ test('rosto que não bate com o documento vai para revisão', async () => {
   await api('POST', '/biometria/consentimento', { who: 'caio', body: { version: CONSENT_VERSION } });
   const selfie = await upload('caio', 'ROSTO-B selfie');
   const doc = await upload('caio', 'ROSTO-A documento');
-  const r = await api('POST', '/biometria/envio', { who: 'caio', body: { selfie, doc } });
+  const r = await api('POST', '/biometria/envio', { who: 'caio', body: { selfie, doc, documento: DOC } });
   assert.equal(r.data.status, 'em_analise');
   assert.match(r.data.reason, /não bate/);
 });
@@ -132,7 +135,7 @@ test('foto de foto impressa é recusada pela prova de vida', async () => {
   await api('POST', '/biometria/consentimento', { who: 'dani', body: { version: CONSENT_VERSION } });
   const selfie = await upload('dani', 'ROSTO-A FOTO-IMPRESSA');
   const doc = await upload('dani', 'ROSTO-A documento');
-  const r = await api('POST', '/biometria/envio', { who: 'dani', body: { selfie, doc } });
+  const r = await api('POST', '/biometria/envio', { who: 'dani', body: { selfie, doc, documento: DOC } });
   assert.equal(r.data.status, 'recusado');
 });
 
@@ -173,7 +176,7 @@ test('manutenção: integridade, backup, retenção e rotação de chave', async
 });
 
 test('produtos do mercado: seção validada, filtrada e editável', async () => {
-  const comp = await api('POST', '/auth/signup', { body: { kind: 'empresa', name: 'Mercadinho Teste', doc: '11.222.333/0001-81', username: 'mercadinho', email: 'loja@realys.com', password: 'senha1234', segment: 'Mercado de bairro' } });
+  const comp = await api('POST', '/auth/signup', { body: { kind: 'empresa', name: 'Mercadinho Teste', doc: '11.222.333/0001-81', username: 'mercadinho', email: 'loja@realys.com', password: 'senha1234', aceiteTermos: '2026-11-adesao-v1', segment: 'Mercado de bairro' } });
   assert.equal(comp.status, 201, JSON.stringify(comp.data));
   S.loja = { token: comp.data.accessToken, id: comp.data.user.id };
   const bad = await api('POST', '/products', { who: 'loja', body: { name: 'Coisa', price: 5, secao: 'eletronicos' } });
@@ -196,7 +199,7 @@ test('verificação do dia a dia: aceite, finalização e checagem a cada 2 h pa
   assert.equal(cadastro.status, 200);
   const selfie = await upload('moto', 'ROSTO-A selfie');
   const doc = await upload('moto', 'ROSTO-A documento');
-  assert.equal((await api('POST', '/biometria/envio', { who: 'moto', body: { selfie, doc } })).data.status, 'aprovado');
+  assert.equal((await api('POST', '/biometria/envio', { who: 'moto', body: { selfie, doc, documento: DOC } })).data.status, 'aprovado');
 
   const sem = await api('POST', '/providers/me/location', { who: 'moto', body: { lat: -23.55, lng: -46.63 } });
   assert.equal(sem.status, 403);
@@ -244,4 +247,81 @@ test('limiar de 80%: abaixo disso recusa, a partir disso aprova (cosseno)', asyn
   const a = Float32Array.from([1, 0]);
   assert.ok(similarity(a, Float32Array.from([0.85, 0.5268])) >= 0.8);  // 85% aprova
   assert.ok(similarity(a, Float32Array.from([0.75, 0.6614])) < 0.8);   // 75% reprova
+});
+
+test('aparelho novo: confere o rosto (sem refazer cadastro) antes da senha; saque exige checagem', async () => {
+  // Usuário já cadastrado (motorista de teste) entra num aparelho novo.
+  const login = await api('POST', '/auth/login', { body: { login: 'motorista', password: 'senha1234', deviceKey: 'aparelho-novo-1', device: 'Celular novo' } });
+  assert.equal(login.status, 403);
+  assert.equal(login.data.code, 'biometria_aparelho');
+
+  // Rosto errado: não libera.
+  const errado = await api('POST', '/auth/aparelho/verificar?login=motorista&deviceKey=aparelho-novo-1', { raw: Buffer.from('ROSTO-B'), type: 'image/jpeg' });
+  assert.equal(errado.status, 403);
+
+  // Rosto certo: devolve código; login com código entra e registra o aparelho.
+  const certo = await api('POST', '/auth/aparelho/verificar?login=motorista&deviceKey=aparelho-novo-1', { raw: Buffer.from('ROSTO-A'), type: 'image/jpeg' });
+  assert.equal(certo.status, 200, JSON.stringify(certo.data));
+  const entrou = await api('POST', '/auth/login', { body: { login: 'motorista', password: 'senha1234', deviceKey: 'aparelho-novo-1', device: 'Celular novo', aparelhoToken: certo.data.aparelhoToken } });
+  assert.equal(entrou.status, 200, JSON.stringify(entrou.data));
+  // O código vale uma vez.
+  const reuso = await api('POST', '/auth/login', { body: { login: 'motorista', password: 'senha1234', deviceKey: 'aparelho-novo-2', aparelhoToken: certo.data.aparelhoToken } });
+  assert.equal(reuso.status, 403);
+  // Aparelho já conhecido: entra só com usuário e senha.
+  const conhecido = await api('POST', '/auth/login', { body: { login: 'motorista', password: 'senha1234', deviceKey: 'aparelho-novo-1' } });
+  assert.equal(conhecido.status, 200);
+
+  // Saque: sem checagem do rosto, recusado.
+  const saque = await api('POST', '/wallet/withdraw', { who: 'moto', body: { amount: 10, pixKey: '000.000.001-91' } });
+  assert.equal(saque.status, 403);
+  assert.equal(saque.data.code, 'verificacao_facial');
+});
+
+test('documento: só identidade válida; vencido e emitido há mais de 10 anos são recusados', async () => {
+  await person('eva', '321.654.987-91', 'eva');
+  await api('POST', '/biometria/consentimento', { who: 'eva', body: { version: CONSENT_VERSION } });
+  const selfie = await upload('eva', 'ROSTO-A selfie');
+  const doc = await upload('eva', 'ROSTO-A documento');
+  const tipoErrado = await api('POST', '/biometria/envio', { who: 'eva', body: { selfie, doc, documento: { tipo: 'comprovante', emissao: '2024-01-10' } } });
+  assert.equal(tipoErrado.data.code, 'documento_invalido');
+  const vencido = await api('POST', '/biometria/envio', { who: 'eva', body: { selfie, doc, documento: { tipo: 'cnh', emissao: '2020-01-10', validade: '2021-01-10' } } });
+  assert.equal(vencido.data.code, 'documento_vencido');
+  const antigo = await api('POST', '/biometria/envio', { who: 'eva', body: { selfie, doc, documento: { tipo: 'rg', emissao: '2010-01-10' } } });
+  assert.equal(antigo.data.code, 'documento_antigo');
+  // Carteira de conselho profissional (ex.: CRM) vale como documento próprio.
+  const crm = await api('POST', '/biometria/envio', { who: 'eva', body: { selfie, doc, documento: { tipo: 'conselho', emissao: '2025-03-01', validade: '2030-03-01' } } });
+  assert.equal(crm.status, 200, JSON.stringify(crm.data));
+});
+
+test('scan: 3 fotos com movimento e rosto certo verificam; foto parada e rosto errado não', async () => {
+  const frame = (tag) => Buffer.from(tag).toString('base64');
+  const movida = ['ROSTO-A MOV=0.1', 'ROSTO-A MOV=0.3', 'ROSTO-A MOV=0.2'].map(frame);
+  const ok1 = await api('POST', '/biometria/verificar-scan?purpose=periodica', { who: 'moto', body: { frames: movida } });
+  assert.equal(ok1.status, 200, JSON.stringify(ok1.data));
+  const parada = ['ROSTO-A MOV=0.2', 'ROSTO-A MOV=0.2', 'ROSTO-A MOV=0.2'].map(frame);
+  const r2 = await api('POST', '/biometria/verificar-scan?purpose=periodica', { who: 'moto', body: { frames: parada } });
+  assert.equal(r2.data.code, 'prova_de_vida');
+  const errado = ['ROSTO-B MOV=0.1', 'ROSTO-B MOV=0.3', 'ROSTO-B MOV=0.2'].map(frame);
+  const r3 = await api('POST', '/biometria/verificar-scan?purpose=periodica', { who: 'moto', body: { frames: errado } });
+  assert.equal(r3.data.code, 'rosto_nao_confere');
+});
+
+test('termo de adesão: publicado, e o cadastro exige o aceite', async () => {
+  const t = await api('GET', '/termos/adesao');
+  assert.equal(t.status, 200);
+  assert.equal(t.data.versao, '2026-11-adesao-v1');
+  const semAceite = await api('POST', '/auth/signup', { body: { kind: 'pessoa', name: 'Sem Termo', doc: '000.000.001-91', username: 'semtermo', email: 's@realys.com', password: 'senha1234' } });
+  assert.equal(semAceite.status, 400);
+  assert.equal(semAceite.data.code, 'termos');
+});
+
+test('cadastro por scan: frames não são guardados; cadastro aprovado com documento compatível', async () => {
+  await person('gil', '555.666.777-20', 'gilmar');
+  await api('POST', '/biometria/consentimento', { who: 'gil', body: { version: CONSENT_VERSION } });
+  const doc = await upload('gil', 'ROSTO-D documento');
+  const frames = ['ROSTO-D MOV=0.1', 'ROSTO-D MOV=0.3', 'ROSTO-D MOV=0.2'].map((x) => Buffer.from(x).toString('base64'));
+  const r = await api('POST', '/biometria/envio-scan', { who: 'gil', body: { frames, doc, documento: DOC } });
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  assert.equal(r.data.status, 'aprovado');
+  assert.equal((await api('GET', `/media/${doc}`)).status, 404); // documento apagado depois da decisão
 });

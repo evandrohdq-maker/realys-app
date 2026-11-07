@@ -18,6 +18,7 @@ import {
   ageFromBirth,
   confirmBiometric,
 } from '../accounts';
+import TermoAdesaoModal from '../components/TermoAdesaoModal';
 import { ProfileQuiz } from '../components/SocialClass';
 import { classifyProfile } from '../socialClasses';
 
@@ -35,6 +36,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
   const [confirm, setConfirm] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [terms, setTerms] = useState(false);
+  const [termoOpen, setTermoOpen] = useState(false);
   const [remember, setRemember] = useState(true);
   const [busy, setBusy] = useState(false);
   const [quiz, setQuiz] = useState({ about: '', work: '', hobbies: [] }); // questionário do perfil social
@@ -67,7 +69,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
     const p = passwordProblem(password);
     if (p) return p;
     if (password !== confirm) return 'As senhas não são iguais.';
-    if (!terms) return 'Para continuar, aceite os termos de uso.';
+    if (!terms) return 'Para continuar, leia e aceite o Termo de Adesão.';
     return null;
   };
 
@@ -304,10 +306,14 @@ export default function SignupForm({ onDone, onGoLogin }) {
       <TouchableOpacity style={authStyles.check} onPress={() => setTerms(!terms)} activeOpacity={0.8}>
         <Ionicons name={terms ? 'checkbox' : 'square-outline'} size={22} color={terms ? colors.primary : colors.muted} />
         <View style={{ flex: 1, marginLeft: 8 }}>
-          <Text style={authStyles.checkText}>Aceito os termos de uso e a política de privacidade</Text>
-          <Text style={authStyles.checkSub}>Uma pessoa, uma conta. Perfis falsos e fake news comprovadas levam ao bloqueio.</Text>
+          <Text style={authStyles.checkText}>Li e aceito o Termo de Adesão ao Realys</Text>
+          <Text style={authStyles.checkSub}>Uma pessoa, uma conta. Inclui as regras de reconhecimento facial e de documentos.</Text>
+          <TouchableOpacity onPress={() => setTermoOpen(true)} hitSlop={8} accessibilityLabel="Ler o termo de adesão">
+            <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 12, marginTop: 4 }}>Ler o termo completo ›</Text>
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
+      <TermoAdesaoModal visible={termoOpen} onClose={() => setTermoOpen(false)} />
 
       <TouchableOpacity style={authStyles.check} onPress={() => setRemember(!remember)} activeOpacity={0.8}>
         <Ionicons name={remember ? 'checkbox' : 'square-outline'} size={22} color={remember ? colors.primary : colors.muted} />

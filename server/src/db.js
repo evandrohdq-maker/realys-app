@@ -319,6 +319,39 @@ const MIGRATIONS = [
   );
   CREATE INDEX biometria_checks_user ON biometria_checks(user_id, purpose, created_at);
   `,
+  // 5: aparelhos cadastrados com a biometria; checagem de aparelho novo; venda e saque com checagem
+  `
+  CREATE TABLE devices (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    device_key TEXT NOT NULL,      -- identificador do aparelho, guardado no celular
+    name TEXT DEFAULT '',
+    created_at INTEGER NOT NULL,
+    last_seen_at INTEGER NOT NULL,
+    UNIQUE (user_id, device_key)
+  );
+
+  CREATE TABLE aparelho_checks (   -- conferência do rosto para entrar em aparelho novo (vale 5 min, uma vez)
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    device_key TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    used_at INTEGER
+  );
+
+  CREATE TABLE biometria_checks_v2 (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    purpose TEXT NOT NULL CHECK (purpose IN ('aceite','finalizacao','periodica','venda','saque')),
+    call_id TEXT,
+    created_at INTEGER NOT NULL,
+    used_at INTEGER
+  );
+  INSERT INTO biometria_checks_v2 SELECT * FROM biometria_checks;
+  DROP TABLE biometria_checks;
+  ALTER TABLE biometria_checks_v2 RENAME TO biometria_checks;
+  CREATE INDEX biometria_checks_user ON biometria_checks(user_id, purpose, created_at);
+  `,
 ];
 
 export function openDb(file) {
