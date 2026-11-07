@@ -11,6 +11,7 @@ import { isFoodStore } from '../../data';
 import { FOOD_FILTERS } from '../../foodData';
 import { GROCERY_GROUPS, GROCERY_SECTIONS, sectionOf } from '../../grocerySections';
 import { classifyFood, FOOD_CLASSES, MODOS, classeByKey } from '../../foodClasses';
+import FoodClassPicker from '../../components/FoodClassPicker';
 import { FoodHighlights } from './FoodHighlights';
 import { ShopHero, CircleShortcuts, ShopHead, ShopProductCard as ProductCard, ShopGrid, StoreRow } from '../../components/ShopKit';
 import { SegTabs, SpotlightCarousel, ClipStrip, PromoSector } from '../../components/AdKit';
@@ -58,6 +59,8 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
   const [cat, setCat] = useState(food ? 'todos' : 'Todos');
   const [searched, setSearched] = useState('');
   const [seg, setSeg] = useState('cardapio');
+  // Filtro de classe/subclasse do Food: { classe, subclasse } ou null (Tudo).
+  const [foodCls, setFoodCls] = useState(null);
 
   // Veio do menu ⋮ (ex.: Restaurantes → Pizzaria)
   useEffect(() => {
@@ -84,6 +87,24 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
     ]);
   };
 
+  // Lojas de comida por classe e por subclasse (para o seletor e para filtrar a lista).
+  const foodIndex = useMemo(() => {
+    const lojas = new Map();
+    for (const p of state.products) {
+      const loja = state.stores.find((x) => x.id === p.storeId);
+      if (!isFoodStore(loja)) continue;
+      const cls = p.classe ? { classe: p.classe, subclasse: p.subclasse } : classifyFood(p.name, p.description || p.desc || '', loja.category);
+      if (!cls || !cls.classe) continue;
+      for (const k of [cls.classe, `${cls.classe}:${cls.subclasse}`]) {
+        if (!lojas.has(k)) lojas.set(k, new Set());
+        lojas.get(k).add(loja.id);
+      }
+    }
+    const counts = new Map([...lojas].map(([k, set]) => [k, set.size]));
+    return { counts, lojas };
+  }, [state.products, state.stores]);
+  const chaveFood = foodCls ? (foodCls.subclasse ? `${foodCls.classe}:${foodCls.subclasse}` : foodCls.classe) : null;
+
   // Ordem da busca: patrocinadas primeiro, depois recomendadas, depois por nota.
   const rankedStores = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -91,7 +112,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
     return state.stores
       .filter((s) =>
         food
-          ? isFoodStore(s) && (!foodCats || foodCats.includes(s.category)) && (term || !isMarket(s))
+          ? isFoodStore(s) && (!foodCats || foodCats.includes(s.category)) && (term || !isMarket(s)) && (!chaveFood || (foodIndex.lojas.get(chaveFood) || new Set()).has(s.id))
           : !isFoodStore(s) && (cat === 'Todos' || s.category === cat)
       )
       .filter(
@@ -101,7 +122,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
           state.products.some((p) => p.storeId === s.id && p.name.toLowerCase().includes(term))
       )
       .sort((a, b) => b.sponsored - a.sponsored || b.recommended - a.recommended || b.rating - a.rating);
-  }, [state.stores, state.products, q, cat, food]);
+  }, [state.stores, state.products, q, cat, food, chaveFood, foodIndex]);
 
   // Na aba Food só entram produtos de restaurantes, bares e cafés.
   // No Shop/Loja, nada de comida.
@@ -203,7 +224,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
           {s.shipsBrazil ? <View style={{ marginLeft: 6 }}><Badge label="Envia para todo o Brasil" color={colors.accent} /></View> : null}
         </Row>
         {isFoodStore(s) ? (
-          <CardapioFood items={items} store={s} onAdd={add} />
+          <CardapioFood items={items} store={s} onAdd={add} filtro={foodCls} />
         ) : (
           <ShopGrid>
             {items.map((p) => (
@@ -252,6 +273,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
         style={{ marginBottom: 0 }}
       />
       <View style={{ height: 12 }} />
+      {food ? <FoodClassPicker selected={foodCls} counts={foodIndex.counts} onPick={setFoodCls} /> : null}
       {food && !q ? <SpotlightCarousel ads={FOOD_SPOTLIGHT} onOpen={openAd} /> : null}
       {!q ? (food ? <ShopHero title="Food" sub="Restaurantes, bares e cafés perto de você" /> : <ShopHero title="Loja Realys" sub="Lojas verificadas, patrocinadas e recomendadas primeiro" />) : null}
       <CircleShortcuts items={food ? FOOD_SHORTCUTS : CATEGORIES} value={cat} onPress={setCat} />
@@ -297,7 +319,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
         </>
       ) : null}
 
-      <ShopHead title={food ? 'Restaurantes, bares e cafés' : 'Lojas em destaque'} />
+      <ShopHead title={food ? (foodCls ? 'Lojas com este item' : 'Restaurantes, bares e cafés') : 'Lojas em destaque'} />
       {rankedStores.map((s) => (
         <StoreRow key={s.id} s={s} onPress={() => setOpenStore(s.id)} />
       ))}
@@ -393,7 +415,7 @@ function MarketTab({ onOpenStore, onAdd, onPromos }) {
 
 // Cardápio de loja de comida: produtos agrupados por classe › subclasse (foodClasses), com o filtro
 // Entrega ou Retirada no local. Produto sem classe gravada é classificado na hora pelo nome.
-function CardapioFood({ items, store, onAdd }) {
+function CardapioFood({ items, store, onAdd, filtro = null }) {
   const [modo, setModo] = useState('todos');
   const porClasse = useMemo(() => {
     const info = items.map((p) => {
@@ -402,14 +424,16 @@ function CardapioFood({ items, store, onAdd }) {
         : classifyFood(p.name, p.description || p.desc || '', store.category);
       return { p, cls };
     });
-    const visiveis = info.filter(({ cls }) => modo === 'todos' || (cls && cls.modos && cls.modos.includes(modo)));
+    const visiveis = info
+      .filter(({ cls }) => modo === 'todos' || (cls && cls.modos && cls.modos.includes(modo)))
+      .filter(({ cls }) => !filtro || (cls && cls.classe === filtro.classe && (!filtro.subclasse || cls.subclasse === filtro.subclasse)));
     return FOOD_CLASSES.map((c) => ({
       c,
       subs: c.subs
         .map((sub) => ({ sub, produtos: visiveis.filter(({ cls }) => cls && cls.classe === c.key && cls.subclasse === sub.key).map((x) => x.p) }))
         .filter((x) => x.produtos.length),
     })).filter((x) => x.subs.length);
-  }, [items, store.category, modo]);
+  }, [items, store.category, modo, filtro]);
   const semClasse = items.filter((p) => !(p.classe || classifyFood(p.name, p.description || p.desc || '', store.category)));
   return (
     <View>
