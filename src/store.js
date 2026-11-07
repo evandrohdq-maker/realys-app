@@ -12,6 +12,7 @@ import { conversations as initialConversations, communityPosts as initialCommuni
 import * as J from './jobsData';
 import { initialTestimonials, myInitialGallery } from './testimonialsData';
 import { visitFee, visitDiscount, providerStats, splitFee, SAMPLE_VISIT_REQUESTS, HIGHLIGHT_PLAN } from './serviceVisits';
+import { sampleAgenda, DEFAULT_HOURS, parseWhen } from './agenda';
 
 const StoreContext = createContext(null);
 
@@ -139,6 +140,10 @@ const initialState = {
   visits: [],
   visitRequests: SAMPLE_VISIT_REQUESTS,
   myVisits: [],
+  // Agenda do prestador (src/agenda.js): compromissos, horário de trabalho e aviso antes de cada trabalho.
+  agenda: sampleAgenda(),
+  workHours: DEFAULT_HOURS,
+  agendaRemind: 30,
   available: false,
   myProvider: null, // cadastro profissional de quem usa o perfil Prestador
   cart: [], // [{ productId, qty }]
@@ -657,7 +662,7 @@ function baseReducer(state, a) {
     case 'SET_PRIVACY':
       return { ...state, privacy: { ...state.privacy, ...a.privacy } };
     case 'LOAD_PROFILE':
-      return { ...state, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, myBusiness: a.data.myBusiness || state.myBusiness };
+      return { ...state, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind };
     case 'ADD_CREATION':
       return { ...state, creations: [a.item, ...state.creations] };
     case 'UPDATE_CREATION':
@@ -944,7 +949,7 @@ function baseReducer(state, a) {
           ? [{ id: newId('w'), ts: Date.now(), kind: 'recebido', cat: 'Serviço prestado', desc: `Serviço: ${req.service || req.kind || req.from || 'pedido aceito'}${req.client ? ` para ${req.client}` : ''}`, amount: price }, ...state.walletTx]
           : state.walletTx,
         rideRequests: state.rideRequests.filter((r) => r.id !== a.id),
-        rides: [{ ...req, status: 'Em andamento' }, ...state.rides],
+        rides: [{ ...req, status: 'Em andamento', acceptedAt: Date.now() }, ...state.rides],
       };
     }
     // Serviço terminado (cliente confirmou e pagou pelo Realys): abre a avaliação do prestador.
@@ -1116,7 +1121,8 @@ function baseReducer(state, a) {
       return {
         ...withMyProvider(state, me),
         visitRequests: state.visitRequests.filter((r) => r.id !== a.id),
-        myVisits: a.accept ? [{ ...req, fee, split: splitFee(fee), status: 'aceita' }, ...state.myVisits] : state.myVisits,
+        // Visita aceita entra sozinha na Agenda, no horário que o cliente pediu.
+        myVisits: a.accept ? [{ ...req, fee, split: splitFee(fee), status: 'aceita', acceptedAt: Date.now(), start: parseWhen(req.when) }, ...state.myVisits] : state.myVisits,
       };
     }
     // Cliente confirmou a visita: a parte do prestador é liberada na carteira.
@@ -1138,6 +1144,17 @@ function baseReducer(state, a) {
     // O prestador também avalia o cliente.
     case 'PROVIDER_RATE_CLIENT':
       return { ...state, myVisits: state.myVisits.map((x) => (x.id === a.id ? { ...x, clientStars: a.stars, clientText: a.text || '' } : x)) };
+    // Agenda do prestador
+    case 'AGENDA_ADD':
+      return { ...state, agenda: [...state.agenda, { ...a.item, id: a.item.id || newId('ag') }] };
+    case 'AGENDA_UPDATE':
+      return { ...state, agenda: state.agenda.map((it) => (it.id === a.id ? { ...it, ...a.patch } : it)) };
+    case 'AGENDA_REMOVE':
+      return { ...state, agenda: state.agenda.filter((it) => it.id !== a.id) };
+    case 'AGENDA_HOURS':
+      return { ...state, workHours: state.workHours.map((h, i) => (i === a.day ? { ...h, ...a.patch } : h)) };
+    case 'AGENDA_REMIND':
+      return { ...state, agendaRemind: a.min };
     // Plano de destaque: aparece como "Patrocinado", separado do ranking por mérito.
     case 'SET_HIGHLIGHT': {
       if (!state.myProvider) return state;
@@ -1280,8 +1297,8 @@ export function StoreProvider({ children }) {
   }, [profileKey]);
   useEffect(() => {
     if (!profileKey || profileLoaded.current !== profileKey) return;
-    AsyncStorage.setItem(profileKey, JSON.stringify({ myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myBusiness: state.myBusiness })).catch(() => {});
-  }, [state.myProfile, state.privacy, state.creations, state.myPage, state.myBusiness]);
+    AsyncStorage.setItem(profileKey, JSON.stringify({ myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, agendaRemind: state.agendaRemind })).catch(() => {});
+  }, [state.myProfile, state.privacy, state.creations, state.myPage, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
   return <StoreContext.Provider value={{ state, dispatch }}>{children}</StoreContext.Provider>;
 }
 

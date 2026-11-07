@@ -20,10 +20,11 @@ import {
 
 import ProfessionPicker from '../../components/ProfessionPicker';
 import { CAR_FEATURES, featuresOf, featureIcon, featureLabel } from '../../vehicleInfo';
+import { buildAgenda, nextJob, agendaStats, dayLabel, hhmm, untilText } from '../../agenda';
 
 const UNITS = ['mês', 'hora', 'serviço', 'diária (8h)', 'm²', 'visita', 'corrida + R$ 2,50/km'];
 
-export default function DriverScreen() {
+export default function DriverScreen({ goTo }) {
   const { state, dispatch } = useStore();
   const me = state.myProvider;
   const [editing, setEditing] = useState(!me);
@@ -205,6 +206,8 @@ export default function DriverScreen() {
         )}
       </Section>
 
+      <AgendaShortcut onOpen={() => goTo && goTo('agenda')} />
+
       <Row style={{ marginHorizontal: -4, marginBottom: 14 }}>
         <Stat label="Ganhos hoje" value={brl(86.4 + earnings)} color={colors.success} />
         <Stat label="Avaliação" value="★ 4,9" color={colors.accent} />
@@ -253,6 +256,36 @@ export default function DriverScreen() {
         {!accepted.length ? <Empty text="Nenhum serviço em andamento." /> : null}
       </Section>
     </Screen>
+  );
+}
+
+// Botão da Agenda no painel: mostra o próximo trabalho e abre a agenda completa.
+function AgendaShortcut({ onOpen }) {
+  const { state } = useStore();
+  const now = Date.now();
+  const items = buildAgenda(state, now);
+  const next = nextJob(items, now);
+  const st = agendaStats(items, now);
+  return (
+    <TouchableOpacity onPress={onOpen} activeOpacity={0.85} accessibilityLabel="Abrir minha agenda">
+      <Card style={{ backgroundColor: colors.primaryLight }}>
+        <Row>
+          <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+            <Ionicons name="calendar" size={22} color={colors.onPrimary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 16 }}>Minha agenda</Text>
+            <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }} numberOfLines={2}>
+              {next ? `Próximo: ${next.client}, ${dayLabel(next.start, now).toLowerCase()} às ${hhmm(next.start)} (${untilText(next.start, now)})` : 'Nenhum trabalho marcado'}
+            </Text>
+            <Text style={{ color: colors.primaryDark, fontSize: 12, fontWeight: '700', marginTop: 2 }}>
+              {st.today} hoje · {st.week} nos próximos 7 dias
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.primary} />
+        </Row>
+      </Card>
+    </TouchableOpacity>
   );
 }
 

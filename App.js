@@ -23,6 +23,7 @@ import InventoryScreen from './src/screens/empresa/InventoryScreen';
 import FinanceScreen from './src/screens/empresa/FinanceScreen';
 import B2BScreen from './src/screens/empresa/B2BScreen';
 import DriverScreen from './src/screens/prestador/DriverScreen';
+import AgendaScreen from './src/screens/prestador/AgendaScreen';
 import SupplierScreen from './src/screens/fornecedor/SupplierScreen';
 import { AdminOverview, AdminModeration, AdminSignups } from './src/screens/admin/AdminScreens';
 import AdminMarket from './src/screens/admin/AdminMarket';
@@ -103,6 +104,7 @@ const TABS = {
   ],
   prestador: [
     { key: 'prestar', label: 'Trabalhar', icon: 'navigate-circle-outline', Comp: DriverScreen },
+    { key: 'agenda', label: 'Agenda', icon: 'calendar-outline', Comp: AgendaScreen },
     { key: 'inicio', label: 'Feed', icon: 'home-outline', Comp: FeedScreen },
     { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
