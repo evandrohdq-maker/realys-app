@@ -423,6 +423,9 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
   }, [visible, history.length]);
   const [phase, setPhase] = useState('idle');
   const [partial, setPartial] = useState('');
+  // Ouvido enquanto ela fala: 'wait' ligando, 'on' ouvindo o "Lotus", 'off' não conseguiu ouvir.
+  const [ear, setEar] = useState(null);
+  const [earHeard, setEarHeard] = useState('');
   const [pending, setPending] = useState(null);
   const level = useRef(new Animated.Value(0)).current;
   const enter = useRef(new Animated.Value(0)).current;
@@ -493,12 +496,16 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     // Se a própria resposta tem o nome "Lotus", o microfone poderia ouvir a voz dela e se interromper.
     if (findCall(reply)) return;
     bargeIn.current = { on: true, heard: false, rest: '', timer: null, tries: 0 };
+    setEar('wait');
+    setEarHeard('');
     startBargeRecognizer();
   };
 
   const stopBargeIn = () => {
     const b = bargeIn.current;
     clearTimeout(b.timer);
+    setEar(null);
+    setEarHeard('');
     if (!b.on) return;
     b.on = false;
     try {
@@ -528,6 +535,9 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
   const onBargeHeard = (results, isFinal) => {
     const b = bargeIn.current;
     const call = hearCall(results);
+    // Mostra o que o microfone está pegando enquanto ela fala (ajuda a ver se está ouvindo).
+    const said = results && results[0] ? String(results[0].transcript || '') : '';
+    if (said) setEarHeard(said.length > 42 ? '…' + said.slice(-42) : said);
     if (!b.heard) {
       if (!call) return;
       b.heard = true;
@@ -742,7 +752,10 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
   };
 
   useSpeechRecognitionEvent('start', () => {
-    if (bargeIn.current.on) bargeIn.current.tries = 0;
+    if (bargeIn.current.on) {
+      bargeIn.current.tries = 0;
+      setEar('on');
+    }
     if (session.current.active) session.current.started = true;
   });
   useSpeechRecognitionEvent('volumechange', (e) => {
@@ -768,6 +781,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
       // O celular parou de ouvir sozinho, mas ela ainda está falando: volta a ouvir na hora,
       // quantas vezes precisar (só desiste se ele falhar muitas vezes seguidas sem nem começar).
       if (b.tries++ < 12) setTimeout(() => b.on && !b.heard && startBargeRecognizer(), 80);
+      else setEar('off');
       return;
     }
     if (!session.current.active || !session.current.started) return;
@@ -780,8 +794,12 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     if (b.on) {
       if (b.heard) return finishBargeIn();
       const code = e && e.error;
-      if (code === 'not-allowed' || code === 'service-not-allowed') return stopBargeIn();
+      if (code === 'not-allowed' || code === 'service-not-allowed') {
+        stopBargeIn();
+        return setEar('off');
+      }
       if (b.tries++ < 12) setTimeout(() => b.on && !b.heard && startBargeRecognizer(), code === 'no-speech' || code === 'speech-timeout' ? 80 : 250);
+      else setEar('off');
       return;
     }
     const s = session.current;
@@ -879,6 +897,11 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
             <View style={[styles.statusDot, { backgroundColor: phase === 'listening' ? '#60A5FA' : phase === 'idle' ? 'rgba(255,255,255,0.4)' : colors.gold }]} />
             <Text style={styles.status}>{PHASE_TEXT[phase]}</Text>
           </View>
+          {phase === 'speaking' && ear && ear !== 'wait' ? (
+            <Text style={styles.earHint} numberOfLines={1}>
+              {ear === 'on' ? (earHeard ? `🎙 ouvindo: “${earHeard}”` : '🎙 diga “Lotus” para interromper') : 'toque na flor para interromper'}
+            </Text>
+          ) : null}
           <Text style={[styles.live, !partial && !last && styles.livePlaceholder]} numberOfLines={2}>
             {partial || (last && phase !== 'listening' ? splitSentences(last.reply)[0] : '“Me leva pro Agro”')}
           </Text>
@@ -1094,6 +1117,7 @@ const styles = StyleSheet.create({
 
   statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 2 },
   statusDot: { width: 7, height: 7, borderRadius: 4, marginRight: 6 },
+  earHint: { textAlign: 'center', color: 'rgba(253,230,138,0.85)', fontSize: 11, fontWeight: '600', marginTop: 2, paddingHorizontal: 16 },
   status: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 6 },
   live: { textAlign: 'center', color: '#FFFFFF', fontSize: 15, fontWeight: '600', marginTop: 6, paddingHorizontal: 10, minHeight: 26, textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 6 },
   pauseRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 8, paddingHorizontal: 10 },
