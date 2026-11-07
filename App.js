@@ -39,6 +39,7 @@ import { UserProfileModal, PeopleSearchModal } from './src/components/People';
 import { CompanyProfileModal } from './src/components/CompanyProfile';
 import GiftSheet from './src/components/GiftSheet';
 import CartSheet, { CartIcon } from './src/components/CartSheet';
+import { PixPayHost } from './src/components/PixPay';
 import RateSheet, { LoyaltyNotifier } from './src/components/RateSheet';
 import VenueSheet, { VenuePill } from './src/components/VenueSheet';
 import { GlobalLive } from './src/components/LiveBits';
@@ -387,6 +388,8 @@ function Shell() {
       <CompanyProfileModal />
       <GiftSheet />
       <CartSheet onOrders={() => pick({ tab: 'pedidos' })} />
+      {/* Compra sem saldo: janela do Pix (valor inteiro ou saldo + restante). */}
+      <PixPayHost />
       <RateSheet />
       <LoyaltyNotifier />
       <VenueSheet />

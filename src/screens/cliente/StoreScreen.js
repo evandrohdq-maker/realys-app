@@ -1,3 +1,4 @@
+import { askPix } from '../../components/PixPay';
 import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useStore, storeOf, cartTotal } from '../../store';
@@ -111,7 +112,11 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
   const total = cartTotal(state);
 
   const checkout = () => {
-    if (total > state.wallet + state.giftCredits) return Alert.alert('Saldo insuficiente', 'Adicione saldo Realys para concluir.');
+    const avail = state.wallet + state.giftCredits;
+    if (total > avail) return askPix({ amount: total, available: avail, label: 'Carrinho', onPaid: finish });
+    finish();
+  };
+  const finish = () => {
     dispatch({ type: 'CHECKOUT' });
     setShowCart(false);
     Alert.alert(

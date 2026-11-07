@@ -2,6 +2,7 @@
 // bebidas e comidas, paga pelo Realys e o caixa recebe "Mesa 12 · Fulano pediu…".
 // Quem reservou mesa já está nela; quem não reservou pode dizer a mesa ou retirar no balcão.
 // Abre com dispatch({ type: 'OPEN_VENUE' }). Na demonstração dá para ver o painel do caixa.
+import { askPix } from './PixPay';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -38,7 +39,6 @@ export default function VenueSheet() {
 
   const order = () => {
     if (!items.length) return;
-    if (total > state.wallet + (state.giftCredits || 0)) return Alert.alert('Saldo insuficiente', 'Adicione saldo Realys na carteira para pedir.');
     const go = () => {
       dispatch({ type: 'VENUE_ORDER', items });
       setQty({});
@@ -47,7 +47,14 @@ export default function VenueSheet() {
     };
     Alert.alert('Confirmar pedido', `${items.map((it) => `${it.qty}× ${it.name}`).join('\n')}\n\nTotal ${brl(total)} pelo Realys${v.table ? ` · mesa ${v.table}` : ' · retirar no balcão'}`, [
       { text: 'Voltar', style: 'cancel' },
-      { text: 'Pedir e pagar', onPress: go },
+      {
+        text: 'Pedir e pagar',
+        onPress: () => {
+          const avail = state.wallet + (state.giftCredits || 0);
+          if (total > avail) return askPix({ amount: total, available: avail, label: `Comanda · ${v.name}`, onPaid: go });
+          go();
+        },
+      },
     ]);
   };
 

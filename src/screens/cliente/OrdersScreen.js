@@ -7,6 +7,7 @@ import { ProductThumb } from '../../components/ui';
 import { promoDiscount } from '../../rewards';
 import { isFoodStore } from '../../data';
 import { useBack } from '../../back';
+import { askPix } from '../../components/PixPay';
 import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Button, Badge, Empty, Photo } from '../../components/ui';
 import { providerTarget } from '../../components/GiftSheet';
@@ -95,7 +96,11 @@ function CartTab({ onPaid }) {
   const fromGift = Math.min(state.giftCredits || 0, total);
   const hasFood = lines.some((l) => isFoodStore(storeOf(state, l.p.storeId)));
   const pay = () => {
-    if (total > state.wallet + (state.giftCredits || 0)) return Alert.alert('Saldo insuficiente', 'Adicione saldo Realys na carteira para concluir.');
+    const avail = state.wallet + (state.giftCredits || 0);
+    if (total > avail) return askPix({ amount: total, available: avail, label: 'Carrinho', onPaid: finish });
+    finish();
+  };
+  const finish = () => {
     dispatch({ type: 'CHECKOUT' });
     onPaid(hasFood);
     Alert.alert('Pedido confirmado! ✅', 'Pagamento protegido: o valor fica retido pelo Realys e só é liberado para a loja quando você confirmar a entrega.');

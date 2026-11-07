@@ -14,6 +14,7 @@ import { members, memberByName } from '../../../people';
 import { PeopleSearchModal, PersonRow } from '../../../components/People';
 import { LaunchStrip } from '../../../components/Launches';
 import { SHOP_SECTORS, SHOP_SECTOR_KEYS } from '../../../shopSectorsData';
+import { askPix } from '../../../components/PixPay';
 import { useBack } from '../../../back';
 import { TestimonialCard } from '../../../components/SocialProfile';
 import { ShopHero, CircleShortcuts, ShopProductCard, ShopGrid, StoreRow } from '../../../components/ShopKit';
@@ -317,7 +318,6 @@ function EventsTab({ group, setGroup, onContact }) {
     const venue = venueOfEvent(e);
     if (tk) return dispatch({ type: 'VENUE_ENTER', venue, table: tk.table, open: true });
     const price = ticketPrice(e.price);
-    if (price > state.wallet) return Alert.alert('Saldo insuficiente', 'Adicione saldo Realys para comprar o ingresso.');
     const buy = (withTable) => {
       const table = withTable ? freeTable() : null;
       dispatch({ type: 'BUY_TICKET', ticket: { id: 'tk' + Date.now(), eventId: e.id, title: e.title, name: e.who, price, table } });
@@ -327,10 +327,12 @@ function EventsTab({ group, setGroup, onContact }) {
         `${e.title} · ${e.who} · ${e.when}${table ? `\n\nMesa ${table} reservada para você.` : ''}\n\nQuando chegar, toque em "Estou no local" para pedir bebidas e comidas pelo app${table ? ', direto na sua mesa' : ''}.`,
       );
     };
+    // Sem saldo: escolhe ingresso ou ingresso + mesa e paga no Pix (valor inteiro ou saldo + restante).
+    const pay = (withTable) => (price > state.wallet ? askPix({ amount: price, available: state.wallet, label: `Ingresso · ${e.title}`, onPaid: () => buy(withTable) }) : buy(withTable));
     Alert.alert(e.cta, `${e.title}\n${e.who} · ${e.when}\n${price ? brl(price) : 'Grátis'} pelo Realys`, [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Só ingresso', onPress: () => buy(false) },
-      { text: 'Ingresso + mesa', onPress: () => buy(true) },
+      { text: 'Só ingresso', onPress: () => pay(false) },
+      { text: 'Ingresso + mesa', onPress: () => pay(true) },
     ]);
   };
   const withCta = (e) => (ticketOf(e) ? { ...e, cta: 'Estou no local · pedir' } : e);

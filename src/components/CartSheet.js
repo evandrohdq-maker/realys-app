@@ -9,6 +9,7 @@ import { useStore, cartTotal, storeOf } from '../store';
 import { colors, brl, soft } from '../theme';
 import { ProductThumb } from './ui';
 import { promoDiscount } from '../rewards';
+import { askPix } from './PixPay';
 
 const NIGHT = '#0B1124';
 
@@ -25,7 +26,14 @@ export default function CartSheet({ onOrders }) {
   const count = lines.reduce((n, l) => n + l.qty, 0);
 
   const pay = () => {
-    if (total > state.wallet + (state.giftCredits || 0)) return Alert.alert('Saldo insuficiente', 'Adicione saldo Realys na carteira para concluir.');
+    const avail = state.wallet + (state.giftCredits || 0);
+    if (total > avail) {
+      close();
+      return askPix({ amount: total, available: avail, label: `Carrinho · ${count} ${count === 1 ? 'item' : 'itens'}`, onPaid: finish });
+    }
+    finish();
+  };
+  const finish = () => {
     dispatch({ type: 'CHECKOUT' });
     close();
     Alert.alert('Pedido confirmado! ✅', 'Pagamento protegido: o valor fica retido pelo Realys e só é liberado para a loja quando você confirmar a entrega.', [

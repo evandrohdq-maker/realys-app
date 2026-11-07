@@ -1,3 +1,4 @@
+import { askPix } from '../../components/PixPay';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,10 +27,13 @@ export default function TransitScreen({ explore, navigate }) {
   }, [explore]);
 
   const buy = (t) => {
-    if (t.price > state.wallet) return Alert.alert('Saldo insuficiente', 'Adicione saldo Realys para comprar a passagem.');
-    const tk = { ...t, id: 'tk' + Date.now(), code: 'RLY-' + Math.floor(100000 + Math.random() * 899999), seat: t.seat || null };
-    dispatch({ type: 'BUY_TICKET', ticket: tk });
-    setTicket(tk);
+    const done = () => {
+      const tk = { ...t, id: 'tk' + Date.now(), code: 'RLY-' + Math.floor(100000 + Math.random() * 899999), seat: t.seat || null };
+      dispatch({ type: 'BUY_TICKET', ticket: tk });
+      setTicket(tk);
+    };
+    if (t.price > state.wallet) return askPix({ amount: t.price, available: state.wallet, label: `Passagem · ${t.name || t.title || ''}`, onPaid: done });
+    done();
   };
 
   if (ticket) return <TicketView t={ticket} onBack={() => setTicket(null)} onTrack={() => { setTicket(null); setTracking(ticket.track); }} />;

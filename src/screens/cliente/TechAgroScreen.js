@@ -7,6 +7,7 @@ import { Screen, Title, Photo, Badge, Row } from '../../components/ui';
 import { SearchBar, GlobalResults } from '../../components/Search';
 import { useBack } from '../../back';
 import LotusFocus from '../../components/LotusFocus';
+import { askPix } from '../../components/PixPay';
 import { TECH_SEGMENTS, AGRO_SEGMENTS, AGRO_CHAINS, sectorItems, agroQuotes, agroWeather, leafDiagnoses } from '../../techAgroData';
 
 const GREEN = '#2E8B57';
@@ -37,7 +38,13 @@ export function useBuy(navigate) {
       dispatch({ type: 'SECTOR_ORDER', item: it });
       return Alert.alert('Inscrição feita', `Você está inscrito em "${it.title}". Acompanhe em Pedidos.`);
     }
-    if (it.price > state.wallet + state.giftCredits) return Alert.alert('Saldo insuficiente', 'Adicione saldo Realys para continuar.');
+    const order = () => {
+      dispatch({ type: 'SECTOR_ORDER', item: it });
+      Alert.alert('Pronto!', 'Pedido feito, com NF-e emitida automaticamente. Acompanhe na aba Pedidos.');
+    };
+    const avail = state.wallet + state.giftCredits;
+    // Sem saldo suficiente: janela do Pix (valor inteiro ou saldo + restante); o Pix vira saldo e a compra sai.
+    if (it.price > avail) return askPix({ amount: it.price, available: avail, label: it.title, onPaid: order });
     Alert.alert(it.cta, `${it.title}\n${it.who}\n\n${priceText(it)} com saldo Realys (pagamento protegido).`, [
       { text: 'Cancelar', style: 'cancel' },
       {
