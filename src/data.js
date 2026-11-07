@@ -104,6 +104,30 @@ export const stores = [
     cover: photo('realys-doceria'),
     logo: '🧁',
   },
+  {
+    id: 'e9',
+    name: 'Nexa IA & Robótica',
+    category: 'Eletrônicos',
+    city: 'Curitiba - PR',
+    rating: 4.9,
+    recommended: true,
+    sponsored: false,
+    shipsBrazil: true,
+    cover: photo('realys-nexa'),
+    logo: '🤖',
+  },
+  {
+    id: 'e10',
+    name: 'Fazenda Serra Verde',
+    category: 'Mercado',
+    city: 'Varginha - MG',
+    rating: 4.8,
+    recommended: false,
+    sponsored: false,
+    shipsBrazil: true,
+    cover: photo('realys-serraverde'),
+    logo: '☕',
+  },
 ];
 
 // Categorias de comida e bebida: são as que aparecem na aba Food.
@@ -138,6 +162,9 @@ export const products = [
   { id: 'p24', storeId: 'e4', name: 'Chuveiro Elétrico 7500W Turbo', price: 189.9, cost: 98.0, stock: 22, minStock: 5, emoji: '🚿', tint: '#E2F1F7', featured: false },
   { id: 'p25', storeId: 'e4', name: 'Smart TV 50" 4K', price: 2299.0, cost: 1650.0, stock: 9, minStock: 2, emoji: '📺', tint: '#E2F1F7', featured: true },
   { id: 'p23', storeId: 'e8', name: 'Cappuccino Cremoso + Pão de Queijo', price: 14.9, cost: 5.5, stock: 99, minStock: 0, emoji: '☕', tint: '#EADBCF', featured: false },
+  { id: 'p26', storeId: 'e9', name: 'Kit de Robótica Educacional', price: 349.9, cost: 160.0, stock: 30, minStock: 5, emoji: '🤖', tint: '#E2F1F7', featured: true },
+  { id: 'p27', storeId: 'e9', name: 'Câmera de Segurança com IA', price: 259.9, cost: 120.0, stock: 40, minStock: 8, emoji: '📷', tint: '#E2F1F7', featured: false, launch: { note: 'Reconhece pessoas e avisa no celular', at: 'Hoje' } },
+  { id: 'p28', storeId: 'e10', name: 'Café Especial em Grãos 1kg', price: 69.9, cost: 32.0, stock: 80, minStock: 10, emoji: '☕', tint: '#EADBCF', featured: true },
 ];
 
 export const posts = [

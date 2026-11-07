@@ -15,7 +15,7 @@ import { ShopProductCard } from './ShopKit';
 import LotusFocus from './LotusFocus';
 import { MY_COMPANY_ID } from '../data';
 import { memberById } from '../people';
-import { businessOf, showcaseOf, sectorByKey, SERVE_MODES, ratingOf, GALLERY_TYPES } from '../companyBusiness';
+import { businessOf, showcaseOf, sectorByKey, roleByKey, SERVE_MODES, ratingOf, GALLERY_TYPES } from '../companyBusiness';
 
 const NIGHT = '#0B1124';
 const NIGHT2 = '#131C38';
@@ -453,6 +453,20 @@ export function BusinessPageModal({ p, media, MediaList }) {
 
             <Text style={styles.heroH}>ONDE ATUA</Text>
             <SectorCards sectors={b.sectors} />
+
+            {(b.roles || []).filter(roleByKey).length ? (
+              <>
+                <Text style={styles.heroH}>PAPEL NA CADEIA</Text>
+                <View style={styles.segWrap}>
+                  {b.roles.map(roleByKey).filter(Boolean).map((ro) => (
+                    <View key={ro.key} style={[styles.seg, { flexDirection: 'row', alignItems: 'center', paddingVertical: 6 }]}>
+                      <Ionicons name={ro.icon} size={13} color={colors.accent} style={{ marginRight: 5 }} />
+                      <Text style={styles.segText}>{ro.label}</Text>
+                    </View>
+                  ))}
+                </View>
+              </>
+            ) : null}
 
             {b.serves || modes.length ? (
               <>

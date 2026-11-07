@@ -49,6 +49,13 @@ Tema claro, com as cores de sempre: fundo marfim, dourado de glória e azul-céu
 - **Visitas aceitas pelo Realys entram sozinhas** na agenda, no horário que o cliente pediu ("Hoje, 15h", "Amanhã, 9h"…), e seguem o andamento da visita.
 - Pela Lotus: *"abre minha agenda"*, *"meus compromissos"*, *"próximos trabalhos"*. Tudo fica salvo no celular, por conta.
 
+**Classes e subclasses de perfis (cadastro e Perfil):** as regras ficam em `src/socialClasses.js` (usuários) e `src/companyBusiness.js` (empresas). Nenhuma classe vale mais que outra: todas aparecem no mesmo nível.
+
+- **Usuários:** 21 classes com 156 subclasses: Música, Artes visuais, Artes cênicas, Criador de conteúdo digital, Influenciador, Gamer, Atleta, Esportista, Estudante, Professor, Escrita e comunicação, Moda e beleza, Gastronomia, **Tecnologia e IA** (criador de IA, machine learning, dados, prompt engineer, agentes e automações, artista de IA, front, back, full stack, apps, web3, cloud, cibersegurança, UX/UI, no-code, robótica, IoT), Agro, Saúde, Prestador de serviços, Negócios e carreira, Fé e comunidade, Viajante e Estilo de vida.
+- No cadastro a pessoa se descreve e o Realys define sozinho a classe, a subclasse e até 2 classes extras. Se não for isso, ela troca à mão pela lista completa.
+- **Exemplos prontos:** 47 perfis de demonstração, pelo menos um por classe (ex.: Rodrigo Teles · Criador de IA, Larissa Gomes · Full stack, Vinícius Lopes · Criador de jogos, Eduardo Nascimento · Stand-up, José Carlos · Cafeicultor). Na busca de pessoas, dá para filtrar por classe.
+- **Empresas:** 19 áreas de atuação com 174 segmentos (inclui Imobiliário, Transporte e logística, Automotivo, Eventos, Mídia e cultura e Institucional) e o **papel na cadeia**: Fabricante, Fornecedor, Distribuidor e atacado, Varejista, Prestadora de serviço ou Institucional. O papel aparece na página da empresa e é editado na aba Página. Novos exemplos: **Nexa IA & Robótica** (Curitiba) e **Fazenda Serra Verde** (café especial, Varginha).
+
 **Perfil em dois sistemas (aba Perfil):**
 
 - **Editar perfil:** foto, @usuário, profissão, cidade, "sobre você" e link. O nome vem do documento e da biometria e não muda.

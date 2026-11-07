@@ -9,7 +9,7 @@ import { UPLOAD_PLANS, STORAGE_PLAN } from '../../extraData';
 import { MY_COMPANY_ID } from '../../data';
 import { profileById, mediaOf } from '../../components/CompanyProfile';
 import { Stars, reviewer } from '../../components/BusinessPage';
-import { SECTORS, SERVE_MODES, GALLERY_TYPES, businessOf, showcaseOf } from '../../companyBusiness';
+import { SECTORS, ROLES, SERVE_MODES, GALLERY_TYPES, businessOf, showcaseOf } from '../../companyBusiness';
 
 const NIGHT = '#0B1124';
 const MAX_SHOWCASE = 6;
@@ -90,6 +90,9 @@ export default function PageScreen() {
     setBiz({ sectors: next });
     setOpenSector(next[k] ? k : Object.keys(next)[0] || null);
   };
+  // Papel na cadeia (fabricante, fornecedor, distribuidor, varejista...): pode marcar mais de um.
+  const roles = biz.roles || [];
+  const toggleRole = (k) => setBiz({ roles: roles.includes(k) ? roles.filter((x) => x !== k) : [...roles, k] });
   const toggleSegment = (k, sg) => {
     const list = sectors[k] || [];
     setBiz({ sectors: { ...sectors, [k]: list.includes(sg) ? list.filter((x) => x !== sg) : [...list, sg] } });
@@ -285,6 +288,18 @@ export default function PageScreen() {
             </View>
           ))}
         </View>
+      </Card>
+
+      <Head icon="git-network-outline" title="Papel na cadeia" sub="O que a sua empresa faz nos negócios do Realys. Define quem pode enviar propostas para você." />
+      <Card>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+          {ROLES.map((ro) => (
+            <Pick key={ro.key} icon={ro.icon} label={ro.label} on={roles.includes(ro.key)} onPress={() => toggleRole(ro.key)} />
+          ))}
+        </View>
+        {roles.length ? (
+          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 4 }}>{ROLES.filter((ro) => roles.includes(ro.key)).map((ro) => ro.hint).join(' · ')}</Text>
+        ) : null}
       </Card>
 
       <Head icon="grid-outline" title="Onde a empresa atua" sub="Escolha as áreas em que você trabalha. Em cada uma, marque os segmentos que descrevem a sua empresa." />

@@ -7,19 +7,38 @@ const pic = (seed, w = 640, h = 360) => `https://picsum.photos/seed/${seed}/${w}
 
 // Áreas de atuação e os segmentos que a empresa escolhe para se descrever.
 export const SECTORS = [
-  { key: 'alimentacao', label: 'Alimentação', icon: 'restaurant-outline', segments: ['Restaurante', 'Pizzaria', 'Hamburgueria', 'Comida japonesa', 'Lanchonete', 'Bar e boteco', 'Cafeteria', 'Doceria', 'Padaria', 'Delivery', 'Marmitas', 'Eventos e buffet'] },
-  { key: 'mercado', label: 'Mercado e conveniência', icon: 'cart-outline', segments: ['Mercado de bairro', 'Hortifrúti', 'Açougue', 'Empório', 'Bebidas', 'Produtos naturais', 'Conveniência 24h', 'Atacado'] },
-  { key: 'moda', label: 'Moda e acessórios', icon: 'shirt-outline', segments: ['Feminino', 'Masculino', 'Infantil', 'Calçados', 'Fitness', 'Moda praia', 'Joias e bijuterias', 'Plus size', 'Sob medida'] },
-  { key: 'tecnologia', label: 'Tecnologia', icon: 'hardware-chip-outline', segments: ['Celulares', 'Informática', 'Games', 'Casa inteligente', 'Assistência técnica', 'Software e apps', 'Inteligência artificial', 'Robótica'] },
-  { key: 'agro', label: 'Agro', icon: 'leaf-outline', segments: ['Grãos', 'Café', 'Pecuária', 'Hortifrúti', 'Leite', 'Insumos', 'Máquinas', 'Agricultura de precisão'] },
-  { key: 'saude', label: 'Saúde e beleza', icon: 'heart-outline', segments: ['Farmácia', 'Clínica', 'Odontologia', 'Estética', 'Salão e barbearia', 'Academia', 'Nutrição', 'Bem-estar'] },
+  { key: 'alimentacao', label: 'Alimentação', icon: 'restaurant-outline', segments: ['Restaurante', 'Pizzaria', 'Hamburgueria', 'Comida japonesa', 'Lanchonete', 'Bar e boteco', 'Cafeteria', 'Doceria', 'Padaria', 'Sorveteria e açaí', 'Delivery', 'Dark kitchen', 'Food truck', 'Marmitas', 'Eventos e buffet'] },
+  { key: 'mercado', label: 'Mercado e conveniência', icon: 'cart-outline', segments: ['Mercado de bairro', 'Supermercado', 'Hortifrúti', 'Açougue', 'Peixaria', 'Empório', 'Bebidas e adega', 'Produtos naturais', 'Conveniência 24h', 'Atacado'] },
+  { key: 'moda', label: 'Moda e acessórios', icon: 'shirt-outline', segments: ['Feminino', 'Masculino', 'Infantil', 'Calçados', 'Fitness', 'Moda praia', 'Joias e bijuterias', 'Ótica', 'Plus size', 'Sob medida'] },
+  { key: 'varejo', label: 'Varejo em geral', icon: 'bag-outline', segments: ['Eletrônicos', 'Eletrodomésticos', 'Cosméticos e perfumaria', 'Esporte e lazer', 'Papelaria e livraria', 'Brinquedos', 'Presentes', 'Loja online', 'Vários'] },
+  { key: 'tecnologia', label: 'Tecnologia e IA', icon: 'hardware-chip-outline', segments: ['Celulares', 'Informática', 'Games', 'Casa inteligente', 'Assistência técnica', 'Software e apps', 'Inteligência artificial', 'Automação e agentes de IA', 'Cibersegurança', 'Startup', 'Provedor de internet', 'Robótica'] },
+  { key: 'agro', label: 'Agro', icon: 'leaf-outline', segments: ['Grãos', 'Café', 'Pecuária', 'Hortifrúti', 'Leite', 'Cooperativa', 'Agroindústria', 'Insumos', 'Máquinas', 'Agricultura de precisão', 'Veterinária rural'] },
+  { key: 'saude', label: 'Saúde e beleza', icon: 'heart-outline', segments: ['Hospital', 'Clínica', 'Laboratório', 'Farmácia', 'Odontologia', 'Psicologia', 'Estética', 'Salão e barbearia', 'Estúdio de tatuagem', 'Academia', 'Nutrição', 'Bem-estar'] },
   { key: 'casa', label: 'Casa e construção', icon: 'hammer-outline', segments: ['Material de construção', 'Móveis', 'Decoração', 'Utensílios', 'Eletrodomésticos', 'Reformas', 'Jardinagem', 'Iluminação'] },
-  { key: 'servicos', label: 'Serviços', icon: 'construct-outline', segments: ['Entrega e frete', 'Limpeza', 'Manutenção', 'Consultoria', 'Contabilidade', 'Marketing', 'Fotografia', 'Gráfica'] },
-  { key: 'turismo', label: 'Hotelaria e turismo', icon: 'bed-outline', segments: ['Hotel', 'Pousada', 'Agência de viagens', 'Passeios', 'Aluguel de temporada', 'Transfer'] },
-  { key: 'educacao', label: 'Educação', icon: 'school-outline', segments: ['Cursos livres', 'Idiomas', 'Reforço escolar', 'Cursos online', 'Profissionalizante', 'Música e artes'] },
-  { key: 'industria', label: 'Indústria e B2B', icon: 'business-outline', segments: ['Fabricação', 'Distribuição', 'Embalagens', 'Matéria-prima', 'Importação', 'Exportação'] },
+  { key: 'imobiliario', label: 'Imobiliário', icon: 'home-outline', segments: ['Imobiliária: venda', 'Imobiliária: locação', 'Construtora', 'Incorporadora', 'Arquitetura e engenharia', 'Administração de condomínios'] },
+  { key: 'servicos', label: 'Serviços profissionais', icon: 'construct-outline', segments: ['Entrega e frete', 'Limpeza', 'Manutenção', 'Consultoria', 'Contabilidade', 'Advocacia', 'Marketing e publicidade', 'RH e recrutamento', 'Seguros', 'Fotografia', 'Gráfica'] },
+  { key: 'transporte', label: 'Transporte e logística', icon: 'bus-outline', segments: ['Transportadora', 'Ônibus municipal', 'Ônibus intermunicipal', 'Ônibus interestadual', 'Frota de entregas', 'Mudanças', 'Locadora de veículos', 'Locação de máquinas'] },
+  { key: 'automotivo', label: 'Automotivo', icon: 'car-sport-outline', segments: ['Concessionária', 'Oficina mecânica', 'Funilaria e pintura', 'Lava-rápido e estética', 'Autopeças', 'Pneus'] },
+  { key: 'turismo', label: 'Hotelaria e turismo', icon: 'bed-outline', segments: ['Hotel', 'Pousada', 'Hostel', 'Resort', 'Agência de viagens', 'Passeios', 'Aluguel de temporada', 'Transfer'] },
+  { key: 'eventos', label: 'Eventos e entretenimento', icon: 'sparkles-outline', segments: ['Casa noturna', 'Casa de shows', 'Espaço de eventos', 'Buffet', 'Produtora de eventos', 'Cinema e teatro', 'Parque e lazer'] },
+  { key: 'educacao', label: 'Educação', icon: 'school-outline', segments: ['Escola', 'Faculdade', 'Faculdade online', 'Cursos livres', 'Cursos online', 'Idiomas', 'Reforço escolar', 'Profissionalizante', 'Autoescola', 'Música e artes'] },
+  { key: 'midia', label: 'Mídia e cultura', icon: 'film-outline', segments: ['Gravadora e selo musical', 'Produtora audiovisual', 'Editora', 'Rádio e TV', 'Portal de notícias', 'Agência de artistas', 'Agência de influenciadores'] },
+  { key: 'industria', label: 'Indústria e B2B', icon: 'business-outline', segments: ['Alimentos e bebidas', 'Têxtil e confecção', 'Móveis', 'Metalurgia e máquinas', 'Química e cosméticos', 'Plásticos e embalagens', 'Gráfica', 'Eletrônicos', 'Matéria-prima', 'Distribuição', 'Importação', 'Exportação'] },
   { key: 'pet', label: 'Pet', icon: 'paw-outline', segments: ['Pet shop', 'Veterinário', 'Banho e tosa', 'Ração', 'Adestramento', 'Hotel pet'] },
+  { key: 'institucional', label: 'Institucional', icon: 'people-circle-outline', segments: ['Órgão público', 'ONG e projeto social', 'Igreja e instituição religiosa', 'Associação', 'Sindicato', 'Clube'] },
 ];
+
+// Papel na cadeia: o que a empresa faz no comércio entre empresas do Realys.
+// Uma empresa pode ter mais de um (ex.: fabrica e também vende direto ao usuário).
+export const ROLES = [
+  { key: 'fabricante', label: 'Fabricante', icon: 'cog-outline', hint: 'Compra matéria-prima, produz e anuncia' },
+  { key: 'fornecedor', label: 'Fornecedor', icon: 'cube-outline', hint: 'Destaca produtos e envia propostas para empresas' },
+  { key: 'distribuidor', label: 'Distribuidor e atacado', icon: 'git-network-outline', hint: 'Compra de fabricantes e revende para lojas com a sua margem' },
+  { key: 'varejista', label: 'Varejista', icon: 'storefront-outline', hint: 'Vende ao usuário final no Shop ou no Food' },
+  { key: 'prestadora', label: 'Prestadora de serviço', icon: 'hand-left-outline', hint: 'Atende pela aba Serviços' },
+  { key: 'institucional', label: 'Institucional', icon: 'people-circle-outline', hint: 'Informa e atende a população' },
+];
+export const roleByKey = (k) => ROLES.find((x) => x.key === k);
 
 export const sectorByKey = (k) => SECTORS.find((s) => s.key === k);
 
@@ -52,6 +71,7 @@ const BUSINESS = {
     address: 'Rua Domingos de Morais, 1200 · Vila Mariana, São Paulo - SP',
     contact: 'Seg a sáb, 7h às 21h · (11) 4000-1001',
     gallery: [g('g11', 'estrutura', 'realys-g-mercado-loja', 'Nossa loja na Vila Mariana'), g('g12', 'equipe', 'realys-g-mercado-equipe', 'Equipe do caixa e da entrega'), g('g13', 'produtos', 'realys-g-mercado-horti', 'Hortifrúti que chega toda manhã'), g('g14', 'produtos', 'realys-g-mercado-cafe', 'Café especial do Sul de Minas')],
+    roles: ['varejista'],
     tagline: 'O mercado do bairro, agora na palma da mão',
     sectors: { mercado: ['Mercado de bairro', 'Hortifrúti', 'Açougue', 'Bebidas'], alimentacao: ['Padaria', 'Delivery'] },
     serves: 'Vila Mariana, Moema e Saúde · entrega em até 1 h',
@@ -77,6 +97,7 @@ const BUSINESS = {
     address: 'Praça da Árvore, 45 · Saúde, São Paulo - SP',
     contact: 'Todos os dias, 18h às 23h30 · (11) 4000-1002',
     gallery: [g('g21', 'estrutura', 'realys-g-pizza-forno', 'Forno a lenha no salão'), g('g22', 'equipe', 'realys-g-pizza-equipe', 'Pizzaiolos da casa'), g('g23', 'produtos', 'realys-g-pizza-marg', 'Margherita de fermentação natural')],
+    roles: ['varejista'],
     tagline: 'Forno a lenha, massa de 48 horas',
     sectors: { alimentacao: ['Pizzaria', 'Delivery', 'Eventos e buffet'] },
     serves: 'Zona Sul de São Paulo · delivery em até 40 min',
@@ -99,6 +120,7 @@ const BUSINESS = {
     address: 'Av. Afonso Pena, 3000 · Funcionários, Belo Horizonte - MG',
     contact: 'Loja online 24h · (31) 4000-1003',
     gallery: [g('g31', 'estrutura', 'realys-g-moda-loja', 'Loja de Belo Horizonte'), g('g32', 'equipe', 'realys-g-moda-atelie', 'Nosso ateliê de costura'), g('g33', 'produtos', 'realys-g-moda-colecao', 'Coleção Verão Brasil')],
+    roles: ['fabricante', 'varejista'],
     tagline: 'Moda brasileira que veste o Brasil inteiro',
     sectors: { moda: ['Feminino', 'Masculino', 'Fitness', 'Plus size'] },
     serves: 'Loja em Belo Horizonte · envia para todo o Brasil',
@@ -120,6 +142,7 @@ const BUSINESS = {
     address: 'Rua XV de Novembro, 800 · Centro, Curitiba - PR',
     contact: 'Seg a sex, 9h às 19h · (41) 4000-1004',
     gallery: [g('g41', 'estrutura', 'realys-g-tech-loja', 'Loja e assistência técnica'), g('g42', 'equipe', 'realys-g-tech-tecnicos', 'Técnicos certificados'), g('g43', 'produtos', 'realys-g-tech-notes', 'Notebooks com garantia')],
+    roles: ['distribuidor', 'varejista'],
     tagline: 'Tecnologia com garantia e assistência própria',
     sectors: { tecnologia: ['Celulares', 'Informática', 'Games', 'Assistência técnica'] },
     serves: 'Curitiba e região · envia para todo o Brasil',
@@ -138,6 +161,7 @@ const BUSINESS = {
     address: 'Rua dos Pinheiros, 550 · Pinheiros, São Paulo - SP',
     contact: 'Ter a dom, 18h às 0h · (11) 4000-1005',
     gallery: [g('g51', 'estrutura', 'realys-g-burger-casa', 'Nossa chapa'), g('g52', 'produtos', 'realys-g-burger-smash', 'Smash duplo')],
+    roles: ['varejista'],
     tagline: 'Hambúrguer artesanal de verdade',
     sectors: { alimentacao: ['Hamburgueria', 'Delivery'] },
     serves: 'Pinheiros e Vila Madalena · delivery em até 35 min',
@@ -153,6 +177,7 @@ const BUSINESS = {
     address: 'Rua Aspicuelta, 220 · Vila Madalena, São Paulo - SP',
     contact: 'Seg a sáb, 17h às 1h · (11) 4000-1006',
     gallery: [g('g61', 'estrutura', 'realys-g-boteco-salao', 'Salão e palco do samba'), g('g62', 'produtos', 'realys-g-boteco-chope', 'Chope e petiscos')],
+    roles: ['varejista'],
     tagline: 'Chope gelado e petisco de boteco raiz',
     sectors: { alimentacao: ['Bar e boteco', 'Eventos e buffet'] },
     serves: 'Vila Madalena · música ao vivo de quinta a sábado',
@@ -168,6 +193,7 @@ const BUSINESS = {
     address: 'Rua Galvão Bueno, 300 · Liberdade, São Paulo - SP',
     contact: 'Ter a dom, 11h às 23h · (11) 4000-1007',
     gallery: [g('g71', 'equipe', 'realys-g-sushi-mestre', 'Mestre Kento e equipe'), g('g72', 'produtos', 'realys-g-sushi-combo', 'Combinado da casa')],
+    roles: ['varejista'],
     tagline: 'Sushi feito na hora pelo mestre Kento',
     sectors: { alimentacao: ['Comida japonesa', 'Delivery', 'Eventos e buffet'] },
     serves: 'Liberdade e Paraíso · delivery em até 45 min',
@@ -183,6 +209,7 @@ const BUSINESS = {
     address: 'Av. Ibirapuera, 2100 · Moema, São Paulo - SP',
     contact: 'Seg a sáb, 8h às 20h · (11) 4000-1008',
     gallery: [g('g81', 'estrutura', 'realys-g-doce-vitrine', 'Nossa vitrine de doces'), g('g82', 'produtos', 'realys-g-doce-bolo', 'Bolos de festa sob encomenda')],
+    roles: ['fabricante', 'varejista'],
     tagline: 'Doces de vitrine e café coado na hora',
     sectors: { alimentacao: ['Doceria', 'Cafeteria', 'Eventos e buffet'] },
     serves: 'Moema · encomendas para festas',
@@ -191,9 +218,42 @@ const BUSINESS = {
     reviews: [r('rv70', 'u10', 5, 'Bolo de aniversário', 'há 3 dias', 'O bolo foi o sucesso da festa. Lindo, saboroso e entregue no horário.')],
     ads: [{ id: 'ad70', title: 'Encomende o bolo da sua festa', length: '0:20', views: 8700, cover: pic('realys-ad-doce') }],
   },
+  // Exemplos de outras classes empresariais.
+  e9: {
+    legalName: 'Nexa Inteligência Artificial e Robótica Ltda.',
+    cnpj: '90.123.456/0001-78',
+    team: '32 colaboradores',
+    address: 'Rua Pedro Ivo, 870 · Centro, Curitiba - PR',
+    contact: 'Seg a sex, 9h às 18h · (41) 4000-1009',
+    gallery: [g('g91', 'equipe', 'realys-g-nexa-time', 'Time de IA e engenharia'), g('g92', 'produtos', 'realys-g-nexa-robo', 'Kit de robótica educacional'), g('g93', 'estrutura', 'realys-g-nexa-lab', 'Nosso laboratório')],
+    roles: ['fabricante', 'fornecedor', 'varejista'],
+    tagline: 'IA e robótica para quem quer crescer',
+    sectors: { tecnologia: ['Inteligência artificial', 'Automação e agentes de IA', 'Robótica', 'Software e apps'], educacao: ['Cursos online'] },
+    serves: 'Todo o Brasil · assistentes de IA para lojas e kits de robótica',
+    modes: ['online', 'brasil'],
+    since: 2021,
+    reviews: [r('rv90', 'u28', 5, 'Kit de Robótica Educacional', 'há 4 dias', 'Montei com meus alunos em uma tarde. Manual claro e peças de qualidade.'), r('rv91', 'u2', 5, 'Assistente de IA para lojas', 'há 2 semanas', 'Ligamos no atendimento da loja e as respostas ficaram rápidas e certas.')],
+    ads: [{ id: 'ad90', title: 'Sua loja atendendo 24h com IA', length: '0:30', views: 31200, cover: pic('realys-ad-nexa') }],
+  },
+  e10: {
+    legalName: 'Fazenda Serra Verde Agroindústria Ltda.',
+    cnpj: '01.234.567/0001-89',
+    team: '45 colaboradores',
+    address: 'Estrada da Serra Verde, km 12 · Zona Rural, Varginha - MG',
+    contact: 'Seg a sáb, 7h às 17h · (35) 4000-1010',
+    gallery: [g('g101', 'estrutura', 'realys-g-serra-cafezal', 'Cafezal a 1.100 m de altitude'), g('g102', 'equipe', 'realys-g-serra-colheita', 'Equipe da colheita'), g('g103', 'produtos', 'realys-g-serra-graos', 'Grãos selecionados')],
+    roles: ['fabricante', 'fornecedor', 'varejista'],
+    tagline: 'Café especial do pé até a sua xícara',
+    sectors: { agro: ['Café', 'Agroindústria', 'Agricultura de precisão'], industria: ['Alimentos e bebidas', 'Exportação'] },
+    serves: 'Vende para cafeterias e mercados do Realys e envia para todo o Brasil',
+    modes: ['online', 'brasil'],
+    since: 1988,
+    reviews: [r('rv100', 'u8', 5, 'Café especial em grãos', 'há 1 semana', 'Aroma incrível. Dá para ver no app de qual talhão veio o café.')],
+    ads: [{ id: 'ad100', title: 'Da fazenda para a sua cafeteria', length: '0:30', views: 7400, cover: pic('realys-ad-serra') }],
+  },
 };
 
-const EMPTY = { tagline: '', sectors: {}, serves: '', modes: [], showcase: [], reviews: [], ads: [], gallery: [], legalName: '', cnpj: '', team: '', address: '', contact: '' };
+const EMPTY = { tagline: '', sectors: {}, roles: [], serves: '', modes: [], showcase: [], reviews: [], ads: [], gallery: [], legalName: '', cnpj: '', team: '', address: '', contact: '' };
 
 // Página empresarial da empresa, já com o que a minha empresa editou (state.myBusiness).
 export function businessOf(state, id) {
