@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { GuaranteeButton } from '../../components/Guarantee';
-import { orderCovered } from '../../guarantee';
+import { orderCovered, protectionFee, PROTECTION_TEXT } from '../../guarantee';
 import { ReversePost, Subscriptions, LotusNudges } from '../../components/Engage';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -110,7 +110,8 @@ function CartTab({ onPaid }) {
   const lines = state.cart.map((c) => ({ ...c, p: state.products.find((x) => x.id === c.productId) })).filter((l) => l.p);
   if (!lines.length) return <Empty text="Seu carrinho está vazio. Adicione produtos no Shop, no Food ou pela Lotus." />;
   const promo = promoDiscount(state, lines.map((l) => ({ ...l, product: l.p })));
-  const total = +(cartTotal(state) - promo.off).toFixed(2);
+  const protection = protectionFee(state);
+  const total = +(cartTotal(state) - promo.off + protection).toFixed(2);
   const fromGift = Math.min(state.giftCredits || 0, total);
   const hasFood = lines.some((l) => isFoodStore(storeOf(state, l.p.storeId)));
   const pay = () => {
@@ -151,6 +152,13 @@ function CartTab({ onPaid }) {
         </Card>
       ))}
       <Card>
+        {/* Taxa de proteção Realys: aparece desde o primeiro item, com a explicação ao tocar. */}
+        <TouchableOpacity onPress={() => Alert.alert('Taxa de proteção Realys', PROTECTION_TEXT)} accessibilityLabel="O que é a taxa de proteção Realys">
+          <Row style={styles.sumRow}>
+            <Text style={styles.sumLabel}>🛡️ Taxa de proteção Realys <Text style={{ color: colors.primary, fontWeight: '700' }}>ⓘ</Text></Text>
+            <Text style={styles.sumValue}>{protection ? brl(protection) : 'Grátis (Score Diamante)'}</Text>
+          </Row>
+        </TouchableOpacity>
         {promo.off > 0 ? (
           <Row style={styles.sumRow}>
             <Text style={styles.sumLabel}>🏷️ Créditos de parceiros</Text>

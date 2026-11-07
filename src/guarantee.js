@@ -49,3 +49,16 @@ export function visitCovered(v) {
   return !v.confirmedAt || Date.now() - v.confirmedAt < GUARANTEE_DAYS * DAY;
 }
 export const daysLeft = (ts) => Math.max(0, Math.ceil((ts + GUARANTEE_DAYS * DAY - Date.now()) / DAY));
+
+// ───────── Taxa de proteção Realys ─────────
+// R$ 0,99 fixo por pedido de produtos (Shop e Food), mostrado desde o primeiro item no carrinho.
+// Paga a Garantia Realys, a biometria de todos e a segurança contra golpes. Valor fixo, sem
+// variar por horário (taxa dinâmica por horário é ideia para o futuro, ainda não usada).
+// Quem tem Score Realys Diamante (850+) não paga.
+import { scoreOf } from './engage';
+export const PROTECTION_FEE = 0.99;
+export const PROTECTION_FREE_SCORE = 850;
+export const PROTECTION_TEXT = 'Paga a Garantia Realys (seu dinheiro volta se der problema), a verificação por biometria de todo mundo e a segurança contra golpes. Valor fixo de R$ 0,99 por pedido. Quem tem Score Realys Diamante não paga.';
+export function protectionFee(state) {
+  return scoreOf(state, 'usuario').score >= PROTECTION_FREE_SCORE ? 0 : PROTECTION_FEE;
+}

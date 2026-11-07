@@ -7,6 +7,7 @@ import { initialFriends } from './people';
 import { brl } from './theme';
 import { initialGifts, initialGiftCredits, giftFee, giftNet, GIFT_MIN, GIFT_MAX, liveGiftOf, liveGiftCost, initialLiveCredits, initialLiveGifts, LIVE_CONVERT_MIN } from './gifts';
 import { INTEL_PLAN, subPlan } from './engage';
+import { protectionFee } from './guarantee';
 import { pointsFor, pointOffer, giftPoints, initialPoints, promoDiscount, POINT_RULES, watchedToday } from './rewards';
 import { initialLoyalty, onDelivered } from './loyalty';
 import { conversations as initialConversations, communityPosts as initialCommunityPosts } from './homeData';
@@ -164,6 +165,7 @@ const initialState = {
   subscriptions: [], // assinaturas: { id, planId, next, status }
   nudgesDismissed: {}, // lembretes da Lotus dispensados
   intelPlan: false, // empresa assina o painel de inteligência
+  protectionFees: 0, // taxas de proteção Realys recebidas nesta sessão (demonstração)
   disputes: [], // casos da Garantia Realys: { id, kind, refId, title, reason, text, amount, status, outcome, at }
   boosts: [], // boosts e anúncios comprados com pontos ou saldo: { id, offerId, target, title, start, until, paidWith, status }
   loyalty: initialLoyalty, // Clube Realys: pedidos entregues, selos por loja (ver src/loyalty.js)
@@ -401,7 +403,9 @@ function baseReducer(state, a) {
       const total = lines.reduce((s, l) => s + l.product.price * l.qty, 0);
       // Créditos promocionais dos parceiros: descontam sozinhos nas compras daquela loja.
       const { off: promoOff, used: promoUsed } = promoDiscount(state, lines);
-      const toPay = +(total - promoOff).toFixed(2);
+      // Taxa de proteção Realys (R$ 0,99, isenta para Score Diamante): vai para o Realys.
+      const protection = lines.length ? protectionFee(state) : 0;
+      const toPay = +(total - promoOff + protection).toFixed(2);
       if (!lines.length || toPay > state.wallet + state.giftCredits) return state;
       // Créditos de presente pagam primeiro; o resto sai do saldo.
       const fromGift = +Math.min(state.giftCredits, toPay).toFixed(2);
@@ -418,6 +422,7 @@ function baseReducer(state, a) {
       return {
         ...state,
         nfeSeq: state.nfeSeq + 1,
+        protectionFees: +((state.protectionFees || 0) + protection).toFixed(2),
         wallet: +(state.wallet - (toPay - fromGift)).toFixed(2),
         cart: [],
         promoCredits: (state.promoCredits || []).map((pc) => (promoUsed[pc.id] ? { ...pc, used: true } : pc)),
@@ -433,6 +438,7 @@ function baseReducer(state, a) {
             items: lines.map((l) => ({ name: l.product.name, qty: l.qty, price: l.product.price })),
             total: +toPay.toFixed(2),
             promoOff: promoOff ? +promoOff.toFixed(2) : undefined,
+            protectionFee: protection || undefined,
             status: 'Pagamento protegido',
             store: storeNames.join(', '),
             courier: courier ? courier.name : null,

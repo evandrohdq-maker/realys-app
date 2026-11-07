@@ -66,6 +66,7 @@ export function AdminOverview() {
         {[
           [`Taxas sobre pedidos (${ORDER_FEE_PCT}%)`, orderFeesMonth],
           [`Taxas de contratação de serviços (${SERVICE_FEE_PCT}% da visita)`, serviceFeesMonth],
+          ['Taxa de proteção Realys (R$ 0,99 por pedido)', 4210 + (state.protectionFees || 0)],
           [`Presentes: parte do Realys (${GIFT_FUND_SPLIT.realys}% da taxa)`, giftSplit.realys],
           ['Planos mensais de empresas', 21840],
           ['Vídeos avulsos e vídeos longos', 7310],

@@ -12,6 +12,7 @@ import { promoDiscount } from '../rewards';
 import { askPix } from './PixPay';
 import { InstallSuggest } from './Engage';
 import { GuaranteeSeal } from './Guarantee';
+import { protectionFee, PROTECTION_TEXT } from '../guarantee';
 
 const NIGHT = '#0B1124';
 
@@ -22,7 +23,8 @@ export default function CartSheet({ onOrders }) {
   const close = () => dispatch({ type: 'CLOSE_CART' });
   const lines = state.cart.map((c) => ({ ...c, p: state.products.find((x) => x.id === c.productId) })).filter((l) => l.p);
   const promo = promoDiscount(state, lines.map((l) => ({ ...l, product: l.p })));
-  const total = +(cartTotal(state) - promo.off).toFixed(2);
+  const protection = lines.length ? protectionFee(state) : 0;
+  const total = +(cartTotal(state) - promo.off + protection).toFixed(2);
   const fromGift = Math.min(state.giftCredits || 0, total);
   const fromWallet = total - fromGift;
   const count = lines.reduce((n, l) => n + l.qty, 0);
@@ -108,6 +110,11 @@ export default function CartSheet({ onOrders }) {
               <InstallSuggest names={lines.map((l) => l.p.name)} onGo={close} />
 
               <View style={styles.sum}>
+                {/* Taxa de proteção Realys: aparece desde o primeiro item, com a explicação ao tocar. */}
+                <TouchableOpacity onPress={() => Alert.alert('Taxa de proteção Realys', PROTECTION_TEXT)} style={styles.sumRow} accessibilityLabel="O que é a taxa de proteção Realys">
+                  <Text style={styles.sumLabel}>🛡️ Taxa de proteção Realys <Text style={{ color: colors.primary, fontWeight: '700' }}>ⓘ</Text></Text>
+                  <Text style={styles.sumValue}>{protection ? brl(protection) : 'Grátis (Score Diamante)'}</Text>
+                </TouchableOpacity>
                 {promo.off > 0 ? (
                   <View style={styles.sumRow}>
                     <Text style={styles.sumLabel}>🏷️ Créditos de parceiros</Text>
