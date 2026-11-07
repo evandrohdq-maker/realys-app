@@ -4,7 +4,7 @@
 // Na primeira vez entra com senha; o app guarda a sessão do aparelho no cofre do celular, protegida
 // pela biometria. Nas próximas vezes a biometria libera a sessão e o app troca por um token novo.
 import { str, fail, newId, now } from '../http.js';
-import { TERMO_ADESAO_VERSAO, TERMO_ADESAO } from '../termos.js';
+import { TERMO_ADESAO_VERSAO, TERMO_ADESAO, TERMO_EMPRESA } from '../termos.js';
 import {
   hashPassword, checkPassword, signToken, newSessionToken, sha256, onlyDigits, validCpf, validCnpj,
   cleanUsername, usernameProblem, passwordProblem, validEmail,
@@ -61,6 +61,7 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
   }, { auth: false, status: 201 });
 
   r.get('/termos/adesao', () => TERMO_ADESAO, { auth: false });
+  r.get('/termos/empresa', () => TERMO_EMPRESA, { auth: false });
 
   // Entrar com usuário, CPF ou CNPJ + senha.
   r.post('/auth/login', ({ body, ip }) => {

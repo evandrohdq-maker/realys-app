@@ -20,13 +20,14 @@ import {
 } from '../../serviceVisits';
 
 import ProfessionPicker from '../../components/ProfessionPicker';
+import PrestacaoScreen from './PrestacaoScreen';
 import { BoostButton } from '../../components/Boost';
 import { CAR_FEATURES, featuresOf, featureIcon, featureLabel } from '../../vehicleInfo';
 import { buildAgenda, nextJob, agendaStats, dayLabel, hhmm, untilText } from '../../agenda';
 
 const UNITS = ['mês', 'hora', 'serviço', 'diária (8h)', 'm²', 'visita', 'corrida + R$ 2,50/km'];
 
-export default function DriverScreen({ goTo }) {
+function DriverMain({ goTo, onCadastro }) {
   const { state, dispatch } = useStore();
   const me = state.myProvider;
   const [editing, setEditing] = useState(!me);
@@ -87,6 +88,7 @@ export default function DriverScreen({ goTo }) {
     <Screen>
       <Title sub="Motorista, motoboy, eletricista, mecânico, diarista e qualquer MEI">Painel do prestador</Title>
       <BoostButton target="prestador" label="Boost: pegar trabalho mais rápido" hint="Fique no topo das indicações da sua região por algumas horas" />
+      <Button title="Cadastro, empresa e mandados de serviço" variant="light" onPress={onCadastro} style={{ marginBottom: 12 }} />
       <UnmetServices />
       <OpenRequests kind="servico" service={state.myProvider && state.myProvider.service} />
 
@@ -462,4 +464,11 @@ function MyVisit({ v }) {
       ) : null}
     </Card>
   );
+}
+
+// Painel do prestador + tela de cadastro, empresa e mandados (tudo no aplicativo, em demonstração).
+export default function DriverScreen(props) {
+  const [tela, setTela] = useState(null);
+  if (tela === 'cadastro') return <PrestacaoScreen onClose={() => setTela(null)} />;
+  return <DriverMain {...props} onCadastro={() => setTela('cadastro')} />;
 }

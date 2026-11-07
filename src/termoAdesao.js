@@ -51,3 +51,55 @@ export const TERMO_ADESAO = {
     }
   ]
 };
+export const TERMO_EMPRESA_VERSAO = "2026-11-empresa-v1";
+export const TERMO_EMPRESA = {
+  "versao": "2026-11-empresa-v1",
+  "titulo": "Termo de Responsabilidade da Empresa Prestadora",
+  "atualizado": "7 de novembro de 2026",
+  "itens": [
+    {
+      "titulo": "1. Objeto",
+      "texto": "Este termo regula a participação de empresas prestadoras de serviço que colocam colaboradores para atender clientes pelo Realys. Ao aceitá-lo, a empresa declara ter lido e concordar com as condições aqui descritas."
+    },
+    {
+      "titulo": "2. Responsabilidade pelos colaboradores",
+      "texto": "A empresa é responsável pelos serviços prestados por seus colaboradores em seu nome, durante o atendimento, inclusive por perda, extravio ou dano a bens do cliente, e pelos atos praticados nesse período. Essa responsabilidade é da empresa, e não do colaborador individualmente, nos termos da lei."
+    },
+    {
+      "titulo": "3. Cadastro dos colaboradores",
+      "texto": "A empresa cadastra cada colaborador com dados verdadeiros e vincula-o à sua estrutura. Só presta serviço pelo Realys o colaborador cadastrado e vinculado à empresa."
+    },
+    {
+      "titulo": "4. Verificação facial dos colaboradores",
+      "texto": "O colaborador que recebe um mandado de serviço pelo Realys aciona o aceite no próprio acesso e confirma sua identidade por verificação facial. Ao concluir o serviço, ele faz nova verificação facial para confirmar que executou aquele atendimento. Nas atividades de transporte, aplica-se também a verificação periódica prevista no termo de adesão. A empresa orienta seus colaboradores a cumprir essas verificações."
+    },
+    {
+      "titulo": "5. Registro de horário e local",
+      "texto": "O Realys registra o horário e o local em que cada atendimento acontece, com a identificação do colaborador. Esses registros servem para a segurança dos clientes e para a apuração de ocorrências."
+    },
+    {
+      "titulo": "6. Documentação habilitatória",
+      "texto": "A empresa mantém vigentes os documentos exigidos para cada categoria de serviço, como CNPJ, CNH na categoria adequada e, para o transporte de passageiros, a autorização de atividade remunerada na CNH. Para empresas com sociedade, basta a apresentação do documento de um dos sócios titulares. A empresa comunica ao Realys qualquer alteração nesses documentos."
+    },
+    {
+      "titulo": "7. Ressarcimento e reparação",
+      "texto": "Se o Realys tiver que responder ou arcar com prejuízo causado por colaborador da empresa durante o atendimento, a empresa ressarcirá o valor, na medida da sua responsabilidade e nos termos da lei, sem prejuízo de outras medidas cabíveis."
+    },
+    {
+      "titulo": "8. Uso de dados do cliente",
+      "texto": "Os dados do cliente obtidos durante o atendimento são usados somente para a prestação do serviço e para as obrigações legais, com o cuidado previsto na LGPD."
+    },
+    {
+      "titulo": "9. Suspensão",
+      "texto": "O Realys pode suspender temporariamente um colaborador, ou a própria empresa, quando houver descumprimento deste termo, verificação facial recusada ou documentação vencida, até a regularização."
+    },
+    {
+      "titulo": "10. Alterações",
+      "texto": "Este termo pode ser atualizado. Quando houver mudança relevante, a empresa será convidada a ler e aceitar a nova versão antes de continuar atendendo pelo Realys."
+    },
+    {
+      "titulo": "11. Foro",
+      "texto": "Fica eleito o foro da comarca de domicílio do consumidor, quando aplicável, ou o foro da sede do Realys nas demais relações, para dirimir questões decorrentes deste termo."
+    }
+  ]
+};
