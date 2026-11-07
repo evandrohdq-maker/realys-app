@@ -39,7 +39,7 @@ Lista consolidada do que falta para finalizar. Detalhes de procedimentos estão 
 - [ ] Classificação dos produtos do mercado: hoje é local por nome; o servidor já tem o campo `secao`.
 
 ## Decisões a confirmar com você
-- [ ] Primeiro cadastro: "sempre aceita" ou o limiar de 80%? Está implementado como revisão humana abaixo de 80%.
+- [x] Primeiro cadastro segue o limiar de 80%. Abaixo disso, vai para revisão humana; nenhuma aprovação automática abaixo de 80%.
 - [ ] Desbloqueio por biometria do aparelho continua ou sai, diante da regra de usuário e senha?
 - [ ] Prazo de resposta aos direitos do titular (confirmar com o advogado).
 - [ ] Prazo interno de análise de disputas (sugestão: 5 dias úteis).
