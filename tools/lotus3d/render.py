@@ -3,7 +3,7 @@
 import base64, io, json, os
 from PIL import Image
 from playwright.sync_api import sync_playwright
-from vivid import vivid_gold, halo, rays
+from vivid import vivid_gold, clear_stamens, halo, rays
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, '..', '..', 'assets', 'lotus')
 jobs = json.load(open(os.path.join(HERE, 'jobs.json')))
@@ -17,7 +17,7 @@ with sync_playwright() as p:
         im = im.crop((64, 64, 960, 960)).resize((300, 300), Image.LANCZOS)
         # dourado do miolo mais vivo (flor padrão e botão flutuante)
         if name.startswith(('padrao_', 'fab_')):
-            im = vivid_gold(im)
+            im = clear_stamens(vivid_gold(im), bars=name.startswith('fab_'))
         im.save(os.path.join(OUT, name), 'WEBP', quality=78, method=6)
         print(name)
     b.close()

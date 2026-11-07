@@ -5,7 +5,7 @@
 # O render.py chama vivid_gold() sozinho em cada quadro novo.
 import glob, os
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageFilter, ImageDraw
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, '..', '..', 'assets', 'lotus')
@@ -35,6 +35,34 @@ def vivid_gold(im):
     return Image.fromarray((np.clip(r, 0, 1) * 255).astype(np.uint8), 'RGBA')
 
 
+def clear_stamens(im, bars=False):
+    """Tira os traços amarelos (estames) em volta do miolo: no lugar deles o app desenha ondas
+    sonoras douradas que se mexem com a voz. bars=True desenha ondas paradas (botão flutuante)."""
+    im = im.convert('RGBA')
+    a = np.asarray(im).astype(np.float32)
+    W = im.width
+    k = W / 300
+    yy, xx = np.mgrid[0:im.height, 0:W]
+    d = np.hypot(xx - W / 2, yy - im.height / 2)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    m = (r - b > 20) & (r > 45) & (d > 21.5 * k) & (d < 47 * k)
+    mi = Image.fromarray((m * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(5)).filter(ImageFilter.GaussianBlur(0.8))
+    mm = np.asarray(mi).astype(np.float32)[..., None] / 255
+    a[..., :3] = a[..., :3] * (1 - mm) + np.array([10, 13, 24], np.float32) * mm
+    out = Image.fromarray(a.astype(np.uint8), 'RGBA')
+    if bars:
+        dr = ImageDraw.Draw(out)
+        n = 28
+        for i in range(n):
+            ang = i / n * 2 * np.pi
+            ln = (6 + 9 * abs(np.sin(i * 1.7)) * abs(np.cos(i * 0.6))) * k
+            r0 = 25 * k
+            x0, y0 = W / 2 + np.cos(ang) * r0, W / 2 + np.sin(ang) * r0
+            x1, y1 = W / 2 + np.cos(ang) * (r0 + ln), W / 2 + np.sin(ang) * (r0 + ln)
+            dr.line([(x0, y0), (x1, y1)], fill=(255, 200, 40, 255), width=max(2, int(3 * k)))
+    return out
+
+
 def halo(path, size=600):
     # luz branca suave atrás da flor (um "sol" difuso)
     y, x = np.mgrid[0:size, 0:size] / (size - 1) * 2 - 1
@@ -58,7 +86,9 @@ def rays(path, size=600, n=16):
 
 if __name__ == '__main__':
     for f in sorted(glob.glob(os.path.join(OUT, 'padrao_*.webp')) + glob.glob(os.path.join(OUT, 'fab_*.webp'))):
-        vivid_gold(Image.open(f)).save(f, 'WEBP', quality=82, method=6)
+        im = vivid_gold(Image.open(f))
+        im = clear_stamens(im, bars=os.path.basename(f).startswith('fab_'))
+        im.save(f, 'WEBP', quality=82, method=6)
         print(os.path.basename(f))
     halo(os.path.join(OUT, 'light_halo.webp'))
     rays(os.path.join(OUT, 'light_rays.webp'))

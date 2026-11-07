@@ -8,6 +8,54 @@ const SIZE = 206; // a flor é vista de frente (de cima), formando um círculo n
 const STAGE = 250; // faixa da caixa onde a flor fica, sempre centralizada
 const HALO = Math.round(SIZE * 1.6); // luz branca atrás da flor
 const RAYS = Math.round(SIZE * 1.95); // raios de luz que giram devagar
+// Ajuste fino da posição na caixa (no celular ela aparecia um pouco à direita e para baixo).
+const NUDGE_X = -8;
+const NUDGE_Y = -14;
+// Ondas sonoras douradas em volta do miolo (no lugar dos antigos traços amarelos).
+const WAVE_N = 32;
+const WAVE_R0 = Math.round(SIZE * 0.083); // começa logo depois do círculo dourado
+const WAVE_L = Math.round(SIZE * 0.08); // comprimento máximo de cada barrinha
+const WAVE_W = 2.6;
+
+// Ondas sonoras em círculo: cada barrinha cresce e encolhe com a voz (de quem fala ou da Lotus);
+// quieta, ondula de leve.
+function SoundRing({ voice, active, show }) {
+  const w = useRef([0, 1, 2, 3].map(() => new Animated.Value(0))).current;
+  useEffect(() => {
+    const loops = w.map((v, i) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(v, { toValue: 1, duration: (active ? 260 : 900) + i * 90, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          Animated.timing(v, { toValue: 0, duration: (active ? 260 : 900) + i * 90, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        ]),
+      ),
+    );
+    loops.forEach((l) => l.start());
+    return () => loops.forEach((l) => l.stop());
+  }, [active]);
+  const bars = useMemo(
+    () =>
+      [...Array(WAVE_N)].map((_, i) => {
+        // desenho de onda: altos e baixos alternados em volta do círculo
+        const shape = 0.45 + 0.55 * Math.abs(Math.sin((i * Math.PI * 3) / WAVE_N + 0.4));
+        const s = Animated.add(
+          w[i % 4].interpolate({ inputRange: [0, 1], outputRange: [0.18 + 0.12 * shape, 0.3 + 0.25 * shape] }),
+          voice.interpolate({ inputRange: [0, 1], outputRange: [0, 0.75 * shape], extrapolate: 'clamp' }),
+        ).interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolate: 'clamp' });
+        return { deg: `${(i * 360) / WAVE_N}deg`, s, ty: s.interpolate({ inputRange: [0, 1], outputRange: [WAVE_L / 2, 0] }) };
+      }),
+    [],
+  );
+  return (
+    <View pointerEvents="none" style={[StyleSheet.absoluteFill, { opacity: show ? 1 : 0 }]}>
+      {bars.map((b, i) => (
+        <View key={i} style={[StyleSheet.absoluteFill, { transform: [{ rotate: b.deg }] }]}>
+          <Animated.View style={[styles.wave, { transform: [{ translateY: b.ty }, { scaleY: b.s }] }]} />
+        </View>
+      ))}
+    </View>
+  );
+}
 
 // Cores da flor conforme o assunto da conversa.
 export const MOODS = {
@@ -214,6 +262,7 @@ export default function LotusFlower({ phase, level, onPress, visible = true, moo
                 style={[StyleSheet.absoluteFill, { opacity: frame.kind === k && frame.i === i ? 1 : 0 }]}
               />
             ))}
+            {mood === 'padrao' ? <SoundRing voice={voice} active={active} show={frame.kind === 'idle' || frame.i >= 4} /> : null}
           </Animated.View>
         </Pressable>
         {pollen.map((p, i) => (
@@ -305,7 +354,8 @@ const styles = StyleSheet.create({
   micFlower: { position: 'absolute', width: 50, height: 50 },
   // Faixa da largura inteira da caixa; a flor fica no meio exato, na horizontal e na vertical.
   stage: { alignSelf: 'stretch', height: STAGE, alignItems: 'center', justifyContent: 'center' },
-  center: { width: SIZE, height: SIZE, alignItems: 'center', justifyContent: 'center' },
+  center: { width: SIZE, height: SIZE, alignItems: 'center', justifyContent: 'center', transform: [{ translateX: NUDGE_X }, { translateY: NUDGE_Y }] },
+  wave: { position: 'absolute', left: SIZE / 2 - WAVE_W / 2, top: SIZE / 2 - WAVE_R0 - WAVE_L, width: WAVE_W, height: WAVE_L, borderRadius: WAVE_W / 2, backgroundColor: '#FFC928' },
   halo: { position: 'absolute', width: HALO, height: HALO, left: (SIZE - HALO) / 2, top: (SIZE - HALO) / 2 },
   rays: { position: 'absolute', width: RAYS, height: RAYS, left: (SIZE - RAYS) / 2, top: (SIZE - RAYS) / 2 },
   wrap: { width: SIZE, height: SIZE },
