@@ -148,9 +148,9 @@ function AlertCard({ a, navigate }) {
           <Ionicons name="call" size={14} color="#fff" />
           <Text style={styles.alertBtnText}>{a.phoneLabel} {a.phone}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.alertBtn, styles.alertBtnLight, { borderColor: L.color }]} onPress={() => navigate && navigate({ tab: 'socorro' })} accessibilityLabel="Abrir SOS">
-          <Ionicons name="medkit" size={14} color={L.color} />
-          <Text style={[styles.alertBtnText, { color: L.color }]}>SOS</Text>
+        <TouchableOpacity style={styles.sosBtn} onPress={() => navigate && navigate({ tab: 'socorro' })} accessibilityLabel="Abrir SOS" activeOpacity={0.85}>
+          <Ionicons name="medkit" size={14} color="#fff" />
+          <Text style={styles.sosText}>SOS</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.alertBtn, styles.alertBtnLight, { borderColor: L.color }]}
@@ -336,6 +336,8 @@ const styles = StyleSheet.create({
   todoText: { color: colors.text, fontSize: 13, flex: 1, lineHeight: 19 },
   alertBtn: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, marginRight: 8 },
   alertBtnLight: { backgroundColor: '#fff', borderWidth: 1 },
+  sosBtn: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', backgroundColor: '#D9534F', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, marginRight: 8, shadowColor: '#D9534F', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 3 },
+  sosText: { color: '#fff', fontWeight: '800', fontSize: 12, marginLeft: 5, letterSpacing: 0.5 },
   alertBtnText: { color: '#fff', fontWeight: '800', fontSize: 12, marginLeft: 5 },
   safe: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 16, borderWidth: 1, borderColor: '#BFE3CC', padding: 12, marginBottom: 12 },
   safeTitle: { color: colors.text, fontWeight: '800' },
