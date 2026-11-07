@@ -109,6 +109,7 @@ export const VISIT_STATUS = {
   faltou: { label: 'Prestador não veio · taxa devolvida', color: '#D9534F', icon: 'alert-circle-outline' },
   confirmada: { label: 'Visita feita · combine o valor', color: '#A8790A', icon: 'people-outline' },
   concluida: { label: 'Serviço concluído', color: '#1E9E63', icon: 'ribbon-outline' },
+  reembolsada: { label: 'Garantia Realys · taxa devolvida', color: '#1E9E63', icon: 'shield-checkmark-outline' },
 };
 
 // Pedidos de visita que chegam para quem usa o perfil Prestador (exemplos).

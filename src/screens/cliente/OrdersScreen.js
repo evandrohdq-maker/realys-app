@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { GuaranteeButton } from '../../components/Guarantee';
+import { orderCovered } from '../../guarantee';
 import { ReversePost, Subscriptions } from '../../components/Engage';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,6 +24,7 @@ const statusText = (o, food) =>
     Preparando: food ? 'Aceito · preparando' : 'Aceito · separando o pedido',
     'A caminho': food ? 'Com o motoboy · a caminho' : 'Com o entregador · a caminho',
     Entregue: 'Entregue',
+    Reembolsado: 'Reembolsado pela Garantia Realys',
   }[o.status] || o.status);
 
 // Motoboy cadastrado no Realys que o restaurante chamou para a entrega. O cliente pode dar gorjeta
@@ -282,7 +285,7 @@ export default function OrdersScreen({ navigate, explore }) {
                   <Button small title="Avaliar pedido" onPress={() => dispatch({ type: 'OPEN_RATE', kind: 'pedido', refId: o.id })} />
                 )
               ) : null}
-              {o.status !== 'Entregue' ? (
+              {o.status !== 'Entregue' && o.status !== 'Reembolsado' ? (
                 <Button
                   small
                   variant="light"
@@ -291,6 +294,10 @@ export default function OrdersScreen({ navigate, explore }) {
                 />
               ) : null}
             </Row>
+            {/* Garantia Realys: deu problema, abre um caso e o dinheiro volta. */}
+            {orderCovered(o) || (state.disputes || []).some((d) => d.refId === o.id) ? (
+              <GuaranteeButton kind="pedido" refId={o.id} title={`Pedido ${o.store}`} amount={o.total} deliveredAt={o.status === 'Entregue' ? o.deliveredAt : null} />
+            ) : null}
           </Card>
         );
       })}

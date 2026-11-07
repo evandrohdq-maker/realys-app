@@ -1,6 +1,8 @@
 // Pedido de visita (cliente) e cartão de acompanhamento da visita.
 // Regras em src/serviceVisits.js.
 import React, { useEffect, useState } from 'react';
+import { GuaranteeButton } from './Guarantee';
+import { visitCovered } from '../guarantee';
 import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -123,6 +125,8 @@ export function VisitCard({ visit: v }) {
   const first = v.provider.name.split(' ')[0];
   const act = (type) => dispatch({ type, id: v.id });
 
+  const { state } = useStore();
+  const showGuarantee = visitCovered(v) || (state.disputes || []).some((d) => d.refId === v.id);
   return (
     <View style={[styles.card, { borderColor: st.color }]}>
       <Row>
@@ -201,6 +205,9 @@ export function VisitCard({ visit: v }) {
       ) : null}
       {v.status === 'concluida' && v.rated ? <Text style={styles.hint}>Avaliação enviada. Obrigado!</Text> : null}
       {v.status === 'recusada' ? <Text style={styles.hint}>Pedido recusado não recebe avaliação. Escolha outro prestador da lista.</Text> : null}
+      {showGuarantee ? (
+        <GuaranteeButton kind="visita" refId={v.id} title={`Visita: ${v.provider.name} · ${v.serviceLabel}`} amount={v.fee} giftPart={v.fromGift || 0} deliveredAt={v.confirmedAt || null} />
+      ) : null}
     </View>
   );
 }

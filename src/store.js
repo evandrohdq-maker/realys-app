@@ -164,6 +164,7 @@ const initialState = {
   subscriptions: [], // assinaturas: { id, planId, next, status }
   nudgesDismissed: {}, // lembretes da Lotus dispensados
   intelPlan: false, // empresa assina o painel de inteligência
+  disputes: [], // casos da Garantia Realys: { id, kind, refId, title, reason, text, amount, status, outcome, at }
   boosts: [], // boosts e anúncios comprados com pontos ou saldo: { id, offerId, target, title, start, until, paidWith, status }
   loyalty: initialLoyalty, // Clube Realys: pedidos entregues, selos por loja (ver src/loyalty.js)
   loyaltyNotes: [], // avisos de bônus que acabaram de sair
@@ -461,7 +462,7 @@ function baseReducer(state, a) {
         orders: state.orders.map((o) => {
           if (o.id !== a.id) return o;
           const next = flow[Math.min(flow.indexOf(o.status) + 1, flow.length - 1)];
-          return { ...o, status: next, courier: o.courier || 'Marcos Silva' };
+          return { ...o, status: next, courier: o.courier || 'Marcos Silva', ...(next === 'Entregue' && o.status !== 'Entregue' ? { deliveredAt: Date.now() } : {}) };
         }),
         // Entregou: já abre a avaliação do pedido.
         rateOpen: (() => {
@@ -1018,6 +1019,32 @@ function baseReducer(state, a) {
       const cur = state.adStats[a.id] || { views: 0, taps: 0, watched: 0 };
       return { ...state, adStats: { ...state.adStats, [a.id]: { ...cur, [a.ev]: (cur[a.ev] || 0) + 1 } } };
     }
+    // ---------- Garantia Realys (src/guarantee.js) ----------
+    case 'DISPUTE_OPEN': {
+      if (state.disputes.some((d) => d.refId === a.refId && d.status === 'em análise')) return state;
+      return { ...state, disputes: [{ id: newId('gr'), kind: a.kind, refId: a.refId, title: a.title, reason: a.reason, text: a.text || '', amount: a.amount, giftPart: a.giftPart || 0, status: 'em análise', at: Date.now() }, ...state.disputes] };
+    }
+    // Decisão do Realys. Demonstração: a favor do cliente, o valor pago pelo Realys volta para a carteira.
+    case 'DISPUTE_RESOLVE': {
+      const d = state.disputes.find((x) => x.id === a.id);
+      if (!d || d.status !== 'em análise') return state;
+      const refund = a.favor !== false;
+      const now = Date.now();
+      return {
+        ...state,
+        disputes: state.disputes.map((x) => (x.id === d.id ? { ...x, status: 'resolvido', outcome: refund ? 'reembolsado' : 'negado', resolvedAt: now } : x)),
+        ...(refund
+          ? {
+              // O que veio de créditos de presente volta como crédito de presente (não vira saque).
+              wallet: +(state.wallet + d.amount - (d.giftPart || 0)).toFixed(2),
+              giftCredits: +(state.giftCredits + (d.giftPart || 0)).toFixed(2),
+              walletTx: [{ id: newId('w'), ts: now, kind: 'deposito', cat: 'Garantia Realys', desc: `Reembolso: ${d.title}`, amount: d.amount }, ...state.walletTx],
+              orders: d.kind === 'pedido' ? state.orders.map((o) => (o.id === d.refId ? { ...o, status: 'Reembolsado' } : o)) : state.orders,
+              visits: d.kind === 'visita' ? state.visits.map((v) => (v.id === d.refId ? { ...v, status: 'reembolsada' } : v)) : state.visits,
+            }
+          : {}),
+      };
+    }
     // ---------- Engajamento entre os lados (src/engage.js) ----------
     case 'NAV_REQUEST':
       return { ...state, navReq: { go: a.go, at: Date.now() } };
@@ -1196,7 +1223,7 @@ function baseReducer(state, a) {
     case 'VISIT_CONFIRM': {
       const v = state.visits.find((x) => x.id === a.id);
       if (!v || v.status !== 'aceita') return state;
-      return { ...state, visits: state.visits.map((x) => (x.id === a.id ? { ...x, status: 'confirmada', split: splitFee(x.fee) } : x)) };
+      return { ...state, visits: state.visits.map((x) => (x.id === a.id ? { ...x, status: 'confirmada', split: splitFee(x.fee), confirmedAt: Date.now() } : x)) };
     }
     // Serviço feito (valor combinado entre os dois): conta no ranking e abre a avaliação.
     case 'VISIT_DONE': {

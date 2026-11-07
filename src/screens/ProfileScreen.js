@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { GuaranteeInfo } from '../components/Guarantee';
 import { ScoreCard } from '../components/Engage';
 import { View, Text, TouchableOpacity, Switch, Alert, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -156,6 +157,7 @@ export default function ProfileScreen({ navigate, explore }) {
       </Card>
       {/* Score Realys: uma reputação só, que vale em todos os perfis. */}
       <ScoreCard />
+      <GuaranteeInfo />
 
       {/* Estúdio: produção de conteúdo do próprio usuário (portfólio, música, vídeo, arte...). */}
       <Card>

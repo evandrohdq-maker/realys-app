@@ -11,6 +11,7 @@ import { ProductThumb } from './ui';
 import { promoDiscount } from '../rewards';
 import { askPix } from './PixPay';
 import { InstallSuggest } from './Engage';
+import { GuaranteeSeal } from './Guarantee';
 
 const NIGHT = '#0B1124';
 
@@ -134,6 +135,7 @@ export default function CartSheet({ onOrders }) {
                 <Text style={styles.payText}>Pagar com saldo Realys</Text>
               </TouchableOpacity>
               <Text style={[styles.sub, { textAlign: 'center', marginTop: 6 }]}>Pagamento protegido · NF-e emitida automaticamente</Text>
+              <GuaranteeSeal text="Garantia Realys: deu problema, seu dinheiro volta" style={{ alignSelf: 'center', marginTop: 6 }} />
             </>
           )}
         </View>
