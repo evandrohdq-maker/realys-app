@@ -31,7 +31,7 @@ Lista consolidada do que falta para finalizar. Detalhes de procedimentos estão 
 
 ## App (APK)
 - [ ] Ligar login e cadastro à API real. Hoje `LoginScreen` e `SignupForm` usam o armazenamento local de demonstração, e `api.js` ainda não está conectado.
-- [ ] Fluxo de login: usuário e senha, com biometria só em aparelho novo. Decidir o que fica com a biometria do próprio aparelho para desbloqueio.
+- [x] Fluxo de login: aparelho já cadastrado abre sem biometria. Biometria só no aparelho novo e nas ações de serviço, compra e saque. Falta trocar a checagem local por checagem no servidor.
 - [ ] Substituir os dados fictícios de prestação (`empresaDemo.js`, exemplos e a simulação de QR e de biometria) pelos dados do servidor.
 - [ ] Tela de cadastro de empresa para aceitar o termo.
 - [ ] Tela de suporte e de direitos do titular.
@@ -40,7 +40,6 @@ Lista consolidada do que falta para finalizar. Detalhes de procedimentos estão 
 
 ## Decisões a confirmar com você
 - [x] Primeiro cadastro segue o limiar de 80%. Abaixo disso, vai para revisão humana; nenhuma aprovação automática abaixo de 80%.
-- [ ] Desbloqueio por biometria do aparelho continua ou sai, diante da regra de usuário e senha?
 - [ ] Prazo de resposta aos direitos do titular (confirmar com o advogado).
 - [ ] Prazo interno de análise de disputas (sugestão: 5 dias úteis).
 
