@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ScoreCard } from '../components/Engage';
 import { View, Text, TouchableOpacity, Switch, Alert, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { askMicPermission, wakeWordSupported } from '../wakeWord';
@@ -153,6 +154,8 @@ export default function ProfileScreen({ navigate, explore }) {
         </TouchableOpacity>
         <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6 }}>Depósitos, gastos, recebidos, saques e o balanço do mês.</Text>
       </Card>
+      {/* Score Realys: uma reputação só, que vale em todos os perfis. */}
+      <ScoreCard />
 
       {/* Estúdio: produção de conteúdo do próprio usuário (portfólio, música, vídeo, arte...). */}
       <Card>

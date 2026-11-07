@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { OpenRequests } from '../../components/Engage';
 import { View, Text, TouchableOpacity, ScrollView, Alert, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
@@ -32,6 +33,7 @@ export default function SupplierScreen() {
   return (
     <Screen>
       <Title sub="Distribuidora Real Alimentos · atacado B2B">Painel do fornecedor</Title>
+      <OpenRequests kind="b2b" />
 
       <Row style={{ marginHorizontal: -4, marginBottom: 14 }}>
         <Stat label="Negócios fechados" value={brl(closed)} color={colors.success} />

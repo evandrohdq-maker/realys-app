@@ -36,7 +36,7 @@ export function SegTabs({ items, value, onChange }) {
                 </View>
               ) : null}
             </View>
-            <Text numberOfLines={1} style={[styles.segText, on && styles.segTextOn]}>{t.label}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={[styles.segText, on && styles.segTextOn]}>{t.label}</Text>
           </TouchableOpacity>
         );
       })}

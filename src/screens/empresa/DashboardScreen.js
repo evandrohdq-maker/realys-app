@@ -1,4 +1,5 @@
 import React from 'react';
+import { UnmetProducts, IntelPanel } from '../../components/Engage';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, myProducts } from '../../store';
@@ -7,7 +8,7 @@ import { Screen, Title, Card, Row, Stat, BarChart, Section, ProductThumb, Badge 
 import { ALL_ADS, shortNum } from '../../adsData';
 import { MY_COMPANY_ID } from '../../data';
 
-export default function DashboardScreen() {
+export default function DashboardScreen({ goTo }) {
   const { state, dispatch } = useStore();
   const products = myProducts(state);
   const week = state.salesByDay.reduce((s, d) => s + d.value, 0);
@@ -64,6 +65,9 @@ export default function DashboardScreen() {
       </Card>
 
       <AdsPerformance />
+
+      <UnmetProducts onAdd={goTo ? () => goTo('estoque') : null} />
+      <IntelPanel />
 
       <Section title="Produtos com maior lucro">
         {best.map((p) => (

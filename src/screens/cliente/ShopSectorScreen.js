@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { InstallSuggest } from '../../components/Engage';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, soft } from '../../theme';
@@ -118,6 +119,9 @@ function SectorScreen({ sectorKey, explore, navigate }) {
         <LotusFocus>
           <ItemCard it={focus} onPress={buy} tint={tint} />
         </LotusFocus>
+      ) : null}
+      {focus ? (
+        <InstallSuggest names={[focus.title]} />
       ) : null}
 
       {/* Subgrupos */}

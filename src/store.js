@@ -6,6 +6,7 @@ import * as D from './data';
 import { initialFriends } from './people';
 import { brl } from './theme';
 import { initialGifts, initialGiftCredits, giftFee, GIFT_MIN, GIFT_MAX, liveGiftOf, liveGiftCost, initialLiveCredits, initialLiveGifts, LIVE_CONVERT_MIN } from './gifts';
+import { INTEL_PLAN, subPlan } from './engage';
 import { pointsFor, pointOffer, initialPoints, promoDiscount, POINT_RULES, watchedToday } from './rewards';
 import { initialLoyalty, onDelivered } from './loyalty';
 import { conversations as initialConversations, communityPosts as initialCommunityPosts } from './homeData';
@@ -155,6 +156,14 @@ const initialState = {
   points: initialPoints,
   pointsLog: [],
   promoCredits: [], // { id, offerId, kind, partnerId?, service?, partner, title, value, used }
+  // Engajamento entre os lados (src/engage.js)
+  navReq: null, // pedido de navegação vindo de um componente: { go, at }
+  reverseRequests: [], // pedidos ao contrário que eu postei: { id, kind, text, deadline, budget, offers, status, accepted }
+  reverseSent: {}, // propostas que eu (prestador/fornecedor) mandei: { [idDoPedido]: { price, note } }
+  groupJoins: {}, // compras coletivas que a empresa entrou: { [id]: quantidade }
+  subscriptions: [], // assinaturas: { id, planId, next, status }
+  nudgesDismissed: {}, // lembretes da Lotus dispensados
+  intelPlan: false, // empresa assina o painel de inteligência
   boosts: [], // boosts e anúncios comprados com pontos ou saldo: { id, offerId, target, title, start, until, paidWith, status }
   loyalty: initialLoyalty, // Clube Realys: pedidos entregues, selos por loja (ver src/loyalty.js)
   loyaltyNotes: [], // avisos de bônus que acabaram de sair
@@ -1008,6 +1017,46 @@ function baseReducer(state, a) {
     case 'AD_EVENT': {
       const cur = state.adStats[a.id] || { views: 0, taps: 0, watched: 0 };
       return { ...state, adStats: { ...state.adStats, [a.id]: { ...cur, [a.ev]: (cur[a.ev] || 0) + 1 } } };
+    }
+    // ---------- Engajamento entre os lados (src/engage.js) ----------
+    case 'NAV_REQUEST':
+      return { ...state, navReq: { go: a.go, at: Date.now() } };
+    case 'REVERSE_POST':
+      return { ...state, reverseRequests: [{ id: newId('rq'), kind: a.kind, text: a.text, deadline: a.deadline, budget: a.budget || null, offers: [], status: 'aberto', at: Date.now() }, ...state.reverseRequests] };
+    case 'REVERSE_OFFERS':
+      return { ...state, reverseRequests: state.reverseRequests.map((r) => (r.id === a.id && r.status === 'aberto' ? { ...r, offers: a.offers } : r)) };
+    case 'REVERSE_ACCEPT':
+      return { ...state, reverseRequests: state.reverseRequests.map((r) => (r.id === a.id ? { ...r, status: 'fechado', accepted: a.index } : r)) };
+    case 'REVERSE_CANCEL':
+      return { ...state, reverseRequests: state.reverseRequests.filter((r) => r.id !== a.id) };
+    case 'REVERSE_SEND':
+      return { ...state, reverseSent: { ...state.reverseSent, [a.id]: { price: a.price, note: a.note || '' } } };
+    case 'GROUP_JOIN': {
+      const g = { ...state.groupJoins };
+      if (a.qty > 0) g[a.id] = a.qty;
+      else delete g[a.id];
+      return { ...state, groupJoins: g };
+    }
+    case 'SUB_START': {
+      const plan = subPlan(a.planId);
+      if (!plan || state.subscriptions.some((x) => x.planId === a.planId && x.status !== 'cancelada')) return state;
+      return { ...state, subscriptions: [{ id: newId('sub'), planId: plan.id, next: Date.now() + 864e5, status: 'ativa', at: Date.now() }, ...state.subscriptions] };
+    }
+    case 'SUB_TOGGLE':
+      return { ...state, subscriptions: state.subscriptions.map((x) => (x.id === a.id ? { ...x, status: x.status === 'ativa' ? 'pausada' : 'ativa' } : x)) };
+    case 'SUB_CANCEL':
+      return { ...state, subscriptions: state.subscriptions.filter((x) => x.id !== a.id) };
+    case 'NUDGE_DISMISS':
+      return { ...state, nudgesDismissed: { ...state.nudgesDismissed, [a.id]: true } };
+    case 'INTEL_PLAN': {
+      if (!a.on) return { ...state, intelPlan: false };
+      if (state.intelPlan || state.wallet < INTEL_PLAN.price) return state;
+      return {
+        ...state,
+        intelPlan: true,
+        wallet: +(state.wallet - INTEL_PLAN.price).toFixed(2),
+        walletTx: [{ id: newId('w'), ts: Date.now(), kind: 'gasto', cat: 'Planos', desc: `${INTEL_PLAN.name} (mensal)`, amount: INTEL_PLAN.price }, ...state.walletTx],
+      };
     }
     // Seguir uma classe de lives (ex.: Gamers) e lembrar de uma live agendada.
     case 'TOGGLE_LIVE_FOLLOW': {

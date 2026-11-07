@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { GroupBuys, ReversePost } from '../../components/Engage';
 import { LiveNowBadge } from '../../components/LiveBits';
 import { View, Text, Alert, TouchableOpacity } from 'react-native';
 import { useStore } from '../../store';
@@ -39,6 +40,8 @@ export default function B2BScreen() {
   return (
     <Screen>
       <Title sub="Compre no atacado e negocie descontos com empresas verificadas">Negócios Realys</Title>
+      <GroupBuys />
+      <ReversePost kinds={['b2b']} title="Peça propostas a fornecedores" />
       {/* Fornecedores ao vivo: feira, degustação e preços de atacado */}
       {state.suppliers.map((sup) => <LiveNowBadge key={sup.id} hostType="fornecedor" hostId={sup.id} style={{ marginTop: 0, marginBottom: 8 }} />)}
 

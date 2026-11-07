@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { ReversePost, Subscriptions } from '../../components/Engage';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, cartTotal, storeOf } from '../../store';
@@ -193,6 +194,8 @@ export default function OrdersScreen({ navigate, explore }) {
     { key: 'compras', label: 'Compras', icon: 'cube-outline', badge: buys.filter((o) => o.status !== 'Entregue').length || null },
     { key: 'comida', label: 'Comida', icon: 'restaurant-outline', badge: food.filter((o) => o.status !== 'Entregue').length || null },
     { key: 'servicos', label: 'Serviços', icon: 'construct-outline', badge: services.filter((r) => !r.done).length || null },
+    { key: 'propostas', label: 'Propostas', icon: 'megaphone-outline', badge: state.reverseRequests.filter((r) => r.status === 'aberto' && r.offers.length).length || null },
+    { key: 'assinaturas', label: 'Assinaturas', icon: 'repeat-outline', badge: state.subscriptions.filter((x) => x.status === 'ativa').length || null },
   ];
   const list = seg === 'comida' ? food : buys;
   // Acompanhar ao vivo: { order } para entregas, { ride } para motorista e prestadores.
@@ -203,6 +206,8 @@ export default function OrdersScreen({ navigate, explore }) {
       <Title sub="Pagamento só é liberado para a loja ou o prestador quando você confirma a entrega">Meus pedidos</Title>
       <SegTabs items={SEGS} value={seg} onChange={setSeg} />
 
+      {seg === 'propostas' ? <ReversePost kinds={['servico', 'produto']} /> : null}
+      {seg === 'assinaturas' ? <Subscriptions /> : null}
       {seg === 'carrinho' ? <CartTab onPaid={(hasFood) => setSeg(hasFood ? 'comida' : 'compras')} /> : null}
 
       {seg === 'servicos' ? (

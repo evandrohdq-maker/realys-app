@@ -10,6 +10,7 @@ import { colors, brl, soft } from '../theme';
 import { ProductThumb } from './ui';
 import { promoDiscount } from '../rewards';
 import { askPix } from './PixPay';
+import { InstallSuggest } from './Engage';
 
 const NIGHT = '#0B1124';
 
@@ -102,6 +103,8 @@ export default function CartSheet({ onOrders }) {
                   </View>
                 ))}
               </ScrollView>
+              {/* Produto + serviço: o que precisa instalar já sai com o prestador verificado. */}
+              <InstallSuggest names={lines.map((l) => l.p.name)} onGo={close} />
 
               <View style={styles.sum}>
                 {promo.off > 0 ? (

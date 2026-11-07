@@ -337,6 +337,12 @@ export default function ServicesScreen({ explore, navigate }) {
             </Text>
           ) : null}
           <GlobalResults query={searched} navigate={navigate} max={found ? 4 : 8} title={found ? 'Também no Realys' : 'Resultados da pesquisa'} hideEmpty={!!found} />
+          {/* Não achou? Pedido ao contrário: os prestadores mandam propostas. */}
+          <TouchableOpacity style={styles.askOffers} onPress={() => navigate && navigate({ tab: 'pedidos', seg: 'propostas' })} activeOpacity={0.85}>
+            <Ionicons name="megaphone-outline" size={18} color={colors.primary} />
+            <Text style={{ color: colors.text, fontWeight: '700', flex: 1, marginLeft: 8 }}>Não achou? Peça propostas aos prestadores</Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+          </TouchableOpacity>
         </>
       ) : null}
 
@@ -620,6 +626,7 @@ function HowStep({ n, text }) {
 }
 
 const styles = StyleSheet.create({
+  askOffers: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: 14, padding: 12, marginBottom: 12 },
   avatarSm: { width: 48, height: 48, borderRadius: 16 },
   sectionHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10, marginTop: 4 },
   sectionTitle: { color: colors.text, fontWeight: '800', fontSize: 17 },

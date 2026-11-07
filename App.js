@@ -244,6 +244,11 @@ function Shell() {
     switchRole(role, go.tab);
   };
 
+  // Componentes (carrinho, cartões de aviso...) pedem para ir a uma área: dispatch({ type: 'NAV_REQUEST', go }).
+  useEffect(() => {
+    if (state.navReq) pick(state.navReq.go);
+  }, [state.navReq]);
+
   // A Lotus só leva para áreas que a conta pode abrir.
   const canOpen = (tabKey) => state.user.roles.some((r) => TABS[r] && TABS[r].some((t) => t.key === tabKey));
   // Navegação falada: "me leva pro Agro", "abre o Food", "voltar".

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { UnmetServices, OpenRequests } from '../../components/Engage';
 import { View, Text, Switch, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, priceText, serviceType } from '../../store';
@@ -86,6 +87,8 @@ export default function DriverScreen({ goTo }) {
     <Screen>
       <Title sub="Motorista, motoboy, eletricista, mecânico, diarista e qualquer MEI">Painel do prestador</Title>
       <BoostButton target="prestador" label="Boost: pegar trabalho mais rápido" hint="Fique no topo das indicações da sua região por algumas horas" />
+      <UnmetServices />
+      <OpenRequests kind="servico" service={state.myProvider && state.myProvider.service} />
 
       <Card style={{ backgroundColor: state.available ? colors.primaryLight : colors.card }}>
         <Row style={{ justifyContent: 'space-between' }}>

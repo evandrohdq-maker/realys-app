@@ -135,6 +135,8 @@ export const products = [
   { id: 'p20', storeId: 'e7', name: 'Combinado 30 peças', price: 79.9, cost: 34.0, stock: 99, minStock: 0, emoji: '🍣', tint: '#FFE0E0', featured: false },
   { id: 'p21', storeId: 'e7', name: 'Temaki Salmão Completo', price: 32.9, cost: 13.0, stock: 99, minStock: 0, emoji: '🍙', tint: '#FFE0E0', featured: false, launch: { note: 'Novo no cardápio', at: 'Hoje' } },
   { id: 'p22', storeId: 'e8', name: 'Bolo de Pote Ninho com Morango', price: 16.9, cost: 6.0, stock: 40, minStock: 5, emoji: '🍰', tint: '#FCE7F1', featured: false },
+  { id: 'p24', storeId: 'e4', name: 'Chuveiro Elétrico 7500W Turbo', price: 189.9, cost: 98.0, stock: 22, minStock: 5, emoji: '🚿', tint: '#E2F1F7', featured: false },
+  { id: 'p25', storeId: 'e4', name: 'Smart TV 50" 4K', price: 2299.0, cost: 1650.0, stock: 9, minStock: 2, emoji: '📺', tint: '#E2F1F7', featured: true },
   { id: 'p23', storeId: 'e8', name: 'Cappuccino Cremoso + Pão de Queijo', price: 14.9, cost: 5.5, stock: 99, minStock: 0, emoji: '☕', tint: '#EADBCF', featured: false },
 ];
 

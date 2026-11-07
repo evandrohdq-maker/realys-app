@@ -3,6 +3,7 @@
 // onde a empresa atua e os segmentos de cada área, onde atende, vitrine, produtos,
 // depoimentos de quem comprou, vídeos de propaganda e conteúdos.
 import React, { useState, useEffect, useRef } from 'react';
+import { OriginSeal, InstallSuggest } from './Engage';
 import { LiveNowBadge } from './LiveBits';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, Animated, Easing, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -381,6 +382,8 @@ export function BusinessPageModal({ p, media, MediaList }) {
                 <ProductCard x={focus} onAdd={add} big />
               </View>
             </LotusFocus>
+            <OriginSeal productId={focus.id} storeName={p.name} />
+            <InstallSuggest names={[focus.name]} onGo={close} />
             <Text style={{ color: colors.muted, fontSize: 12, textAlign: 'center', marginBottom: 12 }}>Role para ver a loja e mais produtos de {p.name}</Text>
           </View>
         ) : null}
