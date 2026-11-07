@@ -298,7 +298,7 @@ function Shell() {
         activeOpacity={0.85}
         accessibilityLabel="Falar com a Lotus"
       >
-        {/* A Lotus é o microfone: só a flor vermelha de miolo amarelo, sem fundo. */}
+        {/* A Lotus é o microfone: só a flor dourada, sem fundo. */}
         <LotusMic hearing={state.handsFree && hearing} open={voice} />
       </TouchableOpacity>
 

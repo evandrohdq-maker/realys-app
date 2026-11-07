@@ -821,7 +821,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
 
   const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [36, 0] });
   const last = history[0];
-  const mood = moodOf(last);
+  // A Lotus fica sempre dourada (a cor não muda mais com o assunto).
+  const mood = 'padrao';
   const win = Dimensions.get('window');
 
   return (
