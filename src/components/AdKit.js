@@ -18,21 +18,25 @@ export function useNow(ms = 1000) {
   return now;
 }
 
-// Abas internas da página (ex.: Vitrine | Promoções). items: [{ key, label, icon, badge }]
+// Abas internas da página (ex.: Vitrine | Promoções), no mesmo estilo leve do menu do topo da
+// Community: sem caixa nem bordas, ícone em cima e texto embaixo; a ativa ganha só uma pílula
+// clarinha. items: [{ key, label, icon, badge }]
 export function SegTabs({ items, value, onChange }) {
   return (
     <View style={styles.seg}>
       {items.map((t) => {
         const on = t.key === value;
         return (
-          <TouchableOpacity key={t.key} style={[styles.segItem, on && styles.segOn]} onPress={() => onChange(t.key)} activeOpacity={0.85} accessibilityLabel={t.label}>
-            <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={16} color={on ? colors.onPrimary : t.hot ? '#FF3B5C' : colors.primaryDark} />
-            <Text style={[styles.segText, on && { color: colors.onPrimary }]}>{t.label}</Text>
-            {t.badge ? (
-              <View style={[styles.segBadge, on && { backgroundColor: colors.onPrimary }]}>
-                <Text style={[styles.segBadgeText, on && { color: '#FF3B5C' }]}>{t.badge}</Text>
-              </View>
-            ) : null}
+          <TouchableOpacity key={t.key} style={[styles.segItem, on && styles.segOn]} onPress={() => onChange(t.key)} activeOpacity={0.7} accessibilityLabel={t.label}>
+            <View>
+              <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={19} color={on ? colors.primary : colors.muted} />
+              {t.badge ? (
+                <View style={styles.segBadge}>
+                  <Text style={styles.segBadgeText}>{t.badge}</Text>
+                </View>
+              ) : null}
+            </View>
+            <Text numberOfLines={1} style={[styles.segText, on && styles.segTextOn]}>{t.label}</Text>
           </TouchableOpacity>
         );
       })}
@@ -480,12 +484,13 @@ export function PromoSector({ flash, coupons, combos, food, onOpenStore }) {
 }
 
 const styles = StyleSheet.create({
-  seg: { flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 16, padding: 4, marginBottom: 14 },
-  segItem: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 38, borderRadius: 12 },
-  segOn: { backgroundColor: colors.primary, ...soft },
-  segText: { color: colors.primaryDark, fontWeight: '800', fontSize: 13, marginLeft: 6 },
-  segBadge: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#FF3B5C', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5, marginLeft: 6 },
-  segBadgeText: { color: '#fff', fontSize: 10, fontWeight: '800' },
+  seg: { flexDirection: 'row', paddingTop: 2, paddingBottom: 8, marginBottom: 6 },
+  segItem: { flex: 1, alignItems: 'center', paddingVertical: 7, paddingHorizontal: 2, marginHorizontal: 2, borderRadius: 14 },
+  segOn: { backgroundColor: colors.primaryLight },
+  segText: { color: colors.muted, fontSize: 11, fontWeight: '600', marginTop: 3 },
+  segTextOn: { color: colors.primaryDark, fontWeight: '700' },
+  segBadge: { position: 'absolute', top: -5, right: -12, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: '#FF3B5C', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  segBadgeText: { color: '#fff', fontSize: 9, fontWeight: '800' },
 
   spot: { height: 190, borderRadius: 22, overflow: 'hidden', backgroundColor: colors.dark },
   spotShade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 120, backgroundColor: 'rgba(11,17,36,0.55)' },

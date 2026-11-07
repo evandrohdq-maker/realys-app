@@ -187,6 +187,8 @@ function ShopTab({ goTo, explore, navigate }) {
   };
   return (
     <Screen>
+      {/* Menu Vitrine | Promoções acima da busca, como no Food */}
+      <SegTabs items={SHOP_SEGS} value={seg} onChange={(k) => { setSeg(k); setQ(''); }} />
       <SearchBar
         value={q}
         onChangeText={setQ}
@@ -199,7 +201,6 @@ function ShopTab({ goTo, explore, navigate }) {
         <ShopSearchResults q={q} notFood={notFood} goTo={goTo} navigate={navigate} onAdd={add} />
       ) : (
       <>
-      <SegTabs items={SHOP_SEGS} value={seg} onChange={setSeg} />
       {seg === 'promo' ? (
         <PromoSector flash={SHOP_FLASH} coupons={SHOP_COUPONS} combos={SHOP_COMBOS} onOpenStore={(id) => dispatch({ type: 'OPEN_COMPANY', id })} />
       ) : (
