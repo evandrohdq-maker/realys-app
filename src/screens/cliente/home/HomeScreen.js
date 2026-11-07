@@ -204,9 +204,10 @@ function ShopTab({ goTo, explore, navigate }) {
         <PromoSector flash={SHOP_FLASH} coupons={SHOP_COUPONS} combos={SHOP_COMBOS} onOpenStore={(id) => dispatch({ type: 'OPEN_COMPANY', id })} />
       ) : (
         <>
+          {/* Botão que abre os setores numa tela por cima (só os três pontinhos, sem contagem). */}
+          <CategoryPicker items={SHOP_SHORTCUTS} onPick={goTo} />
+          {/* Patrocinados logo abaixo do "Você no comando". */}
           <SpotlightCarousel ads={SHOP_SPOTLIGHT} onOpen={openAd} />
-          {/* Botão que abre os setores numa tela por cima (em vez da grade de atalhos na página). */}
-          <CategoryPicker items={SHOP_SHORTCUTS} onPick={goTo} news={state.products.filter((p) => p.launch && notFood(p)).length + shopSectorItems.filter((it) => it.launch).length} />
           <LaunchStrip only={notFood} />
           <ClipStrip title="🎬 Clipes das lojas" clips={SHOP_CLIPS} />
           <TouchableOpacity style={styles.promoTeaser} activeOpacity={0.9} onPress={() => setSeg('promo')}>
