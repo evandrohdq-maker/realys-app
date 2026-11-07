@@ -1,7 +1,12 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useStore } from '../../store';
+import { useStore, cartTotal, storeOf } from '../../store';
+import { SegTabs } from '../../components/AdKit';
+import { ProductThumb } from '../../components/ui';
+import { promoDiscount } from '../../rewards';
+import { isFoodStore } from '../../data';
+import { useBack } from '../../back';
 import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Button, Badge, Empty, Photo } from '../../components/ui';
 import { providerTarget } from '../../components/GiftSheet';
@@ -80,20 +85,116 @@ function ServiceOrder({ r, onTrack }) {
   );
 }
 
-export default function OrdersScreen({ navigate }) {
+// Carrinho dentro de Pedidos: o que ainda não foi pago, com quantidade, total e pagamento.
+function CartTab({ onPaid }) {
+  const { state, dispatch } = useStore();
+  const lines = state.cart.map((c) => ({ ...c, p: state.products.find((x) => x.id === c.productId) })).filter((l) => l.p);
+  if (!lines.length) return <Empty text="Seu carrinho está vazio. Adicione produtos no Shop, no Food ou pela Lotus." />;
+  const promo = promoDiscount(state, lines.map((l) => ({ ...l, product: l.p })));
+  const total = +(cartTotal(state) - promo.off).toFixed(2);
+  const fromGift = Math.min(state.giftCredits || 0, total);
+  const hasFood = lines.some((l) => isFoodStore(storeOf(state, l.p.storeId)));
+  const pay = () => {
+    if (total > state.wallet + (state.giftCredits || 0)) return Alert.alert('Saldo insuficiente', 'Adicione saldo Realys na carteira para concluir.');
+    dispatch({ type: 'CHECKOUT' });
+    onPaid(hasFood);
+    Alert.alert('Pedido confirmado! ✅', 'Pagamento protegido: o valor fica retido pelo Realys e só é liberado para a loja quando você confirmar a entrega.');
+  };
+  return (
+    <View>
+      {lines.map(({ p, qty }) => (
+        <Card key={p.id}>
+          <Row>
+            <TouchableOpacity style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }} onPress={() => dispatch({ type: 'OPEN_COMPANY', id: p.storeId, product: p.id })} activeOpacity={0.7} accessibilityLabel={`Ver ${p.name} na loja`}>
+              <ProductThumb product={p} size={52} />
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>{p.name}</Text>
+                <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>
+                  {(storeOf(state, p.storeId) || {}).name} · <Text style={{ color: colors.gold, fontWeight: '700' }}>ver loja ›</Text>
+                </Text>
+                <Text style={{ color: colors.primary, fontWeight: '800', marginTop: 2 }}>{brl(p.price * qty)}</Text>
+              </View>
+            </TouchableOpacity>
+            <Row>
+              <TouchableOpacity style={styles.qBtn} onPress={() => dispatch({ type: 'CART_QTY', productId: p.id, delta: -1 })} accessibilityLabel={`Tirar um ${p.name}`}>
+                <Ionicons name={qty === 1 ? 'trash-outline' : 'remove'} size={15} color={qty === 1 ? colors.danger : colors.text} />
+              </TouchableOpacity>
+              <Text style={styles.qNum}>{qty}</Text>
+              <TouchableOpacity style={styles.qBtn} onPress={() => dispatch({ type: 'CART_QTY', productId: p.id, delta: 1 })} accessibilityLabel={`Mais um ${p.name}`}>
+                <Ionicons name="add" size={15} color={colors.text} />
+              </TouchableOpacity>
+            </Row>
+          </Row>
+        </Card>
+      ))}
+      <Card>
+        {promo.off > 0 ? (
+          <Row style={styles.sumRow}>
+            <Text style={styles.sumLabel}>🏷️ Créditos de parceiros</Text>
+            <Text style={[styles.sumValue, { color: colors.success }]}>− {brl(promo.off)}</Text>
+          </Row>
+        ) : null}
+        {fromGift > 0 ? (
+          <Row style={styles.sumRow}>
+            <Text style={styles.sumLabel}>🎁 Créditos de presente</Text>
+            <Text style={[styles.sumValue, { color: colors.success }]}>− {brl(fromGift)}</Text>
+          </Row>
+        ) : null}
+        <Row style={styles.sumRow}>
+          <Text style={styles.sumLabel}>Do saldo Realys ({brl(state.wallet)})</Text>
+          <Text style={styles.sumValue}>{brl(total - fromGift)}</Text>
+        </Row>
+        <Row style={[styles.sumRow, { marginTop: 4 }]}>
+          <Text style={[styles.sumLabel, { color: colors.text, fontWeight: '800' }]}>Total</Text>
+          <Text style={[styles.sumValue, { color: colors.primary, fontSize: 18 }]}>{brl(total)}</Text>
+        </Row>
+        <Button title="Pagar com saldo Realys" onPress={pay} style={{ marginTop: 10 }} />
+        <Text style={{ color: colors.muted, fontSize: 11, textAlign: 'center', marginTop: 6 }}>Pagamento protegido · NF-e emitida automaticamente</Text>
+      </Card>
+    </View>
+  );
+}
+
+// Meus pedidos, separados por setor: Carrinho (o que ainda não foi pago), Compras, Comida e Serviços.
+export default function OrdersScreen({ navigate, explore }) {
   const { state, dispatch } = useStore();
   // Serviços que o cliente contratou (não os que ele recebe como prestador).
   const services = state.rides.filter((r) => r.provider && r.serviceKey);
+  const isFood = (o) => !!o.courier || isFoodStore((state.stores || []).find((x) => x.name === o.store));
+  const food = state.orders.filter(isFood);
+  const buys = state.orders.filter((o) => !isFood(o));
+  const cartCount = state.cart.reduce((n, c) => n + c.qty, 0);
+  const [seg, setSeg] = useState(cartCount ? 'carrinho' : 'compras');
+  useEffect(() => {
+    if (explore && explore.tab === 'pedidos' && explore.seg) setSeg(explore.seg);
+  }, [explore]);
+  useBack(seg !== 'compras', () => setSeg('compras'));
+  const SEGS = [
+    { key: 'carrinho', label: 'Carrinho', icon: 'bag-handle-outline', badge: cartCount || null },
+    { key: 'compras', label: 'Compras', icon: 'cube-outline', badge: buys.filter((o) => o.status !== 'Entregue').length || null },
+    { key: 'comida', label: 'Comida', icon: 'restaurant-outline', badge: food.filter((o) => o.status !== 'Entregue').length || null },
+    { key: 'servicos', label: 'Serviços', icon: 'construct-outline', badge: services.filter((r) => !r.done).length || null },
+  ];
+  const list = seg === 'comida' ? food : buys;
   return (
     <Screen>
-      <Title sub="Compras, comida e serviços contratados. Pagamento só é liberado quando você confirma a entrega">Meus pedidos</Title>
-      {!state.orders.length && !services.length ? <Empty text="Nenhum pedido ainda." /> : null}
-      {services.length ? <Text style={styles.h2}>Serviços contratados</Text> : null}
-      {services.map((r) => (
-        <ServiceOrder key={r.id} r={r} onTrack={() => navigate && navigate({ tab: 'servicos', service: r.serviceKey })} />
-      ))}
-      {services.length && state.orders.length ? <Text style={styles.h2}>Compras e comida</Text> : null}
-      {state.orders.map((o) => {
+      <Title sub="Pagamento só é liberado para a loja ou o prestador quando você confirma a entrega">Meus pedidos</Title>
+      <SegTabs items={SEGS} value={seg} onChange={setSeg} />
+
+      {seg === 'carrinho' ? <CartTab onPaid={(hasFood) => setSeg(hasFood ? 'comida' : 'compras')} /> : null}
+
+      {seg === 'servicos' ? (
+        services.length ? (
+          services.map((r) => <ServiceOrder key={r.id} r={r} onTrack={() => navigate && navigate({ tab: 'servicos', service: r.serviceKey })} />)
+        ) : (
+          <Empty text="Nenhum serviço contratado ainda. Peça um eletricista, motorista ou outro prestador em Serviços ou pela Lotus." />
+        )
+      ) : null}
+
+      {(seg === 'compras' || seg === 'comida') && !list.length ? (
+        <Empty text={seg === 'comida' ? 'Nenhum pedido de comida ainda. Peça no Food ou pela Lotus.' : 'Nenhuma compra ainda. Os produtos que você comprar no Shop aparecem aqui.'} />
+      ) : null}
+      {(seg === 'compras' || seg === 'comida' ? list : []).map((o) => {
         const idx = STEPS.indexOf(o.status);
         return (
           <Card key={o.id}>
@@ -164,6 +265,11 @@ export default function OrdersScreen({ navigate }) {
 }
 
 const styles = StyleSheet.create({
+  qBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
+  qNum: { width: 26, textAlign: 'center', fontWeight: '800', color: colors.text },
+  sumRow: { justifyContent: 'space-between', paddingVertical: 3 },
+  sumLabel: { color: colors.muted, fontSize: 13 },
+  sumValue: { color: colors.text, fontWeight: '700', fontSize: 14 },
   h2: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: 4, marginBottom: 8 },
   courier: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, borderRadius: 14, padding: 10, marginTop: 10 },
   courierPhoto: { width: 44, height: 44, borderRadius: 22 },
