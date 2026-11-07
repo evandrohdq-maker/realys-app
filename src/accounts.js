@@ -213,10 +213,15 @@ export async function getSavedUsers() {
 }
 
 // Guarda (ou atualiza) o usuário. Não guarda a senha: na volta, a biometria confirma quem é.
+// Chave da conta salva no aparelho (CPF/CNPJ, ou usuário).
+export function savedKey(login) {
+  const d = onlyDigits(login);
+  return /^[\d.\-\/\s]+$/.test(login.trim()) && d.length ? d : cleanUsername(login);
+}
+
 export async function saveUser(login, user) {
   const list = await getSavedUsers();
-  const d = onlyDigits(login);
-  const key = /^[\d.\-\/\s]+$/.test(login.trim()) && d.length ? d : cleanUsername(login);
+  const key = savedKey(login);
   const entry = { key, login: login.trim(), user, lastAt: new Date().toISOString() };
   const next = [entry, ...list.filter((s) => s.key !== key)].slice(0, 8);
   await secureSet(SAVED_KEY, JSON.stringify(next));

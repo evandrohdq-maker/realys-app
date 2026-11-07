@@ -17,6 +17,7 @@ import {
   touchSavedUser,
   forgetUser,
   confirmBiometric,
+  savedKey,
 } from '../accounts';
 import SignupForm from './SignupForm';
 import { authStyles } from './authStyles';
@@ -127,8 +128,13 @@ export default function LoginScreen() {
       } else {
         user = demoUser(value, info); // conta de demonstração
       }
-      const bio = await confirmBiometric();
-      if (bio === 'falhou') return Alert.alert('Não foi possível confirmar sua identidade.');
+      // Aparelho já cadastrado (conta salva aqui): abre normal, sem biometria a cada entrada.
+      // Biometria só no aparelho novo. Serviços, compras e saques pedem biometria à parte.
+      const conhecido = (await getSavedUsers()).some((x) => x.key === savedKey(value));
+      if (!conhecido) {
+        const bio = await confirmBiometric();
+        if (bio === 'falhou') return Alert.alert('Não foi possível confirmar sua identidade.');
+      }
       await login(user, value, remember);
     } finally {
       setBusy(false);
@@ -139,21 +145,9 @@ export default function LoginScreen() {
   const quickEnter = async (s) => {
     setBusy(true);
     try {
-      const bio = await confirmBiometric(`Entrar como ${s.user.name}`);
-      if (bio === 'ok') {
-        await touchSavedUser(s.key).catch(() => {});
-        return dispatch({ type: 'LOGIN', user: s.user });
-      }
-      if (bio === 'sem') {
-        // Sem digital ou rosto no aparelho: confirma pela senha.
-        setValue(s.login);
-        setPassword('');
-        setShowForm(true);
-        Alert.alert('Digite sua senha', 'Este celular não tem digital ou rosto cadastrado. Confirme com a sua senha.');
-        setTimeout(() => passRef.current && passRef.current.focus(), 300);
-        return;
-      }
-      Alert.alert('Não foi possível confirmar sua identidade.');
+      // Aparelho já cadastrado: entra direto, sem biometria. Serviços, compras e saques pedem biometria à parte.
+      await touchSavedUser(s.key).catch(() => {});
+      return dispatch({ type: 'LOGIN', user: s.user });
     } finally {
       setBusy(false);
     }
