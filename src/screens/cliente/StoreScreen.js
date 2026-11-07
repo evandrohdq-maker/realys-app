@@ -10,6 +10,7 @@ import { useBack } from '../../back';
 import { isFoodStore } from '../../data';
 import { FOOD_FILTERS } from '../../foodData';
 import { GROCERY_GROUPS, GROCERY_SECTIONS, sectionOf } from '../../grocerySections';
+import { classifyFood, FOOD_CLASSES, MODOS, classeByKey } from '../../foodClasses';
 import { FoodHighlights } from './FoodHighlights';
 import { ShopHero, CircleShortcuts, ShopHead, ShopProductCard as ProductCard, ShopGrid, StoreRow } from '../../components/ShopKit';
 import { SegTabs, SpotlightCarousel, ClipStrip, PromoSector } from '../../components/AdKit';
@@ -201,11 +202,15 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
           <Badge label="CNPJ verificado" />
           {s.shipsBrazil ? <View style={{ marginLeft: 6 }}><Badge label="Envia para todo o Brasil" color={colors.accent} /></View> : null}
         </Row>
-        <ShopGrid>
-          {items.map((p) => (
-            <ProductCard key={p.id} p={p} onAdd={() => add(p.id)} />
-          ))}
-        </ShopGrid>
+        {isFoodStore(s) ? (
+          <CardapioFood items={items} store={s} onAdd={add} />
+        ) : (
+          <ShopGrid>
+            {items.map((p) => (
+              <ProductCard key={p.id} p={p} onAdd={() => add(p.id)} />
+            ))}
+          </ShopGrid>
+        )}
         {cartCount ? <CartBar count={cartCount} total={total} onPress={() => dispatch({ type: 'OPEN_CART' })} /> : null}
       </Screen>
     );
@@ -386,6 +391,56 @@ function MarketTab({ onOpenStore, onAdd, onPromos }) {
   );
 }
 
+// Cardápio de loja de comida: produtos agrupados por classe › subclasse (foodClasses), com o filtro
+// Entrega ou Retirada no local. Produto sem classe gravada é classificado na hora pelo nome.
+function CardapioFood({ items, store, onAdd }) {
+  const [modo, setModo] = useState('todos');
+  const porClasse = useMemo(() => {
+    const info = items.map((p) => {
+      const cls = p.classe
+        ? { classe: p.classe, subclasse: p.subclasse, modos: p.modos || MODOS.map((m) => m.key) }
+        : classifyFood(p.name, p.description || p.desc || '', store.category);
+      return { p, cls };
+    });
+    const visiveis = info.filter(({ cls }) => modo === 'todos' || (cls && cls.modos && cls.modos.includes(modo)));
+    return FOOD_CLASSES.map((c) => ({
+      c,
+      subs: c.subs
+        .map((sub) => ({ sub, produtos: visiveis.filter(({ cls }) => cls && cls.classe === c.key && cls.subclasse === sub.key).map((x) => x.p) }))
+        .filter((x) => x.produtos.length),
+    })).filter((x) => x.subs.length);
+  }, [items, store.category, modo]);
+  const semClasse = items.filter((p) => !(p.classe || classifyFood(p.name, p.description || p.desc || '', store.category)));
+  return (
+    <View>
+      <View style={styles.modoRow}>
+        {[{ key: 'todos', label: 'Tudo' }, ...MODOS].map((m) => (
+          <TouchableOpacity key={m.key} onPress={() => setModo(m.key)} style={[styles.modoBtn, modo === m.key && styles.modoBtnOn]} activeOpacity={0.85}>
+            <Text style={[styles.modoTxt, modo === m.key && { color: '#fff' }]}>{m.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      {porClasse.map(({ c, subs }) => (
+        <View key={c.key} style={{ marginBottom: 6 }}>
+          <ShopHead title={classeByKey(c.key).label} />
+          {subs.map(({ sub, produtos }) => (
+            <View key={sub.key}>
+              <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13, marginTop: 6, marginBottom: 4 }}>{sub.label}</Text>
+              <ShopGrid>
+                {produtos.map((p) => (
+                  <ProductCard key={p.id} p={p} onAdd={() => onAdd(p.id)} />
+                ))}
+              </ShopGrid>
+            </View>
+          ))}
+        </View>
+      ))}
+      {!porClasse.length ? <Empty text={modo === 'todos' ? 'Esta loja ainda não tem produtos no cardápio.' : `Nenhum produto com ${modo === 'entrega' ? 'entrega' : 'retirada no local'}.`} /> : null}
+      {semClasse.length && modo === 'todos' ? <Text style={{ color: colors.muted, fontSize: 11, marginTop: 4 }}>{semClasse.length} item(ns) sem classe definida pela loja.</Text> : null}
+    </View>
+  );
+}
+
 function CartBar({ count, total, onPress }) {
   return (
     <TouchableOpacity onPress={onPress} style={styles.cartBar} activeOpacity={0.9}>
@@ -396,6 +451,10 @@ function CartBar({ count, total, onPress }) {
 }
 
 const styles = StyleSheet.create({
+  modoRow: { flexDirection: 'row', marginBottom: 10 },
+  modoBtn: { flex: 1, borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingVertical: 8, alignItems: 'center', marginRight: 6, backgroundColor: colors.card },
+  modoBtnOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  modoTxt: { color: colors.text, fontWeight: '700', fontSize: 12 },
   promoTeaser: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E2B649', borderRadius: 16, padding: 12, marginBottom: 16 },
   pageBtn: { borderWidth: 1, borderColor: colors.primary, borderRadius: 12, padding: 10, marginBottom: 10, backgroundColor: colors.primaryLight },
   h1: { fontSize: 22, fontWeight: '700', color: colors.text, marginBottom: 6 },

@@ -11,6 +11,26 @@ import {
 } from '../auth.js';
 import { tx } from '../db.js';
 
+// Data de nascimento: aceita DD/MM/AAAA ou AAAA-MM-DD. Devolve AAAA-MM-DD ou null.
+export function parseNascimento(v) {
+  const t = String(v || '').trim();
+  const m = t.match(/^(\d{2})\/(\d{2})\/(\d{4})$/) || t.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  const [y, mo, d] = t.includes('/') ? [m[3], m[2], m[1]] : [m[1], m[2], m[3]];
+  const date = new Date(`${y}-${mo}-${d}T00:00:00Z`);
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== `${y}-${mo}-${d}`) return null;
+  if (date.getTime() > Date.now()) return null;
+  return `${y}-${mo}-${d}`;
+}
+// Idade em anos completos, na data de hoje.
+export function idadeEm(iso, hoje = new Date()) {
+  const [y, mo, d] = iso.split('-').map(Number);
+  let idade = hoje.getUTCFullYear() - y;
+  if (hoje.getUTCMonth() + 1 < mo || (hoje.getUTCMonth() + 1 === mo && hoje.getUTCDate() < d)) idade--;
+  return idade;
+}
+
+
 export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin, clearLogin, biometria }) {
   // Cria a sessão do aparelho e o token de acesso.
   const startSession = (user, device) => {
@@ -31,6 +51,14 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
   r.post('/auth/signup', ({ body }) => {
     if (body.aceiteTermos !== TERMO_ADESAO_VERSAO) fail(400, 'Leia e aceite o termo de adesão para criar sua conta.', 'termos');
     const kind = body.kind === 'empresa' ? 'empresa' : 'pessoa';
+    // Nascimento: pessoa física informa; o Realys não aceita menor de 18 anos.
+    const nascimento = parseNascimento(body.nascimento ?? body.birth);
+    if (body.nascimento || body.birth) {
+      if (!nascimento) fail(400, 'Data de nascimento inválida. Use dia/mês/ano.', 'nascimento');
+      if (idadeEm(nascimento) < 18) fail(400, 'O Realys não aceita cadastro de menores de 18 anos.', 'maioridade');
+    }
+    if (kind === 'pessoa' && !nascimento) fail(400, 'Informe sua data de nascimento (dia/mês/ano).', 'nascimento');
+    const maiorDeIdade = nascimento && idadeEm(nascimento) >= 18 ? 1 : 0;
     const name = str(body.name, kind === 'empresa' ? 'o nome da empresa' : 'seu nome', { min: 2, max: 80 });
     const doc = onlyDigits(body.doc);
     if (kind === 'empresa' ? !validCnpj(doc) : !validCpf(doc)) fail(400, kind === 'empresa' ? 'CNPJ inválido. Confira os números.' : 'CPF inválido. Confira os números.');
@@ -49,8 +77,8 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
     const roles = kind === 'empresa' ? ['empresa', 'fornecedor', 'usuario'] : ['usuario'];
     const user = tx(db, () => {
       db.prepare(
-        `INSERT INTO users (id, kind, name, username, doc, email, phone, pass_hash, roles, social_class, about, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`
-      ).run(id, kind, name, username, doc, email, onlyDigits(body.phone).slice(0, 13), hashPassword(body.password), JSON.stringify(roles), body.socialClass ? String(body.socialClass).slice(0, 40) : null, String(body.about || '').slice(0, 300), now());
+        `INSERT INTO users (id, kind, name, username, doc, email, phone, pass_hash, roles, social_class, about, nascimento, maior_idade, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+      ).run(id, kind, name, username, doc, email, onlyDigits(body.phone).slice(0, 13), hashPassword(body.password), JSON.stringify(roles), body.socialClass ? String(body.socialClass).slice(0, 40) : null, String(body.about || '').slice(0, 300), nascimento, maiorDeIdade, now());
       wallet.ensure(id);
       if (kind === 'empresa') {
         db.prepare('INSERT INTO companies (id, owner_id, name, cnpj, segment, created_at) VALUES (?,?,?,?,?,?)').run(newId('e'), id, name, doc, String(body.segment || '').slice(0, 60), now());

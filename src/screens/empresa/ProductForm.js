@@ -6,6 +6,7 @@ import { colors, soft } from '../../theme';
 import { Card, Row, Button, Photo } from '../../components/ui';
 import { SHOP_SECTORS } from '../../shopSectorsData';
 import { classifyProduct } from '../../productClass';
+import { classifyFood, FOOD_CLASSES, MODOS, rotuloClasse, subclasseByKey } from '../../foodClasses';
 
 // Cadastro de produto pelo administrador da loja: fotos, nome, descrição, preço e estoque.
 // O Realys descobre sozinho onde o produto aparece no Shop (setor › subgrupo) pelo nome e pela
@@ -24,7 +25,9 @@ async function pickPhotos(limit) {
   return (res.assets || []).map((x) => x.uri);
 }
 
-export default function ProductForm({ onSave, onCancel }) {
+// food = loja de comida (Alimentação, Bares, Doces e cafés, Mercado): a classificação vem de
+// foodClasses (classe › subclasse) e o cadastro pergunta o modo de atendimento.
+export default function ProductForm({ onSave, onCancel, food = false, categoria = 'Alimentação' }) {
   const [photos, setPhotos] = useState([]);
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
@@ -32,15 +35,31 @@ export default function ProductForm({ onSave, onCancel }) {
   const [cost, setCost] = useState('');
   const [stock, setStock] = useState('');
   const [ship, setShip] = useState(true);
-  const [manual, setManual] = useState(null); // { sector, group } quando a loja troca
+  const [manual, setManual] = useState(null); // { sector, group } (Shop) ou { classe, subclasse } (Food) quando a loja troca
+  const [modosManual, setModosManual] = useState(null); // modos escolhidos pela loja (Food)
   const [choosing, setChoosing] = useState(false);
 
   // Classificação automática (refaz enquanto a loja digita o nome e a descrição).
-  const auto = useMemo(() => (name.trim().length >= 3 ? classifyProduct(name, desc) : null), [name, desc]);
-  const cls = manual
+  const auto = useMemo(() => {
+    if (name.trim().length < 3) return null;
+    if (food) return classifyFood(name, desc, categoria);
+    return classifyProduct(name, desc);
+  }, [name, desc, food, categoria]);
+  const cls = food
+    ? manual
+      ? { ...manual, label: rotuloClasse(manual.classe, manual.subclasse), modos: auto ? auto.modos : MODOS.map((m) => m.key), maioridade: !!(subclasseByKey(manual.classe, manual.subclasse) || {}).maioridade }
+      : auto
+    : manual
     ? { ...manual, label: `${SHOP_SECTORS[manual.sector].title} › ${(SHOP_SECTORS[manual.sector].groups.find((g) => g.key === manual.group) || {}).label}` }
     : auto;
   useEffect(() => setChoosing(false), [auto && auto.label]);
+  useEffect(() => setModosManual(null), [auto && auto.label]);
+  // Modos de atendimento: o que o Realys decidiu pelo produto, a menos que a loja mude.
+  const modos = modosManual || (cls && cls.modos) || MODOS.map((m) => m.key);
+  const toggleModo = (k) => {
+    const atual = modos.includes(k) ? modos.filter((x) => x !== k) : [...modos, k];
+    if (atual.length) setModosManual(MODOS.map((m) => m.key).filter((x) => atual.includes(x)));
+  };
 
   const addPhotos = async () => {
     const free = MAX_PHOTOS - photos.length;
@@ -55,7 +74,23 @@ export default function ProductForm({ onSave, onCancel }) {
     const q = parseInt(stock, 10);
     if (!name.trim() || isNaN(p) || isNaN(q)) return Alert.alert('Falta pouco', 'Preencha nome, preço e quantidade.');
     if (!photos.length) return Alert.alert('Coloque uma foto', 'Produto com foto vende muito mais. A primeira foto é a capa.');
-    if (!cls) return Alert.alert('Onde ele aparece no Shop?', 'Não consegui descobrir a categoria pelo nome. Toque em "escolher" e marque o setor do produto.');
+    if (!cls) return Alert.alert(food ? 'Em que classe ele entra?' : 'Onde ele aparece no Shop?', 'Não consegui descobrir a categoria pelo nome. Toque em "escolher" e marque a classe do produto.');
+    if (food) {
+      return onSave({
+        name: name.trim(),
+        desc: desc.trim(),
+        photos,
+        price: p,
+        cost: isNaN(c) ? p * 0.7 : c,
+        stock: q,
+        classe: cls.classe,
+        subclasse: cls.subclasse,
+        modos,
+        maioridade: !!cls.maioridade,
+        isNew: true,
+        createdAt: Date.now(),
+      });
+    }
     onSave({
       name: name.trim(),
       desc: desc.trim(),
@@ -106,13 +141,13 @@ export default function ProductForm({ onSave, onCancel }) {
         maxLength={600}
       />
 
-      <Text style={styles.k}>ONDE APARECE NO SHOP{manual ? '' : ' · AUTOMÁTICO'}</Text>
+      <Text style={styles.k}>{food ? 'CLASSE NO CARDÁPIO' : 'ONDE APARECE NO SHOP'}{manual ? '' : ' · AUTOMÁTICO'}</Text>
       {cls ? (
         <View style={styles.auto}>
           <Text style={{ fontSize: 18 }}>{manual ? '✅' : '✨'}</Text>
           <View style={{ flex: 1, marginLeft: 8 }}>
             <Text style={styles.autoLabel}>{cls.label}</Text>
-            <Text style={styles.why}>{manual ? 'Escolhido por você' : 'O Realys classificou pelo nome e pela descrição'}</Text>
+            <Text style={styles.why}>{manual ? 'Escolhido por você' : food ? 'O Realys classificou pelo nome e pela descrição' : 'O Realys classificou pelo nome e pela descrição'}</Text>
           </View>
           <TouchableOpacity onPress={() => setChoosing(!choosing)} hitSlop={8}>
             <Text style={styles.chg}>{choosing ? 'fechar' : 'trocar'}</Text>
@@ -122,7 +157,7 @@ export default function ProductForm({ onSave, onCancel }) {
         <View style={[styles.auto, { borderColor: colors.border, backgroundColor: colors.card }]}>
           <Text style={{ fontSize: 18 }}>🔎</Text>
           <Text style={[styles.why, { flex: 1, marginLeft: 8, marginTop: 0 }]}>
-            {name.trim().length < 3 ? 'Digite o nome: o Realys descobre a categoria sozinho.' : 'Não reconheci este produto. Escolha onde ele aparece.'}
+            {name.trim().length < 3 ? 'Digite o nome: o Realys descobre a categoria sozinho.' : food ? 'Não reconheci este produto. Escolha a classe dele.' : 'Não reconheci este produto. Escolha onde ele aparece.'}
           </Text>
           {name.trim().length >= 3 ? (
             <TouchableOpacity onPress={() => setChoosing(!choosing)} hitSlop={8}>
@@ -131,7 +166,38 @@ export default function ProductForm({ onSave, onCancel }) {
           ) : null}
         </View>
       )}
-      {choosing ? (
+      {choosing && food ? (
+        <View style={styles.chooser}>
+          {FOOD_CLASSES.map((c) => (
+            <View key={c.key} style={{ marginBottom: 6 }}>
+              <Text style={styles.secTitle}>{c.label}</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                {c.subs.map((sub) => {
+                  const on = cls && cls.classe === c.key && cls.subclasse === sub.key;
+                  return (
+                    <TouchableOpacity
+                      key={sub.key}
+                      style={[styles.pill, on && styles.pillOn]}
+                      onPress={() => {
+                        setManual({ classe: c.key, subclasse: sub.key });
+                        setChoosing(false);
+                      }}
+                    >
+                      <Text style={[styles.pillText, on && { color: '#fff' }]}>{sub.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          ))}
+          {manual ? (
+            <TouchableOpacity onPress={() => (setManual(null), setChoosing(false))}>
+              <Text style={[styles.chg, { textAlign: 'center', marginTop: 4 }]}>Voltar para a escolha automática</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      ) : null}
+      {choosing && !food ? (
         <View style={styles.chooser}>
           {Object.values(SHOP_SECTORS).map((s) => (
             <View key={s.key} style={{ marginBottom: 6 }}>
@@ -165,6 +231,26 @@ export default function ProductForm({ onSave, onCancel }) {
             </TouchableOpacity>
           ) : null}
         </View>
+      ) : null}
+
+      {food && cls ? (
+        <>
+          <Text style={styles.k}>COMO ATENDE</Text>
+          <Row>
+            {MODOS.map((m) => {
+              const on = modos.includes(m.key);
+              return (
+                <TouchableOpacity key={m.key} style={[styles.modo, on && styles.pillOn, { flex: 1 }]} onPress={() => toggleModo(m.key)} activeOpacity={0.85}>
+                  <Text style={[styles.pillText, on && { color: '#fff', fontWeight: '800' }]}>{m.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </Row>
+          <Text style={styles.why}>
+            {modosManual ? 'Ajustado por você.' : 'Definido pelo produto. Toque para mudar.'}
+            {cls.maioridade ? ' Bebida alcoólica: só para clientes maiores de 18 anos, com a data de nascimento registrada na conta. Na entrega, basta o código do pedido.' : ''}
+          </Text>
+        </>
       ) : null}
 
       <Text style={styles.k}>PREÇO E ESTOQUE</Text>
@@ -208,6 +294,7 @@ const styles = StyleSheet.create({
   secTitle: { color: colors.text, fontWeight: '800', fontSize: 12, marginBottom: 4 },
   pill: { borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 5, marginRight: 5, marginBottom: 5, backgroundColor: colors.card },
   pillOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  modo: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingVertical: 9, marginRight: 6, alignItems: 'center', backgroundColor: colors.card },
   pillText: { color: colors.text, fontSize: 11.5 },
   novo: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EEF6EF', borderRadius: 12, padding: 10, marginTop: 8 },
   shipRow: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6, marginTop: 8 },

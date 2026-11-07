@@ -352,6 +352,19 @@ const MIGRATIONS = [
   ALTER TABLE biometria_checks_v2 RENAME TO biometria_checks;
   CREATE INDEX biometria_checks_user ON biometria_checks(user_id, purpose, created_at);
   `,
+  // 6: classe e subclasse do cardápio (comida), modos de atendimento (entrega, retirada no local) e maioridade
+  `
+  ALTER TABLE products ADD COLUMN classe TEXT;
+  ALTER TABLE products ADD COLUMN subclasse TEXT;
+  ALTER TABLE products ADD COLUMN modos TEXT;
+  ALTER TABLE products ADD COLUMN maioridade INTEGER NOT NULL DEFAULT 0;
+  CREATE INDEX products_classe ON products(classe, subclasse);
+  `,
+  // 7: o Realys não aceita menores de 18 anos; a data de nascimento e a condição de maior ficam na conta
+  `
+  ALTER TABLE users ADD COLUMN nascimento TEXT;
+  ALTER TABLE users ADD COLUMN maior_idade INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export function openDb(file) {

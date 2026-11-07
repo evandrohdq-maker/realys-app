@@ -18,7 +18,25 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria }) {
     if (!SECOES.includes(v)) fail(400, 'Seção inválida. Use: ' + SECOES.join(', ') + '.');
     return v;
   };
-  const productView = (p) => ({ id: p.id, companyId: p.company_id, company: p.company_name, name: p.name, description: p.description, category: p.category, secao: p.secao || null, price: toReais(p.price), stock: p.stock, photo: p.photo, sponsored: !!p.sponsored, active: !!p.active });
+  // Cardápio de comida: classes e subclasses (foodClasses no app), modos de atendimento e maioridade.
+  const CLASSES = ['pizzaria', 'lanches', 'japonesa', 'pratos', 'padaria', 'doces', 'bar', 'bebidas', 'mercado'];
+  const MODOS = ['entrega', 'retirada'];
+  const classeOf = (v) => {
+    if (v === undefined || v === null || v === '') return null;
+    if (!CLASSES.includes(v)) fail(400, 'Classe inválida. Use: ' + CLASSES.join(', ') + '.');
+    return v;
+  };
+  const subclasseOf = (v) => (v === undefined || v === null || v === '' ? null : str(v, 'a subclasse', { max: 40 }));
+  const modosOf = (v) => {
+    if (v === undefined || v === null) return null;
+    if (!Array.isArray(v) || !v.length || v.some((x) => !MODOS.includes(x))) fail(400, 'Modo de atendimento inválido. Use entrega, retirada ou os dois.');
+    return JSON.stringify(MODOS.filter((m) => v.includes(m)));
+  };
+  // Bebida alcoólica: o servidor define sozinho (o cliente não consegue tirar a marca).
+  const ALCOOL = { bar: ['chope', 'drinks', 'vinhos'] };
+  const maioridadeDe = (classe, subclasse) => (ALCOOL[classe] && ALCOOL[classe].includes(subclasse) ? 1 : 0);
+  const adultoConfirmado = (userId) => db.prepare('SELECT maior_idade FROM users WHERE id = ?').get(userId)?.maior_idade === 1;
+  const productView = (p) => ({ id: p.id, companyId: p.company_id, company: p.company_name, name: p.name, description: p.description, category: p.category, secao: p.secao || null, classe: p.classe || null, subclasse: p.subclasse || null, modos: p.modos ? JSON.parse(p.modos) : null, maioridade: !!p.maioridade, price: toReais(p.price), stock: p.stock, photo: p.photo, sponsored: !!p.sponsored, active: !!p.active });
 
   // ── Empresas ──
   r.get('/companies', ({ query }) => {
@@ -68,16 +86,30 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria }) {
       where.push('p.secao = ?');
       args.push(secaoOf(query.secao));
     }
+    if (query.classe) {
+      where.push('p.classe = ?');
+      args.push(classeOf(query.classe));
+    }
+    if (query.subclasse) {
+      where.push('p.subclasse = ?');
+      args.push(subclasseOf(query.subclasse));
+    }
+    if (query.modo) {
+      if (!MODOS.includes(query.modo)) fail(400, 'Modo inválido. Use entrega ou retirada.');
+      where.push('p.modos LIKE ?');
+      args.push(`%"${query.modo}"%`);
+    }
     return db.prepare(`SELECT p.*, c.name AS company_name FROM products p JOIN companies c ON c.id = p.company_id WHERE ${where.join(' AND ')} ORDER BY p.sponsored DESC, p.created_at DESC LIMIT 100`).all(...args).map(productView);
   }, { auth: false });
 
   r.post('/products', ({ user, body }) => {
     const c = myCompany(user);
     const id = newId('p');
-    db.prepare('INSERT INTO products (id, company_id, name, description, category, price, stock, photo, secao, created_at) VALUES (?,?,?,?,?,?,?,?,?,?)').run(
+    db.prepare('INSERT INTO products (id, company_id, name, description, category, price, stock, photo, secao, classe, subclasse, modos, maioridade, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)').run(
       id, c.id, str(body.name, 'o nome do produto', { max: 120 }), str(body.description, 'a descrição', { optional: true, max: 2000 }),
       str(body.category, 'a categoria', { optional: true, max: 40 }) || 'Vários', money(body.price, 'preço'), int(body.stock ?? 0, 'estoque'),
-      str(body.photo, 'a foto', { optional: true, max: 300 }) || null, secaoOf(body.secao), now()
+      str(body.photo, 'a foto', { optional: true, max: 300 }) || null, secaoOf(body.secao),
+      classeOf(body.classe), subclasseOf(body.subclasse), modosOf(body.modos) ?? JSON.stringify(MODOS), maioridadeDe(classeOf(body.classe), subclasseOf(body.subclasse)), now()
     );
     return productView({ ...db.prepare('SELECT * FROM products WHERE id = ?').get(id), company_name: c.name });
   }, { status: 201 });
@@ -95,6 +127,12 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria }) {
     if (body.photo !== undefined) f.photo = str(body.photo, 'a foto', { optional: true, max: 300 }) || null;
     if (body.active !== undefined) f.active = body.active ? 1 : 0;
     if (body.secao !== undefined) f.secao = secaoOf(body.secao);
+    if (body.classe !== undefined) f.classe = classeOf(body.classe);
+    if (body.subclasse !== undefined) f.subclasse = subclasseOf(body.subclasse);
+    if (body.modos !== undefined) f.modos = modosOf(body.modos);
+    if (body.classe !== undefined || body.subclasse !== undefined) {
+      f.maioridade = maioridadeDe(f.classe !== undefined ? f.classe : p.classe, f.subclasse !== undefined ? f.subclasse : p.subclasse);
+    }
     const k = Object.keys(f);
     if (k.length) db.prepare(`UPDATE products SET ${k.map((x) => `${x} = ?`).join(', ')} WHERE id = ?`).run(...k.map((x) => f[x]), p.id);
     return productView({ ...db.prepare('SELECT * FROM products WHERE id = ?').get(p.id), company_name: c.name });
@@ -119,6 +157,7 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria }) {
       for (const it of items) {
         const p = db.prepare('SELECT p.*, c.owner_id, c.name AS company_name FROM products p JOIN companies c ON c.id = p.company_id WHERE p.id = ? AND p.active = 1').get(String(it.productId));
         if (!p) fail(404, 'Um dos produtos não está mais disponível.');
+        if (p.maioridade && !adultoConfirmado(user.id)) fail(403, `${p.name} é bebida alcoólica: só para maiores de 18 anos. Sua maioridade não está confirmada na conta.`, 'maioridade');
         const qty = int(it.qty, 'quantidade', { min: 1, max: 99 });
         if (p.owner_id === user.id) fail(400, 'Você não pode comprar da sua própria loja.');
         const r2 = db.prepare('UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?').run(qty, p.id, qty);

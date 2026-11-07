@@ -6,17 +6,26 @@ import { Screen, Title, Card, Row, Button, ProductThumb, Badge } from '../../com
 import ProductForm from './ProductForm';
 import { BoostButton } from '../../components/Boost';
 import { SHOP_SECTORS } from '../../shopSectorsData';
+import { MY_COMPANY_ID, isFoodStore } from '../../data';
+import { rotuloClasse } from '../../foodClasses';
 
 export default function InventoryScreen() {
   const { state, dispatch } = useStore();
   const [adding, setAdding] = useState(false);
   const products = myProducts(state);
+  // Loja de comida (Alimentação, Bares, Doces e cafés, Mercado): o cadastro usa as classes do Food.
+  const minhaLoja = state.stores.find((s) => s.id === MY_COMPANY_ID);
+  const food = isFoodStore(minhaLoja);
   const totalValue = products.reduce((s, p) => s + p.cost * p.stock, 0);
 
   // Produto novo publicado: vai para a página da loja e para o Shop, no setor que o Realys classificou.
   const save = (product) => {
     dispatch({ type: 'ADD_PRODUCT', product });
     setAdding(false);
+    if (product.classe) {
+      const onde = rotuloClasse(product.classe, product.subclasse) || 'Cardápio';
+      return Alert.alert('Produto publicado ✅', `${product.name} já está no cardápio da sua loja, em ${onde}.`);
+    }
     const sec = SHOP_SECTORS[product.sector];
     Alert.alert('Produto publicado ✅', `${product.name} já está na sua página e no Shop, em ${sec ? sec.title : 'Shop'}.`);
   };
@@ -34,7 +43,7 @@ export default function InventoryScreen() {
       </Card>
 
       {adding ? (
-        <ProductForm onSave={save} onCancel={() => setAdding(false)} />
+        <ProductForm onSave={save} onCancel={() => setAdding(false)} food={food} categoria={minhaLoja ? minhaLoja.category : 'Alimentação'} />
       ) : (
         <Button title="+ Cadastrar produto" onPress={() => setAdding(true)} style={{ marginBottom: 12 }} />
       )}
