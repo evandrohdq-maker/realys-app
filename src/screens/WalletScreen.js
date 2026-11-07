@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { colors, brl, soft } from '../theme';
 import { GIFT_FEE_PCT, LIVE_CONVERT_MIN, liveGiftOf } from '../gifts';
-import { POINTS_PER_RATING, POINTS_COMMENT_BONUS, POINT_RULES, EARN_PCT, pointsToReais } from '../rewards';
+import { POINTS_PER_RATING, POINTS_COMMENT_BONUS, POINT_RULES } from '../rewards';
 import { BoostOffers, MyBoosts } from '../components/Boost';
 import { levelOf, nextLevel, ORDERS_FOR_BONUS, BONUS, STAMPS_FOR_REWARD, STAMP_BACK_PCT, initialLoyalty } from '../loyalty';
 
@@ -227,11 +227,10 @@ export default function WalletScreen({ visible, onClose }) {
               <View style={{ flex: 1, marginLeft: 10 }}>
                 <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '700' }}>Pontos Realys</Text>
                 <Text style={{ color: colors.text, fontSize: 24, fontWeight: '800' }}>{state.points.toLocaleString('pt-BR')} pontos</Text>
-                <Text style={{ color: colors.muted, fontSize: 11 }}>= {brl(pointsToReais(state.points))} em boosts e anúncios</Text>
               </View>
             </View>
             <Text style={{ color: colors.muted, fontSize: 11, marginTop: 4, lineHeight: 16 }}>
-              Ganhe {POINTS_PER_RATING} pontos a cada avaliação (+{POINTS_COMMENT_BONUS} com comentário), comprando, mandando presentes ({EARN_PCT}% do valor volta em pontos) e assistindo lives e clipes (até {POINT_RULES.watchDailyCap} por dia). 100 pontos = R$ 1 em boosts e anúncios. Troque por boosts e anúncios do Realys. Pontos não viram saldo, não são sacados e vencem em {POINT_RULES.validityMonths} meses.
+              Ganhe {POINTS_PER_RATING} pontos a cada avaliação (+{POINTS_COMMENT_BONUS} com comentário), comprando, mandando presentes e assistindo lives e clipes (até {POINT_RULES.watchDailyCap} por dia). Troque por boosts e anúncios do Realys. Pontos não viram saldo, não são sacados e vencem em {POINT_RULES.validityMonths} meses.
             </Text>
             {(state.promoCredits || []).filter((pc) => !pc.used).length ? (
               <>
