@@ -471,7 +471,7 @@ export function LotusNudges() {
   return (
     <View style={{ marginBottom: 12 }}>
       <Row style={{ alignItems: 'center', marginBottom: 6 }}>
-        <Text style={{ fontSize: 14 }}>🪷</Text>
+        <Ionicons name="flower" size={16} color={colors.gold} />
         <Text style={[styles.headTitle, { marginLeft: 6, fontSize: 14 }]}>A Lotus lembrou</Text>
       </Row>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
