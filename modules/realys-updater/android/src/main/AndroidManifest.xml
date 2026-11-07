@@ -1,0 +1,21 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- Instalar atualizações do próprio Realys. A segunda permite que, no Android 12+,
+       a atualização do próprio app aconteça sem a tela "Deseja atualizar?". -->
+  <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+  <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
+
+  <application>
+    <!-- Recebe o resultado da instalação (sucesso, erro ou "precisa confirmar"). -->
+    <receiver
+      android:name="expo.modules.realysupdater.InstallResultReceiver"
+      android:exported="false" />
+    <!-- Avisado pelo Android logo depois que o Realys foi substituído: reabre o app. -->
+    <receiver
+      android:name="expo.modules.realysupdater.UpdatedReceiver"
+      android:exported="false">
+      <intent-filter>
+        <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+      </intent-filter>
+    </receiver>
+  </application>
+</manifest>
