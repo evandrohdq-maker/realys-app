@@ -20,6 +20,7 @@ import {
   savedKey,
 } from '../accounts';
 import SignupForm from './SignupForm';
+import ScanFacial from '../components/ScanFacial';
 import { authStyles } from './authStyles';
 
 // Um campo só: usuário, CPF ou CNPJ. O tipo de acesso vem da própria conta.
@@ -47,6 +48,7 @@ function demoUser(value, info) {
 const KIND_ICON = { empresa: 'business-outline', fornecedor: 'cube-outline', cliente: 'person-outline' };
 
 export default function LoginScreen() {
+  const [pendente, setPendente] = useState(null); // conta de aparelho novo: aguarda o reconhecimento facial
   const { dispatch } = useStore();
   const [mode, setMode] = useState('entrar'); // entrar | cadastro
   const [saved, setSaved] = useState([]);
@@ -129,12 +131,9 @@ export default function LoginScreen() {
         user = demoUser(value, info); // conta de demonstração
       }
       // Aparelho já cadastrado (conta salva aqui): abre normal, sem biometria a cada entrada.
-      // Biometria só no aparelho novo. Serviços, compras e saques pedem biometria à parte.
+      // Conta sem biometria feita neste aparelho: a pessoa dona da conta faz o reconhecimento facial.
       const conhecido = (await getSavedUsers()).some((x) => x.key === savedKey(value));
-      if (!conhecido) {
-        const bio = await confirmBiometric();
-        if (bio === 'falhou') return Alert.alert('Não foi possível confirmar sua identidade.');
-      }
+      if (!conhecido) return setPendente({ user, login: value, remember });
       await login(user, value, remember);
     } finally {
       setBusy(false);
@@ -304,6 +303,16 @@ export default function LoginScreen() {
           </View>
         )}
       </ScrollView>
+      <ScanFacial
+        visible={!!pendente}
+        title="Reconhecimento facial da conta"
+        onFrames={async () => {
+          const p = pendente;
+          setPendente(null);
+          if (p) await login(p.user, p.login, p.remember);
+        }}
+        onClose={() => setPendente(null)}
+      />
     </KeyboardAvoidingView>
   );
 }
