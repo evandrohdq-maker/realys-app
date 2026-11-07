@@ -83,3 +83,4 @@ const F = {
 };
 export default F;
 export const FAB = [require('../../../assets/lotus/fab_0.webp'), require('../../../assets/lotus/fab_1.webp')];
+export const LIGHT = { halo: require('../../../assets/lotus/light_halo.webp'), rays: require('../../../assets/lotus/light_rays.webp') };

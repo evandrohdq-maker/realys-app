@@ -3,6 +3,7 @@
 import base64, io, json, os
 from PIL import Image
 from playwright.sync_api import sync_playwright
+from vivid import vivid_gold, halo, rays
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, '..', '..', 'assets', 'lotus')
 jobs = json.load(open(os.path.join(HERE, 'jobs.json')))
@@ -14,9 +15,13 @@ with sync_playwright() as p:
         name = os.path.basename(j['f']).replace('.png', '.webp')
         # recorte quadrado fixo e centrado: a flor fica sempre no meio
         im = im.crop((64, 64, 960, 960)).resize((300, 300), Image.LANCZOS)
+        # dourado do miolo mais vivo (flor padrão e botão flutuante)
+        if name.startswith(('padrao_', 'fab_')):
+            im = vivid_gold(im)
         im.save(os.path.join(OUT, name), 'WEBP', quality=78, method=6)
         print(name)
     b.close()
+halo(os.path.join(OUT, 'light_halo.webp')); rays(os.path.join(OUT, 'light_rays.webp'))
 
 # Reescreve src/components/lotus/frames.js com os quadros gerados.
 names = sorted(os.path.basename(j['f']).replace('.png', '.webp') for j in jobs)
@@ -28,5 +33,6 @@ for m in ['padrao', 'agro', 'sos', 'shop']:
         js += [f"      require('../../../assets/lotus/{n}')," for n in names if n.startswith(f'{m}_{k}_')]
         js.append('    ],')
     js.append('  },')
-js += ['};', 'export default F;', "export const FAB = [require('../../../assets/lotus/fab_0.webp'), require('../../../assets/lotus/fab_1.webp')];", '']
+js += ['};', 'export default F;', "export const FAB = [require('../../../assets/lotus/fab_0.webp'), require('../../../assets/lotus/fab_1.webp')];",
+       "export const LIGHT = { halo: require('../../../assets/lotus/light_halo.webp'), rays: require('../../../assets/lotus/light_rays.webp') };", '']
 open(os.path.join(HERE, '..', '..', 'src', 'components', 'lotus', 'frames.js'), 'w').write('\n'.join(js))

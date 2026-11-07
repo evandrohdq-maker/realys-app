@@ -1,10 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Image, StyleSheet, Animated, Easing, Pressable } from 'react-native';
-import FRAMES, { FAB } from './lotus/frames';
+import FRAMES, { FAB, LIGHT } from './lotus/frames';
 
 // Flor de lótus da Lotus em 3D (quadros em assets/lotus, gerados por tools/lotus3d).
 
 const SIZE = 206; // a flor é vista de frente (de cima), formando um círculo no centro da caixa
+const STAGE = 250; // faixa da caixa onde a flor fica, sempre centralizada
+const HALO = Math.round(SIZE * 1.6); // luz branca atrás da flor
+const RAYS = Math.round(SIZE * 1.95); // raios de luz que giram devagar
 
 // Cores da flor conforme o assunto da conversa.
 export const MOODS = {
@@ -156,27 +159,68 @@ export default function LotusFlower({ phase, level, onPress, visible = true, moo
   const sway = Animated.multiply(tilt, voice.interpolate({ inputRange: [0, 1], outputRange: [0.15, 1], extrapolate: 'clamp' }));
   const rotate = sway.interpolate({ inputRange: [-1, 1], outputRange: ['-7deg', '7deg'], extrapolate: 'clamp' });
   const lift = voice.interpolate({ inputRange: [0, 1], outputRange: [0, -5], extrapolate: 'clamp' });
+  // Luz branca atrás da flor: um halo que acende mais quando ela está ativa e pulsa com a voz,
+  // e raios finos girando bem devagar.
+  const spin = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (!visible) return;
+    spin.setValue(0);
+    const loop = Animated.loop(Animated.timing(spin, { toValue: 1, duration: 60000, easing: Easing.linear, useNativeDriver: true }));
+    loop.start();
+    return () => loop.stop();
+  }, [visible]);
+  const raysRotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+  const haloOpacity = Animated.add(
+    breath.interpolate({ inputRange: [0, 1], outputRange: active ? [0.7, 0.85] : [0.5, 0.6] }),
+    voice.interpolate({ inputRange: [0, 1], outputRange: [0, 0.15], extrapolate: 'clamp' }),
+  );
+  const haloScale = Animated.add(
+    breath.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] }),
+    voice.interpolate({ inputRange: [0, 1.5], outputRange: [0, 0.12], extrapolate: 'clamp' }),
+  );
+  const raysOpacity = Animated.add(
+    breath.interpolate({ inputRange: [0, 1], outputRange: active ? [0.45, 0.6] : [0.28, 0.36] }),
+    voice.interpolate({ inputRange: [0, 1], outputRange: [0, 0.25], extrapolate: 'clamp' }),
+  );
   const pollen = useMemo(() => [-22, -10, 0, 9, 20, -15, 14].map((x, i) => ({ x, delay: i * 230 })), []);
 
   // Todos os quadros ficam empilhados e só o atual aparece: troca sem piscar.
   const all = [...set.bloom.map((src, i) => ['bloom', i, src]), ...set.idle.map((src, i) => ['idle', i, src])];
   return (
-    <Pressable onPress={onPress} accessibilityLabel="Falar com a Lotus" style={styles.wrap}>
-      <Animated.View style={[styles.flower, { transform: [{ translateY: lift }, { rotate }, { scale: flowerScale }] }]}>
-        {all.map(([k, i, src]) => (
-          <Image
-            key={mood + k + i}
-            source={src}
-            fadeDuration={0}
-            resizeMode="contain"
-            style={[StyleSheet.absoluteFill, { opacity: frame.kind === k && frame.i === i ? 1 : 0 }]}
-          />
+    <View style={styles.stage} pointerEvents="box-none">
+      <View style={styles.center} pointerEvents="box-none">
+        <Animated.Image
+          source={LIGHT.rays}
+          fadeDuration={0}
+          resizeMode="contain"
+          pointerEvents="none"
+          style={[styles.rays, { opacity: raysOpacity, transform: [{ rotate: raysRotate }, { scale: haloScale }] }]}
+        />
+        <Animated.Image
+          source={LIGHT.halo}
+          fadeDuration={0}
+          resizeMode="contain"
+          pointerEvents="none"
+          style={[styles.halo, { opacity: haloOpacity, transform: [{ scale: haloScale }] }]}
+        />
+        <Pressable onPress={onPress} accessibilityLabel="Falar com a Lotus" style={styles.wrap}>
+          <Animated.View style={[styles.flower, { transform: [{ translateY: lift }, { rotate }, { scale: flowerScale }] }]}>
+            {all.map(([k, i, src]) => (
+              <Image
+                key={mood + k + i}
+                source={src}
+                fadeDuration={0}
+                resizeMode="contain"
+                style={[StyleSheet.absoluteFill, { opacity: frame.kind === k && frame.i === i ? 1 : 0 }]}
+              />
+            ))}
+          </Animated.View>
+        </Pressable>
+        {pollen.map((p, i) => (
+          <Pollen key={i} x={p.x} delay={p.delay} active={speaking} />
         ))}
-      </Animated.View>
-      {pollen.map((p, i) => (
-        <Pollen key={i} x={p.x} delay={p.delay} active={speaking} />
-      ))}
-    </Pressable>
+      </View>
+    </View>
   );
 }
 
@@ -259,7 +303,12 @@ const styles = StyleSheet.create({
   micWrap: { width: 52, height: 52, alignItems: 'center', justifyContent: 'center' },
   micGlow: { position: 'absolute', width: 52, height: 52, borderRadius: 26, backgroundColor: 'rgba(47,134,255,0.35)' },
   micFlower: { position: 'absolute', width: 50, height: 50 },
-  wrap: { alignSelf: 'center', width: SIZE, height: SIZE, marginTop: 2, alignItems: 'center', justifyContent: 'center' },
+  // Faixa da largura inteira da caixa; a flor fica no meio exato, na horizontal e na vertical.
+  stage: { alignSelf: 'stretch', height: STAGE, alignItems: 'center', justifyContent: 'center' },
+  center: { width: SIZE, height: SIZE, alignItems: 'center', justifyContent: 'center' },
+  halo: { position: 'absolute', width: HALO, height: HALO, left: (SIZE - HALO) / 2, top: (SIZE - HALO) / 2 },
+  rays: { position: 'absolute', width: RAYS, height: RAYS, left: (SIZE - RAYS) / 2, top: (SIZE - RAYS) / 2 },
+  wrap: { width: SIZE, height: SIZE },
   flower: { position: 'absolute', left: 0, top: 0, width: SIZE, height: SIZE },
   pollen: { position: 'absolute', top: SIZE / 2 - 2, width: 4, height: 4, borderRadius: 2, backgroundColor: '#FDE68A' },
 });
