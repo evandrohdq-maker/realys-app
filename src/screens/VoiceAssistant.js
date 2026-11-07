@@ -895,9 +895,10 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
           <ScrollView style={{ flex: 1, marginTop: 10 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             {!history.length ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingVertical: 4 }}>
-                {EXAMPLES.map((e) => (
-                  <TouchableOpacity key={e} onPress={() => run(e)} style={styles.chip}>
-                    <Text style={styles.chipText}>{e}</Text>
+                {EXAMPLES.map((e, i) => (
+                  <TouchableOpacity key={e} onPress={() => run(e)} style={styles.suggest} hitSlop={8} accessibilityLabel={e}>
+                    {i ? <Text style={styles.suggestDot}>·</Text> : null}
+                    <Text style={styles.suggestText}>{e.toUpperCase()}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -1112,6 +1113,10 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  // Sugestões embaixo da flor: só o texto em maiúsculas, sem caixa nem borda, rolando para o lado.
+  suggest: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6 },
+  suggestDot: { color: 'rgba(253,230,138,0.55)', fontSize: 16, fontWeight: '900', marginHorizontal: 12 },
+  suggestText: { color: '#FDE68A', fontWeight: '800', fontSize: 13, letterSpacing: 1.6, textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 6 },
   chipText: { color: '#FDE68A', fontWeight: '700', fontSize: 13 },
 
   userLine: { alignSelf: 'flex-end', backgroundColor: 'rgba(255,255,255,0.92)', paddingHorizontal: 14, paddingVertical: 9, borderRadius: 16, borderBottomRightRadius: 4, maxWidth: '85%', marginBottom: 6 },
