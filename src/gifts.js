@@ -45,7 +45,8 @@ export const LIVE_GIFTS = [
   { key: 'coroa', emoji: '👑', name: 'Coroa', value: 50 },
   { key: 'foguete', emoji: '🚀', name: 'Foguete', value: 100 },
   { key: 'diamante', emoji: '💎', name: 'Diamante', value: 300 },
-  { key: 'lotus', emoji: '🪷', name: 'Flor de Lótus', value: 500 },
+  // A Flor de Lótus é a própria flor dourada da Lotus (imagem). O emoji 🌸 só aparece em textos.
+  { key: 'lotus', emoji: '🌸', image: 'lotus', name: 'Flor de Lótus', value: 500 },
 ];
 export const LIVE_GIFT_QTY = [1, 5, 10];
 export const LIVE_CONVERT_MIN = 10; // mínimo de créditos de live para converter em moeda Realys

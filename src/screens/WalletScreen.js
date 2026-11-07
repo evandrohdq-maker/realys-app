@@ -2,6 +2,7 @@
 // e o balanço do mês com gastos por categoria e um limite de gastos definido pelo usuário.
 // Vale para qualquer conta: o usuário que consome e o prestador que recebe pelos serviços.
 import React, { useMemo, useState } from 'react';
+import GiftIcon from '../components/GiftIcon';
 import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -168,7 +169,7 @@ export default function WalletScreen({ visible, onClose }) {
               const lg = liveGiftOf(g.gift);
               return (
                 <View key={g.id} style={styles.liveRow}>
-                  <Text style={{ fontSize: 18, width: 28 }}>{lg.emoji}</Text>
+                  <View style={{ width: 28 }}><GiftIcon gift={lg} size={18} /></View>
                   <View style={{ flex: 1 }}>
                     <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }} numberOfLines={1}>{g.from} · {lg.name}{g.qty > 1 ? ` x${g.qty}` : ''}</Text>
                     <Text style={{ color: colors.muted, fontSize: 11 }} numberOfLines={1}>{g.live} · {fmtDate(g.at)}</Text>

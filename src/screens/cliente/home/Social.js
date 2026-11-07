@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import GiftIcon from '../../../components/GiftIcon';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -216,7 +217,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
   const burstAnim = useRef(new Animated.Value(0)).current;
   const { state, dispatch } = useStore();
   const showBurst = (g, q, who) => {
-    setBurst({ emoji: g.emoji, text: `${who} enviou ${g.name}${q > 1 ? ` x${q}` : ''}`, at: Date.now() });
+    setBurst({ gift: g, emoji: g.emoji, text: `${who} enviou ${g.name}${q > 1 ? ` x${q}` : ''}`, at: Date.now() });
     burstAnim.setValue(0);
     Animated.timing(burstAnim, { toValue: 1, duration: 1800, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start(() => setBurst(null));
   };
@@ -270,7 +271,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
       if (Math.random() < (mine ? 0.28 : 0.15)) {
         const g = LIVE_GIFTS[Math.min(LIVE_GIFTS.length - 1, Math.floor(Math.random() ** 2.4 * LIVE_GIFTS.length))];
         const q = Math.random() < 0.25 ? 5 : 1;
-        setComments((cs) => [...cs.slice(-5), { who, what: `enviou ${g.emoji} ${g.name}${q > 1 ? ` x${q}` : ''}`, gift: true }]);
+        setComments((cs) => [...cs.slice(-5), { who, what: `enviou ${g.name}${q > 1 ? ` x${q}` : ''}`, gift: true, g }]);
         if (mine) {
           // Na minha live o presente vira crédito de live na hora.
           dispatch({ type: 'RECEIVE_LIVE_GIFT', from: who, gift: g.key, qty: q });
@@ -295,7 +296,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
     if (cost.total > state.wallet)
       return Alert.alert('Saldo insuficiente', `Esse presente custa ${brl(cost.total)} com a taxa. Deposite saldo na carteira. (Créditos de presente não servem para presentear.)`);
     dispatch({ type: 'SEND_LIVE_GIFT', live, gift: gift.key, qty });
-    setComments((cs) => [...cs.slice(-5), { who: userName || 'Você', what: `enviou ${gift.emoji} ${gift.name}${qty > 1 ? ` x${qty}` : ''}`, gift: true }]);
+    setComments((cs) => [...cs.slice(-5), { who: userName || 'Você', g: gift, what: `enviou ${gift.name}${qty > 1 ? ` x${qty}` : ''}`, gift: true }]);
     showBurst(gift, qty, 'Você');
     setTray(false);
   };
@@ -429,7 +430,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
               },
             ]}
           >
-            <Text style={{ fontSize: 72 }}>{burst.emoji}</Text>
+            <GiftIcon gift={burst.gift} size={72} />
             <Text style={styles.burstText}>{burst.text}</Text>
           </Animated.View>
         ) : null}
@@ -444,6 +445,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
             {comments.map((c, i) => (
               <View key={i} style={[styles.comment, c.gift && styles.giftComment]}>
                 <Text style={{ color: c.gift ? '#E2B649' : colors.primary, fontWeight: '700', fontSize: 13 }}>{c.who} </Text>
+                {c.g ? <View style={{ marginRight: 4 }}><GiftIcon gift={c.g} size={15} /></View> : null}
                 <Text style={{ color: "#FFFFFF", fontSize: 13, flexShrink: 1, fontWeight: c.gift ? '800' : '400' }}>{c.what}</Text>
               </View>
             ))}
@@ -459,7 +461,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                     const on = g.key === pick;
                     return (
                       <TouchableOpacity key={g.key} style={[styles.giftItem, on && styles.giftItemOn]} onPress={() => setPick(g.key)} accessibilityLabel={`${g.name}, ${brl(g.value)}`}>
-                        <Text style={{ fontSize: 28 }}>{g.emoji}</Text>
+                        <GiftIcon gift={g} size={28} />
                         <Text style={styles.giftName} numberOfLines={1}>{g.name}</Text>
                         <Text style={styles.giftValue}>{brl(g.value)}</Text>
                       </TouchableOpacity>
