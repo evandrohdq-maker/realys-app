@@ -136,6 +136,8 @@ export const NAV_TARGETS = [
   T('Página da empresa', { tab: 'pagina' }, ['pagina da empresa', 'pagina da minha empresa']),
   // Prestador, fornecedor e administrador
   T('Trabalhar', { tab: 'prestar' }, ['trabalhar', 'ficar disponivel', 'corridas']),
+  // Cadastro de prestador, empresa com funcionários e mandados de serviço (ficam dentro do painel Trabalhar)
+  T('Prestação de serviço', { tab: 'prestar' }, ['prestacao de servico', 'prestacao', 'cadastro de prestador', 'cadastrar prestador', 'mandados', 'mandado', 'mandado de servico', 'mandados de servico', 'funcionarios', 'minha empresa de servico']),
   T('Agenda', { tab: 'agenda' }, ['agenda', 'minha agenda', 'ajenda', 'agendas', 'meus horarios', 'horarios', 'compromissos', 'meus compromissos', 'proximos trabalhos', 'proximos servicos', 'trabalhos feitos', 'servicos feitos', 'calendario']),
   T('Propostas', { tab: 'propostas' }, ['propostas', 'proposta']),
   T('Sistema', { tab: 'sistema' }, ['sistema', 'mapa do sistema']),
