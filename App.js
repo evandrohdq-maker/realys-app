@@ -235,6 +235,7 @@ function Shell() {
   const pick = (goIn) => {
     const go = route(goIn);
     setMenu(false);
+    if (go.cart) return dispatch({ type: 'OPEN_CART' }); // carrinho: abre a janela sobre a tela atual
     setExplore({ ...go, at: Date.now() });
     const has = (role) => TABS[role].some((t) => t.key === go.tab);
     if (has(state.activeRole)) return setTab(go.tab);

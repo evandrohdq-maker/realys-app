@@ -32,6 +32,7 @@ export default function ProfileScreen({ navigate, explore }) {
   // "Lotus, abre minha carteira": já abre a carteira.
   useEffect(() => {
     if (explore && explore.tab === 'perfil' && explore.wallet) setWalletOpen(true);
+    if (explore && explore.tab === 'perfil' && explore.biometria) setBioOpen(true);
   }, [explore]);
 
   // Sai da conta e volta para a tela "Quem vai usar o Realys?".

@@ -24,6 +24,12 @@ export const NAV_TARGETS = [
   T('Estúdio', { tab: 'perfil' }, ['estudio', 'meu estudio', 'portfolio', 'meu portfolio', 'minhas criacoes', 'criacoes']),
   T('Privacidade do perfil', { tab: 'perfil' }, ['privacidade', 'editar perfil', 'editar meu perfil']),
   T('Carteira', { tab: 'perfil', wallet: true }, ['carteira', 'minha carteira', 'carteira digital', 'extrato']),
+  // Carrinho é uma janela (não uma aba): a Lotus abre a janela sobre a tela atual
+  T('Carrinho', { tab: 'home', cart: true }, ['carrinho', 'meu carrinho', 'cesta', 'minha cesta', 'sacola', 'minha sacola']),
+  T('Biometria facial', { tab: 'perfil', biometria: true }, ['biometria', 'biometria facial', 'reconhecimento facial', 'minha biometria', 'gerenciar biometria']),
+  T('Feed', { tab: 'inicio' }, ['feed', 'meu feed', 'feeds']),
+  T('Visão geral', { tab: 'geral' }, ['visao geral', 'painel geral', 'resumo do sistema']),
+  T('Mercado admin', { tab: 'mercado' }, ['mercado admin', 'gestao do mercado', 'painel do mercado']),
 
   // Abas do topo do Início
   T('Eventos', { tab: 'home', top: 'eventos' }, ['eventos', 'evento', 'festas', 'baladas', 'balada']),
