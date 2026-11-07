@@ -12,10 +12,10 @@ export const POINTS_COMMENT_BONUS = 5;
 // ───────── Equivalência dos pontos (a plataforma nunca empata) ─────────
 // 1 ponto vale R$ 0,01 em serviços do Realys (100 pontos = R$ 1). Boosts e anúncios custam em
 // pontos exatamente o que custam em reais. Mas quem gasta ganha de volta só EARN_PCT% do valor
-// em pontos: gastou R$ 79,60 em presentes, ganha uns 716 pontos (R$ 7,16 em boosts e anúncios);
-// para um anúncio de 30 s (1.990 pontos) precisa ter gastado uns R$ 220.
+// em pontos (10%): gastou R$ 79,60 em presentes, ganha 796 pontos (R$ 7,96 em boosts e anúncios);
+// a cada 1.000 pontos, R$ 10 para anúncios. Um anúncio de 30 s (1.990 pontos) pede uns R$ 200 gastos.
 export const POINT_VALUE = 0.01;
-export const EARN_PCT = 9;
+export const EARN_PCT = 10;
 export const pointsFromSpend = (amount) => Math.max(0, Math.floor((amount * EARN_PCT) / 100 / POINT_VALUE));
 export const pointsToReais = (pts) => +(pts * POINT_VALUE).toFixed(2);
 
