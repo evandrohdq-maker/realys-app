@@ -1,4 +1,4 @@
-// Aviso de alerta oficial extremo na área do usuário, no topo do app.
+// Aviso de alerta oficial extremo ATIVO na área do usuário, no topo do app. Sem alerta ativo, não aparece.
 // Visual leve, no padrão clean do app: cartão claro com sombra suave, ícone em anel e um botão "Ver".
 // Tocar abre Notícias e Alertas; o X esconde até aparecer um alerta novo.
 import React from 'react';
@@ -10,7 +10,8 @@ import { colors, soft } from '../theme';
 
 export default function AlertPill() {
   const { state, dispatch } = useStore();
-  const a = ALERTS.find((x) => x.level === 'extremo' && !state.alertsDismissed[x.id]);
+  // Só aparece quando há alerta extremo ATIVO na área do usuário e que ele ainda não fechou.
+  const a = ALERTS.find((x) => x.active && x.level === 'extremo' && !state.alertsDismissed[x.id]);
   if (!a) return null;
   const L = ALERT_LEVELS[a.level];
   return (

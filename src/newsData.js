@@ -32,10 +32,11 @@ export const ALERT_LEVELS = {
   atencao: { label: 'Atenção', color: '#B7791F', bg: '#FFF8E1', icon: 'information-circle' },
 };
 
-// Alertas oficiais ativos perto do usuário (demonstração).
+// Alertas oficiais perto do usuário (demonstração).
+// active: true só quando a fonte oficial está ativa para a área do usuário. Só alertas ativos aparecem na faixa do topo.
 export const ALERTS = [
   {
-    id: 'al1', level: 'extremo', type: 'Chuva forte e risco de alagamento', icon: 'thunderstorm',
+    id: 'al1', active: false, level: 'extremo', type: 'Chuva forte e risco de alagamento', icon: 'thunderstorm',
     area: 'Zona Sul de São Paulo · você está na área', source: 'Defesa Civil', until: 'até 23h de hoje',
     text: 'Chuva de 50 a 80 mm com rajadas de vento. Risco de alagamento em córregos e ruas baixas.',
     todo: ['Não atravesse ruas alagadas, nem de carro', 'Tire da tomada os aparelhos se a água entrar', 'Fique longe de árvores, postes e fios', 'Em área de risco, procure o abrigo indicado pela Defesa Civil'],
