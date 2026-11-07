@@ -246,6 +246,9 @@ function MandadosPanel({ aceita, funcionarios, mandados, setMandados }) {
             ) : null}
             {m.status === 'Aceito' && !vencido ? (
               <View style={{ marginTop: 10 }}>
+                <View style={styles.aviso}>
+                  <Text style={styles.avisoTexto}>Atenção: não mostre o QR Code nem o código de finalização ao prestador antes do serviço estar realmente concluído. Eles só devem ser apresentados ao final do atendimento.</Text>
+                </View>
                 <Text style={styles.dica}>Código do QR do cliente (demo): {m.qr}</Text>
                 <Input value={leitura[m.id] || ''} onChangeText={(v) => setLeitura({ ...leitura, [m.id]: v })} placeholder="Leia o QR do cliente" style={{ marginTop: 6 }} autoCapitalize="characters" />
                 <Button title="Finalizar com o QR do cliente" onPress={() => lerQr(m)} style={{ marginTop: 8 }} />
@@ -325,4 +328,6 @@ const styles = StyleSheet.create({
   dica: { color: colors.muted, fontSize: 12, marginTop: 4, lineHeight: 17 },
   falta: { color: colors.danger, fontSize: 13, marginTop: 4 },
   registro: { color: colors.text, fontSize: 12, marginTop: 8, lineHeight: 17 },
+  aviso: { backgroundColor: colors.dangerLight || '#FDECEA', borderRadius: 10, padding: 10, marginBottom: 8 },
+  avisoTexto: { color: colors.danger, fontSize: 12, fontWeight: '700', lineHeight: 17 },
 });
