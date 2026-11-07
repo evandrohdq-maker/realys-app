@@ -1,6 +1,7 @@
 // Peças de engajamento entre os lados (dados e regras em src/engage.js).
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput, Animated, Modal } from 'react-native';
+import { useBack } from '../back';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
 import { colors, brl, soft } from '../theme';
@@ -463,48 +464,89 @@ export function Subscriptions() {
 }
 
 // ───────────── 7. Lotus avisa antes ─────────────
+// Uma oferta por vez, passando sozinha (como um banner). "Ver todas" no canto abre a lista completa.
 export function LotusNudges() {
   const { state, dispatch } = useStore();
   const subbed = (id) => state.subscriptions.some((x) => x.planId === id);
   const list = LOTUS_NUDGES.filter((n) => !state.nudgesDismissed[n.id] && !(n.plan && subbed(n.plan)));
+  const [i, setI] = useState(0);
+  const [all, setAll] = useState(false);
+  const fade = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (list.length < 2 || all) return undefined;
+    const t = setInterval(() => {
+      Animated.timing(fade, { toValue: 0, duration: 220, useNativeDriver: true }).start(() => {
+        setI((x) => x + 1);
+        Animated.timing(fade, { toValue: 1, duration: 260, useNativeDriver: true }).start();
+      });
+    }, 5000);
+    return () => clearInterval(t);
+  }, [list.length, all]);
+  useBack(all, () => setAll(false));
   if (!list.length) return null;
-  // Duas caixas separadas: o que comprar de novo e o que cuidar com um prestador.
-  const boxes = [
-    { key: 'produto', title: 'A Lotus lembrou: para comprar', icon: 'bag-handle-outline' },
-    { key: 'servico', title: 'A Lotus lembrou: para cuidar', icon: 'construct-outline' },
-  ];
+  const n = list[i % list.length];
+  const open = (x) => {
+    setAll(false);
+    go(dispatch, x.go);
+  };
   return (
-    <View>
-      {boxes.map((bx) => {
-        const items = list.filter((n) => n.kind === bx.key);
-        if (!items.length) return null;
-        return (
-          <View key={bx.key} style={[styles.card, { borderColor: colors.gold + '66' }]}>
-            <Row style={{ alignItems: 'center', marginBottom: 2 }}>
-              <Ionicons name="flower" size={16} color={colors.gold} />
-              <Text style={[styles.headTitle, { marginLeft: 6, fontSize: 14, flex: 1 }]}>{bx.title}</Text>
-              <Ionicons name={bx.icon} size={16} color={colors.muted} />
-            </Row>
-            {items.map((n, i) => (
-              <View key={n.id} style={i ? styles.req : { marginTop: 8 }}>
-                <Row style={{ alignItems: 'flex-start' }}>
-                  <Text style={{ fontSize: 22 }}>{n.icon}</Text>
-                  <View style={{ flex: 1, marginLeft: 8 }}>
-                    <Text style={styles.installTitle}>{n.title}</Text>
-                    <Text style={styles.small}>{n.text}</Text>
-                  </View>
-                  <TouchableOpacity onPress={() => dispatch({ type: 'NUDGE_DISMISS', id: n.id })} accessibilityLabel="Dispensar lembrete" style={{ padding: 2 }}>
-                    <Ionicons name="close" size={16} color={colors.muted} />
-                  </TouchableOpacity>
-                </Row>
-                <TouchableOpacity style={[styles.smallBtn, { alignSelf: 'flex-start', marginTop: 6, marginLeft: 30 }]} onPress={() => go(dispatch, n.go)}>
-                  <Text style={styles.smallBtnText}>{n.cta}</Text>
-                </TouchableOpacity>
-              </View>
-            ))}
+    <View style={[styles.card, styles.nudgeCard]}>
+      <Row style={{ alignItems: 'center' }}>
+        <Ionicons name="flower" size={14} color={colors.gold} />
+        <Text style={styles.nudgeLabel}>A Lotus lembrou</Text>
+        <TouchableOpacity onPress={() => setAll(true)} accessibilityLabel="Ver todas as ofertas" hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Text style={styles.nudgeAll}>Ver todas ›</Text>
+        </TouchableOpacity>
+      </Row>
+      <Animated.View style={{ opacity: fade }}>
+        <TouchableOpacity activeOpacity={0.8} onPress={() => open(n)} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }} accessibilityLabel={n.title}>
+          <Text style={{ fontSize: 24 }}>{n.icon}</Text>
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={styles.installTitle} numberOfLines={1}>{n.title}</Text>
+            <Text style={styles.small} numberOfLines={1}>{n.text}</Text>
           </View>
-        );
-      })}
+          <Text style={styles.nudgeCta} numberOfLines={1}>{n.cta} ›</Text>
+        </TouchableOpacity>
+      </Animated.View>
+      {list.length > 1 ? (
+        <Row style={{ justifyContent: 'center', marginTop: 8 }}>
+          {list.map((x, k) => (
+            <View key={x.id} style={[styles.nudgeDot, k === i % list.length && { backgroundColor: colors.gold, width: 14 }]} />
+          ))}
+        </Row>
+      ) : null}
+      <Modal visible={all} transparent animationType="slide" onRequestClose={() => setAll(false)}>
+        <View style={styles.nudgeBackdrop}>
+          <View style={styles.nudgeSheet}>
+            <Row style={{ alignItems: 'center', marginBottom: 6 }}>
+              <Ionicons name="flower" size={16} color={colors.gold} />
+              <Text style={[styles.headTitle, { marginLeft: 6, flex: 1 }]}>Todas as ofertas</Text>
+              <TouchableOpacity onPress={() => setAll(false)} accessibilityLabel="Fechar">
+                <Ionicons name="close" size={22} color={colors.muted} />
+              </TouchableOpacity>
+            </Row>
+            <ScrollView>
+              {list.map((x, k) => (
+                <View key={x.id} style={k ? styles.req : { marginTop: 8 }}>
+                  <Row style={{ alignItems: 'flex-start' }}>
+                    <Text style={{ fontSize: 22 }}>{x.icon}</Text>
+                    <View style={{ flex: 1, marginLeft: 8 }}>
+                      <Text style={styles.installTitle}>{x.title}</Text>
+                      <Text style={styles.small}>{x.text}</Text>
+                    </View>
+                    <TouchableOpacity onPress={() => dispatch({ type: 'NUDGE_DISMISS', id: x.id })} accessibilityLabel="Dispensar oferta" style={{ padding: 2 }}>
+                      <Ionicons name="close" size={16} color={colors.muted} />
+                    </TouchableOpacity>
+                  </Row>
+                  <TouchableOpacity style={[styles.smallBtn, { alignSelf: 'flex-start', marginTop: 6, marginLeft: 30 }]} onPress={() => open(x)}>
+                    <Text style={styles.smallBtnText}>{x.cta}</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -606,6 +648,13 @@ const styles = StyleSheet.create({
   price: { color: colors.primaryDark, fontWeight: '900', fontSize: 15 },
   smallBtn: { backgroundColor: colors.primary, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7, marginTop: 4 },
   smallBtnText: { color: '#fff', fontWeight: '800', fontSize: 12 },
+  nudgeCard: { paddingVertical: 10, borderColor: colors.gold + '55' },
+  nudgeLabel: { flex: 1, marginLeft: 6, color: colors.muted, fontSize: 12, fontWeight: '700' },
+  nudgeAll: { color: colors.gold, fontWeight: '800', fontSize: 12 },
+  nudgeCta: { color: colors.primary, fontWeight: '800', fontSize: 12, marginLeft: 8, maxWidth: 120 },
+  nudgeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.border, marginHorizontal: 2 },
+  nudgeBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
+  nudgeSheet: { backgroundColor: colors.card, borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 16, maxHeight: '75%' },
   qBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center', marginLeft: 6 },
   bigNum: { color: '#E5484D', fontWeight: '900', fontSize: 20, width: 40, textAlign: 'center' },
   nudge: { width: 250, backgroundColor: colors.card, borderRadius: 16, padding: 12, marginRight: 10, borderWidth: 1, borderColor: colors.gold + '55', ...soft },

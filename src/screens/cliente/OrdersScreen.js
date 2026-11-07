@@ -186,7 +186,80 @@ function CartTab({ onPaid }) {
   );
 }
 
-// Meus pedidos, separados por setor: Carrinho (o que ainda não foi pago), Compras, Comida e Serviços.
+// Ingresso de evento ou passagem comprada no Realys.
+function TicketOrder({ t }) {
+  const { dispatch } = useStore();
+  const ev = t.kind === 'evento' || !!t.eventId;
+  return (
+    <Card>
+      <Row style={{ justifyContent: 'space-between', marginBottom: 6 }}>
+        <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }} numberOfLines={1}>{ev ? '🎟️' : '🚌'} {t.title || t.name}</Text>
+        <Badge label={t.used ? (ev ? 'Usado' : 'Viagem feita') : 'Válido'} color={t.used ? colors.success : colors.accent} />
+      </Row>
+      <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={2}>
+        {ev ? t.name : [t.name, t.when, t.seat ? `poltrona ${t.seat}` : null].filter(Boolean).join(' · ')}
+        {t.table ? ` · Mesa ${t.table} reservada` : ''}
+      </Text>
+      {t.code ? <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Código {t.code}</Text> : null}
+      <Row style={{ justifyContent: 'space-between', marginTop: 10 }}>
+        <Text style={{ fontWeight: '700', color: colors.primary }}>{t.price ? brl(t.price) : 'Grátis'}</Text>
+        <Button small variant="light" title={t.used ? 'Desfazer' : ev ? 'Já entrei no evento' : 'Já viajei'} onPress={() => dispatch({ type: 'TICKET_USED', id: t.id })} />
+      </Row>
+    </Card>
+  );
+}
+
+// Pedido feito na mesa/balcão do lugar do evento (comanda).
+function VenueOrder({ o }) {
+  return (
+    <Card>
+      <Row style={{ justifyContent: 'space-between', marginBottom: 6 }}>
+        <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }} numberOfLines={1}>🍹 {o.venue}{o.table ? ` · Mesa ${o.table}` : ' · Balcão'}</Text>
+        <Badge label={o.status} color={o.status === 'Entregue' ? colors.success : colors.accent} />
+      </Row>
+      {o.items.map((i) => (
+        <Text key={i.name} style={{ color: colors.muted }}>{i.qty}× {i.name}</Text>
+      ))}
+      <Text style={{ fontWeight: '700', color: colors.primary, marginTop: 8 }}>{brl(o.total)}</Text>
+    </Card>
+  );
+}
+
+// Despesas: tudo o que saiu do bolso no Realys, por setor, com o total.
+function Expenses({ rows }) {
+  const total = rows.reduce((n, r) => n + r.value, 0);
+  const bySector = {};
+  rows.forEach((r) => (bySector[r.sector] = (bySector[r.sector] || 0) + r.value));
+  if (!rows.length) return <Empty text="Nenhuma despesa ainda. Tudo o que você comprar ou contratar aparece aqui." />;
+  return (
+    <View>
+      <Card>
+        <Text style={{ color: colors.muted, fontSize: 12 }}>Total gasto no Realys</Text>
+        <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 24, marginBottom: 6 }}>{brl(total)}</Text>
+        {Object.keys(bySector).map((k) => (
+          <Row key={k} style={styles.sumRow}>
+            <Text style={styles.sumLabel}>{k}</Text>
+            <Text style={styles.sumValue}>{brl(bySector[k])}</Text>
+          </Row>
+        ))}
+      </Card>
+      <Card>
+        {rows.map((r, i) => (
+          <Row key={r.id} style={[styles.sumRow, i ? { borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 8, marginTop: 5 } : null]}>
+            <View style={{ flex: 1, marginRight: 8 }}>
+              <Text style={{ color: colors.text, fontWeight: '600', fontSize: 13 }} numberOfLines={1}>{r.icon} {r.title}</Text>
+              <Text style={{ color: colors.muted, fontSize: 11 }}>{r.sector}{r.done ? ' · concluído' : ' · em andamento'}</Text>
+            </View>
+            <Text style={[styles.sumValue, { color: colors.danger }]}>− {brl(r.value)}</Text>
+          </Row>
+        ))}
+      </Card>
+    </View>
+  );
+}
+
+// Meus pedidos: registro de tudo o que foi comprado. Em andamento · Concluídos · Despesas,
+// e por setor: Carrinho, Compras, Comida, Ingressos (eventos, passagens e comanda), Serviços, Propostas e Assinaturas.
 export default function OrdersScreen({ navigate, explore }) {
   const { state, dispatch } = useStore();
   // Serviços que o cliente contratou (não os que ele recebe como prestador).
@@ -194,45 +267,91 @@ export default function OrdersScreen({ navigate, explore }) {
   const isFood = (o) => !!o.courier || isFoodStore((state.stores || []).find((x) => x.name === o.store));
   const food = state.orders.filter(isFood);
   const buys = state.orders.filter((o) => !isFood(o));
+  const tickets = state.tickets || [];
+  const venueOrders = state.venueOrders || [];
   const cartCount = state.cart.reduce((n, c) => n + c.qty, 0);
   const [seg, setSeg] = useState(cartCount ? 'carrinho' : 'compras');
+  // Em andamento · Concluídos · Despesas (vale para Compras, Comida, Ingressos e Serviços).
+  const [view, setView] = useState('andamento');
   useEffect(() => {
-    if (explore && explore.tab === 'pedidos' && explore.seg) setSeg(explore.seg);
+    if (explore && explore.tab === 'pedidos' && explore.seg) {
+      setSeg(explore.seg);
+      setView('andamento');
+    }
   }, [explore]);
-  useBack(seg !== 'compras', () => setSeg('compras'));
+  useBack(view !== 'andamento' || seg !== 'compras', () => (view !== 'andamento' ? setView('andamento') : setSeg('compras')));
+  const orderDone = (o) => o.status === 'Entregue' || o.status === 'Reembolsado';
+  const venueDone = (o) => o.status === 'Entregue';
+  const showDone = view === 'concluidos';
+  const pick = (arr, done) => arr.filter((x) => (showDone ? done(x) : !done(x)));
   const SEGS = [
     { key: 'carrinho', label: 'Carrinho', icon: 'bag-handle-outline', badge: cartCount || null },
-    { key: 'compras', label: 'Compras', icon: 'cube-outline', badge: buys.filter((o) => o.status !== 'Entregue').length || null },
-    { key: 'comida', label: 'Comida', icon: 'restaurant-outline', badge: food.filter((o) => o.status !== 'Entregue').length || null },
+    { key: 'compras', label: 'Compras', icon: 'cube-outline', badge: buys.filter((o) => !orderDone(o)).length || null },
+    { key: 'comida', label: 'Comida', icon: 'restaurant-outline', badge: food.filter((o) => !orderDone(o)).length || null },
+    { key: 'ingressos', label: 'Ingressos', icon: 'ticket-outline', badge: tickets.filter((t) => !t.used).length + venueOrders.filter((o) => !venueDone(o)).length || null },
     { key: 'servicos', label: 'Serviços', icon: 'construct-outline', badge: services.filter((r) => !r.done).length || null },
     { key: 'propostas', label: 'Propostas', icon: 'megaphone-outline', badge: state.reverseRequests.filter((r) => r.status === 'aberto' && r.offers.length).length || null },
     { key: 'assinaturas', label: 'Assinaturas', icon: 'repeat-outline', badge: state.subscriptions.filter((x) => x.status === 'ativa').length || null },
   ];
-  const list = seg === 'comida' ? food : buys;
+  const list = pick(seg === 'comida' ? food : buys, orderDone);
+  const svcList = pick(services, (r) => !!r.done);
+  const tkList = pick(tickets, (t) => !!t.used);
+  const voList = pick(venueOrders, venueDone);
+  // Despesas: tudo o que foi pago (pedidos, ingressos, comandas e serviços), do mais novo ao mais antigo.
+  const expenses = [
+    ...state.orders.filter((o) => o.total && o.status !== 'Reembolsado').map((o) => ({ id: o.id, at: o.at || 0, icon: isFood(o) ? '🍽️' : '📦', title: o.items.map((i) => i.name).join(', ') || o.store, sector: isFood(o) ? 'Comida' : 'Compras', value: o.total, done: orderDone(o) })),
+    ...tickets.filter((t) => t.price).map((t) => ({ id: t.id, at: t.at || 0, icon: t.eventId ? '🎟️' : '🚌', title: t.title || t.name, sector: t.eventId ? 'Ingressos' : 'Passagens', value: t.price, done: !!t.used })),
+    ...venueOrders.map((o) => ({ id: o.id, at: o.at || 0, icon: '🍹', title: `${o.venue} · ${o.items.map((i) => i.name).join(', ')}`, sector: 'No evento', value: o.total, done: venueDone(o) })),
+    ...services.filter((r) => r.price).map((r) => ({ id: r.id, at: r.acceptedAt || 0, icon: r.icon || '🧑‍🔧', title: `${r.serviceLabel} · ${r.provider.name}`, sector: 'Serviços', value: r.price, done: !!r.done })),
+  ].sort((a, b) => b.at - a.at);
+  const statusSeg = ['compras', 'comida', 'ingressos', 'servicos'].includes(seg);
   // Acompanhar ao vivo: { order } para entregas, { ride } para motorista e prestadores.
   const [track, setTrack] = useState(null);
   const courierOf = (o) => (state.providers || []).find((x) => x.id === o.courierId) || (state.providers || []).find((x) => x.name === o.courier) || { name: o.courier || 'Entregador Realys' };
   return (
     <Screen>
       <Title sub="Pagamento só é liberado para a loja ou o prestador quando você confirma a entrega">Meus pedidos</Title>
-      <SegTabs items={SEGS} value={seg} onChange={setSeg} />
-      {/* A Lotus avisa antes: duas caixas, o que comprar de novo e o que cuidar. */}
-      {seg === 'compras' || seg === 'servicos' ? <LotusNudges /> : null}
+      <View style={styles.viewRow}>
+        {[['andamento', 'Em andamento'], ['concluidos', 'Concluídos'], ['despesas', 'Despesas']].map(([k, l]) => (
+          <TouchableOpacity key={k} onPress={() => setView(k)} style={[styles.viewItem, view === k && styles.viewOn]} accessibilityLabel={l}>
+            <Text style={[styles.viewText, view === k && styles.viewTextOn]}>{l}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      {view === 'despesas' ? <Expenses rows={expenses} /> : null}
+      {view !== 'despesas' ? <SegTabs items={SEGS} value={seg} onChange={setSeg} /> : null}
+      {view === 'despesas' ? null : (
+      <>
+      {/* A Lotus avisa antes: uma oferta por vez, passando sozinha; "Ver todas" abre a lista. */}
+      {view === 'andamento' && (seg === 'compras' || seg === 'servicos') ? <LotusNudges /> : null}
+      {!statusSeg && view === 'concluidos' ? <Text style={styles.hint}>Os concluídos ficam em Compras, Comida, Ingressos e Serviços.</Text> : null}
+
+      {seg === 'ingressos' ? (
+        tkList.length || voList.length ? (
+          <>
+            {tkList.map((t) => <TicketOrder key={t.id} t={t} />)}
+            {voList.length ? <Text style={styles.h2}>Pedidos no local do evento</Text> : null}
+            {voList.map((o) => <VenueOrder key={o.id} o={o} />)}
+          </>
+        ) : (
+          <Empty text={showDone ? 'Nenhum ingresso usado ainda.' : 'Nenhum ingresso ou passagem ativa. Compre em Eventos, Transporte ou pela Lotus.'} />
+        )
+      ) : null}
 
       {seg === 'propostas' ? <ReversePost kinds={['servico', 'produto']} /> : null}
       {seg === 'assinaturas' ? <Subscriptions /> : null}
       {seg === 'carrinho' ? <CartTab onPaid={(hasFood) => setSeg(hasFood ? 'comida' : 'compras')} /> : null}
 
       {seg === 'servicos' ? (
-        services.length ? (
-          services.map((r) => <ServiceOrder key={r.id} r={r} onTrack={() => setTrack({ ride: r })} />)
+        svcList.length ? (
+          svcList.map((r) => <ServiceOrder key={r.id} r={r} onTrack={() => setTrack({ ride: r })} />)
         ) : (
-          <Empty text="Nenhum serviço contratado ainda. Peça um eletricista, motorista ou outro prestador em Serviços ou pela Lotus." />
+          <Empty text={showDone ? 'Nenhum serviço concluído ainda.' : 'Nenhum serviço em andamento. Peça um eletricista, motorista ou outro prestador em Serviços ou pela Lotus.'} />
         )
       ) : null}
 
       {(seg === 'compras' || seg === 'comida') && !list.length ? (
-        <Empty text={seg === 'comida' ? 'Nenhum pedido de comida ainda. Peça no Food ou pela Lotus.' : 'Nenhuma compra ainda. Os produtos que você comprar no Shop aparecem aqui.'} />
+        <Empty text={showDone ? `Nenhum pedido ${seg === 'comida' ? 'de comida ' : ''}concluído ainda.` : seg === 'comida' ? 'Nenhum pedido de comida em andamento. Peça no Food ou pela Lotus.' : 'Nenhuma compra em andamento. Os produtos que você comprar no Shop aparecem aqui.'} />
       ) : null}
       {(seg === 'compras' || seg === 'comida' ? list : []).map((o) => {
         const idx = STEPS.indexOf(o.status);
@@ -311,6 +430,8 @@ export default function OrdersScreen({ navigate, explore }) {
           </Card>
         );
       })}
+      </>
+      )}
       {track && track.order ? (
         <DeliveryTracker
           visible
@@ -352,6 +473,12 @@ const styles = StyleSheet.create({
   sumRow: { justifyContent: 'space-between', paddingVertical: 3 },
   sumLabel: { color: colors.muted, fontSize: 13 },
   sumValue: { color: colors.text, fontWeight: '700', fontSize: 14 },
+  viewRow: { flexDirection: 'row', marginTop: -8, marginBottom: 10 },
+  viewItem: { paddingVertical: 6, paddingHorizontal: 10, marginRight: 4, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  viewOn: { borderBottomColor: colors.gold },
+  viewText: { color: colors.muted, fontSize: 13, fontWeight: '600' },
+  viewTextOn: { color: colors.text, fontWeight: '800' },
+  hint: { color: colors.muted, fontSize: 12, textAlign: 'center', marginBottom: 10 },
   h2: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: 4, marginBottom: 8 },
   courier: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, borderRadius: 14, padding: 10, marginTop: 10 },
   courierPhoto: { width: 44, height: 44, borderRadius: 22 },

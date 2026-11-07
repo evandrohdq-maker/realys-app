@@ -318,7 +318,7 @@ function EventsTab({ group, setGroup, onContact }) {
   const act = (e) => {
     const tk = ticketOf(e);
     const venue = venueOfEvent(e);
-    if (tk) return dispatch({ type: 'VENUE_ENTER', venue, table: tk.table, open: true });
+    if (tk) return dispatch({ type: 'VENUE_ENTER', venue, table: tk.table, open: true, eventId: e.id });
     const price = ticketPrice(e.price);
     const buy = (withTable) => {
       const table = withTable ? freeTable() : null;

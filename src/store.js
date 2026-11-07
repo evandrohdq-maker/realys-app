@@ -443,6 +443,7 @@ function baseReducer(state, a) {
         orders: [
           {
             id: newId('o'),
+            at: Date.now(),
             items: lines.map((l) => ({ name: l.product.name, qty: l.qty, price: l.product.price })),
             total: +toPay.toFixed(2),
             promoOff: promoOff ? +promoOff.toFixed(2) : undefined,
@@ -717,7 +718,13 @@ function baseReducer(state, a) {
       };
     // Chegou no lugar (ingresso do evento ou check-in no bar). Se reservou mesa, já fica nela.
     case 'VENUE_ENTER':
-      return { ...state, venue: { ...a.venue, table: a.table || state.reservations[a.venue.id] || null }, venueOpen: !!a.open };
+      return {
+        ...state,
+        venue: { ...a.venue, table: a.table || state.reservations[a.venue.id] || null },
+        venueOpen: !!a.open,
+        // Entrou no evento com o ingresso: ele passa para "Concluídos" em Meus pedidos.
+        tickets: a.eventId ? state.tickets.map((t) => (t.eventId === a.eventId ? { ...t, used: true } : t)) : state.tickets,
+      };
     case 'VENUE_RESERVE':
       return { ...state, reservations: { ...state.reservations, [a.venueId]: a.table }, venue: state.venue && state.venue.id === a.venueId ? { ...state.venue, table: a.table } : state.venue };
     case 'VENUE_SET_TABLE':
@@ -764,8 +771,15 @@ function baseReducer(state, a) {
       return { ...state, previewProvider: a.id };
     case 'CLOSE_PREVIEW_PROVIDER':
       return { ...state, previewProvider: null };
+    // Ingresso de evento ou passagem: também aparece em Meus pedidos (aba Ingressos e Despesas).
     case 'BUY_TICKET':
-      return { ...state, wallet: +(state.wallet - a.ticket.price).toFixed(2), tickets: [a.ticket, ...state.tickets] };
+      return {
+        ...state,
+        wallet: +(state.wallet - (a.ticket.price || 0)).toFixed(2),
+        tickets: [{ at: Date.now(), kind: a.ticket.eventId ? 'evento' : 'passagem', used: false, ...a.ticket }, ...state.tickets],
+      };
+    case 'TICKET_USED':
+      return { ...state, tickets: state.tickets.map((t) => (t.id === a.id ? { ...t, used: !t.used } : t)) };
     // Compra, assinatura ou inscrição feita nas abas Tecnologia e Agro: vira um pedido.
     case 'SECTOR_ORDER': {
       const it = a.item;
@@ -780,7 +794,7 @@ function baseReducer(state, a) {
         giftCredits: +(state.giftCredits - fromGift).toFixed(2),
         gifts: fromGift ? [{ id: newId('gu'), dir: 'usado', amount: fromGift, desc: it.title, at: Date.now() }, ...state.gifts] : state.gifts,
         orders: [
-          { id: newId('o'), items: [{ name: it.title, qty: 1, price }], total: price, status: 'Pagamento protegido', store: it.who, courier: null, nfe },
+          { id: newId('o'), at: Date.now(), items: [{ name: it.title, qty: 1, price }], total: price, status: 'Pagamento protegido', store: it.who, courier: null, nfe },
           ...state.orders,
         ],
       };
