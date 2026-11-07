@@ -70,7 +70,7 @@ export const NAV_TARGETS = [
   T('Músicas', { tab: 'artistas', art: 'musica' }, ['musicas', 'musica', 'mp3']),
   T('Empregos', { tab: 'vagas', area: 'todas', seg: 'vagas' }, ['empregos', 'emprego', 'vagas', 'vaga', 'vagas de emprego', 'trabalho']),
   T('Todas as lojas', { tab: 'loja', cat: 'Todos', q: '' }, ['loja', 'lojas', 'todas as lojas']),
-  T('Mercado', { tab: 'loja', cat: 'Mercado', q: '' }, ['mercado', 'supermercado']),
+  T('Mercado', { tab: 'food', cat: 'Mercado', q: '', seg: 'mercado' }, ['mercado', 'supermercado', 'mercadinho', 'compras do mes', 'feira']),
   T('Bares', { tab: 'food', cat: 'Bares', q: '' }, ['bares', 'bar', 'happy hour', 'barzinho']),
   T('Pizzarias', { tab: 'food', cat: 'Alimentação', q: 'pizza' }, ['pizzaria', 'pizzarias', 'pizza', 'pizzas']),
   T('Hambúrguer', { tab: 'food', cat: 'Alimentação', q: 'burguer' }, ['hamburguer', 'hamburgueria', 'lanches', 'lanche']),

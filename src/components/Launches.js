@@ -7,13 +7,14 @@ import { ProductThumb } from './ui';
 
 // Lançamentos: produtos novos que as lojas apresentam no Shop.
 // É o que mais prende a atenção do cliente, então aparece primeiro.
-export function launchesOf(state) {
-  return state.products.filter((p) => p.launch);
+export function launchesOf(state, only) {
+  return state.products.filter((p) => p.launch && (!only || only(p)));
 }
 
-export function LaunchStrip({ title = '🚀 Lançamentos das lojas' }) {
+// only: filtro opcional (o Shop passa "não é comida": comida fica no Food).
+export function LaunchStrip({ title = '🚀 Lançamentos das lojas', only }) {
   const { state, dispatch } = useStore();
-  const list = launchesOf(state);
+  const list = launchesOf(state, only);
   if (!list.length) return null;
   const add = (p) => {
     dispatch({ type: 'ADD_TO_CART', productId: p.id });

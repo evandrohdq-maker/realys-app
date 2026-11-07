@@ -18,14 +18,17 @@ import { useBack } from '../../../back';
 import { TestimonialCard } from '../../../components/SocialProfile';
 import { ShopHero, CircleShortcuts, ShopProductCard, ShopGrid, StoreRow } from '../../../components/ShopKit';
 import { SegTabs, SpotlightCarousel, ClipStrip, PromoSector } from '../../../components/AdKit';
+import { SearchBar } from '../../../components/Search';
+import { isFoodStore } from '../../../data';
+import { shopSectorItems } from '../../../shopSectorsData';
 import { SHOP_SPOTLIGHT, SHOP_CLIPS, SHOP_SPONSORED_PRODUCTS, SHOP_FLASH, SHOP_COUPONS, SHOP_COMBOS } from '../../../adsData';
 
 // Aba Shop (barra de baixo): só a loja. Eventos, Promoções, Anúncios e Lives
 // agora ficam na barra do topo da página Community (ver CommunityExtras abaixo).
-export default function HomeScreen({ goTo, explore }) {
+export default function HomeScreen({ goTo, explore, navigate }) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ShopTab goTo={goTo} explore={explore} />
+      <ShopTab goTo={goTo} explore={explore} navigate={navigate} />
     </View>
   );
 }
@@ -154,18 +157,24 @@ function withSponsored(featured, sponsored) {
   return out;
 }
 
-function ShopTab({ goTo, explore }) {
+const plain = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+function ShopTab({ goTo, explore, navigate }) {
   const { state, dispatch } = useStore();
   const [seg, setSeg] = useState('vitrine');
+  const [q, setQ] = useState('');
   useBack(seg !== 'vitrine', () => setSeg('vitrine'));
+  useBack(!!q, () => setQ(''));
+  // O Shop não mostra nada de comida: alimentação (restaurantes, bares, cafés e mercado) fica no Food.
+  const notFood = (p) => !isFoodStore(storeOf(state, p.storeId));
   // Veio da Lotus, da busca ou do menu: "promoções do shop", "ofertas relâmpago".
   useEffect(() => {
     if (explore && explore.tab === 'home' && explore.seg) setSeg(explore.seg);
   }, [explore]);
-  const featured = state.products.filter((p) => p.featured);
+  const featured = state.products.filter((p) => p.featured && notFood(p));
   const sponsored = SHOP_SPONSORED_PRODUCTS.map((id) => state.products.find((p) => p.id === id)).filter(Boolean);
   const grid = withSponsored(featured, sponsored);
-  const stores = [...state.stores].sort((a, b) => b.sponsored - a.sponsored || b.recommended - a.recommended || b.rating - a.rating);
+  const stores = state.stores.filter((st) => !isFoodStore(st)).sort((a, b) => b.sponsored - a.sponsored || b.recommended - a.recommended || b.rating - a.rating);
   const add = (p) => dispatch({ type: 'ADD_TO_CART', productId: p.id });
   // Toque no anúncio da vitrine: mostra o produto e leva para a loja ou para o carrinho.
   const openAd = (ad) => {
@@ -178,6 +187,18 @@ function ShopTab({ goTo, explore }) {
   };
   return (
     <Screen>
+      <SearchBar
+        value={q}
+        onChangeText={setQ}
+        onSubmit={setQ}
+        placeholder="Buscar no Shop: celular, tênis, geladeira…"
+        voicePrompt="O que você procura no Shop?"
+        style={{ marginBottom: 12 }}
+      />
+      {q.trim() ? (
+        <ShopSearchResults q={q} notFood={notFood} goTo={goTo} navigate={navigate} onAdd={add} />
+      ) : (
+      <>
       <SegTabs items={SHOP_SEGS} value={seg} onChange={setSeg} />
       {seg === 'promo' ? (
         <PromoSector flash={SHOP_FLASH} coupons={SHOP_COUPONS} combos={SHOP_COMBOS} onOpenStore={(id) => dispatch({ type: 'OPEN_COMPANY', id })} />
@@ -186,7 +207,7 @@ function ShopTab({ goTo, explore }) {
           <SpotlightCarousel ads={SHOP_SPOTLIGHT} onOpen={openAd} />
           <ShopHero title="Você no comando." />
           <CircleShortcuts items={SHOP_SHORTCUTS} onPress={goTo} />
-          <LaunchStrip />
+          <LaunchStrip only={notFood} />
           <ClipStrip title="🎬 Clipes das lojas" clips={SHOP_CLIPS} />
           <TouchableOpacity style={styles.promoTeaser} activeOpacity={0.9} onPress={() => setSeg('promo')}>
             <Ionicons name="flash" size={20} color="#0B1124" />
@@ -208,7 +229,71 @@ function ShopTab({ goTo, explore }) {
           ))}
         </>
       )}
+      </>
+      )}
     </Screen>
+  );
+}
+
+// Resultado da busca do Shop: produtos, itens dos setores (Eletrônicos, Vestuário…) e lojas.
+// Comida nunca aparece aqui: se a pessoa procurar comida, o Shop manda para o Food.
+function ShopSearchResults({ q, notFood, goTo, navigate, onAdd }) {
+  const { state, dispatch } = useStore();
+  const t = plain(q.trim());
+  const hit = (...xs) => xs.some((x) => plain(x).includes(t));
+  const products = state.products.filter((p) => notFood(p) && hit(p.name, (storeOf(state, p.storeId) || {}).name));
+  const items = shopSectorItems.filter((it) => hit(it.title, it.who, it.detail, (SHOP_SECTORS[it.sector] || {}).title));
+  const stores = state.stores.filter((st) => !isFoodStore(st) && hit(st.name, st.category));
+  const foodHit =
+    state.products.some((p) => !notFood(p) && hit(p.name)) || state.stores.some((st) => isFoodStore(st) && hit(st.name, st.category));
+  const none = !products.length && !items.length && !stores.length;
+  const toFood = () => (navigate ? navigate({ tab: 'food', cat: 'Todos', q: q.trim() }) : goTo('food'));
+  return (
+    <View>
+      {foodHit ? (
+        <TouchableOpacity style={styles.foodHint} activeOpacity={0.9} onPress={toFood}>
+          <Ionicons name="restaurant" size={18} color="#E8590C" />
+          <Text style={{ color: colors.text, fontWeight: '700', marginLeft: 8, flex: 1, fontSize: 13 }}>Comida e mercado ficam no Food. Ver "{q.trim()}" no Food</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+        </TouchableOpacity>
+      ) : null}
+      {products.length ? (
+        <>
+          <SectionHead title={`Produtos (${products.length})`} />
+          <ShopGrid>
+            {products.map((p) => (
+              <ShopProductCard key={p.id} p={p} storeName={(storeOf(state, p.storeId) || {}).name} onAdd={() => onAdd(p)} onPress={() => dispatch({ type: 'OPEN_COMPANY', id: p.storeId })} />
+            ))}
+          </ShopGrid>
+        </>
+      ) : null}
+      {items.length ? (
+        <>
+          <SectionHead title={`Nos setores do Shop (${items.length})`} />
+          {items.map((it) => (
+            <TouchableOpacity key={it.id} style={styles.sectorHit} activeOpacity={0.85} onPress={() => goTo(it.sector)}>
+              <View style={styles.sectorIcon}>
+                <Text style={{ fontSize: 22 }}>{it.icon}</Text>
+              </View>
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text numberOfLines={1} style={{ color: colors.text, fontWeight: '700' }}>{it.title}</Text>
+                <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 12 }}>{(SHOP_SECTORS[it.sector] || {}).title} · {it.who}</Text>
+              </View>
+              <Text style={{ color: colors.primary, fontWeight: '800' }}>{brl(it.price)}</Text>
+            </TouchableOpacity>
+          ))}
+        </>
+      ) : null}
+      {stores.length ? (
+        <>
+          <SectionHead title="Lojas" />
+          {stores.map((st) => (
+            <StoreRow key={st.id} s={st} onPress={() => dispatch({ type: 'OPEN_COMPANY', id: st.id })} />
+          ))}
+        </>
+      ) : null}
+      {none && !foodHit ? <Text style={{ color: colors.muted, textAlign: 'center', marginVertical: 24 }}>Nada encontrado no Shop para "{q.trim()}".</Text> : null}
+    </View>
   );
 }
 
@@ -887,6 +972,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   topTabOn: { backgroundColor: colors.primaryLight },
+  foodHint: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF1E6', borderRadius: 14, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(232,89,12,0.3)' },
+  sectorHit: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 16, padding: 10, marginBottom: 8, ...soft },
+  sectorIcon: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
   promoTeaser: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E2B649', borderRadius: 16, padding: 12, marginBottom: 16 },
   topTabText: { color: colors.muted, fontSize: 10, fontWeight: '600', marginTop: 3 },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, marginTop: 4 },

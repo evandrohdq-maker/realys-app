@@ -11,19 +11,28 @@ import { FOOD_FILTERS } from '../../foodData';
 import { FoodHighlights } from './FoodHighlights';
 import { ShopHero, CircleShortcuts, ShopHead, ShopProductCard as ProductCard, ShopGrid, StoreRow } from '../../components/ShopKit';
 import { SegTabs, SpotlightCarousel, ClipStrip, PromoSector } from '../../components/AdKit';
-import { FOOD_SPOTLIGHT, FOOD_CLIPS, FOOD_FLASH, FOOD_COUPONS, FOOD_COMBOS } from '../../adsData';
+import {
+  FOOD_SPOTLIGHT, FOOD_CLIPS, FOOD_FLASH, FOOD_COUPONS, FOOD_COMBOS,
+  MERCADO_SPOTLIGHT, MERCADO_CLIPS, MERCADO_FLASH, MERCADO_COUPONS, MERCADO_COMBOS, MERCADO_AISLES,
+} from '../../adsData';
 
-// Abas internas do Food: o Cardápio (com a publicidade paga) e o setor separado de Promoções.
+// Promoções do Food juntam as dos restaurantes e as do Mercado.
+const ALL_FOOD_FLASH = [...FOOD_FLASH, ...MERCADO_FLASH];
+const ALL_FOOD_COUPONS = [...FOOD_COUPONS, ...MERCADO_COUPONS];
+const ALL_FOOD_COMBOS = [...FOOD_COMBOS, ...MERCADO_COMBOS];
+
+// Abas internas do Food: Cardápio (restaurantes, bares e cafés), Mercado e o setor de Promoções.
 const FOOD_SEGS = [
   { key: 'cardapio', label: 'Cardápio', icon: 'restaurant-outline' },
-  { key: 'promo', label: 'Promoções', icon: 'flame-outline', hot: true, badge: FOOD_FLASH.length },
+  { key: 'mercado', label: 'Mercado', icon: 'basket-outline' },
+  { key: 'promo', label: 'Promoções', icon: 'flame-outline', hot: true, badge: ALL_FOOD_FLASH.length },
 ];
+const isMarket = (s) => !!s && s.category === 'Mercado';
 
 // Atalhos redondos da Loja (mesmo visual do Shop).
+// Comida e mercado não entram na Loja: ficam no Food.
 const CATEGORIES = [
   { key: 'Todos', label: 'Todos', ion: 'grid-outline', color: colors.primary },
-  { key: 'Alimentação', label: 'Comida', ion: 'restaurant-outline', color: '#E8590C' },
-  { key: 'Mercado', label: 'Mercado', ion: 'basket-outline', color: '#2E8B57' },
   { key: 'Roupas', label: 'Roupas', ion: 'shirt-outline', color: '#C2255C' },
   { key: 'Eletrônicos', label: 'Eletrônicos', ion: 'phone-portrait-outline', color: colors.accent },
 ];
@@ -52,7 +61,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
     if (!explore) return;
     if (explore.cat) setCat(food ? foodFilterOf(explore.cat) : explore.cat);
     if (explore.q !== undefined) setQ(explore.q);
-    if (food) setSeg(explore.seg || 'cardapio');
+    if (food) setSeg(explore.cat === 'Mercado' ? 'mercado' : explore.seg || 'cardapio');
   }, [explore]);
   const [openStore, setOpenStore] = useState(null);
   const [showCart, setShowCart] = useState(false);
@@ -77,7 +86,11 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
     const term = q.trim().toLowerCase();
     const foodCats = food ? (FOOD_FILTERS.find((f) => f.key === cat) || {}).cats : null;
     return state.stores
-      .filter((s) => (food ? isFoodStore(s) && (!foodCats || foodCats.includes(s.category)) : cat === 'Todos' || s.category === cat))
+      .filter((s) =>
+        food
+          ? isFoodStore(s) && (!foodCats || foodCats.includes(s.category)) && (term || !isMarket(s))
+          : !isFoodStore(s) && (cat === 'Todos' || s.category === cat)
+      )
       .filter(
         (s) =>
           !term ||
@@ -88,11 +101,12 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
   }, [state.stores, state.products, q, cat, food]);
 
   // Na aba Food só entram produtos de restaurantes, bares e cafés.
-  const inScope = (p) => !food || isFoodStore(storeOf(state, p.storeId));
+  // No Shop/Loja, nada de comida.
+  const inScope = (p) => (food ? isFoodStore(storeOf(state, p.storeId)) : !isFoodStore(storeOf(state, p.storeId)));
   const matchedProducts = q.trim()
     ? state.products.filter((p) => inScope(p) && p.name.toLowerCase().includes(q.trim().toLowerCase()))
     : [];
-  const featured = state.products.filter((p) => p.featured && !food);
+  const featured = state.products.filter((p) => p.featured && !food && inScope(p));
   const cartCount = state.cart.reduce((s, c) => s + c.qty, 0);
   const total = cartTotal(state);
 
@@ -195,8 +209,18 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
     return (
       <Screen>
         <SegTabs items={FOOD_SEGS} value={seg} onChange={setSeg} />
-        <PromoSector food flash={FOOD_FLASH} coupons={FOOD_COUPONS} combos={FOOD_COMBOS} onOpenStore={setOpenStore} />
+        <PromoSector food flash={ALL_FOOD_FLASH} coupons={ALL_FOOD_COUPONS} combos={ALL_FOOD_COMBOS} onOpenStore={setOpenStore} />
         <FoodHighlights filter="todos" only="promos" onOpenStore={setOpenStore} onAdd={add} />
+        {cartCount ? <CartBar count={cartCount} total={total} onPress={() => dispatch({ type: 'OPEN_CART' })} /> : null}
+      </Screen>
+    );
+  }
+
+  if (food && seg === 'mercado') {
+    return (
+      <Screen>
+        <SegTabs items={FOOD_SEGS} value={seg} onChange={setSeg} />
+        <MarketTab onOpenStore={setOpenStore} onAdd={add} onPromos={() => setSeg('promo')} />
         {cartCount ? <CartBar count={cartCount} total={total} onPress={() => dispatch({ type: 'OPEN_CART' })} /> : null}
       </Screen>
     );
@@ -212,7 +236,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
           if (!t) setSearched('');
         }}
         onSubmit={setSearched}
-        placeholder={food ? 'Buscar pizza, sushi, bar, café…' : 'Buscar produtos, lojas, restaurantes…'}
+        placeholder={food ? 'Buscar pizza, sushi, bar, café…' : 'Buscar produtos e lojas…'}
         voicePrompt={food ? 'O que você quer comer hoje?' : 'O que você quer comprar?'}
         style={{ marginBottom: 0 }}
       />
@@ -249,7 +273,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
 
       {food && !q ? <FoodHighlights filter={cat} onOpenStore={setOpenStore} onAdd={add} /> : null}
 
-      {!q && !food ? <LaunchStrip title="🚀 Lançamentos" /> : null}
+      {!q && !food ? <LaunchStrip title="🚀 Lançamentos" only={inScope} /> : null}
 
       {!q && !food ? (
         <>
@@ -271,6 +295,61 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
 
       {cartCount ? <CartBar count={cartCount} total={total} onPress={() => dispatch({ type: 'OPEN_CART' })} /> : null}
     </Screen>
+  );
+}
+
+// Aba Mercado do Food: compras do dia e do mês (mercearia, café, laticínios), com a
+// publicidade paga dos mercados, ofertas e a cesta da semana.
+function MarketTab({ onOpenStore, onAdd, onPromos }) {
+  const { state, dispatch } = useStore();
+  const [q, setQ] = useState('');
+  const [aisle, setAisle] = useState('todos');
+  const markets = state.stores.filter(isMarket).sort((a, b) => b.sponsored - a.sponsored || b.rating - a.rating);
+  const ids = markets.map((m) => m.id);
+  const term = q.trim().toLowerCase();
+  const a = MERCADO_AISLES.find((x) => x.key === aisle) || {};
+  const list = state.products
+    .filter((p) => ids.includes(p.storeId))
+    .filter((p) => !a.words || a.words.some((w) => p.name.toLowerCase().includes(w)))
+    .filter((p) => !term || p.name.toLowerCase().includes(term));
+  const openAd = (ad) => {
+    const p = state.products.find((x) => x.id === ad.productId);
+    const s = storeOf(state, ad.storeId) || {};
+    Alert.alert(ad.title, `${s.name}${p ? `\n${p.name} · ${brl(p.price)}` : ''}\n\n${ad.sub}`, [
+      { text: 'Ver mercado', onPress: () => onOpenStore(ad.storeId) },
+      p ? { text: 'Pôr no carrinho', onPress: () => onAdd(p.id) } : { text: 'OK' },
+    ]);
+  };
+  return (
+    <View>
+      <SearchBar value={q} onChangeText={setQ} onSubmit={setQ} placeholder="Buscar arroz, café, leite…" voicePrompt="O que você quer do mercado?" style={{ marginBottom: 12 }} />
+      {!term ? <SpotlightCarousel ads={MERCADO_SPOTLIGHT} onOpen={openAd} /> : null}
+      {!term ? <ShopHero title="Mercado" sub="Compras do dia e do mês, entregues por motoboy do Realys" icon="basket-outline" /> : null}
+      <CircleShortcuts items={MERCADO_AISLES} value={aisle} onPress={setAisle} />
+      {!term ? <ClipStrip title="🎬 Clipes do mercado" clips={MERCADO_CLIPS} food /> : null}
+      {!term ? (
+        <TouchableOpacity style={styles.promoTeaser} activeOpacity={0.9} onPress={onPromos}>
+          <Text style={{ fontSize: 18 }}>🧺</Text>
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={{ color: '#0B1124', fontWeight: '800' }}>Ofertas do mercado e cesta da semana</Text>
+            <Text style={{ color: 'rgba(11,17,36,0.7)', fontSize: 12 }}>Leve 4, pague 3 · cupom de R$ 8</Text>
+          </View>
+          <Text style={{ color: '#0B1124', fontWeight: '800', fontSize: 18 }}>›</Text>
+        </TouchableOpacity>
+      ) : null}
+      <ShopHead title={term ? `Produtos para "${q.trim()}"` : a.key === 'todos' ? 'Produtos do mercado' : a.label} />
+      <ShopGrid>
+        {list.map((p) => (
+          <ProductCard key={p.id} p={p} storeName={(storeOf(state, p.storeId) || {}).name} onAdd={() => onAdd(p.id)} onPress={() => onOpenStore(p.storeId)} />
+        ))}
+      </ShopGrid>
+      {!list.length ? <Empty text="Nada encontrado no mercado." /> : null}
+      <ShopHead title="Mercados perto de você" />
+      {markets.map((m) => (
+        <StoreRow key={m.id} s={m} onPress={() => onOpenStore(m.id)} />
+      ))}
+      <View style={{ height: 10 }} />
+    </View>
   );
 }
 

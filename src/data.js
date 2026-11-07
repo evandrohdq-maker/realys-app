@@ -106,7 +106,8 @@ export const stores = [
 ];
 
 // Categorias de comida e bebida: são as que aparecem na aba Food.
-export const FOOD_CATEGORIES = ['Alimentação', 'Bares', 'Doces e cafés'];
+// Tudo que é comida e bebida fica no Food (inclusive Mercado), nunca no Shop.
+export const FOOD_CATEGORIES = ['Alimentação', 'Bares', 'Doces e cafés', 'Mercado'];
 export const isFoodStore = (s) => !!s && FOOD_CATEGORIES.includes(s.category);
 
 export const products = [

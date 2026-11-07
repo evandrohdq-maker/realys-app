@@ -23,7 +23,8 @@ export function FoodHighlights({ filter, onOpenStore, onAdd, only }) {
   const showPromos = only === 'promos';
   const showBars = !only && (filter === 'todos' || filter === 'bares');
   const promos = sponsoredFirst(foodPromos);
-  const news = state.products.filter((p) => p.launch && isFoodStore(storeOf(state, p.storeId)));
+  // Novidades do cardápio: só restaurantes, bares e cafés (o Mercado tem a aba dele).
+  const news = state.products.filter((p) => p.launch && isFoodStore(storeOf(state, p.storeId)) && (storeOf(state, p.storeId) || {}).category !== 'Mercado');
 
   const openPromo = (p) => {
     const s = storeOf(state, p.storeId);

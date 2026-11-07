@@ -19,18 +19,18 @@ export const CLIP_MS = 7000;
 export const SHOP_SPOTLIGHT = [
   { id: 'ad-s1', storeId: 'e4', productId: 'p13', title: 'Smartwatch Fit 2', sub: 'Pré-venda com frete grátis só no Realys', cta: 'Garantir o meu', tint: '#2F74D0', photo: photo('realys-ad-watch') },
   { id: 'ad-s2', storeId: 'e3', productId: 'p14', title: 'Coleção Verão Moda Brasil', sub: 'Jaquetas e camisetas a partir de R$ 69,90', cta: 'Ver coleção', tint: '#C2255C', photo: photo('realys-ad-moda') },
-  { id: 'ad-s3', storeId: 'e1', productId: 'p16', title: 'Café Especial do Sul de Minas', sub: 'Lote limitado no Mercadinho Bom Preço', cta: 'Comprar agora', tint: '#7A5806', photo: photo('realys-ad-cafe') },
+  { id: 'ad-s3', storeId: 'e4', productId: 'p11', title: 'Carregador Turbo 30W', sub: 'Do zero a 50% em 20 minutos · Tech Center', cta: 'Comprar agora', tint: '#1F2A44', photo: photo('realys-ad-carregador') },
 ];
 
 export const SHOP_CLIPS = [
   { id: 'clip-s1', storeId: 'e4', productId: 'p10', title: 'Fone Pro: 30 h de bateria', views: 12400, likes: 1830, photo: photo('realys-clip-fone', 400, 640) },
   { id: 'clip-s2', storeId: 'e3', productId: 'p9', title: 'Tênis casual: conforto o dia todo', views: 8700, likes: 960, photo: photo('realys-clip-tenis', 400, 640) },
-  { id: 'clip-s3', storeId: 'e1', productId: 'p3', title: 'Do grão à xícara em 1 minuto', views: 5300, likes: 712, photo: photo('realys-clip-cafe', 400, 640) },
+  { id: 'clip-s3', storeId: 'e3', productId: 'p14', title: 'Jaqueta jeans: 3 jeitos de usar', views: 5300, likes: 712, photo: photo('realys-clip-jaqueta', 400, 640) },
   { id: 'clip-s4', storeId: 'e4', productId: 'p11', title: 'Carrega 50% em 20 min', views: 4100, likes: 388, photo: photo('realys-clip-carregador', 400, 640) },
 ];
 
 // Produtos patrocinados que entram na grade de destaques.
-export const SHOP_SPONSORED_PRODUCTS = ['p13', 'p9', 'p16'];
+export const SHOP_SPONSORED_PRODUCTS = ['p13', 'p9', 'p11'];
 
 // Ofertas relâmpago: `hours` = janela da oferta (termina no próximo múltiplo dessas horas).
 // `sold` = quanto do lote promocional já foi vendido (0 a 1).
@@ -38,22 +38,20 @@ export const SHOP_FLASH = [
   { id: 'fl-s1', productId: 'p10', off: 30, hours: 2, sold: 0.72, limit: 'Máx. 2 por pessoa' },
   { id: 'fl-s2', productId: 'p8', off: 40, hours: 2, sold: 0.55 },
   { id: 'fl-s3', productId: 'p9', off: 25, hours: 6, sold: 0.38 },
-  { id: 'fl-s4', productId: 'p3', off: 20, hours: 6, sold: 0.81, limit: 'Últimas unidades' },
+  { id: 'fl-s4', productId: 'p14', off: 20, hours: 6, sold: 0.81, limit: 'Últimas unidades' },
   { id: 'fl-s5', productId: 'p11', off: 35, hours: 24, sold: 0.2 },
-  { id: 'fl-s6', productId: 'p1', off: 15, hours: 24, sold: 0.64 },
+  { id: 'fl-s6', productId: 'p13', off: 10, hours: 24, sold: 0.64, limit: 'Pré-venda' },
 ];
 
 // Cupons: viram crédito promocional da loja e descontam sozinhos no carrinho.
 export const SHOP_COUPONS = [
   { id: 'cp-s1', storeId: 'e4', value: 20, title: 'R$ 20 em eletrônicos', rule: 'Compras na Tech Center', sponsored: true },
   { id: 'cp-s2', storeId: 'e3', value: 15, title: 'R$ 15 em moda', rule: 'Compras na Moda Brasil' },
-  { id: 'cp-s3', storeId: 'e1', value: 8, title: 'R$ 8 no mercado', rule: 'Compras no Mercadinho Bom Preço' },
 ];
 
 // Leve mais, pague menos. off: 'cheapest' (o mais barato sai de graça), 'halfCheapest'
 // (o mais barato pela metade) ou um número = % de desconto no kit.
 export const SHOP_COMBOS = [
-  { id: 'cb-s1', storeId: 'e1', title: 'Cesta da semana', items: ['p1', 'p2', 'p4', 'p5'], deal: 'Leve 4, pague 3', off: 'cheapest' },
   { id: 'cb-s2', storeId: 'e4', title: 'Kit celular turbinado', items: ['p10', 'p11'], deal: '-15% no kit', off: 15 },
   { id: 'cb-s3', storeId: 'e3', title: 'Look completo', items: ['p8', 'p9', 'p14'], deal: '-10% no look', off: 10 },
 ];
@@ -103,10 +101,41 @@ export function comboOff(combo, prices) {
   return +v.toFixed(2);
 }
 
+// ---------- MERCADO (aba do Food) ----------
+// Mercado é comida: fica no Food, nunca no Shop.
+export const MERCADO_SPOTLIGHT = [
+  { id: 'ad-m1', storeId: 'e1', productId: 'p16', title: 'Café Especial do Sul de Minas', sub: 'Lote limitado no Mercadinho Bom Preço', cta: 'Comprar agora', tint: '#7A5806', photo: photo('realys-ad-cafe') },
+  { id: 'ad-m2', storeId: 'e1', productId: 'p1', title: 'Compra do mês sem sair de casa', sub: 'Arroz, feijão, leite e mais · entrega no mesmo dia', cta: 'Montar carrinho', tint: '#2E8B57', photo: photo('realys-ad-mercado') },
+];
+export const MERCADO_CLIPS = [
+  { id: 'clip-m1', storeId: 'e1', productId: 'p3', title: 'Do grão à xícara em 1 minuto', views: 5300, likes: 712, photo: photo('realys-clip-cafe', 400, 640) },
+  { id: 'clip-m2', storeId: 'e1', productId: 'p4', title: 'Leite fresquinho chegou hoje', views: 2900, likes: 301, photo: photo('realys-clip-leite', 400, 640) },
+];
+export const MERCADO_FLASH = [
+  { id: 'fl-m1', productId: 'p3', off: 20, hours: 6, sold: 0.81, limit: 'Últimas unidades' },
+  { id: 'fl-m2', productId: 'p1', off: 15, hours: 24, sold: 0.64 },
+  { id: 'fl-m3', productId: 'p4', off: 10, hours: 24, sold: 0.4, limit: 'Máx. 12 por pessoa' },
+];
+export const MERCADO_COUPONS = [
+  { id: 'cp-m1', storeId: 'e1', value: 8, title: 'R$ 8 no mercado', rule: 'Compras no Mercadinho Bom Preço', sponsored: true },
+];
+export const MERCADO_COMBOS = [
+  { id: 'cb-m1', storeId: 'e1', title: 'Cesta da semana', items: ['p1', 'p2', 'p4', 'p5'], deal: 'Leve 4, pague 3', off: 'cheapest' },
+];
+// Corredores do mercado (palavras no nome do produto).
+export const MERCADO_AISLES = [
+  { key: 'todos', label: 'Tudo', ion: 'basket-outline', color: '#2E8B57' },
+  { key: 'mercearia', label: 'Mercearia', ion: 'cube-outline', color: '#B7791F', words: ['arroz', 'feijão', 'farinha', 'açúcar', 'óleo', 'macarrão'] },
+  { key: 'cafe', label: 'Café', ion: 'cafe-outline', color: '#7A5806', words: ['café'] },
+  { key: 'laticinios', label: 'Laticínios', ion: 'water-outline', color: '#2F74D0', words: ['leite', 'queijo', 'iogurte', 'manteiga'] },
+];
+
 // Todos os anúncios pagos, para o Painel da empresa mostrar o desempenho de cada um.
 export const ALL_ADS = [
   ...SHOP_SPOTLIGHT.map((a) => ({ ...a, format: 'Vitrine do Shop' })),
   ...FOOD_SPOTLIGHT.map((a) => ({ ...a, format: 'Vitrine do Food' })),
+  ...MERCADO_SPOTLIGHT.map((a) => ({ ...a, format: 'Vitrine do Mercado (Food)' })),
+  ...MERCADO_CLIPS.map((a) => ({ ...a, format: 'Clipe do Mercado (Food)' })),
   ...SHOP_CLIPS.map((a) => ({ ...a, format: 'Clipe do Shop' })),
   ...FOOD_CLIPS.map((a) => ({ ...a, format: 'Clipe do Food' })),
 ];
