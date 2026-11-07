@@ -80,6 +80,46 @@ const F = {
       require('../../../assets/lotus/shop_idle_05.webp'),
     ],
   },
+  roxo: {
+    bloom: [
+      require('../../../assets/lotus/roxo_bloom_00.webp'),
+      require('../../../assets/lotus/roxo_bloom_01.webp'),
+      require('../../../assets/lotus/roxo_bloom_02.webp'),
+      require('../../../assets/lotus/roxo_bloom_03.webp'),
+      require('../../../assets/lotus/roxo_bloom_04.webp'),
+      require('../../../assets/lotus/roxo_bloom_05.webp'),
+      require('../../../assets/lotus/roxo_bloom_06.webp'),
+      require('../../../assets/lotus/roxo_bloom_07.webp'),
+    ],
+    idle: [
+      require('../../../assets/lotus/roxo_idle_00.webp'),
+      require('../../../assets/lotus/roxo_idle_01.webp'),
+      require('../../../assets/lotus/roxo_idle_02.webp'),
+      require('../../../assets/lotus/roxo_idle_03.webp'),
+      require('../../../assets/lotus/roxo_idle_04.webp'),
+      require('../../../assets/lotus/roxo_idle_05.webp'),
+    ],
+  },
+  azul: {
+    bloom: [
+      require('../../../assets/lotus/azul_bloom_00.webp'),
+      require('../../../assets/lotus/azul_bloom_01.webp'),
+      require('../../../assets/lotus/azul_bloom_02.webp'),
+      require('../../../assets/lotus/azul_bloom_03.webp'),
+      require('../../../assets/lotus/azul_bloom_04.webp'),
+      require('../../../assets/lotus/azul_bloom_05.webp'),
+      require('../../../assets/lotus/azul_bloom_06.webp'),
+      require('../../../assets/lotus/azul_bloom_07.webp'),
+    ],
+    idle: [
+      require('../../../assets/lotus/azul_idle_00.webp'),
+      require('../../../assets/lotus/azul_idle_01.webp'),
+      require('../../../assets/lotus/azul_idle_02.webp'),
+      require('../../../assets/lotus/azul_idle_03.webp'),
+      require('../../../assets/lotus/azul_idle_04.webp'),
+      require('../../../assets/lotus/azul_idle_05.webp'),
+    ],
+  },
 };
 export default F;
 export const FAB = [require('../../../assets/lotus/fab_0.webp'), require('../../../assets/lotus/fab_1.webp')];

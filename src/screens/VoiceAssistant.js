@@ -93,7 +93,8 @@ const withCartOffer = (res, state) => {
 // Interpreta o comando. Devolve { reply, nav?, call?, list?, results?, pending? }.
 // Na versão final isso vira uma IA no servidor, com os cadastros reais dos prestadores.
 function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
-  const t = norm(stripWake(text));
+  // O celular às vezes separa palavras: "a gronomo", "agro nomo" → agrônomo.
+  const t = norm(stripWake(text)).replace(/\ba ?gro ?no ?m([oa]s?)\b/g, 'agronom$1');
   const addrMatch = text.match(/((rua|r\.|avenida|av\.?|alameda|travessa|praca|praça|estrada)\s.+)$/i);
   const address = addrMatch ? addrMatch[1].trim() : '';
 
@@ -242,6 +243,18 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
 
   // Navegação: "me leva pro Agro", "abre o Food", "volta pros Stories", "voltar".
   const nav = findNavigation(stripWake(text));
+  // Nome de um produto ("tênis", "geladeira", "celular") sem pedir para abrir uma página:
+  // em vez de só abrir a seção, mostra os produtos que existem no app; tocar leva até a loja.
+  const OPEN_VERB = /\b(abre|abrir|abra|abri|me leva|leva|levar|vai|vamos|ir|entra|entrar|volta|voltar|aba|pagina|tela|secao|setor|categoria|area)\b/;
+  if (nav && !nav.back && !OPEN_VERB.test(t)) {
+    const found = searchAll(state, stripWake(text));
+    const words = (found.tokens || []).map((w) => norm(w));
+    const hit = (r) => words.some((w) => norm(r.title).includes(w.slice(0, Math.max(4, w.length - 1))));
+    const first = (r) => (words.some((w) => norm(r.title).startsWith(w.slice(0, Math.max(4, w.length - 1)))) ? 0 : 1);
+    // o próprio produto primeiro ("Celular 128 GB" antes de "técnico de celulares")
+    const items = (found.results || []).filter((r) => r.go && hit(r)).sort((a, b) => first(a) - first(b));
+    if (items.length) return withCartOffer({ reply: `${contentReply(items, found.label)} Ou diga "abre ${nav.label}" para ver a seção inteira.`, results: items }, state);
+  }
   if (nav) {
     if (nav.back || !canOpen || canOpen(nav.go.tab)) return { nav, reply: navReply(nav) };
     return { reply: `${nav.label} é uma área para contas de empresa, com CNPJ. Cadastre uma empresa no login para acessar.` };
@@ -363,13 +376,15 @@ const PHASE_TEXT = {
 const SOS_RE = /(socorro|\bsos\b|samu|emerg|hospita|ambul[aâ]ncia|bombeir|infarto|acidente|pronto.?socorro|ajuda urgente)/;
 const AGRO_RE = /(\bagro|pecu[aá]ria|caf[eé](?![a-z])|hortifr|fazenda|trator|\bgado\b|planta[çc]|colheita|safra|semente|lavoura)/;
 const SHOP_RE = /(\bshop\b|compr|carrinho|produto|\bloja|promo[çc]|oferta|ingresso|sacola)/;
+// Cor das bordas da flor: dourada no normal; muda para surpreender conforme o assunto.
+// Vermelho = socorro, roxo = compras, azul = serviços e prestadores.
 function moodOf(h) {
   if (!h) return 'padrao';
   const t = String(h.q || '').toLowerCase();
   const tab = ((h.results || [])[0] || {}).go ? h.results[0].go.tab : null;
   if (SOS_RE.test(t) || tab === 'socorro') return 'sos';
-  if (AGRO_RE.test(t) || tab === 'agro') return 'agro';
-  if (SHOP_RE.test(t) || tab === 'loja' || (h.pending && /cart|checkout/.test(h.pending.type))) return 'shop';
+  if (SHOP_RE.test(t) || tab === 'loja' || (h.pending && /cart|checkout/.test(h.pending.type))) return 'roxo';
+  if ((h.list && h.list.length) || h.call || (h.pending && h.pending.type === 'service')) return 'azul';
   return 'padrao';
 }
 
@@ -821,8 +836,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
 
   const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [36, 0] });
   const last = history[0];
-  // A Lotus fica sempre dourada (a cor não muda mais com o assunto).
-  const mood = 'padrao';
+  const mood = moodOf(last);
   const win = Dimensions.get('window');
 
   return (

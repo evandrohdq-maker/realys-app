@@ -1,5 +1,5 @@
 import json, math, subprocess, os
-moods={'padrao':('#FFFBEF','#D9A21B','#F8EDB0'),'agro':('#F6FFF4','#3FA862','#E9F0B8'),'sos':('#FFF2F0','#D3262B','#F6E3B4'),'shop':('#FFFBEF','#D9A21B','#F8EDB0')}
+moods={'padrao':('#FFFBEF','#D9A21B','#F8EDB0'),'agro':('#F6FFF4','#3FA862','#E9F0B8'),'sos':('#FFF2F0','#D3262B','#F6E3B4'),'shop':('#FFFBEF','#D9A21B','#F8EDB0'),'roxo':('#FDF8FF','#8E3FD8','#F3E9C4'),'azul':('#F6FAFF','#2F7BEA','#F1EBC4')}
 jobs=[]
 os.makedirs('raw',exist_ok=True)
 for m,(body,tip,base) in moods.items():
