@@ -18,7 +18,7 @@ import ProfessionPicker from '../../components/ProfessionPicker';
 import { CAR_FEATURES, featuresOf, featureIcon, featureLabel, hasAll, isPassenger } from '../../vehicleInfo';
 import { useBack } from '../../back';
 import { lives } from '../../homeData';
-import { SERVICE_TABS, SERVICE_TAB_KEYS, TAB_TYPES, isOnlineType, tabOfType, TabIntro, OnlineTab, CoursesTab, LiveClasses } from './ServiceTabs';
+import { SERVICE_TABS, SERVICE_TAB_KEYS, TAB_TYPES, isOnlineType, tabOfType, OnlineTab, CoursesTab, LiveClasses } from './ServiceTabs';
 
 // Cartão do chamado (usado também pelo assistente de voz).
 export function ServiceCallCard({ call }) {
@@ -305,7 +305,6 @@ export default function ServicesScreen({ explore, navigate }) {
     return (
       <Screen>
         {menu}
-        <TabIntro tab={tab} />
         {tab === 'online' ? <OnlineTab appts={appts} setAppts={setAppts} focus={onlineFocus} /> : <CoursesTab navigate={navigate} />}
       </Screen>
     );
@@ -314,8 +313,6 @@ export default function ServicesScreen({ explore, navigate }) {
   return (
     <Screen>
       {menu}
-      {/* Na aba geral (Serviços) vai direto para a pesquisa; as outras abas mantêm a explicação */}
-      {tab !== 'servicos' ? <TabIntro tab={tab} /> : null}
 
       <SearchBar
         value={q}
