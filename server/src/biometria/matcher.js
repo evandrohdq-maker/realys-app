@@ -5,6 +5,7 @@
 // Contrato do serviço (JSON):
 //   POST /embed     { image: base64 }                  -> { embedding: number[512] | null, faces: n }
 //   POST /liveness  { image: base64 }                  -> { live: boolean, score: number }
+//   POST /doc-quality { image: base64 }                -> { legivel: boolean, motivo: string | null }
 //   GET  /health                                       -> { ok: true, model: "...", device: "cuda|cpu" }
 
 export function makeMatcher(cfg) {
@@ -36,6 +37,14 @@ export function makeMatcher(cfg) {
     },
     async liveness(buf) {
       return call('/liveness', { image: buf.toString('base64') });
+    },
+    // Foto do documento: nítida e sem reflexo? Se não estiver legível, o cadastro é recusado com o motivo.
+    async docQuality(buf) {
+      return call('/doc-quality', { image: buf.toString('base64') });
+    },
+    // Scan: 2 vídeos de 3 s + 2 fotos. O serviço confere prova de vida e movimento, e devolve o rosto médio.
+    async scan({ videos, photos }) {
+      return call('/scan', { videos: videos.map((v) => v.toString('base64')), photos: photos.map((p) => p.toString('base64')) });
     },
     async health() {
       return url ? call('/health') : { ok: false, reason: 'não configurado' };

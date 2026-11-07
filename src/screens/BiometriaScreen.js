@@ -36,7 +36,7 @@ const DATA_RE = /^\d{4}-\d{2}-\d{2}$/;
 export default function BiometriaScreen({ visible, onClose }) {
   const [info, setInfo] = useState(null);
   const [step, setStep] = useState('inicio'); // inicio | scan | doc | enviando
-  const [frames, setFrames] = useState(null);
+  const [scan, setScan] = useState(null); // { videos, photos } em base64
   const [tipo, setTipo] = useState('cnh');
   const [emissao, setEmissao] = useState('');
   const [validade, setValidade] = useState('');
@@ -60,7 +60,7 @@ export default function BiometriaScreen({ visible, onClose }) {
     setBusy(false);
   };
 
-  const scanFeito = (lista) => { setFrames(lista); setStep('doc'); setErro(''); };
+  const scanFeito = (lista) => { setScan(lista); setStep('doc'); setErro(''); };
 
   const validarDoc = () => {
     if (!DOC_TIPOS.some((t) => t.key === tipo)) return 'Escolha o tipo do documento.';
@@ -80,12 +80,12 @@ export default function BiometriaScreen({ visible, onClose }) {
     try {
       const doc = (await uploadMedia(d.assets[0].uri, 'image/jpeg')).split('/').pop();
       setInfo(await api('POST', '/biometria/envio-scan', {
-        frames, doc, documento: { tipo, emissao, validade: validade || undefined },
+        ...scan, doc, documento: { tipo, emissao, validade: validade || undefined },
       }));
     } catch (e) {
       setErro(e.message || 'Não deu para enviar. Tente de novo.');
     }
-    setFrames(null);
+    setScan(null);
     setStep('inicio');
   };
 
@@ -148,6 +148,7 @@ export default function BiometriaScreen({ visible, onClose }) {
               <TextInput style={styles.input} value={emissao} onChangeText={setEmissao} placeholder="AAAA-MM-DD" placeholderTextColor={colors.muted} autoCapitalize="none" />
               <Text style={styles.label}>Validade (se houver)</Text>
               <TextInput style={styles.input} value={validade} onChangeText={setValidade} placeholder="AAAA-MM-DD" placeholderTextColor={colors.muted} autoCapitalize="none" />
+              <Text style={styles.termo}>Na foto do documento: ele precisa estar inteiro, nítido e com todos os dados legíveis. Evite reflexo: nada de luz direta, flash ou superfície brilhante. Foto borrada ou com reflexo é recusada.</Text>
               <TouchableOpacity style={styles.btn} onPress={enviarTudo} activeOpacity={0.85}><Text style={styles.btnText}>Fotografar o documento e enviar</Text></TouchableOpacity>
             </View>
           ) : null}

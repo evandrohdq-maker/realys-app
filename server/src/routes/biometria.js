@@ -1,6 +1,14 @@
 // Biometria facial: o próprio usuário (consentimento, envio, revogação) e a equipe (fila de revisão).
 import { fail } from '../http.js';
 
+// Vídeos e fotos do scan chegam em base64. Precisam de 2 vídeos e 2 fotos.
+const scanOf = (body) => {
+  const videos = Array.isArray(body.videos) ? body.videos : [];
+  const photos = Array.isArray(body.photos) ? body.photos : [];
+  if (videos.length !== 2 || photos.length !== 2) fail(400, 'O scan precisa de 2 vídeos e 2 fotos.');
+  return { videos: videos.map((v) => Buffer.from(String(v), 'base64')), photos: photos.map((p) => Buffer.from(String(p), 'base64')) };
+};
+
 export default function biometriaRoutes(r, { biometria }) {
   r.get('/biometria', ({ user }) => biometria.status(user.id));
   r.post('/biometria/consentimento', ({ body, user }) => biometria.consent(user.id, body.version));
@@ -10,19 +18,17 @@ export default function biometriaRoutes(r, { biometria }) {
     const documento = body.documento || {};
     return biometria.submit(user.id, String(body.selfie), String(body.doc), { tipo: documento.tipo, emissao: documento.emissao, validade: documento.validade });
   });
-  // Cadastro por scan (primeira coleta): frames do scan + foto do documento (com os dados do documento).
+  // Scan (cadastro): 2 vídeos de 3 s + 2 fotos (aproximado e afastado), e a foto do documento com os dados.
   r.post('/biometria/envio-scan', ({ body, user }) => {
-    if (!Array.isArray(body.frames) || !body.doc) fail(400, 'Envie o scan do rosto e a foto do documento.');
+    const sc = scanOf(body);
+    if (!body.doc) fail(400, 'Envie a foto do documento.');
     const documento = body.documento || {};
-    return biometria.submitScan(user.id, body.frames.map((f) => Buffer.from(String(f), 'base64')), String(body.doc), { tipo: documento.tipo, emissao: documento.emissao, validade: documento.validade });
+    return biometria.submitScan(user.id, sc, String(body.doc), { tipo: documento.tipo, emissao: documento.emissao, validade: documento.validade });
   });
-  // Scan: sequência de fotos (2 a 3 segundos, câmera centralizada). Confere prova de vida pelo movimento.
-  r.post('/biometria/verificar-scan', ({ body, query, user }) => {
-    if (!Array.isArray(body.frames)) fail(400, 'Envie as fotos do scan.');
-    return biometria.verifyScan(user.id, body.frames.map((f) => Buffer.from(String(f), 'base64')), query.purpose || 'periodica', query.callId || null);
-  });
-  // Verificação do dia a dia: a foto vai no corpo (sem guardar). ?purpose=aceite|finalizacao|periodica&callId=
+  // Verificação com uma foto só (aparelhos e casos de contingência). A foto vai no corpo e não é guardada.
   r.post('/biometria/verificar', ({ raw, query, user }) => biometria.verify(user.id, raw, query.purpose, query.callId || null), { raw: true });
+  // Scan do dia a dia (aceite, finalização, venda, saque, a cada 2 h).
+  r.post('/biometria/verificar-scan', ({ body, query, user }) => biometria.verifyScan(user.id, scanOf(body), query.purpose || 'periodica', query.callId || null));
   r.delete('/biometria', ({ user }) => biometria.revoke(user.id));
 
   const A = { auth: 'admin' };

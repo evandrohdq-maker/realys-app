@@ -29,8 +29,30 @@ const fakeMatcher = {
   async liveness(buf) {
     return buf.toString().includes('FOTO-IMPRESSA') ? { live: false, score: 0.1 } : { live: true, score: 0.97 };
   },
+  async scan({ videos, photos }) {
+    const txt = photos.map((p) => p.toString()).join(' ');
+    const live = !txt.includes('IMPRESSA');
+    const movement = !videos.some((v) => v.toString().includes('PARADA'));
+    const e = await this.embed(photos[0]);
+    const e2 = await this.embed(photos[1]);
+    const media = e && e2 ? Array.from(e).map((x, i) => (x + e2[i]) / 2) : null;
+    return { live, movement, embedding: media, faces: 2 };
+  },
+  async docQuality(buf) {
+    const t = buf.toString();
+    if (t.includes('DOC-BORRADO')) return { legivel: false, motivo: 'Foto do documento borrada.' };
+    if (t.includes('DOC-REFLEXO')) return { legivel: false, motivo: 'Há reflexo sobre o documento.' };
+    return { legivel: true, motivo: null };
+  },
   async health() { return { ok: true, model: 'fake', device: 'cpu' }; },
 };
+
+// Scan: 2 vídeos de 3 s + 2 fotos (aproximado e afastado), em base64, como o app envia.
+const b64 = (t) => Buffer.from(t).toString('base64');
+const scanBody = (tag, { parada = false, impressa = false } = {}) => ({
+  videos: [b64(parada ? `${tag} PARADA` : `${tag} MOVIMENTO`), b64(parada ? `${tag} PARADA` : `${tag} MOVIMENTO`)],
+  photos: [b64(`${tag} MOV=0.1${impressa ? ' IMPRESSA' : ''}`), b64(`${tag} MOV=0.3${impressa ? ' IMPRESSA' : ''}`)],
+});
 
 let app, base, dir;
 const S = {};
@@ -97,6 +119,18 @@ test('consentimento é obrigatório e precisa da versão atual do termo', async 
   assert.equal(velho.status, 400);
   const ok = await api('POST', '/biometria/consentimento', { who: 'ana', body: { version: CONSENT_VERSION } });
   assert.equal(ok.data.status, 'pendente');
+});
+
+test('foto do documento borrada ou com reflexo é recusada e o cadastro continua pendente', async () => {
+  const selfie = await upload('ana', 'ROSTO-A selfie');
+  const borrada = await upload('ana', 'ROSTO-A DOC-BORRADO');
+  const r1 = await api('POST', '/biometria/envio', { who: 'ana', body: { selfie, doc: borrada, documento: DOC } });
+  assert.equal(r1.status, 400);
+  assert.equal(r1.data.code, 'documento_ilegivel');
+  const refl = await upload('ana', 'ROSTO-A DOC-REFLEXO');
+  const r2 = await api('POST', '/biometria/envio', { who: 'ana', body: { selfie, doc: refl, documento: DOC } });
+  assert.equal(r2.data.code, 'documento_ilegivel');
+  assert.match(r2.data.error, /reflexo/);
 });
 
 test('cadastro verdadeiro é aprovado, guardado cifrado e as fotos são apagadas', async () => {
@@ -293,17 +327,17 @@ test('documento: só identidade válida; vencido e emitido há mais de 10 anos s
   assert.equal(crm.status, 200, JSON.stringify(crm.data));
 });
 
-test('scan: 3 fotos com movimento e rosto certo verificam; foto parada e rosto errado não', async () => {
-  const frame = (tag) => Buffer.from(tag).toString('base64');
-  const movida = ['ROSTO-A MOV=0.1', 'ROSTO-A MOV=0.3', 'ROSTO-A MOV=0.2'].map(frame);
-  const ok1 = await api('POST', '/biometria/verificar-scan?purpose=periodica', { who: 'moto', body: { frames: movida } });
+test('scan do dia a dia: movimento e rosto certo verificam; vídeo parado e rosto errado não', async () => {
+  const ok1 = await api('POST', '/biometria/verificar-scan?purpose=periodica', { who: 'moto', body: scanBody('ROSTO-A') });
   assert.equal(ok1.status, 200, JSON.stringify(ok1.data));
-  const parada = ['ROSTO-A MOV=0.2', 'ROSTO-A MOV=0.2', 'ROSTO-A MOV=0.2'].map(frame);
-  const r2 = await api('POST', '/biometria/verificar-scan?purpose=periodica', { who: 'moto', body: { frames: parada } });
+  const r2 = await api('POST', '/biometria/verificar-scan?purpose=periodica', { who: 'moto', body: scanBody('ROSTO-A', { parada: true }) });
   assert.equal(r2.data.code, 'prova_de_vida');
-  const errado = ['ROSTO-B MOV=0.1', 'ROSTO-B MOV=0.3', 'ROSTO-B MOV=0.2'].map(frame);
-  const r3 = await api('POST', '/biometria/verificar-scan?purpose=periodica', { who: 'moto', body: { frames: errado } });
+  const impressa = await api('POST', '/biometria/verificar-scan?purpose=periodica', { who: 'moto', body: scanBody('ROSTO-A', { impressa: true }) });
+  assert.equal(impressa.data.code, 'prova_de_vida');
+  const r3 = await api('POST', '/biometria/verificar-scan?purpose=periodica', { who: 'moto', body: scanBody('ROSTO-B') });
   assert.equal(r3.data.code, 'rosto_nao_confere');
+  const incompleto = await api('POST', '/biometria/verificar-scan?purpose=periodica', { who: 'moto', body: { videos: [b64('x')], photos: [b64('y')] } });
+  assert.equal(incompleto.status, 400);
 });
 
 test('termo de adesão: publicado, e o cadastro exige o aceite', async () => {
@@ -315,12 +349,11 @@ test('termo de adesão: publicado, e o cadastro exige o aceite', async () => {
   assert.equal(semAceite.data.code, 'termos');
 });
 
-test('cadastro por scan: frames não são guardados; cadastro aprovado com documento compatível', async () => {
+test('cadastro por scan: o scan não é guardado; cadastro aprovado com documento compatível', async () => {
   await person('gil', '555.666.777-20', 'gilmar');
   await api('POST', '/biometria/consentimento', { who: 'gil', body: { version: CONSENT_VERSION } });
   const doc = await upload('gil', 'ROSTO-D documento');
-  const frames = ['ROSTO-D MOV=0.1', 'ROSTO-D MOV=0.3', 'ROSTO-D MOV=0.2'].map((x) => Buffer.from(x).toString('base64'));
-  const r = await api('POST', '/biometria/envio-scan', { who: 'gil', body: { frames, doc, documento: DOC } });
+  const r = await api('POST', '/biometria/envio-scan', { who: 'gil', body: { ...scanBody('ROSTO-D'), doc, documento: DOC } });
   assert.equal(r.status, 200, JSON.stringify(r.data));
   assert.equal(r.data.status, 'aprovado');
   assert.equal((await api('GET', `/media/${doc}`)).status, 404); // documento apagado depois da decisão

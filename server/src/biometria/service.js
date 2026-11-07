@@ -71,6 +71,14 @@ export function makeBiometria({ db, cfg, matcher, cipher }) {
     return m;
   }
 
+  // Foto do documento legível e sem reflexo. Se não estiver, recusa na hora (o status não muda).
+  // Se o serviço de IA estiver fora, não recusa: a análise manda para revisão humana.
+  async function checkDocQuality(docId) {
+    let q;
+    try { q = await matcher.docQuality(readMedia(docId)); } catch { return; }
+    if (q && q.legivel === false) fail(400, q.motivo || 'Foto do documento ilegível. Tire de novo.', 'documento_ilegivel');
+  }
+
   // Documentos aceitos: identidade (RG, CNH), versões digitais e carteiras de classe profissional.
   // Documento vencido não vale. Emitido há mais de 10 anos também não.
   const DOC_TYPES = {
@@ -101,6 +109,7 @@ export function makeBiometria({ db, cfg, matcher, cipher }) {
     if (r.status === 'em_analise') fail(409, 'Seu envio já está em revisão. Aguarde.');
     checkImage(userId, selfieId, 'do rosto');
     if (docId) checkImage(userId, docId, 'do documento');
+    if (docId) await checkDocQuality(docId);
     const documento = checkDocument(docInfo);
 
     setStatus(r.id, 'em_analise', { selfie_media: selfieId, doc_media: docId, submitted_at: now(), reason: null });
@@ -187,29 +196,19 @@ export function makeBiometria({ db, cfg, matcher, cipher }) {
     return { ok: true, purpose, expiresInSec: cfg.biometricCheckTtlMin * 60 };
   }
 
-  // Scan (2 a 3 s, câmera centralizada): várias fotos seguidas. Exige rosto em quase todas,
-  // movimento entre elas (foto impressa fica parada) e semelhança média com o cadastro.
-  async function verifyScan(userId, frames, purpose, callId) {
+  // Scan: 2 vídeos de 3 s + 2 fotos (aproximado e afastado). O serviço confere prova de vida e movimento
+  // e devolve o rosto médio. Vídeos e fotos não são guardados.
+  async function verifyScan(userId, scan, purpose, callId) {
     const r = row(userId);
     if (!r || r.status !== 'aprovado' || !r.template) fail(403, 'Seu rosto ainda não está cadastrado.', 'sem_cadastro');
     if (!PURPOSES.includes(purpose)) fail(400, 'Motivo da verificação inválido.');
     if (NEEDS_CALL.includes(purpose) && !callId) fail(400, 'Informe o chamado ou o pedido da verificação.');
-    if (!Array.isArray(frames) || frames.length < 3 || frames.length > 8) fail(400, 'O scan precisa de 3 a 8 fotos.');
     if (!matcher.ready) fail(503, 'Verificação facial indisponível agora. Tente em instantes.', 'servico_fora');
-    const embs = [];
-    for (const f of frames) {
-      const live = await matcher.liveness(f);
-      if (!live.live) continue;
-      const e = await matcher.embed(f);
-      if (e) embs.push(e);
-    }
-    if (embs.length < Math.ceil(frames.length * 0.6)) fail(403, 'Não conseguimos ver seu rosto com clareza. Centralize o rosto e tente de novo.', 'rosto_nao_confere');
-    let minPar = 1;
-    for (let i = 0; i < embs.length; i++) for (let j = i + 1; j < embs.length; j++) minPar = Math.min(minPar, similarity(embs[i], embs[j]));
-    if (embs.length > 1 && minPar > 0.995) fail(403, 'Não detectamos movimento. Faça o scan com o rosto na câmera, sem foto parada.', 'prova_de_vida');
-    const media = new Float32Array(embs[0].length);
-    for (const e of embs) for (let k = 0; k < e.length; k++) media[k] += e[k] / embs.length;
-    const sim = similarity(openVec(r.template), media);
+    const res = await matcher.scan(scan);
+    if (!res.live) fail(403, 'Não confirmamos que é uma pessoa real na câmera. Tente de novo, com boa luz.', 'prova_de_vida');
+    if (!res.movement) fail(403, 'Não detectamos movimento. Faça o scan com o rosto na câmera.', 'prova_de_vida');
+    if (!res.embedding) fail(403, 'Não conseguimos ver seu rosto com clareza. Centralize o rosto no círculo.', 'rosto_nao_confere');
+    const sim = similarity(openVec(r.template), Float32Array.from(res.embedding));
     const ok = sim >= cfg.biometricVerifyMin;
     log(userId, 'verificacao_scan', `${purpose}${callId ? ' ' + callId : ''}: ${ok ? 'ok' : 'falhou'} (${Math.round(sim * 100)}%)`);
     if (!ok) fail(403, 'Não reconhecemos o seu rosto. Tente de novo, com boa luz e sem óculos escuros.', 'rosto_nao_confere');
@@ -219,22 +218,22 @@ export function makeBiometria({ db, cfg, matcher, cipher }) {
     return { ok: true, purpose, expiresInSec: cfg.biometricCheckTtlMin * 60 };
   }
 
-  // Cadastro por scan (primeira coleta): as fotos do scan não são guardadas. Só o código do rosto
-  // (média do scan) e a foto do documento passam pela análise. Mesma regra de 80% com o documento.
-  async function submitScan(userId, frames, docId, docInfo) {
+  // Cadastro por scan (primeira coleta): o scan e a foto do documento passam pela análise.
+  // Mesma regra de 80% com o documento. O scan não é guardado; só o código do rosto, criptografado.
+  async function submitScan(userId, scan, docId, docInfo) {
     const r = row(userId);
     if (!r || r.status === 'sem_consentimento' || r.status === 'revogado') fail(403, 'Aceite o termo de biometria antes de enviar as fotos.', 'sem_consentimento');
     if (r.status === 'aprovado') fail(409, 'Seu rosto já está cadastrado.');
     if (r.status === 'em_analise') fail(409, 'Seu envio já está em revisão. Aguarde.');
     checkImage(userId, docId, 'do documento');
+    await checkDocQuality(docId);
     const documento = checkDocument(docInfo);
-    if (!Array.isArray(frames) || frames.length < 3 || frames.length > 8) fail(400, 'O scan precisa de 3 a 8 fotos.');
     setStatus(r.id, 'em_analise', { doc_media: docId, selfie_media: null, submitted_at: now(), reason: null });
     log(userId, 'envio', 'scan');
     const checks = { documento, modo: 'scan' };
     let result;
     try {
-      result = await analyseScan(frames, docId, checks);
+      result = await analyseScan(scan, docId, checks);
     } catch (e) {
       result = { status: 'em_analise', reason: 'Análise automática indisponível. Revisão manual.' };
       checks.erro = String(e.message || e).slice(0, 200);
@@ -257,34 +256,23 @@ export function makeBiometria({ db, cfg, matcher, cipher }) {
     return status(userId);
   }
 
-  // Scan: prova de vida, movimento e média dos rostos, comparada com o documento.
-  async function analyseScan(frames, docId, checks) {
+  async function analyseScan(scan, docId, checks) {
     if (!matcher.ready) return { status: 'em_analise', reason: 'Verificação automática desligada. Revisão manual.' };
     if (!cipher.hasKey) return { status: 'em_analise', reason: 'Chave de criptografia não configurada. Revisão manual.' };
-    const embs = [];
-    let vivas = 0;
-    for (const f of frames) {
-      const live = await matcher.liveness(f);
-      if (!live.live) continue;
-      vivas++;
-      const e = await matcher.embed(f);
-      if (e) embs.push(e);
-    }
-    if (vivas === 0) return { status: 'recusado', reason: 'Prova de vida não confirmada. Faça o scan de novo, com boa luz.' };
-    if (embs.length < Math.ceil(frames.length * 0.6)) return { status: 'em_analise', reason: 'Rosto não encontrado com clareza. Revisão manual.' };
-    let minPar = 1;
-    for (let i = 0; i < embs.length; i++) for (let j = i + 1; j < embs.length; j++) minPar = Math.min(minPar, similarity(embs[i], embs[j]));
-    checks.movimento = Math.round((1 - minPar) * 1000) / 1000;
-    if (embs.length > 1 && minPar > 0.995) return { status: 'recusado', reason: 'Não detectamos movimento no scan. Faça de novo, sem foto parada.' };
-    const media = new Float32Array(embs[0].length);
-    for (const e of embs) for (let k = 0; k < e.length; k++) media[k] += e[k] / embs.length;
+    const res = await matcher.scan(scan);
+    checks.prova_de_vida = !!res.live;
+    checks.movimento = !!res.movement;
+    if (!res.live) return { status: 'recusado', reason: 'Prova de vida não confirmada. Faça o scan de novo, com boa luz.' };
+    if (!res.movement) return { status: 'recusado', reason: 'Não detectamos movimento no scan. Faça de novo, com o rosto na câmera.' };
+    if (!res.embedding) return { status: 'em_analise', reason: 'Rosto não encontrado com clareza. Revisão manual.' };
+    const vec = Float32Array.from(res.embedding);
     const doc = readMedia(docId);
     if (!doc) return { status: 'em_analise', reason: 'Foto do documento não encontrada. Revisão manual.' };
     const eDoc = await matcher.embed(doc);
     if (!eDoc) return { status: 'em_analise', reason: 'Rosto não encontrado no documento. Revisão manual.' };
-    checks.semelhanca = Math.round(similarity(media, eDoc) * 1000) / 1000;
+    checks.semelhanca = Math.round(similarity(vec, eDoc) * 1000) / 1000;
     if (checks.semelhanca < cfg.biometricMatchMin) return { status: 'em_analise', reason: 'O rosto do scan não bate com o do documento. Revisão manual.' };
-    return { status: 'aprovado', vec: media };
+    return { status: 'aprovado', vec };
   }
 
   async function dupOf(userId, vec) {

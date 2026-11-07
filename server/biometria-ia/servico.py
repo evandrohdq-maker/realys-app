@@ -3,6 +3,9 @@
 #   GET  /health    -> { ok, model, device }
 #   POST /embed     { image: base64 }  -> { embedding: [512 floats] | null, faces: n }
 #   POST /liveness  { image: base64 }  -> { live: bool, score: float }
+#   POST /scan      { videos: [b64, b64], photos: [b64, b64] }
+#                   -> { live, movement, embedding: [512] | null, faces }
+#                   Scan completo: 2 vídeos de 3 s (movimento e prova de vida) + 2 fotos (aproximado e afastado).
 #
 # Variáveis:
 #   BIOMETRIA_PORT          porta (padrão 8091; escute só em 127.0.0.1)
@@ -23,6 +26,7 @@ STUB = os.environ.get('BIOMETRIA_STUB') == '1'
 PORT = int(os.environ.get('BIOMETRIA_PORT', '8091'))
 MODEL_EMBED = os.environ.get('BIOMETRIA_MODEL_EMBED', '')
 MODEL_LIVE = os.environ.get('BIOMETRIA_MODEL_LIVE', '')
+MOVE_MIN = float(os.environ.get('BIOMETRIA_MOVE_MIN', '1.5'))  # variação média entre quadros (0 a 255) para contar movimento
 
 _embed_sess = None
 _live_sess = None
@@ -111,6 +115,92 @@ def liveness(img):
     return score >= 0.5, round(score, 4)
 
 
+# Foto do documento: tem que dar para ler (nítida, boa resolução) e não pode ter reflexo.
+# Os limites são de ajuste (variáveis de ambiente); calibrar com documentos reais.
+DOC_SHARP_MIN = float(os.environ.get('BIOMETRIA_DOC_SHARP_MIN', '80'))   # variância do Laplaciano
+DOC_GLARE_MAX = float(os.environ.get('BIOMETRIA_DOC_GLARE_MAX', '0.03'))  # fração de pixels estourados
+DOC_MIN_SIDE = int(os.environ.get('BIOMETRIA_DOC_MIN_SIDE', '600'))       # menor lado, em pixels
+
+
+def doc_quality(img):
+    """Devolve { legivel, motivo }. Recusa com o motivo para o cliente tirar a foto de novo."""
+    borrada = 'Foto do documento borrada. Tire de novo, com a câmera parada e boa luz.'
+    reflexo = 'Há reflexo sobre o documento. Tire a foto sem luz direta nem flash, em outro ângulo.'
+    if STUB:
+        if b'DOC-BORRADO' in img:
+            return {'legivel': False, 'motivo': borrada}
+        if b'DOC-REFLEXO' in img:
+            return {'legivel': False, 'motivo': reflexo}
+        return {'legivel': True, 'motivo': None}
+    import cv2
+    import numpy as np
+    h, w = img.shape[:2]
+    if min(h, w) < DOC_MIN_SIDE:
+        return {'legivel': False, 'motivo': 'Foto do documento com resolução baixa. Aproxime o celular e tire de novo.'}
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    if float(cv2.Laplacian(gray, cv2.CV_64F).var()) < DOC_SHARP_MIN:
+        return {'legivel': False, 'motivo': borrada}
+    if float(np.mean(gray >= 250)) > DOC_GLARE_MAX:
+        return {'legivel': False, 'motivo': reflexo}
+    return {'legivel': True, 'motivo': None}
+
+
+def read_video_frames(raw, max_frames=12):
+    """Quadros em tons de cinza e pequenos, espaçados ao longo do vídeo."""
+    import cv2
+    import numpy as np
+    import tempfile
+    with tempfile.NamedTemporaryFile(suffix='.mp4', delete=True) as f:
+        f.write(raw)
+        f.flush()
+        cap = cv2.VideoCapture(f.name)
+        todos = []
+        while True:
+            ok, fr = cap.read()
+            if not ok:
+                break
+            todos.append(cv2.resize(cv2.cvtColor(fr, cv2.COLOR_BGR2GRAY), (160, 120)).astype(np.float32))
+        cap.release()
+    if len(todos) <= max_frames:
+        return todos
+    idx = np.linspace(0, len(todos) - 1, max_frames).astype(int)
+    return [todos[i] for i in idx]
+
+
+def movement_of(raw):
+    """Quanto a cena muda de um quadro para o outro. Foto parada na frente da câmera fica perto de zero."""
+    import numpy as np
+    quadros = read_video_frames(raw)
+    if len(quadros) < 2:
+        return 0.0
+    return float(np.mean([np.mean(np.abs(quadros[i + 1] - quadros[i])) for i in range(len(quadros) - 1)]))
+
+
+def scan(videos, photos):
+    """Scan completo. Sem prova de vida (modelo) o resultado é 'não vivo': nunca aprova no escuro."""
+    import numpy as np
+    if STUB:
+        lives = [b'IMPRESSA' not in p for p in photos]
+        mov = [0.0 if b'PARADA' in v else 5.0 for v in videos]
+        emb = np.mean([stub_embedding(p) for p in photos], axis=0)
+        return {'live': all(lives), 'movement': max(mov) >= MOVE_MIN, 'embedding': emb.tolist(), 'faces': len(photos)}
+    lives = []
+    embs = []
+    for raw in photos:
+        img = decode_image(base64.b64encode(raw).decode())
+        live, _ = liveness(img)
+        lives.append(live)
+        e, _ = embed(img)
+        if e:
+            embs.append(np.array(e, dtype=np.float32))
+    movs = [movement_of(v) for v in videos]
+    media = None
+    if embs:
+        m = np.mean(embs, axis=0)
+        media = (m / (np.linalg.norm(m) or 1.0)).tolist()
+    return {'live': len(lives) == 2 and all(lives), 'movement': max(movs) >= MOVE_MIN, 'embedding': media, 'faces': len(embs)}
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = 'realys-biometria/0.1'
 
@@ -139,12 +229,23 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         try:
             body = self.read_json()
-            img = decode_image(body['image'])
+            if self.path.rstrip('/') == '/scan':
+                pass
+            else:
+                img = decode_image(body['image'])
             if self.path.rstrip('/') == '/embed':
                 if STUB:
                     return self.send_json(200, {'embedding': stub_embedding(img), 'faces': 1})
                 vec, n = embed(img)
                 return self.send_json(200, {'embedding': vec, 'faces': n})
+            if self.path.rstrip('/') == '/scan':
+                videos = [base64.b64decode(v) for v in body.get('videos', [])]
+                photos = [base64.b64decode(p) for p in body.get('photos', [])]
+                if len(videos) != 2 or len(photos) != 2:
+                    return self.send_json(400, {'error': 'o scan precisa de 2 vídeos e 2 fotos'})
+                return self.send_json(200, scan(videos, photos))
+            if self.path.rstrip('/') == '/doc-quality':
+                return self.send_json(200, doc_quality(img))
             if self.path.rstrip('/') == '/liveness':
                 if STUB:
                     impressa = b'FOTO-IMPRESSA' in img
