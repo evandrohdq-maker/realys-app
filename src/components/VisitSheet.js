@@ -92,7 +92,7 @@ export function VisitRequestSheet({ provider: p, visible, onClose, address = '',
               <Line icon="return-down-back-outline" text={`Se ${first} recusar ou não aparecer, o valor volta na hora.`} />
               <Line icon="pie-chart-outline" text={`Depois da visita: ${brl(split.provider)} para ${first} e ${brl(split.realys)} (${REALYS_FEE_PCT}%) para o Realys.`} />
               <Line icon="chatbubbles-outline" text="O valor do serviço vocês combinam direto. O Realys não cobra nada sobre ele." />
-              {discount ? <Line icon="pricetag-outline" color={colors.success} text={`${first} desconta a taxa de visita do serviço se for contratado.`} /> : null}
+              {discount ? <Line icon="pricetag-outline" color={colors.success} text={`${first} abate a taxa de visita no fechamento do serviço, se for contratado. O valor final é combinado entre vocês.`} /> : null}
             </View>
 
             <TouchableOpacity style={styles.sendBtn} onPress={send}>

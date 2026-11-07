@@ -7,7 +7,8 @@
 // 4. O cliente confirma que a visita aconteceu. Só então a taxa é dividida:
 //    REALYS_FEE_PCT % fica com o Realys e o resto vai para o prestador.
 //    Se o prestador não foi, a taxa volta para o cliente e ele perde posição no ranking.
-// 5. O valor final do serviço é combinado entre cliente e prestador, fora do app (o Realys não cobra).
+// 5. O valor final do serviço é negociado entre cliente e prestador (o Realys não define nem cobra).
+//    O prestador pode abater a taxa de visita no fechamento do serviço, como desconto: é acordo entre eles.
 // 6. Serviço concluído: o cliente avalia o prestador e o prestador avalia o cliente.
 //
 // O ranking pesa nota e serviços finalizados nos últimos 90 dias, taxa e tempo de resposta e
@@ -15,8 +16,9 @@
 // nos primeiros 30 dias. Quem paga o plano de destaque aparece separado, como "Patrocinado".
 import { serviceTypes } from './data';
 
-// Porcentagem do Realys sobre a taxa de visita (ponto em aberto: ajuste aqui).
-export const REALYS_FEE_PCT = 15;
+// Porcentagem do Realys sobre a taxa de visita. O valor da visita é o prestador quem define;
+// o Realys só lucra os 10% da visita e nunca define o valor final do serviço.
+export const REALYS_FEE_PCT = 10;
 // Plano de destaque do prestador (mensal).
 export const HIGHLIGHT_PLAN = { name: 'Destaque Realys', price: 49.9 };
 // Só competem prestadores dentro deste raio do cliente.

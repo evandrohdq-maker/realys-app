@@ -1,7 +1,8 @@
 // Taxas do Realys e para onde vai cada uma (caixa). Mudou um percentual? Muda só aqui.
 //
 // - Pedidos (Shop, Food, lojas): o Realys tira um percentual do vendedor sobre a venda.
-// - Contratação de serviços: o Realys fica com parte da taxa de visita (REALYS_FEE_PCT em serviceVisits.js).
+// - Contratação de serviços: o prestador define a taxa de visita e o Realys fica com 10% dela
+//   (REALYS_FEE_PCT em serviceVisits.js). O valor final do serviço é negociado entre cliente e prestador.
 // - Presentes: 10% de taxa (GIFT_FEE_PCT em gifts.js). Essa taxa é dividida em duas partes:
 //   uma vai para o fundo de doações (projetos sociais) e a outra para os projetos e o lucro do Realys.
 import { GIFT_FEE_PCT } from './gifts';
