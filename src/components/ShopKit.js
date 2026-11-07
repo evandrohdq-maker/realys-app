@@ -65,7 +65,7 @@ export function CategoryPicker({ items, onPick, news }) {
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={styles.catTitle}>Você no comando.</Text>
-          <Text style={styles.catSub}>Escolha o tipo de produto · {items.length} setores</Text>
+          <Text style={styles.catSub}>Escolha o tipo de produto</Text>
         </View>
         {news ? (
           <View style={{ alignItems: 'flex-end', marginRight: 8 }}>
@@ -73,8 +73,7 @@ export function CategoryPicker({ items, onPick, news }) {
             <Text style={styles.catNumSub}>novidades</Text>
           </View>
         ) : null}
-        <Text style={styles.catSwap}>Ver</Text>
-        <Ionicons name="chevron-down" size={16} color={colors.primary} />
+        <Ionicons name="ellipsis-vertical" size={20} color={colors.primary} style={{ paddingHorizontal: 6 }} />
       </TouchableOpacity>
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)} statusBarTranslucent>
         <View style={styles.pickBack}>

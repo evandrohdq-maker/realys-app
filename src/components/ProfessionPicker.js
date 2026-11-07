@@ -19,7 +19,6 @@ export default function ProfessionPicker({ selected, types, counts = {}, onPick,
   const allowed = new Set(types.map((t) => t.key));
   const sel = serviceTypes.find((t) => t.key === selected);
   const classes = PROF_CLASSES.map((c) => ({ ...c, types: types.filter((t) => t.group === c.label) })).filter((c) => c.types.length);
-  const total = types.length;
   const near = (list) => list.reduce((n, t) => n + (counts[t.key] || 0), 0);
   const close = () => {
     setOpen(false);
@@ -45,11 +44,10 @@ export default function ProfessionPicker({ selected, types, counts = {}, onPick,
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={styles.barTitle} numberOfLines={1}>{sel ? sel.label : 'Escolha o profissional'}</Text>
           <Text style={styles.barSub} numberOfLines={1}>
-            {sel ? `${sel.group} · trocar profissão` : `${classes.length} classes · ${total} profissões`}
+            {sel ? sel.group : 'Escolha a profissão'}
           </Text>
         </View>
-        <Text style={styles.barSwap}>Trocar</Text>
-        <Ionicons name="chevron-down" size={16} color={colors.primary} />
+        <Ionicons name="ellipsis-vertical" size={20} color={colors.primary} style={{ paddingHorizontal: 6 }} />
       </TouchableOpacity>
 
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => (cls || q ? (setCls(null), setQ('')) : close())} statusBarTranslucent>
@@ -123,7 +121,7 @@ export default function ProfessionPicker({ selected, types, counts = {}, onPick,
                           <Ionicons name={c.ion} size={22} color={colors.primary} />
                         </View>
                         <Text style={styles.itemLabel} numberOfLines={2}>{c.label}</Text>
-                        <Text style={styles.itemSub}>{c.types.length} tipos{n ? ` · ${n} perto` : ''}</Text>
+                        {n ? <Text style={styles.itemSub}>{n} perto</Text> : null}
                       </TouchableOpacity>
                     );
                   })}

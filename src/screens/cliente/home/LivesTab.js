@@ -159,7 +159,7 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
                   </View>
                   <View style={{ flex: 1, marginLeft: 8 }}>
                     <Text style={styles.tileTitle} numberOfLines={1}>{c.label}</Text>
-                    <Text style={[styles.tileMeta, n ? { color: '#E5484D' } : null]} numberOfLines={1}>{n ? `${n} ao vivo` : `${c.subs.length} subclasses`}</Text>
+                    <Text style={[styles.tileMeta, n ? { color: '#E5484D' } : null]} numberOfLines={1}>{n ? `${n} ao vivo` : c.hint}</Text>
                   </View>
                 </TouchableOpacity>
               );
