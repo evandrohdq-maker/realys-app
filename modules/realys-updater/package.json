@@ -1,0 +1,7 @@
+{
+  "name": "realys-updater",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Atualização automática do APK do Realys (Android)",
+  "main": "index.js"
+}
