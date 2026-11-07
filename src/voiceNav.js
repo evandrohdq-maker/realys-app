@@ -11,10 +11,13 @@ const T = (label, go, words) => ({ label, go, words });
 export const NAV_TARGETS = [
   // Barra de baixo (Usuário)
   T('Início', { tab: 'stories' }, ['inicio', 'home', 'pagina inicial', 'tela inicial', 'comeco', 'principal']),
-  T('Shop', { tab: 'home', top: 'shop' }, ['shop', 'shopping', 'xop', 'chop', 'shope', 'shopi']),
+  T('Shop', { tab: 'home', top: 'shop', seg: 'vitrine' }, ['shop', 'shopping', 'xop', 'chop', 'shope', 'shopi']),
   T('Community', { tab: 'stories' }, ['community', 'comunity', 'comuniti', 'comiuniti', 'kamiuniti', 'stories', 'storys', 'story', 'storis', 'stori', 'historias', 'historia', 'histories', 'history', 'historys', 'estorias', 'estoria', 'estoris', 'istoris', 'istori', 'storie', 'stores', 'status']),
   T('Date', { tab: 'encontros' }, ['date', 'deite', 'deit', 'deiti', 'deyt', 'dates', 'encontros', 'encontro', 'namoro', 'namorar', 'match', 'relacionamentos', 'relacionamento', 'paquera']),
   T('Food', { tab: 'food', cat: 'Todos', q: '' }, ['food', 'fud', 'fudi', 'fude', 'fuud', 'foods', 'comida', 'comidas', 'restaurante', 'restaurantes', 'alimentacao', 'delivery']),
+  // Setor de Promoções dentro do Shop e do Food (ofertas relâmpago, cupons e combos).
+  T('Promoções do Shop', { tab: 'home', seg: 'promo' }, ['promocoes do shop', 'promocao do shop', 'ofertas do shop', 'ofertas relampago', 'oferta relampago', 'cupons', 'cupom', 'cupons de desconto', 'combos', 'leve mais pague menos']),
+  T('Promoções do Food', { tab: 'food', cat: 'Todos', q: '', seg: 'promo' }, ['promocoes do food', 'promocao do food', 'ofertas do food', 'promocoes de comida', 'ofertas de comida', 'promocoes de restaurante', 'promocoes dos restaurantes', 'promocoes de restaurantes', 'cupons de comida', 'combos de comida']),
   T('Serviços', { tab: 'servicos' }, ['servicos', 'servico', 'prestadores', 'prestador de servico', 'prestadores de servico']),
   T('Pedidos', { tab: 'pedidos' }, ['pedidos', 'pedido', 'meus pedidos', 'minhas compras', 'compras', 'entregas']),
   T('Perfil', { tab: 'perfil' }, ['perfil', 'meu perfil', 'minha conta', 'conta', 'configuracoes', 'ajustes']),

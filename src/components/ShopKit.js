@@ -63,10 +63,17 @@ export function ShopHead({ title, action, onAction }) {
 }
 
 // Cartão de produto do Shop: foto, nome, loja, preço e botão "+ Carrinho".
-export function ShopProductCard({ p, storeName, onAdd, style }) {
+export function ShopProductCard({ p, storeName, onAdd, style, sponsored, onPress }) {
   return (
-    <View style={[styles.prod, style]}>
-      <ProductThumb product={p} size={86} />
+    <View style={[styles.prod, sponsored && styles.prodSp, style]}>
+      <TouchableOpacity activeOpacity={onPress ? 0.85 : 1} onPress={onPress} disabled={!onPress}>
+        <ProductThumb product={p} size={86} />
+      </TouchableOpacity>
+      {sponsored ? (
+        <View style={styles.spTag}>
+          <Text style={styles.spTagText}>Patrocinado</Text>
+        </View>
+      ) : null}
       {p.launch ? <Text style={styles.launch}>LANÇAMENTO</Text> : null}
       <Text numberOfLines={2} style={styles.prodName}>
         {p.name}
@@ -140,6 +147,9 @@ const styles = StyleSheet.create({
     ...soft,
     marginBottom: 10,
   },
+  prodSp: { borderWidth: 1, borderColor: 'rgba(108,92,231,0.35)' },
+  spTag: { position: 'absolute', top: 8, right: 8, backgroundColor: colors.sponsored, borderRadius: 7, paddingHorizontal: 6, paddingVertical: 2 },
+  spTagText: { color: colors.onPrimary, fontSize: 9, fontWeight: '800' },
   launch: { color: colors.accent, fontSize: 9, fontWeight: '800', letterSpacing: 0.6, marginTop: 6 },
   prodName: { color: colors.text, fontWeight: '700', fontSize: 13, marginTop: 8, minHeight: 34 },
   prodStore: { color: colors.muted, fontSize: 11, marginTop: 2 },

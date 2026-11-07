@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useStore, myProducts } from '../../store';
 import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Stat, BarChart, Section, ProductThumb, Badge } from '../../components/ui';
+import { ALL_ADS, shortNum } from '../../adsData';
+import { MY_COMPANY_ID } from '../../data';
 
 export default function DashboardScreen() {
   const { state, dispatch } = useStore();
@@ -59,6 +61,8 @@ export default function DashboardScreen() {
         <Text style={{ color: colors.text }}>• O vídeo patrocinado de 01/11 trouxe 23 vendas (retorno de 12× o valor pago).</Text>
       </Card>
 
+      <AdsPerformance />
+
       <Section title="Produtos com maior lucro">
         {best.map((p) => (
           <Card key={p.id}>
@@ -93,5 +97,51 @@ export default function DashboardScreen() {
         </Card>
       </Section>
     </Screen>
+  );
+}
+
+// Desempenho da publicidade paga da minha empresa no Shop e no Food (vitrine e clipes).
+// Números da demonstração + o que os clientes fizeram nesta sessão.
+function AdsPerformance() {
+  const { state } = useStore();
+  const ads = ALL_ADS.filter((a) => a.storeId === MY_COMPANY_ID);
+  if (!ads.length) return null;
+  const base = (a) => (a.views ? { views: a.views, taps: Math.round(a.views * 0.06), watched: Math.round(a.views * 0.41) } : { views: 3180, taps: 214, watched: 0 });
+  const rows = ads.map((a) => {
+    const b = base(a);
+    const live = state.adStats[a.id] || {};
+    return { ...a, views: b.views + (live.views || 0), taps: b.taps + (live.taps || 0), watched: b.watched + (live.watched || 0), clip: !!a.views };
+  });
+  return (
+    <Section title="Publicidade paga">
+      {rows.map((r) => (
+        <Card key={r.id}>
+          <Row style={{ justifyContent: 'space-between' }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>{r.title}</Text>
+              <Text style={{ color: colors.muted, fontSize: 12 }}>{r.format}</Text>
+            </View>
+            <Badge label="No ar" color={colors.success} />
+          </Row>
+          <Row style={{ marginTop: 10, justifyContent: 'space-between' }}>
+            <Metric label="Visualizações" value={shortNum(r.views)} />
+            <Metric label={r.clip ? 'Assistiram tudo' : 'Toques'} value={shortNum(r.clip ? r.watched : r.taps)} />
+            <Metric label="Cliques" value={`${((r.taps / Math.max(1, r.views)) * 100).toFixed(1).replace('.', ',')}%`} />
+          </Row>
+        </Card>
+      ))}
+      <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
+        Clientes ganham pontos Realys ao assistir seus clipes até o fim: mais atenção no seu produto.
+      </Text>
+    </Section>
+  );
+}
+
+function Metric({ label, value }) {
+  return (
+    <View style={{ alignItems: 'center', flex: 1 }}>
+      <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 16 }}>{value}</Text>
+      <Text style={{ color: colors.muted, fontSize: 11 }}>{label}</Text>
+    </View>
   );
 }

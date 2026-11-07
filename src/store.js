@@ -184,6 +184,10 @@ const initialState = {
   applications: {}, // { jobId: 'enviada' }
   // Nota fiscal eletrônica emitida automaticamente a cada venda (simulada na demonstração).
   nfeSeq: 1240,
+  // Publicidade paga do Shop e do Food (src/adsData.js): visualizações e toques de cada anúncio,
+  // e os clipes que o cliente já assistiu até o fim (cada um dá pontos uma vez só).
+  adStats: {}, // { [adId]: { views, taps, watched } }
+  adRewards: {}, // { [clipId]: true }
 };
 
 const nfeNumber = (n) => String(n).padStart(6, '0');
@@ -962,6 +966,47 @@ function baseReducer(state, a) {
       };
     }
     // Troca pontos por um crédito promocional de um parceiro.
+    // ---------- Publicidade e promoções do Shop e do Food (src/adsData.js) ----------
+    case 'AD_EVENT': {
+      const cur = state.adStats[a.id] || { views: 0, taps: 0, watched: 0 };
+      return { ...state, adStats: { ...state.adStats, [a.id]: { ...cur, [a.ev]: (cur[a.ev] || 0) + 1 } } };
+    }
+    // Assistiu o clipe até o fim: ganha pontos (uma vez por clipe).
+    case 'AD_REWARD': {
+      if (state.adRewards[a.id]) return state;
+      return {
+        ...state,
+        adRewards: { ...state.adRewards, [a.id]: true },
+        points: state.points + a.points,
+        pointsLog: [{ id: newId('pt'), points: a.points, desc: `Assistiu: ${a.desc}`, at: Date.now() }, ...state.pointsLog],
+      };
+    }
+    // Pegar cupom: vira crédito promocional da loja e desconta sozinho no carrinho.
+    case 'COLLECT_COUPON': {
+      const c = a.coupon;
+      if ((state.promoCredits || []).some((pc) => pc.offerId === c.id)) return state;
+      return {
+        ...state,
+        promoCredits: [{ id: newId('pc'), offerId: c.id, kind: 'loja', partnerId: c.storeId, partner: a.partner, icon: '🎟️', title: c.title, value: c.value, used: false }, ...state.promoCredits],
+      };
+    }
+    // Combo "leve mais, pague menos": os itens vão para o carrinho e o desconto vira crédito da loja.
+    case 'ADD_COMBO': {
+      let cart = state.cart;
+      a.items.forEach((productId) => {
+        const found = cart.find((c) => c.productId === productId);
+        cart = found ? cart.map((c) => (c.productId === productId ? { ...c, qty: c.qty + 1 } : c)) : [...cart, { productId, qty: 1 }];
+      });
+      const pending = (state.promoCredits || []).some((pc) => pc.offerId === a.combo.id && !pc.used);
+      return {
+        ...state,
+        cart,
+        promoCredits:
+          pending || !a.off
+            ? state.promoCredits
+            : [{ id: newId('pc'), offerId: a.combo.id, kind: 'loja', partnerId: a.combo.storeId, partner: a.partner, icon: '🧺', title: `Combo ${a.combo.title}`, value: a.off, used: false }, ...state.promoCredits],
+      };
+    }
     case 'REDEEM_POINTS': {
       const offer = PARTNER_OFFERS.find((o) => o.id === a.offerId);
       if (!offer || state.points < offer.points) return state;

@@ -193,7 +193,7 @@ function buildIndex(state) {
   foodPromos.forEach((fp) => {
     const st = (state.stores || []).find((s) => s.id === fp.storeId) || {};
     add(
-      { id: 'fp-' + fp.id, section: 'Food · Promoção', icon: st.logo || '🍽️', title: fp.title, subtitle: `${st.name || ''} · ${fp.when}`, price: fp.price, where: st.name, photo: fp.photo, sponsored: fp.sponsored, go: { tab: 'food', cat: st.category || 'Todos', q: '' } },
+      { id: 'fp-' + fp.id, section: 'Food · Promoção', icon: st.logo || '🍽️', title: fp.title, subtitle: `${st.name || ''} · ${fp.when}`, price: fp.price, where: st.name, photo: fp.photo, sponsored: fp.sponsored, go: { tab: 'food', cat: 'Todos', q: '', seg: 'promo' } },
       fp.title, st.name, 'food comida restaurante promocao oferta desconto', fp.deal
     );
   });
@@ -208,7 +208,7 @@ function buildIndex(state) {
     const store = (state.stores || []).find((s) => s.id === p.storeId) || {};
     const promo = promos.find((x) => x.productId === p.id);
     add(
-      { id: 'p-' + p.id, section: promo ? `Promoção -${promo.off}%` : 'Produto', icon: p.emoji, title: p.name, subtitle: store.name || '', where: store.name, priceValue: p.price, go: promo ? { tab: 'home', top: 'promo' } : isFoodStore(store) ? { tab: 'food', cat: store.category, q: p.name } : { tab: 'loja', cat: 'Todos', q: p.name } },
+      { id: 'p-' + p.id, section: promo ? `Promoção -${promo.off}%` : 'Produto', icon: p.emoji, title: p.name, subtitle: store.name || '', where: store.name, priceValue: p.price, go: promo ? (isFoodStore(store) ? { tab: 'food', cat: 'Todos', q: '', seg: 'promo' } : { tab: 'home', seg: 'promo' }) : isFoodStore(store) ? { tab: 'food', cat: store.category, q: p.name } : { tab: 'loja', cat: 'Todos', q: p.name } },
       p.name, store.name, store.category, 'produto', promo ? 'promocao oferta desconto' : '', p.launch ? 'lancamento novidade novo' : ''
     );
   });

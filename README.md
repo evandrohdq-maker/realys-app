@@ -112,6 +112,14 @@ O administrador vê a visão geral da plataforma (usuários, empresas, receita),
 
 **Página da empresa (o que o cliente vê):** é um **perfil empresarial**, aberto para todos os usuários, mas **não é um perfil social**: nada de foto pessoal ou capa de alguém se exibindo, só a empresa. O topo usa a foto da estrutura da empresa, com a **ficha da empresa** (razão social, CNPJ verificado, equipe, endereço e atendimento), botões **Seguir empresa** e **Atendimento**, e a guia **Galeria** com fotos da **equipe**, dos **produtos** e da **estrutura** (a empresa monta em Página › Galeria da empresa). Topo noturno com brilho dourado e azul, logo com anel em órbita, slogan, selos, números (seguidores, nota, depoimentos, desde quando), **Onde atua** (cartões de cada área com os segmentos), **Onde atende** e as guias **Vitrine**, **Produtos**, **Depoimentos** (nota média, barras por estrela, selo "Compra verificada"; quem comprou na loja pelo Realys pode escrever o seu), **Propagandas** (vídeos da empresa), **Galeria** e **Novidades**. A guia **Músicas** só aparece se a empresa publicou. Dados de exemplo em `src/companyBusiness.js`.
 
+**Shop e Food com publicidade paga e setor de Promoções:** as duas páginas têm abas internas no topo: **Vitrine | Promoções** no Shop e **Cardápio | Promoções** no Food (com o número de ofertas no selo vermelho).
+- **Vitrine patrocinada:** banners grandes no topo que passam sozinhos, com selo PATROCINADO e botão de ação. Cada visualização e toque é contado.
+- **Clipes das lojas / da cozinha:** vídeos curtos de produto (estilo stories). Quem assiste até o fim ganha **+2 pontos Realys** (uma vez por clipe) e pode comprar ou pedir sem sair do vídeo. É o que faz o cliente querer ver o anúncio em vez de pular.
+- **Produtos patrocinados** entram na grade "Destaques para você" (os primeiros e depois intercalados), com borda e selo roxo.
+- **Promoções:** ofertas relâmpago com contagem regressiva ao vivo e barra de "% vendido", **cupons para pegar** (viram crédito da loja e descontam sozinhos no carrinho), e **combos "leve mais, pague menos"** (os itens vão juntos para o carrinho e o desconto sai no pagamento). No Food entram também as promoções dos restaurantes.
+- **Empresa › Painel › Publicidade paga:** visualizações, quem assistiu tudo e taxa de cliques de cada anúncio da empresa.
+- Pela Lotus: *"promoções do shop"*, *"ofertas relâmpago"*, *"cupons"*, *"promoções do food"*. Dados em `src/adsData.js`, peças em `src/components/AdKit.js`.
+
 **Carrinho:** janela compacta que abre por cima de qualquer tela, sem mexer no visual. Abre pelo **ícone da sacola no topo** (só aparece quando há itens, com o número de itens), pela barra "Ver carrinho" da Loja e do Food, ou pedindo à Lotus: *"abre meu carrinho"*. Dentro dá para mudar a quantidade (+ e −), tirar itens, ver quanto sai dos créditos de presente e do saldo, e pagar.
 
 **Avaliação depois da entrega:** quando o pedido é entregue (comida ou produtos) ou o serviço é concluído (motorista, eletricista, diarista…), a avaliação abre sozinha: estrelas, etiquetas rápidas ("Chegou quentinha", "Pontual", "Atrasou"…) e comentário. Num pedido avalia a loja ou restaurante e o motoboy; num serviço, o prestador. A nota entra na nota do prestador, e o comentário da loja vira depoimento com "Compra verificada" na página da empresa. Dá para avaliar depois pelo botão **Avaliar** em Pedidos e Serviços. Com nota boa, ela oferece dar gorjeta.
@@ -243,6 +251,8 @@ src/screens/cliente/       → feed, loja, serviços, pedidos
 src/screens/empresa/       → painel, estoque, fluxo de caixa, negócios B2B, RH (vagas e candidatos)
 src/jobsData.js            → vagas de emprego e candidatos de exemplo
 src/components/Launches.js → vitrine de Lançamentos do Shop
+src/components/AdKit.js    → publicidade paga (vitrine, clipes) e setor de Promoções do Shop e do Food
+src/adsData.js             → anúncios, ofertas relâmpago, cupons e combos (demonstração)
 src/components/SocialProfile.js → depoimentos, destaques e galerias de fotos e vídeos do perfil
 src/testimonialsData.js    → depoimentos de exemplo e a análise automática do texto
 src/screens/prestador/     → cadastro profissional (funções e preços) e pedidos recebidos

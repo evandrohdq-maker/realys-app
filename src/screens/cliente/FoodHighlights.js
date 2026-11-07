@@ -12,18 +12,17 @@ import { venueOfBar, freeTable } from '../../venueData';
 // novidades do cardápio e o que a galera está comendo. Só conteúdo de comida e bebida.
 const sponsoredFirst = (list) => [...list].sort((a, b) => (b.sponsored ? 1 : 0) - (a.sponsored ? 1 : 0));
 
-export function FoodHighlights({ filter, onOpenStore, onAdd }) {
+// only='promos': só as promoções de restaurantes (vão para a aba Promoções do Food).
+export function FoodHighlights({ filter, onOpenStore, onAdd, only }) {
   const { state, dispatch } = useStore();
   const [going, setGoing] = useState({});
   const [here, setHere] = useState({});
   const [liked, setLiked] = useState({});
 
   const catOf = (storeId) => (storeOf(state, storeId) || {}).category;
-  const showPromos = filter === 'todos' || filter === 'restaurantes' || filter === 'doces';
-  const showBars = filter === 'todos' || filter === 'bares';
-  const promos = sponsoredFirst(
-    foodPromos.filter((p) => filter === 'todos' || (filter === 'restaurantes' ? catOf(p.storeId) === 'Alimentação' : filter === 'doces' ? catOf(p.storeId) === 'Doces e cafés' : false))
-  );
+  const showPromos = only === 'promos';
+  const showBars = !only && (filter === 'todos' || filter === 'bares');
+  const promos = sponsoredFirst(foodPromos);
   const news = state.products.filter((p) => p.launch && isFoodStore(storeOf(state, p.storeId)));
 
   const openPromo = (p) => {
@@ -38,7 +37,7 @@ export function FoodHighlights({ filter, onOpenStore, onAdd }) {
     <View>
       {showPromos && promos.length ? (
         <>
-          <Head title="🔥 Promoções de restaurantes" />
+          <Head title="🔥 Promoções dos restaurantes" />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.hScroll} contentContainerStyle={{ paddingHorizontal: 16 }}>
             {promos.map((p) => {
               const s = storeOf(state, p.storeId) || {};
@@ -139,7 +138,7 @@ export function FoodHighlights({ filter, onOpenStore, onAdd }) {
         </>
       ) : null}
 
-      {news.length && filter !== 'bares' ? (
+      {!only && news.length && filter !== 'bares' ? (
         <>
           <Head title="✨ Novidades do cardápio" />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.hScroll} contentContainerStyle={{ paddingHorizontal: 16 }}>
@@ -159,8 +158,8 @@ export function FoodHighlights({ filter, onOpenStore, onAdd }) {
         </>
       ) : null}
 
-      <Head title="😋 O que a galera está comendo" />
-      {foodPosts.map((f) => (
+      {!only ? <Head title="😋 O que a galera está comendo" /> : null}
+      {(only ? [] : foodPosts).map((f) => (
         <View key={f.id} style={styles.post}>
           <Text style={{ color: colors.text, fontWeight: '700' }}>
             {f.author} <Ionicons name="shield-checkmark" size={12} color={colors.primary} />

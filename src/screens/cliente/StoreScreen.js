@@ -10,6 +10,14 @@ import { isFoodStore } from '../../data';
 import { FOOD_FILTERS } from '../../foodData';
 import { FoodHighlights } from './FoodHighlights';
 import { ShopHero, CircleShortcuts, ShopHead, ShopProductCard as ProductCard, ShopGrid, StoreRow } from '../../components/ShopKit';
+import { SegTabs, SpotlightCarousel, ClipStrip, PromoSector } from '../../components/AdKit';
+import { FOOD_SPOTLIGHT, FOOD_CLIPS, FOOD_FLASH, FOOD_COUPONS, FOOD_COMBOS } from '../../adsData';
+
+// Abas internas do Food: o Cardápio (com a publicidade paga) e o setor separado de Promoções.
+const FOOD_SEGS = [
+  { key: 'cardapio', label: 'Cardápio', icon: 'restaurant-outline' },
+  { key: 'promo', label: 'Promoções', icon: 'flame-outline', hot: true, badge: FOOD_FLASH.length },
+];
 
 // Atalhos redondos da Loja (mesmo visual do Shop).
 const CATEGORIES = [
@@ -37,20 +45,32 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
   const [q, setQ] = useState('');
   const [cat, setCat] = useState(food ? 'todos' : 'Todos');
   const [searched, setSearched] = useState('');
+  const [seg, setSeg] = useState('cardapio');
 
   // Veio do menu ⋮ (ex.: Restaurantes → Pizzaria)
   useEffect(() => {
     if (!explore) return;
     if (explore.cat) setCat(food ? foodFilterOf(explore.cat) : explore.cat);
     if (explore.q !== undefined) setQ(explore.q);
+    if (food) setSeg(explore.seg || 'cardapio');
   }, [explore]);
   const [openStore, setOpenStore] = useState(null);
   const [showCart, setShowCart] = useState(false);
   // Voltar do celular: fecha o carrinho / a loja aberta antes de sair da aba.
   useBack(!!openStore, () => setOpenStore(null));
   useBack(showCart, () => setShowCart(false));
+  useBack(!!food && seg !== 'cardapio' && !openStore, () => setSeg('cardapio'));
 
   const add = (id) => dispatch({ type: 'ADD_TO_CART', productId: id });
+  // Toque no anúncio da vitrine do Food: abre o cardápio ou já põe o prato no carrinho.
+  const openAd = (ad) => {
+    const p = state.products.find((x) => x.id === ad.productId);
+    const s = storeOf(state, ad.storeId) || {};
+    Alert.alert(ad.title, `${s.name}${p ? `\n${p.name} · ${brl(p.price)}` : ''}\n\n${ad.sub}`, [
+      { text: 'Ver cardápio', onPress: () => setOpenStore(ad.storeId) },
+      p ? { text: 'Pedir', onPress: () => add(p.id) } : { text: 'OK' },
+    ]);
+  };
 
   // Ordem da busca: patrocinadas primeiro, depois recomendadas, depois por nota.
   const rankedStores = useMemo(() => {
@@ -171,8 +191,20 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
     );
   }
 
+  if (food && seg === 'promo') {
+    return (
+      <Screen>
+        <SegTabs items={FOOD_SEGS} value={seg} onChange={setSeg} />
+        <PromoSector food flash={FOOD_FLASH} coupons={FOOD_COUPONS} combos={FOOD_COMBOS} onOpenStore={setOpenStore} />
+        <FoodHighlights filter="todos" only="promos" onOpenStore={setOpenStore} onAdd={add} />
+        {cartCount ? <CartBar count={cartCount} total={total} onPress={() => dispatch({ type: 'OPEN_CART' })} /> : null}
+      </Screen>
+    );
+  }
+
   return (
     <Screen>
+      {food ? <SegTabs items={FOOD_SEGS} value={seg} onChange={setSeg} /> : null}
       <SearchBar
         value={q}
         onChangeText={(t) => {
@@ -185,8 +217,20 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
         style={{ marginBottom: 0 }}
       />
       <View style={{ height: 12 }} />
-      {!q ? (food ? <ShopHero title="Food" sub="Promoções de restaurantes, bares e cafés perto de você" /> : <ShopHero title="Loja Realys" sub="Lojas verificadas, patrocinadas e recomendadas primeiro" />) : null}
+      {food && !q ? <SpotlightCarousel ads={FOOD_SPOTLIGHT} onOpen={openAd} /> : null}
+      {!q ? (food ? <ShopHero title="Food" sub="Restaurantes, bares e cafés perto de você" /> : <ShopHero title="Loja Realys" sub="Lojas verificadas, patrocinadas e recomendadas primeiro" />) : null}
       <CircleShortcuts items={food ? FOOD_SHORTCUTS : CATEGORIES} value={cat} onPress={setCat} />
+      {food && !q ? <ClipStrip title="🎬 Clipes da cozinha" clips={FOOD_CLIPS} food /> : null}
+      {food && !q ? (
+        <TouchableOpacity style={styles.promoTeaser} activeOpacity={0.9} onPress={() => setSeg('promo')}>
+          <Text style={{ fontSize: 18 }}>🔥</Text>
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={{ color: '#0B1124', fontWeight: '800' }}>Promoções dos restaurantes</Text>
+            <Text style={{ color: 'rgba(11,17,36,0.7)', fontSize: 12 }}>Ofertas relâmpago, cupons e combos · até 40% off</Text>
+          </View>
+          <Text style={{ color: '#0B1124', fontWeight: '800', fontSize: 18 }}>›</Text>
+        </TouchableOpacity>
+      ) : null}
 
       {matchedProducts.length ? (
         <>
@@ -240,6 +284,7 @@ function CartBar({ count, total, onPress }) {
 }
 
 const styles = StyleSheet.create({
+  promoTeaser: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E2B649', borderRadius: 16, padding: 12, marginBottom: 16 },
   pageBtn: { borderWidth: 1, borderColor: colors.primary, borderRadius: 12, padding: 10, marginBottom: 10, backgroundColor: colors.primaryLight },
   h1: { fontSize: 22, fontWeight: '700', color: colors.text, marginBottom: 6 },
   back: { color: colors.primary, fontWeight: '700', marginBottom: 10, fontSize: 15 },

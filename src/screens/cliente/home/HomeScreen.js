@@ -17,13 +17,15 @@ import { SHOP_SECTORS, SHOP_SECTOR_KEYS } from '../../../shopSectorsData';
 import { useBack } from '../../../back';
 import { TestimonialCard } from '../../../components/SocialProfile';
 import { ShopHero, CircleShortcuts, ShopProductCard, ShopGrid, StoreRow } from '../../../components/ShopKit';
+import { SegTabs, SpotlightCarousel, ClipStrip, PromoSector } from '../../../components/AdKit';
+import { SHOP_SPOTLIGHT, SHOP_CLIPS, SHOP_SPONSORED_PRODUCTS, SHOP_FLASH, SHOP_COUPONS, SHOP_COMBOS } from '../../../adsData';
 
 // Aba Shop (barra de baixo): só a loja. Eventos, Promoções, Anúncios e Lives
 // agora ficam na barra do topo da página Community (ver CommunityExtras abaixo).
-export default function HomeScreen({ goTo }) {
+export default function HomeScreen({ goTo, explore }) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ShopTab goTo={goTo} />
+      <ShopTab goTo={goTo} explore={explore} />
     </View>
   );
 }
@@ -133,25 +135,79 @@ const SHOP_SHORTCUTS = [
   })),
 ];
 
-function ShopTab({ goTo }) {
+// Abas internas do Shop: a Vitrine (com a publicidade paga) e o setor separado de Promoções.
+const SHOP_SEGS = [
+  { key: 'vitrine', label: 'Vitrine', icon: 'storefront-outline' },
+  { key: 'promo', label: 'Promoções', icon: 'flame-outline', hot: true, badge: SHOP_FLASH.length },
+];
+
+// Patrocinados primeiro e depois intercalados (1 a cada 3) com os destaques.
+function withSponsored(featured, sponsored) {
+  const rest = featured.filter((p) => !sponsored.some((x) => x.id === p.id));
+  const out = [];
+  let k = 0;
+  rest.forEach((p, i) => {
+    if (i % 2 === 0 && sponsored[k]) out.push({ p: sponsored[k++], sp: true });
+    out.push({ p, sp: false });
+  });
+  while (sponsored[k]) out.push({ p: sponsored[k++], sp: true });
+  return out;
+}
+
+function ShopTab({ goTo, explore }) {
   const { state, dispatch } = useStore();
+  const [seg, setSeg] = useState('vitrine');
+  useBack(seg !== 'vitrine', () => setSeg('vitrine'));
+  // Veio da Lotus, da busca ou do menu: "promoções do shop", "ofertas relâmpago".
+  useEffect(() => {
+    if (explore && explore.tab === 'home' && explore.seg) setSeg(explore.seg);
+  }, [explore]);
   const featured = state.products.filter((p) => p.featured);
+  const sponsored = SHOP_SPONSORED_PRODUCTS.map((id) => state.products.find((p) => p.id === id)).filter(Boolean);
+  const grid = withSponsored(featured, sponsored);
   const stores = [...state.stores].sort((a, b) => b.sponsored - a.sponsored || b.recommended - a.recommended || b.rating - a.rating);
+  const add = (p) => dispatch({ type: 'ADD_TO_CART', productId: p.id });
+  // Toque no anúncio da vitrine: mostra o produto e leva para a loja ou para o carrinho.
+  const openAd = (ad) => {
+    const p = state.products.find((x) => x.id === ad.productId);
+    const s = storeOf(state, ad.storeId) || {};
+    Alert.alert(ad.title, `${s.name}${p ? `\n${p.name} · ${brl(p.price)}` : ''}\n\n${ad.sub}`, [
+      { text: 'Ver loja', onPress: () => dispatch({ type: 'OPEN_COMPANY', id: ad.storeId }) },
+      p ? { text: 'Pôr no carrinho', onPress: () => add(p) } : { text: 'OK' },
+    ]);
+  };
   return (
     <Screen>
-      <ShopHero title="Você no comando." />
-      <CircleShortcuts items={SHOP_SHORTCUTS} onPress={goTo} />
-      <LaunchStrip />
-      <SectionHead title="Destaques para você" action="Ver loja" onAction={() => goTo('loja')} />
-      <ShopGrid>
-        {featured.map((p) => (
-          <ShopProductCard key={p.id} p={p} storeName={(storeOf(state, p.storeId) || {}).name} onAdd={() => dispatch({ type: 'ADD_TO_CART', productId: p.id })} />
-        ))}
-      </ShopGrid>
-      <SectionHead title="Lojas em destaque" />
-      {stores.map((s) => (
-        <StoreRow key={s.id} s={{ ...s, city: null, recommended: false }} onPress={() => goTo('loja')} />
-      ))}
+      <SegTabs items={SHOP_SEGS} value={seg} onChange={setSeg} />
+      {seg === 'promo' ? (
+        <PromoSector flash={SHOP_FLASH} coupons={SHOP_COUPONS} combos={SHOP_COMBOS} onOpenStore={(id) => dispatch({ type: 'OPEN_COMPANY', id })} />
+      ) : (
+        <>
+          <SpotlightCarousel ads={SHOP_SPOTLIGHT} onOpen={openAd} />
+          <ShopHero title="Você no comando." />
+          <CircleShortcuts items={SHOP_SHORTCUTS} onPress={goTo} />
+          <LaunchStrip />
+          <ClipStrip title="🎬 Clipes das lojas" clips={SHOP_CLIPS} />
+          <TouchableOpacity style={styles.promoTeaser} activeOpacity={0.9} onPress={() => setSeg('promo')}>
+            <Ionicons name="flash" size={20} color="#0B1124" />
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={{ color: '#0B1124', fontWeight: '800' }}>Ofertas relâmpago, cupons e combos</Text>
+              <Text style={{ color: 'rgba(11,17,36,0.7)', fontSize: 12 }}>Até 40% off · acaba hoje</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#0B1124" />
+          </TouchableOpacity>
+          <SectionHead title="Destaques para você" action="Ver loja" onAction={() => goTo('loja')} />
+          <ShopGrid>
+            {grid.map(({ p, sp }) => (
+              <ShopProductCard key={p.id} p={p} sponsored={sp} storeName={(storeOf(state, p.storeId) || {}).name} onAdd={() => add(p)} onPress={() => dispatch({ type: 'OPEN_COMPANY', id: p.storeId })} />
+            ))}
+          </ShopGrid>
+          <SectionHead title="Lojas em destaque" />
+          {stores.map((s) => (
+            <StoreRow key={s.id} s={{ ...s, city: null, recommended: false }} onPress={() => goTo('loja')} />
+          ))}
+        </>
+      )}
     </Screen>
   );
 }
@@ -831,6 +887,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   topTabOn: { backgroundColor: colors.primaryLight },
+  promoTeaser: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E2B649', borderRadius: 16, padding: 12, marginBottom: 16 },
   topTabText: { color: colors.muted, fontSize: 10, fontWeight: '600', marginTop: 3 },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, marginTop: 4 },
   sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '700' },
