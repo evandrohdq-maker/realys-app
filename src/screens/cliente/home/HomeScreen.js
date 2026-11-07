@@ -8,6 +8,7 @@ import { venueOfEvent, freeTable, ticketPrice } from '../../../venueData';
 import { promos, listings, LISTING_KINDS, LISTING_CTA, communityPosts, contacts, lives, events, EVENT_GROUPS } from '../../../homeData';
 import { ChatModal, VideoCallModal, LiveModal } from './Social';
 import LivesTab from './LivesTab';
+import NewsTab from './NewsTab';
 import { members, memberByName } from '../../../people';
 import { PeopleSearchModal, PersonRow } from '../../../components/People';
 import { LaunchStrip } from '../../../components/Launches';
@@ -36,6 +37,7 @@ export default function HomeScreen({ goTo, explore, navigate }) {
 // (aberto pelo botão Community do rodapé), não aparece como botão no topo.
 export const COMMUNITY_TOP = [
   { key: 'comunidade', label: 'Comunidade', icon: 'people-circle-outline' },
+  { key: 'noticias', label: 'Notícias', icon: 'newspaper-outline' },
   { key: 'eventos', label: 'Eventos', icon: 'sparkles-outline' },
   { key: 'promo', label: 'Promoções', icon: 'pricetags-outline' },
   { key: 'anuncios', label: 'Anúncios', icon: 'megaphone-outline' },
@@ -102,6 +104,7 @@ export function CommunityExtras({ top, explore, navigate }) {
       {top === 'eventos' ? <EventsTab group={evGroup} setGroup={setEvGroup} onContact={contactAdvertiser} /> : null}
       {top === 'promo' ? <PromoTab /> : null}
       {top === 'anuncios' ? <AdsTab kind={kind} setKind={setKind} onContact={contactAdvertiser} /> : null}
+      {top === 'noticias' ? <NewsTab onWatch={(l) => setLive({ live: l, mine: false })} navigate={navigate} /> : null}
       {top === 'lives' ? <LivesTab filter={liveFilter} setFilter={setLiveFilter} onWatch={(l) => setLive({ live: l, mine: false })} onGoLive={() => setLive({ live: null, mine: true })} navigate={navigate} /> : null}
 
       <ChatModal

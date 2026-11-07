@@ -1,5 +1,6 @@
 import { askPix } from '../../components/PixPay';
 import React, { useState, useEffect } from 'react';
+import { TransportAlerts } from './home/NewsTab';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
@@ -50,6 +51,8 @@ export default function TransitScreen({ explore, navigate }) {
   return (
     <Screen>
       <Title sub="Ônibus, metrô e viagens com o veículo acompanhado pelo GPS">Transporte público</Title>
+      {/* Ligado às Notícias e Alertas: voos, estradas, metrô e ônibus afetados pelo clima. */}
+      <TransportAlerts navigate={navigate} all compact />
 
       <View style={styles.gps}>
         <Ionicons name="locate" size={14} color={colors.accent} />

@@ -43,6 +43,7 @@ import CartSheet, { CartIcon } from './src/components/CartSheet';
 import { PixPayHost } from './src/components/PixPay';
 import RateSheet, { LoyaltyNotifier } from './src/components/RateSheet';
 import VenueSheet, { VenuePill } from './src/components/VenueSheet';
+import AlertPill from './src/components/AlertPill';
 import { GlobalLive } from './src/components/LiveBits';
 import ProviderProfile from './src/screens/cliente/ProviderProfile';
 import { ProviderPreviewModal } from './src/components/ProviderPreview';
@@ -228,7 +229,7 @@ function Shell() {
 
   // Eventos, Promoções, Anúncios e Lives agora ficam na Community (antes ficavam no Shop).
   const route = (go) =>
-    go && go.tab === 'home' && ['eventos', 'promo', 'anuncios', 'lives', 'comunidade'].includes(go.top) ? { ...go, tab: 'stories' } : go;
+    go && go.tab === 'home' && ['noticias', 'eventos', 'promo', 'anuncios', 'lives', 'comunidade'].includes(go.top) ? { ...go, tab: 'stories' } : go;
 
   // Escolha feita no menu ⋮: vai para a aba certa (trocando de perfil se precisar).
   const pick = (goIn) => {
@@ -290,6 +291,7 @@ function Shell() {
       </View>
       {/* Faixa de avisos: só aparece quando há algo (comanda do evento, mãos livres). */}
       <View style={styles.subHeader}>
+        <AlertPill />
         <VenuePill style={[styles.idPill, { marginRight: 6 }]} textStyle={styles.idText} />
         {state.handsFree ? (
           <View style={[styles.idPill, hearing && { backgroundColor: 'rgba(47,116,208,0.1)' }]}>

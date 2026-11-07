@@ -60,6 +60,7 @@ export function AdminOverview() {
         <Text style={{ color: colors.text }}>• {openReports} denúncias abertas (aba Moderação)</Text>
         <Text style={{ color: colors.text }}>• {pending} cadastros aguardando aprovação (aba Cadastros)</Text>
         <Text style={{ color: colors.text }}>• {(state.disputes || []).filter((d) => d.status === 'em análise').length + 3} casos da Garantia Realys em análise (prazo de 48 h)</Text>
+        <Text style={{ color: colors.text }}>• {(state.newsReports || []).length + 4} relatos de moradores esperando moderação (Notícias e Alertas)</Text>
       </Card>
 
       <Section title="Receita por fonte (mês)">

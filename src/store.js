@@ -166,6 +166,10 @@ const initialState = {
   nudgesDismissed: {}, // lembretes da Lotus dispensados
   intelPlan: false, // empresa assina o painel de inteligência
   protectionFees: 0, // taxas de proteção Realys recebidas nesta sessão (demonstração)
+  // Notícias e Alertas (src/newsData.js)
+  alertsDismissed: {}, // alertas que a pessoa fechou na faixa do topo
+  safeAt: null, // quando marcou "Estou seguro" (os contatos são avisados)
+  newsReports: [], // relatos que a pessoa mandou: vão para a moderação antes de aparecer
   disputes: [], // casos da Garantia Realys: { id, kind, refId, title, reason, text, amount, status, outcome, at }
   boosts: [], // boosts e anúncios comprados com pontos ou saldo: { id, offerId, target, title, start, until, paidWith, status }
   loyalty: initialLoyalty, // Clube Realys: pedidos entregues, selos por loja (ver src/loyalty.js)
@@ -1039,6 +1043,13 @@ function baseReducer(state, a) {
       const cur = state.adStats[a.id] || { views: 0, taps: 0, watched: 0 };
       return { ...state, adStats: { ...state.adStats, [a.id]: { ...cur, [a.ev]: (cur[a.ev] || 0) + 1 } } };
     }
+    // ---------- Notícias e Alertas ----------
+    case 'ALERT_DISMISS':
+      return { ...state, alertsDismissed: { ...state.alertsDismissed, [a.id]: true } };
+    case 'MARK_SAFE':
+      return { ...state, safeAt: Date.now() };
+    case 'NEWS_REPORT':
+      return { ...state, newsReports: [{ id: newId('rp'), area: a.area, text: a.text, status: 'em moderação', at: Date.now() }, ...state.newsReports] };
     // ---------- Garantia Realys (src/guarantee.js) ----------
     case 'DISPUTE_OPEN': {
       if (state.disputes.some((d) => d.refId === a.refId && d.status === 'em análise')) return state;
