@@ -186,6 +186,8 @@ const PRAZO_MS = 24 * 3600 * 1000;
 function MandadosPanel({ aceita, funcionarios, mandados, setMandados }) {
   const [alvo, setAlvo] = useState(null); // { ordem, tipo: 'aceite' | 'finalizacao' }
   const [leitura, setLeitura] = useState({}); // código do QR digitado (demo), por mandado
+  const [chatTexto, setChatTexto] = useState({}); // texto digitado no chat, por mandado
+  const [chatDe, setChatDe] = useState('prestador'); // demo: quem está escrevendo
   const mudar = (id, fn) => setMandados((lista) => lista.map((m) => (m.id === id ? fn(m) : m)));
   const anotar = (m, texto) => ({ ...m, registro: [...(m.registro || []), texto] });
 
@@ -207,6 +209,13 @@ function MandadosPanel({ aceita, funcionarios, mandados, setMandados }) {
       const recebido = m.valor * (1 - REALYS_FEE_PCT / 100);
       return anotar({ ...m, status: 'Concluído', recebido }, `Conclusão com biometria às ${quando}, em ${local} (${payload.videos.length} vídeos, ${payload.photos.length} fotos). Repasse liberado: R$ ${recebido.toFixed(2)}.`);
     });
+  };
+
+  const enviarChat = (m) => {
+    const texto = (chatTexto[m.id] || '').trim();
+    if (!texto) return;
+    mudar(m.id, (x) => ({ ...x, chat: [...(x.chat || []), { de: chatDe, texto }] }));
+    setChatTexto({ ...chatTexto, [m.id]: '' });
   };
 
   // Lê o QR Code do cliente (demo: o código digitado). Só finaliza dentro do prazo.
@@ -246,8 +255,21 @@ function MandadosPanel({ aceita, funcionarios, mandados, setMandados }) {
             ) : null}
             {m.status === 'Aceito' && !vencido ? (
               <View style={{ marginTop: 10 }}>
+                <View style={{ marginTop: 10 }}>
+                  <Text style={styles.sub}>Chat com o cliente</Text>
+                  <Text style={styles.dica}>Fica aberto até o serviço ser concluído. O cliente pode enviar o código de finalização por aqui, mas só depois que o serviço estiver realmente terminado.</Text>
+                  <Row style={{ marginTop: 6 }}>
+                    <Chip label="Sou o prestador" active={chatDe === 'prestador'} onPress={() => setChatDe('prestador')} />
+                    <Chip label="Sou o cliente (demo)" active={chatDe === 'cliente'} onPress={() => setChatDe('cliente')} />
+                  </Row>
+                  {(m.chat || []).map((c, i) => (
+                    <Text key={i} style={styles.registro}>{c.de === 'cliente' ? 'Cliente' : 'Prestador'}: {c.texto}</Text>
+                  ))}
+                  <Input value={chatTexto[m.id] || ''} onChangeText={(v) => setChatTexto({ ...chatTexto, [m.id]: v })} placeholder="Escreva uma mensagem" style={{ marginTop: 6 }} />
+                  <Button title="Enviar mensagem" small variant="outline" onPress={() => enviarChat(m)} style={{ marginTop: 6 }} />
+                </View>
                 <View style={styles.aviso}>
-                  <Text style={styles.avisoTexto}>Atenção: não mostre o QR Code nem o código de finalização ao prestador antes do serviço estar realmente concluído. Eles só devem ser apresentados ao final do atendimento.</Text>
+                  <Text style={styles.avisoTexto}>Atenção: não mostre o QR Code nem o código de finalização ao prestador antes do serviço estar realmente concluído. O chat fica aberto durante o prazo, mas o código só deve ser enviado no fim do atendimento.</Text>
                 </View>
                 <Text style={styles.dica}>Código do QR do cliente (demo): {m.qr}</Text>
                 <Input value={leitura[m.id] || ''} onChangeText={(v) => setLeitura({ ...leitura, [m.id]: v })} placeholder="Leia o QR do cliente" style={{ marginTop: 6 }} autoCapitalize="characters" />
