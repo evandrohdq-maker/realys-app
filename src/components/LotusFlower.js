@@ -4,45 +4,44 @@ import FRAMES, { FAB, LIGHT } from './lotus/frames';
 
 // Flor de lótus da Lotus em 3D (quadros em assets/lotus, gerados por tools/lotus3d).
 
-const SIZE = 184; // a flor é vista de frente (de cima), formando um círculo no centro da caixa
-const STAGE = 240; // faixa da caixa onde a flor fica, sempre centralizada
+const SIZE = 166; // a flor é vista de frente (de cima), formando um círculo no centro da caixa
+const STAGE = 250; // faixa da caixa onde a flor fica, sempre centralizada
 const HALO = Math.round(SIZE * 1.75); // luz branca atrás da flor
 const RAYS = Math.round(SIZE * 2.1); // raios de luz que giram devagar
 // Ajuste fino da posição na caixa (no celular ela aparecia um pouco à direita e para baixo).
 const NUDGE_X = -8;
 const NUDGE_Y = -14;
-// Ondas sonoras douradas em círculo, no lugar do antigo círculo do miolo. Elas chacoalham para
-// dentro e para fora, sempre dentro do espaço escuro do miolo (nunca passam desse limite).
-const WAVE_N = 24;
-const WAVE_IN = SIZE * 0.035; // limite de dentro
-const WAVE_OUT = SIZE * 0.135; // limite de fora (borda do miolo escuro)
-const WAVE_L = Math.round(SIZE * 0.042); // comprimento de cada barrinha
+// Ondas sonoras douradas em círculo, no lugar do antigo miolo amarelo. Cada barrinha nasce perto
+// do centro e cresce/diminui para fora, sempre dentro do miolo escuro (nunca passa desse limite).
+const WAVE_N = 28;
+const WAVE_IN = SIZE * 0.04; // onde as barrinhas começam (perto do centro)
+const WAVE_OUT = SIZE * 0.14; // limite de fora (borda do miolo escuro)
+const WAVE_L = WAVE_OUT - WAVE_IN; // comprimento máximo
 const WAVE_W = 2.4;
-const R_MIN = WAVE_IN + WAVE_L / 2; // centro da barrinha mais para dentro
-const R_MAX = WAVE_OUT - WAVE_L / 2; // centro da barrinha mais para fora
 
-// Cada barrinha vai e volta no raio (para dentro e para fora). As vizinhas seguem uma depois da
-// outra, formando uma onda que corre em volta do círculo; com voz o vaivém fica maior e mais rápido.
+// As vizinhas crescem uma depois da outra, formando uma onda que corre em volta do círculo;
+// com voz elas crescem mais e mais rápido, em silêncio ficam baixinhas.
 const STEPS = 12;
 const T_IN = [...Array(STEPS + 1)].map((_, k) => k / STEPS);
 function SoundRing({ voice, active, show }) {
   const t = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     t.setValue(0);
-    const loop = Animated.loop(Animated.timing(t, { toValue: 1, duration: active ? 700 : 2600, easing: Easing.linear, useNativeDriver: true }));
+    const loop = Animated.loop(Animated.timing(t, { toValue: 1, duration: active ? 650 : 2400, easing: Easing.linear, useNativeDriver: true }));
     loop.start();
     return () => loop.stop();
   }, [active]);
-  // Força do vaivém: pequena em silêncio, máxima com voz forte.
   const amp = voice.interpolate({ inputRange: [0, 1], outputRange: [0.35, 1], extrapolate: 'clamp' });
   const bars = useMemo(
     () =>
       [...Array(WAVE_N)].map((_, i) => {
         const phase = (i * 3) / WAVE_N; // 3 cristas de onda em volta do círculo
-        const osc = t.interpolate({ inputRange: T_IN, outputRange: T_IN.map((k) => Math.sin(2 * Math.PI * (k + phase))) });
-        const pos = Animated.add(0.5, Animated.multiply(osc, Animated.multiply(amp, 0.5)));
-        const r = pos.interpolate({ inputRange: [0, 1], outputRange: [R_MIN, R_MAX], extrapolate: 'clamp' });
-        return { deg: `${(i * 360) / WAVE_N}deg`, ty: Animated.multiply(r, -1) };
+        const osc = t.interpolate({ inputRange: T_IN, outputRange: T_IN.map((k) => 0.5 + 0.5 * Math.sin(2 * Math.PI * (k + phase))) });
+        // tamanho de 0.2 (baixinha) a 1 (encosta no limite do miolo)
+        const s = Animated.add(0.2, Animated.multiply(Animated.multiply(osc, amp), 0.8)).interpolate({ inputRange: [0, 1], outputRange: [0.2, 1], extrapolate: 'clamp' });
+        // mantém a ponta de dentro parada: a barrinha cresce só para fora
+        const ty = s.interpolate({ inputRange: [0, 1], outputRange: [WAVE_L / 2, 0] });
+        return { deg: `${(i * 360) / WAVE_N}deg`, s, ty };
       }),
     [],
   );
@@ -50,7 +49,7 @@ function SoundRing({ voice, active, show }) {
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, { opacity: show ? 1 : 0 }]}>
       {bars.map((b, i) => (
         <View key={i} style={[StyleSheet.absoluteFill, { transform: [{ rotate: b.deg }] }]}>
-          <Animated.View style={[styles.wave, { transform: [{ translateY: b.ty }] }]} />
+          <Animated.View style={[styles.wave, { transform: [{ translateY: b.ty }, { scaleY: b.s }] }]} />
         </View>
       ))}
     </View>
@@ -356,7 +355,7 @@ const styles = StyleSheet.create({
   stage: { alignSelf: 'stretch', height: STAGE, alignItems: 'center', justifyContent: 'center' },
   // Luz, raios e flor ficam todos no mesmo quadro, com o mesmo centro exato.
   center: { width: SIZE, height: SIZE, transform: [{ translateX: NUDGE_X }, { translateY: NUDGE_Y }] },
-  wave: { position: 'absolute', left: SIZE / 2 - WAVE_W / 2, top: SIZE / 2 - WAVE_L / 2, width: WAVE_W, height: WAVE_L, borderRadius: WAVE_W / 2, backgroundColor: '#FFC928' },
+  wave: { position: 'absolute', left: SIZE / 2 - WAVE_W / 2, top: SIZE / 2 - WAVE_IN - WAVE_L, width: WAVE_W, height: WAVE_L, borderRadius: WAVE_W / 2, backgroundColor: '#FFC928' },
   halo: { position: 'absolute', width: HALO, height: HALO, left: (SIZE - HALO) / 2, top: (SIZE - HALO) / 2 },
   rays: { position: 'absolute', width: RAYS, height: RAYS, left: (SIZE - RAYS) / 2, top: (SIZE - RAYS) / 2 },
   wrap: { position: 'absolute', left: 0, top: 0, width: SIZE, height: SIZE },
