@@ -9,6 +9,8 @@ import { liveComments } from '../../../homeData';
 import { useStore } from '../../../store';
 import { HostChip, useOpenHost } from '../../../components/HostChip';
 import { LIVE_CATS, hostOptions, defaultHost, catOf, HOST_TYPES } from '../../../liveData';
+import { members } from '../../../people';
+import { artists } from '../../../extraData';
 
 const now = () => {
   const d = new Date();
@@ -19,9 +21,24 @@ const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s %
 // Conversa com histórico de mensagens.
 export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo }) {
   const insets = useSafeAreaInsets();
+  const { state, dispatch } = useStore();
   const [text, setText] = useState('');
+  const [peek, setPeek] = useState(false); // prévia de quem não tem perfil no Realys
   const scroll = useRef(null);
   if (!contact) return null;
+
+  // Tocar no nome ou na foto: abre o perfil da pessoa (publicações, depoimentos, adicionar amigo)
+  // ou a página da empresa. A conversa continua aberta por baixo: voltar do perfil volta para cá.
+  const openContact = () => {
+    if (state.viewProfile === contact.id) return onClose(); // a conversa foi aberta pelo próprio perfil
+    if (members.some((m) => m.id === contact.id)) return dispatch({ type: 'OPEN_PROFILE', id: contact.id });
+    const co =
+      artists.find((a) => a.id === contact.id || a.name === contact.name) ||
+      (state.stores || []).find((x) => x.id === contact.id || x.name === contact.name);
+    if (co) return dispatch({ type: 'OPEN_COMPANY', id: co.id });
+    setPeek(true);
+  };
+  const friendSt = state.friends[contact.id];
 
   const send = () => {
     const t = text.trim();
@@ -39,11 +56,13 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
           <TouchableOpacity onPress={onClose} style={styles.iconBtn} accessibilityLabel="Voltar">
             <Ionicons name="arrow-back" size={20} color={colors.text} />
           </TouchableOpacity>
-          <Photo uri={contact.photo} style={styles.headAvatar} fallback="🙂" />
-          <View style={{ flex: 1, marginLeft: 10 }}>
-            <Text style={styles.headName}>{contact.name}</Text>
-            <Text style={styles.headStatus}>{contact.status}</Text>
-          </View>
+          <TouchableOpacity style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }} onPress={openContact} activeOpacity={0.7} accessibilityLabel={`Ver o perfil de ${contact.name}`}>
+            <Photo uri={contact.photo} style={styles.headAvatar} fallback="🙂" />
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={styles.headName}>{contact.name}</Text>
+              <Text style={styles.headStatus}>{contact.status ? `${contact.status} · ` : ''}ver perfil</Text>
+            </View>
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.iconBtn}
             onPress={() => Alert.alert('Chamada de voz', `Ligando para ${contact.name} pela Realys.`)}
@@ -72,6 +91,26 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
             </View>
           ))}
         </ScrollView>
+
+        {/* Prévia de quem não tem perfil aberto no Realys (ex.: anunciante): adicionar aos contatos. */}
+        <Modal visible={peek} transparent animationType="fade" onRequestClose={() => setPeek(false)}>
+          <TouchableOpacity style={styles.peekBack} activeOpacity={1} onPress={() => setPeek(false)}>
+            <View style={styles.peekCard}>
+              <Photo uri={contact.photo} style={styles.peekAvatar} fallback="🙂" />
+              <Text style={styles.peekName}>{contact.name}</Text>
+              {contact.status ? <Text style={styles.headStatus}>{contact.status}</Text> : null}
+              <Text style={styles.peekNote}>Essa pessoa ainda não tem um perfil público no Realys.</Text>
+              <TouchableOpacity
+                style={[styles.peekBtn, friendSt && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.primary }]}
+                onPress={() => dispatch({ type: 'FRIEND', id: contact.id, status: friendSt ? null : 'enviado' })}
+                accessibilityLabel={friendSt ? 'Remover dos contatos' : 'Adicionar aos contatos'}
+              >
+                <Ionicons name={friendSt ? 'checkmark' : 'person-add'} size={16} color={friendSt ? colors.primary : colors.onPrimary} />
+                <Text style={[styles.peekBtnText, friendSt && { color: colors.primary }]}>{friendSt ? 'Nos seus contatos' : 'Adicionar contato'}</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
 
         <View style={[styles.composer, { paddingBottom: 10 + insets.bottom }]}>
           <TextInput
@@ -458,6 +497,13 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
 }
 
 const styles = StyleSheet.create({
+  peekBack: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center', padding: 28 },
+  peekCard: { alignSelf: 'stretch', backgroundColor: colors.card, borderRadius: 24, padding: 22, alignItems: 'center', ...soft },
+  peekAvatar: { width: 84, height: 84, borderRadius: 42, marginBottom: 10 },
+  peekName: { fontSize: 19, fontWeight: '800', color: colors.text },
+  peekNote: { fontSize: 13, color: colors.muted, textAlign: 'center', marginTop: 10, marginBottom: 16 },
+  peekBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, borderRadius: 16, paddingHorizontal: 18, paddingVertical: 11 },
+  peekBtnText: { color: colors.onPrimary, fontWeight: '800', marginLeft: 6 },
   chatHead: {
     flexDirection: 'row',
     alignItems: 'center',
