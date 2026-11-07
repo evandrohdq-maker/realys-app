@@ -130,6 +130,7 @@ function Shell() {
   const lastBack = useRef(0);
   const live = useRef({});
   const [voice, setVoice] = useState(false);
+  const [acaoPendente, setAcaoPendente] = useState(null); // ação da Lotus aguardando confirmação (sim/não)
   const [menu, setMenu] = useState(false);
   const [explore, setExplore] = useState(null);
   const [noting, setNoting] = useState(false);
@@ -381,11 +382,29 @@ function Shell() {
             dispatch({ type: prof.open.kind === 'company' ? 'OPEN_COMPANY' : 'OPEN_PROFILE', id: prof.open.id });
             return;
           }
+          // Ação pendente de confirmação: "sim" executa, "não" cancela; outra fala descarta a pergunta.
+          if (acaoPendente && text) {
+            const resp = stripWake(text).toLowerCase();
+            setAcaoPendente(null);
+            if (/^(sim|confirma|confirmo|pode sim|pode confirmar|isso|claro|ok|beleza)\b/.test(resp)) {
+              speakSoft(acaoPendente.reply);
+              dispatch({ type: 'MANDADOS_UPDATE', updater: acaoPendente.updater });
+              return;
+            }
+            if (/^(nao|não|cancela|cancelar|deixa)\b/.test(resp)) {
+              speakSoft('Cancelado. Nada foi enviado.');
+              return;
+            }
+          }
           // Mandados de serviço: "finaliza com o código QR-…" e "manda no chat: …" (dentro do prazo).
           const acao = text && !prof ? findMandadoAction(stripWake(text), state.mandados) : null;
           if (acao) {
+            if (acao.updater && acao.pergunta) {
+              setAcaoPendente(acao);
+              speakSoft(acao.pergunta);
+              return;
+            }
             speakSoft(acao.reply);
-            if (acao.updater) dispatch({ type: 'MANDADOS_UPDATE', updater: acao.updater });
             return;
           }
           const nav = text && !prof ? findNavigation(stripWake(text)) : null;

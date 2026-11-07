@@ -26,7 +26,7 @@ export const NAV_TARGETS = [
   T('Carteira', { tab: 'perfil', wallet: true }, ['carteira', 'minha carteira', 'carteira digital', 'extrato']),
   // Carrinho é uma janela (não uma aba): a Lotus abre a janela sobre a tela atual
   T('Carrinho', { tab: 'home', cart: true }, ['carrinho', 'meu carrinho', 'cesta', 'minha cesta', 'sacola', 'minha sacola']),
-  T('Biometria facial', { tab: 'perfil', biometria: true }, ['biometria', 'biometria facial', 'reconhecimento facial', 'minha biometria', 'gerenciar biometria']),
+  T('Biometria facial', { tab: 'perfil', biometria: true }, ['biometria', 'biometria facial', 'reconhecimento facial', 'minha biometria', 'fazer biometria', 'fazer minha biometria', 'gerenciar biometria']),
   T('Feed', { tab: 'inicio' }, ['feed', 'meu feed', 'feeds']),
   T('Visão geral', { tab: 'geral' }, ['visao geral', 'painel geral', 'resumo do sistema']),
   T('Mercado admin', { tab: 'mercado' }, ['mercado admin', 'gestao do mercado', 'painel do mercado']),
@@ -143,21 +143,22 @@ export const NAV_TARGETS = [
   // Prestador, fornecedor e administrador
   T('Trabalhar', { tab: 'prestar' }, ['trabalhar', 'ficar disponivel', 'corridas']),
   // Cadastro de prestador, empresa com funcionários e mandados de serviço (ficam dentro do painel Trabalhar)
-  T('Prestação de serviço', { tab: 'prestar' }, ['prestacao de servico', 'prestacao', 'cadastro de prestador', 'cadastrar prestador', 'mandados', 'mandado', 'mandado de servico', 'mandados de servico', 'funcionarios', 'minha empresa de servico']),
+  T('Prestação de serviço', { tab: 'prestar' }, ['prestacao de servico', 'prestacao', 'cadastro de prestador', 'cadastrar prestador', 'cadastrar servico', 'cadastrar meu servico', 'cadastrar meu servico de encanador', 'cadastrar meu servico de eletricista', 'cadastrar meu servico de motorista', 'cadastrar meu servico de motoboy', 'cadastrar meu servico de carro', 'cadastrar meu servico de van', 'cadastrar meu servico de moto', 'cadastrar meu servico de frete', 'mandados', 'mandado', 'mandado de servico', 'mandados de servico', 'funcionarios', 'minha empresa de servico']),
   T('Agenda', { tab: 'agenda' }, ['agenda', 'minha agenda', 'ajenda', 'agendas', 'meus horarios', 'horarios', 'compromissos', 'meus compromissos', 'proximos trabalhos', 'proximos servicos', 'trabalhos feitos', 'servicos feitos', 'calendario']),
   T('Propostas', { tab: 'propostas' }, ['propostas', 'proposta']),
   T('Sistema', { tab: 'sistema' }, ['sistema', 'mapa do sistema']),
   T('Moderação', { tab: 'moderacao' }, ['moderacao', 'denuncias']),
-  T('Cadastros', { tab: 'cadastros' }, ['cadastros', 'aprovacoes']),
+  T('Cadastros', { tab: 'cadastros' }, ['cadastros', 'cadastro', 'aprovacoes', 'aprovacao']),
 ];
 
 // Palavras que pedem para ir a algum lugar.
 const VERBS = new Set([
   'abrir', 'abre', 'abra', 'abri', 'abrindo', 'ir', 'vai', 'va', 'vamos', 'vou', 'leva', 'leve', 'levar', 'levo', 'mostra', 'mostre', 'mostrar',
-  'entra', 'entre', 'entrar', 'acessa', 'acesse', 'acessar', 'navega', 'navegue', 'navegar', 'ver', 've', 'exibe', 'exibir', 'abrir',
+  'entra', 'entre', 'entrar', 'acessa', 'acesse', 'acessar', 'navega', 'navegue', 'navegar', 'ver', 've', 'exibe', 'exibir', 'abrir', 'editar', 'edita', 'cadastrar', 'cadastra', 'mexer', 'mudar', 'conferir', 'confere', 'fazer', 'faz', 'bora',
   'volta', 'voltar', 'volte', 'retorna', 'retornar', 'retorne', 'pagina', 'aba', 'tela', 'area', 'secao', 'passa', 'passar', 'troca', 'trocar', 'joga', 'bota', 'coloca',
 ]);
 const BACK = new Set(['volta', 'voltar', 'volte', 'retorna', 'retornar', 'retorne', 'anterior', 'atras']);
+const WANT = new Set(['quero', 'preciso', 'gostaria', 'queria', 'querendo', 'to', 'agora', 'onde', 'estava']);
 
 // Palavras que não mudam o pedido ("me leva PRA página DO agro, POR FAVOR").
 // "quero", "preciso" e "tem" ficam de fora: "quero um hotel" é pedido de busca, com resposta falada.
@@ -198,8 +199,11 @@ export function findNavigation(text) {
   if (!ws.length) return null;
   const hit = bestTarget(ws);
   const rest = hit ? ws.filter((_, k) => k < hit.start || k >= hit.start + hit.n) : ws;
-  const hasVerb = rest.some((w) => VERBS.has(w)) || /\b(me leva|vai para|vai pra|ir para|ir pra)\b/.test(ws.join(' '));
-  const leftover = rest.filter((w) => !VERBS.has(w) && !FILLER.has(w) && !BACK.has(w));
+  // O verbo pode estar dentro do próprio nome do destino ("editar meu perfil"), então olha a frase inteira.
+  const hasVerb = ws.some((w) => VERBS.has(w)) || /\b(me leva|vai para|vai pra|ir para|ir pra)\b/.test(ws.join(' '));
+  // "quero ver...", "preciso voltar...": o pedido de ação já está no verbo, então "quero" não é assunto.
+  const pedidoDeAcao = rest.some((w) => VERBS.has(w) || BACK.has(w));
+  const leftover = rest.filter((w) => !VERBS.has(w) && !FILLER.has(w) && !BACK.has(w) && !(pedidoDeAcao && WANT.has(w)));
 
   if (hit) {
     // Só navega quando a frase é um pedido de ir ("abre o Food") ou só o nome ("Agro").

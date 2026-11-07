@@ -16,9 +16,11 @@ export function findMandadoAction(text, mandados = [], agora = Date.now()) {
     const alvo = ativos.find((m) => m.qr === codigo);
     if (!alvo) return { reply: 'Não encontrei um serviço ativo com esse código.', updater: null };
     const r = lerQr(alvo, codigo, agora);
+    const ok = r.ok;
     return {
       reply: r.msg,
-      updater: (lista) => lista.map((m) => (m.id === alvo.id ? r.m : m)),
+      pergunta: ok ? `Vou finalizar o serviço de ${alvo.cliente || 'este cliente'} com este código. Confirma? Diga sim ou não.` : null,
+      updater: ok ? (lista) => lista.map((m) => (m.id === alvo.id ? r.m : m)) : null,
     };
   }
 
@@ -28,6 +30,7 @@ export function findMandadoAction(text, mandados = [], agora = Date.now()) {
     const alvo = ativos[0];
     return {
       reply: 'Mensagem enviada no chat do serviço.',
+      pergunta: `Vou enviar no chat: "${texto}". Confirma? Diga sim ou não.`,
       updater: (lista) => lista.map((m) => (m.id === alvo.id ? enviarChat(m, texto) : m)),
     };
   }
