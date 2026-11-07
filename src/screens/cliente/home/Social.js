@@ -8,7 +8,7 @@ import { Photo } from '../../../components/ui';
 import { liveComments } from '../../../homeData';
 import { useStore } from '../../../store';
 import { HostChip, useOpenHost } from '../../../components/HostChip';
-import { LIVE_CATS, hostOptions, defaultHost, catOf, HOST_TYPES } from '../../../liveData';
+import { LIVE_CATS, hostOptions, defaultHost, catOf, subOf, HOST_TYPES, missionId, LIVE_MISSION_SECS, LIVE_MISSION_POINTS } from '../../../liveData';
 import { members } from '../../../people';
 import { artists } from '../../../extraData';
 
@@ -223,6 +223,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
   const openHost = useOpenHost();
   // Minha live: o assunto e o perfil com que eu transmito (usuário, empresa, prestador, fornecedor, artista).
   const [cat, setCat] = useState('comunidade');
+  const [sub, setSub] = useState(null);
   const [host, setHost] = useState(null);
   const hosts = hostOptions(state);
   const me = host || defaultHost(state);
@@ -232,7 +233,8 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
     onClose();
   };
   const start = () => {
-    dispatch({ type: 'LIVE_START', live: { cat, hostType: me.type, hostId: me.id, host: me.name, title: title.trim() || catOf(cat).title, viewers: 0, tag: catOf(cat).label, photo: null, sponsored: false } });
+    const sb = subOf(cat, sub);
+    dispatch({ type: 'LIVE_START', live: { cat, sub: sb ? sb.key : null, hostType: me.type, hostId: me.id, host: me.name, title: title.trim() || (sb ? sb.label : catOf(cat).title), viewers: 0, tag: sb ? sb.label : catOf(cat).label, photo: null, sponsored: false } });
     setOnAir(true);
   };
 
@@ -248,6 +250,12 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
     setEarned(0);
     setBurst(null);
   }, [visible]);
+
+  // Missão do dia: 3 minutos assistindo lives da classe dão pontos Realys (uma vez por dia e por classe).
+  useEffect(() => {
+    if (mine || !live || secs !== LIVE_MISSION_SECS) return;
+    dispatch({ type: 'AD_REWARD', id: missionId(live.cat), points: LIVE_MISSION_POINTS, desc: `lives de ${catOf(live.cat).label}` });
+  }, [secs]);
 
   useEffect(() => {
     if (!visible || !onAir) return;
@@ -356,14 +364,25 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
           <View style={styles.goLive}>
             <Text style={styles.goLiveTitle}>Abrir uma live</Text>
             <Text style={{ color: colors.muted, marginBottom: 12 }}>Seus contatos e seguidores recebem o aviso na hora.</Text>
-            <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Assunto</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Classe</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
               {LIVE_CATS.filter((c) => c.key !== 'noite').map((c) => {
                 const on = cat === c.key;
                 return (
-                  <TouchableOpacity key={c.key} style={[styles.typeChip, on && styles.typeChipOn]} onPress={() => setCat(c.key)}>
+                  <TouchableOpacity key={c.key} style={[styles.typeChip, on && styles.typeChipOn]} onPress={() => { setCat(c.key); setSub(null); }}>
                     <Ionicons name={c.icon} size={14} color={on ? colors.onPrimary : colors.primary} />
                     <Text style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>{c.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+            <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Subclasse</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+              {catOf(cat).subs.map((x) => {
+                const on = sub === x.key;
+                return (
+                  <TouchableOpacity key={x.key} style={[styles.typeChip, on && styles.typeChipOn]} onPress={() => setSub(on ? null : x.key)}>
+                    <Text style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700' }}>{x.label}</Text>
                   </TouchableOpacity>
                 );
               })}

@@ -204,6 +204,8 @@ const initialState = {
   // e os clipes que o cliente já assistiu até o fim (cada um dá pontos uma vez só).
   adStats: {}, // { [adId]: { views, taps, watched } }
   adRewards: {}, // { [clipId]: true }
+  liveFollows: [], // classes de live que a pessoa segue (recebe aviso quando alguém abre live)
+  liveReminders: {}, // { [idDaLiveAgendada]: true }
 };
 
 const nfeNumber = (n) => String(n).padStart(6, '0');
@@ -1005,6 +1007,17 @@ function baseReducer(state, a) {
     case 'AD_EVENT': {
       const cur = state.adStats[a.id] || { views: 0, taps: 0, watched: 0 };
       return { ...state, adStats: { ...state.adStats, [a.id]: { ...cur, [a.ev]: (cur[a.ev] || 0) + 1 } } };
+    }
+    // Seguir uma classe de lives (ex.: Gamers) e lembrar de uma live agendada.
+    case 'TOGGLE_LIVE_FOLLOW': {
+      const f = state.liveFollows || [];
+      return { ...state, liveFollows: f.includes(a.cat) ? f.filter((k) => k !== a.cat) : [...f, a.cat] };
+    }
+    case 'TOGGLE_LIVE_REMIND': {
+      const r = { ...(state.liveReminders || {}) };
+      if (r[a.id]) delete r[a.id];
+      else r[a.id] = true;
+      return { ...state, liveReminders: r };
     }
     // Assistiu o clipe até o fim: ganha pontos (uma vez por clipe).
     case 'AD_REWARD': {

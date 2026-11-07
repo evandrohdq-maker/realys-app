@@ -7,9 +7,7 @@ import { Screen, Photo, ProductThumb, Badge } from '../../../components/ui';
 import { venueOfEvent, freeTable, ticketPrice } from '../../../venueData';
 import { promos, listings, LISTING_KINDS, LISTING_CTA, communityPosts, contacts, lives, events, EVENT_GROUPS } from '../../../homeData';
 import { ChatModal, VideoCallModal, LiveModal } from './Social';
-import { LIVE_CATS, catOf } from '../../../liveData';
-import { HostChip, useOpenHost } from '../../../components/HostChip';
-import { allLives } from '../../../components/LiveBits';
+import LivesTab from './LivesTab';
 import { members, memberByName } from '../../../people';
 import { PeopleSearchModal, PersonRow } from '../../../components/People';
 import { LaunchStrip } from '../../../components/Launches';
@@ -65,7 +63,7 @@ export function TopTabs({ items, value, onChange }) {
 
 // Eventos, Promoções, Anúncios e Lives dentro da Community. Fica sempre montado para
 // guardar os filtros escolhidos; mostra o conteúdo só quando `top` é uma dessas abas.
-export function CommunityExtras({ top, explore }) {
+export function CommunityExtras({ top, explore, navigate }) {
   const { state, dispatch } = useStore();
   const [kind, setKind] = useState('todos');
   const [evGroup, setEvGroup] = useState('destaques');
@@ -104,7 +102,7 @@ export function CommunityExtras({ top, explore }) {
       {top === 'eventos' ? <EventsTab group={evGroup} setGroup={setEvGroup} onContact={contactAdvertiser} /> : null}
       {top === 'promo' ? <PromoTab /> : null}
       {top === 'anuncios' ? <AdsTab kind={kind} setKind={setKind} onContact={contactAdvertiser} /> : null}
-      {top === 'lives' ? <LivesTab filter={liveFilter} setFilter={setLiveFilter} onWatch={(l) => setLive({ live: l, mine: false })} onGoLive={() => setLive({ live: null, mine: true })} /> : null}
+      {top === 'lives' ? <LivesTab filter={liveFilter} setFilter={setLiveFilter} onWatch={(l) => setLive({ live: l, mine: false })} onGoLive={() => setLive({ live: null, mine: true })} navigate={navigate} /> : null}
 
       <ChatModal
         contact={chatWith}
@@ -870,77 +868,6 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
         </View>
       ) : null}
       <PeopleSearchModal visible={searching} onClose={() => setSearching(false)} />
-    </Screen>
-  );
-}
-
-// Assuntos das lives (src/liveData.js). "aulas" é o nome antigo de Cursos.
-const LIVE_FILTERS = [['todas', 'Todas', 'radio-outline'], ...LIVE_CATS.map((c) => [c.key, c.label, c.icon])];
-
-function LivesTab({ filter, setFilter, onWatch, onGoLive }) {
-  const { state } = useStore();
-  const openHost = useOpenHost();
-  const f = filter === 'aulas' ? 'cursos' : filter;
-  const list = allLives(state)
-    .filter((l) => f === 'todas' || l.cat === f)
-    .sort((a, b) => (b.mine ? 1 : 0) - (a.mine ? 1 : 0) || b.sponsored - a.sponsored || b.viewers - a.viewers);
-  const cat = f === 'todas' ? null : catOf(f);
-  return (
-    <Screen>
-      <TouchableOpacity style={styles.goLiveCard} onPress={onGoLive} activeOpacity={0.9}>
-        <View style={styles.goLiveIcon}>
-          <Ionicons name="radio" size={24} color="#fff" />
-        </View>
-        <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 16 }}>Abrir minha live</Text>
-          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Dê uma aula, mostre seus produtos ou converse com a comunidade</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.muted} />
-      </TouchableOpacity>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 12 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
-        {LIVE_FILTERS.map(([k, label, icon]) => {
-          const on = k === f;
-          return (
-            <TouchableOpacity key={k} style={[styles.chip, on && styles.chipOn]} onPress={() => setFilter(k)}>
-              <Ionicons name={icon} size={15} color={on ? colors.onPrimary : colors.primary} />
-              <Text style={[styles.chipText, on && { color: colors.onPrimary }]}>{label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-
-      <SectionHead title={cat ? cat.title : 'Ao vivo agora'} />
-      {cat ? <Text style={{ color: colors.muted, fontSize: 12, marginTop: -6, marginBottom: 10 }}>{cat.hint}</Text> : null}
-      {!list.length ? <Text style={{ color: colors.muted, textAlign: 'center', marginVertical: 20 }}>Ninguém ao vivo neste assunto agora. Que tal abrir a sua?</Text> : null}
-      {list.map((l) => (
-        <TouchableOpacity key={l.id} style={styles.liveCard} onPress={() => onWatch(l)} activeOpacity={0.9}>
-          <Photo uri={l.photo} style={styles.livePhoto} fallback="🎥" />
-          <View style={styles.liveOverlay}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={styles.liveTag}>
-                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 11 }}>AO VIVO</Text>
-              </View>
-              <View style={styles.liveViewers}>
-                <Ionicons name="eye" size={12} color="#fff" />
-                <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700', marginLeft: 4 }}>{l.viewers.toLocaleString('pt-BR')}</Text>
-              </View>
-              {l.sponsored ? (
-                <View style={[styles.liveViewers, { backgroundColor: colors.sponsored }]}>
-                  <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '700' }}>PATROCINADO</Text>
-                </View>
-              ) : null}
-            </View>
-          </View>
-          <View style={{ padding: 12 }}>
-            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{l.mine ? 'Você está ao vivo · ' : ''}{l.title}</Text>
-            <Text style={{ color: colors.muted, fontSize: 12, marginTop: 3 }}>
-              {catOf(l.cat).label} · {l.tag}{l.verifiedNews ? ' · canal verificado' : ''}
-            </Text>
-            <HostChip live={l} onOpen={openHost} />
-          </View>
-        </TouchableOpacity>
-      ))}
     </Screen>
   );
 }

@@ -70,7 +70,7 @@ export default function StoriesScreen({ navigate, explore }) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <TopTabs items={COMMUNITY_TOP.filter((t) => t.key !== 'comunidade')} value={top} onChange={(k) => setTop(k === top ? 'comunidade' : k)} />
-      <CommunityExtras top={top} explore={explore} />
+      <CommunityExtras top={top} explore={explore} navigate={navigate} />
       {top === 'comunidade' ? (
       <CommunityHub
         explore={explore}
