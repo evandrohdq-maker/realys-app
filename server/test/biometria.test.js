@@ -171,3 +171,19 @@ test('manutenção: integridade, backup, retenção e rotação de chave', async
   const hist = await api('GET', '/admin/manutencao', { who: 'adm' });
   assert.ok(hist.data.length >= 5);
 });
+
+test('produtos do mercado: seção validada, filtrada e editável', async () => {
+  const comp = await api('POST', '/auth/signup', { body: { kind: 'empresa', name: 'Mercadinho Teste', doc: '11.222.333/0001-81', username: 'mercadinho', email: 'loja@realys.com', password: 'senha1234', segment: 'Mercado de bairro' } });
+  assert.equal(comp.status, 201, JSON.stringify(comp.data));
+  S.loja = { token: comp.data.accessToken, id: comp.data.user.id };
+  const bad = await api('POST', '/products', { who: 'loja', body: { name: 'Coisa', price: 5, secao: 'eletronicos' } });
+  assert.equal(bad.status, 400);
+  const ok = await api('POST', '/products', { who: 'loja', body: { name: 'Tomate 1kg', price: 7.9, stock: 10, secao: 'hortifruti' } });
+  assert.equal(ok.status, 201, JSON.stringify(ok.data));
+  assert.equal(ok.data.secao, 'hortifruti');
+  const id = ok.data.id;
+  await api('PATCH', `/products/${id}`, { who: 'loja', body: { secao: 'frios' } });
+  const list = await api('GET', '/products?secao=frios');
+  assert.ok(list.data.some((p) => p.id === id));
+  assert.ok(!(await api('GET', '/products?secao=hortifruti')).data.some((p) => p.id === id));
+});

@@ -58,6 +58,7 @@ export function loadConfig(overrides = {}) {
     // Manutenção: backups, retenção e rotina diária.
     backupDir: resolve(ROOT, env.BACKUP_DIR || 'data/backups'),
     backupKeep: num(env.BACKUP_KEEP, 14),
+    backupRemoteDir: env.BACKUP_REMOTE_DIR ? resolve(env.BACKUP_REMOTE_DIR) : '',
     maintenanceEnabled: bool(env.MAINTENANCE_ENABLED, true),
     maintenanceHours: num(env.MAINTENANCE_HOURS, 24),
     reviewMaxDays: num(env.BIOMETRIA_REVIEW_MAX_DAYS, 30),   // revisão parada além disso é recusada e as fotos apagadas

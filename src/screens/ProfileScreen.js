@@ -12,6 +12,7 @@ import { VERSION_LABEL } from '../updates';
 import { getSavedUsers, forgetUser } from '../accounts';
 import { ProfileSocial } from '../components/SocialProfile';
 import WalletScreen from './WalletScreen';
+import BiometriaScreen from './BiometriaScreen';
 import { ProfileEditor, PrivacyPanel, StudioPanel, FutureIcon, audienceLabel } from '../components/ProfileStudio';
 import { Photo } from '../components/ui';
 import { SocialBadge, ProfileQuizModal } from '../components/SocialClass';
@@ -24,6 +25,7 @@ export default function ProfileScreen({ navigate, explore }) {
   const [checking, setChecking] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [bioOpen, setBioOpen] = useState(false);
   const [quizOpen, setQuizOpen] = useState(false);
   const prof = state.myProfile;
   const priv = state.privacy;
@@ -87,6 +89,9 @@ export default function ProfileScreen({ navigate, explore }) {
               </Text>
             ) : null}
             <Badge label="✔ Identidade verificada por biometria" />
+            <TouchableOpacity onPress={() => setBioOpen(true)} accessibilityLabel="Cadastro biométrico" activeOpacity={0.85} style={{ marginTop: 6 }}>
+              <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '700' }}>Gerenciar biometria facial ›</Text>
+            </TouchableOpacity>
           </View>
           {/* Botão de emergência: pequeno, com brilho vermelho. As informações abrem na tela de Socorro. */}
           <TouchableOpacity
@@ -261,6 +266,7 @@ export default function ProfileScreen({ navigate, explore }) {
       {checking ? <UpdateChecker manual onDone={() => setChecking(false)} /> : null}
       <WalletScreen visible={walletOpen} onClose={() => setWalletOpen(false)} />
       <ProfileEditor visible={editing} onClose={() => setEditing(false)} />
+      <BiometriaScreen visible={bioOpen} onClose={() => setBioOpen(false)} />
       <ProfileQuizModal
         visible={quizOpen}
         initial={prof.quiz || { about: prof.bio || '', work: prof.profession || '', hobbies: [], manual: false }}

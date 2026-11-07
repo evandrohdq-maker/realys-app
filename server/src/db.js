@@ -301,6 +301,11 @@ const MIGRATIONS = [
     created_at INTEGER NOT NULL
   );
   `,
+  // 3: seção do Mercado (não perecíveis, perecíveis, demais), escolhida pelo lojista
+  `
+  ALTER TABLE products ADD COLUMN secao TEXT CHECK (secao IN ('mercearia','hortifruti','acougue','frios','padaria','congelados','limpeza','bebidas','outros'));
+  CREATE INDEX products_secao ON products(secao);
+  `,
 ];
 
 export function openDb(file) {

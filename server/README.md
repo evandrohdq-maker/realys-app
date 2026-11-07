@@ -70,3 +70,23 @@ Todas as rotas usam JSON e, exceto as marcadas como públicas, o cabeçalho `Aut
 **Administrador:** `GET /admin/stats` · `GET /admin/users` · `POST /admin/users/:id/bloquear|desbloquear` · `GET /admin/deposits` · `POST /admin/deposits/:id/confirmar|recusar` · `GET /admin/withdrawals` · `POST /admin/withdrawals/:id/pagar|recusar` · `GET /admin/reports` · `POST /admin/reports/:id/procedente|improcedente`
 
 **Tempo real:** `wss://SEU-DOMINIO/ws?token=<accessToken>` → `{ type, data }` com `message`, `gift`, `live_gift`, `order`, `call`, `tracking`, `payment`, `friend_request`, `friend_accepted`, `testimonial`, `deposit`, `withdrawal`.
+
+## Biometria facial e manutenção
+
+Variáveis novas no `.env` (veja `deploy/gerar-chaves.sh` para criar a chave):
+
+| Variável | Para quê |
+|---|---|
+| `BIOMETRIA_KEYS` | chave de criptografia (`1:<hex 64>`). Guarde uma cópia fora da VPS. |
+| `BIOMETRIA_SERVICE_URL` | endereço do serviço de IA, ex. `http://127.0.0.1:8091` |
+| `BIOMETRIA_MATCH_MIN` / `BIOMETRIA_DUP_MIN` | limiares de semelhança (documento x selfie, e duplicado) |
+| `BACKUP_REMOTE_DIR` | pasta de cópia externa dos backups (montada de outro serviço) |
+| `MAINTENANCE_ENABLED` / `MAINTENANCE_HOURS` | rotina diária de manutenção |
+| `AUDIT_KEEP_DAYS` / `BIOMETRIA_REVIEW_MAX_DAYS` | prazos de retenção (validar com jurídico) |
+
+**Serviço de IA (GPU):** `biometria-ia/servico.py`, com a unit `realys-biometria.service`. Modo de teste: `BIOMETRIA_STUB=1`.
+
+**Rotinas de manutenção** (`GET /admin/manutencao` mostra o histórico; `POST /admin/manutencao/:job` dispara uma):
+`backup`, `copia-externa`, `integridade`, `retencao`, `rotacao-chaves`, `arquivos-orfaos`, `servico-biometria`.
+
+**Produtos do Mercado:** campo `secao` (mercearia, hortifruti, acougue, frios, padaria, congelados, limpeza, bebidas, outros). Filtro: `GET /products?secao=frios`.

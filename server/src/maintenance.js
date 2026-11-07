@@ -1,7 +1,7 @@
 // Manutenção do Realys: backup do banco, checagem de integridade, retenção (apagar o que venceu),
 // troca de chave de criptografia, limpeza de arquivos soltos e saúde do serviço de IA.
 // Roda sozinha todo dia (MAINTENANCE_HOURS) e também pode ser disparada pelo administrador.
-import { mkdirSync, readdirSync, statSync, unlinkSync, existsSync } from 'node:fs';
+import { mkdirSync, readdirSync, statSync, unlinkSync, existsSync, copyFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fail, newId, now } from './http.js';
 
@@ -22,6 +22,22 @@ export function makeMaintenance({ db, cfg, cipher, biometria, matcher }) {
       const old = files.slice(0, Math.max(0, files.length - cfg.backupKeep));
       old.forEach((f) => unlinkSync(join(cfg.backupDir, f)));
       return { arquivo: file, mantidos: files.length - old.length, apagados: old.length };
+    },
+
+    // Cópia para FORA da VPS (BACKUP_REMOTE_DIR: pasta montada de outro serviço, ex. rclone/sshfs).
+    // Copia o backup mais recente que ainda não está lá. Sem a pasta configurada, avisa.
+    'copia-externa'() {
+      if (!cfg.backupRemoteDir) return { ok: false, motivo: 'BACKUP_REMOTE_DIR não configurada: o backup fica só nesta VPS' };
+      mkdirSync(cfg.backupRemoteDir, { recursive: true });
+      const locais = existsSync(cfg.backupDir) ? readdirSync(cfg.backupDir).filter((f) => /^realys-.*\.db$/.test(f)).sort() : [];
+      if (!locais.length) return { ok: false, motivo: 'nenhum backup local ainda' };
+      const ultimo = locais[locais.length - 1];
+      const destino = join(cfg.backupRemoteDir, ultimo);
+      if (existsSync(destino)) return { copiado: false, arquivo: ultimo };
+      copyFileSync(join(cfg.backupDir, ultimo), destino);
+      const remotos = readdirSync(cfg.backupRemoteDir).filter((f) => /^realys-.*\.db$/.test(f)).sort();
+      remotos.slice(0, Math.max(0, remotos.length - cfg.backupKeep)).forEach((f) => unlinkSync(join(cfg.backupRemoteDir, f)));
+      return { copiado: true, arquivo: ultimo };
     },
 
     // Confere se o arquivo do banco não está corrompido e se as ligações entre tabelas estão certas.

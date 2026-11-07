@@ -1,0 +1,15 @@
+# Serviço de biometria como systemd unit. Copie para /etc/systemd/system/ e rode: systemctl enable --now realys-biometria
+[Unit]
+Description=Realys: serviço de biometria facial (GPU)
+After=network.target
+
+[Service]
+User=realys
+WorkingDirectory=/opt/realys/server/biometria-ia
+EnvironmentFile=/opt/realys/server/biometria-ia/.env
+ExecStart=/usr/bin/python3 /opt/realys/server/biometria-ia/servico.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

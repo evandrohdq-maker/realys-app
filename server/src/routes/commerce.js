@@ -12,7 +12,13 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub }) {
     return c;
   };
   const companyView = (c) => c && { id: c.id, name: c.name, segment: c.segment, about: c.about, logo: c.logo, address: c.address, lat: c.lat, lng: c.lng, ownerId: c.owner_id };
-  const productView = (p) => ({ id: p.id, companyId: p.company_id, company: p.company_name, name: p.name, description: p.description, category: p.category, price: toReais(p.price), stock: p.stock, photo: p.photo, sponsored: !!p.sponsored, active: !!p.active });
+  const SECOES = ['mercearia', 'hortifruti', 'acougue', 'frios', 'padaria', 'congelados', 'limpeza', 'bebidas', 'outros'];
+  const secaoOf = (v) => {
+    if (v === undefined || v === null || v === '') return null;
+    if (!SECOES.includes(v)) fail(400, 'Seção inválida. Use: ' + SECOES.join(', ') + '.');
+    return v;
+  };
+  const productView = (p) => ({ id: p.id, companyId: p.company_id, company: p.company_name, name: p.name, description: p.description, category: p.category, secao: p.secao || null, price: toReais(p.price), stock: p.stock, photo: p.photo, sponsored: !!p.sponsored, active: !!p.active });
 
   // ── Empresas ──
   r.get('/companies', ({ query }) => {
@@ -58,16 +64,20 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub }) {
       where.push('p.company_id = ?');
       args.push(query.companyId);
     }
+    if (query.secao) {
+      where.push('p.secao = ?');
+      args.push(secaoOf(query.secao));
+    }
     return db.prepare(`SELECT p.*, c.name AS company_name FROM products p JOIN companies c ON c.id = p.company_id WHERE ${where.join(' AND ')} ORDER BY p.sponsored DESC, p.created_at DESC LIMIT 100`).all(...args).map(productView);
   }, { auth: false });
 
   r.post('/products', ({ user, body }) => {
     const c = myCompany(user);
     const id = newId('p');
-    db.prepare('INSERT INTO products (id, company_id, name, description, category, price, stock, photo, created_at) VALUES (?,?,?,?,?,?,?,?,?)').run(
+    db.prepare('INSERT INTO products (id, company_id, name, description, category, price, stock, photo, secao, created_at) VALUES (?,?,?,?,?,?,?,?,?,?)').run(
       id, c.id, str(body.name, 'o nome do produto', { max: 120 }), str(body.description, 'a descrição', { optional: true, max: 2000 }),
       str(body.category, 'a categoria', { optional: true, max: 40 }) || 'Vários', money(body.price, 'preço'), int(body.stock ?? 0, 'estoque'),
-      str(body.photo, 'a foto', { optional: true, max: 300 }) || null, now()
+      str(body.photo, 'a foto', { optional: true, max: 300 }) || null, secaoOf(body.secao), now()
     );
     return productView({ ...db.prepare('SELECT * FROM products WHERE id = ?').get(id), company_name: c.name });
   }, { status: 201 });
@@ -84,6 +94,7 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub }) {
     if (body.stock !== undefined) f.stock = int(body.stock, 'estoque');
     if (body.photo !== undefined) f.photo = str(body.photo, 'a foto', { optional: true, max: 300 }) || null;
     if (body.active !== undefined) f.active = body.active ? 1 : 0;
+    if (body.secao !== undefined) f.secao = secaoOf(body.secao);
     const k = Object.keys(f);
     if (k.length) db.prepare(`UPDATE products SET ${k.map((x) => `${x} = ?`).join(', ')} WHERE id = ?`).run(...k.map((x) => f[x]), p.id);
     return productView({ ...db.prepare('SELECT * FROM products WHERE id = ?').get(p.id), company_name: c.name });
