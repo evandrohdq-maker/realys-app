@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { GuaranteeButton } from '../../components/Guarantee';
 import { orderCovered } from '../../guarantee';
-import { ReversePost, Subscriptions } from '../../components/Engage';
+import { ReversePost, Subscriptions, LotusNudges } from '../../components/Engage';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, cartTotal, storeOf } from '../../store';
@@ -208,6 +208,8 @@ export default function OrdersScreen({ navigate, explore }) {
     <Screen>
       <Title sub="Pagamento só é liberado para a loja ou o prestador quando você confirma a entrega">Meus pedidos</Title>
       <SegTabs items={SEGS} value={seg} onChange={setSeg} />
+      {/* A Lotus avisa antes: duas caixas, o que comprar de novo e o que cuidar. */}
+      {seg === 'compras' || seg === 'servicos' ? <LotusNudges /> : null}
 
       {seg === 'propostas' ? <ReversePost kinds={['servico', 'produto']} /> : null}
       {seg === 'assinaturas' ? <Subscriptions /> : null}

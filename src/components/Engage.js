@@ -468,31 +468,43 @@ export function LotusNudges() {
   const subbed = (id) => state.subscriptions.some((x) => x.planId === id);
   const list = LOTUS_NUDGES.filter((n) => !state.nudgesDismissed[n.id] && !(n.plan && subbed(n.plan)));
   if (!list.length) return null;
+  // Duas caixas separadas: o que comprar de novo e o que cuidar com um prestador.
+  const boxes = [
+    { key: 'produto', title: 'A Lotus lembrou: para comprar', icon: 'bag-handle-outline' },
+    { key: 'servico', title: 'A Lotus lembrou: para cuidar', icon: 'construct-outline' },
+  ];
   return (
-    <View style={{ marginBottom: 12 }}>
-      <Row style={{ alignItems: 'center', marginBottom: 6 }}>
-        <Ionicons name="flower" size={16} color={colors.gold} />
-        <Text style={[styles.headTitle, { marginLeft: 6, fontSize: 14 }]}>A Lotus lembrou</Text>
-      </Row>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
-        {list.map((n) => (
-          <View key={n.id} style={styles.nudge}>
-            <Row style={{ alignItems: 'flex-start' }}>
-              <Text style={{ fontSize: 22 }}>{n.icon}</Text>
-              <View style={{ flex: 1, marginLeft: 8 }}>
-                <Text style={styles.installTitle} numberOfLines={2}>{n.title}</Text>
-                <Text style={styles.small} numberOfLines={2}>{n.text}</Text>
-              </View>
-              <TouchableOpacity onPress={() => dispatch({ type: 'NUDGE_DISMISS', id: n.id })} accessibilityLabel="Dispensar lembrete" style={{ padding: 2 }}>
-                <Ionicons name="close" size={16} color={colors.muted} />
-              </TouchableOpacity>
+    <View>
+      {boxes.map((bx) => {
+        const items = list.filter((n) => n.kind === bx.key);
+        if (!items.length) return null;
+        return (
+          <View key={bx.key} style={[styles.card, { borderColor: colors.gold + '66' }]}>
+            <Row style={{ alignItems: 'center', marginBottom: 2 }}>
+              <Ionicons name="flower" size={16} color={colors.gold} />
+              <Text style={[styles.headTitle, { marginLeft: 6, fontSize: 14, flex: 1 }]}>{bx.title}</Text>
+              <Ionicons name={bx.icon} size={16} color={colors.muted} />
             </Row>
-            <TouchableOpacity style={[styles.smallBtn, { alignSelf: 'flex-start', marginTop: 8 }]} onPress={() => go(dispatch, n.go)}>
-              <Text style={styles.smallBtnText}>{n.cta}</Text>
-            </TouchableOpacity>
+            {items.map((n, i) => (
+              <View key={n.id} style={i ? styles.req : { marginTop: 8 }}>
+                <Row style={{ alignItems: 'flex-start' }}>
+                  <Text style={{ fontSize: 22 }}>{n.icon}</Text>
+                  <View style={{ flex: 1, marginLeft: 8 }}>
+                    <Text style={styles.installTitle}>{n.title}</Text>
+                    <Text style={styles.small}>{n.text}</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => dispatch({ type: 'NUDGE_DISMISS', id: n.id })} accessibilityLabel="Dispensar lembrete" style={{ padding: 2 }}>
+                    <Ionicons name="close" size={16} color={colors.muted} />
+                  </TouchableOpacity>
+                </Row>
+                <TouchableOpacity style={[styles.smallBtn, { alignSelf: 'flex-start', marginTop: 6, marginLeft: 30 }]} onPress={() => go(dispatch, n.go)}>
+                  <Text style={styles.smallBtnText}>{n.cta}</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
           </View>
-        ))}
-      </ScrollView>
+        );
+      })}
     </View>
   );
 }

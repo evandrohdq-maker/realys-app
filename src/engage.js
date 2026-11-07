@@ -170,11 +170,11 @@ export const subPlan = (id) => SUB_PLANS.find((p) => p.id === id);
 // ───────────── 7. Lotus avisa antes ─────────────
 // Lembretes que a Lotus monta com o histórico da pessoa (demonstração).
 export const LOTUS_NUDGES = [
-  { id: 'n-gas', icon: '🔥', title: 'Seu gás deve acabar essa semana', text: 'O último botijão foi há 52 dias. Em média dura 55.', cta: 'Assinar o gás todo mês', go: { tab: 'pedidos', seg: 'assinaturas' }, plan: 'sp2' },
-  { id: 'n-oleo', icon: '🚗', title: 'Faz 6 meses da troca de óleo', text: 'Mecânicos perto de você com horário hoje.', cta: 'Ver mecânicos', go: { tab: 'servicos', service: 'mecanico' } },
-  { id: 'n-filtro', icon: '💧', title: 'O filtro de água vence em 10 dias', text: 'Troque o refil e peça a instalação junto.', cta: 'Chamar encanador', go: { tab: 'servicos', service: 'encanador' } },
-  { id: 'n-ar', icon: '❄️', title: 'Limpeza do ar-condicionado', text: 'A última foi há 11 meses. O verão está chegando.', cta: 'Ver técnicos', go: { tab: 'servicos', service: 'arcond' } },
-  { id: 'n-agua', icon: '🥤', title: 'Água de 20 L acabando?', text: 'Você pediu 3 vezes este mês. Assine e ganhe 10%.', cta: 'Assinar a água', go: { tab: 'pedidos', seg: 'assinaturas' }, plan: 'sp3' },
+  { id: 'n-gas', kind: 'produto', icon: '🔥', title: 'Seu gás deve acabar essa semana', text: 'O último botijão foi há 52 dias. Em média dura 55.', cta: 'Assinar o gás todo mês', go: { tab: 'pedidos', seg: 'assinaturas' }, plan: 'sp2' },
+  { id: 'n-oleo', kind: 'servico', icon: '🚗', title: 'Faz 6 meses da troca de óleo', text: 'Mecânicos perto de você com horário hoje.', cta: 'Ver mecânicos', go: { tab: 'servicos', service: 'mecanico' } },
+  { id: 'n-filtro', kind: 'servico', icon: '💧', title: 'O filtro de água vence em 10 dias', text: 'Troque o refil e peça a instalação junto.', cta: 'Chamar encanador', go: { tab: 'servicos', service: 'encanador' } },
+  { id: 'n-ar', kind: 'servico', icon: '❄️', title: 'Limpeza do ar-condicionado', text: 'A última foi há 11 meses. O verão está chegando.', cta: 'Ver técnicos', go: { tab: 'servicos', service: 'arcond' } },
+  { id: 'n-agua', kind: 'produto', icon: '🥤', title: 'Água de 20 L acabando?', text: 'Você pediu 3 vezes este mês. Assine e ganhe 10%.', cta: 'Assinar a água', go: { tab: 'pedidos', seg: 'assinaturas' }, plan: 'sp3' },
 ];
 
 // ───────────── 8. Selo de origem ─────────────

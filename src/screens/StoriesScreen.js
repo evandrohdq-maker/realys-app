@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { LotusNudges } from '../components/Engage';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Pressable, TextInput, Image, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -77,8 +76,6 @@ export default function StoriesScreen({ navigate, explore }) {
         explore={explore}
         top={
           <View>
-        {/* A Lotus avisa antes: o que está para acabar ou vencer (só no perfil Usuário). */}
-        {state.activeRole === 'cliente' ? <LotusNudges /> : null}
         {/* Botão de postagem: a foto do perfil (com o anel do último story) abre publicação, story ou depoimento. */}
         <TouchableOpacity style={styles.postBar} onPress={() => setAdding(true)} activeOpacity={0.85} accessibilityLabel="Nova publicação">
           <View style={[styles.meRing, { borderColor: lastStory ? colors.gold : colors.border, borderWidth: lastStory ? 2.5 : 1.5 }]}>
