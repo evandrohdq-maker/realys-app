@@ -5,7 +5,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as D from './data';
 import { initialFriends } from './people';
 import { brl } from './theme';
-import { initialGifts, initialGiftCredits, giftFee, GIFT_MIN, GIFT_MAX, liveGiftOf, liveGiftCost, initialLiveCredits, initialLiveGifts, LIVE_CONVERT_MIN } from './gifts';
+import { initialGifts, initialGiftCredits, giftFee, giftNet, GIFT_MIN, GIFT_MAX, liveGiftOf, liveGiftCost, initialLiveCredits, initialLiveGifts, LIVE_CONVERT_MIN } from './gifts';
 import { INTEL_PLAN, subPlan } from './engage';
 import { pointsFor, pointOffer, initialPoints, promoDiscount, POINT_RULES, watchedToday } from './rewards';
 import { initialLoyalty, onDelivered } from './loyalty';
@@ -866,12 +866,12 @@ function baseReducer(state, a) {
       return { ...state, giftOpen: { to: a.to || null, asCompany: !!a.asCompany } };
     case 'CLOSE_GIFT':
       return { ...state, giftOpen: null };
-    // Presente: sai do saldo de quem dá (valor + taxa do Realys) e entra na hora para quem recebe,
+    // Presente: sai do saldo de quem dá só o valor; a taxa do Realys sai de dentro do presente e entra na hora para quem recebe,
     // como crédito de presente (não precisa aceitar, não dá para sacar, só compra no Realys).
     case 'SEND_GIFT': {
       const amount = +Number(a.amount).toFixed(2);
       const fee = giftFee(amount);
-      if (!(amount >= GIFT_MIN) || amount > GIFT_MAX || amount + fee > state.wallet || !a.to) return state;
+      if (!(amount >= GIFT_MIN) || amount > GIFT_MAX || amount > state.wallet || !a.to) return state;
       const company = a.asCompany ? state.stores.find((x) => x.id === D.MY_COMPANY_ID) : null;
       const gift = {
         id: newId('gf'),
@@ -880,6 +880,7 @@ function baseReducer(state, a) {
         from: company ? { name: company.name, kind: 'empresa', logo: company.logo } : { name: (state.user && state.user.name) || 'Você', kind: 'pessoa' },
         amount,
         fee,
+        net: +(amount - fee).toFixed(2), // o que chega para quem recebe
         occasion: a.occasion,
         message: a.message,
         at: Date.now(),
@@ -887,14 +888,14 @@ function baseReducer(state, a) {
       };
       return {
         ...state,
-        wallet: +(state.wallet - amount - fee).toFixed(2),
-        walletTx: [{ id: newId('w'), ts: Date.now(), kind: 'gasto', cat: 'Presentes', desc: `Presente para ${a.to.name} (${brl(amount)} + taxa ${brl(fee)})`, amount: +(amount + fee).toFixed(2) }, ...state.walletTx],
+        wallet: +(state.wallet - amount).toFixed(2),
+        walletTx: [{ id: newId('w'), ts: Date.now(), kind: 'gasto', cat: 'Presentes', desc: `Presente para ${a.to.name} (${brl(amount)}; recebe ${brl(amount - fee)}, taxa ${brl(fee)})`, amount }, ...state.walletTx],
         gifts: [gift, ...state.gifts],
         giftFees: +(state.giftFees + fee).toFixed(2),
-        finance: company ? [{ id: newId('m'), date: today(), desc: `Presente para cliente ${a.to.name}`, type: 'saida', value: +(amount + fee).toFixed(2) }, ...state.finance] : state.finance,
+        finance: company ? [{ id: newId('m'), date: today(), desc: `Presente para cliente ${a.to.name}`, type: 'saida', value: amount }, ...state.finance] : state.finance,
       };
     }
-    // Presente numa live: sai do saldo de quem assiste (valor + taxa do Realys) e vai para quem transmite.
+    // Presente numa live: sai do saldo de quem assiste só o valor; quem transmite recebe o valor menos a taxa.
     case 'SEND_LIVE_GIFT': {
       const g = liveGiftOf(a.gift);
       const qty = Math.max(1, Math.floor(a.qty || 1));
@@ -903,7 +904,7 @@ function baseReducer(state, a) {
       return {
         ...state,
         wallet: +(state.wallet - total).toFixed(2),
-        walletTx: [{ id: newId('w'), ts: Date.now(), kind: 'gasto', cat: 'Presentes', desc: `Live de ${a.live.host}: ${g.emoji} ${g.name}${qty > 1 ? ` x${qty}` : ''} (${brl(value)} + taxa ${brl(fee)})`, amount: total }, ...state.walletTx],
+        walletTx: [{ id: newId('w'), ts: Date.now(), kind: 'gasto', cat: 'Presentes', desc: `Live de ${a.live.host}: ${g.emoji} ${g.name}${qty > 1 ? ` x${qty}` : ''} (${brl(value)}; quem transmite recebe ${brl(value - fee)})`, amount: total }, ...state.walletTx],
         gifts: [{ id: newId('gf'), dir: 'enviado', to: { name: a.live.host, kind: 'live' }, amount: value, fee, occasion: `${g.emoji} ${g.name}${qty > 1 ? ` x${qty}` : ''} na live`, message: a.live.title, at: Date.now(), status: 'Entregue' }, ...state.gifts],
         giftFees: +(state.giftFees + fee).toFixed(2),
       };
@@ -912,7 +913,8 @@ function baseReducer(state, a) {
     case 'RECEIVE_LIVE_GIFT': {
       const g = liveGiftOf(a.gift);
       const qty = Math.max(1, Math.floor(a.qty || 1));
-      const value = +(g.value * qty).toFixed(2);
+      // Chega o valor do presente menos a taxa do Realys.
+      const value = giftNet(+(g.value * qty).toFixed(2));
       return {
         ...state,
         liveCredits: +(state.liveCredits + value).toFixed(2),

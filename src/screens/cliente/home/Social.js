@@ -275,7 +275,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
         if (mine) {
           // Na minha live o presente vira crédito de live na hora.
           dispatch({ type: 'RECEIVE_LIVE_GIFT', from: who, gift: g.key, qty: q });
-          setEarned((e) => +(e + g.value * q).toFixed(2));
+          setEarned((e) => +(e + liveGiftCost(g, q).net).toFixed(2));
         }
         if (g.value >= 10) showBurst(g, q, who);
         return;
@@ -294,7 +294,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
   const sendGift = () => {
     if (!live) return;
     if (cost.total > state.wallet)
-      return Alert.alert('Saldo insuficiente', `Esse presente custa ${brl(cost.total)} com a taxa. Deposite saldo na carteira. (Créditos de presente não servem para presentear.)`);
+      return Alert.alert('Saldo insuficiente', `Esse presente custa ${brl(cost.total)}. Deposite saldo na carteira. (Créditos de presente não servem para presentear.)`);
     dispatch({ type: 'SEND_LIVE_GIFT', live, gift: gift.key, qty });
     setComments((cs) => [...cs.slice(-5), { who: userName || 'Você', g: gift, what: `enviou ${gift.name}${qty > 1 ? ` x${qty}` : ''}`, gift: true }]);
     showBurst(gift, qty, 'Você');
@@ -480,7 +480,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                   </TouchableOpacity>
                 </View>
                 <Text style={styles.trayNote}>
-                  Inclui a taxa do Realys ({brl(cost.fee)}). Quem transmite recebe {brl(cost.value)} em créditos de live, que viram moeda Realys.
+                  Quem transmite recebe {brl(cost.net)} em créditos de live (a taxa de {brl(cost.fee)} do Realys sai do presente), que viram moeda Realys.
                 </Text>
               </View>
             ) : null}

@@ -44,7 +44,8 @@ export default function GiftSheet() {
   const company = asCompany ? state.stores.find((s) => s.id === MY_COMPANY_ID) : null;
   const value = other ? toNumber(other) : amount;
   const fee = giftFee(value);
-  const total = +(value + fee).toFixed(2);
+  const total = value; // quem envia paga só o valor do presente
+  const net = +(value - fee).toFixed(2); // a taxa sai de dentro do presente
   const kind = asCompany ? 'empresa' : to && to.tip ? 'gorjeta' : to && to.kind === 'prestador' ? 'prestador' : 'pessoa';
   const occasions = OCCASIONS[kind];
   const close = () => dispatch({ type: 'CLOSE_GIFT' });
@@ -53,10 +54,10 @@ export default function GiftSheet() {
     if (!to) return Alert.alert('Para quem?', 'Escolha quem vai receber o presente.');
     if (value < GIFT_MIN) return Alert.alert('Valor mínimo', `O presente mínimo é de ${brl(GIFT_MIN)}.`);
     if (value > GIFT_MAX) return Alert.alert('Valor máximo', `O presente máximo é de ${brl(GIFT_MAX)}.`);
-    if (total > state.wallet) return Alert.alert('Saldo insuficiente', `O presente custa ${brl(total)} com a taxa. Deposite saldo na carteira. (Créditos de presente não servem para presentear.)`);
+    if (total > state.wallet) return Alert.alert('Saldo insuficiente', `O presente custa ${brl(total)}. Deposite saldo na carteira. (Créditos de presente não servem para presentear.)`);
     dispatch({ type: 'SEND_GIFT', to, amount: value, occasion: occasion || occasions[0], message: message.trim(), asCompany });
     close();
-    Alert.alert('Presente enviado 🎁', `${to.name.split(' ')[0]} já recebeu ${brl(value)} em créditos de presente para usar em compras no Realys. Não precisa aceitar: já está na conta.`);
+    Alert.alert('Presente enviado 🎁', `${to.name.split(' ')[0]} já recebeu ${brl(net)} em créditos de presente para usar em compras no Realys. Não precisa aceitar: já está na conta.`);
   };
 
   // Para quem: pessoas e prestadores (cliente) ou clientes (empresa).
@@ -146,10 +147,10 @@ export default function GiftSheet() {
 
             {/* Resumo */}
             <View style={styles.summary}>
-              <Row label="Presente" value={brl(value)} />
-              <Row label={`Taxa do Realys (${GIFT_FEE_PCT}%)`} value={brl(fee)} />
-              <View style={styles.sumLine} />
               <Row label="Sai da sua carteira" value={brl(total)} strong />
+              <Row label={`Taxa do Realys (${GIFT_FEE_PCT}%, sai do presente)`} value={`− ${brl(fee)}`} />
+              <View style={styles.sumLine} />
+              <Row label="Quem recebe ganha" value={brl(net)} strong />
               <Text style={styles.note}>
                 <Ionicons name="information-circle-outline" size={12} color={colors.muted} /> Chega na hora, sem precisar aceitar. Quem recebe usa os créditos só dentro do Realys (compras, Food, Shop e serviços): eles não podem ser sacados.
               </Text>

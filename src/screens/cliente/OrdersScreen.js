@@ -28,7 +28,7 @@ const statusText = (o, food) =>
   }[o.status] || o.status);
 
 // Motoboy cadastrado no Realys que o restaurante chamou para a entrega. O cliente pode dar gorjeta
-// em créditos de presente (sai do saldo, com a taxa do Realys).
+// em créditos de presente (sai do saldo só o valor; a taxa do Realys sai de dentro da gorjeta).
 function CourierCard({ order: o }) {
   const { state, dispatch } = useStore();
   const p = (state.providers || []).find((x) => x.id === o.courierId) || (state.providers || []).find((x) => x.name === o.courier);

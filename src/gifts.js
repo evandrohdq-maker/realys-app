@@ -2,7 +2,8 @@
 // de empresa para cliente.
 //
 // Como funciona:
-// - Quem presenteia paga com o saldo da carteira: o valor do presente + a taxa do Realys.
+// - Quem presenteia paga só o valor do presente. A taxa do Realys (10%) sai de dentro do presente:
+//   num presente de R$ 500, quem dá paga R$ 500, quem recebe fica com R$ 450 e o Realys com R$ 50.
 // - Quem recebe não precisa aceitar: é presente, entra na hora como "créditos de presente".
 // - Créditos de presente NÃO podem ser sacados. Servem só para comprar produtos dentro do Realys
 //   (lojas, Food, Shop, Tecnologia e Agro) e contratar serviços (taxa de visita). São usados primeiro, antes do saldo.
@@ -14,6 +15,8 @@ export const GIFT_MIN = 5;
 export const GIFT_MAX = 2000;
 export const GIFT_AMOUNTS = [10, 20, 50, 100];
 
+// Quanto chega para quem recebe (valor menos a taxa).
+export const giftNet = (amount) => +(amount - giftFee(amount)).toFixed(2);
 export const giftFee = (amount) => (amount > 0 ? +Math.max(GIFT_FEE_MIN, (amount * GIFT_FEE_PCT) / 100).toFixed(2) : 0);
 
 export const OCCASIONS = {
@@ -54,7 +57,8 @@ export const liveGiftOf = (key) => LIVE_GIFTS.find((g) => g.key === key) || LIVE
 export const liveGiftCost = (gift, qty = 1) => {
   const value = +(gift.value * qty).toFixed(2);
   const fee = giftFee(value);
-  return { value, fee, total: +(value + fee).toFixed(2) };
+  // total = o que sai de quem envia (só o valor); net = o que chega para quem recebe.
+  return { value, fee, total: value, net: +(value - fee).toFixed(2) };
 };
 
 // Créditos de live que o usuário da demonstração já ganhou em lives anteriores.
