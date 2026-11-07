@@ -156,3 +156,21 @@ export function hearCall(results) {
   }
   return null;
 }
+
+// A Lotus não pode ouvir a si mesma: o microfone fica ligado enquanto ela fala e pega a voz
+// dela junto com a da pessoa. Tira do começo do pedido o trecho que é só a fala dela
+// (2 ou mais palavras seguidas iguais à frase que ela estava dizendo).
+export function stripEcho(rest, spoken) {
+  const words = String(rest || '').split(/\s+/).filter(Boolean);
+  const her = norm(spoken).replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
+  if (!words.length || her.length < 2) return String(rest || '').trim();
+  const w = words.map((x) => norm(x).replace(/[^a-z0-9]/g, ''));
+  let cut = 0;
+  for (let i = 0; i < her.length; i++) {
+    let k = 0;
+    while (k < w.length && i + k < her.length && w[k] === her[i + k]) k++;
+    if (k >= 2 && k > cut) cut = k;
+  }
+  // Se tudo era a fala dela, sobra nada (ela ouve o pedido de novo).
+  return words.slice(cut).join(' ').trim();
+}

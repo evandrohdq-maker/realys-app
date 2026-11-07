@@ -16,7 +16,7 @@ import LotusFlower, { FlyingPetal, MOODS } from '../components/LotusFlower';
 import StarField, { skyBg } from '../components/StarField';
 import { getWeather, skyOf, weatherIcon } from '../weather';
 import { searchAll, contentReply, CONTENT_WORDS } from '../search';
-import { stripWake, findCall, hearCall } from '../wakeMatch';
+import { stripWake, findCall, hearCall, stripEcho } from '../wakeMatch';
 import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences, forSpeech } from '../voice';
 import { emergencyNumbers } from '../extraData';
 import { confirmCall } from '../phone';
@@ -536,16 +536,23 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     const b = bargeIn.current;
     const call = hearCall(results);
     // Mostra o que o microfone está pegando enquanto ela fala (ajuda a ver se está ouvindo).
-    const said = results && results[0] ? String(results[0].transcript || '') : '';
-    if (said) setEarHeard(said.length > 42 ? '…' + said.slice(-42) : said);
+    // (sem as palavras da própria Lotus, que o microfone também pega)
+    const cur = talking.current;
+    const herNow = cur ? cur.parts.slice(Math.max(0, cur.index - 1), cur.index + 2).join(' ') : b.spoken || '';
+    const said = results && results[0] ? stripEcho(String(results[0].transcript || '').split(/[.!?]/).pop(), herNow) : '';
+    setEarHeard(said ? (said.length > 42 ? '…' + said.slice(-42) : said) : '');
     if (!b.heard) {
       if (!call) return;
       b.heard = true;
+      // Guarda o que ela estava falando: o que vier igual a isso depois do "Lotus" é a voz dela
+      // captada pelo microfone, não o pedido da pessoa.
+      const cur = talking.current;
+      b.spoken = cur ? cur.parts.slice(Math.max(0, cur.index - 1), cur.index + 2).join(' ') : '';
       // Não apaga o assunto (pending): "Lotus… tem mais barato?" continua falando dos mesmos motoristas.
       pauseTalk();
       setPhase('listening');
     }
-    if (call) b.rest = call.rest;
+    if (call) b.rest = stripEcho(call.rest, b.spoken || '');
     setPartial(b.rest || '');
     clearTimeout(b.timer);
     // Disse só "Lotus": continua com o MESMO microfone aberto esperando o pedido (até 3 s de
