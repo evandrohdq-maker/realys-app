@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { giftPoints } from '../../../rewards';
 import GiftIcon from '../../../components/GiftIcon';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -480,7 +481,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                   </TouchableOpacity>
                 </View>
                 <Text style={styles.trayNote}>
-                  Quem transmite recebe {brl(cost.net)} em créditos de live (a taxa de {brl(cost.fee)} do Realys sai do presente), que viram moeda Realys.
+                  Quem transmite recebe {brl(cost.net)} em créditos de live (a taxa de {brl(cost.fee)} do Realys sai do presente). Você ganha +{giftPoints(cost.value, state.gifts.filter((x) => x.dir === 'enviado').length).total} pontos Realys., que viram moeda Realys.
                 </Text>
               </View>
             ) : null}

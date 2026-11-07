@@ -2,6 +2,7 @@
 // to = { id, name, kind: 'pessoa' | 'prestador', photo, role } · asCompany = a empresa presenteia um cliente.
 // Sem "to", a pessoa escolhe para quem: amigos e pessoas, prestadores (ou clientes, se for empresa).
 import React, { useEffect, useState } from 'react';
+import { giftPoints } from '../rewards';
 import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -151,6 +152,11 @@ export default function GiftSheet() {
               <Row label={`Taxa do Realys (${GIFT_FEE_PCT}%, sai do presente)`} value={`− ${brl(fee)}`} />
               <View style={styles.sumLine} />
               <Row label="Quem recebe ganha" value={brl(net)} strong />
+              {value > 0 ? (
+                <Text style={[styles.note, { color: colors.primary, fontWeight: '700' }]}>
+                  🏆 Você ganha +{giftPoints(value, state.gifts.filter((g) => g.dir === 'enviado').length).total} pontos Realys (troque por boosts e anúncios)
+                </Text>
+              ) : null}
               <Text style={styles.note}>
                 <Ionicons name="information-circle-outline" size={12} color={colors.muted} /> Chega na hora, sem precisar aceitar. Quem recebe usa os créditos só dentro do Realys (compras, Food, Shop e serviços): eles não podem ser sacados.
               </Text>

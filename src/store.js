@@ -7,7 +7,7 @@ import { initialFriends } from './people';
 import { brl } from './theme';
 import { initialGifts, initialGiftCredits, giftFee, giftNet, GIFT_MIN, GIFT_MAX, liveGiftOf, liveGiftCost, initialLiveCredits, initialLiveGifts, LIVE_CONVERT_MIN } from './gifts';
 import { INTEL_PLAN, subPlan } from './engage';
-import { pointsFor, pointOffer, initialPoints, promoDiscount, POINT_RULES, watchedToday } from './rewards';
+import { pointsFor, pointOffer, giftPoints, initialPoints, promoDiscount, POINT_RULES, watchedToday } from './rewards';
 import { initialLoyalty, onDelivered } from './loyalty';
 import { conversations as initialConversations, communityPosts as initialCommunityPosts } from './homeData';
 import * as J from './jobsData';
@@ -299,6 +299,16 @@ function withSignupProfile(profile, user) {
     quiz: { about: user.about || '', work: user.work || '', hobbies: [] },
     bio: profile.bio || user.about || '',
     profession: profile.profession || user.work || '',
+  };
+}
+
+// Pontos de quem manda presente (1 por real + bônus a cada 10 presentes enviados).
+function giftPointsPatch(state, amount, desc) {
+  const sent = (state.gifts || []).filter((g) => g.dir === 'enviado').length;
+  const p = giftPoints(amount, sent);
+  return {
+    points: state.points + p.total,
+    pointsLog: [{ id: newId('pt'), points: p.total, desc: `${desc}${p.bonus ? ` (+${p.bonus} de bônus por repetição)` : ''}`, at: Date.now() }, ...state.pointsLog],
   };
 }
 
@@ -892,6 +902,7 @@ function baseReducer(state, a) {
         walletTx: [{ id: newId('w'), ts: Date.now(), kind: 'gasto', cat: 'Presentes', desc: `Presente para ${a.to.name} (${brl(amount)}; recebe ${brl(amount - fee)}, taxa ${brl(fee)})`, amount }, ...state.walletTx],
         gifts: [gift, ...state.gifts],
         giftFees: +(state.giftFees + fee).toFixed(2),
+        ...giftPointsPatch(state, amount, `Presente para ${a.to.name}`),
         finance: company ? [{ id: newId('m'), date: today(), desc: `Presente para cliente ${a.to.name}`, type: 'saida', value: amount }, ...state.finance] : state.finance,
       };
     }
@@ -907,6 +918,7 @@ function baseReducer(state, a) {
         walletTx: [{ id: newId('w'), ts: Date.now(), kind: 'gasto', cat: 'Presentes', desc: `Live de ${a.live.host}: ${g.emoji} ${g.name}${qty > 1 ? ` x${qty}` : ''} (${brl(value)}; quem transmite recebe ${brl(value - fee)})`, amount: total }, ...state.walletTx],
         gifts: [{ id: newId('gf'), dir: 'enviado', to: { name: a.live.host, kind: 'live' }, amount: value, fee, occasion: `${g.emoji} ${g.name}${qty > 1 ? ` x${qty}` : ''} na live`, message: a.live.title, at: Date.now(), status: 'Entregue' }, ...state.gifts],
         giftFees: +(state.giftFees + fee).toFixed(2),
+        ...giftPointsPatch(state, value, `Presente na live de ${a.live.host}`),
       };
     }
     // Alguém mandou presente na MINHA live: entra na hora como crédito de live.

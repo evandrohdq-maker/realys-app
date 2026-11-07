@@ -9,6 +9,18 @@
 export const POINTS_PER_RATING = 10;
 export const POINTS_COMMENT_BONUS = 5;
 
+// Quem manda presentes ganha pontos a cada presente: 1 ponto por real enviado (mínimo 1)
+// e, a cada GIFT_STREAK_EVERY presentes enviados, um bônus de repetição.
+// Os pontos só valem em serviços do Realys (boosts e anúncios), então não saem do caixa.
+export const GIFT_POINTS_PER_REAL = 1;
+export const GIFT_STREAK_EVERY = 10;
+export const GIFT_STREAK_BONUS = 50;
+export function giftPoints(amount, sentBefore) {
+  const base = Math.max(1, Math.floor(amount * GIFT_POINTS_PER_REAL));
+  const bonus = (sentBefore + 1) % GIFT_STREAK_EVERY === 0 ? GIFT_STREAK_BONUS : 0;
+  return { base, bonus, total: base + bonus };
+}
+
 export const pointsFor = (items) =>
   items.filter((it) => it.stars > 0).reduce((n, it) => n + POINTS_PER_RATING + ((it.text || '').trim().length >= 15 ? POINTS_COMMENT_BONUS : 0), 0);
 
