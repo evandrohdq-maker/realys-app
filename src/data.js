@@ -165,6 +165,18 @@ export const products = [
   { id: 'p26', storeId: 'e9', name: 'Kit de Robótica Educacional', price: 349.9, cost: 160.0, stock: 30, minStock: 5, emoji: '🤖', tint: '#E2F1F7', featured: true },
   { id: 'p27', storeId: 'e9', name: 'Câmera de Segurança com IA', price: 259.9, cost: 120.0, stock: 40, minStock: 8, emoji: '📷', tint: '#E2F1F7', featured: false, launch: { note: 'Reconhece pessoas e avisa no celular', at: 'Hoje' } },
   { id: 'p28', storeId: 'e10', name: 'Café Especial em Grãos 1kg', price: 69.9, cost: 32.0, stock: 80, minStock: 10, emoji: '☕', tint: '#EADBCF', featured: true },
+  // Mercado por seção (ver grocerySections.js): não perecíveis, perecíveis e demais.
+  { id: 'p29', storeId: 'e1', name: 'Tomate Italiano 1kg', price: 7.9, cost: 4.8, stock: 35, minStock: 8, emoji: '🍅', tint: '#FFE0E0', featured: false },
+  { id: 'p30', storeId: 'e1', name: 'Banana Prata 1kg', price: 4.5, cost: 2.6, stock: 40, minStock: 8, emoji: '🍌', tint: '#FFF8D6', featured: false },
+  { id: 'p31', storeId: 'e1', name: 'Frango Inteiro Resfriado 1kg', price: 16.9, cost: 12.0, stock: 20, minStock: 5, emoji: '🍗', tint: '#FFE3D6', featured: false },
+  { id: 'p32', storeId: 'e1', name: 'Queijo Mussarela Fatiado 500g', price: 29.9, cost: 21.0, stock: 18, minStock: 5, emoji: '🧀', tint: '#FFF4D6', featured: true },
+  { id: 'p33', storeId: 'e1', name: 'Presunto Fatiado 200g', price: 11.9, cost: 7.8, stock: 22, minStock: 6, emoji: '🥓', tint: '#FCE7F1', featured: false },
+  { id: 'p34', storeId: 'e1', name: 'Pão Francês 1kg', price: 14.9, cost: 9.0, stock: 30, minStock: 10, emoji: '🥖', tint: '#FBF1DC', featured: false },
+  { id: 'p35', storeId: 'e1', name: 'Macarrão Espaguete 500g', price: 4.9, cost: 3.1, stock: 55, minStock: 12, emoji: '🍝', tint: '#FBF1DC', featured: false },
+  { id: 'p36', storeId: 'e1', name: 'Sardinha em Lata 125g', price: 6.5, cost: 4.2, stock: 40, minStock: 10, emoji: '🐟', tint: '#E2F1F7', featured: false },
+  { id: 'p37', storeId: 'e1', name: 'Pizza Congelada Mussarela 460g', price: 19.9, cost: 13.0, stock: 12, minStock: 4, emoji: '🍕', tint: '#FFE3D6', featured: false },
+  { id: 'p38', storeId: 'e1', name: 'Refrigerante Cola 2L', price: 9.9, cost: 6.5, stock: 48, minStock: 12, emoji: '🥤', tint: '#EDEDED', featured: false },
+  { id: 'p39', storeId: 'e1', name: 'Detergente Neutro 500ml', price: 3.5, cost: 2.1, stock: 60, minStock: 15, emoji: '🧴', tint: '#E8E8F5', featured: false },
 ];
 
 export const posts = [

@@ -1,3 +1,4 @@
+import { GROCERY_SECTIONS } from './grocerySections';
 // Publicidade paga e promoções do Shop e do Food (demonstração).
 //
 // Formatos de anúncio pago, do mais caro ao mais barato:
@@ -123,11 +124,10 @@ export const MERCADO_COMBOS = [
   { id: 'cb-m1', storeId: 'e1', title: 'Cesta da semana', items: ['p1', 'p2', 'p4', 'p5'], deal: 'Leve 4, pague 3', off: 'cheapest' },
 ];
 // Corredores do mercado (palavras no nome do produto).
+// Atalhos do Mercado: "Tudo" + as seções de alimentos e demais itens (ver grocerySections.js).
 export const MERCADO_AISLES = [
   { key: 'todos', label: 'Tudo', ion: 'basket-outline', color: '#2E8B57' },
-  { key: 'mercearia', label: 'Mercearia', ion: 'cube-outline', color: '#B7791F', words: ['arroz', 'feijão', 'farinha', 'açúcar', 'óleo', 'macarrão'] },
-  { key: 'cafe', label: 'Café', ion: 'cafe-outline', color: '#7A5806', words: ['café'] },
-  { key: 'laticinios', label: 'Laticínios', ion: 'water-outline', color: '#2F74D0', words: ['leite', 'queijo', 'iogurte', 'manteiga'] },
+  ...GROCERY_SECTIONS.map((s) => ({ key: s.key, label: s.short, ion: s.icon, color: s.color })),
 ];
 
 // Todos os anúncios pagos, para o Painel da empresa mostrar o desempenho de cada um.

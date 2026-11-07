@@ -9,6 +9,7 @@ import { LaunchStrip } from '../../components/Launches';
 import { useBack } from '../../back';
 import { isFoodStore } from '../../data';
 import { FOOD_FILTERS } from '../../foodData';
+import { GROCERY_GROUPS, GROCERY_SECTIONS, sectionOf } from '../../grocerySections';
 import { FoodHighlights } from './FoodHighlights';
 import { ShopHero, CircleShortcuts, ShopHead, ShopProductCard as ProductCard, ShopGrid, StoreRow } from '../../components/ShopKit';
 import { SegTabs, SpotlightCarousel, ClipStrip, PromoSector } from '../../components/AdKit';
@@ -315,8 +316,10 @@ function MarketTab({ onOpenStore, onAdd, onPromos }) {
   const a = MERCADO_AISLES.find((x) => x.key === aisle) || {};
   const list = state.products
     .filter((p) => ids.includes(p.storeId))
-    .filter((p) => !a.words || a.words.some((w) => p.name.toLowerCase().includes(w)))
     .filter((p) => !term || p.name.toLowerCase().includes(term));
+  // Sem busca e com "Tudo", a lista sai agrupada: Não perecíveis, Perecíveis e Demais.
+  const grouped = !term && aisle === 'todos';
+  const oneSection = (key) => list.filter((p) => sectionOf(p.name) === key);
   const openAd = (ad) => {
     const p = state.products.find((x) => x.id === ad.productId);
     const s = storeOf(state, ad.storeId) || {};
@@ -342,12 +345,37 @@ function MarketTab({ onOpenStore, onAdd, onPromos }) {
           <Text style={{ color: '#0B1124', fontWeight: '800', fontSize: 18 }}>›</Text>
         </TouchableOpacity>
       ) : null}
-      <ShopHead title={term ? `Produtos para "${q.trim()}"` : a.key === 'todos' ? 'Produtos do mercado' : a.label} />
-      <ShopGrid>
-        {list.map((p) => (
-          <ProductCard key={p.id} p={p} storeName={(storeOf(state, p.storeId) || {}).name} onAdd={() => onAdd(p.id)} onPress={() => onOpenStore(p.storeId)} />
-        ))}
-      </ShopGrid>
+      {grouped ? null : (
+        <>
+          <ShopHead title={term ? `Produtos para "${q.trim()}"` : a.label} />
+          <ShopGrid>
+            {(term ? list : oneSection(aisle)).map((p) => (
+              <ProductCard key={p.id} p={p} storeName={(storeOf(state, p.storeId) || {}).name} onAdd={() => onAdd(p.id)} onPress={() => onOpenStore(p.storeId)} />
+            ))}
+          </ShopGrid>
+        </>
+      )}
+      {grouped
+        ? GROCERY_GROUPS.map((g) => {
+            const secs = GROCERY_SECTIONS.filter((s) => s.group === g.key).filter((s) => oneSection(s.key).length);
+            if (!secs.length) return null;
+            return (
+              <View key={g.key}>
+                <ShopHead title={g.label} />
+                {secs.map((s) => (
+                  <View key={s.key}>
+                    <Text style={{ color: s.color, fontWeight: '700', fontSize: 13, marginBottom: 6, marginTop: 4 }}>{s.label}</Text>
+                    <ShopGrid>
+                      {oneSection(s.key).map((p) => (
+                        <ProductCard key={p.id} p={p} storeName={(storeOf(state, p.storeId) || {}).name} onAdd={() => onAdd(p.id)} onPress={() => onOpenStore(p.storeId)} />
+                      ))}
+                    </ShopGrid>
+                  </View>
+                ))}
+              </View>
+            );
+          })
+        : null}
       {!list.length ? <Empty text="Nada encontrado no mercado." /> : null}
       <ShopHead title="Mercados perto de você" />
       {markets.map((m) => (
