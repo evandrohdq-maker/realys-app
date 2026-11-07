@@ -15,9 +15,6 @@ with sync_playwright() as p:
         name = os.path.basename(j['f']).replace('.png', '.webp')
         # recorte quadrado fixo e centrado: a flor fica sempre no meio
         im = im.crop((64, 64, 960, 960)).resize((300, 300), Image.LANCZOS)
-        # dourado do miolo mais vivo (flor padrão e botão flutuante)
-        if name.startswith('fab_'):
-            im = clear_stamens(vivid_gold(im), bars=name.startswith('fab_'))
         im.save(os.path.join(OUT, name), 'WEBP', quality=78, method=6)
         print(name)
     b.close()

@@ -298,7 +298,7 @@ function Shell() {
         activeOpacity={0.85}
         accessibilityLabel="Falar com a Lotus"
       >
-        {/* A Lotus é o microfone: flor preta, azul e dourada no lugar do antigo ícone de mic. */}
+        {/* A Lotus é o microfone: só a flor vermelha de miolo amarelo, sem fundo. */}
         <LotusMic hearing={state.handsFree && hearing} open={voice} />
       </TouchableOpacity>
 
@@ -511,23 +511,14 @@ const styles = StyleSheet.create({
     ...soft,
     elevation: 4,
   },
+  // Botão da Lotus: só o desenho da flor, sem fundo, sem borda e sem sombra.
   fab: {
     position: 'absolute',
-    right: 18,
+    right: 14,
     bottom: 84,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#05070D',
-    borderWidth: 1.5,
-    borderColor: colors.gold,
+    width: 60,
+    height: 60,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
-    elevation: 6,
-    shadowColor: '#2F86FF',
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
   },
 });

@@ -276,9 +276,9 @@ export function FlyingPetal({ trigger, from, to, color = '#F29BBE' }) {
   );
 }
 
-// Botão flutuante da Lotus (canto inferior direito): uma flor de lótus preta, azul e dourada
-// que funciona como microfone. Respira devagar em repouso e brilha azul quando o mãos livres
-// está ouvindo o "abrir Lotus". Tocar abre o comando de voz.
+// Botão flutuante da Lotus (canto inferior direito): só a flor vermelha de miolo amarelo, sem
+// fundo, que funciona como microfone. Entreaberta e respirando devagar em repouso; abre inteira
+// quando o mãos livres está ouvindo o "abrir Lotus" ou a caixa de voz está aberta.
 export function LotusMic({ hearing, open }) {
   const b = useRef(new Animated.Value(0)).current;
   const g = useRef(new Animated.Value(0)).current;
@@ -298,7 +298,6 @@ export function LotusMic({ hearing, open }) {
   const scale = Animated.add(b.interpolate({ inputRange: [0, 1], outputRange: [1, 1.06] }), g.interpolate({ inputRange: [0, 1], outputRange: [0, 0.06] }));
   return (
     <View style={styles.micWrap} pointerEvents="none">
-      <Animated.View style={[styles.micGlow, { opacity: g }]} />
       <Animated.Image source={FAB[0]} fadeDuration={0} resizeMode="contain" style={[styles.micFlower, { opacity: g.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }), transform: [{ scale }] }]} />
       <Animated.Image source={FAB[1]} fadeDuration={0} resizeMode="contain" style={[styles.micFlower, { opacity: g, transform: [{ scale }] }]} />
     </View>
@@ -306,9 +305,8 @@ export function LotusMic({ hearing, open }) {
 }
 
 const styles = StyleSheet.create({
-  micWrap: { width: 52, height: 52, alignItems: 'center', justifyContent: 'center' },
-  micGlow: { position: 'absolute', width: 52, height: 52, borderRadius: 26, backgroundColor: 'rgba(47,134,255,0.35)' },
-  micFlower: { position: 'absolute', width: 50, height: 50 },
+  micWrap: { width: 60, height: 60, alignItems: 'center', justifyContent: 'center' },
+  micFlower: { position: 'absolute', left: 0, top: 0, width: 60, height: 60 },
   // Faixa da largura inteira da caixa; a flor fica no meio exato, na horizontal e na vertical.
   stage: { alignSelf: 'stretch', height: STAGE, alignItems: 'center', justifyContent: 'center' },
   // Luz, raios e flor ficam todos no mesmo quadro, com o mesmo centro exato.

@@ -10,5 +10,5 @@ for m,(body,tip,base) in moods.items():
         a=2*math.pi*i/6
         jobs.append({'f':f'raw/{m}_idle_{i:02d}.png','o':{'b':1-0.035*(1-math.cos(a)),'pad':False,'elev':90,'dist':5.2,'target':0.2,'rot':2.5*math.sin(a),'body':body,'tip':tip,'base':base,'gold':False}})
 for i,b in enumerate([0.55,1.0]):
-    jobs.append({'f':f'raw/fab_{i}.png','o':{'b':b,'pad':False,'elev':90,'dist':5.2,'target':0.2,'body':'#163A8C','tip':'#4FA3FF','base':'#07080D','gold':True}})
+    jobs.append({'f':f'raw/fab_{i}.png','o':{'b':b,'pad':False,'elev':90,'dist':5.2,'target':0.2,'body':'#FFF2F0','tip':'#D3262B','base':'#F6E3B4','gold':False}})
 open('jobs.json','w').write(json.dumps(jobs))
