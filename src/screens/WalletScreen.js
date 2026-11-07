@@ -8,7 +8,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { colors, brl, soft } from '../theme';
 import { GIFT_FEE_PCT, LIVE_CONVERT_MIN, liveGiftOf } from '../gifts';
-import { PARTNER_OFFERS, POINTS_PER_RATING, POINTS_COMMENT_BONUS } from '../rewards';
+import { POINTS_PER_RATING, POINTS_COMMENT_BONUS, POINT_RULES } from '../rewards';
+import { BoostOffers, MyBoosts } from '../components/Boost';
 import { levelOf, nextLevel, ORDERS_FOR_BONUS, BONUS, STAMPS_FOR_REWARD, STAMP_BACK_PCT, initialLoyalty } from '../loyalty';
 
 const KIND = {
@@ -111,7 +112,7 @@ export default function WalletScreen({ visible, onClose }) {
               </View>
             </View>
             <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6, lineHeight: 16 }}>
-              Só para comprar produtos no Realys (lojas, Food, Shop, Tecnologia e Agro). Não podem ser sacados. Nas compras eles são usados primeiro, antes do saldo.
+              Só dentro do Realys: lojas, Food, Shop, Tecnologia, Agro e contratação de serviços. Não podem ser sacados. São usados primeiro, antes do saldo.
             </Text>
             {state.gifts.slice(0, 6).map((g) => (
               <View key={g.id} style={styles.giftRow}>
@@ -218,7 +219,7 @@ export default function WalletScreen({ visible, onClose }) {
             );
           })()}
 
-          {/* Pontos Realys: ganha avaliando, troca por créditos dos parceiros */}
+          {/* Pontos Realys: ganha avaliando, comprando e assistindo; troca só por boosts e anúncios */}
           <View style={styles.pointsCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Ionicons name="trophy" size={22} color={colors.primary} />
@@ -228,11 +229,11 @@ export default function WalletScreen({ visible, onClose }) {
               </View>
             </View>
             <Text style={{ color: colors.muted, fontSize: 11, marginTop: 4, lineHeight: 16 }}>
-              Ganhe {POINTS_PER_RATING} pontos a cada avaliação de pedido ou serviço (+{POINTS_COMMENT_BONUS} com comentário) e troque por créditos promocionais com os parceiros. Não podem ser sacados.
+              Ganhe {POINTS_PER_RATING} pontos a cada avaliação (+{POINTS_COMMENT_BONUS} com comentário), comprando e assistindo lives e clipes (até {POINT_RULES.watchDailyCap} por dia). Troque por boosts e anúncios do Realys. Pontos não viram saldo, não são sacados e vencem em {POINT_RULES.validityMonths} meses.
             </Text>
             {(state.promoCredits || []).filter((pc) => !pc.used).length ? (
               <>
-                <Text style={styles.pointsH}>Seus créditos de parceiros</Text>
+                <Text style={styles.pointsH}>Seus cupons e créditos de lojas</Text>
                 {state.promoCredits.filter((pc) => !pc.used).map((pc) => (
                   <View key={pc.id} style={styles.offer}>
                     <Text style={{ fontSize: 20, width: 30 }}>{pc.icon}</Text>
@@ -245,31 +246,9 @@ export default function WalletScreen({ visible, onClose }) {
                 ))}
               </>
             ) : null}
-            <Text style={styles.pointsH}>Trocar pontos com parceiros</Text>
-            {PARTNER_OFFERS.map((o) => {
-              const can = state.points >= o.points;
-              return (
-                <View key={o.id} style={styles.offer}>
-                  <Text style={{ fontSize: 20, width: 30 }}>{o.icon}</Text>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ color: colors.text, fontWeight: '700' }}>{o.title}</Text>
-                    <Text style={{ color: colors.muted, fontSize: 11 }}>{o.partner}{o.supplier ? ' · fornecedor' : o.kind === 'servico' ? ' · prestadores' : ''}</Text>
-                  </View>
-                  <TouchableOpacity
-                    disabled={!can}
-                    onPress={() =>
-                      Alert.alert('Trocar pontos', `${o.title} (${o.partner}) por ${o.points} pontos?`, [
-                        { text: 'Cancelar', style: 'cancel' },
-                        { text: 'Trocar', onPress: () => dispatch({ type: 'REDEEM_POINTS', offerId: o.id }) },
-                      ])
-                    }
-                    style={[styles.redeem, !can && { opacity: 0.45 }]}
-                  >
-                    <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 12 }}>{o.points} pts</Text>
-                  </TouchableOpacity>
-                </View>
-              );
-            })}
+            <MyBoosts />
+            <Text style={styles.pointsH}>Trocar pontos (ou pagar em R$)</Text>
+            <BoostOffers />
           </View>
 
           {/* Balanço */}

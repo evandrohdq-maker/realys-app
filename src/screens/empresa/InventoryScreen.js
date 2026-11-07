@@ -4,6 +4,7 @@ import { useStore, myProducts } from '../../store';
 import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Button, ProductThumb, Badge } from '../../components/ui';
 import ProductForm from './ProductForm';
+import { BoostButton } from '../../components/Boost';
 import { SHOP_SECTORS } from '../../shopSectorsData';
 
 export default function InventoryScreen() {
@@ -23,6 +24,7 @@ export default function InventoryScreen() {
   return (
     <Screen>
       <Title sub={`${products.length} produtos · ${brl(totalValue)} em estoque (custo)`}>Estoque</Title>
+      <BoostButton target="produto" label="Boost nos seus produtos" hint="Destaque no Shop e nas buscas, com pontos ou saldo. Anúncios de 30 s também." />
 
       <Card style={{ backgroundColor: colors.primaryLight, borderColor: colors.primaryLight }}>
         <Text style={{ color: colors.primaryDark, fontSize: 13 }}>

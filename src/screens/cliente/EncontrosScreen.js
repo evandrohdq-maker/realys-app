@@ -6,6 +6,7 @@ import { useStore } from '../../store';
 import { colors, soft } from '../../theme';
 import { Screen, Card, Row, Button, Photo, Section, Empty } from '../../components/ui';
 import { datePeople, datePerson, DATE_SPOTS, CHARMS_PER_DAY, minutesAgo } from '../../dateData';
+import { BoostButton } from '../../components/Boost';
 import { ENCONTROS_TERMS, TERMS_VERSION, RELATIONSHIP_STATUS, statusAllowed } from '../../encontrosTerms';
 import { ChatModal, VideoCallModal } from './home/Social';
 import { PROFILE_FIELDS, INTEREST_GROUPS, profileScore } from '../../encontrosProfile';
@@ -244,7 +245,9 @@ function Main({ openTerms }) {
   const [editProfile, setEditProfile] = useState(false);
   const myScore = profileScore(e);
   const charms = e.charms || {};
-  const charmsLeft = Math.max(0, CHARMS_PER_DAY - (e.charmDay === new Date().toDateString() ? e.charmsUsed || 0 : 0));
+  // Charmes extras comprados hoje com pontos ou saldo (boost do Date).
+  const extraCharms = (state.boosts || []).filter((b) => b.offerId === 'bd2' && new Date(b.at).toDateString() === new Date().toDateString()).length * 3;
+  const charmsLeft = Math.max(0, CHARMS_PER_DAY + extraCharms - (e.charmDay === new Date().toDateString() ? e.charmsUsed || 0 : 0));
 
   // Só aparece quem também aceitou os termos e está disponível. Casados e namorando ficam de fora.
   const visible = datePeople.filter(
@@ -287,7 +290,7 @@ function Main({ openTerms }) {
   };
   const charm = (p) => {
     if (charms[p.id]) return setNote(`Você já mandou um Charme para ${p.name}.`);
-    if (!charmsLeft) return Alert.alert('Charmes de hoje acabaram', `Você pode mandar ${CHARMS_PER_DAY} Charmes por dia. Amanhã tem mais.`);
+    if (!charmsLeft) return Alert.alert('Charmes de hoje acabaram', `Você pode mandar ${CHARMS_PER_DAY} Charmes por dia. Amanhã tem mais, ou pegue mais com um boost do Date.`);
     dispatch({ type: 'ENC_CHARM', id: p.id, mutual: p.likesYou });
     if (p.likesYou) setMatch(p);
     else setNote(`✨ Charme enviado! ${p.name} é avisado(a) agora que você se interessou.`);
@@ -334,6 +337,7 @@ function Main({ openTerms }) {
       {seg === 'cruzamentos' ? (
         <Screen>
           <RadarRow on={e.radar} km={e.maxKm} onChange={(v) => dispatch({ type: 'ENC_SET', patch: { radar: v } })} />
+          <BoostButton target="date" label="Boost no Date" hint="Apareça primeiro para quem está perto ou ganhe mais charmes" />
           {myScore < 70 ? <ScoreBar score={myScore} onPress={() => setEditProfile(true)} /> : null}
           {!e.radar ? (
             <Empty text="Com o radar desligado você não aparece para ninguém e não vê quem cruzou com você." />

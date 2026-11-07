@@ -42,7 +42,7 @@ export function VisitRequestSheet({ provider: p, visible, onClose, address = '',
 
   const send = () => {
     if (!problem.trim()) return Alert.alert('Conte o que precisa', `Escreva em poucas palavras o problema, para ${first} saber o que levar.`);
-    if (state.wallet < fee) return Alert.alert('Saldo insuficiente', `A taxa de visita é ${brl(fee)}. Adicione saldo em Carteira.`);
+    if (state.wallet + (state.giftCredits || 0) < fee) return Alert.alert('Saldo insuficiente', `A taxa de visita é ${brl(fee)}. Adicione saldo em Carteira.`);
     dispatch({ type: 'VISIT_REQUEST', provider: p, serviceLabel: type.label, problem: problem.trim(), address: addr.trim(), when });
     onClose();
     Alert.alert(

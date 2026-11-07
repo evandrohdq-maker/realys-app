@@ -151,7 +151,7 @@ export default function GiftSheet() {
               <View style={styles.sumLine} />
               <Row label="Sai da sua carteira" value={brl(total)} strong />
               <Text style={styles.note}>
-                <Ionicons name="information-circle-outline" size={12} color={colors.muted} /> Chega na hora, sem precisar aceitar. Quem recebe usa os créditos só para comprar produtos no Realys: eles não podem ser sacados.
+                <Ionicons name="information-circle-outline" size={12} color={colors.muted} /> Chega na hora, sem precisar aceitar. Quem recebe usa os créditos só dentro do Realys (compras, Food, Shop e serviços): eles não podem ser sacados.
               </Text>
             </View>
 

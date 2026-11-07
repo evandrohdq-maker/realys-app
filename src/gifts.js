@@ -5,10 +5,11 @@
 // - Quem presenteia paga com o saldo da carteira: o valor do presente + a taxa do Realys.
 // - Quem recebe não precisa aceitar: é presente, entra na hora como "créditos de presente".
 // - Créditos de presente NÃO podem ser sacados. Servem só para comprar produtos dentro do Realys
-//   (lojas, Food, Shop, Tecnologia e Agro). Na compra eles são usados primeiro, antes do saldo.
+//   (lojas, Food, Shop, Tecnologia e Agro) e contratar serviços (taxa de visita). São usados primeiro, antes do saldo.
+// - A taxa do Realys (10%) fica retida no Realys; o valor do presente já está no caixa, por isso pode virar compra.
 
-export const GIFT_FEE_PCT = 5; // taxa do Realys sobre o valor do presente
-export const GIFT_FEE_MIN = 0.5;
+export const GIFT_FEE_PCT = 10; // taxa do Realys sobre o valor do presente (fica retida no Realys)
+export const GIFT_FEE_MIN = 0; // sempre 10%, sem valor mínimo
 export const GIFT_MIN = 5;
 export const GIFT_MAX = 2000;
 export const GIFT_AMOUNTS = [10, 20, 50, 100];

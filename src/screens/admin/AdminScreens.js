@@ -61,7 +61,6 @@ export function AdminOverview() {
           ['Vídeos avulsos e vídeos longos', 7310],
           ['Patrocínio na busca', 8420],
           ['Taxas de negócios B2B', 3710],
-          ['Taxas de presentes e gorjetas', 1180 + state.giftFees],
         ].map(([label, v]) => (
           <Card key={label}>
             <Row style={{ justifyContent: 'space-between' }}>
@@ -70,6 +69,20 @@ export function AdminOverview() {
             </Row>
           </Card>
         ))}
+      </Section>
+
+      {/* Fundo de presentes: a taxa de 10% dos presentes fica separada no caixa do Realys.
+          Futuramente vira o fundo de doações para projetos sociais (de parceiros e do próprio Realys). */}
+      <Section title="Fundo de presentes (projetos sociais)">
+        <Card style={{ backgroundColor: '#EEF7F1', borderColor: '#BFE3CC' }}>
+          <Row style={{ justifyContent: 'space-between' }}>
+            <Text style={{ color: colors.text, flex: 1, fontWeight: '700' }}>Taxas de presentes e gorjetas (10%)</Text>
+            <Text style={{ fontWeight: '800', color: colors.success }}>{brl(1180 + state.giftFees)}</Text>
+          </Row>
+          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 6, lineHeight: 17 }}>
+            Fica retido no caixa do Realys, separado da receita. Reservado para o futuro fundo de doações: projetos sociais de parceiros e projetos sociais do próprio Realys.
+          </Text>
+        </Card>
       </Section>
     </Screen>
   );

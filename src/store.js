@@ -6,7 +6,7 @@ import * as D from './data';
 import { initialFriends } from './people';
 import { brl } from './theme';
 import { initialGifts, initialGiftCredits, giftFee, GIFT_MIN, GIFT_MAX, liveGiftOf, liveGiftCost, initialLiveCredits, initialLiveGifts, LIVE_CONVERT_MIN } from './gifts';
-import { pointsFor, PARTNER_OFFERS, initialPoints, promoDiscount } from './rewards';
+import { pointsFor, pointOffer, initialPoints, promoDiscount, POINT_RULES, watchedToday } from './rewards';
 import { initialLoyalty, onDelivered } from './loyalty';
 import { conversations as initialConversations, communityPosts as initialCommunityPosts } from './homeData';
 import * as J from './jobsData';
@@ -155,6 +155,7 @@ const initialState = {
   points: initialPoints,
   pointsLog: [],
   promoCredits: [], // { id, offerId, kind, partnerId?, service?, partner, title, value, used }
+  boosts: [], // boosts e anúncios comprados com pontos ou saldo: { id, offerId, target, title, start, until, paidWith, status }
   loyalty: initialLoyalty, // Clube Realys: pedidos entregues, selos por loja (ver src/loyalty.js)
   loyaltyNotes: [], // avisos de bônus que acabaram de sair
   // Comanda no estabelecimento (src/venueData.js): onde o cliente está, a mesa, os pedidos
@@ -1022,11 +1023,15 @@ function baseReducer(state, a) {
     // Assistiu o clipe até o fim: ganha pontos (uma vez por clipe).
     case 'AD_REWARD': {
       if (state.adRewards[a.id]) return state;
+      // Limite diário de pontos assistindo (lives e clipes): evita ficar "farmando" pontos.
+      const room = Math.max(0, POINT_RULES.watchDailyCap - watchedToday(state.pointsLog));
+      const pts = Math.min(a.points, room);
+      if (!pts) return { ...state, adRewards: { ...state.adRewards, [a.id]: true } };
       return {
         ...state,
         adRewards: { ...state.adRewards, [a.id]: true },
-        points: state.points + a.points,
-        pointsLog: [{ id: newId('pt'), points: a.points, desc: `Assistiu: ${a.desc}`, at: Date.now() }, ...state.pointsLog],
+        points: state.points + pts,
+        pointsLog: [{ id: newId('pt'), points: pts, desc: `Assistiu: ${a.desc}`, at: Date.now() }, ...state.pointsLog],
       };
     }
     // Pegar cupom: vira crédito promocional da loja e desconta sozinho no carrinho.
@@ -1055,15 +1060,41 @@ function baseReducer(state, a) {
             : [{ id: newId('pc'), offerId: a.combo.id, kind: 'loja', partnerId: a.combo.storeId, partner: a.partner, icon: '🧺', title: `Combo ${a.combo.title}`, value: a.off, used: false }, ...state.promoCredits],
       };
     }
+    // Troca de pontos (ou pagamento em R$ do saldo) por boost ou anúncio: só serviços do Realys.
     case 'REDEEM_POINTS': {
-      const offer = PARTNER_OFFERS.find((o) => o.id === a.offerId);
-      if (!offer || state.points < offer.points) return state;
-      return {
-        ...state,
-        points: state.points - offer.points,
-        pointsLog: [{ id: newId('pt'), points: -offer.points, desc: `Trocado: ${offer.title} · ${offer.partner}`, at: Date.now() }, ...state.pointsLog],
-        promoCredits: [{ id: newId('pc'), offerId: offer.id, kind: offer.kind, partnerId: offer.partnerId, service: offer.service, partner: offer.partner, icon: offer.icon, title: offer.title, value: offer.value, used: false }, ...state.promoCredits],
+      const offer = pointOffer(a.offerId);
+      if (!offer) return state;
+      const withMoney = a.pay === 'saldo';
+      if (withMoney ? !offer.money || state.wallet < offer.money : state.points < offer.points) return state;
+      const now = Date.now();
+      // Boost do mesmo tipo ainda valendo: o novo começa quando o atual termina.
+      const cur = (state.boosts || []).filter((b) => b.target === offer.target && b.until && b.until > now).sort((x, y) => y.until - x.until)[0];
+      const start = offer.target === 'anuncio' ? null : cur ? cur.until : now;
+      const boost = {
+        id: newId('bo'),
+        offerId: offer.id,
+        target: offer.target,
+        title: offer.title,
+        icon: offer.icon,
+        start,
+        until: start && offer.hours ? start + offer.hours * 3600000 : null,
+        paidWith: withMoney ? brl(offer.money) : `${offer.points} pontos`,
+        status: offer.target === 'anuncio' ? 'Em análise' : offer.hours ? 'Ativo' : 'Disponível',
+        at: now,
       };
+      return withMoney
+        ? {
+            ...state,
+            wallet: +(state.wallet - offer.money).toFixed(2),
+            walletTx: [{ id: newId('w'), ts: now, kind: 'gasto', cat: 'Boost', desc: offer.title, amount: offer.money }, ...state.walletTx],
+            boosts: [boost, ...(state.boosts || [])],
+          }
+        : {
+            ...state,
+            points: state.points - offer.points,
+            pointsLog: [{ id: newId('pt'), points: -offer.points, desc: `Trocado: ${offer.title}`, at: now }, ...state.pointsLog],
+            boosts: [boost, ...(state.boosts || [])],
+          };
     }
     case 'REQUEST_RIDE':
       return { ...state, rides: [a.ride, ...state.rides] };
@@ -1073,7 +1104,9 @@ function baseReducer(state, a) {
     case 'VISIT_REQUEST': {
       const p = a.provider;
       const fee = visitFee(p);
-      if (state.wallet < fee) return state;
+      if (state.wallet + state.giftCredits < fee) return state;
+      // Créditos de presente pagam primeiro (o valor já está no caixa do Realys).
+      const fromGift = +Math.min(state.giftCredits, fee).toFixed(2);
       const visit = {
         id: newId('vs'),
         providerId: p.id,
@@ -1086,16 +1119,17 @@ function baseReducer(state, a) {
         problem: a.problem || '',
         when: a.when || 'Assim que possível',
         status: 'aguardando',
+        fromGift,
         at: Date.now(),
       };
-      return { ...state, wallet: +(state.wallet - fee).toFixed(2), visits: [visit, ...state.visits] };
+      return { ...state, wallet: +(state.wallet - (fee - fromGift)).toFixed(2), giftCredits: +(state.giftCredits - fromGift).toFixed(2), visits: [visit, ...state.visits] };
     }
     // Resposta do prestador. Recusou: a taxa volta e o pedido não recebe avaliação (recusar não pune).
     case 'VISIT_RESPOND': {
       const v = state.visits.find((x) => x.id === a.id);
       if (!v || v.status !== 'aguardando') return state;
       const visits = state.visits.map((x) => (x.id === a.id ? { ...x, status: a.accept ? 'aceita' : 'recusada' } : x));
-      return { ...state, visits, wallet: a.accept ? state.wallet : +(state.wallet + v.fee).toFixed(2) };
+      return a.accept ? { ...state, visits } : { ...state, visits, wallet: +(state.wallet + v.fee - (v.fromGift || 0)).toFixed(2), giftCredits: +(state.giftCredits + (v.fromGift || 0)).toFixed(2) };
     }
     // Prestador aceitou e não foi: a taxa volta e ele perde posição no ranking.
     case 'VISIT_NO_SHOW': {
@@ -1103,7 +1137,8 @@ function baseReducer(state, a) {
       if (!v || v.status !== 'aceita') return state;
       return {
         ...state,
-        wallet: +(state.wallet + v.fee).toFixed(2),
+        wallet: +(state.wallet + v.fee - (v.fromGift || 0)).toFixed(2),
+        giftCredits: +(state.giftCredits + (v.fromGift || 0)).toFixed(2),
         visits: state.visits.map((x) => (x.id === a.id ? { ...x, status: 'faltou' } : x)),
         providers: state.providers.map((p) => (p.id === v.providerId ? { ...p, noShows: providerStats(p).noShows + 1 } : p)),
       };

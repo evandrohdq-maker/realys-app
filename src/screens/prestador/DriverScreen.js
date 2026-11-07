@@ -19,6 +19,7 @@ import {
 } from '../../serviceVisits';
 
 import ProfessionPicker from '../../components/ProfessionPicker';
+import { BoostButton } from '../../components/Boost';
 import { CAR_FEATURES, featuresOf, featureIcon, featureLabel } from '../../vehicleInfo';
 import { buildAgenda, nextJob, agendaStats, dayLabel, hhmm, untilText } from '../../agenda';
 
@@ -84,6 +85,7 @@ export default function DriverScreen({ goTo }) {
   return (
     <Screen>
       <Title sub="Motorista, motoboy, eletricista, mecânico, diarista e qualquer MEI">Painel do prestador</Title>
+      <BoostButton target="prestador" label="Boost: pegar trabalho mais rápido" hint="Fique no topo das indicações da sua região por algumas horas" />
 
       <Card style={{ backgroundColor: state.available ? colors.primaryLight : colors.card }}>
         <Row style={{ justifyContent: 'space-between' }}>
