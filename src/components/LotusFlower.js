@@ -195,20 +195,25 @@ export default function LotusFlower({ phase, level, onPress, visible = true, moo
   return (
     <View style={styles.stage} pointerEvents="box-none">
       <View style={styles.center} pointerEvents="box-none">
-        <Animated.Image
-          source={LIGHT.rays}
-          fadeDuration={0}
-          resizeMode="contain"
-          pointerEvents="none"
-          style={[styles.rays, { opacity: raysOpacity, transform: [{ translateY: lift }, { rotate: raysRotate }, { scale: haloScale }] }]}
-        />
-        <Animated.Image
-          source={LIGHT.halo}
-          fadeDuration={0}
-          resizeMode="contain"
-          pointerEvents="none"
-          style={[styles.halo, { opacity: haloOpacity, transform: [{ translateY: lift }, { scale: haloScale }] }]}
-        />
+        {/* A luz e os raios são maiores que a flor e passam por cima do cabeçalho da caixa.
+            Ficam dentro de uma View que não recebe toques, senão roubavam o toque do botão
+            fechar (no Android a Image ignora pointerEvents). */}
+        <View pointerEvents="none" style={styles.lights}>
+          <Animated.Image
+            source={LIGHT.rays}
+            fadeDuration={0}
+            resizeMode="contain"
+            pointerEvents="none"
+            style={[styles.rays, { opacity: raysOpacity, transform: [{ translateY: lift }, { rotate: raysRotate }, { scale: haloScale }] }]}
+          />
+          <Animated.Image
+            source={LIGHT.halo}
+            fadeDuration={0}
+            resizeMode="contain"
+            pointerEvents="none"
+            style={[styles.halo, { opacity: haloOpacity, transform: [{ translateY: lift }, { scale: haloScale }] }]}
+          />
+        </View>
         <Pressable onPress={onPress} accessibilityLabel="Falar com a Lotus" style={styles.wrap}>
           <Animated.View style={[styles.flower, { transform: [{ translateY: lift }, { rotate }, { scale: flowerScale }] }]}>
             {all.map(([k, i, src]) => (
@@ -311,6 +316,7 @@ const styles = StyleSheet.create({
   stage: { alignSelf: 'stretch', height: STAGE, alignItems: 'center', justifyContent: 'center' },
   // Luz, raios e flor ficam todos no mesmo quadro, com o mesmo centro exato.
   center: { width: BOX, height: BOX, transform: [{ translateX: NUDGE_X }, { translateY: NUDGE_Y }] },
+  lights: { position: 'absolute', left: 0, top: 0, width: BOX, height: BOX },
   halo: { position: 'absolute', width: HALO, height: HALO, left: ANCHOR - HALO / 2, top: ANCHOR - HALO / 2 },
   rays: { position: 'absolute', width: RAYS, height: RAYS, left: ANCHOR - RAYS / 2, top: ANCHOR - RAYS / 2 },
   wrap: { position: 'absolute', left: ANCHOR - SIZE / 2, top: ANCHOR - SIZE / 2, width: SIZE, height: SIZE },

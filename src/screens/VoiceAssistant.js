@@ -370,10 +370,37 @@ function moodOf(h) {
   return 'padrao';
 }
 
+// Na rolagem aparecem no máximo 4 conversas; as anteriores à última somem devagar depois de
+// 30 segundos (continuam no histórico, no botão do relógio).
+const HIST_SHOWN = 4;
+const HIST_MS = 30000;
+function FadeItem({ show, children }) {
+  const o = useRef(new Animated.Value(show ? 1 : 0)).current;
+  const [gone, setGone] = useState(!show);
+  useEffect(() => {
+    if (show) {
+      setGone(false);
+      Animated.timing(o, { toValue: 1, duration: 250, useNativeDriver: true }).start();
+    } else {
+      Animated.timing(o, { toValue: 0, duration: 800, useNativeDriver: true }).start(({ finished }) => finished && setGone(true));
+    }
+  }, [show]);
+  if (gone) return null;
+  return <Animated.View style={{ opacity: o }}>{children}</Animated.View>;
+}
+
 export default function VoiceAssistant({ visible, onClose, initialCommand, handsFree, onNavigate, onVoiceNav, canOpen }) {
   const { state, dispatch } = useStore();
   const [text, setText] = useState('');
   const [history, setHistory] = useState([]);
+  // Conversa limpa: na rolagem ficam só as últimas mensagens; o resto fica no histórico (relógio).
+  const [showHist, setShowHist] = useState(false);
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (!visible || history.length < 2) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [visible, history.length]);
   const [phase, setPhase] = useState('idle');
   const [partial, setPartial] = useState('');
   const [pending, setPending] = useState(null);
@@ -505,6 +532,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
 
   const close = () => {
     setPreview(null);
+    setShowHist(false);
     speechId.current += 1;
     talking.current = null;
     setPaused(null);
@@ -618,7 +646,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     // Pergunta sobre a lista que ela mostrou: mantém a lista na tela.
     if (!res.list && res.pending && res.pending.type === 'service' && pendingRef.current && pendingRef.current.type === 'service') res = { ...res, list: res.pending.options };
     setPending(res.pending || null);
-    setHistory((h) => [{ q: cmd, ...res }, ...h]);
+    setHistory((h) => [{ at: Date.now(), q: cmd, ...res }, ...h]);
     say(res, splitSentences(res.reply), 0);
   };
 
@@ -640,7 +668,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
       setPhase('idle');
     } catch (e) {
       setPhase('idle');
-      setHistory((h) => [{ q: '🎙️', reply: 'Não consegui abrir o microfone. Digite seu comando abaixo.' }, ...h]);
+      setHistory((h) => [{ at: Date.now(), q: '🎙️', reply: 'Não consegui abrir o microfone. Digite seu comando abaixo.' }, ...h]);
     }
   };
 
@@ -680,7 +708,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
       if (!p || !p.granted) {
         const r = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
         if (!r || !r.granted) {
-          setHistory((h) => [{ q: '🎙️', reply: 'O Realys precisa da permissão do microfone para ouvir você. Você também pode digitar abaixo.' }, ...h]);
+          setHistory((h) => [{ at: Date.now(), q: '🎙️', reply: 'O Realys precisa da permissão do microfone para ouvir você. Você também pode digitar abaixo.' }, ...h]);
           return;
         }
       }
@@ -747,7 +775,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     level.setValue(0);
     setPhase(restPhase());
     if (code === 'not-allowed' || code === 'service-not-allowed') {
-      setHistory((h) => [{ q: '🎙️', reply: 'O Realys precisa da permissão do microfone para ouvir você.' }, ...h]);
+      setHistory((h) => [{ at: Date.now(), q: '🎙️', reply: 'O Realys precisa da permissão do microfone para ouvir você.' }, ...h]);
     } else if (code === 'no-speech' || code === 'speech-timeout') {
       setPartial('');
     }
@@ -808,7 +836,17 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
                   <Text style={styles.tempText}>{weather.temp}°</Text>
                 </View>
               ) : null}
-            <TouchableOpacity onPress={close} style={styles.closeBtn} accessibilityLabel="Fechar a Lotus">
+            {history.length > 1 ? (
+              <TouchableOpacity
+                onPress={() => setShowHist((v) => !v)}
+                style={[styles.histBtn, showHist && styles.histBtnOn]}
+                hitSlop={8}
+                accessibilityLabel={showHist ? 'Esconder o histórico da Lotus' : 'Ver o histórico da Lotus'}
+              >
+                <Ionicons name="time-outline" size={17} color="#FFFFFF" />
+              </TouchableOpacity>
+            ) : null}
+            <TouchableOpacity onPress={close} style={styles.closeBtn} hitSlop={10} accessibilityLabel="Fechar a Lotus">
               <Ionicons name="close" size={20} color="#FFFFFF" />
             </TouchableOpacity>
             </View>
@@ -842,8 +880,10 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
                 ))}
               </ScrollView>
             ) : null}
+            {showHist ? <Text style={styles.histTitle}>Histórico da conversa</Text> : null}
             {history.map((h, i) => (
-              <View key={i} style={{ marginBottom: 14 }}>
+              <FadeItem key={`${h.at || 0}-${i === 0 ? 'last' : h.q}`} show={showHist || i === 0 || (i < HIST_SHOWN && now - (h.at || 0) < HIST_MS)}>
+              <View style={{ marginBottom: 14 }}>
                 <View style={styles.userLine}>
                   <Text style={styles.userText}>{h.q}</Text>
                 </View>
@@ -961,6 +1001,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
                   </View>
                 ) : null}
               </View>
+              </FadeItem>
             ))}
           </ScrollView>
 
@@ -1017,11 +1058,15 @@ const styles = StyleSheet.create({
     elevation: 24,
   },
   grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.25)', marginBottom: 8 },
-  head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  // por cima da flor e da luz: o botão fechar sempre recebe o toque
+  head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', zIndex: 10, elevation: 10 },
   brand: { fontSize: 18, fontWeight: '800', letterSpacing: 6, color: '#FFFFFF', textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 6 },
   brandSub: { fontSize: 11, color: 'rgba(253,230,138,0.85)', letterSpacing: 1.2, marginTop: 1 },
   tempChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(10,16,38,0.38)', borderRadius: 14, paddingHorizontal: 9, paddingVertical: 5, marginRight: 8 },
   tempText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700', marginLeft: 4 },
+  histBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.14)', marginRight: 8 },
+  histBtnOn: { backgroundColor: 'rgba(226,182,73,0.55)' },
+  histTitle: { color: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: '800', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 10 },
   closeBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.12)' },
 
   statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 2 },
