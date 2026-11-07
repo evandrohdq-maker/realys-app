@@ -230,7 +230,7 @@ export default function WalletScreen({ visible, onClose }) {
               </View>
             </View>
             <Text style={{ color: colors.muted, fontSize: 11, marginTop: 4, lineHeight: 16 }}>
-              Ganhe {POINTS_PER_RATING} pontos a cada avaliação (+{POINTS_COMMENT_BONUS} com comentário), comprando, mandando presentes e assistindo lives e clipes (até {POINT_RULES.watchDailyCap} por dia). Troque por boosts e anúncios do Realys. Pontos não viram saldo, não são sacados e vencem em {POINT_RULES.validityMonths} meses.
+              Ganhe {POINTS_PER_RATING} pontos a cada avaliação (+{POINTS_COMMENT_BONUS} com comentário), comprando, mandando presentes e assistindo lives e clipes (até {POINT_RULES.watchDailyCap} por dia). A cada 1.000 pontos, você tem R$ 10 para anúncios e boosts do Realys. Pontos não viram saldo, não são sacados e vencem em {POINT_RULES.validityMonths} meses.
             </Text>
             {(state.promoCredits || []).filter((pc) => !pc.used).length ? (
               <>
