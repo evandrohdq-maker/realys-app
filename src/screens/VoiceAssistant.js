@@ -321,7 +321,9 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
   const found = searchAll(state, stripWake(text));
   // Modelo de linguagem (dentro do celular): sem palavra-chave conhecida, entende pelo sentido.
   // "tô a fim de dançar hoje" → festas; "meu chuveiro queimou" → prestadores; "tô sem trabalho" → vagas.
-  if (!depth && !found.category && (!found.results.length || !CONTENT_WORDS.test(t))) {
+  // Achou um produto com o próprio nome pedido ("violão" → Violão folk): é isso, não precisa adivinhar.
+  const directHit = (found.tokens || []).length && found.results.some((r) => (found.tokens || []).every((w) => norm(r.title).includes(norm(w).slice(0, Math.max(4, norm(w).length - 1)))));
+  if (!depth && !found.category && !directHit && (!found.results.length || !CONTENT_WORDS.test(t))) {
     let sense = null;
     try {
       sense = understand(stripWake(text));

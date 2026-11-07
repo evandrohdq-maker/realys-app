@@ -13,6 +13,16 @@ const GROUP_ION = {
   cozinha: 'restaurant-outline', eletroportateis: 'flash-outline', mesa: 'wine-outline', cama: 'bed-outline', limpeza: 'sparkles-outline', organizacao: 'file-tray-stacked-outline',
   geladeiras: 'snow-outline', fogoes: 'flame-outline', lavadoras: 'water-outline', climatizacao: 'thermometer-outline', fornos: 'pizza-outline', lavaloucas: 'restaurant-outline', instalacao: 'construct-outline',
   presentes: 'gift-outline', papelaria: 'pencil-outline', pet: 'paw-outline', brinquedos: 'happy-outline', ferramentas: 'hammer-outline', festas: 'balloon-outline', esporte: 'football-outline', beleza: 'rose-outline',
+  perfumes: 'flask-outline', maquiagem: 'color-palette-outline', cabelos: 'cut-outline', pele: 'water-outline', barbearia: 'cut-outline', unhas: 'hand-left-outline', farmacia: 'medkit-outline', suplementos: 'barbell-outline',
+  academia: 'barbell-outline', bike: 'bicycle-outline', futebol: 'football-outline', quadra: 'tennisball-outline', camping: 'bonfire-outline', pesca: 'fish-outline', aquaticos: 'water-outline', radicais: 'speedometer-outline', lutas: 'hand-right-outline',
+  passeio: 'cart-outline', enxoval: 'shirt-outline', higiene: 'sparkles-outline', alimentacao: 'nutrition-outline', seguranca: 'shield-checkmark-outline', brincar: 'happy-outline',
+  caes: 'paw-outline', gatos: 'paw-outline', aves: 'leaf-outline', peixes: 'fish-outline', roedores: 'paw-outline', racao: 'nutrition-outline', higienepet: 'medkit-outline', acessoriospet: 'bed-outline',
+  pecas: 'cog-outline', pneus: 'ellipse-outline', som: 'volume-high-outline', acessoriosauto: 'car-outline', moto: 'bicycle-outline', capacetes: 'shield-outline', oleos: 'water-outline',
+  eletricas: 'flash-outline', manuais: 'hammer-outline', materiais: 'cube-outline', eletrica: 'bulb-outline', hidraulica: 'water-outline', pintura: 'brush-outline', jardim: 'leaf-outline',
+  livros: 'book-outline', religiosos: 'book-outline', escolar: 'school-outline', arte: 'brush-outline', biblias: 'book-outline',
+  bonecas: 'happy-outline', carrinhos: 'car-outline', educativos: 'extension-puzzle-outline', tabuleiro: 'dice-outline', pelucias: 'heart-outline', arlivre: 'sunny-outline', colecionaveis: 'star-outline',
+  cordas: 'musical-notes-outline', teclas: 'musical-note-outline', percussao: 'musical-notes-outline', sopro: 'musical-note-outline', audio: 'mic-outline', acessoriosmus: 'options-outline',
+  aneis: 'diamond-outline', colares: 'diamond-outline', brincos: 'sparkles-outline', pulseiras: 'link-outline', relogios: 'watch-outline', bijuterias: 'star-outline',
   sala: 'tv-outline', quarto: 'bed-outline', cozinhamov: 'cafe-outline', escritorio: 'desktop-outline', externa: 'leaf-outline', decoracao: 'color-palette-outline', iluminacao: 'bulb-outline', tapetes: 'grid-outline',
 };
 const sectorClass = (k) => {

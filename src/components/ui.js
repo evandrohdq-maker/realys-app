@@ -129,6 +129,9 @@ export function BarChart({ data, format = (v) => v, height = 140 }) {
 
 // "Foto" do produto: bloco colorido com ícone. Funciona sem internet.
 export function ProductThumb({ product, size = 64 }) {
+  // Produto cadastrado pela loja com foto: mostra a capa (primeira foto).
+  const cover = product && product.photos && product.photos[0];
+  if (cover) return <Photo uri={cover} style={[styles.thumb, { width: size, height: size }]} fallback={product.emoji || '📦'} />;
   return (
     <View style={[styles.thumb, { width: size, height: size, backgroundColor: (product.tint || '#EEF2F5') + '26' }]}>
       <Text style={{ color: colors.text, fontSize: size * 0.5 }}>{product.emoji}</Text>

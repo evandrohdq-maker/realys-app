@@ -96,8 +96,16 @@ export const NAV_TARGETS = [
   T('Geladeiras', { tab: 'eletrodomesticos', group: 'geladeiras' }, ['geladeiras', 'geladeira']),
   T('Móveis e decoração', { tab: 'moveis', group: 'todos' }, ['moveis', 'movel', 'moveis e decoracao', 'decoracao']),
   T('Vários', { tab: 'varios', group: 'todos' }, ['varios', 'diversos', 'outros']),
-  T('Pet', { tab: 'varios', group: 'pet' }, ['pet', 'pet shop', 'petshop']),
-  T('Brinquedos', { tab: 'varios', group: 'brinquedos' }, ['brinquedos', 'brinquedo']),
+  T('Pet shop', { tab: 'pet', group: 'todos' }, ['pet', 'pet shop', 'petshop']),
+  T('Brinquedos', { tab: 'brinquedos', group: 'todos' }, ['brinquedos', 'brinquedo']),
+  T('Beleza e saúde', { tab: 'beleza', group: 'todos' }, ['beleza', 'beleza e saude', 'perfumaria', 'maquiagem', 'cosmeticos']),
+  T('Esporte e lazer', { tab: 'esporte', group: 'todos' }, ['esporte', 'esportes', 'artigos esportivos']),
+  T('Bebês', { tab: 'bebes', group: 'todos' }, ['bebes', 'bebe', 'enxoval', 'coisas de bebe']),
+  T('Auto e moto', { tab: 'automotivo', group: 'todos' }, ['auto e moto', 'autopecas', 'pecas de carro', 'pecas de moto', 'automotivo']),
+  T('Construção e ferramentas', { tab: 'construcao', group: 'todos' }, ['construcao', 'material de construcao', 'ferramentas']),
+  T('Livros e papelaria', { tab: 'livros', group: 'todos' }, ['livros', 'livraria', 'papelaria', 'material escolar']),
+  T('Instrumentos musicais', { tab: 'musica', group: 'todos' }, ['instrumentos', 'instrumentos musicais', 'loja de musica']),
+  T('Joias e relógios', { tab: 'joias', group: 'todos' }, ['joias', 'joalheria', 'relogios', 'aliancas']),
   T('Presentes', { tab: 'varios', group: 'presentes' }, ['presentes', 'presente']),
 
   // Área empresarial (CNPJ)

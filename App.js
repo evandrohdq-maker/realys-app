@@ -51,7 +51,8 @@ import PageScreen from './src/screens/empresa/PageScreen';
 import JobsScreen from './src/screens/cliente/JobsScreen';
 import HRScreen from './src/screens/empresa/HRScreen';
 import { TechScreen, AgroScreen } from './src/screens/cliente/TechAgroScreen';
-import { ElectronicsScreen, FashionScreen, HomeGoodsScreen, AppliancesScreen, FurnitureScreen, VariousScreen } from './src/screens/cliente/ShopSectorScreen';
+import { ElectronicsScreen, FashionScreen, HomeGoodsScreen, AppliancesScreen, FurnitureScreen, VariousScreen, EXTRA_SECTOR_KEYS, SECTOR_SCREENS } from './src/screens/cliente/ShopSectorScreen';
+import { SHOP_SECTORS } from './src/shopSectorsData';
 
 // Cada perfil enxerga abas diferentes dentro do MESMO app.
 const TABS = {
@@ -85,6 +86,8 @@ const TABS = {
     { key: 'eletrodomesticos', label: 'Eletrodomésticos', icon: 'snow-outline', Comp: AppliancesScreen, hidden: true },
     { key: 'moveis', label: 'Móveis e decoração', icon: 'bed-outline', Comp: FurnitureScreen, hidden: true },
     { key: 'varios', label: 'Vários', icon: 'apps-outline', Comp: VariousScreen, hidden: true },
+    // Setores novos do Shop (Beleza, Esporte, Bebês, Pet, Auto e moto, Construção, Livros, Brinquedos, Música, Joias).
+    ...EXTRA_SECTOR_KEYS.map((k) => ({ key: k, label: SHOP_SECTORS[k].title, icon: SHOP_SECTORS[k].ion, Comp: SECTOR_SCREENS[k], hidden: true })),
     // Loja geral (todas as lojas): aberta pelo Shop do Início e pela busca.
     { key: 'loja', label: 'Loja', icon: 'bag-handle-outline', Comp: StoreScreen, hidden: true },
   ],

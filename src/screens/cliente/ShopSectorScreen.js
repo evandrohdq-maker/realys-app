@@ -7,6 +7,7 @@ import { SearchBar, GlobalResults } from '../../components/Search';
 import { SHOP_SECTORS, shopSectorItems } from '../../shopSectorsData';
 import { useBuy, priceText } from './TechAgroScreen';
 import { useBack } from '../../back';
+import { useStore, storeOf } from '../../store';
 import LotusFocus from '../../components/LotusFocus';
 
 // Setores do Shop com subgrupos (mesmo jeito do Agro): Eletrônicos, Vestuário, Utensílios domésticos,
@@ -69,9 +70,35 @@ function SectorScreen({ sectorKey, explore, navigate }) {
   }, [explore, sectorKey]);
   const focus = focusId && !q ? shopSectorItems.find((it) => it.id === focusId) : null;
 
-  const list = shopItemsFor(sectorKey, group, q.trim(), onlyShip).filter((it) => !focus || it.id !== focus.id);
+  // Produtos que as lojas cadastraram (classificados neste setor) entram junto, como lançamentos.
+  const { state, dispatch } = useStore();
+  const fromStores = (state.products || [])
+    .filter((p) => p.sector === sectorKey && p.stock > 0)
+    .map((p) => ({
+      id: 'sp-' + p.id,
+      sector: p.sector,
+      groups: [p.group],
+      icon: p.emoji || '📦',
+      title: p.name,
+      who: (storeOf(state, p.storeId) || {}).name || 'Loja Realys',
+      detail: p.desc || '',
+      price: p.price,
+      unit: 'unidade',
+      cta: 'Ver na loja',
+      photo: p.photos && p.photos[0],
+      ship: p.ship,
+      launch: Date.now() - (p.createdAt || 0) < 7 * 864e5,
+      storeId: p.storeId,
+      productId: p.id,
+    }));
+  const extra = fromStores
+    .filter((it) => group === 'todos' || it.groups.includes(group))
+    .filter((it) => !onlyShip || it.ship)
+    .filter((it) => !q.trim() || nq(`${it.title} ${it.who} ${it.detail}`).includes(nq(q.trim())));
+  const open = (it) => (it.productId ? dispatch({ type: 'OPEN_COMPANY', id: it.storeId, product: it.productId }) : buy(it));
+  const list = [...extra, ...shopItemsFor(sectorKey, group, q.trim(), onlyShip)].filter((it) => !focus || it.id !== focus.id);
   const groupLabel = (sector.groups.find((g) => g.key === group) || {}).label;
-  const launches = shopItemsFor(sectorKey, group).filter((it) => it.launch);
+  const launches = [...extra, ...shopItemsFor(sectorKey, group)].filter((it) => it.launch);
 
   return (
     <Screen>
@@ -127,7 +154,7 @@ function SectorScreen({ sectorKey, explore, navigate }) {
           <Text style={styles.kicker}>LANÇAMENTOS{group !== 'todos' ? ` · ${groupLabel.toUpperCase()}` : ''}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
             {launches.map((it) => (
-              <TouchableOpacity key={it.id} style={styles.launch} onPress={() => buy(it)} activeOpacity={0.85}>
+              <TouchableOpacity key={it.id} style={styles.launch} onPress={() => open(it)} activeOpacity={0.85}>
                 <Photo uri={it.photo} style={styles.launchImg} fallback={it.icon} />
                 <Text style={styles.launchTitle} numberOfLines={2}>
                   {it.title}
@@ -151,7 +178,7 @@ function SectorScreen({ sectorKey, explore, navigate }) {
       </Row>
 
       {list.length ? (
-        list.map((it) => <ItemCard key={it.id} it={it} onPress={buy} tint={tint} />)
+        list.map((it) => <ItemCard key={it.id} it={it} onPress={open} tint={tint} />)
       ) : searched ? (
         <GlobalResults query={searched} navigate={navigate} />
       ) : (
@@ -174,6 +201,18 @@ export const HomeGoodsScreen = (props) => <SectorScreen sectorKey="casa" {...pro
 export const AppliancesScreen = (props) => <SectorScreen sectorKey="eletrodomesticos" {...props} />;
 export const FurnitureScreen = (props) => <SectorScreen sectorKey="moveis" {...props} />;
 export const VariousScreen = (props) => <SectorScreen sectorKey="varios" {...props} />;
+
+// Setores novos (Beleza, Esporte, Bebês, Pet, Auto e moto, Construção, Livros, Brinquedos, Música, Joias):
+// uma tela para cada, criada a partir da lista de setores.
+const OLD_SECTORS = ['eletronicos', 'vestuario', 'casa', 'eletrodomesticos', 'moveis', 'varios'];
+export const EXTRA_SECTOR_KEYS = Object.keys(SHOP_SECTORS).filter((k) => !OLD_SECTORS.includes(k));
+export const SECTOR_SCREENS = Object.fromEntries(
+  EXTRA_SECTOR_KEYS.map((k) => {
+    const Comp = (props) => <SectorScreen sectorKey={k} {...props} />;
+    Comp.displayName = 'Sector_' + k;
+    return [k, Comp];
+  }),
+);
 
 const styles = StyleSheet.create({
   hero: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 12, marginBottom: 12, borderWidth: 1 },

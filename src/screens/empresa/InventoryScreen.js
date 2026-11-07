@@ -2,23 +2,22 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useStore, myProducts } from '../../store';
 import { colors, brl } from '../../theme';
-import { Screen, Title, Card, Row, Button, Input, ProductThumb, Badge } from '../../components/ui';
+import { Screen, Title, Card, Row, Button, ProductThumb, Badge } from '../../components/ui';
+import ProductForm from './ProductForm';
+import { SHOP_SECTORS } from '../../shopSectorsData';
 
 export default function InventoryScreen() {
   const { state, dispatch } = useStore();
   const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState({ name: '', price: '', cost: '', stock: '' });
   const products = myProducts(state);
   const totalValue = products.reduce((s, p) => s + p.cost * p.stock, 0);
 
-  const save = () => {
-    const price = parseFloat(form.price.replace(',', '.'));
-    const cost = parseFloat(form.cost.replace(',', '.'));
-    const stock = parseInt(form.stock, 10);
-    if (!form.name || isNaN(price) || isNaN(stock)) return Alert.alert('Preencha nome, preço e quantidade.');
-    dispatch({ type: 'ADD_PRODUCT', product: { name: form.name, price, cost: isNaN(cost) ? price * 0.7 : cost, stock } });
-    setForm({ name: '', price: '', cost: '', stock: '' });
+  // Produto novo publicado: vai para a página da loja e para o Shop, no setor que o Realys classificou.
+  const save = (product) => {
+    dispatch({ type: 'ADD_PRODUCT', product });
     setAdding(false);
+    const sec = SHOP_SECTORS[product.sector];
+    Alert.alert('Produto publicado ✅', `${product.name} já está na sua página e no Shop, em ${sec ? sec.title : 'Shop'}.`);
   };
 
   return (
@@ -33,20 +32,7 @@ export default function InventoryScreen() {
       </Card>
 
       {adding ? (
-        <Card>
-          <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 8 }}>Novo produto</Text>
-          <Button small variant="light" title="📷 Ler código de barras (em breve)" onPress={() => Alert.alert('Em breve', 'A leitura pela câmera entra na próxima versão.')} style={{ marginBottom: 10 }} />
-          <Input placeholder="Nome do produto" value={form.name} onChangeText={(name) => setForm({ ...form, name })} />
-          <Row>
-            <Input placeholder="Preço R$" keyboardType="decimal-pad" value={form.price} onChangeText={(price) => setForm({ ...form, price })} style={{ flex: 1, marginRight: 6 }} />
-            <Input placeholder="Custo R$" keyboardType="decimal-pad" value={form.cost} onChangeText={(cost) => setForm({ ...form, cost })} style={{ flex: 1, marginLeft: 6 }} />
-          </Row>
-          <Input placeholder="Quantidade" keyboardType="number-pad" value={form.stock} onChangeText={(stock) => setForm({ ...form, stock })} />
-          <Row>
-            <Button title="Salvar" onPress={save} style={{ flex: 1, marginRight: 6 }} />
-            <Button title="Cancelar" variant="outline" onPress={() => setAdding(false)} style={{ flex: 1, marginLeft: 6 }} />
-          </Row>
-        </Card>
+        <ProductForm onSave={save} onCancel={() => setAdding(false)} />
       ) : (
         <Button title="+ Cadastrar produto" onPress={() => setAdding(true)} style={{ marginBottom: 12 }} />
       )}
@@ -62,6 +48,11 @@ export default function InventoryScreen() {
                 <Text style={{ color: colors.muted, fontSize: 12 }}>
                   Venda {brl(p.price)} · Custo {brl(p.cost)}
                 </Text>
+                {p.sector && SHOP_SECTORS[p.sector] ? (
+                  <Text style={{ color: colors.gold, fontSize: 11, fontWeight: '700' }}>
+                    No Shop: {SHOP_SECTORS[p.sector].title} › {(SHOP_SECTORS[p.sector].groups.find((g) => g.key === p.group) || {}).label}
+                  </Text>
+                ) : null}
                 <View style={{ marginTop: 4, flexDirection: 'row', flexWrap: 'wrap' }}>
                   {p.launch ? <Badge label="Lançamento" color={colors.accent} /> : null}
                   {p.stock === 0 ? (
