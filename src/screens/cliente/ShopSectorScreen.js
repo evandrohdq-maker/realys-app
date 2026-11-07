@@ -7,6 +7,7 @@ import { SearchBar, GlobalResults } from '../../components/Search';
 import { SHOP_SECTORS, shopSectorItems } from '../../shopSectorsData';
 import { useBuy, priceText } from './TechAgroScreen';
 import { useBack } from '../../back';
+import LotusFocus from '../../components/LotusFocus';
 
 // Setores do Shop com subgrupos (mesmo jeito do Agro): Eletrônicos, Vestuário, Utensílios domésticos,
 // Eletrodomésticos e Móveis e decoração. Uma tela só serve para todos; muda a cor, os subgrupos e os produtos.
@@ -58,11 +59,17 @@ function SectorScreen({ sectorKey, explore, navigate }) {
   // Voltar do celular: de um subgrupo volta para "Todos" do setor; depois volta para a tela anterior.
   useBack(group !== 'todos', () => setGroup('todos'));
 
+  // Produto pedido pela Lotus: fica destacado no topo até a pessoa trocar de subgrupo ou buscar.
+  const [focusId, setFocusId] = useState(null);
   useEffect(() => {
-    if (explore && explore.tab === sectorKey) setGroup(explore.group || 'todos');
+    if (explore && explore.tab === sectorKey) {
+      setGroup(explore.group || 'todos');
+      setFocusId(explore.item || null);
+    }
   }, [explore, sectorKey]);
+  const focus = focusId && !q ? shopSectorItems.find((it) => it.id === focusId) : null;
 
-  const list = shopItemsFor(sectorKey, group, q.trim(), onlyShip);
+  const list = shopItemsFor(sectorKey, group, q.trim(), onlyShip).filter((it) => !focus || it.id !== focus.id);
   const groupLabel = (sector.groups.find((g) => g.key === group) || {}).label;
   const launches = shopItemsFor(sectorKey, group).filter((it) => it.launch);
 
@@ -80,6 +87,12 @@ function SectorScreen({ sectorKey, explore, navigate }) {
         voicePrompt={sector.voicePrompt}
       />
 
+      {focus ? (
+        <LotusFocus>
+          <ItemCard it={focus} onPress={buy} tint={tint} />
+        </LotusFocus>
+      ) : null}
+
       {/* Subgrupos */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 12 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
         {sector.groups.map((g) => {
@@ -87,7 +100,10 @@ function SectorScreen({ sectorKey, explore, navigate }) {
           return (
             <TouchableOpacity
               key={g.key}
-              onPress={() => setGroup(g.key)}
+              onPress={() => {
+                setGroup(g.key);
+                setFocusId(null);
+              }}
               style={[styles.groupBtn, { borderColor: tint + '55' }, on && { backgroundColor: tint, borderColor: tint }]}
               activeOpacity={0.85}
             >

@@ -6,6 +6,7 @@ import { colors, brl, soft } from '../../theme';
 import { Screen, Title, Photo, Badge, Row } from '../../components/ui';
 import { SearchBar, GlobalResults } from '../../components/Search';
 import { useBack } from '../../back';
+import LotusFocus from '../../components/LotusFocus';
 import { TECH_SEGMENTS, AGRO_SEGMENTS, AGRO_CHAINS, sectorItems, agroQuotes, agroWeather, leafDiagnoses } from '../../techAgroData';
 
 const GREEN = '#2E8B57';
@@ -106,10 +107,19 @@ function Bridge({ text, button, onPress }) {
   );
 }
 
-function SectorList({ sector, seg, term, navigate, searched, chain }) {
+function SectorList({ sector, seg, term, navigate, searched, chain, focusId }) {
   const buy = useBuy(navigate);
-  const list = itemsFor(sector, seg, term, chain);
   const otherLabel = (it) => (it.sector === 'tech' ? 'Tecnologia' : 'Agro');
+  // Item pedido pela Lotus: destacado no topo da lista.
+  const focus = focusId && !term ? sectorItems.find((it) => it.id === focusId) : null;
+  const list = itemsFor(sector, seg, term, chain).filter((it) => !focus || it.id !== focus.id);
+  if (focus)
+    return [
+      <LotusFocus key="focus">
+        <ItemCard it={focus} onPress={buy} otherLabel={otherLabel} />
+      </LotusFocus>,
+      ...list.map((it) => <ItemCard key={it.id} it={it} onPress={buy} otherLabel={otherLabel} />),
+    ];
   if (!list.length) return searched ? <GlobalResults query={searched} navigate={navigate} /> : <Text style={styles.empty}>Nada neste subgrupo ainda. Toque em outra categoria acima.</Text>;
   return list.map((it) => <ItemCard key={it.id} it={it} onPress={buy} otherLabel={otherLabel} />);
 }
@@ -119,8 +129,12 @@ export function TechScreen({ explore, navigate }) {
   const [seg, setSeg] = useState('todos');
   const [q, setQ] = useState('');
   const [searched, setSearched] = useState('');
+  const [focusId, setFocusId] = useState(null);
   useEffect(() => {
-    if (explore && explore.tab === 'tecnologia') setSeg(explore.seg || 'todos');
+    if (explore && explore.tab === 'tecnologia') {
+      setSeg(explore.seg || 'todos');
+      setFocusId(explore.item || null);
+    }
   }, [explore]);
   useBack(seg !== 'todos', () => setSeg('todos'));
 
@@ -136,11 +150,11 @@ export function TechScreen({ explore, navigate }) {
         </Text>
       </View>
 
-      <Segments list={TECH_SEGMENTS} value={seg} onChange={setSeg} tint={colors.accent} />
+      <Segments list={TECH_SEGMENTS} value={seg} onChange={(v) => { setSeg(v); setFocusId(null); }} tint={colors.accent} />
       {seg !== 'agrotech' ? (
         <Bridge text="Drones, sensores, IA e robôs para a lavoura" button="Ver no Agro" onPress={() => navigate && navigate({ tab: 'agro', seg: 'agrotech' })} />
       ) : null}
-      <SectorList sector="tech" seg={seg} term={q.trim()} navigate={navigate} searched={searched} />
+      <SectorList sector="tech" seg={seg} term={q.trim()} navigate={navigate} searched={searched} focusId={focusId} />
     </Screen>
   );
 }
@@ -151,10 +165,12 @@ export function AgroScreen({ explore, navigate }) {
   const [chain, setChain] = useState('todas');
   const [q, setQ] = useState('');
   const [searched, setSearched] = useState('');
+  const [focusId, setFocusId] = useState(null);
   useEffect(() => {
     if (explore && explore.tab === 'agro') {
       setSeg(explore.seg || 'todos');
       setChain(explore.chain || 'todas');
+      setFocusId(explore.item || null);
     }
   }, [explore]);
   useBack(seg !== 'todos' || chain !== 'todas', () => {
@@ -204,11 +220,11 @@ export function AgroScreen({ explore, navigate }) {
 
       {leaf ? <LeafDoctor key={chain} navigate={navigate} chain={chain} /> : null}
 
-      <Segments list={AGRO_SEGMENTS} value={seg} onChange={setSeg} tint={GREEN} />
+      <Segments list={AGRO_SEGMENTS} value={seg} onChange={(v) => { setSeg(v); setFocusId(null); }} tint={GREEN} />
       {seg !== 'agrotech' ? (
         <Bridge text="Apps, IA e robótica feitos para o campo" button="Ver em Tecnologia" onPress={() => navigate && navigate({ tab: 'tecnologia', seg: 'agrotech' })} />
       ) : null}
-      <SectorList sector="agro" seg={seg} term={q.trim()} navigate={navigate} searched={searched} chain={chain} />
+      <SectorList sector="agro" seg={seg} term={q.trim()} navigate={navigate} searched={searched} chain={chain} focusId={focusId} />
 
       <View style={styles.tipBox}>
         <Ionicons name="swap-horizontal-outline" size={18} color={GREEN} />

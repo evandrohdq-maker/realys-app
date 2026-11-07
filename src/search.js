@@ -208,7 +208,8 @@ function buildIndex(state) {
     const store = (state.stores || []).find((s) => s.id === p.storeId) || {};
     const promo = promos.find((x) => x.productId === p.id);
     add(
-      { id: 'p-' + p.id, section: promo ? `Promoção -${promo.off}%` : 'Produto', icon: p.emoji, title: p.name, subtitle: store.name || '', where: store.name, priceValue: p.price, go: promo ? (isFoodStore(store) ? { tab: 'food', cat: 'Todos', q: '', seg: 'promo' } : { tab: 'home', seg: 'promo' }) : isFoodStore(store) ? { tab: 'food', cat: store.category, q: p.name } : { tab: 'loja', cat: 'Todos', q: p.name } },
+      { id: 'p-' + p.id, section: promo ? `Promoção -${promo.off}%` : 'Produto', icon: p.emoji, title: p.name, subtitle: store.name || '', where: store.name, priceValue: p.price, // leva até a loja já mostrando o próprio produto (filtrado pelo nome)
+        go: isFoodStore(store) ? { tab: 'food', cat: 'Todos', q: p.name } : { tab: 'loja', cat: 'Todos', q: p.name } },
       p.name, store.name, store.category, 'produto', promo ? 'promocao oferta desconto' : '', p.launch ? 'lancamento novidade novo' : ''
     );
   });
@@ -301,7 +302,7 @@ function buildIndex(state) {
   // Tecnologia e Agro (os itens "agro é tech" respondem pelas duas palavras).
   sectorItems.forEach((it) =>
     add(
-      { id: 'ta-' + it.id, section: it.agrotech ? 'Agro é tech' : it.sector === 'tech' ? 'Tecnologia' : 'Agro', icon: it.icon, title: it.title, subtitle: it.who, price: it.price == null ? 'sob orçamento' : it.price === 0 ? 'grátis' : undefined, priceValue: it.price ? it.price : undefined, priceUnit: it.unit, where: it.who, photo: it.photo, sponsored: it.sponsored, go: it.go || { tab: it.sector === 'tech' ? 'tecnologia' : 'agro', seg: it.seg } },
+      { id: 'ta-' + it.id, section: it.agrotech ? 'Agro é tech' : it.sector === 'tech' ? 'Tecnologia' : 'Agro', icon: it.icon, title: it.title, subtitle: it.who, price: it.price == null ? 'sob orçamento' : it.price === 0 ? 'grátis' : undefined, priceValue: it.price ? it.price : undefined, priceUnit: it.unit, where: it.who, photo: it.photo, sponsored: it.sponsored, go: it.go || { tab: it.sector === 'tech' ? 'tecnologia' : 'agro', seg: it.seg, item: it.id } },
       it.title, it.who, it.detail, it.sector === 'tech' ? 'tecnologia' : 'agro agricola agronegocio', it.agrotech ? 'agro tecnologia agrotech' : '', (it.chains || []).map((c) => ({ graos: 'grao graos soja milho', cafe: 'cafe', pecuaria: 'pecuaria gado boi rebanho', horti: 'hortifruti horta hortalica', leite: 'leite' }[c])).join(' '), it.seg === 'cursos' ? 'curso aula evento' : it.seg === 'robotica' ? 'robotica robo' : it.seg === 'maquinas' ? 'maquina aluguel' : ''
     )
   );
@@ -311,7 +312,7 @@ function buildIndex(state) {
     const sec = SHOP_SECTORS[it.sector];
     const groups = (it.groups || []).map((g) => (sec.groups.find((x) => x.key === g) || {}).label).join(' ');
     add(
-      { id: 'ss-' + it.id, section: sec.title, icon: it.icon, title: it.title, subtitle: it.who, price: it.price == null ? 'sob orçamento' : undefined, priceValue: it.price ? it.price : undefined, priceUnit: it.unit, where: it.who, photo: it.photo, sponsored: it.sponsored, go: it.go || { tab: it.sector, group: (it.groups || [])[0] || 'todos' } },
+      { id: 'ss-' + it.id, section: sec.title, icon: it.icon, title: it.title, subtitle: it.who, price: it.price == null ? 'sob orçamento' : undefined, priceValue: it.price ? it.price : undefined, priceUnit: it.unit, where: it.who, photo: it.photo, sponsored: it.sponsored, go: it.go || { tab: it.sector, group: (it.groups || [])[0] || 'todos', item: it.id } },
       it.title, it.who, it.detail, sec.title, groups, { eletronicos: 'eletronico eletronicos aparelho', vestuario: 'roupa roupas moda vestuario', casa: 'casa utensilio utensilios domestico lar', eletrodomesticos: 'eletrodomestico eletrodomesticos linha branca', moveis: 'movel moveis decoracao decorar moveis planejados', varios: 'varios diversos outros presente presentes pet papelaria brinquedo brinquedos ferramenta ferramentas festa' }[it.sector], it.launch ? 'lancamento novidade' : ''
     );
   });
