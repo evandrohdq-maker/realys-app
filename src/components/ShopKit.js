@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, soft, brl } from '../theme';
 import { ProductThumb, Badge } from './ui';
@@ -48,6 +49,74 @@ export function CircleShortcuts({ items, value, onPress }) {
   );
 }
 
+
+// Vitrine do Shop: botão escuro e dourado ("Você no comando · Categorias"). Tocar abre uma tela por
+// cima com todos os setores para escolher o tipo de produto (em vez da grade ocupando a página).
+const NIGHT = '#0B1124';
+const GOLD = '#E2B649';
+export function CategoryPicker({ items, onPick, news }) {
+  const [open, setOpen] = useState(false);
+  const insets = useSafeAreaInsets();
+  return (
+    <>
+      <TouchableOpacity style={styles.catBar} onPress={() => setOpen(true)} activeOpacity={0.9} accessibilityLabel="Escolher o tipo de produto">
+        <View style={styles.catGlow} />
+        <View style={styles.catIcon}>
+          <Ionicons name="grid" size={18} color={NIGHT} />
+        </View>
+        <View style={{ flex: 1, marginLeft: 10 }}>
+          <Text style={styles.catTitle}>Você no comando.</Text>
+          <Text style={styles.catSub}>Escolha o tipo de produto · {items.length} setores</Text>
+        </View>
+        {news ? (
+          <View style={{ alignItems: 'flex-end', marginRight: 8 }}>
+            <Text style={styles.catNum}>{news}</Text>
+            <Text style={styles.catNumSub}>novidades</Text>
+          </View>
+        ) : null}
+        <Ionicons name="chevron-down" size={18} color={GOLD} />
+      </TouchableOpacity>
+      <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)} statusBarTranslucent>
+        <View style={styles.pickBack}>
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setOpen(false)} />
+          <View style={[styles.pickSheet, { paddingBottom: 16 + insets.bottom }]}>
+            <View style={styles.pickGrip} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+              <Text style={styles.pickTitle}>O que você procura?</Text>
+              <TouchableOpacity onPress={() => setOpen(false)} style={styles.pickX} accessibilityLabel="Fechar">
+                <Ionicons name="close" size={18} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{ maxHeight: 460 }} showsVerticalScrollIndicator={false}>
+              <View style={styles.circleGrid}>
+                {items.map((c) => (
+                  <TouchableOpacity
+                    key={c.key}
+                    style={styles.circleItem}
+                    onPress={() => {
+                      setOpen(false);
+                      onPick(c.key);
+                    }}
+                    activeOpacity={0.8}
+                    accessibilityLabel={c.label}
+                  >
+                    <View style={styles.pickCircle}>
+                      <Ionicons name={c.ion} size={20} color={GOLD} />
+                    </View>
+                    <Text style={styles.pickLabel} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+                      {c.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+    </>
+  );
+}
+
 // Título de seção com ação à direita ("Ver loja", "Ver todas"...).
 export function ShopHead({ title, action, onAction }) {
   return (
@@ -63,15 +132,16 @@ export function ShopHead({ title, action, onAction }) {
 }
 
 // Cartão de produto do Shop: foto, nome, loja, preço e botão "+ Carrinho".
-export function ShopProductCard({ p, storeName, onAdd, style, sponsored, onPress }) {
+export function ShopProductCard({ p, storeName, onAdd, style, sponsored, onPress, dark }) {
+  // dark: visual da Vitrine (botão azul-noite com letra dourada, patrocinado com borda dourada).
   return (
-    <View style={[styles.prod, sponsored && styles.prodSp, style]}>
+    <View style={[styles.prod, sponsored && (dark ? styles.prodSpGold : styles.prodSp), style]}>
       <TouchableOpacity activeOpacity={onPress ? 0.85 : 1} onPress={onPress} disabled={!onPress}>
         <ProductThumb product={p} size={86} />
       </TouchableOpacity>
       {sponsored ? (
-        <View style={styles.spTag}>
-          <Text style={styles.spTagText}>Patrocinado</Text>
+        <View style={[styles.spTag, dark && { backgroundColor: NIGHT }]}>
+          <Text style={[styles.spTagText, dark && { color: GOLD }]}>Patrocinado</Text>
         </View>
       ) : null}
       {p.launch ? <Text style={styles.launch}>LANÇAMENTO</Text> : null}
@@ -81,9 +151,9 @@ export function ShopProductCard({ p, storeName, onAdd, style, sponsored, onPress
       {storeName ? <Text style={styles.prodStore}>{storeName}</Text> : null}
       <Text style={styles.prodPrice}>{brl(p.price)}</Text>
       {p.stock === undefined || p.stock > 0 ? (
-        <TouchableOpacity style={styles.addBtn} onPress={onAdd} accessibilityLabel={`Adicionar ${p.name} ao carrinho`}>
-          <Ionicons name="add" size={16} color={colors.onPrimary} />
-          <Text style={styles.addText}>Carrinho</Text>
+        <TouchableOpacity style={[styles.addBtn, dark && { backgroundColor: NIGHT }]} onPress={onAdd} accessibilityLabel={`Adicionar ${p.name} ao carrinho`}>
+          <Ionicons name="add" size={16} color={dark ? GOLD : colors.onPrimary} />
+          <Text style={[styles.addText, dark && { color: GOLD }]}>Carrinho</Text>
         </TouchableOpacity>
       ) : (
         <View style={[styles.addBtn, { backgroundColor: colors.cardAlt }]}>
@@ -148,6 +218,21 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   prodSp: { borderWidth: 1, borderColor: 'rgba(108,92,231,0.35)' },
+  prodSpGold: { borderWidth: 1.5, borderColor: 'rgba(226,182,73,0.85)' },
+  catBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: NIGHT, borderRadius: 20, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)', overflow: 'hidden' },
+  catGlow: { position: 'absolute', right: -40, top: -50, width: 140, height: 140, borderRadius: 70, backgroundColor: 'rgba(226,182,73,0.18)' },
+  catIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: GOLD, alignItems: 'center', justifyContent: 'center' },
+  catTitle: { color: '#fff', fontWeight: '900', fontSize: 15 },
+  catSub: { color: 'rgba(255,255,255,0.7)', fontSize: 11.5, marginTop: 1 },
+  catNum: { color: GOLD, fontWeight: '900', fontSize: 17 },
+  catNumSub: { color: 'rgba(255,255,255,0.6)', fontSize: 9 },
+  pickBack: { flex: 1, backgroundColor: 'rgba(6,10,24,0.5)' },
+  pickSheet: { backgroundColor: NIGHT, borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 16, paddingTop: 8, borderTopWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
+  pickGrip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.25)', marginBottom: 12 },
+  pickTitle: { flex: 1, color: '#fff', fontWeight: '900', fontSize: 17 },
+  pickX: { width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' },
+  pickCircle: { width: 52, height: 52, borderRadius: 26, borderWidth: 1.5, borderColor: 'rgba(226,182,73,0.75)', backgroundColor: 'rgba(226,182,73,0.12)', alignItems: 'center', justifyContent: 'center' },
+  pickLabel: { color: '#fff', fontWeight: '700', fontSize: 11, marginTop: 6, textAlign: 'center' },
   spTag: { position: 'absolute', top: 8, right: 8, backgroundColor: colors.sponsored, borderRadius: 7, paddingHorizontal: 6, paddingVertical: 2 },
   spTagText: { color: colors.onPrimary, fontSize: 9, fontWeight: '800' },
   launch: { color: colors.accent, fontSize: 9, fontWeight: '800', letterSpacing: 0.6, marginTop: 6 },

@@ -17,7 +17,7 @@ import { SHOP_SECTORS, SHOP_SECTOR_KEYS } from '../../../shopSectorsData';
 import { askPix } from '../../../components/PixPay';
 import { useBack } from '../../../back';
 import { TestimonialCard } from '../../../components/SocialProfile';
-import { ShopHero, CircleShortcuts, ShopProductCard, ShopGrid, StoreRow } from '../../../components/ShopKit';
+import { ShopHero, CircleShortcuts, ShopProductCard, ShopGrid, StoreRow, CategoryPicker } from '../../../components/ShopKit';
 import { SegTabs, SpotlightCarousel, ClipStrip, PromoSector } from '../../../components/AdKit';
 import { SearchBar } from '../../../components/Search';
 import { isFoodStore } from '../../../data';
@@ -207,25 +207,25 @@ function ShopTab({ goTo, explore, navigate }) {
       ) : (
         <>
           <SpotlightCarousel ads={SHOP_SPOTLIGHT} onOpen={openAd} />
-          <ShopHero title="Você no comando." />
-          <CircleShortcuts items={SHOP_SHORTCUTS} onPress={goTo} />
+          {/* Botão que abre os setores numa tela por cima (em vez da grade de atalhos na página). */}
+          <CategoryPicker items={SHOP_SHORTCUTS} onPick={goTo} news={state.products.filter((p) => p.launch && notFood(p)).length + shopSectorItems.filter((it) => it.launch).length} />
           <LaunchStrip only={notFood} />
           <ClipStrip title="🎬 Clipes das lojas" clips={SHOP_CLIPS} />
           <TouchableOpacity style={styles.promoTeaser} activeOpacity={0.9} onPress={() => setSeg('promo')}>
-            <Ionicons name="flash" size={20} color="#0B1124" />
+            <Ionicons name="flash" size={20} color="#fff" />
             <View style={{ flex: 1, marginLeft: 10 }}>
-              <Text style={{ color: '#0B1124', fontWeight: '800' }}>Ofertas relâmpago, cupons e combos</Text>
-              <Text style={{ color: 'rgba(11,17,36,0.7)', fontSize: 12 }}>Até 40% off · acaba hoje</Text>
+              <Text style={{ color: '#fff', fontWeight: '800' }}>Ofertas relâmpago, cupons e combos</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 12 }}>Até 40% off · acaba hoje</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#0B1124" />
+            <Ionicons name="chevron-forward" size={18} color="#fff" />
           </TouchableOpacity>
-          <SectionHead title="Destaques para você" action="Ver loja" onAction={() => goTo('loja')} />
+          <SectionHead title="⭐ Destaques para você" action="Ver loja" onAction={() => goTo('loja')} />
           <ShopGrid>
             {grid.map(({ p, sp }) => (
-              <ShopProductCard key={p.id} p={p} sponsored={sp} storeName={(storeOf(state, p.storeId) || {}).name} onAdd={() => add(p)} onPress={() => dispatch({ type: 'OPEN_COMPANY', id: p.storeId })} />
+              <ShopProductCard key={p.id} dark p={p} sponsored={sp} storeName={(storeOf(state, p.storeId) || {}).name} onAdd={() => add(p)} onPress={() => dispatch({ type: 'OPEN_COMPANY', id: p.storeId, product: p.id })} />
             ))}
           </ShopGrid>
-          <SectionHead title="Lojas em destaque" />
+          <SectionHead title="🏬 Lojas em destaque" />
           {stores.map((s) => (
             <StoreRow key={s.id} s={{ ...s, city: null, recommended: false }} onPress={() => goTo('loja')} />
           ))}
@@ -978,7 +978,7 @@ const styles = StyleSheet.create({
   foodHint: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF1E6', borderRadius: 14, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(232,89,12,0.3)' },
   sectorHit: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 16, padding: 10, marginBottom: 8, ...soft },
   sectorIcon: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
-  promoTeaser: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E2B649', borderRadius: 16, padding: 12, marginBottom: 16 },
+  promoTeaser: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FF3B5C', borderRadius: 18, padding: 13, marginBottom: 16, borderWidth: 1, borderColor: '#FF7A45' },
   topTabText: { color: colors.muted, fontSize: 10, fontWeight: '600', marginTop: 3 },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, marginTop: 4 },
   sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '700' },
