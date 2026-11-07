@@ -3,7 +3,7 @@
 import base64, io, json, os
 from PIL import Image
 from playwright.sync_api import sync_playwright
-from vivid import vivid_gold, clear_stamens, clear_disk, halo, rays
+from vivid import vivid_gold, clear_stamens, clear_disk, pink_heart, halo, rays
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, '..', '..', 'assets', 'lotus')
 jobs = json.load(open(os.path.join(HERE, 'jobs.json')))
@@ -20,7 +20,7 @@ with sync_playwright() as p:
             im = clear_stamens(vivid_gold(im), bars=name.startswith('fab_'))
         # sem o círculo dourado no meio da flor padrão: no lugar dele o app desenha ondas sonoras
         if name.startswith('padrao_'):
-            im = clear_disk(im)
+            im = pink_heart(clear_disk(im))
         im.save(os.path.join(OUT, name), 'WEBP', quality=78, method=6)
         print(name)
     b.close()

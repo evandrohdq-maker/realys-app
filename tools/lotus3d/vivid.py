@@ -81,6 +81,34 @@ def clear_disk(im):
     return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGBA')
 
 
+def pink_heart(im):
+    """Pinta o miolo escuro da flor padrão: rosa no meio, puxando para roxo nas bordas até
+    encontrar o azul das pétalas. Mantém o relevo (as partes mais claras continuam mais claras)."""
+    im = im.convert('RGBA')
+    a = np.asarray(im).astype(np.float32)
+    W = im.width
+    k = W / 300
+    yy, xx = np.mgrid[0:im.height, 0:W]
+    d = np.hypot(xx - 148.3 * k, yy - 152.2 * k) / k
+    rgb = a[..., :3]
+    v = rgb.max(-1)
+    # só o que é escuro (preto/azul-marinho), dentro da região do miolo
+    dark = np.clip((110 - v) / 60, 0, 1)
+    reach = np.clip((88 - d) / 22, 0, 1)
+    w = dark * reach * (a[..., 3] > 0)
+    w = np.asarray(Image.fromarray((w * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.8 * k))).astype(np.float32) / 255
+    # cor por distância do centro: rosa -> rosa-lilás -> roxo
+    pink = np.array([255, 96, 170], np.float32)
+    lilac = np.array([214, 82, 200], np.float32)
+    purple = np.array([110, 72, 225], np.float32)
+    t = np.clip(d / 72, 0, 1)[..., None]
+    col = np.where(t < 0.5, pink + (lilac - pink) * (t / 0.5), lilac + (purple - lilac) * ((t - 0.5) / 0.5))
+    shade = (0.62 + 0.38 * np.clip(v / 60, 0, 1) + 0.12 * (1 - t[..., 0]))[..., None]
+    out = rgb * (1 - w[..., None]) + np.clip(col * shade, 0, 255) * w[..., None]
+    a[..., :3] = out
+    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGBA')
+
+
 def halo(path, size=600):
     # luz branca suave atrás da flor (um "sol" difuso)
     y, x = np.mgrid[0:size, 0:size] / (size - 1) * 2 - 1
