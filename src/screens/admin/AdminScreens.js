@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text } from 'react-native';
 import { useStore } from '../../store';
 import { platformStats } from '../../data';
+import { ORDER_FEE_PCT, SERVICE_FEE_PCT, GIFT_FEE_PCT, GIFT_FUND_SPLIT, orderFee, splitGiftFees } from '../../fees';
 import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Stat, Button, Badge, Section, Chip, Empty, BarChart } from '../../components/ui';
 
@@ -13,6 +14,11 @@ export function AdminOverview() {
   const openReports = state.reports.filter((r) => r.status === 'aberta').length;
   const pending = state.signups.filter((s) => s.status === 'pendente').length;
   const s = platformStats;
+  // Caixa do mês: valores de demonstração + o que aconteceu nesta sessão do app.
+  const orderFeesMonth = 6120 + (state.orders || []).reduce((n, o) => n + orderFee(o.total), 0);
+  const serviceFeesMonth = 2340 + (state.visits || []).reduce((n, v) => n + (v.split ? v.split.realys : 0), 0);
+  const giftFeesMonth = 1180 + state.giftFees;
+  const giftSplit = splitGiftFees(giftFeesMonth);
   return (
     <Screen>
       <Title sub="Controle geral da plataforma Realys">Administração</Title>
@@ -57,6 +63,9 @@ export function AdminOverview() {
 
       <Section title="Receita por fonte (mês)">
         {[
+          [`Taxas sobre pedidos (${ORDER_FEE_PCT}%)`, orderFeesMonth],
+          [`Taxas de contratação de serviços (${SERVICE_FEE_PCT}% da visita)`, serviceFeesMonth],
+          [`Presentes: parte do Realys (${GIFT_FUND_SPLIT.realys}% da taxa)`, giftSplit.realys],
           ['Planos mensais de empresas', 21840],
           ['Vídeos avulsos e vídeos longos', 7310],
           ['Patrocínio na busca', 8420],
@@ -71,17 +80,28 @@ export function AdminOverview() {
         ))}
       </Section>
 
-      {/* Fundo de presentes: a taxa de 10% dos presentes fica separada no caixa do Realys.
-          Futuramente vira o fundo de doações para projetos sociais (de parceiros e do próprio Realys). */}
-      <Section title="Fundo de presentes (projetos sociais)">
+      {/* Taxa dos presentes (10%) dividida: parte para o fundo de doações, parte para os projetos e o lucro do Realys. */}
+      <Section title="Taxa de presentes: divisão">
+        <Card>
+          <Row style={{ justifyContent: 'space-between' }}>
+            <Text style={{ color: colors.text, flex: 1, fontWeight: '700' }}>Total das taxas de presentes ({GIFT_FEE_PCT}%)</Text>
+            <Text style={{ fontWeight: '800', color: colors.text }}>{brl(giftFeesMonth)}</Text>
+          </Row>
+        </Card>
         <Card style={{ backgroundColor: '#EEF7F1', borderColor: '#BFE3CC' }}>
           <Row style={{ justifyContent: 'space-between' }}>
-            <Text style={{ color: colors.text, flex: 1, fontWeight: '700' }}>Taxas de presentes e gorjetas (10%)</Text>
-            <Text style={{ fontWeight: '800', color: colors.success }}>{brl(1180 + state.giftFees)}</Text>
+            <Text style={{ color: colors.text, flex: 1, fontWeight: '700' }}>Fundo de doações ({GIFT_FUND_SPLIT.doacoes}%)</Text>
+            <Text style={{ fontWeight: '800', color: colors.success }}>{brl(giftSplit.doacoes)}</Text>
           </Row>
           <Text style={{ color: colors.muted, fontSize: 12, marginTop: 6, lineHeight: 17 }}>
-            Fica retido no caixa do Realys, separado da receita. Reservado para o futuro fundo de doações: projetos sociais de parceiros e projetos sociais do próprio Realys.
+            Fica separado no caixa, reservado para projetos sociais de parceiros e do próprio Realys.
           </Text>
+        </Card>
+        <Card>
+          <Row style={{ justifyContent: 'space-between' }}>
+            <Text style={{ color: colors.text, flex: 1, fontWeight: '700' }}>Projetos e lucro do Realys ({GIFT_FUND_SPLIT.realys}%)</Text>
+            <Text style={{ fontWeight: '800', color: colors.primary }}>{brl(giftSplit.realys)}</Text>
+          </Row>
         </Card>
       </Section>
     </Screen>
