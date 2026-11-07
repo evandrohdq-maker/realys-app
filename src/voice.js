@@ -40,15 +40,53 @@ export async function prepareVoice() {
 export async function speakSoft(text, options = {}) {
   const voice = await prepareVoice();
   Speech.stop();
-  Speech.speak(text, { language: 'pt-BR', ...SOFT, ...(voice ? { voice } : {}), ...options });
+  Speech.speak(forSpeech(text), { language: 'pt-BR', ...SOFT, ...(voice ? { voice } : {}), ...options });
 }
 
 export const stopSpeaking = () => Speech.stop();
 
 // Divide a resposta em frases. Assim a Lotus sabe em que frase parou quando é pausada
 // e consegue continuar dali (o Android não tem "pausar" na voz, só "parar").
-export const splitSentences = (text) =>
-  (String(text || '').match(/[^.!?…]+[.!?…]*/g) || [String(text || '')]).map((s) => s.trim()).filter(Boolean);
+const ABBR = /(?:^|\s)(?:Dr|Dra|Sr|Sra|Srta|Av|Prof|Profa|nº|n)\.$/i;
+export const splitSentences = (text) => {
+  const t = String(text || '').trim();
+  const out = [];
+  let cur = '';
+  for (let i = 0; i < t.length; i++) {
+    cur += t[i];
+    // fim de frase: pontuação seguida de espaço (ou do fim). "3.4", "Dra. Sofia" não quebram.
+    if (/[.!?…]/.test(t[i]) && (i === t.length - 1 || /\s/.test(t[i + 1])) && !ABBR.test(cur)) {
+      if (cur.trim()) out.push(cur.trim());
+      cur = '';
+    }
+  }
+  if (cur.trim()) out.push(cur.trim());
+  return out.length ? out : [t];
+};
+
+// Texto para a VOZ da Lotus: sem símbolos (/, ·, ★, emojis), sem notas e sem detalhes entre
+// parênteses, com unidades por extenso (km -> quilômetros, R$ -> reais). E mais curto: fala as
+// duas primeiras frases e a pergunta final (o detalhe completo continua escrito na tela).
+export function forSpeech(text) {
+  let t = String(text || '');
+  t = t.replace(/\([^)]*\)/g, '');
+  t = t.replace(/,?\s*nota\s*\d+(?:[.,]\d+)?/gi, '');
+  t = t.replace(/★\s*\d+(?:[.,]\d+)?/g, '');
+  t = t.replace(/R\$\s*(\d+(?:\.\d{3})*)(?:,(\d{2}))?/g, (m, r, c) => (c && c !== '00' ? `${r} reais e ${+c} centavos` : `${r} reais`));
+  t = t.replace(/(\d)\s*km\b/gi, '$1 quilômetros').replace(/\bkm\b/gi, 'quilômetros');
+  t = t.replace(/(\d)\s*min\b/g, '$1 minutos');
+  t = t.replace(/\//g, ' ou ');
+  t = t.replace(/[·•★*#_|→—–]+/g, ', ');
+  t = t.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu, '');
+  t = t.replace(/(?:\s*,\s*){2,}/g, ', ').replace(/\s+,/g, ',').replace(/\s+([,.!?…])/g, '$1').replace(/([.!?…]),/g, '$1').replace(/\s{2,}/g, ' ').trim();
+  t = t.replace(/^,\s*/, '');
+  const parts = splitSentences(t);
+  if (parts.length <= 3) return t;
+  const keep = parts.slice(0, 2);
+  const ask = parts.filter((x) => /\?$/.test(x)).pop();
+  if (ask && !keep.includes(ask)) keep.push(ask);
+  return keep.join(' ');
+}
 
 // Fala as frases a partir da frase `from`. onPart(i) avisa qual frase começou.
 // onDone só no fim da última; onStopped/onError uma vez só (quando ela é parada).

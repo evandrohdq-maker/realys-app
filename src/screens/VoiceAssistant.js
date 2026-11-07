@@ -17,7 +17,7 @@ import StarField, { skyBg } from '../components/StarField';
 import { getWeather, skyOf, weatherIcon } from '../weather';
 import { searchAll, contentReply, CONTENT_WORDS } from '../search';
 import { stripWake, findCall, hearCall } from '../wakeMatch';
-import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences } from '../voice';
+import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences, forSpeech } from '../voice';
 import { emergencyNumbers } from '../extraData';
 import { confirmCall } from '../phone';
 import { findNavigation, navReply } from '../voiceNav';
@@ -650,7 +650,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     if (!res.list && res.pending && res.pending.type === 'service' && pendingRef.current && pendingRef.current.type === 'service') res = { ...res, list: res.pending.options };
     setPending(res.pending || null);
     setHistory((h) => [{ at: Date.now(), q: cmd, ...res }, ...h]);
-    say(res, splitSentences(res.reply), 0);
+    say(res, splitSentences(forSpeech(res.reply)), 0);
   };
 
   // Microfone pelo diálogo do Google: só se o reconhecimento dentro do app não existir no celular.
@@ -860,8 +860,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
             <View style={[styles.statusDot, { backgroundColor: phase === 'listening' ? '#60A5FA' : phase === 'idle' ? 'rgba(255,255,255,0.4)' : colors.gold }]} />
             <Text style={styles.status}>{PHASE_TEXT[phase]}</Text>
           </View>
-          <Text style={[styles.live, !partial && !last && styles.livePlaceholder]} numberOfLines={3}>
-            {partial || (last && phase !== 'listening' ? last.reply : '“Me leva pro Agro”')}
+          <Text style={[styles.live, !partial && !last && styles.livePlaceholder]} numberOfLines={2}>
+            {partial || (last && phase !== 'listening' ? splitSentences(last.reply)[0] : '“Me leva pro Agro”')}
           </Text>
           {paused && phase !== 'speaking' ? (
             <View style={styles.pauseRow}>
@@ -1075,7 +1075,7 @@ const styles = StyleSheet.create({
   statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 2 },
   statusDot: { width: 7, height: 7, borderRadius: 4, marginRight: 6 },
   status: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 6 },
-  live: { textAlign: 'center', color: '#FFFFFF', fontSize: 19, fontWeight: '600', marginTop: 8, paddingHorizontal: 10, minHeight: 26, textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 6 },
+  live: { textAlign: 'center', color: '#FFFFFF', fontSize: 15, fontWeight: '600', marginTop: 6, paddingHorizontal: 10, minHeight: 26, textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 6 },
   pauseRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 8, paddingHorizontal: 10 },
   pauseHint: { flex: 1, color: 'rgba(255,255,255,0.7)', fontSize: 12, marginRight: 8 },
   pauseBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 7 },
