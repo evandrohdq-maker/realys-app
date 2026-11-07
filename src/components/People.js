@@ -25,8 +25,8 @@ export function FriendButton({ member, compact }) {
   if (st === 'recebido') {
     return (
       <View style={{ flexDirection: 'row' }}>
-        <Btn compact={compact} icon="checkmark" label="Aceitar" solid onPress={() => set('amigo')} />
-        <Btn compact={compact} icon="close" label={compact ? '' : 'Recusar'} onPress={() => set(null)} style={{ marginLeft: 6 }} a11y={`Recusar pedido de ${first}`} />
+        <Btn compact={compact} icon="checkmark" label="Aceitar" solid onPress={() => set('amigo')} style={compact ? null : { flex: 1 }} />
+        <Btn compact={compact} icon="close" label={compact ? '' : 'Recusar'} onPress={() => set(null)} style={[{ marginLeft: 6 }, compact ? null : { flex: 1 }]} a11y={`Recusar pedido de ${first}`} />
       </View>
     );
   }
@@ -126,11 +126,19 @@ export function UserProfileModal() {
 
           <LiveNowBadge hostType="usuario" hostId={m.id} />
           {st === 'recebido' ? <Text style={styles.ask}>{m.name.split(' ')[0]} quer ser seu amigo no Realys.</Text> : null}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
-            <View style={{ flex: 1 }}>
+          {/* Pedido recebido: Aceitar/Recusar numa linha só deles, para não ficar por cima da Mensagem. */}
+          {st === 'recebido' ? (
+            <View style={{ marginTop: 12 }}>
               <FriendButton member={m} />
             </View>
-            <TouchableOpacity style={styles.msgBtn} onPress={openChat} accessibilityLabel={`Mensagem para ${m.name}`}>
+          ) : null}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: st === 'recebido' ? 8 : 12 }}>
+            {st === 'recebido' ? null : (
+              <View style={{ flex: 1 }}>
+                <FriendButton member={m} />
+              </View>
+            )}
+            <TouchableOpacity style={[styles.msgBtn, st === 'recebido' && { flex: 1, justifyContent: 'center', marginLeft: 0 }]} onPress={openChat} accessibilityLabel={`Mensagem para ${m.name}`}>
               <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.primary} />
               <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 6 }}>Mensagem</Text>
             </TouchableOpacity>

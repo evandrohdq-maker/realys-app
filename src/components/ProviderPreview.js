@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable, Animated, Easing, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, brl, soft } from '../theme';
 import { serviceType, priceText } from '../store';
 import { Photo } from './ui';
@@ -13,6 +14,10 @@ import { isVisitService, visitFee } from '../serviceVisits';
 // Na pesquisa (sem onCall), é só para analisar: nenhum botão de contato.
 export default function ProviderPreview({ provider: p, onClose, onCall }) {
   const anim = useRef(new Animated.Value(0)).current;
+  const insets = useSafeAreaInsets();
+  // Sobe a caixa acima da barra de botões do celular (voltar/início). Mínimo de 48 para
+  // aparelhos que informam 0 dentro da Lotus (modal translúcido).
+  const bottomGap = Math.max(insets.bottom, 48) + 10;
   useEffect(() => {
     if (!p) return;
     anim.setValue(0);
@@ -28,7 +33,7 @@ export default function ProviderPreview({ provider: p, onClose, onCall }) {
   return (
     <View style={StyleSheet.absoluteFill}>
       <Pressable style={[styles.dim, !onCall && styles.dimFull]} onPress={onClose} accessibilityLabel="Fechar prévia" />
-      <Animated.View style={[styles.card, { opacity: anim, transform: [{ translateY }] }]}>
+      <Animated.View style={[styles.card, { bottom: bottomGap, opacity: anim, transform: [{ translateY }] }]}>
         <View style={styles.headRow}>
           <Text style={styles.tag}>PRÉVIA DO PERFIL DE TRABALHO</Text>
           <TouchableOpacity onPress={onClose} style={styles.close} accessibilityLabel="Fechar prévia">
@@ -147,7 +152,7 @@ const styles = StyleSheet.create({
     left: 12,
     right: 12,
     bottom: 12,
-    maxHeight: '86%',
+    maxHeight: '72%',
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
     padding: 16,
@@ -175,13 +180,13 @@ const styles = StyleSheet.create({
   priceLabel: { color: colors.muted, fontSize: 12 },
   price: { color: colors.primary, fontWeight: '700', fontSize: 14 },
   photos: { flexDirection: 'row' },
-  photo: { flex: 1, aspectRatio: 1, borderRadius: 12, marginRight: 6, overflow: 'hidden' },
+  photo: { flex: 1, height: 74, borderRadius: 12, marginRight: 6, overflow: 'hidden' },
   review: { marginTop: 12, padding: 10, borderRadius: 14, backgroundColor: colors.bg },
   reviewTxt: { color: colors.text, fontSize: 12, marginTop: 4, lineHeight: 17 },
   notice: { flexDirection: 'row', alignItems: 'center', marginTop: 12 },
   noticeTxt: { color: colors.muted, fontSize: 11, marginLeft: 5, flex: 1 },
-  callBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 12, backgroundColor: colors.primary, borderRadius: 16, paddingVertical: 12 },
+  callBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10, backgroundColor: colors.primary, borderRadius: 16, paddingVertical: 12 },
   callTxt: { color: colors.onPrimary, fontWeight: '700', marginLeft: 6 },
-  backBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 12, backgroundColor: colors.bg, borderRadius: 16, paddingVertical: 12 },
+  backBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10, backgroundColor: colors.bg, borderRadius: 16, paddingVertical: 12 },
   backTxt: { color: colors.text, fontWeight: '700', marginLeft: 6 },
 });
