@@ -1,6 +1,7 @@
 // Regras dos mandados de serviço: prazo de 24 h, finalização com o QR do cliente, chat e repasse.
 // Funções puras, usadas pela tela de prestação e pela Lotus (mesmas regras nos dois lugares).
 export const PRAZO_MS = 24 * 3600 * 1000;
+export const TAXA_PCT = 10; // taxa da plataforma sobre o serviço (igual à do app)
 
 const ATIVOS = ['Aceito', 'Aguardando biometria'];
 

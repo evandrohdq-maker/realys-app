@@ -2,7 +2,7 @@
 //  - "finaliza o serviço com o código QR-XXXX" → lê o QR do cliente (dentro do prazo)
 //  - "manda no chat: <mensagem>" → envia no chat do mandado ativo
 // Devolve { updater, reply } para aplicar no estado, ou null se não for um comando de mandado.
-import { lerQr, enviarChat, vencido, PRAZO_MS } from './mandadosRegras';
+import { lerQr, enviarChat, vencido, PRAZO_MS, TAXA_PCT } from './mandadosRegras';
 
 export function findMandadoAction(text, mandados = [], agora = Date.now()) {
   const t = (text || '').trim();
@@ -16,11 +16,18 @@ export function findMandadoAction(text, mandados = [], agora = Date.now()) {
     const alvo = ativos.find((m) => m.qr === codigo);
     if (!alvo) return { reply: 'Não encontrei um serviço ativo com esse código.', updater: null };
     const r = lerQr(alvo, codigo, agora);
-    const ok = r.ok;
+    // Finalizar mexe com repasse: a Lotus só abre o cartão. Quem confirma é o toque no botão.
+    if (!r.ok) return { reply: r.msg, cartao: null, updater: null };
+    const recebe = (alvo.valor * (1 - TAXA_PCT / 100)).toFixed(2);
     return {
-      reply: r.msg,
-      pergunta: ok ? `Vou finalizar o serviço de ${alvo.cliente || 'este cliente'} com este código. Confirma? Diga sim ou não.` : null,
-      updater: ok ? (lista) => lista.map((m) => (m.id === alvo.id ? r.m : m)) : null,
+      reply: 'Abri a confirmação na tela. Toque em Confirmar, Recusar ou Depois.',
+      cartao: {
+        titulo: 'Finalizar serviço',
+        texto: `${alvo.cliente || 'Cliente'}: ${alvo.servico}, valor R$ ${alvo.valor}. Repasse após a taxa de ${TAXA_PCT}%: R$ ${recebe}.`,
+        aviso: 'Só finalize depois que o serviço estiver concluído. Depois disso, faça a biometria dentro de 24 horas para receber.',
+        confirmar: null,
+      },
+      updater: (lista) => lista.map((m) => (m.id === alvo.id ? r.m : m)),
     };
   }
 

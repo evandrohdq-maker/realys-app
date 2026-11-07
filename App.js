@@ -33,6 +33,7 @@ import { AdminSystem, NoteModal, SYSTEM_MAP } from './src/screens/admin/AdminSys
 import { WakeWordListener } from './src/wakeWord';
 import { findNavigation, navReply } from './src/voiceNav';
 import { findMandadoAction } from './src/voiceMandados';
+import LotusCartao from './src/components/LotusCartao';
 import { findProfile, openReply } from './src/voiceIntents';
 import { stripWake } from './src/wakeMatch';
 import { speakSoft, prepareVoice } from './src/voice';
@@ -130,7 +131,8 @@ function Shell() {
   const lastBack = useRef(0);
   const live = useRef({});
   const [voice, setVoice] = useState(false);
-  const [acaoPendente, setAcaoPendente] = useState(null); // ação da Lotus aguardando confirmação (sim/não)
+  const [acaoPendente, setAcaoPendente] = useState(null); // mensagem da Lotus aguardando sim/não (só chat)
+  const [cartaoLotus, setCartaoLotus] = useState(null); // cartão de confirmação com botões (finalização, dinheiro)
   const [menu, setMenu] = useState(false);
   const [explore, setExplore] = useState(null);
   const [noting, setNoting] = useState(false);
@@ -399,6 +401,13 @@ function Shell() {
           // Mandados de serviço: "finaliza com o código QR-…" e "manda no chat: …" (dentro do prazo).
           const acao = text && !prof ? findMandadoAction(stripWake(text), state.mandados) : null;
           if (acao) {
+            if (acao.cartao) {
+              // Contratação e dinheiro: abre o cartão. A voz não confirma.
+              const updater = acao.updater;
+              setCartaoLotus({ ...acao.cartao, confirmar: () => dispatch({ type: 'MANDADOS_UPDATE', updater }) });
+              speakSoft(acao.reply);
+              return;
+            }
             if (acao.updater && acao.pergunta) {
               setAcaoPendente(acao);
               speakSoft(acao.pergunta);
@@ -420,6 +429,7 @@ function Shell() {
           Alert.alert('Mãos livres desligado', msg);
         }}
       />
+      <LotusCartao cartao={cartaoLotus} onClose={() => setCartaoLotus(null)} />
       <PeopleSearchModal visible={searching} onClose={() => setSearching(false)} navigate={pick} />
       <UserProfileModal />
       <CompanyProfileModal />
