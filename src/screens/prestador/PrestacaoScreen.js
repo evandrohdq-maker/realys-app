@@ -15,7 +15,8 @@ import { TERMO_EMPRESA } from '../../termoAdesao';
 import { getDevicePoint } from '../../geo';
 import { REALYS_FEE_PCT } from '../../serviceVisits';
 import { TIPOS_CADASTRO, CATEGORIAS_CNH, SERVICOS_CNH, SERVICOS_PASSAGEIROS, statusCadastro, docsFaltantes, hojeISO } from '../../prestacaoRegras';
-import { EMPRESA_DEMO, FUNCIONARIOS_DEMO, MANDADOS_DEMO, EXEMPLOS_CADASTRO_DEMO } from '../../empresaDemo';
+import { EMPRESA_DEMO, FUNCIONARIOS_DEMO, EXEMPLOS_CADASTRO_DEMO } from '../../empresaDemo';
+import { useStore } from '../../store';
 
 const SERVICOS_OPCOES = ['motoboy', 'motorista', 'carro', 'van', 'moto', 'frete', 'encanador', 'eletricista'];
 const nomeServico = (k) => (serviceTypes.find((s) => s.key === k) || { label: k }).label;
@@ -321,7 +322,9 @@ export default function PrestacaoScreen({ onClose }) {
   const [aba, setAba] = useState('cadastro');
   const [aceita, setAceita] = useState(false);
   const [funcionarios, setFuncionarios] = useState(FUNCIONARIOS_DEMO);
-  const [mandados, setMandados] = useState(MANDADOS_DEMO);
+  const { state, dispatch } = useStore();
+  const mandados = state.mandados;
+  const setMandados = (updater) => dispatch({ type: 'MANDADOS_UPDATE', updater });
   return (
     <Screen>
       <Row style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>

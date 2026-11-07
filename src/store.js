@@ -1,3 +1,4 @@
+import { MANDADOS_DEMO } from './empresaDemo';
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { checkText, claimOf } from './lm/factCheck';
@@ -150,6 +151,7 @@ const initialState = {
   myProvider: null, // cadastro profissional de quem usa o perfil Prestador
   cart: [], // [{ productId, qty }]
   cartOpen: false, // janela do carrinho aberta
+  mandados: MANDADOS_DEMO, // mandados de serviço (demonstração), compartilhados com a Lotus
   // Avaliações depois da entrega ou do serviço (ver src/ratings.js).
   ratings: [],
   rateOpen: null, // { kind: 'pedido' | 'servico', refId }
@@ -397,6 +399,8 @@ function baseReducer(state, a) {
         cart: state.cart.map((c) => (c.productId === a.productId ? { ...c, qty: c.qty + a.delta } : c)).filter((c) => c.qty > 0),
       };
     // Carrinho em janela: abre de qualquer tela (ícone no topo, barra da loja ou pela Lotus).
+    case 'MANDADOS_UPDATE':
+      return { ...state, mandados: a.updater(state.mandados) };
     case 'OPEN_CART':
       return { ...state, cartOpen: true };
     case 'CLOSE_CART':

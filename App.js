@@ -32,6 +32,7 @@ import UpdateChecker from './src/components/UpdateChecker';
 import { AdminSystem, NoteModal, SYSTEM_MAP } from './src/screens/admin/AdminSystem';
 import { WakeWordListener } from './src/wakeWord';
 import { findNavigation, navReply } from './src/voiceNav';
+import { findMandadoAction } from './src/voiceMandados';
 import { findProfile, openReply } from './src/voiceIntents';
 import { stripWake } from './src/wakeMatch';
 import { speakSoft, prepareVoice } from './src/voice';
@@ -378,6 +379,13 @@ function Shell() {
           if (prof && prof.open) {
             speakSoft(openReply(prof.open, prof.others));
             dispatch({ type: prof.open.kind === 'company' ? 'OPEN_COMPANY' : 'OPEN_PROFILE', id: prof.open.id });
+            return;
+          }
+          // Mandados de serviço: "finaliza com o código QR-…" e "manda no chat: …" (dentro do prazo).
+          const acao = text && !prof ? findMandadoAction(stripWake(text), state.mandados) : null;
+          if (acao) {
+            speakSoft(acao.reply);
+            if (acao.updater) dispatch({ type: 'MANDADOS_UPDATE', updater: acao.updater });
             return;
           }
           const nav = text && !prof ? findNavigation(stripWake(text)) : null;
