@@ -33,10 +33,12 @@ export const ALERT_LEVELS = {
 };
 
 // Alertas oficiais perto do usuário (demonstração).
-// active: true só quando a fonte oficial está ativa para a área do usuário. Só alertas ativos aparecem na faixa do topo.
+// active: true só quando a fonte oficial está ativa. zone (lat, lon, raio em km) diz a área do alerta:
+// a faixa do topo só aparece se o GPS do celular estiver dentro dessa área.
 export const ALERTS = [
   {
-    id: 'al1', active: false, level: 'extremo', type: 'Chuva forte e risco de alagamento', icon: 'thunderstorm',
+    id: 'al1', active: true, level: 'extremo', type: 'Chuva forte e risco de alagamento', icon: 'thunderstorm',
+    zone: { lat: -23.65, lon: -46.70, radiusKm: 12 },
     area: 'Zona Sul de São Paulo · você está na área', source: 'Defesa Civil', until: 'até 23h de hoje',
     text: 'Chuva de 50 a 80 mm com rajadas de vento. Risco de alagamento em córregos e ruas baixas.',
     todo: ['Não atravesse ruas alagadas, nem de carro', 'Tire da tomada os aparelhos se a água entrar', 'Fique longe de árvores, postes e fios', 'Em área de risco, procure o abrigo indicado pela Defesa Civil'],
