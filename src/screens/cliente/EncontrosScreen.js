@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Switch, Alert, TextInput, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Switch, Alert, TextInput, Dimensions, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../../store';
@@ -9,6 +9,7 @@ import { datePeople, datePerson, DATE_SPOTS, CHARMS_PER_DAY, minutesAgo } from '
 import { ENCONTROS_TERMS, TERMS_VERSION, RELATIONSHIP_STATUS, statusAllowed } from '../../encontrosTerms';
 import { ChatModal, VideoCallModal } from './home/Social';
 import { PROFILE_FIELDS, INTEREST_GROUPS, profileScore } from '../../encontrosProfile';
+import { useBack } from '../../back';
 
 const ROSE = '#E0567A';
 const LOOKING = ['Amizade', 'Namoro', 'Relacionamento sério'];
@@ -50,25 +51,29 @@ function Onboarding({ openTerms }) {
   const allowed = statusAllowed(e.status);
   const ready = allowed && age && agree && consent;
 
+  const [step, setStep] = useState(0); // 0 = vitrine chamativa; 1 = perguntas de entrada
   const enter = () => {
-    if (!ready) return Alert.alert('Falta pouco', 'Marque as três confirmações para entrar no Encontros.');
+    if (!ready) return Alert.alert('Falta pouco', 'Marque as três confirmações para entrar no Date.');
     dispatch({ type: 'ENC_SET', patch: { accepted: true, termsVersion: TERMS_VERSION, radar: true } });
   };
+  // Quem está no Date por perto (fotos borradas na vitrine: dá curiosidade para entrar).
+  const around = datePeople.filter((p) => p.optIn && statusAllowed(p.status));
+  const today = around.filter((p) => minutesAgo(p.when) < 1440).length;
+  const done = [!!e.status && allowed, !!e.looking && !!e.interest, age && agree && consent].filter(Boolean).length;
+
+  // Voltar do celular nas perguntas: volta para a vitrine.
+  useBack(step === 1, () => setStep(0));
+
+  if (!step) return <DateShowcase people={around} today={today} onStart={() => setStep(1)} />;
 
   return (
     <Screen>
-      <View style={styles.hero}>
-        <View style={styles.heroIcon}>
-          <Ionicons name="heart" size={28} color="#fff" />
-        </View>
-        <Text style={styles.heroTitle}>Date</Text>
-        <Text style={styles.heroSub}>Conheça pessoas reais e verificadas que passam perto de você. Se as duas curtirem, é match.</Text>
-        <View style={{ marginTop: 12 }}>
-          <Bullet icon="shield-checkmark" text="Só participa quem entra e aceita os termos do Encontros" />
-          <Bullet icon="notifications-off" text="Quem é casado ou está em relacionamento não aparece e não recebe notificações" />
-          <Bullet icon="location" text="Sua posição exata nunca aparece, só uma distância aproximada" />
-        </View>
+      <View style={styles.prog}>
+        {[0, 1, 2].map((i) => (
+          <View key={i} style={[styles.progBar, i < Math.max(1, done) && styles.progOn]} />
+        ))}
       </View>
+      <Text style={styles.progText}>Passo {Math.min(3, done + 1)} de 3 · leva menos de 1 minuto</Text>
 
       <Section title="1. Seu status de relacionamento">
         <View style={styles.wrap}>
@@ -129,12 +134,92 @@ function Onboarding({ openTerms }) {
             />
           </Section>
 
-          <Button title="Entrar no Encontros" onPress={enter} style={!ready ? { opacity: 0.5 } : null} />
+          <Button title="Entrar no Date" onPress={enter} style={!ready ? { opacity: 0.5 } : null} />
           <Text style={{ color: colors.muted, fontSize: 12, textAlign: 'center', marginTop: 10 }}>
             Depois de entrar, monte seu perfil de namoro (gostos, estilo de vida e mais). É opcional, mas perfil vazio recebe pouco engajamento.
           </Text>
         </>
       ) : null}
+    </Screen>
+  );
+}
+
+
+// Vitrine da entrada do Date: chamativa, para dar vontade de entrar. As fotos de quem está por perto
+// aparecem borradas (só quem entra vê), com o contador de quem cruzou com você hoje.
+const BUBBLES = [
+  { left: 18, top: 62, size: 62 },
+  { left: 74, top: 150, size: 46 },
+  { right: 20, top: 58, size: 70 },
+  { right: 84, top: 150, size: 44 },
+  { left: 120, top: 56, size: 38 },
+  { right: 128, top: 62, size: 34 },
+];
+function DateShowcase({ people, today, onStart }) {
+  return (
+    <Screen>
+      <View style={styles.show}>
+        <View style={[styles.glow, { left: -60, top: -50, width: 220, height: 220, backgroundColor: '#FF8FB0' }]} />
+        <View style={[styles.glow, { right: -70, bottom: -80, width: 240, height: 240, backgroundColor: '#9B2C5E' }]} />
+        {BUBBLES.map((b, i) =>
+          people[i] ? (
+            <Image
+              key={i}
+              source={{ uri: people[i].photo }}
+              blurRadius={10}
+              style={[styles.bubble, { width: b.size, height: b.size, borderRadius: b.size / 2, top: b.top }, b.left != null ? { left: b.left } : { right: b.right }]}
+            />
+          ) : null,
+        )}
+        <View style={[styles.center, { top: 18 }]}>
+          <View style={styles.live}>
+            <View style={styles.liveDot} />
+            <Text style={styles.liveText}>
+              <Text style={{ color: '#FFE08A' }}>{today || people.length} pessoas</Text> cruzaram com você hoje
+            </Text>
+          </View>
+        </View>
+        <View style={[styles.center, { top: 92 }]}>
+          <View style={styles.showHeart}>
+            <Text style={{ fontSize: 32 }}>💘</Text>
+          </View>
+        </View>
+        <View style={styles.showText}>
+          <Text style={styles.showTitle}>Alguém especial pode ter passado por você hoje</Text>
+          <Text style={styles.showSub}>Veja quem cruzou seu caminho e descubra se o interesse é recíproco.</Text>
+        </View>
+      </View>
+
+      <Text style={styles.howKick}>COMO FUNCIONA</Text>
+      <View style={{ flexDirection: 'row' }}>
+        {[
+          ['👣', 'Cruze', 'Quem passa perto aparece pra você'],
+          ['❤️', 'Curta', 'Em segredo: ninguém fica sabendo'],
+          ['💬', 'Crush!', 'Curtiram de volta? A conversa abre'],
+        ].map(([ic, t, d], i) => (
+          <View key={t} style={[styles.howStep, i ? { marginLeft: 8 } : null]}>
+            <View style={styles.howIc}>
+              <Text style={{ fontSize: 18 }}>{ic}</Text>
+            </View>
+            <Text style={styles.howNum}>{i + 1}</Text>
+            <Text style={styles.howTitle}>{t}</Text>
+            <Text style={styles.howDesc}>{d}</Text>
+          </View>
+        ))}
+      </View>
+
+      <View style={[styles.wrap, { marginTop: 12 }]}>
+        {['🛡️ Todos verificados por biometria', '📍 Só distância aproximada', '💍 Casados não participam', '✨ 3 Charmes por dia'].map((t) => (
+          <View key={t} style={styles.trust}>
+            <Text style={styles.trustText}>{t}</Text>
+          </View>
+        ))}
+      </View>
+
+      <TouchableOpacity style={styles.bigCta} onPress={onStart} activeOpacity={0.9} accessibilityLabel="Quero ver quem cruzou comigo">
+        <Text style={styles.bigCtaText}>Quero ver quem cruzou comigo</Text>
+      </TouchableOpacity>
+      <Text style={{ color: colors.muted, fontSize: 11, textAlign: 'center', marginTop: 8 }}>Leva menos de 1 minuto · só para maiores de 18</Text>
     </Screen>
   );
 }
@@ -967,6 +1052,31 @@ function Check({ on, onPress, text }) {
 }
 
 const styles = StyleSheet.create({
+  show: { height: 318, borderRadius: 28, overflow: 'hidden', backgroundColor: ROSE, marginBottom: 4 },
+  glow: { position: 'absolute', borderRadius: 200, opacity: 0.55 },
+  bubble: { position: 'absolute', borderWidth: 3, borderColor: 'rgba(255,255,255,0.85)' },
+  center: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
+  live: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.28)', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
+  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#5CF29B', marginRight: 6 },
+  liveText: { color: '#fff', fontSize: 12, fontWeight: '800' },
+  showHeart: { width: 64, height: 64, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.95)', alignItems: 'center', justifyContent: 'center', elevation: 6, shadowColor: '#9B2C5E', shadowOpacity: 0.45, shadowRadius: 12 },
+  showText: { position: 'absolute', left: 0, right: 0, bottom: 18, paddingHorizontal: 18 },
+  showTitle: { color: '#fff', fontSize: 23, lineHeight: 27, fontWeight: '900', textAlign: 'center', textShadowColor: 'rgba(0,0,0,0.25)', textShadowRadius: 10 },
+  showSub: { color: 'rgba(255,255,255,0.95)', fontSize: 13, lineHeight: 18, textAlign: 'center', marginTop: 8 },
+  howKick: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginTop: 16, marginBottom: 8, marginLeft: 2 },
+  howStep: { flex: 1, backgroundColor: colors.card, borderRadius: 18, paddingVertical: 12, paddingHorizontal: 8, alignItems: 'center', ...soft },
+  howIc: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#FFF0F4', alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  howNum: { color: ROSE, fontSize: 10, fontWeight: '900' },
+  howTitle: { color: colors.text, fontSize: 13, fontWeight: '800' },
+  howDesc: { color: colors.muted, fontSize: 10.5, lineHeight: 14, textAlign: 'center', marginTop: 3 },
+  trust: { backgroundColor: colors.card, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginRight: 6, marginBottom: 6, ...soft },
+  trustText: { color: colors.text, fontSize: 11, fontWeight: '700' },
+  bigCta: { marginTop: 16, backgroundColor: ROSE, borderRadius: 22, paddingVertical: 16, alignItems: 'center', elevation: 6, shadowColor: ROSE, shadowOpacity: 0.4, shadowRadius: 14, shadowOffset: { width: 0, height: 8 } },
+  bigCtaText: { color: '#fff', fontSize: 16, fontWeight: '900' },
+  prog: { flexDirection: 'row', marginBottom: 4 },
+  progBar: { flex: 1, height: 5, borderRadius: 3, backgroundColor: '#F6C6D3', marginRight: 6 },
+  progOn: { backgroundColor: ROSE },
+  progText: { color: colors.muted, fontSize: 11, fontWeight: '700', marginBottom: 10 },
   kicker: { color: colors.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
   personShade: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 14, paddingTop: 30, paddingBottom: 12, backgroundColor: 'rgba(0,0,0,0.38)' },
   personName: { color: '#fff', fontSize: 24, fontWeight: '800', textShadowColor: 'rgba(0,0,0,0.4)', textShadowRadius: 6 },
