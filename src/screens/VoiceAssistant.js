@@ -16,7 +16,7 @@ import LotusFlower, { FlyingPetal, MOODS } from '../components/LotusFlower';
 import StarField, { skyBg } from '../components/StarField';
 import { getWeather, skyOf, weatherIcon } from '../weather';
 import { searchAll, contentReply, CONTENT_WORDS } from '../search';
-import { stripWake, findCall, hearCall, stripEcho } from '../wakeMatch';
+import { stripWake, findCall, hearCall, stripEcho, fixMotos } from '../wakeMatch';
 import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences, forSpeech } from '../voice';
 import { emergencyNumbers } from '../extraData';
 import { confirmCall } from '../phone';
@@ -376,16 +376,15 @@ const PHASE_TEXT = {
 const SOS_RE = /(socorro|\bsos\b|samu|emerg|hospita|ambul[aâ]ncia|bombeir|infarto|acidente|pronto.?socorro|ajuda urgente)/;
 const AGRO_RE = /(\bagro|pecu[aá]ria|caf[eé](?![a-z])|hortifr|fazenda|trator|\bgado\b|planta[çc]|colheita|safra|semente|lavoura)/;
 const SHOP_RE = /(\bshop\b|compr|carrinho|produto|\bloja|promo[çc]|oferta|ingresso|sacola)/;
-// Cor das bordas da flor: dourada no normal; muda para surpreender conforme o assunto.
-// Vermelho = socorro, roxo = compras, azul = serviços e prestadores.
-function moodOf(h) {
-  if (!h) return 'padrao';
+// Cor das bordas da flor: SEMPRE abre dourada; a cada resposta troca para surpreender, intercalando
+// roxo → rosa → vermelho → verde → dourado… Socorro é sempre vermelho.
+const MOOD_CYCLE = ['padrao', 'roxo', 'rosa', 'sos', 'agro'];
+function moodOf(h, turns) {
+  if (!h || !turns) return 'padrao';
   const t = String(h.q || '').toLowerCase();
   const tab = ((h.results || [])[0] || {}).go ? h.results[0].go.tab : null;
   if (SOS_RE.test(t) || tab === 'socorro') return 'sos';
-  if (SHOP_RE.test(t) || tab === 'loja' || (h.pending && /cart|checkout/.test(h.pending.type))) return 'roxo';
-  if ((h.list && h.list.length) || h.call || (h.pending && h.pending.type === 'service')) return 'azul';
-  return 'padrao';
+  return MOOD_CYCLE[turns % MOOD_CYCLE.length];
 }
 
 // Na rolagem aparecem no máximo 4 conversas; as anteriores à última somem devagar depois de
@@ -415,6 +414,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
   const insets = useSafeAreaInsets();
   // Conversa limpa: na rolagem ficam só as últimas mensagens; o resto fica no histórico (relógio).
   const [showHist, setShowHist] = useState(false);
+  // Quantas respostas desde que a caixa abriu (a flor abre sempre dourada).
+  const [openBase, setOpenBase] = useState(0);
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     if (!visible || history.length < 2) return;
@@ -620,8 +621,10 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     return true;
   };
 
-  const run = (cmd, forced, alts) => {
-    if (!cmd || !cmd.trim()) return;
+  const run = (cmdIn, forced, alts) => {
+    if (!cmdIn || !cmdIn.trim()) return;
+    // "quero ver Lotus usadas" → o celular trocou "motos" por "Lotus".
+    let cmd = fixMotos(cmdIn);
     // Em pausa: "continua" retoma da frase em que parou; "repete" fala tudo de novo; "espera" segue pausada.
     if (!forced && pausedRef.current) {
       const c = norm(stripWake(cmd));
@@ -639,7 +642,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     if (!forced && empty(res) && alts && alts.length > 1) {
       for (const alt of alts) {
         if (alt === cmd) continue;
-        const r = interpret(alt, state, dispatch, pendingRef.current, canOpen);
+        const r = interpret(fixMotos(alt), state, dispatch, pendingRef.current, canOpen);
         if (!empty(r)) {
           res = r;
           cmd = alt;
@@ -840,6 +843,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
       return;
     }
     prepareVoice();
+    setOpenBase(history.length);
     Animated.timing(enter, { toValue: 1, duration: 170, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
     if (initialCommand && initialCommand.text) {
       run(initialCommand.text);
@@ -861,7 +865,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
 
   const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [36, 0] });
   const last = history[0];
-  const mood = moodOf(last);
+  const mood = moodOf(last, history.length - openBase);
   const win = Dimensions.get('window');
 
   return (

@@ -18,9 +18,9 @@ const NUDGE_Y = -24; // um pouco mais para cima
 export const MOODS = {
   // Padrão: a Lotus com as bordas douradas (escolhida pelo Evandro).
   padrao: { back: '#B8860B', mid: '#D4A017', front: '#F5D272', center: '#FFF5D6', shineBack: 'rgba(255,230,160,0.55)', shineMid: 'rgba(255,245,210,0.75)', glow: 'rgba(253,210,100,0.30)', seed: '#FFFFFF', icon: '#A8790A' },
-  // Ao mudar de cor, só as bordas das pétalas mudam: roxo, vermelho ou azul.
+  // Ao mudar de cor, só as bordas das pétalas mudam: roxo, rosa, vermelho ou verde.
   roxo: { back: '#6D28D9', mid: '#8E3FD8', front: '#D8B4FE', center: '#F5EDFF', shineBack: 'rgba(200,160,255,0.5)', shineMid: 'rgba(235,220,255,0.7)', glow: 'rgba(167,110,250,0.28)', seed: '#FFF1C1', icon: '#7C3AED' },
-  azul: { back: '#1D5FD1', mid: '#2F7BEA', front: '#A9CBFF', center: '#EAF2FF', shineBack: 'rgba(150,190,255,0.5)', shineMid: 'rgba(215,232,255,0.7)', glow: 'rgba(96,150,250,0.28)', seed: '#FFF1C1', icon: '#1D5FD1' },
+  rosa: { back: '#C2185B', mid: '#E8458F', front: '#F9A8CC', center: '#FFEFF6', shineBack: 'rgba(255,170,205,0.5)', shineMid: 'rgba(255,225,238,0.7)', glow: 'rgba(240,110,170,0.28)', seed: '#FFF1C1', icon: '#C2185B' },
   agro: { back: '#2E9E62', mid: '#4CBF7E', front: '#A7E8BF', center: '#E6F9EE', shineBack: 'rgba(190,240,205,0.55)', shineMid: 'rgba(225,250,232,0.7)', glow: 'rgba(110,231,160,0.24)', seed: '#FDE7A8', icon: '#1E7A48' },
   sos: { back: '#C62828', mid: '#E53935', front: '#FF8A80', center: '#FFE1DE', shineBack: 'rgba(255,170,160,0.5)', shineMid: 'rgba(255,215,210,0.7)', glow: 'rgba(248,113,113,0.30)', seed: '#FFF1C1', icon: '#C62828' },
   shop: { back: '#B8860B', mid: '#D4A017', front: '#F5D272', center: '#FFF5D6', shineBack: 'rgba(255,230,160,0.55)', shineMid: 'rgba(255,245,210,0.75)', glow: 'rgba(253,210,100,0.30)', seed: '#FFFFFF', icon: '#A8790A' },

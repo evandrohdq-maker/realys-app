@@ -23,7 +23,7 @@ halo(os.path.join(OUT, 'light_halo.webp')); rays(os.path.join(OUT, 'light_rays.w
 # Reescreve src/components/lotus/frames.js com os quadros gerados.
 names = sorted(os.path.basename(j['f']).replace('.png', '.webp') for j in jobs)
 js = ['// Quadros da flor de lótus 3D (gerados por tools/lotus3d/render.py). Não editar à mão.', 'const F = {']
-for m in ['padrao', 'agro', 'sos', 'shop', 'roxo', 'azul']:
+for m in ['padrao', 'agro', 'sos', 'shop', 'roxo', 'rosa']:
     js.append(f'  {m}: {{')
     for k in ['bloom', 'idle']:
         js.append(f'    {k}: [')

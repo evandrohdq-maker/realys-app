@@ -76,7 +76,20 @@ function wordsOf(text) {
 }
 
 // Acha "Lotus" a partir da palavra i (sozinha ou juntando "low tus", "lo tus").
+// O celular às vezes escreve "Lotus" como "motos" (e o contrário). "Motos" só vale como o nome
+// dela quando não está falando de motos de verdade: "ver motos", "motos usadas", "loja de motos".
+const MOTO = new Set(['motos', 'moto', 'motus', 'mottos']);
+const MOTO_BEFORE = new Set(['de', 'das', 'dos', 'da', 'do', 'as', 'os', 'umas', 'uns', 'uma', 'um', 'duas', 'ver', 'veja', 'mostra', 'mostrar', 'mostre', 'comprar', 'compra', 'vender', 'vende', 'venda', 'alugar', 'aluguel', 'quero', 'procuro', 'procurando', 'tem', 'minha', 'meu', 'sua', 'nova', 'novas', 'usada', 'usadas', 'pecas', 'peca', 'loja', 'lojas', 'oficina', 'capacete', 'seguro', 'entrega', 'pra', 'para', 'por', 'com', 'e', 'mais', 'algumas', 'barata', 'baratas']);
+const MOTO_AFTER = new Set(['usadas', 'usada', 'novas', 'nova', 'baratas', 'barata', 'eletricas', 'eletrica', 'de', 'da', 'do', 'a', 'para', 'pra', 'honda', 'yamaha', 'cg', 'biz', 'bmw', 'esportivas', 'zero', '0km']);
+function motoIsLotus(words, i) {
+  if (!MOTO.has(words[i].w)) return false;
+  const prev = words[i - 1] && words[i - 1].w;
+  const next = words[i + 1] && words[i + 1].w;
+  return !(prev && MOTO_BEFORE.has(prev)) && !(next && MOTO_AFTER.has(next));
+}
+
 function lotusAt(words, i) {
+  if (motoIsLotus(words, i)) return { dist: 1, end: words[i].end, next: i + 1 };
   let best = null;
   for (let n = 1; n <= 2 && i + n <= words.length; n++) {
     const part = words.slice(i, i + n);
@@ -173,4 +186,22 @@ export function stripEcho(rest, spoken) {
   }
   // Se tudo era a fala dela, sobra nada (ela ouve o pedido de novo).
   return words.slice(cut).join(' ').trim();
+}
+
+// O contrário: pediu motos e o celular escreveu "Lotus" ("quero ver Lotus usadas"). Quando a
+// palavra aparece no meio de um pedido de compra/aluguel, troca por "motos".
+export function fixMotos(said) {
+  const text = String(said || '');
+  const same = normSame(text);
+  const words = wordsOf(same);
+  let out = text;
+  for (let i = words.length - 1; i >= 1; i--) {
+    const w = words[i];
+    const prev = words[i - 1].w;
+    const next = words[i + 1] && words[i + 1].w;
+    if (closeness(w.w) <= 1 && (MOTO_BEFORE.has(prev) || (next && MOTO_AFTER.has(next))) && !CALLS.has(prev) && !OPEN.has(prev)) {
+      out = out.slice(0, w.start) + 'motos' + out.slice(w.end);
+    }
+  }
+  return out;
 }
