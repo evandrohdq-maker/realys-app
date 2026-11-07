@@ -138,11 +138,14 @@ export function stripWake(said) {
 export function findCall(said) {
   const text = String(said || '');
   const words = wordsOf(normSame(text));
+  // Vale o ÚLTIMO "Lotus" ouvido: o que vem antes pode ser a própria voz dela captada pelo
+  // microfone ou um "Lotus, Lotus" repetido; o pedido novo é o que vem depois do último.
+  let last = null;
   for (let i = 0; i < words.length; i++) {
     const l = lotusAt(words, i);
-    if (l) return { rest: text.slice(l.end).replace(/^[\s,.!?:;-]+/, '').trim() };
+    if (l) last = l;
   }
-  return null;
+  return last ? { rest: text.slice(last.end).replace(/^[\s,.!?:;-]+/, '').trim() } : null;
 }
 
 // Confere todas as opções que o celular ouviu.

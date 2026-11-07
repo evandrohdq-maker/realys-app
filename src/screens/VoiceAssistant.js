@@ -340,6 +340,8 @@ function bestHeard(alts) {
 // Chamar "Lotus" enquanto ela fala: espera esta pausa depois do nome para pegar o novo pedido
 // ("Lotus… me leva pro Agro"). Se a pessoa disser só "Lotus", ela abre o microfone para ouvir.
 const CALL_PAUSE_MS = 900;
+// Depois de ouvir só "Lotus", espera o pedido por até 3 segundos.
+const CALL_WAIT_MS = 3000;
 
 const speechOk = () => {
   try {
@@ -521,8 +523,10 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     if (call) b.rest = call.rest;
     setPartial(b.rest || '');
     clearTimeout(b.timer);
-    if (isFinal) return finishBargeIn();
-    b.timer = setTimeout(finishBargeIn, CALL_PAUSE_MS);
+    // Disse só "Lotus": continua com o MESMO microfone aberto esperando o pedido (até 3 s de
+    // silêncio), em vez de desligar e ligar de novo (nesse vaivém as primeiras palavras se perdiam).
+    if (isFinal && b.rest) return finishBargeIn();
+    b.timer = setTimeout(finishBargeIn, b.rest ? CALL_PAUSE_MS : CALL_WAIT_MS);
   };
 
   const stopListening = () => {
