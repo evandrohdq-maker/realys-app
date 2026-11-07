@@ -4,70 +4,21 @@ import FRAMES, { FAB, LIGHT } from './lotus/frames';
 
 // Flor de lótus da Lotus em 3D (quadros em assets/lotus, gerados por tools/lotus3d).
 
-const SIZE = 166; // a flor é vista de frente (de cima), formando um círculo no centro da caixa
-const STAGE = 250; // faixa da caixa onde a flor fica, sempre centralizada
-const HALO = Math.round(SIZE * 1.75); // luz branca atrás da flor
-const RAYS = Math.round(SIZE * 2.1); // raios de luz que giram devagar
-// Ajuste fino da posição na caixa (no celular ela aparecia um pouco à direita e para baixo).
+// Posição: a flor fica no ponto em que a Lotus vermelha aparecia no celular (aprovado pelo
+// Evandro), com a luz, os raios e a flor juntos, todos com o mesmo centro.
+const BOX = 166; // quadro de referência dentro da caixa (não mexer: define a posição)
+const ANCHOR = 150; // centro da flor dentro desse quadro
+const SIZE = 240; // tamanho da flor (20% menor do que aparecia)
+const STAGE = 250; // faixa da caixa onde a flor fica
+const HALO = Math.round(SIZE * 1.5); // luz branca atrás da flor
+const RAYS = Math.round(SIZE * 1.8); // raios de luz que giram devagar
 const NUDGE_X = -8;
 const NUDGE_Y = -14;
-// Ondas sonoras douradas em círculo, no lugar do antigo miolo amarelo. Cada barrinha nasce perto
-// do centro e cresce/diminui para fora, sempre dentro do miolo escuro (nunca passa desse limite).
-const WAVE_N = 28;
-const WAVE_IN = SIZE * 0.04; // onde as barrinhas começam (perto do centro)
-const WAVE_OUT = SIZE * 0.14; // limite de fora (borda do miolo escuro)
-const WAVE_L = WAVE_OUT - WAVE_IN; // comprimento máximo
-const WAVE_W = 2.4;
-// O miolo escuro da flor aberta fica um tiquinho à esquerda e para baixo do meio da imagem
-// (medido nos quadros: 148,3 x 152,2 de 300). As ondas usam esse ponto como centro.
-const WAVE_CX = SIZE * (148.3 / 300);
-const WAVE_CY = SIZE * (152.2 / 300);
-
-// O círculo de ondas cresce e diminui por igual, com uma tremulação leve em cada barrinha;
-// com voz elas crescem mais e mais rápido, em silêncio ficam baixinhas.
-const STEPS = 24;
-const T_IN = [...Array(STEPS + 1)].map((_, k) => k / STEPS);
-function SoundRing({ voice, active, show }) {
-  const t = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    t.setValue(0);
-    const loop = Animated.loop(Animated.timing(t, { toValue: 1, duration: active ? 650 : 2400, easing: Easing.linear, useNativeDriver: true }));
-    loop.start();
-    return () => loop.stop();
-  }, [active]);
-  const amp = voice.interpolate({ inputRange: [0, 1], outputRange: [0.35, 1], extrapolate: 'clamp' });
-  const bars = useMemo(
-    () =>
-      [...Array(WAVE_N)].map((_, i) => {
-        // O círculo inteiro pulsa junto (fica sempre redondo e centrado) e cada barrinha
-        // ainda tremula um pouco, em 6 ondinhas iguais em volta, para parecer onda sonora.
-        const phase = (i * 6) / WAVE_N;
-        const pulse = t.interpolate({ inputRange: T_IN, outputRange: T_IN.map((k) => 0.5 + 0.5 * Math.sin(2 * Math.PI * k)) });
-        const ripple = t.interpolate({ inputRange: T_IN, outputRange: T_IN.map((k) => 0.5 + 0.5 * Math.sin(2 * Math.PI * (2 * k + phase))) });
-        const osc = Animated.add(Animated.multiply(pulse, 0.65), Animated.multiply(ripple, 0.35));
-        // tamanho de 0.2 (baixinha) a 1 (encosta no limite do miolo)
-        const s = Animated.add(0.2, Animated.multiply(Animated.multiply(osc, amp), 0.8)).interpolate({ inputRange: [0, 1], outputRange: [0.2, 1], extrapolate: 'clamp' });
-        // mantém a ponta de dentro parada: a barrinha cresce só para fora
-        const ty = s.interpolate({ inputRange: [0, 1], outputRange: [WAVE_L / 2, 0] });
-        return { deg: `${(i * 360) / WAVE_N}deg`, s, ty };
-      }),
-    [],
-  );
-  return (
-    <View pointerEvents="none" style={[StyleSheet.absoluteFill, { opacity: show ? 1 : 0 }]}>
-      {bars.map((b, i) => (
-        <View key={i} style={[styles.waveBox, { transform: [{ rotate: b.deg }] }]}>
-          <Animated.View style={[styles.wave, { transform: [{ translateY: b.ty }, { scaleY: b.s }] }]} />
-        </View>
-      ))}
-    </View>
-  );
-}
 
 // Cores da flor conforme o assunto da conversa.
 export const MOODS = {
-  // Padrão do Realys: preto por dentro, azul em volta e dourado no meio.
-  padrao: { back: '#0E1A3A', mid: '#2F86FF', front: '#7DB8FF', center: '#E2B649', shineBack: 'rgba(47,134,255,0.5)', shineMid: 'rgba(125,184,255,0.7)', glow: 'rgba(226,182,73,0.22)', seed: '#E2B649', icon: '#E2B649' },
+  // Padrão: a Lotus vermelha com o miolo amarelo.
+  padrao: { back: '#C62828', mid: '#E53935', front: '#FF8A80', center: '#FFE1DE', shineBack: 'rgba(255,170,160,0.5)', shineMid: 'rgba(255,215,210,0.7)', glow: 'rgba(248,113,113,0.30)', seed: '#FFF1C1', icon: '#C62828' },
   agro: { back: '#2E9E62', mid: '#4CBF7E', front: '#A7E8BF', center: '#E6F9EE', shineBack: 'rgba(190,240,205,0.55)', shineMid: 'rgba(225,250,232,0.7)', glow: 'rgba(110,231,160,0.24)', seed: '#FDE7A8', icon: '#1E7A48' },
   sos: { back: '#C62828', mid: '#E53935', front: '#FF8A80', center: '#FFE1DE', shineBack: 'rgba(255,170,160,0.5)', shineMid: 'rgba(255,215,210,0.7)', glow: 'rgba(248,113,113,0.30)', seed: '#FFF1C1', icon: '#C62828' },
   shop: { back: '#B8860B', mid: '#D4A017', front: '#F5D272', center: '#FFF5D6', shineBack: 'rgba(255,230,160,0.55)', shineMid: 'rgba(255,245,210,0.75)', glow: 'rgba(253,210,100,0.30)', seed: '#FFFFFF', icon: '#A8790A' },
@@ -97,7 +48,7 @@ function Pollen({ x, delay, active }) {
       style={[
         styles.pollen,
         {
-          left: SIZE / 2 - 2 + x,
+          left: ANCHOR - 2 + x,
           opacity: t.interpolate({ inputRange: [0, 0.2, 1], outputRange: [0, 1, 0] }),
           transform: [
             { translateY: t.interpolate({ inputRange: [0, 1], outputRange: [0, -90] }) },
@@ -266,10 +217,9 @@ export default function LotusFlower({ phase, level, onPress, visible = true, moo
                 source={src}
                 fadeDuration={0}
                 resizeMode="contain"
-                style={[StyleSheet.absoluteFill, { opacity: frame.kind === k && frame.i === i ? 1 : 0 }]}
+                style={[styles.frame, { opacity: frame.kind === k && frame.i === i ? 1 : 0 }]}
               />
             ))}
-            {mood === 'padrao' ? <SoundRing voice={voice} active={active} show={frame.kind === 'idle' || frame.i >= 4} /> : null}
           </Animated.View>
         </Pressable>
         {pollen.map((p, i) => (
@@ -362,13 +312,12 @@ const styles = StyleSheet.create({
   // Faixa da largura inteira da caixa; a flor fica no meio exato, na horizontal e na vertical.
   stage: { alignSelf: 'stretch', height: STAGE, alignItems: 'center', justifyContent: 'center' },
   // Luz, raios e flor ficam todos no mesmo quadro, com o mesmo centro exato.
-  center: { width: SIZE, height: SIZE, transform: [{ translateX: NUDGE_X }, { translateY: NUDGE_Y }] },
-  // caixa de giro com o centro exatamente no meio do miolo escuro
-  waveBox: { position: 'absolute', left: 0, top: 0, width: WAVE_CX * 2, height: WAVE_CY * 2 },
-  wave: { position: 'absolute', left: WAVE_CX - WAVE_W / 2, top: WAVE_CY - WAVE_IN - WAVE_L, width: WAVE_W, height: WAVE_L, borderRadius: WAVE_W / 2, backgroundColor: '#FFC928' },
-  halo: { position: 'absolute', width: HALO, height: HALO, left: (SIZE - HALO) / 2, top: (SIZE - HALO) / 2 },
-  rays: { position: 'absolute', width: RAYS, height: RAYS, left: (SIZE - RAYS) / 2, top: (SIZE - RAYS) / 2 },
-  wrap: { position: 'absolute', left: 0, top: 0, width: SIZE, height: SIZE },
+  center: { width: BOX, height: BOX, transform: [{ translateX: NUDGE_X }, { translateY: NUDGE_Y }] },
+  halo: { position: 'absolute', width: HALO, height: HALO, left: ANCHOR - HALO / 2, top: ANCHOR - HALO / 2 },
+  rays: { position: 'absolute', width: RAYS, height: RAYS, left: ANCHOR - RAYS / 2, top: ANCHOR - RAYS / 2 },
+  wrap: { position: 'absolute', left: ANCHOR - SIZE / 2, top: ANCHOR - SIZE / 2, width: SIZE, height: SIZE },
   flower: { position: 'absolute', left: 0, top: 0, width: SIZE, height: SIZE },
-  pollen: { position: 'absolute', top: SIZE / 2 - 2, width: 4, height: 4, borderRadius: 2, backgroundColor: '#FDE68A' },
+  // tamanho explícito em cada quadro: sem isso o Android desenhava a imagem no tamanho original
+  frame: { position: 'absolute', left: 0, top: 0, width: SIZE, height: SIZE },
+  pollen: { position: 'absolute', top: ANCHOR - 2, width: 4, height: 4, borderRadius: 2, backgroundColor: '#FDE68A' },
 });
