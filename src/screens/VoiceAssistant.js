@@ -81,6 +81,9 @@ const etaMin = (p, transport) => Math.max(3, Math.round(p.distanceKm * (transpor
 // "Agendar para depois": mais tarde, amanhã, às 18h, sexta…
 const LATER_RE = /\b(mais tarde|depois|outro horario|outro dia|amanha|depois de amanha|hoje a (tarde|noite)|(as|para as|pras|pra) \d|\d{1,2} ?h\b|\d{1,2}:\d{2}|segunda|terca|quarta|quinta|sexta|sabado|domingo|semana que vem)/;
 const LATER = LATER_RE;
+// Confirmação por voz: só vale com a palavra "confirmo/confirma" ("sim, confirmo", "sim, confirma
+// para mim", "pode confirmar"). Um "sim" sozinho não executa nada.
+const CONFIRM_VOICE = /\bconfirm(o|a|ar|e|ado)\b/;
 const ORDINAL = /\b(primeir[oa]|segund[oa]|terceir[oa]|quart[oa]|quint[oa])\b/;
 const DAY_CUE = /(feira|\b(na|nesta|nessa|essa|esta|proxima|dia|toda) (segunda|terca|quarta|quinta|sexta)|(segunda|terca|quarta|quinta|sexta) que vem|\b(as|para as|pras) \d|\d ?h\b|\d:\d|manha|tarde|noite)/;
 // Nome do botão que coloca a decisão em prática.
@@ -140,7 +143,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
 
   // Só chama depois que a pessoa confirmou (agora ou agendado).
   const startCall = (serviceKey, providerId, when, addr) => {
-    if (!tap) return askConfirm(serviceKey, providerId, when, addr);
+    if (!tap && !(pending && pending.stage === 'confirm' && CONFIRM_VOICE.test(t))) return askConfirm(serviceKey, providerId, when, addr);
     const call = buildServiceCall(state, addr || address, serviceKey, providerId);
     if (!call) return { reply: 'Não encontrei esse prestador disponível agora.' };
     if (when) {
@@ -160,8 +163,8 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
     const nome = p.name.split(' ')[0];
     return {
       reply: when
-        ? `Tudo pronto para agendar com ${p.name} para ${when}, por ${priceText(p)}. Preciso que você confirme uma das opções: toque em ${action}.`
-        : `Tudo pronto com ${p.name}, por ${priceText(p)}. Preciso que você confirme uma das opções: toque em ${action}.`,
+        ? `Tudo pronto para agendar com ${p.name} para ${when}, por ${priceText(p)}. Quer que eu confirme? Toque em ${action} ou diga: sim, confirmo.`
+        : `Tudo pronto com ${p.name}, por ${priceText(p)}. Quer que eu confirme? Toque em ${action} ou diga: sim, confirmo.`,
       pending: { ...base, serviceKey, providerId: p.id, address: addr || base.address || address, when: when || null, stage: 'confirm' },
       list: base.options,
     };
@@ -230,10 +233,10 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
     const pid = chosen ? chosen.id : pending.providerId;
     if (pending.stage === 'confirm') {
       if (NO.test(t) && !chosen) return { reply: 'Tudo bem, não confirmei nada. Se precisar, é só pedir.' };
-      if (tap && (YES.test(t) || /confirm|contrat|agend|cham/.test(t))) return startCall(pending.serviceKey, pending.providerId, pending.when, pending.address);
+      if ((tap && (YES.test(t) || /confirm|contrat|agend|cham/.test(t))) || CONFIRM_VOICE.test(t)) return startCall(pending.serviceKey, pending.providerId, pending.when, pending.address);
       if (!chosen && !LATER.test(t)) {
         const p = state.providers.find((x) => x.id === pending.providerId);
-        return { reply: `Preciso que você confirme uma das opções: toque em ${confirmLabel(p, pending.serviceKey, pending.when)}.`, pending, list: pending.options };
+        return { reply: `Preciso que você confirme. Toque em ${confirmLabel(p, pending.serviceKey, pending.when)} ou diga: sim, confirmo.`, pending, list: pending.options };
       }
     }
     if (pending.stage === 'when') {
@@ -264,8 +267,9 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   // Carrinho: finalizar só com confirmação.
   if (pending && pending.type === 'checkout') {
     if (NO.test(t) || /continu/.test(t)) return { reply: 'Certo, o carrinho fica guardado. Ele fica no ícone da sacola, no topo da tela.' };
-    if (YES.test(t) && !tap) return { reply: 'Preciso que você confirme uma das opções: toque em Finalizar compra.', pending };
-    if (YES.test(t)) {
+    const buy = tap ? YES.test(t) : CONFIRM_VOICE.test(t);
+    if (YES.test(t) && !buy) return { reply: 'Quer que eu confirme a compra? Toque em Finalizar compra ou diga: sim, confirmo.', pending };
+    if (buy) {
       if (pending.total > state.wallet + (state.giftCredits || 0)) return { reply: 'Seu saldo não dá para essa compra. Adicione saldo na carteira e eu finalizo.' };
       dispatch({ type: 'CHECKOUT' });
       return { reply: `Compra finalizada, ${brl(pending.total)}, com pagamento protegido. Acompanhe em Pedidos.` };
@@ -273,8 +277,9 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   }
   // Créditos de live: converter só com confirmação.
   if (pending && pending.type === 'convertLive') {
-    if ((YES.test(t) || /convert/.test(t)) && !tap) return { reply: 'Preciso que você confirme uma das opções: toque em Converter.', pending };
-    if (YES.test(t) || /convert/.test(t)) {
+    const conv = tap ? YES.test(t) || /convert/.test(t) : CONFIRM_VOICE.test(t);
+    if ((YES.test(t) || /convert/.test(t)) && !conv) return { reply: 'Quer que eu confirme a conversão? Toque em Converter ou diga: sim, confirmo.', pending };
+    if (conv) {
       if (state.liveCredits < 10) return { reply: 'Você precisa de pelo menos 10 créditos de live para converter.' };
       dispatch({ type: 'CONVERT_LIVE_CREDITS', amount: state.liveCredits });
       return { reply: `Pronto, ${brl(state.liveCredits)} em créditos de live viraram moeda Realys no seu saldo.` };
