@@ -79,7 +79,16 @@ const kmText = (p) => String(p.distanceKm.toFixed(1)).replace('.', ',');
 // Mesma conta do chamado (store.js): transporte ~4 min/km, outros serviços ~6 min/km.
 const etaMin = (p, transport) => Math.max(3, Math.round(p.distanceKm * (transport ? 4 : 6)));
 // "Agendar para depois": mais tarde, amanhã, às 18h, sexta…
-const LATER = /\b(mais tarde|depois|outro horario|outro dia|amanha|depois de amanha|hoje a (tarde|noite)|(as|para as|pras|pra) \d|\d{1,2} ?h\b|\d{1,2}:\d{2}|segunda|terca|quarta|quinta|sexta|sabado|domingo|semana que vem)/;
+const LATER_RE = /\b(mais tarde|depois|outro horario|outro dia|amanha|depois de amanha|hoje a (tarde|noite)|(as|para as|pras|pra) \d|\d{1,2} ?h\b|\d{1,2}:\d{2}|segunda|terca|quarta|quinta|sexta|sabado|domingo|semana que vem)/;
+const LATER = LATER_RE;
+const ORDINAL = /\b(primeir[oa]|segund[oa]|terceir[oa]|quart[oa]|quint[oa])\b/;
+const DAY_CUE = /(feira|\b(na|nesta|nessa|essa|esta|proxima|dia|toda) (segunda|terca|quarta|quinta|sexta)|(segunda|terca|quarta|quinta|sexta) que vem|\b(as|para as|pras) \d|\d ?h\b|\d:\d|manha|tarde|noite)/;
+// Nome do botão que coloca a decisão em prática.
+const confirmLabel = (p, serviceKey, when) => {
+  if (when) return 'Agendar';
+  if (p && /visita/.test(p.priceUnit || '')) return 'Confirmar visita';
+  return serviceType(serviceKey).group === 'Transporte' ? 'Chamar agora' : 'Contratar';
+};
 const WHEN = /\b(amanha|hoje|depois de amanha|segunda|terca|quarta|quinta|sexta|sabado|domingo|semana que vem|manha|tarde|noite|\d{1,2} ?h\b|\d{1,2}:\d{2}|(as|para as|pras) \d{1,2})/;
 // Tem um dia ou horário de verdade? ("mais tarde" sozinho não conta: aí ela pergunta para quando.)
 const hasWhen = (t) => WHEN.test(t.replace(/\b(mais tarde|depois|outro horario|outro dia)\b/g, ''));
@@ -87,6 +96,7 @@ const whenOf = (text) =>
   text
     .replace(/^(agend\w*|marca\w*|deixa|pode|sim|ok)\s*/i, '')
     .replace(/^(para|pra)\s+/i, '')
+    .replace(/^(na|no|nesta|nessa)\s+/i, '')
     .replace(/[.!?]+$/, '')
     .trim();
 
@@ -117,10 +127,12 @@ function dropRefused(text) {
 
 // Interpreta o comando. Devolve { reply, nav?, call?, list?, results?, pending? }.
 // Na versão final isso vira uma IA no servidor, com os cadastros reais dos prestadores.
-function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
+// tap = o comando veio de um TOQUE num botão. A Lotus só pesquisa e conversa: agendar, confirmar
+// visita, contratar, chamar e finalizar compra só acontecem quando a pessoa aperta o botão.
+function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = false) {
   // Mudou de ideia no meio: "quero um motorista, não quero um eletricista" → vale só o motorista.
   const changed = dropRefused(text);
-  if (changed !== text && changed) return interpret(changed, state, dispatch, pending, canOpen, depth);
+  if (changed !== text && changed) return interpret(changed, state, dispatch, pending, canOpen, depth, tap);
   // O celular às vezes separa palavras: "a gronomo", "agro nomo" → agrônomo.
   const t = norm(stripWake(text)).replace(/\ba ?gro ?no ?m([oa]s?)\b/g, 'agronom$1');
   const addrMatch = text.match(/((rua|r\.|avenida|av\.?|alameda|travessa|praca|praça|estrada)\s.+)$/i);
@@ -128,6 +140,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
 
   // Só chama depois que a pessoa confirmou (agora ou agendado).
   const startCall = (serviceKey, providerId, when, addr) => {
+    if (!tap) return askConfirm(serviceKey, providerId, when, addr);
     const call = buildServiceCall(state, addr || address, serviceKey, providerId);
     if (!call) return { reply: 'Não encontrei esse prestador disponível agora.' };
     if (when) {
@@ -137,6 +150,22 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
     dispatch({ type: 'REQUEST_RIDE', ride: call });
     return { call, reply: callReply(call) };
   };
+  // Por voz ela NÃO executa: deixa tudo pronto e mostra o botão (Agendar, Confirmar visita,
+  // Contratar ou Chamar agora). Só o toque no botão coloca a decisão em prática.
+  const askConfirm = (serviceKey, providerId, when, addr) => {
+    const p = state.providers.find((x) => x.id === providerId);
+    if (!p) return { reply: 'Não encontrei esse prestador disponível agora.' };
+    const base = pending && pending.type === 'service' ? pending : { type: 'service', serviceKey, options: [p] };
+    const action = confirmLabel(p, serviceKey, when);
+    const nome = p.name.split(' ')[0];
+    return {
+      reply: when
+        ? `Tudo pronto para agendar com ${p.name} para ${when}, por ${priceText(p)}. Preciso que você confirme uma das opções: toque em ${action}.`
+        : `Tudo pronto com ${p.name}, por ${priceText(p)}. Preciso que você confirme uma das opções: toque em ${action}.`,
+      pending: { ...base, serviceKey, providerId: p.id, address: addr || base.address || address, when: when || null, stage: 'confirm' },
+      list: base.options,
+    };
+  };
   const firstName = (id) => ((state.providers.find((p) => p.id === id) || {}).name || '').split(' ')[0];
 
   // Saudações: "bom dia", "boa tarde", "boa noite", "oi", "tudo bem?", "obrigado", "tchau".
@@ -144,7 +173,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
   const hi = greetingReply(stripWake(text), state.user && state.user.name);
   if (hi) {
     if (!hi.rest) return { reply: hi.reply, pending };
-    const sub = interpret(hi.rest, state, dispatch, pending, canOpen, depth);
+    const sub = interpret(hi.rest, state, dispatch, pending, canOpen, depth, tap);
     return { ...sub, reply: `${hi.reply} ${sub.reply}` };
   }
 
@@ -158,7 +187,12 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
   const sameService = pending && pending.type === 'service' && detectService(t) === pending.serviceKey && FOLLOW.test(t);
   if (pending && pending.type === 'service' && (!detectService(t) || sameService)) {
     const opts = pending.options || [];
-    let chosen = pickOption(t, opts);
+    // "na segunda às 10h" é dia da semana: aí a palavra não escolhe ninguém da lista.
+    let chosen = pickOption(ORDINAL.test(t) && DAY_CUE.test(t) ? t.replace(ORDINAL, ' ') : t, opts);
+    // "a segunda", "o terceiro", "quero a quarta" = posição na lista. Só é dia da semana com
+    // "feira", "na segunda", "próxima quarta"… ou quando ela perguntou "para quando?".
+    const isOrdinal = ORDINAL.test(t) && !DAY_CUE.test(t) && pending.stage !== 'when';
+    const LATER = { test: (x) => !isOrdinal && LATER_RE.test(x) };
     const current = opts.find((o) => o.id === pending.providerId) || opts[0];
     // "Tem mais barato?", "e o mais perto?", "o de melhor nota", "tem outro?": escolhe na lista já mostrada.
     let already = '';
@@ -194,6 +228,14 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
         return { reply: `${chosen.name}, a ${kmText(chosen)} quilômetros, nota ${String(chosen.rating).replace('.', ',')}, cobra ${priceText(chosen)}. ${ask}`, pending: keep, list: opts };
     }
     const pid = chosen ? chosen.id : pending.providerId;
+    if (pending.stage === 'confirm') {
+      if (NO.test(t) && !chosen) return { reply: 'Tudo bem, não confirmei nada. Se precisar, é só pedir.' };
+      if (tap && (YES.test(t) || /confirm|contrat|agend|cham/.test(t))) return startCall(pending.serviceKey, pending.providerId, pending.when, pending.address);
+      if (!chosen && !LATER.test(t)) {
+        const p = state.providers.find((x) => x.id === pending.providerId);
+        return { reply: `Preciso que você confirme uma das opções: toque em ${confirmLabel(p, pending.serviceKey, pending.when)}.`, pending, list: pending.options };
+      }
+    }
     if (pending.stage === 'when') {
       if (NO.test(t)) return { reply: 'Tudo bem, não agendei nada. Se precisar, é só chamar.' };
       if (hasWhen(t)) return startCall(pending.serviceKey, pid, whenOf(text.replace(/^\s*lotus[,\s]*/i, '')), pending.address);
@@ -222,6 +264,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
   // Carrinho: finalizar só com confirmação.
   if (pending && pending.type === 'checkout') {
     if (NO.test(t) || /continu/.test(t)) return { reply: 'Certo, o carrinho fica guardado. Ele fica no ícone da sacola, no topo da tela.' };
+    if (YES.test(t) && !tap) return { reply: 'Preciso que você confirme uma das opções: toque em Finalizar compra.', pending };
     if (YES.test(t)) {
       if (pending.total > state.wallet + (state.giftCredits || 0)) return { reply: 'Seu saldo não dá para essa compra. Adicione saldo na carteira e eu finalizo.' };
       dispatch({ type: 'CHECKOUT' });
@@ -230,6 +273,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
   }
   // Créditos de live: converter só com confirmação.
   if (pending && pending.type === 'convertLive') {
+    if ((YES.test(t) || /convert/.test(t)) && !tap) return { reply: 'Preciso que você confirme uma das opções: toque em Converter.', pending };
     if (YES.test(t) || /convert/.test(t)) {
       if (state.liveCredits < 10) return { reply: 'Você precisa de pelo menos 10 créditos de live para converter.' };
       dispatch({ type: 'CONVERT_LIVE_CREDITS', amount: state.liveCredits });
@@ -753,7 +797,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     return true;
   };
 
-  const run = (cmdIn, forced, alts) => {
+  const run = (cmdIn, forced, alts, tap = false) => {
     if (!cmdIn || !cmdIn.trim()) return;
     // "quero ver Lotus usadas" → o celular trocou "motos" por "Lotus".
     let cmd = fixMotos(cmdIn);
@@ -777,13 +821,13 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     }
     setPhase('thinking');
     setPartial('');
-    let res = forced || interpret(cmd, state, dispatch, topic, canOpen);
+    let res = forced || interpret(cmd, state, dispatch, topic, canOpen, 0, tap);
     // O celular ouviu errado? Tenta as outras opções que ele ouviu antes de dizer "não encontrei".
     const empty = (r) => !!r.miss;
     if (!forced && empty(res) && alts && alts.length > 1) {
       for (const alt of alts) {
         if (alt === cmd) continue;
-        const r = interpret(fixMotos(alt), state, dispatch, topic, canOpen);
+        const r = interpret(fixMotos(alt), state, dispatch, topic, canOpen, 0, tap);
         if (!empty(r)) {
           res = r;
           cmd = alt;
@@ -1216,16 +1260,20 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
                 {i === 0 && h.pending && pending ? (
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 4 }}>
                     {(pending.type === 'service'
-                      ? pending.stage === 'when'
+                      ? pending.stage === 'confirm'
+                        ? [[confirmLabel(state.providers.find((p) => p.id === pending.providerId), pending.serviceKey, pending.when), 'confirmar', true], ['Outro horário', 'agendar para mais tarde'], ['Não', 'Não']]
+                        : pending.stage === 'when'
                         ? [['Hoje às 18h', 'hoje às 18h', true], ['Amanhã às 9h', 'amanhã às 9h'], ['Não agendar', 'Não']]
                         : [[`Chamar ${(state.providers.find((p) => p.id === pending.providerId) || { name: '' }).name.split(' ')[0]} agora`, 'Sim', true], ['Agendar para depois', 'agendar para mais tarde'], ['Não', 'Não']]
                       : pending.type === 'cart'
                       ? [[pending.options.length > 1 ? 'Adicionar o 1º' : 'Adicionar ao carrinho', 'Sim', true], ['Não', 'Não']]
                       : pending.type === 'checkout'
                       ? [['Finalizar compra', 'Sim', true], ['Continuar comprando', 'continuar']]
+                      : pending.type === 'convertLive'
+                      ? [['Converter', 'Sim', true], ['Não', 'Não']]
                       : [['Sim', 'Sim', true], ['Não', 'Não']]
                     ).map(([label, say, main]) => (
-                      <TouchableOpacity key={label} style={[styles.chip, main && styles.chipOn]} onPress={() => run(say)}>
+                      <TouchableOpacity key={label} style={[styles.chip, main && styles.chipOn]} onPress={() => run(say, null, null, true)}>
                         <Text style={[styles.chipText, main && { color: colors.onPrimary }]}>{label}</Text>
                       </TouchableOpacity>
                     ))}
