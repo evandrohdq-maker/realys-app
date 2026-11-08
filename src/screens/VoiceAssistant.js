@@ -560,6 +560,14 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
   const speechId = useRef(0);
   // O que ela está falando agora (frases e em qual está) e, quando pausada, de onde continuar.
   const talking = useRef(null); // { parts, index, res }
+  // Tudo o que ela falou nos últimos 20 segundos: o microfone pode pegar o finalzinho de uma fala
+  // anterior, e isso também é a voz dela (não é comando).
+  const herLog = useRef([]); // [{ at, text }]
+  const herRecent = (now) => {
+    const t = Date.now();
+    herLog.current = herLog.current.filter((x) => t - x.at < 20000);
+    return [...herLog.current.map((x) => x.text), now || ''].join(' ');
+  };
   const [paused, setPaused] = useState(null);
   // Prestador cuja prévia do perfil de trabalho está aberta (toque num resultado).
   const [preview, setPreview] = useState(null);
@@ -663,7 +671,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     const cur = talking.current;
     b.ducked = true;
     b.base = b.last || '';
-    b.spoken = cur.parts.join(' ');
+    b.spoken = herRecent(cur.parts.join(' '));
     pauseTalk();
     setPhase('listening');
     clearTimeout(b.timer);
@@ -697,7 +705,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     b.last = full;
     const call = hearCall(results);
     const cur = talking.current;
-    const herAll = cur ? cur.parts.join(' ') : b.spoken || '';
+    const herAll = cur ? herRecent(cur.parts.join(' ')) : b.spoken || '';
     const herNow = cur ? cur.parts.slice(Math.max(0, cur.index - 1), cur.index + 2).join(' ') : b.spoken || '';
     // Mostra o que o microfone está pegando enquanto ela fala (sem as palavras dela).
     const said = full ? stripEcho(full.split(/[.!?]/).pop(), herNow) : '';
@@ -777,6 +785,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     setPaused(null);
     const id = (speechId.current += 1);
     talking.current = { parts, index: from, res };
+    herLog.current.push({ at: Date.now(), text: parts.slice(from).join(' ') });
     let done = false;
     const ended = () => {
       done = true;
@@ -793,7 +802,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
       },
       onDone: () => {
         // Mãos livres: se a Lotus fez uma pergunta ("quer que eu chame?"), já abre o microfone para a resposta.
-        if (ended() && handsFree && res.pending) setTimeout(listen, 150);
+        // (um respiro depois da fala dela, para o microfone não pegar o finalzinho da própria voz)
+        if (ended() && handsFree && res.pending) setTimeout(listen, 400);
         // Terminou e não ficou esperando resposta: a música (Spotify etc.) volta a tocar.
         else if (id === speechId.current && !(handsFree && res.pending)) giveMusicBack(700);
       },

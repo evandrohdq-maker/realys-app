@@ -170,22 +170,37 @@ export function hearCall(results) {
   return null;
 }
 
-// A Lotus não pode ouvir a si mesma: o microfone fica ligado enquanto ela fala e pega a voz
-// dela junto com a da pessoa. Tira do começo do pedido o trecho que é só a fala dela
-// (2 ou mais palavras seguidas iguais à frase que ela estava dizendo).
+// A Lotus NUNCA pode obedecer à própria voz: o microfone fica ligado enquanto ela fala e pega a voz
+// dela junto com a da pessoa. Como ela sabe exatamente o que falou, tudo o que o microfone ouviu e
+// que é a fala dela é jogado fora, em qualquer parte da frase (não só no começo):
+//   - no começo, 2 ou mais palavras seguidas iguais à fala dela;
+//   - no meio ou no fim, 3 ou mais palavras seguidas iguais (2 palavras soltas, como um nome que a
+//     pessoa repete, "chama o Pedro Alves", continuam valendo);
+//   - se sobrar só 1 palavra e ela também é da fala dela, sobra nada.
+// Sobra só o que a pessoa disse. Se tudo era a voz dela, sobra nada e nada é executado.
 export function stripEcho(rest, spoken) {
   const words = String(rest || '').split(/\s+/).filter(Boolean);
   const her = norm(spoken).replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
   if (!words.length || her.length < 2) return String(rest || '').trim();
   const w = words.map((x) => norm(x).replace(/[^a-z0-9]/g, ''));
-  let cut = 0;
-  for (let i = 0; i < her.length; i++) {
-    let k = 0;
-    while (k < w.length && i + k < her.length && w[k] === her[i + k]) k++;
-    if (k >= 2 && k > cut) cut = k;
+  const runAt = (j) => {
+    let best = 0;
+    for (let i = 0; i < her.length; i++) {
+      let k = 0;
+      while (j + k < w.length && i + k < her.length && (w[j + k] === her[i + k] || !w[j + k])) k++;
+      if (k > best) best = k;
+    }
+    return best;
+  };
+  const keep = [];
+  for (let j = 0; j < w.length; ) {
+    const k = runAt(j);
+    if (k >= (keep.length ? 3 : 2)) j += k;
+    else keep.push(words[j++]);
   }
-  // Se tudo era a fala dela, sobra nada (ela ouve o pedido de novo).
-  return words.slice(cut).join(' ').trim();
+  const herSet = new Set(her);
+  if (keep.length === 1 && herSet.has(norm(keep[0]).replace(/[^a-z0-9]/g, ''))) return '';
+  return keep.join(' ').trim();
 }
 
 // O contrário: pediu motos e o celular escreveu "Lotus" ("quero ver Lotus usadas"). Quando a
