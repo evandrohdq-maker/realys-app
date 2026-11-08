@@ -20,7 +20,8 @@ import { greetingReply } from '../lotusGreetings';
 import { rememberMusic, giveMusicBack } from '../musicGuard';
 import { stripWake, findCall, hearCall, stripEcho, fixMotos } from '../wakeMatch';
 import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences, forSpeech } from '../voice';
-import { voiceGateOn, voicePrintSupported, recordingFor, verifySpeech, REJECT_TEXT } from '../voicePrint';
+import { voiceGateOn, voicePrintSupported, recordingFor, verifySpeech, REJECT_TEXT, tratoOf } from '../voicePrint';
+import { openLine } from '../lotusTrato';
 import { isPanic } from '../panic';
 import { lotusRefusal } from '../lotusConduta';
 import { findPublicOrg, PUBLIC_ORGS } from '../publicServices';
@@ -197,7 +198,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
 
   // Saudações: "bom dia", "boa tarde", "boa noite", "oi", "tudo bem?", "obrigado", "tchau".
   // Sexta, sábado e domingo ela já sugere o que fazer. Com pedido junto, cumprimenta e atende.
-  const hi = greetingReply(stripWake(text), state.user && state.user.name);
+  const hi = greetingReply(stripWake(text), state.user && state.user.name, new Date(), tratoOf());
   if (hi) {
     if (!hi.rest) return { reply: hi.reply, pending };
     const sub = interpret(hi.rest, state, dispatch, pending, canOpen, depth, tap);
@@ -1336,7 +1337,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
             </Text>
           ) : null}
           <Text style={[styles.live, !partial && !last && styles.livePlaceholder]} numberOfLines={2}>
-            {partial || (last && phase !== 'listening' ? splitSentences(last.reply)[0] : '“Me leva pro Agro”')}
+            {partial || (last && phase !== 'listening' ? splitSentences(last.reply)[0] : tratoOf() ? openLine(tratoOf(), state.user && state.user.name) : '“Me leva pro Agro”')}
           </Text>
           {paused && phase !== 'speaking' ? (
             <View style={styles.pauseRow}>

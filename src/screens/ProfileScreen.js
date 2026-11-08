@@ -4,9 +4,9 @@ import { ScoreCard } from '../components/Engage';
 import { View, Text, TouchableOpacity, Switch, Alert, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { askMicPermission, wakeWordSupported } from '../wakeWord';
-import VoiceEnroll from '../components/VoiceEnroll';
+import VoiceEnroll, { TratoPicker } from '../components/VoiceEnroll';
 import { SusCard } from '../components/PublicOrg';
-import { voicePrintOf, voicePrintSupported, onVoicePrintChange, setVoiceGate, deleteVoicePrint, lastVoiceCheck } from '../voicePrint';
+import { voicePrintOf, voicePrintSupported, onVoicePrintChange, setVoiceGate, deleteVoicePrint, lastVoiceCheck, setTrato } from '../voicePrint';
 import { useStore } from '../store';
 import { colors, brl, ROLE_LABELS } from '../theme';
 import { Screen, Title, Card, Row, Button, Badge } from '../components/ui';
@@ -312,6 +312,11 @@ export default function ProfileScreen({ navigate, explore }) {
             </Row>
           ) : null}
           {vp ? (
+            <View style={{ marginTop: 12 }}>
+              <TratoPicker value={vp.trato || { key: 'nome' }} onChange={(t) => setTrato(t)} userName={state.user && state.user.name} />
+            </View>
+          ) : null}
+          {vp ? (
             <Text style={{ color: colors.muted, fontSize: 11, marginTop: 8 }}>
               {`Aprendeu com ${((vp.learned || []).length)} uso(s).`}
               {vcheck ? ` Última conferência (${vcheck.kind}): ${vcheck.ok ? 'reconheceu você' : 'não reconheceu'}${vcheck.d != null ? ` · ${String(vcheck.d).replace('.', ',')} de ${String(vcheck.limit).replace('.', ',')}` : ''}.` : ''}
@@ -320,6 +325,7 @@ export default function ProfileScreen({ navigate, explore }) {
         </View>
       </Card>
       <VoiceEnroll
+        userName={state.user && state.user.name}
         visible={enrollOpen}
         onClose={() => {
           setEnrollOpen(false);

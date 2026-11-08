@@ -1,3 +1,4 @@
+import { addressOf, applyTrato } from './lotusTrato';
 // Saudações da Lotus: "bom dia", "boa tarde", "boa noite", "oi", "tudo bem?", "obrigado", "tchau".
 // Responde com carinho, de acordo com a hora do celular, e pelo primeiro nome de quem fala.
 // Se vier um pedido junto ("bom dia, Lotus, preciso de um eletricista"), devolve o resto
@@ -68,7 +69,11 @@ const PATTERNS = [
 const FILLER = /^[\s,.!?;:-]*(lotus|lotos|lotis|lottus|realys|minha (querida|amiga)|querida|amiga)?[\s,.!?;:-]*/;
 
 // Devolve { reply, rest } se a fala começa com uma saudação; senão null.
-export function greetingReply(text, userName, date = new Date()) {
+export function greetingReply(text, userName, date = new Date(), trato = null) {
+  const r = greetingCore(text, userName, date, trato);
+  return r ? { ...r, reply: applyTrato(r.reply, trato) } : r;
+}
+function greetingCore(text, userName, date, trato) {
   let t = norm(text).replace(/[!?.,]+/g, (m) => m[0]).trim();
   t = t.replace(FILLER, '').trim();
   const hit = PATTERNS.find(([, re]) => re.test(t));
@@ -88,10 +93,10 @@ export function greetingReply(text, userName, date = new Date()) {
   if (kind === 'hi' && rest) {
     const n = rest.split(/\s+/).length;
     const orig = String(text || '').trim().split(/\s+/);
-    return { reply: pick(['Oi{nome}!', 'Olá{nome}!']).replace('{nome}', nameBit(userName)), rest: orig.slice(orig.length - n).join(' '), kind };
+    return { reply: pick(['Oi{nome}!', 'Olá{nome}!']).replace('{nome}', nameBit(userName, trato)), rest: orig.slice(orig.length - n).join(' '), kind };
   }
 
-  const nome = nameBit(userName);
+  const nome = nameBit(userName, trato);
   const now = periodOf(date);
   let reply;
   if (kind === 'dia' || kind === 'tarde' || kind === 'noite') {
@@ -146,7 +151,11 @@ export function weekendLine(date = new Date()) {
   return list ? pick(list) : null;
 }
 
-function nameBit(userName) {
+function nameBit(userName, trato) {
+  if (trato) {
+    const a = addressOf(trato, userName);
+    return a ? `, ${a}` : '';
+  }
   const first = String(userName || '').trim().split(/\s+/)[0];
   if (!first || /^(cliente|voce|usuario|prestador)$/i.test(norm(first))) return '';
   return `, ${first[0].toUpperCase()}${first.slice(1)}`;

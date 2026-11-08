@@ -5,7 +5,7 @@
 //   - 3 extras opcionais: mais variedade de sons (números, perguntas, saudação), para ela
 //     conhecer melhor a voz do titular desde o começo.
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
@@ -13,6 +13,7 @@ import { colors } from '../theme';
 import { voicePrintSupported, recordingFor, enrollSample, saveEnrollment } from '../voicePrint';
 import { buildWake, compareWake } from '../voicePrintCore';
 import { findCall } from '../wakeMatch';
+import { TRATOS, addressOf, openLine } from '../lotusTrato';
 
 const PHRASES = [
   { text: 'Abrir Lotus', wake: true, hint: 'Fale do seu jeito normal, como se fosse chamar a Lotus.' },
@@ -44,7 +45,31 @@ function saidRight(heard, phrase) {
   return lotusOk && (want.length === 0 || hit / want.length >= 0.5);
 }
 
-export default function VoiceEnroll({ visible, onClose, onDone }) {
+// Cabeçalho do cadastro: como a Lotus vai chamar o titular.
+export function TratoPicker({ value, onChange, userName }) {
+  const v = value || { key: 'nome' };
+  return (
+    <View style={st.trato}>
+      <Text style={st.tratoH}>Como a Lotus vai chamar você?</Text>
+      <View style={st.chips}>
+        {TRATOS.map((t) => {
+          const on = v.key === t.key;
+          return (
+            <TouchableOpacity key={t.key} style={[st.chip, on && st.chipOn]} onPress={() => onChange({ key: t.key, apelido: t.key === 'apelido' ? v.apelido || '' : undefined })} accessibilityState={{ selected: on }}>
+              <Text style={[st.chipText, on && { color: '#fff' }]}>{t.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      {v.key === 'apelido' ? (
+        <TextInput style={st.input} value={v.apelido || ''} onChangeText={(a) => onChange({ key: 'apelido', apelido: a.slice(0, 24) })} placeholder="Seu apelido" placeholderTextColor={colors.muted} maxLength={24} />
+      ) : null}
+      <Text style={st.tratoEx}>Ela vai dizer: "Bom dia{addressOf(v, userName) ? `, ${addressOf(v, userName)}` : ''}! {openLine(v, userName)}"</Text>
+    </View>
+  );
+}
+
+export default function VoiceEnroll({ visible, onClose, onDone, userName }) {
   const insets = useSafeAreaInsets();
   const [step, setStep] = useState('termo'); // termo | gravar | extras | salvando | pronto | sem_suporte
   const [i, setI] = useState(0);
@@ -53,6 +78,7 @@ export default function VoiceEnroll({ visible, onClose, onDone }) {
   const [heard, setHeard] = useState('');
   const [msg, setMsg] = useState('');
   const [agree, setAgree] = useState(false);
+  const [trato, setTratoSel] = useState({ key: 'nome' });
   const samples = useRef([]); // [{ vec, seq, wake }]
   const session = useRef({ on: false, text: '', uri: null, done: false });
 
@@ -63,6 +89,7 @@ export default function VoiceEnroll({ visible, onClose, onDone }) {
     setMsg('');
     setHeard('');
     setAgree(false);
+    setTratoSel({ key: 'nome' });
     setStep(voicePrintSupported() ? 'termo' : 'sem_suporte');
   }, [visible]);
 
@@ -118,7 +145,7 @@ export default function VoiceEnroll({ visible, onClose, onDone }) {
   const save = async () => {
     setStep('salvando');
     const list = samples.current;
-    await saveEnrollment({ wake: list.filter((x) => x.wake).map((x) => x.seq), vecs: list.map((x) => x.vec) });
+    await saveEnrollment({ wake: list.filter((x) => x.wake).map((x) => x.seq), vecs: list.map((x) => x.vec), trato: trato.key === 'apelido' && !String(trato.apelido || '').trim() ? { key: 'nome' } : trato });
     setStep('pronto');
   };
 
@@ -177,6 +204,7 @@ export default function VoiceEnroll({ visible, onClose, onDone }) {
           </View>
         ) : step === 'termo' ? (
           <ScrollView style={st.body} contentContainerStyle={{ paddingBottom: 20 }}>
+            <TratoPicker value={trato} onChange={setTratoSel} userName={userName} />
             <Text style={st.h}>A Lotus vai aprender a sua voz</Text>
             <Text style={st.p}>Você vai falar algumas frases curtas. Com elas, a Lotus passa a atender só você nesta conta: a voz de outra pessoa (ou de uma TV, ou dela mesma) não abre a Lotus nem confirma pedidos.</Text>
             <Text style={st.p}>• Leva menos de um minuto.{'\n'}• Fica só neste celular, criptografado. Não vai para o servidor.{'\n'}• Não guardamos a gravação: só uma assinatura em números, que não vira voz de novo.{'\n'}• Com o uso, ela aprende mais um pouco a sua voz.{'\n'}• Você apaga quando quiser, no Perfil.</Text>
@@ -239,6 +267,14 @@ export default function VoiceEnroll({ visible, onClose, onDone }) {
 
 const st = StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20 },
+  trato: { backgroundColor: '#fff', borderRadius: 16, padding: 14, borderWidth: 1, borderColor: colors.border, marginBottom: 16 },
+  tratoH: { fontSize: 16, fontWeight: '800', color: colors.text, marginBottom: 10 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap' },
+  chip: { borderWidth: 1.5, borderColor: colors.primary, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: 8, marginBottom: 8 },
+  chipOn: { backgroundColor: colors.primary },
+  chipText: { color: colors.primary, fontWeight: '700' },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, color: colors.text, marginTop: 4 },
+  tratoEx: { color: colors.muted, fontSize: 12, marginTop: 8, fontStyle: 'italic' },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   title: { fontSize: 20, fontWeight: '800', color: colors.text },
   body: { flex: 1 },
