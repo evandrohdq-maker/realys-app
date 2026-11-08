@@ -1,7 +1,7 @@
 // Termo de adesão do Realys (texto igual ao do servidor: server/src/termos.js). Gerado a partir dele.
-export const TERMO_ADESAO_VERSAO = "2026-11-adesao-v3";
+export const TERMO_ADESAO_VERSAO = "2026-11-adesao-v4";
 export const TERMO_ADESAO = {
-  "versao": "2026-11-adesao-v3",
+  "versao": "2026-11-adesao-v4",
   "titulo": "Termo de Adesão ao aplicativo Realys",
   "atualizado": "8 de novembro de 2026",
   "itens": [
@@ -23,7 +23,7 @@ export const TERMO_ADESAO = {
     },
     {
       "titulo": "5. Voz do dono (Lotus por voz)",
-      "texto": "Se você ativar a Lotus por voz, gravamos algumas frases curtas para que ela reconheça a sua voz. A partir delas é criado um código da voz (impressão de voz), guardado de forma criptografada só no seu celular. Ele serve apenas para que, quando você abrir a Lotus pela voz, ela atenda somente você. As gravações não são enviadas a ninguém e não são usadas para outra finalidade. A impressão de voz é um dado biométrico: você pode apagá-la a qualquer momento nas configurações da Lotus. Quando a Lotus é aberta pelo botão, qualquer voz pode falar com ela, mas ela nunca escuta a própria voz."
+      "texto": "Se você ativar a Lotus por voz, gravamos algumas frases curtas para que ela reconheça a sua voz. A partir delas é criado um código da voz (impressão de voz), guardado de forma criptografada só no seu celular. Ele serve apenas para que, quando você abrir a Lotus pela voz, ela atenda somente você. As gravações não são enviadas a ninguém e não são usadas para outra finalidade. A impressão de voz é um dado biométrico: você pode apagá-la a qualquer momento nas configurações da Lotus. Quando a Lotus é aberta pelo botão, qualquer voz pode falar com ela, mas ela nunca escuta a própria voz. O cadastro da voz é opcional, mas é ele que libera a confirmação por voz: só quem cadastrou a voz pode confirmar compras, contratações, agendamentos e pagamentos dizendo \"sim, confirmo\", e só vale se a frase for conferida como a voz do titular. Sem o cadastro, ou em celulares que não permitem conferir a voz, toda confirmação é feita pelo botão na tela."
     },
     {
       "titulo": "6. Documentos aceitos",
@@ -107,7 +107,7 @@ export const TERMO_ADESAO = {
     },
     {
       "titulo": "26. A Lotus, assistente do Realys",
-      "texto": "A Lotus é a inteligência artificial do Realys. Ela segue regras fixas: (a) nunca age sozinha: só responde quando é chamada e só faz o que você pediu, dentro dos serviços oferecidos pelo Realys; (b) nunca contrata, agenda, compra ou chama um serviço sem a sua confirmação, pelo botão na tela ou dizendo \"sim, confirmo\"; (c) nunca movimenta dinheiro sem a sua autorização: não paga, não transfere, não saca e não usa pontos sozinha; (d) nunca envia mensagens a ninguém por conta própria e nunca entra nas conversas entre pessoas; (e) nunca lê nem usa conversas privadas, chamadas, dados do Date, carteira ou pedidos de outras pessoas, e só aprende com o que é público no Realys; (f) nunca interfere nas relações humanas: não incentiva brigas, traições, mentiras, discriminação, racismo ou qualquer conduta de mau caráter; e (g) nunca ajuda a publicar nudez, pornografia ou conteúdo sexual envolvendo crianças ou adolescentes. As respostas da Lotus são informativas, podem conter erros e não substituem a orientação de um profissional; confira antes de decidir."
+      "texto": "A Lotus é a inteligência artificial do Realys. Ela segue regras fixas: (a) nunca age sozinha: só responde quando é chamada e só faz o que você pediu, dentro dos serviços oferecidos pelo Realys; (b) nunca contrata, agenda, compra ou chama um serviço sem a sua confirmação, pelo botão na tela ou, para quem cadastrou a voz do dono (item 5), dizendo \"sim, confirmo\" com a própria voz; (c) nunca movimenta dinheiro sem a sua autorização: não paga, não transfere, não saca e não usa pontos sozinha; (d) nunca envia mensagens a ninguém por conta própria e nunca entra nas conversas entre pessoas; (e) nunca lê nem usa conversas privadas, chamadas, dados do Date, carteira ou pedidos de outras pessoas, e só aprende com o que é público no Realys; (f) nunca interfere nas relações humanas: não incentiva brigas, traições, mentiras, discriminação, racismo ou qualquer conduta de mau caráter; e (g) nunca ajuda a publicar nudez, pornografia ou conteúdo sexual envolvendo crianças ou adolescentes. As respostas da Lotus são informativas, podem conter erros e não substituem a orientação de um profissional; confira antes de decidir."
     },
     {
       "titulo": "27. Regras de conteúdo nas áreas públicas",
