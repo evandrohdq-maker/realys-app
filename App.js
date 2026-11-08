@@ -35,6 +35,10 @@ import { loadVoicePrint } from './src/voicePrint';
 import { loadPanic, panicConfig } from './src/panic';
 import { RideWatcher } from './src/rideRules';
 import DocsCenter from './src/components/DocsCenter';
+import { SoftAlertHost, installSoftAlert } from './src/components/SoftAlert';
+
+// Avisos no estilo do Realys no app inteiro (no lugar da caixa cinza do Android).
+installSoftAlert();
 import { callNow } from './src/phone';
 import { getDevicePoint } from './src/geo';
 import { stopSpeaking } from './src/voice';
@@ -394,15 +398,15 @@ function Shell() {
       {isAdmin ? (
         <View style={[styles.adminTools, { bottom: 90 + insets.bottom }]}>
           <TouchableOpacity style={styles.adminBtn} onPress={() => setNoting(true)} accessibilityLabel="Anotar mudança nesta tela">
-            <Ionicons name="create-outline" size={20} color={colors.onPrimary} />
+            <Ionicons name="create-outline" size={17} color={colors.accent} />
           </TouchableOpacity>
           {state.activeRole !== 'admin' ? (
             <TouchableOpacity
-              style={[styles.adminBtn, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.accent, marginTop: 8 }]}
+              style={[styles.adminBtn, { marginTop: 8 }]}
               onPress={() => openArea('admin', 'sistema')}
               accessibilityLabel="Voltar ao mapa do sistema"
             >
-              <Ionicons name="git-network-outline" size={19} color={colors.accent} />
+              <Ionicons name="git-network-outline" size={16} color={colors.accent} />
             </TouchableOpacity>
           ) : null}
         </View>
@@ -602,6 +606,8 @@ export default function App() {
       <StoreProvider>
         <Root />
       </StoreProvider>
+      {/* Avisos do Realys: em qualquer tela, inclusive na entrada (login). */}
+      <SoftAlertHost />
     </SafeAreaProvider>
   );
 }
@@ -652,16 +658,18 @@ const styles = StyleSheet.create({
   tabIcon: { width: 44, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   tabIconOn: { backgroundColor: colors.primaryLight },
   tabLabel: { fontSize: 10, color: colors.muted, marginTop: 3 },
-  adminTools: { position: 'absolute', left: 18, alignItems: 'center' },
+  // Ferramentas do administrador: pequenas, claras e meio transparentes, para não tapar o conteúdo.
+  adminTools: { position: 'absolute', left: 10, alignItems: 'center', opacity: 0.85 },
   adminBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.accent,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.94)',
+    borderWidth: 1,
+    borderColor: 'rgba(47,116,208,0.35)',
     alignItems: 'center',
     justifyContent: 'center',
-    ...soft,
-    elevation: 4,
+    elevation: 2,
   },
   // Botão da Lotus: só o desenho da flor, sem fundo, sem borda e sem sombra.
   fab: {
