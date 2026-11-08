@@ -67,6 +67,7 @@ const WALLET_CAT = {
 const initialState = {
   ready: false, // vira true depois de ler a sessão salva (evita piscar a tela de login)
   user: null, // { name, roles: [], cnpj }
+  panicAlerts: [], // alertas da chave de segurança dos motoristas (painel do administrador)
   activeRole: null,
   wallet: 750, // saldo em moeda Realys (1 RLS = R$ 1,00 na demonstração)
   walletTx: initialWalletTx, // extrato da carteira
@@ -1223,6 +1224,38 @@ function baseReducer(state, a) {
     }
     case 'REQUEST_RIDE':
       return { ...state, rides: [a.ride, ...state.rides] };
+
+    // ---------- Espera no embarque (src/rideRules.js) ----------
+    // Motorista no local: começa a contar os 10 minutos do passageiro.
+    case 'RIDE_ARRIVED':
+      return { ...state, rides: state.rides.map((r) => (r.id === a.id && !r.arrivedAt ? { ...r, arrivedAt: Date.now(), status: 'Motorista no local de embarque' } : r)) };
+    case 'RIDE_BOARDED':
+      return { ...state, rides: state.rides.map((r) => (r.id === a.id && !r.done ? { ...r, boardedAt: Date.now(), status: 'Em viagem' } : r)) };
+    // Passou dos 10 minutos e o passageiro não embarcou: corrida encerrada, o motorista recebe o
+    // valor e o passageiro perde a corrida.
+    case 'RIDE_NO_SHOW': {
+      const r = state.rides.find((x) => x.id === a.id);
+      if (!r || !r.arrivedAt || r.boardedAt || r.done || Date.now() - r.arrivedAt < 10 * 60 * 1000 - 2000) return state;
+      const price = Number(r.price) || 0;
+      const rides = state.rides.map((x) => (x.id === a.id ? { ...x, done: true, noShow: true, noShowAt: Date.now(), status: 'Encerrada: passageiro não embarcou em 10 min' } : x));
+      // Corrida que EU pedi (tenho o prestador junto): o valor sai do meu saldo para o motorista.
+      if (r.provider) {
+        return {
+          ...state,
+          rides,
+          wallet: +(state.wallet - price).toFixed(2),
+          walletTx: price ? [{ id: newId('w'), ts: Date.now(), kind: 'gasto', cat: 'Transporte', desc: `Corrida não realizada: você não embarcou em 10 min (${r.provider.name})`, amount: price }, ...state.walletTx] : state.walletTx,
+        };
+      }
+      // Corrida que EU fiz como motorista: o valor (já recebido ao aceitar) fica comigo.
+      return { ...state, rides };
+    }
+
+    // ---------- Chave de segurança do motorista (src/panic.js) ----------
+    case 'PANIC_ALERT':
+      return { ...state, panicAlerts: [a.alert, ...(state.panicAlerts || [])] };
+    case 'PANIC_UPDATE':
+      return { ...state, panicAlerts: (state.panicAlerts || []).map((x) => (x.id === a.id ? { ...x, ...a.data } : x)) };
 
     // ---------- Serviços por visita (src/serviceVisits.js) ----------
     // Cliente pede a visita: a taxa sai do saldo e fica retida até a visita ser confirmada.

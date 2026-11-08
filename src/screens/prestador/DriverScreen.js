@@ -24,6 +24,78 @@ import PrestacaoScreen from './PrestacaoScreen';
 import { BoostButton } from '../../components/Boost';
 import { CAR_FEATURES, featuresOf, featureIcon, featureLabel } from '../../vehicleInfo';
 import { buildAgenda, nextJob, agendaStats, dayLabel, hhmm, untilText } from '../../agenda';
+import { panicConfig, savePanic, onPanicChange, phraseOk, PANIC_EXAMPLES } from '../../panic';
+import { askCallPermission } from '../../phone';
+import { isTransport, isWaiting, WaitCountdown, NO_SHOW_MIN } from '../../rideRules';
+
+// Chave de segurança: "Lotus" + frase secreta = alerta silencioso com GPS e ligação para a polícia.
+function SafetyKey() {
+  const [cfg, setCfg] = useState(panicConfig());
+  const [editing, setEditing] = useState(false);
+  const [phrase, setPhrase] = useState('');
+  const [call190, setCall190] = useState(true);
+  React.useEffect(() => onPanicChange(setCfg), []);
+  const start = () => {
+    setPhrase(cfg ? cfg.phrase : '');
+    setCall190(cfg ? cfg.call190 !== false : true);
+    setEditing(true);
+  };
+  const save = async () => {
+    const p = phrase.trim().replace(/^l[oó]tus[,\s]*/i, '');
+    if (!phraseOk(p)) return Alert.alert('Frase curta demais', 'Use pelo menos 3 palavras, de um pedido comum (ex.: "toca a playlist da viagem"). Nunca use "socorro".');
+    if (call190) await askCallPermission();
+    await savePanic({ phrase: p, call190, on: true, decoy: 'Certo.' });
+    setEditing(false);
+    Alert.alert('Chave de segurança ativada', `Em perigo, com o Realys aberto, diga: "Lotus, ${p}". A Lotus só responde "Certo." e, em silêncio, envia o alerta com sua localização${call190 ? ' e liga para o 190' : ''}.`);
+  };
+  return (
+    <Card style={{ borderColor: '#C0392B', borderWidth: 1 }}>
+      <Row>
+        <Ionicons name="shield-half-outline" size={22} color="#C0392B" style={{ marginRight: 8 }} />
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>Chave de segurança</Text>
+          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
+            {cfg && cfg.on !== false
+              ? `Ativa. Diga "Lotus, ${cfg.phrase}" em caso de perigo${cfg.call190 !== false ? ' (liga para o 190)' : ''}.`
+              : 'Em perigo (assalto, ameaça), diga "Lotus" + uma frase secreta: a Lotus avisa a polícia em silêncio, sem aparecer nada na tela.'}
+          </Text>
+        </View>
+      </Row>
+      {editing ? (
+        <View style={{ marginTop: 10 }}>
+          <Text style={{ color: colors.text, fontSize: 13, marginBottom: 6 }}>Sua frase secreta (parece um pedido comum):</Text>
+          <Row>
+            <Text style={{ color: colors.text, fontWeight: '700', marginRight: 6 }}>Lotus,</Text>
+            <View style={{ flex: 1 }}>
+              <Input value={phrase} onChangeText={setPhrase} placeholder={PANIC_EXAMPLES[0]} autoCapitalize="none" />
+            </View>
+          </Row>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 }}>
+            {PANIC_EXAMPLES.map((x) => (
+              <Chip key={x} label={x} active={phrase === x} onPress={() => setPhrase(x)} />
+            ))}
+          </View>
+          <Row style={{ justifyContent: 'space-between', marginTop: 10 }}>
+            <Text style={{ color: colors.text, fontSize: 13, flex: 1 }}>Ligar para o 190 (Polícia Militar / Brigada Militar)</Text>
+            <Switch value={call190} onValueChange={setCall190} trackColor={{ true: colors.primary }} />
+          </Row>
+          <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6 }}>
+            Use só em perigo real: acionar a polícia sem motivo é crime (trote). A frase fica só neste celular.
+          </Text>
+          <Row style={{ marginTop: 10 }}>
+            <Button small title="Salvar chave" onPress={save} style={{ flex: 1, marginRight: 8 }} />
+            <Button small variant="outline" title="Cancelar" onPress={() => setEditing(false)} style={{ flex: 1 }} />
+          </Row>
+        </View>
+      ) : (
+        <Row style={{ marginTop: 10 }}>
+          <Button small title={cfg ? 'Trocar frase' : 'Criar minha chave'} onPress={start} style={{ flex: 1, marginRight: cfg ? 8 : 0 }} />
+          {cfg ? <Button small variant="outline" title="Desativar" onPress={() => savePanic(null)} style={{ flex: 1 }} /> : null}
+        </Row>
+      )}
+    </Card>
+  );
+}
 
 const UNITS = ['mês', 'hora', 'serviço', 'diária (8h)', 'm²', 'visita', 'corrida + R$ 2,50/km'];
 
@@ -105,6 +177,7 @@ function DriverMain({ goTo, onCadastro }) {
           <Switch value={state.available} onValueChange={() => dispatch({ type: 'TOGGLE_AVAILABLE' })} trackColor={{ true: colors.primary }} />
         </Row>
       </Card>
+      <SafetyKey />
 
       <Section
         title="Meu cadastro profissional"
@@ -258,6 +331,20 @@ function DriverMain({ goTo, onCadastro }) {
               {r.service} · {r.from}
               {r.to ? ` → ${r.to}` : ''}
             </Text>
+            {/* Espera no embarque: o passageiro tem 10 minutos depois do "Cheguei". */}
+            {isTransport(r) && !r.done && !r.arrivedAt ? (
+              <Button small title="Cheguei no local de embarque" style={{ marginTop: 10 }} onPress={() => dispatch({ type: 'RIDE_ARRIVED', id: r.id })} />
+            ) : null}
+            {isWaiting(r) ? (
+              <View style={{ marginTop: 10 }}>
+                <Row style={{ justifyContent: 'space-between' }}>
+                  <Text style={{ color: colors.text, fontSize: 13, flex: 1 }}>Passageiro avisado. Se não embarcar em {NO_SHOW_MIN} min, a corrida é encerrada e o valor fica com você.</Text>
+                  <WaitCountdown ride={r} style={{ marginLeft: 10 }} />
+                </Row>
+                <Button small title="Passageiro embarcou" style={{ marginTop: 8 }} onPress={() => dispatch({ type: 'RIDE_BOARDED', id: r.id })} />
+              </View>
+            ) : null}
+            {r.noShow ? <Text style={{ color: colors.primary, fontWeight: '700', marginTop: 8 }}>Passageiro não embarcou em {NO_SHOW_MIN} min: valor da corrida garantido para você.</Text> : null}
           </Card>
         ))}
         {!accepted.length ? <Empty text="Nenhum serviço em andamento." /> : null}

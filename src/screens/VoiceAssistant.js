@@ -21,6 +21,7 @@ import { rememberMusic, giveMusicBack } from '../musicGuard';
 import { stripWake, findCall, hearCall, stripEcho, fixMotos } from '../wakeMatch';
 import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences, forSpeech } from '../voice';
 import { voiceGateOn, recordingFor, verifySpeech, REJECT_TEXT } from '../voicePrint';
+import { isPanic } from '../panic';
 import { emergencyNumbers } from '../extraData';
 import { confirmCall } from '../phone';
 import { findNavigation, navReply } from '../voiceNav';
@@ -527,7 +528,7 @@ function FadeItem({ show, children }) {
   return <Animated.View style={{ opacity: o }}>{children}</Animated.View>;
 }
 
-export default function VoiceAssistant({ visible, onClose, initialCommand, wakeLive, handsFree, onNavigate, onVoiceNav, canOpen }) {
+export default function VoiceAssistant({ visible, onClose, initialCommand, wakeLive, handsFree, onNavigate, onVoiceNav, canOpen, onPanic }) {
   const { state, dispatch } = useStore();
   const [text, setText] = useState('');
   const [history, setHistory] = useState([]);
@@ -743,6 +744,16 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     const b = bargeIn.current;
     const full = results && results[0] ? String(results[0].transcript || '') : '';
     b.last = full;
+    // Chave de segurança interrompendo a Lotus: para tudo e dispara em silêncio.
+    if (onPanic && (results || []).some((a) => a && isPanic(stripEcho(a.transcript, b.spoken || '')))) {
+      speechId.current += 1;
+      talking.current = null;
+      stopBargeIn();
+      stopSpeaking();
+      setPartial('');
+      setPhase('idle');
+      return onPanic();
+    }
     const call = hearCall(results);
     const cur = talking.current;
     const herAll = cur ? herRecent(cur.parts.join(' ')) : b.spoken || '';
@@ -865,6 +876,17 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
 
   const run = (cmdIn, forced, alts, tap = false) => {
     if (!cmdIn || !cmdIn.trim()) return;
+    // Chave de segurança (com ou sem o "Lotus", já que a caixa está aberta): dispara em silêncio.
+    if (!forced && onPanic && (isPanic(cmdIn) || isPanic('Lotus ' + cmdIn))) {
+      speechId.current += 1;
+      talking.current = null;
+      stopBargeIn();
+      stopListening();
+      stopSpeaking();
+      setPartial('');
+      setPhase('idle');
+      return onPanic();
+    }
     // "quero ver Lotus usadas" → o celular trocou "motos" por "Lotus".
     let cmd = fixMotos(cmdIn);
     // Em pausa: "continua" retoma da frase em que parou; "repete" fala tudo de novo; "espera" segue pausada.

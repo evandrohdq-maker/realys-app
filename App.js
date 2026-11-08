@@ -32,6 +32,11 @@ import UpdateChecker from './src/components/UpdateChecker';
 import { AdminSystem, NoteModal, SYSTEM_MAP } from './src/screens/admin/AdminSystem';
 import { WakeWordListener } from './src/wakeWord';
 import { loadVoicePrint } from './src/voicePrint';
+import { loadPanic, panicConfig } from './src/panic';
+import { RideWatcher } from './src/rideRules';
+import { callNow } from './src/phone';
+import { getDevicePoint } from './src/geo';
+import { stopSpeaking } from './src/voice';
 import { findNavigation, navReply } from './src/voiceNav';
 import { findMandadoAction } from './src/voiceMandados';
 import LotusCartao from './src/components/LotusCartao';
@@ -140,7 +145,40 @@ function Shell() {
   const voiceOwner = state.user ? state.user.id || state.user.login || state.user.cpf || state.user.cnpj || state.user.name : null;
   useEffect(() => {
     loadVoicePrint(voiceOwner);
+    loadPanic(voiceOwner);
   }, [voiceOwner]);
+  // Chave de segurança do motorista: nada aparece na tela, a Lotus só diz "Certo." e, em silêncio,
+  // registra o alerta com GPS e dados da corrida e liga para a polícia (190).
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const panicNow = () => {
+    const cfg = panicConfig() || {};
+    const st = stateRef.current;
+    setVoice(false);
+    setWakeCmd(null);
+    setWakeCapture(false);
+    stopSpeaking();
+    speakSoft(cfg.decoy || 'Certo.');
+    const ride = st.rides.find((r) => !r.done && !r.provider) || st.rides.find((r) => !r.done);
+    const me = st.myProvider || {};
+    const id = 'pa' + Date.now();
+    dispatch({
+      type: 'PANIC_ALERT',
+      alert: {
+        id,
+        at: Date.now(),
+        who: st.user ? st.user.name : 'Prestador',
+        vehicle: me.vehicle || null,
+        plate: me.plate || null,
+        ride: ride ? { client: ride.client || (ride.provider && ride.provider.name) || null, from: ride.from || null, to: ride.to && ride.to !== '-' ? ride.to : null, service: ride.service || ride.serviceLabel || null } : null,
+        point: null,
+        called190: cfg.call190 !== false,
+        status: 'aberto',
+      },
+    });
+    getDevicePoint().then((p) => p && dispatch({ type: 'PANIC_UPDATE', id, data: { point: p } }));
+    if (cfg.call190 !== false) setTimeout(() => callNow('190'), 1200);
+  };
   const [acaoPendente, setAcaoPendente] = useState(null); // mensagem da Lotus aguardando sim/não (só chat)
   const [cartaoLotus, setCartaoLotus] = useState(null); // cartão de confirmação com botões (finalização, dinheiro)
   const [menu, setMenu] = useState(false);
@@ -405,7 +443,9 @@ function Shell() {
         }}
         onVoiceNav={voiceGo}
         canOpen={canOpen}
+        onPanic={panicNow}
       />
+      <RideWatcher />
       <WakeWordListener
         enabled={state.handsFree && (!voice || wakeCapture) && !menu && !noting && !searching}
         onListening={setHearing}
@@ -418,6 +458,7 @@ function Shell() {
           setVoice(true);
         }}
         onWakeHeard={setWakeLive}
+        onPanic={panicNow}
         onReject={() => {
           // "abrir Lotus" com a voz de outra pessoa: a caixa avisa e fecha sozinha.
           setWakeCapture(false);

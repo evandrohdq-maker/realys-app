@@ -10,6 +10,7 @@ import { findWake, normSame, hearCall } from './wakeMatch';
 import { stopSpeaking } from './voice';
 import { musicPlaying } from './musicGuard';
 import { voiceGateOn, recordingFor, verifyWake } from './voicePrint';
+import { isPanicAny } from './panic';
 
 // Com música de outro app tocando, o "abrir Lotus" fica desligado (o microfone do Android pausaria
 // a música). Confere de tempos em tempos e volta a ouvir sozinho quando a música para.
@@ -53,7 +54,7 @@ export function wakeWordSupported() {
 }
 
 // Componente invisível que escuta enquanto `enabled` for verdadeiro.
-export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, onReject, onListening, onFatal, onMusic }) {
+export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, onReject, onPanic, onListening, onFatal, onMusic }) {
   const on = useRef(false);
   const running = useRef(false);
   const woke = useRef(null); // { rest, timer }
@@ -192,6 +193,14 @@ export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, on
   useSpeechRecognitionEvent('result', (event) => {
     if (!on.current || firing.current) return;
     if (!appActive.current) return stop();
+    // Chave de segurança ("Lotus" + frase secreta): dispara na hora, em silêncio, sem abrir a Lotus.
+    if (isPanicAny((event.results || []).map((a) => a && a.transcript))) {
+      stop();
+      onListening && onListening(false);
+      onPanic && onPanic();
+      if (on.current) scheduleRestart(1500);
+      return;
+    }
     const heard = hearWake(event.results);
     // Chamou "Lotus" enquanto ela fala (caixa fechada, ex.: "Abrindo Agro"): ela se cala na hora.
     if (!heard && !woke.current && running.current && hearCall(event.results)) stopSpeaking();

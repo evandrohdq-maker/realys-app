@@ -23,6 +23,30 @@ export function AdminOverview() {
     <Screen>
       <Title sub="Controle geral da plataforma Realys">Administração</Title>
 
+      {/* Chave de segurança dos motoristas: alerta silencioso com GPS e dados da corrida. */}
+      {(state.panicAlerts || []).length ? (
+        <Section title="🚨 Alertas de segurança">
+          {state.panicAlerts.map((x) => (
+            <Card key={x.id} style={{ borderColor: '#C0392B', borderWidth: 1.5 }}>
+              <Row style={{ justifyContent: 'space-between' }}>
+                <Text style={{ color: '#C0392B', fontWeight: '800', flex: 1 }}>{x.who}{x.plate ? ` · placa ${x.plate}` : ''}</Text>
+                <Badge label={new Date(x.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} color="#C0392B" />
+              </Row>
+              {x.vehicle ? <Text style={{ color: colors.text, fontSize: 13, marginTop: 2 }}>{x.vehicle}</Text> : null}
+              {x.ride ? (
+                <Text style={{ color: colors.text, fontSize: 13, marginTop: 4 }}>
+                  Corrida{x.ride.client ? ` com ${x.ride.client}` : ''}{x.ride.from ? ` · embarque em ${x.ride.from}` : ''}{x.ride.to ? ` → ${x.ride.to}` : ''}
+                </Text>
+              ) : null}
+              <Text style={{ color: colors.muted, fontSize: 12, marginTop: 4 }}>
+                {x.point ? `📍 ${x.point.lat.toFixed(5)}, ${x.point.lon.toFixed(5)}` : '📍 buscando localização…'}
+                {x.called190 ? ' · ligação para o 190 feita do celular dele' : ''}
+              </Text>
+            </Card>
+          ))}
+        </Section>
+      ) : null}
+
       <Row style={{ marginHorizontal: -4, marginBottom: 8 }}>
         <Stat label="Usuários verificados" value={fmt(s.users)} color={colors.primary} />
         <Stat label="Empresas (CNPJ)" value={fmt(s.companies)} />

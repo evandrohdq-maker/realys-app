@@ -18,9 +18,22 @@ import ProfessionPicker from '../../components/ProfessionPicker';
 import { CAR_FEATURES, featuresOf, featureIcon, featureLabel, hasAll, isPassenger } from '../../vehicleInfo';
 import { useBack } from '../../back';
 import { lives } from '../../homeData';
+import { isTransport, isWaiting, WaitCountdown, NO_SHOW_MIN } from '../../rideRules';
 import { SERVICE_TABS, SERVICE_TAB_KEYS, TAB_TYPES, isOnlineType, tabOfType, OnlineTab, CoursesTab, LiveClasses } from './ServiceTabs';
 
 // Cartão do chamado (usado também pelo assistente de voz).
+// Demonstração (um celular só faz os dois lados): simula o motorista chegando no local.
+function DemoArrive({ call }) {
+  const { state, dispatch } = useStore();
+  const r = state.rides.find((x) => x.id === call.id) || call;
+  if (!isTransport(r) || r.done || r.arrivedAt || r.when) return null;
+  return (
+    <TouchableOpacity onPress={() => dispatch({ type: 'RIDE_ARRIVED', id: r.id })} style={{ marginTop: 8 }}>
+      <Text style={{ color: colors.muted, fontSize: 11, textDecorationLine: 'underline' }}>Demonstração: simular motorista chegando</Text>
+    </TouchableOpacity>
+  );
+}
+
 export function ServiceCallCard({ call }) {
   const p = call.provider;
   return (
@@ -53,9 +66,25 @@ export function ServiceCallCard({ call }) {
           </Text>
         </Text>
       ) : null}
-      <Text style={{ color: colors.muted, marginTop: 10, fontSize: 13 }}>
-        Chega em {call.eta} min · {priceText(p)} · acompanhe pelo GPS na aba Serviços
-      </Text>
+      {isWaiting(call) ? (
+        <View style={{ marginTop: 10, backgroundColor: colors.primaryLight, borderRadius: 10, padding: 10 }}>
+          <Row style={{ justifyContent: 'space-between' }}>
+            <Text style={{ color: colors.text, fontSize: 13, flex: 1, fontWeight: '700' }}>
+              {first(p.name)} está no local. Embarque em até {NO_SHOW_MIN} min: depois disso a corrida é cobrada e encerrada.
+            </Text>
+            <WaitCountdown ride={call} style={{ marginLeft: 10 }} />
+          </Row>
+        </View>
+      ) : call.noShow ? (
+        <Text style={{ color: '#C0392B', marginTop: 10, fontSize: 13, fontWeight: '700' }}>
+          Corrida encerrada: você não embarcou em {NO_SHOW_MIN} minutos. O valor foi pago ao motorista.
+        </Text>
+      ) : (
+        <Text style={{ color: colors.muted, marginTop: 10, fontSize: 13 }}>
+          Chega em {call.eta} min · {priceText(p)} · acompanhe pelo GPS na aba Serviços
+        </Text>
+      )}
+      {DemoArrive ? <DemoArrive call={call} /> : null}
     </Card>
   );
 }
