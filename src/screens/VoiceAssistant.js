@@ -22,7 +22,7 @@ import { stripWake, findCall, hearCall, stripEcho, fixMotos } from '../wakeMatch
 import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences, forSpeech } from '../voice';
 import { voiceGateOn, voicePrintSupported, recordingFor, verifySpeech, REJECT_TEXT, tratoOf, phrasesOf } from '../voicePrint';
 import { openLine } from '../lotusTrato';
-import { matchPhrase } from '../voicePhrases';
+import { answerKind } from '../voicePhrases';
 import { isPanic } from '../panic';
 import { lotusRefusal } from '../lotusConduta';
 import { findPublicOrg, PUBLIC_ORGS } from '../publicServices';
@@ -74,7 +74,7 @@ const bare = (c) => c.replace(/[^a-z\s]/g, ' ').replace(/\b(lotus|por favor|ai)\
 const isFollowUp = (c, p) => {
   if (!p) return false;
   if (CONFIRM_VOICE.test(c)) return true;
-  if (confirmMoment(p) && (phraseHit('lotus ' + c, 'confirm') || phraseHit('lotus ' + c, 'duress'))) return true;
+  if (p.secq) return true; // resposta da pergunta de segurança
   const n = bare(c).split(' ').filter(Boolean).length;
   if (n <= 3 && (YES.test(c) || NO.test(c))) return true;
   if (p.type === 'service' && (FOLLOW.test(c) || LATER.test(c))) return true;
@@ -96,25 +96,18 @@ const CONFIRM_VOICE = /\bconfirm(o|a|ar|ado)\b/;
 // Confirmar por voz é só para quem cadastrou a voz do dono (é opcional), e só vale quando a frase
 // foi conferida como a voz do titular. Sem o cadastro, toda confirmação é pelo botão.
 let ownerVoice = false; // a frase que está sendo entendida agora veio do titular (voz conferida)
-let ownerShort = false; // a frase foi curta demais para conferir a voz
-const SAY_LONGER = 'Não consegui conferir a sua voz. Diga de novo a sua frase de confirmação, começando por Lotus, ou toque no botão de confirmar.';
 const voiceConfirmOn = () => voiceGateOn();
-const orSay = () => (voiceConfirmOn() && phrasesOf() ? ' ou diga a sua frase de confirmação' : ' para confirmar');
-const NEED_PHRASE = 'Para confirmar por voz, cadastre a sua frase de confirmação no Perfil, em Voz do titular. Por enquanto, toque no botão de confirmar.';
-const USE_PHRASE = 'Para confirmar por voz, diga "Lotus" e a sua frase de confirmação. Ou toque no botão de confirmar.';
-let typedNow = false; // pedido digitado na caixa (vale como o toque)
-let bargeWake = false; // a frase veio de uma interrupção com "Lotus" (o "Lotus" já foi dito)
-let confirmedNow = false; // confirmou de verdade neste pedido (frase certa + voz do titular, ou digitado)
-// As frases cadastradas só valem na hora de confirmar uma compra, contratação ou pagamento, e sempre
-// começando com "Lotus". Fora disso, são só conversa.
-const confirmMoment = (p) => !!(p && (p.type === 'checkout' || p.type === 'convertLive' || (p.type === 'service' && p.providerId)));
-const saidLotus = (text) => bargeWake || !!findCall(text);
-const phraseHit = (text, which) => {
-  const ph = phrasesOf();
-  if (!ph || !ph[which] || !saidLotus(text)) return false;
-  const call = findCall(text);
-  return matchPhrase(call ? call.rest : text, ph[which]);
+// Pergunta de segurança cadastrada (2ª pergunta da confirmação por voz).
+const secqOf = () => {
+  const q = phrasesOf();
+  return q && q.question && q.allow && q.duress ? q : null;
 };
+const orSay = () => (voiceConfirmOn() && secqOf() ? ' ou diga: sim, confirmo' : ' para confirmar');
+const NEED_PHRASE = 'Para confirmar por voz, cadastre a sua pergunta de segurança no Perfil, em Voz do titular. Por enquanto, toque no botão de confirmar.';
+let typedNow = false; // pedido digitado na caixa (vale como o toque)
+let confirmedNow = false; // confirmou de verdade: "sim, confirmo" do titular + resposta que libera
+// A confirmação por voz só existe na hora de confirmar uma compra, contratação ou pagamento.
+const confirmMoment = (p) => !!(p && (p.type === 'checkout' || p.type === 'convertLive' || (p.type === 'service' && p.providerId)));
 const NEED_ENROLL = 'Para confirmar por voz, cadastre a sua voz nas configurações da Lotus. Por enquanto, toque no botão de confirmar.';
 const NO_VOICE_PHONE = 'Neste celular a confirmação é pelo botão. Toque no botão de confirmar.';
 const NOT_OWNER = 'Só a voz do titular da conta confirma por voz. Toque no botão de confirmar.';
@@ -191,27 +184,59 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   const refused = depth === 0 ? lotusRefusal(text) : null;
   if (refused) return { reply: refused };
   if (depth === 0) {
-    const moment = confirmMoment(pending);
-    // Frase de segurança (coação), só na hora de confirmar: finge que deu certo e avisa a segurança.
-    // Vale com qualquer voz (sob ameaça a voz muda, e nada pode travar o pedido de socorro).
-    if (!tap && moment && phraseHit(text, 'duress')) return duressReply(state, dispatch, pending);
-    const byPhrase = moment && phraseHit(text, 'confirm');
+    confirmedNow = false;
+    const secq = secqOf();
     const n = norm(text);
-    confirmedNow = typedNow ? CONFIRM_VOICE.test(n) || byPhrase : ownerVoice && byPhrase;
-    // Tentou confirmar por voz sem poder: não executa nada e explica o porquê.
-    if (!tap && (CONFIRM_VOICE.test(n) || byPhrase) && !confirmedNow) {
-      const why = !voicePrintSupported()
+    // 2ª pergunta (a de segurança): a resposta decide. Para quem está do lado, as duas soam iguais.
+    if (pending && pending.secq && !tap) {
+      const base = { ...pending };
+      delete base.secq;
+      delete base.secqMiss;
+      const k = answerKind(text, secq);
+      // Resposta de segurança: finge que deu certo, nada é cobrado, e avisa a segurança em silêncio.
+      if (k === 'seguranca') return duressReply(state, dispatch, base);
+      if (k === 'libera') {
+        // Segue como uma confirmação comum (a resposta, como "branco", não vira pesquisa).
+        confirmedNow = true;
+        pending = base;
+        text = 'sim, confirmo';
+      } else {
+        const miss = (pending.secqMiss || 0) + 1;
+        if (miss >= 2 || NO.test(n)) return { reply: 'Tudo bem, não confirmei nada. Se quiser, toque no botão para confirmar.', pending: base, list: base.options };
+        return { reply: `Não entendi. ${secq ? secq.question : ''}`.trim(), pending: { ...pending, secqMiss: miss } };
+      }
+    } else if (pending && pending.secq && tap) {
+      pending = { ...pending };
+      delete pending.secq;
+      delete pending.secqMiss;
+    } else if (!tap && confirmMoment(pending) && CONFIRM_VOICE.test(n) && !NO.test(n)) {
+      // 1ª pergunta: "sim, confirmo". Por voz, só do titular cadastrado; digitado vale como o toque.
+      const why = typedNow
+        ? null
+        : !voicePrintSupported()
         ? NO_VOICE_PHONE
         : !voiceConfirmOn()
         ? NEED_ENROLL
-        : !phrasesOf()
-        ? NEED_PHRASE
-        : !byPhrase
-        ? USE_PHRASE
-        : ownerShort
-        ? SAY_LONGER
-        : NOT_OWNER;
-      return pending ? { reply: why, pending, list: pending.options } : { reply: why };
+        : !ownerVoice
+        ? NOT_OWNER
+        : null;
+      if (why) return { reply: why, pending, list: pending.options };
+      if (!secq) {
+        if (typedNow) confirmedNow = true; // digitado sem pergunta cadastrada: vale como o toque
+        else return { reply: NEED_PHRASE, pending, list: pending.options };
+      } else {
+        // Guarda o que já veio junto ("a segunda, amanhã às 10, sim confirmo") e faz a pergunta de segurança.
+        const next = { ...pending, secq: true };
+        if (pending.type === 'service') {
+          const said = stripWake(text).replace(/[,\s]*(e\s+)?(sim[,\s]*)?(pode\s+)?confirm\w*.*$/i, '');
+          const chosen = pending.options ? pickOption(norm(said), pending.options) : null;
+          if (chosen) next.providerId = chosen.id;
+          const when = pending.when || (LATER.test(norm(said)) && hasWhen(norm(said)) ? whenOf(said) : null);
+          if (pending.stage === 'when' && !when) return { reply: 'Para quando eu agendo? Por exemplo: hoje às 18h ou amanhã às 9h.', pending };
+          next.when = when;
+        }
+        return { reply: secq.question, pending: next };
+      }
     }
   }
   const changed = dropRefused(text);
@@ -660,7 +685,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
   const gated = () => byVoice.current && voiceGateOn();
   // Voz conferida como a do titular. Aberta pela voz, a conversa já foi conferida; pelo botão, a frase
   // de confirmação precisa ter sido medida de verdade (curta demais não conta).
-  const ownerOk = (v) => (v && v.ok === true && (gated() || !v.skipped) ? true : v && v.skipped ? 'curta' : false);
+  // "sim, confirmo" é curto: se a voz não pôde ser medida, a pergunta de segurança faz a segunda checagem.
+  const ownerOk = (v) => !!(v && v.ok === true);
   // Áudio da escuta atual (para conferir a voz): uri, quando começou e quem espera o arquivo fechar.
   const audioRef = useRef({ uri: null, at: 0, waiters: [] });
   const audioDone = () =>
@@ -768,13 +794,11 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
   const finishBargeIn = async () => {
     const b = bargeIn.current;
     const rest = b.rest;
-    // Interrompeu com "Lotus": a frase já começou com Lotus.
-    bargeWake = !!rest;
-    if (rest && confirmMoment(pendingRef.current) && phraseHit(rest, 'duress')) {
+    if (rest && pendingRef.current && pendingRef.current.secq) {
       stopBargeIn();
       return run(rest);
     }
-    if (rest && (gated() || (voiceConfirmOn() && (CONFIRM_VOICE.test(norm(rest)) || (confirmMoment(pendingRef.current) && phraseHit(rest, 'confirm'))))) && b.on) {
+    if (rest && (gated() || (voiceConfirmOn() && confirmMoment(pendingRef.current) && CONFIRM_VOICE.test(norm(rest)))) && b.on) {
       // Conversa por voz: confere se quem interrompeu é o titular (só o trecho depois que ela parou).
       if (b.checking) return;
       b.checking = true;
@@ -1017,7 +1041,6 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     // Digitado na caixa vale como o toque: a pessoa está com o celular na mão.
     ownerVoice = owner === true && voiceConfirmOn();
     typedNow = owner === 'texto';
-    ownerShort = owner === 'curta';
     let res = forced || interpret(cmd, state, dispatch, topic, canOpen, 0, tap);
     // O celular ouviu errado? Tenta as outras opções que ele ouviu antes de dizer "não encontrei".
     const empty = (r) => !!r.miss;
@@ -1033,9 +1056,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
       }
     }
     ownerVoice = false;
-    ownerShort = false;
     typedNow = false;
-    bargeWake = false;
     confirmedNow = false;
     // Coação: avisa a segurança em silêncio (a tela segue mostrando que deu tudo certo).
     if (res.duress && onDuress) onDuress(res.duress);
@@ -1226,9 +1247,9 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
       level.setValue(0);
       const cmd = bestHeard(e.results);
       const alts = (e.results || []).map((a) => a && a.transcript).filter(Boolean);
-      // Frase de segurança: atende na hora, sem conferir a voz (sob ameaça a voz muda).
-      if (confirmMoment(pendingRef.current) && phraseHit(cmd, 'duress')) return run(cmd, null, alts);
-      const confirming = voiceConfirmOn() && (CONFIRM_VOICE.test(norm(cmd)) || (confirmMoment(pendingRef.current) && phraseHit(cmd, 'confirm')));
+      // Resposta da pergunta de segurança: atende na hora, sem conferir a voz (sob ameaça a voz muda).
+      if (pendingRef.current && pendingRef.current.secq) return run(cmd, null, alts);
+      const confirming = voiceConfirmOn() && confirmMoment(pendingRef.current) && CONFIRM_VOICE.test(norm(cmd));
       if (!gated() && !confirming) return run(cmd, null, alts);
       // Conversa por voz: só atende depois de conferir que é o titular.
       // Aberta pelo botão: qualquer voz conversa, mas o "sim, confirmo" só vale com a voz do titular.
@@ -1687,4 +1708,5 @@ const styles = StyleSheet.create({
 // Para testes no computador.
 export const _interpret = interpret;
 export const _setOwnerVoice = (v) => (ownerVoice = !!v);
+export const _setTyped = (v) => (typedNow = !!v);
 export const _afterInterrupt = { isFollowUp, bare, RESUME, REPEAT, norm };

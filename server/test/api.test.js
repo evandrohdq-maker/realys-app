@@ -46,14 +46,14 @@ const ok = async (...a) => {
 const keep = (who, d) => (S[who] = { token: d.accessToken, session: d.sessionToken, id: d.user.id });
 
 test('cadastro: usuário (CPF) e empresa (CNPJ), com validações', async () => {
-  keep('ana', await ok('POST', '/auth/signup', { body: { kind: 'pessoa', name: 'Ana Paula', doc: '529.982.247-25', username: '@Ana', email: 'ana@realys.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v5' } }));
-  keep('beto', await ok('POST', '/auth/signup', { body: { kind: 'pessoa', name: 'Beto Motorista', doc: '111.444.777-35', username: 'beto', email: 'beto@realys.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v5' } }));
-  const e = await ok('POST', '/auth/signup', { body: { kind: 'empresa', name: 'Pizzaria da Praça', doc: '11.222.333/0001-81', username: 'pizzaria', email: 'contato@pizzaria.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v5', segment: 'Restaurante' } });
+  keep('ana', await ok('POST', '/auth/signup', { body: { kind: 'pessoa', name: 'Ana Paula', doc: '529.982.247-25', username: '@Ana', email: 'ana@realys.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v6' } }));
+  keep('beto', await ok('POST', '/auth/signup', { body: { kind: 'pessoa', name: 'Beto Motorista', doc: '111.444.777-35', username: 'beto', email: 'beto@realys.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v6' } }));
+  const e = await ok('POST', '/auth/signup', { body: { kind: 'empresa', name: 'Pizzaria da Praça', doc: '11.222.333/0001-81', username: 'pizzaria', email: 'contato@pizzaria.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v6', segment: 'Restaurante' } });
   keep('pizza', e);
   assert.deepEqual(e.user.roles, ['empresa', 'fornecedor', 'usuario']);
 
-  assert.equal((await api('POST', '/auth/signup', { body: { name: 'X', doc: '123.456.789-00', username: 'xx1', email: 'x@x.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v5' } })).status, 400); // CPF inválido
-  assert.equal((await api('POST', '/auth/signup', { body: { name: 'Outra', doc: '123.456.789-09', username: 'ana', email: 'o@x.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v5' } })).status, 409); // usuário em uso
+  assert.equal((await api('POST', '/auth/signup', { body: { name: 'X', doc: '123.456.789-00', username: 'xx1', email: 'x@x.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v6' } })).status, 400); // CPF inválido
+  assert.equal((await api('POST', '/auth/signup', { body: { name: 'Outra', doc: '123.456.789-09', username: 'ana', email: 'o@x.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v6' } })).status, 409); // usuário em uso
   assert.equal((await api('POST', '/auth/signup', { body: { name: 'Outra', doc: '123.456.789-09', username: 'outra', email: 'o@x.com', password: 'curta' } })).status, 400); // senha fraca
 });
 

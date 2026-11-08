@@ -56,7 +56,7 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] **Repetir a moderação de texto no servidor** quando posts, comentários e mensagens passarem por ele.
 - [ ] **Canal de denúncia às autoridades** (SaferNet / Polícia Federal) para conteúdo com menores, com
       preservação das provas, e responsável pela moderação definido na empresa.
-- [ ] **Advogado revisar o Termo de Adesão v5** e os Termos do Encontros v0.2 antes do lançamento oficial.
+- [ ] **Advogado revisar o Termo de Adesão v6** e os Termos do Encontros v0.2 antes do lançamento oficial.
 
 ## Date+
 
@@ -66,7 +66,7 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] Guardar a assinatura no servidor e checar o Date+ também lá na chamada de vídeo (hoje é conferido no app).
 - [ ] Revisar os preços do Date+ a cada 6 meses comparando com Tinder, Happn e Bumble.
 
-## Segurança do cliente (frase de segurança)
+## Segurança do cliente (pergunta de segurança)
 
 - [ ] Levar os alertas de segurança e o bloqueio por chamada falsa para o servidor (hoje ficam no celular e
       no painel local); bloquear a conta e reter o saldo também na carteira do servidor.

@@ -317,14 +317,14 @@ export default function ProfileScreen({ navigate, explore }) {
               <TratoPicker value={vp.trato || { key: 'nome' }} onChange={(t) => setTrato(t)} userName={state.user && state.user.name} />
               <TouchableOpacity onPress={() => setPhrasesOpen((v) => !v)} style={{ paddingVertical: 8 }}>
                 <Text style={{ color: colors.primary, fontWeight: '700' }}>
-                  {vp.phrases ? 'Trocar frase de confirmação e de segurança' : 'Cadastrar frase de confirmação e de segurança'}
+                  {vp.phrases && vp.phrases.question ? 'Trocar pergunta e respostas de segurança' : 'Cadastrar pergunta e respostas de segurança'}
                 </Text>
               </TouchableOpacity>
               {phrasesOpen ? (
                 <PhrasesEditor
-                  initial={vp.phrases}
+                  initial={vp.phrases && vp.phrases.question ? vp.phrases : null}
                   saveLabel="Salvar frases"
-                  onSave={(ph) => (setPhrases(ph), setPhrasesOpen(false), Alert.alert('Frases salvas', 'A partir de agora, confirme por voz com a sua frase de confirmação.'))}
+                  onSave={(ph) => (setPhrases(ph), setPhrasesOpen(false), Alert.alert('Pergunta salva', 'Para confirmar por voz: diga "sim, confirmo" e depois responda a sua pergunta de segurança.'))}
                 />
               ) : null}
             </View>

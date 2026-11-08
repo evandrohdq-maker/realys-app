@@ -14,8 +14,7 @@ import { voicePrintSupported, recordingFor, enrollSample, saveEnrollment } from 
 import { buildWake, compareWake } from '../voicePrintCore';
 import { findCall } from '../wakeMatch';
 import { TRATOS, addressOf, openLine } from '../lotusTrato';
-import { CONFIRM_EXAMPLES, DURESS_EXAMPLES, phrasesProblem } from '../voicePhrases';
-import { panicConfig } from '../panic';
+import { SECURITY_QUESTIONS, secqProblem } from '../voicePhrases';
 
 const PHRASES = [
   { text: 'Abrir Lotus', wake: true, hint: 'Fale do seu jeito normal, como se fosse chamar a Lotus.' },
@@ -47,25 +46,73 @@ function saidRight(heard, phrase) {
   return lotusOk && (want.length === 0 || hit / want.length >= 0.5);
 }
 
-// Frase de confirmação (no lugar do "sim, confirmo") e frase de segurança (coação).
+// Pergunta de segurança (2ª pergunta da confirmação) com as duas respostas, gravadas pela voz.
 export function PhrasesEditor({ initial, onSave, onSkip, saveLabel = 'Salvar e concluir' }) {
-  const [confirm, setConfirm] = useState((initial && initial.confirm) || '');
+  const [question, setQuestion] = useState((initial && initial.question) || SECURITY_QUESTIONS[0]);
+  const [own, setOwn] = useState(!!(initial && initial.question && !SECURITY_QUESTIONS.includes(initial.question)));
+  const [allow, setAllow] = useState((initial && initial.allow) || '');
   const [duress, setDuress] = useState((initial && initial.duress) || '');
   const [err, setErr] = useState('');
-  const go = () => {
-    const p = phrasesProblem(confirm, duress, (panicConfig() || {}).phrase);
-    if (p) return setErr(p);
-    onSave({ confirm: confirm.trim(), duress: duress.trim(), at: Date.now() });
+  const [mic, setMic] = useState(null); // 'allow' | 'duress' enquanto grava
+  const micRef = useRef(null);
+  micRef.current = mic;
+
+  useSpeechRecognitionEvent('result', (e) => {
+    if (!micRef.current) return;
+    const t = e && e.results && e.results[0] ? e.results[0].transcript : '';
+    if (!t) return;
+    (micRef.current === 'allow' ? setAllow : setDuress)(t.slice(0, 40));
+    if (e.isFinal) setMic(null);
+  });
+  useSpeechRecognitionEvent('end', () => micRef.current && setMic(null));
+  const record = (which) => {
+    setErr('');
+    setMic(which);
+    try {
+      ExpoSpeechRecognitionModule.start({ lang: 'pt-BR', interimResults: true, continuous: false, maxAlternatives: 1 });
+    } catch (e) {
+      setMic(null);
+    }
   };
+  const go = () => {
+    const q = { question: question.trim(), allow: allow.trim(), duress: duress.trim(), at: Date.now() };
+    const p = secqProblem(q);
+    if (p) return setErr(p);
+    onSave(q);
+  };
+  const answer = ({ which, value, set, label, hint }) => (
+    <View style={{ marginTop: 14 }}>
+      <Text style={st.ansLabel}>{label}</Text>
+      <Text style={st.ansHint}>{hint}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+        <TextInput style={[st.input, { flex: 1, marginTop: 0 }]} value={value} onChangeText={(v) => (set(v.slice(0, 40)), setErr(''))} placeholder="Toque no microfone e fale" placeholderTextColor={colors.muted} />
+        <TouchableOpacity style={[st.micSmall, mic === which && { backgroundColor: colors.primary }]} onPress={() => record(which)} accessibilityLabel={`Gravar ${label}`}>
+          <Ionicons name="mic" size={20} color={mic === which ? '#fff' : colors.primary} />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
   return (
     <View>
-      <Text style={st.h}>Sua frase de confirmação</Text>
-      <Text style={st.p}>É ela que confirma compras, contratações, agendamentos e pagamentos por voz, no lugar do "sim, confirmo". Só vale com a sua voz. Escolha algo que você lembre, com pelo menos 2 palavras.</Text>
-      <TextInput style={st.input} value={confirm} onChangeText={(v) => (setConfirm(v.slice(0, 60)), setErr(''))} placeholder={`Ex.: ${CONFIRM_EXAMPLES[0]}`} placeholderTextColor={colors.muted} />
-      <Text style={[st.h, { marginTop: 18 }]}>Sua frase de segurança</Text>
-      <Text style={st.p}>Use só se alguém estiver obrigando você a comprar ou pagar (assalto, abordagem). Ela parece uma confirmação normal: a Lotus mostra que deu tudo certo, mas nada é comprado e nenhum dinheiro sai. Em silêncio, ela avisa a segurança do Realys com a sua localização e liga para o 190.</Text>
-      <TextInput style={st.input} value={duress} onChangeText={(v) => (setDuress(v.slice(0, 60)), setErr(''))} placeholder={`Ex.: ${DURESS_EXAMPLES[0]}`} placeholderTextColor={colors.muted} />
-      <Text style={[st.p, { marginTop: 10, color: '#B4532A' }]}>Atenção: chamada falsa (brincadeira ou teste) leva ao bloqueio imediato da conta e do saldo, além de ser crime (comunicação falsa de crime).</Text>
+      <Text style={st.h}>Pergunta de segurança</Text>
+      <Text style={st.p}>Para confirmar por voz, a Lotus faz duas perguntas. Na primeira ("Você confirma?") você diz "sim, confirmo". Na segunda, ela faz a pergunta que você escolher aqui, e a sua resposta decide.</Text>
+      <View style={st.chips}>
+        {SECURITY_QUESTIONS.map((q) => {
+          const on = !own && q === question;
+          return (
+            <TouchableOpacity key={q} style={[st.chip, on && st.chipOn]} onPress={() => (setOwn(false), setQuestion(q), setErr(''))}>
+              <Text style={[st.chipText, on && { color: '#fff' }]}>{q}</Text>
+            </TouchableOpacity>
+          );
+        })}
+        <TouchableOpacity style={[st.chip, own && st.chipOn]} onPress={() => (setOwn(true), setQuestion(''))}>
+          <Text style={[st.chipText, own && { color: '#fff' }]}>Escrever a minha</Text>
+        </TouchableOpacity>
+      </View>
+      {own ? <TextInput style={st.input} value={question} onChangeText={(v) => setQuestion(v.slice(0, 70))} placeholder="Sua pergunta" placeholderTextColor={colors.muted} /> : null}
+      {answer({ which: "allow", value: allow, set: setAllow, label: "Resposta que libera", hint: "Com ela, a compra ou contratação é feita. Ex.: branco." })}
+      {answer({ which: "duress", value: duress, set: setDuress, label: "Resposta de segurança", hint: "Use só se alguém estiver obrigando você (assalto, abordagem). A Lotus mostra que deu tudo certo, mas nada é comprado e nenhum dinheiro sai; em silêncio, ela avisa a segurança com a sua localização e liga para o 190. Ex.: preto." })}
+      <Text style={[st.p, { marginTop: 12, color: '#B4532A' }]}>Atenção: chamada falsa (brincadeira, teste ou trote) leva ao bloqueio imediato da conta e do saldo, além de ser crime.</Text>
       {err ? <Text style={{ color: colors.danger, fontWeight: '700', marginTop: 4 }}>{err}</Text> : null}
       <TouchableOpacity style={st.btn} onPress={go}>
         <Text style={st.btnText}>{saveLabel}</Text>
@@ -311,6 +358,9 @@ const st = StyleSheet.create({
   chip: { borderWidth: 1.5, borderColor: colors.primary, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: 8, marginBottom: 8 },
   chipOn: { backgroundColor: colors.primary },
   chipText: { color: colors.primary, fontWeight: '700' },
+  ansLabel: { color: colors.text, fontWeight: '800' },
+  ansHint: { color: colors.muted, fontSize: 12, marginTop: 2, lineHeight: 17 },
+  micSmall: { width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginLeft: 8, backgroundColor: '#fff' },
   input: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, color: colors.text, marginTop: 4 },
   tratoEx: { color: colors.muted, fontSize: 12, marginTop: 8, fontStyle: 'italic' },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
