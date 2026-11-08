@@ -594,9 +594,11 @@ export default function ServicesScreen({ explore, navigate }) {
         {SORTS.map(([k, label, icon]) => {
           const on = k === sort;
           return (
-            <TouchableOpacity key={k} onPress={() => setSort(k)} style={[styles.segBtn, on && styles.segBtnOn]}>
+            <TouchableOpacity key={k} onPress={() => setSort(k)} style={[styles.segBtn, k === 'rank' && { flex: 1.5 }, on && styles.segBtnOn]}>
               <Ionicons name={icon} size={13} color={on ? colors.primaryDark : colors.muted} />
-              <Text style={[styles.segText, on && { color: colors.primaryDark }]}>{label}</Text>
+              <Text style={[styles.segText, on && { color: colors.primaryDark }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+                {label}
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -737,9 +739,9 @@ const styles = StyleSheet.create({
   howNum: { width: 20, height: 20, borderRadius: 10, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginRight: 8, marginTop: -1 },
   // Lista
   segment: { flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 14, padding: 4, marginBottom: 12 },
-  segBtn: { flex: 1, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
+  segBtn: { flex: 1, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', paddingHorizontal: 4 },
   segBtnOn: { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 4, elevation: 1 },
-  segText: { color: colors.muted, fontWeight: '700', fontSize: 12, marginLeft: 4 },
+  segText: { color: colors.muted, fontWeight: '700', fontSize: 12, marginLeft: 4, flexShrink: 1 },
   listLabel: { color: colors.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1.4, marginBottom: 8, marginTop: 2 },
   empty: { alignItems: 'center', padding: 24, borderRadius: 18, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.border, marginBottom: 12 },
   pCard: { backgroundColor: colors.card, borderRadius: 22, padding: 14, marginBottom: 12, ...soft },
