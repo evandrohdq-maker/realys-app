@@ -15,6 +15,54 @@ import DeliveryTracker from '../../components/DeliveryTracker';
 import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Button, Badge, Empty, Photo } from '../../components/ui';
 import { providerTarget } from '../../components/GiftSheet';
+import { recentDone, TIP_DAYS } from '../../recentDone';
+
+// Concluídos nos últimos 7 dias úteis: ainda dá para dar gorjeta e avaliar quem não avaliou na hora.
+function RecentDone() {
+  const { state, dispatch } = useStore();
+  const rows = recentDone(state);
+  if (!rows.length) return null;
+  const until = (ts) => new Date(ts).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }).replace('.', '');
+  const tip = (r) => {
+    const prov = (state.providers || []).find((p) => p.id === r.tipTo.id) || { id: r.tipTo.id, name: r.tipTo.name, photo: r.tipTo.photo, service: '' };
+    dispatch({ type: 'OPEN_GIFT', to: { ...providerTarget(prov), tip: true, orderId: r.refId } });
+  };
+  return (
+    <View style={{ marginBottom: 12 }}>
+      <Text style={styles.recentTitle}>Últimos {TIP_DAYS} dias úteis</Text>
+      <Text style={styles.recentSub}>Ainda dá para dar gorjeta e avaliar. Depois do prazo, o pedido continua no histórico.</Text>
+      {rows.map((r) => (
+        <Card key={r.key} style={{ paddingVertical: 12 }}>
+          <Row>
+            <Text style={{ fontSize: 22, marginRight: 10 }}>{r.icon}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>{r.title}</Text>
+              <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>{r.sub} · até {until(r.until)}</Text>
+            </View>
+          </Row>
+          <Row style={{ marginTop: 10 }}>
+            {r.tipTo ? (
+              r.tipped ? (
+                <Text style={styles.recentDoneTag}>🎁 Gorjeta enviada</Text>
+              ) : (
+                <TouchableOpacity style={styles.recentBtn} onPress={() => tip(r)}>
+                  <Text style={styles.recentBtnText}>🎁 Dar gorjeta para {r.tipTo.name.split(' ')[0]}</Text>
+                </TouchableOpacity>
+              )
+            ) : null}
+            {r.rated ? (
+              <Text style={styles.recentDoneTag}>⭐ Avaliado</Text>
+            ) : (
+              <TouchableOpacity style={[styles.recentBtn, styles.recentBtnMain]} onPress={() => dispatch({ type: 'OPEN_RATE', kind: r.kind, refId: r.refId })}>
+                <Text style={[styles.recentBtnText, { color: '#fff' }]}>⭐ Avaliar</Text>
+              </TouchableOpacity>
+            )}
+          </Row>
+        </Card>
+      ))}
+    </View>
+  );
+}
 
 const STEPS = ['Pagamento protegido', 'Preparando', 'A caminho', 'Entregue'];
 // Como o cliente vê cada passo: primeiro a loja aceita, depois o motoboy/entregador leva.
@@ -324,6 +372,7 @@ export default function OrdersScreen({ navigate, explore }) {
       <>
       {/* A Lotus avisa antes: uma oferta por vez, passando sozinha; "Ver todas" abre a lista. */}
       {view === 'andamento' && (seg === 'compras' || seg === 'servicos') ? <LotusNudges /> : null}
+      {view === 'concluidos' ? <RecentDone /> : null}
       {!statusSeg && view === 'concluidos' ? <Text style={styles.hint}>Os concluídos ficam em Compras, Comida, Ingressos e Serviços.</Text> : null}
 
       {seg === 'ingressos' ? (
@@ -479,6 +528,12 @@ const styles = StyleSheet.create({
   viewText: { color: colors.muted, fontSize: 13, fontWeight: '600' },
   viewTextOn: { color: colors.text, fontWeight: '800' },
   hint: { color: colors.muted, fontSize: 12, textAlign: 'center', marginBottom: 10 },
+  recentTitle: { color: colors.text, fontWeight: '800', fontSize: 15, marginBottom: 2 },
+  recentSub: { color: colors.muted, fontSize: 12, marginBottom: 8 },
+  recentBtn: { borderWidth: 1, borderColor: colors.primary, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, marginRight: 8 },
+  recentBtnMain: { backgroundColor: colors.primary },
+  recentBtnText: { color: colors.primary, fontWeight: '700', fontSize: 12.5 },
+  recentDoneTag: { color: colors.muted, fontSize: 12.5, fontWeight: '700', marginRight: 14, paddingVertical: 8 },
   h2: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: 4, marginBottom: 8 },
   courier: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, borderRadius: 14, padding: 10, marginTop: 10 },
   courierPhoto: { width: 44, height: 44, borderRadius: 22 },

@@ -1023,7 +1023,7 @@ function baseReducer(state, a) {
     case 'FINISH_CALL':
       return {
         ...state,
-        rides: state.rides.map((r) => (r.id === a.id ? { ...r, done: true, status: `${r.serviceLabel} concluído` } : r)),
+        rides: state.rides.map((r) => (r.id === a.id ? { ...r, done: true, doneAt: Date.now(), status: `${r.serviceLabel} concluído` } : r)),
         rateOpen: { kind: 'servico', refId: a.id },
       };
     case 'OPEN_RATE':
@@ -1369,7 +1369,7 @@ function baseReducer(state, a) {
       if (!v || v.status !== 'confirmada') return state;
       return {
         ...state,
-        visits: state.visits.map((x) => (x.id === a.id ? { ...x, status: 'concluida' } : x)),
+        visits: state.visits.map((x) => (x.id === a.id ? { ...x, status: 'concluida', doneAt: Date.now() } : x)),
         providers: state.providers.map((p) => (p.id === v.providerId ? { ...p, done90: providerStats(p).done90 + 1 } : p)),
         rateOpen: { kind: 'visita', refId: a.id },
       };
