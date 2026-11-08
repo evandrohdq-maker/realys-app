@@ -16,6 +16,7 @@ import LotusFlower, { FlyingPetal, MOODS } from '../components/LotusFlower';
 import StarField, { skyBg } from '../components/StarField';
 import { getWeather, skyOf, weatherIcon } from '../weather';
 import { searchAll, contentReply, CONTENT_WORDS } from '../search';
+import { greetingReply } from '../lotusGreetings';
 import { stripWake, findCall, hearCall, stripEcho, fixMotos } from '../wakeMatch';
 import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences, forSpeech } from '../voice';
 import { emergencyNumbers } from '../extraData';
@@ -110,6 +111,15 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
     return { call, reply: callReply(call) };
   };
   const firstName = (id) => ((state.providers.find((p) => p.id === id) || {}).name || '').split(' ')[0];
+
+  // Saudações: "bom dia", "boa tarde", "boa noite", "oi", "tudo bem?", "obrigado", "tchau".
+  // Sexta, sábado e domingo ela já sugere o que fazer. Com pedido junto, cumprimenta e atende.
+  const hi = greetingReply(stripWake(text), state.user && state.user.name);
+  if (hi) {
+    if (!hi.rest) return { reply: hi.reply, pending };
+    const sub = interpret(hi.rest, state, dispatch, pending, canOpen, depth);
+    return { ...sub, reply: `${hi.reply} ${sub.reply}` };
+  }
 
   // Resposta "sim" depois de uma pesquisa: chama o prestador sugerido.
   // "Encontrei duas Anas, qual delas?" → "a Ana Souza", "a segunda".
