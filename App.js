@@ -38,12 +38,13 @@ import DocsCenter from './src/components/DocsCenter';
 import { PublicOrgModal } from './src/components/PublicOrg';
 import { VideoCallHost } from './src/components/LiveVideo';
 import TermoReaceite from './src/components/TermoReaceite';
+import AccountBlocked from './src/components/AccountBlocked';
 import { SoftAlertHost, installSoftAlert } from './src/components/SoftAlert';
 
 // Avisos no estilo do Realys no app inteiro (no lugar da caixa cinza do Android).
 installSoftAlert();
 import { callNow } from './src/phone';
-import { getDevicePoint } from './src/geo';
+import { getDevicePoint, addressOf } from './src/geo';
 import { stopSpeaking } from './src/voice';
 import { findNavigation, navReply } from './src/voiceNav';
 import { findMandadoAction } from './src/voiceMandados';
@@ -175,6 +176,7 @@ function Shell() {
       alert: {
         id,
         at: Date.now(),
+        userId: st.user ? st.user.id : null,
         who: st.user ? st.user.name : 'Prestador',
         vehicle: me.vehicle || null,
         plate: me.plate || null,
@@ -186,6 +188,36 @@ function Shell() {
     });
     getDevicePoint().then((p) => p && dispatch({ type: 'PANIC_UPDATE', id, data: { point: p } }));
     if (cfg.call190 !== false) setTimeout(() => callNow('190'), 1200);
+  };
+  // Frase de segurança (coação) na hora de confirmar: a Lotus mostra que deu certo, nada é cobrado,
+  // e em silêncio vai o alerta com GPS e endereço para a segurança do Realys, e a ligação para o 190.
+  const duressNow = (info) => {
+    const st = stateRef.current;
+    const cfg = panicConfig() || {};
+    const id = 'pa' + Date.now();
+    dispatch({
+      type: 'PANIC_ALERT',
+      alert: {
+        id,
+        at: Date.now(),
+        kind: 'coacao',
+        userId: st.user ? st.user.id : null,
+        who: st.user ? st.user.name : 'Cliente',
+        what: info && info.what,
+        point: null,
+        address: null,
+        called190: cfg.call190 !== false,
+        status: 'aberto',
+      },
+    });
+    getDevicePoint().then(async (p) => {
+      if (!p) return;
+      dispatch({ type: 'PANIC_UPDATE', id, data: { point: p } });
+      const address = await addressOf(p);
+      if (address) dispatch({ type: 'PANIC_UPDATE', id, data: { address } });
+    });
+    // Espera a tela de "deu certo" aparecer antes de ligar.
+    if (cfg.call190 !== false) setTimeout(() => callNow('190'), 4000);
   };
   const [acaoPendente, setAcaoPendente] = useState(null); // mensagem da Lotus aguardando sim/não (só chat)
   const [cartaoLotus, setCartaoLotus] = useState(null); // cartão de confirmação com botões (finalização, dinheiro)
@@ -452,12 +484,14 @@ function Shell() {
         onVoiceNav={voiceGo}
         canOpen={canOpen}
         onPanic={panicNow}
+        onDuress={duressNow}
       />
       <RideWatcher />
       <DocsCenter />
       <PublicOrgModal />
       <VideoCallHost />
       <TermoReaceite />
+      <AccountBlocked />
       <WakeWordListener
         enabled={state.handsFree && (!voice || wakeCapture) && !menu && !noting && !searching && !state.docsOpen}
         onListening={setHearing}

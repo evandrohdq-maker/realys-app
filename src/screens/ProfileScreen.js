@@ -4,9 +4,9 @@ import { ScoreCard } from '../components/Engage';
 import { View, Text, TouchableOpacity, Switch, Alert, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { askMicPermission, wakeWordSupported } from '../wakeWord';
-import VoiceEnroll, { TratoPicker } from '../components/VoiceEnroll';
+import VoiceEnroll, { TratoPicker, PhrasesEditor } from '../components/VoiceEnroll';
 import { SusCard } from '../components/PublicOrg';
-import { voicePrintOf, voicePrintSupported, onVoicePrintChange, setVoiceGate, deleteVoicePrint, lastVoiceCheck, setTrato } from '../voicePrint';
+import { voicePrintOf, voicePrintSupported, onVoicePrintChange, setVoiceGate, deleteVoicePrint, lastVoiceCheck, setTrato, setPhrases } from '../voicePrint';
 import { useStore } from '../store';
 import { colors, brl, ROLE_LABELS } from '../theme';
 import { Screen, Title, Card, Row, Button, Badge } from '../components/ui';
@@ -35,6 +35,7 @@ export default function ProfileScreen({ navigate, explore }) {
   // Voz do titular (só neste celular): cadastro ao ligar o "abrir Lotus".
   const [enrollOpen, setEnrollOpen] = useState(false);
   const [vp, setVp] = useState(voicePrintOf());
+  const [phrasesOpen, setPhrasesOpen] = useState(false);
   const [vcheck, setVcheck] = useState(lastVoiceCheck());
   useEffect(() => onVoicePrintChange((x) => (setVp(x), setVcheck(lastVoiceCheck()))), []);
   const enrollWasOn = React.useRef(false);
@@ -314,6 +315,18 @@ export default function ProfileScreen({ navigate, explore }) {
           {vp ? (
             <View style={{ marginTop: 12 }}>
               <TratoPicker value={vp.trato || { key: 'nome' }} onChange={(t) => setTrato(t)} userName={state.user && state.user.name} />
+              <TouchableOpacity onPress={() => setPhrasesOpen((v) => !v)} style={{ paddingVertical: 8 }}>
+                <Text style={{ color: colors.primary, fontWeight: '700' }}>
+                  {vp.phrases ? 'Trocar frase de confirmação e de segurança' : 'Cadastrar frase de confirmação e de segurança'}
+                </Text>
+              </TouchableOpacity>
+              {phrasesOpen ? (
+                <PhrasesEditor
+                  initial={vp.phrases}
+                  saveLabel="Salvar frases"
+                  onSave={(ph) => (setPhrases(ph), setPhrasesOpen(false), Alert.alert('Frases salvas', 'A partir de agora, confirme por voz com a sua frase de confirmação.'))}
+                />
+              ) : null}
             </View>
           ) : null}
           {vp ? (

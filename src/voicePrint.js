@@ -55,8 +55,13 @@ export const voicePrintOf = () => current.store;
 // A verificação está valendo? (tem cadastro, o titular deixou ligada e o celular entrega o áudio)
 export const voiceGateOn = () => !!(current.store && current.store.on !== false && current.model && voicePrintSupported());
 
-export async function saveEnrollment({ wake, vecs, trato }) {
-  await save({ version: 1, on: true, wake, vecs, trato: trato || null, learned: [], createdAt: Date.now(), checks: [] });
+export async function saveEnrollment({ wake, vecs, trato, phrases }) {
+  await save({ version: 1, on: true, wake, vecs, trato: trato || null, phrases: phrases || null, learned: [], createdAt: Date.now(), checks: [] });
+}
+// Frase de confirmação e frase de segurança (coação): só existem com a voz do dono cadastrada.
+export const phrasesOf = () => (current.store && current.store.phrases) || null;
+export async function setPhrases(phrases) {
+  if (current.store) await save({ ...current.store, phrases });
 }
 // Como a Lotus chama o titular: só existe com a voz do dono cadastrada.
 export const tratoOf = () => (current.store && current.store.trato) || null;

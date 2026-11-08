@@ -32,3 +32,15 @@ export async function getDevicePoint() {
     return null;
   }
 }
+
+// Endereço aproximado do ponto (rua, número, bairro, cidade) para o alerta de segurança.
+export async function addressOf(p) {
+  try {
+    const r = await Location.reverseGeocodeAsync({ latitude: p.lat, longitude: p.lon });
+    const a = r && r[0];
+    if (!a) return null;
+    return [[a.street, a.streetNumber].filter(Boolean).join(', '), a.district || a.subregion, [a.city, a.region].filter(Boolean).join(' - ')].filter(Boolean).join(' · ') || null;
+  } catch (e) {
+    return null;
+  }
+}

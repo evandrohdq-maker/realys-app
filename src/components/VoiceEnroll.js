@@ -14,12 +14,14 @@ import { voicePrintSupported, recordingFor, enrollSample, saveEnrollment } from 
 import { buildWake, compareWake } from '../voicePrintCore';
 import { findCall } from '../wakeMatch';
 import { TRATOS, addressOf, openLine } from '../lotusTrato';
+import { CONFIRM_EXAMPLES, DURESS_EXAMPLES, phrasesProblem } from '../voicePhrases';
+import { panicConfig } from '../panic';
 
 const PHRASES = [
   { text: 'Abrir Lotus', wake: true, hint: 'Fale do seu jeito normal, como se fosse chamar a Lotus.' },
   { text: 'Abrir Lotus', wake: true, hint: 'Mais uma vez, no mesmo tom.' },
   { text: 'Abrir Lotus', wake: true, hint: 'Agora um pouquinho mais baixo, como no dia a dia.' },
-  { text: 'Lotus, sim, confirma pra mim', hint: 'É assim que você confirma pedidos por voz.' },
+  { text: 'Lotus, mostra o meu carrinho', hint: 'Fale normal, como num pedido do dia a dia.' },
   { text: 'Lotus, me leva pro Food', hint: 'Fale normal, sem pressa.' },
   // extras (opcionais): sons diferentes para ela conhecer melhor a sua voz
   { text: 'Abrir Lotus, preciso de um motorista agora', extra: true, hint: 'Chamando e pedindo na mesma frase.' },
@@ -43,6 +45,38 @@ function saidRight(heard, phrase) {
   const hit = want.filter((w) => got.has(w) || [...got].some((g) => g.length > 3 && (g.startsWith(w.slice(0, 4)) || w.startsWith(g.slice(0, 4))))).length;
   const lotusOk = !/lotus/i.test(phrase) || !!findCall(heard) || /lot|lót/i.test(heard);
   return lotusOk && (want.length === 0 || hit / want.length >= 0.5);
+}
+
+// Frase de confirmação (no lugar do "sim, confirmo") e frase de segurança (coação).
+export function PhrasesEditor({ initial, onSave, onSkip, saveLabel = 'Salvar e concluir' }) {
+  const [confirm, setConfirm] = useState((initial && initial.confirm) || '');
+  const [duress, setDuress] = useState((initial && initial.duress) || '');
+  const [err, setErr] = useState('');
+  const go = () => {
+    const p = phrasesProblem(confirm, duress, (panicConfig() || {}).phrase);
+    if (p) return setErr(p);
+    onSave({ confirm: confirm.trim(), duress: duress.trim(), at: Date.now() });
+  };
+  return (
+    <View>
+      <Text style={st.h}>Sua frase de confirmação</Text>
+      <Text style={st.p}>É ela que confirma compras, contratações, agendamentos e pagamentos por voz, no lugar do "sim, confirmo". Só vale com a sua voz. Escolha algo que você lembre, com pelo menos 2 palavras.</Text>
+      <TextInput style={st.input} value={confirm} onChangeText={(v) => (setConfirm(v.slice(0, 60)), setErr(''))} placeholder={`Ex.: ${CONFIRM_EXAMPLES[0]}`} placeholderTextColor={colors.muted} />
+      <Text style={[st.h, { marginTop: 18 }]}>Sua frase de segurança</Text>
+      <Text style={st.p}>Use só se alguém estiver obrigando você a comprar ou pagar (assalto, abordagem). Ela parece uma confirmação normal: a Lotus mostra que deu tudo certo, mas nada é comprado e nenhum dinheiro sai. Em silêncio, ela avisa a segurança do Realys com a sua localização e liga para o 190.</Text>
+      <TextInput style={st.input} value={duress} onChangeText={(v) => (setDuress(v.slice(0, 60)), setErr(''))} placeholder={`Ex.: ${DURESS_EXAMPLES[0]}`} placeholderTextColor={colors.muted} />
+      <Text style={[st.p, { marginTop: 10, color: '#B4532A' }]}>Atenção: chamada falsa (brincadeira ou teste) leva ao bloqueio imediato da conta e do saldo, além de ser crime (comunicação falsa de crime).</Text>
+      {err ? <Text style={{ color: colors.danger, fontWeight: '700', marginTop: 4 }}>{err}</Text> : null}
+      <TouchableOpacity style={st.btn} onPress={go}>
+        <Text style={st.btnText}>{saveLabel}</Text>
+      </TouchableOpacity>
+      {onSkip ? (
+        <TouchableOpacity style={st.btnLight} onPress={onSkip}>
+          <Text style={st.btnLightText}>Agora não (confirmo pelo botão)</Text>
+        </TouchableOpacity>
+      ) : null}
+    </View>
+  );
 }
 
 // Cabeçalho do cadastro: como a Lotus vai chamar o titular.
@@ -138,14 +172,14 @@ export default function VoiceEnroll({ visible, onClose, onDone, userName }) {
   const next = () => {
     const n = i + 1;
     if (n === REQUIRED) return setStep('extras');
-    if (n >= PHRASES.length) return save();
+    if (n >= PHRASES.length) return setStep('frases');
     setI(n);
   };
 
-  const save = async () => {
+  const save = async (phrases = null) => {
     setStep('salvando');
     const list = samples.current;
-    await saveEnrollment({ wake: list.filter((x) => x.wake).map((x) => x.seq), vecs: list.map((x) => x.vec), trato: trato.key === 'apelido' && !String(trato.apelido || '').trim() ? { key: 'nome' } : trato });
+    await saveEnrollment({ wake: list.filter((x) => x.wake).map((x) => x.seq), vecs: list.map((x) => x.vec), trato: trato.key === 'apelido' && !String(trato.apelido || '').trim() ? { key: 'nome' } : trato, phrases });
     setStep('pronto');
   };
 
@@ -242,10 +276,14 @@ export default function VoiceEnroll({ visible, onClose, onDone, userName }) {
             <TouchableOpacity style={st.btn} onPress={() => (setI(REQUIRED), setStep('gravar'))}>
               <Text style={st.btnText}>Gravar mais 3</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={st.btnLight} onPress={save}>
+            <TouchableOpacity style={st.btnLight} onPress={() => setStep('frases')}>
               <Text style={st.btnLightText}>Concluir agora</Text>
             </TouchableOpacity>
           </View>
+        ) : step === 'frases' ? (
+          <ScrollView style={st.body} contentContainerStyle={{ paddingBottom: 30 }}>
+            <PhrasesEditor onSave={(ph) => save(ph)} onSkip={() => save(null)} />
+          </ScrollView>
         ) : step === 'salvando' ? (
           <View style={[st.body, { alignItems: 'center', justifyContent: 'center' }]}>
             <ActivityIndicator color={colors.primary} size="large" />

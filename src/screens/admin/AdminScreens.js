@@ -40,7 +40,7 @@ function HireNotices() {
     </Section>
   );
 }
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { useStore } from '../../store';
 import { platformStats } from '../../data';
 import { ORDER_FEE_PCT, SERVICE_FEE_PCT, GIFT_FEE_PCT, GIFT_FUND_SPLIT, orderFee, splitGiftFees } from '../../fees';
@@ -51,7 +51,7 @@ const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
 // Visão geral de toda a plataforma.
 export function AdminOverview() {
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
   const openReports = state.reports.filter((r) => r.status === 'aberta').length;
   const pending = state.signups.filter((s) => s.status === 'pendente').length;
   const s = platformStats;
@@ -71,7 +71,7 @@ export function AdminOverview() {
           {state.panicAlerts.map((x) => (
             <Card key={x.id} style={{ borderColor: '#C0392B', borderWidth: 1.5 }}>
               <Row style={{ justifyContent: 'space-between' }}>
-                <Text style={{ color: '#C0392B', fontWeight: '800', flex: 1 }}>{x.who}{x.plate ? ` · placa ${x.plate}` : ''}</Text>
+                <Text style={{ color: '#C0392B', fontWeight: '800', flex: 1 }}>{x.kind === 'coacao' ? '⚠️ Coação · ' : ''}{x.who}{x.plate ? ` · placa ${x.plate}` : ''}</Text>
                 <Badge label={new Date(x.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} color="#C0392B" />
               </Row>
               {x.vehicle ? <Text style={{ color: colors.text, fontSize: 13, marginTop: 2 }}>{x.vehicle}</Text> : null}
@@ -84,6 +84,29 @@ export function AdminOverview() {
                 {x.point ? `📍 ${x.point.lat.toFixed(5)}, ${x.point.lon.toFixed(5)}` : '📍 buscando localização…'}
                 {x.called190 ? ' · ligação para o 190 feita do celular dele' : ''}
               </Text>
+              {x.what ? <Text style={{ color: colors.text, fontSize: 13, marginTop: 4 }}>{x.what}</Text> : null}
+              {x.address ? <Text style={{ color: colors.text, fontSize: 13, marginTop: 2 }}>🏠 {x.address}</Text> : null}
+              {x.status === 'aberto' ? (
+                <Row style={{ marginTop: 10 }}>
+                  <TouchableOpacity onPress={() => dispatch({ type: 'PANIC_REAL', id: x.id })} style={{ marginRight: 18 }}>
+                    <Text style={{ color: colors.primary, fontWeight: '700' }}>Atendido (era real)</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() =>
+                      Alert.alert('Chamada falsa?', 'Use só quando a polícia ou a segurança confirmar que foi brincadeira ou teste. A conta é bloqueada e o saldo fica retido.', [
+                        { text: 'Cancelar', style: 'cancel' },
+                        { text: 'Confirmar chamada falsa', style: 'destructive', onPress: () => dispatch({ type: 'PANIC_FALSE', id: x.id }) },
+                      ])
+                    }
+                  >
+                    <Text style={{ color: colors.danger, fontWeight: '700' }}>Chamada falsa</Text>
+                  </TouchableOpacity>
+                </Row>
+              ) : (
+                <Text style={{ color: x.status === 'falso' ? colors.danger : colors.success, fontWeight: '700', marginTop: 8 }}>
+                  {x.status === 'falso' ? 'Chamada falsa · conta bloqueada e saldo retido' : 'Atendido'}
+                </Text>
+              )}
             </Card>
           ))}
         </Section>

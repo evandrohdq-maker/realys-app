@@ -1287,6 +1287,29 @@ function baseReducer(state, a) {
         ...state,
         reports: [{ id: newId('rp'), kind: a.kind === 'menor' ? 'Conteúdo com menor' : a.kind === 'odio' ? 'Racismo / ódio' : 'Nudez', target: 'Tentativa bloqueada antes de publicar', detail: `Bloqueado pela moderação automática (${a.action}).`, status: 'removido', count: 1 }, ...(state.reports || [])],
       };
+    case 'CHECKOUT_FAKE': {
+      // Coação: o pedido aparece como pago, mas nada é cobrado e nada vai para a loja.
+      const real = reducer(state, { type: 'CHECKOUT' });
+      if (real === state) return { ...state, cart: [] };
+      const fresh = real.orders.filter((o) => !state.orders.some((x) => x.id === o.id)).map((o) => ({ ...o, fake: true, coacao: true }));
+      return { ...state, cart: [], orders: [...fresh, ...state.orders] };
+    }
+    case 'PANIC_FALSE': {
+      // Chamada falsa confirmada pela segurança: conta bloqueada e saldo retido.
+      const al = (state.panicAlerts || []).find((x) => x.id === a.id);
+      if (!al) return state;
+      const alerts = state.panicAlerts.map((x) => (x.id === a.id ? { ...x, status: 'falso', closedAt: Date.now() } : x));
+      const mine = state.user && al.userId && al.userId === state.user.id;
+      return {
+        ...state,
+        panicAlerts: alerts,
+        accountBlock: mine ? { at: Date.now(), reason: 'Chamada de emergência falsa', alertId: al.id, wallet: state.wallet } : state.accountBlock || null,
+      };
+    }
+    case 'PANIC_REAL':
+      return { ...state, panicAlerts: (state.panicAlerts || []).map((x) => (x.id === a.id ? { ...x, status: 'atendido', closedAt: Date.now() } : x)) };
+    case 'LOAD_BLOCK':
+      return { ...state, accountBlock: a.block || null };
     case 'DATE_SUBSCRIBE': {
       const q = subscribeQuote(state, a.planId, a.pay);
       if (!q.ok) return state;

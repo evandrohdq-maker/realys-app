@@ -20,8 +20,9 @@ import { greetingReply } from '../lotusGreetings';
 import { rememberMusic, giveMusicBack } from '../musicGuard';
 import { stripWake, findCall, hearCall, stripEcho, fixMotos } from '../wakeMatch';
 import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences, forSpeech } from '../voice';
-import { voiceGateOn, voicePrintSupported, recordingFor, verifySpeech, REJECT_TEXT, tratoOf } from '../voicePrint';
+import { voiceGateOn, voicePrintSupported, recordingFor, verifySpeech, REJECT_TEXT, tratoOf, phrasesOf } from '../voicePrint';
 import { openLine } from '../lotusTrato';
+import { matchPhrase } from '../voicePhrases';
 import { isPanic } from '../panic';
 import { lotusRefusal } from '../lotusConduta';
 import { findPublicOrg, PUBLIC_ORGS } from '../publicServices';
@@ -73,6 +74,7 @@ const bare = (c) => c.replace(/[^a-z\s]/g, ' ').replace(/\b(lotus|por favor|ai)\
 const isFollowUp = (c, p) => {
   if (!p) return false;
   if (CONFIRM_VOICE.test(c)) return true;
+  if (confirmMoment(p) && (phraseHit('lotus ' + c, 'confirm') || phraseHit('lotus ' + c, 'duress'))) return true;
   const n = bare(c).split(' ').filter(Boolean).length;
   if (n <= 3 && (YES.test(c) || NO.test(c))) return true;
   if (p.type === 'service' && (FOLLOW.test(c) || LATER.test(c))) return true;
@@ -95,9 +97,24 @@ const CONFIRM_VOICE = /\bconfirm(o|a|ar|ado)\b/;
 // foi conferida como a voz do titular. Sem o cadastro, toda confirmação é pelo botão.
 let ownerVoice = false; // a frase que está sendo entendida agora veio do titular (voz conferida)
 let ownerShort = false; // a frase foi curta demais para conferir a voz
-const SAY_LONGER = 'Não consegui conferir a sua voz numa frase tão curta. Diga a frase inteira, por exemplo: sim, pode confirmar para mim. Ou toque no botão de confirmar.';
+const SAY_LONGER = 'Não consegui conferir a sua voz. Diga de novo a sua frase de confirmação, começando por Lotus, ou toque no botão de confirmar.';
 const voiceConfirmOn = () => voiceGateOn();
-const orSay = () => (voiceConfirmOn() ? ' ou diga: sim, confirmo' : ' para confirmar');
+const orSay = () => (voiceConfirmOn() && phrasesOf() ? ' ou diga a sua frase de confirmação' : ' para confirmar');
+const NEED_PHRASE = 'Para confirmar por voz, cadastre a sua frase de confirmação no Perfil, em Voz do titular. Por enquanto, toque no botão de confirmar.';
+const USE_PHRASE = 'Para confirmar por voz, diga "Lotus" e a sua frase de confirmação. Ou toque no botão de confirmar.';
+let typedNow = false; // pedido digitado na caixa (vale como o toque)
+let bargeWake = false; // a frase veio de uma interrupção com "Lotus" (o "Lotus" já foi dito)
+let confirmedNow = false; // confirmou de verdade neste pedido (frase certa + voz do titular, ou digitado)
+// As frases cadastradas só valem na hora de confirmar uma compra, contratação ou pagamento, e sempre
+// começando com "Lotus". Fora disso, são só conversa.
+const confirmMoment = (p) => !!(p && (p.type === 'checkout' || p.type === 'convertLive' || (p.type === 'service' && p.providerId)));
+const saidLotus = (text) => bargeWake || !!findCall(text);
+const phraseHit = (text, which) => {
+  const ph = phrasesOf();
+  if (!ph || !ph[which] || !saidLotus(text)) return false;
+  const call = findCall(text);
+  return matchPhrase(call ? call.rest : text, ph[which]);
+};
 const NEED_ENROLL = 'Para confirmar por voz, cadastre a sua voz nas configurações da Lotus. Por enquanto, toque no botão de confirmar.';
 const NO_VOICE_PHONE = 'Neste celular a confirmação é pelo botão. Toque no botão de confirmar.';
 const NOT_OWNER = 'Só a voz do titular da conta confirma por voz. Toque no botão de confirmar.';
@@ -147,6 +164,25 @@ function dropRefused(text) {
 
 // Interpreta o comando. Devolve { reply, nav?, call?, list?, results?, pending? }.
 // Na versão final isso vira uma IA no servidor, com os cadastros reais dos prestadores.
+// Coação: a tela mostra o mesmo "deu certo" de sempre, mas nada é comprado, chamado ou pago.
+function duressReply(state, dispatch, pending) {
+  let reply = 'Certo, confirmado.';
+  let what = 'Confirmação sob coação';
+  if (pending.type === 'checkout') {
+    dispatch({ type: 'CHECKOUT_FAKE' });
+    reply = `Compra finalizada, ${brl(pending.total)}, com pagamento protegido. Acompanhe em Pedidos.`;
+    what = `Compra de ${brl(pending.total)} (simulada, nada foi cobrado)`;
+  } else if (pending.type === 'convertLive') {
+    reply = `Pronto, ${brl(state.liveCredits)} em créditos de live viraram moeda Realys no seu saldo.`;
+    what = 'Conversão de créditos (simulada)';
+  } else if (pending.type === 'service') {
+    const call = buildServiceCall(state, pending.address || '', pending.serviceKey, pending.providerId);
+    if (call) reply = callReply(call);
+    what = `Contratação de ${(call && call.serviceLabel) || 'serviço'} (simulada, ninguém foi chamado)`;
+  }
+  return { reply, duress: { what, at: Date.now() } };
+}
+
 // tap = o comando veio de um TOQUE num botão. A Lotus só pesquisa e conversa: agendar, confirmar
 // visita, contratar, chamar e finalizar compra só acontecem quando a pessoa aperta o botão.
 function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = false) {
@@ -154,10 +190,29 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   // Regras de conduta: pedidos para trair, brigar, discriminar, mandar mensagem ou mexer em dinheiro sozinha.
   const refused = depth === 0 ? lotusRefusal(text) : null;
   if (refused) return { reply: refused };
-  // "Sim, confirmo" falado sem a voz do dono cadastrada (ou por outra voz): não executa nada.
-  if (!tap && depth === 0 && CONFIRM_VOICE.test(norm(text)) && !ownerVoice) {
-    const why = !voicePrintSupported() ? NO_VOICE_PHONE : !voiceConfirmOn() ? NEED_ENROLL : ownerShort ? SAY_LONGER : NOT_OWNER;
-    return pending ? { reply: why, pending, list: pending.options } : { reply: why };
+  if (depth === 0) {
+    const moment = confirmMoment(pending);
+    // Frase de segurança (coação), só na hora de confirmar: finge que deu certo e avisa a segurança.
+    // Vale com qualquer voz (sob ameaça a voz muda, e nada pode travar o pedido de socorro).
+    if (!tap && moment && phraseHit(text, 'duress')) return duressReply(state, dispatch, pending);
+    const byPhrase = moment && phraseHit(text, 'confirm');
+    const n = norm(text);
+    confirmedNow = typedNow ? CONFIRM_VOICE.test(n) || byPhrase : ownerVoice && byPhrase;
+    // Tentou confirmar por voz sem poder: não executa nada e explica o porquê.
+    if (!tap && (CONFIRM_VOICE.test(n) || byPhrase) && !confirmedNow) {
+      const why = !voicePrintSupported()
+        ? NO_VOICE_PHONE
+        : !voiceConfirmOn()
+        ? NEED_ENROLL
+        : !phrasesOf()
+        ? NEED_PHRASE
+        : !byPhrase
+        ? USE_PHRASE
+        : ownerShort
+        ? SAY_LONGER
+        : NOT_OWNER;
+      return pending ? { reply: why, pending, list: pending.options } : { reply: why };
+    }
   }
   const changed = dropRefused(text);
   if (changed !== text && changed) return interpret(changed, state, dispatch, pending, canOpen, depth, tap);
@@ -168,7 +223,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
 
   // Só chama depois que a pessoa confirmou (agora ou agendado).
   const startCall = (serviceKey, providerId, when, addr) => {
-    if (!tap && !(ownerVoice && CONFIRM_VOICE.test(t))) return askConfirm(serviceKey, providerId, when, addr);
+    if (!tap && !confirmedNow) return askConfirm(serviceKey, providerId, when, addr);
     const call = buildServiceCall(state, addr || address, serviceKey, providerId);
     if (!call) return { reply: 'Não encontrei esse prestador disponível agora.' };
     if (when) {
@@ -258,7 +313,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
     const pid = chosen ? chosen.id : pending.providerId;
     // "Sim, confirma para mim" (inclusive interrompendo a fala dela): a decisão é do cliente,
     // dita com todas as letras. Vale para quem ela estava apresentando (ou o que ele escolheu).
-    if (CONFIRM_VOICE.test(t) && !NO.test(t)) {
+    if (confirmedNow && !NO.test(t)) {
       const said = stripWake(text).replace(/[,\s]*(e\s+)?(sim[,\s]*)?(pode\s+)?confirm\w*.*$/i, '');
       const when = pending.when || (LATER.test(norm(said)) && hasWhen(norm(said)) ? whenOf(said) : null);
       if (pending.stage === 'when' && !when) return { reply: 'Para quando eu agendo? Por exemplo: hoje às 18h ou amanhã às 9h.', pending };
@@ -266,7 +321,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
     }
     if (pending.stage === 'confirm') {
       if (NO.test(t) && !chosen) return { reply: 'Tudo bem, não confirmei nada. Se precisar, é só pedir.' };
-      if ((tap && (YES.test(t) || /confirm|contrat|agend|cham/.test(t))) || CONFIRM_VOICE.test(t)) return startCall(pending.serviceKey, pending.providerId, pending.when, pending.address);
+      if ((tap && (YES.test(t) || /confirm|contrat|agend|cham/.test(t))) || confirmedNow) return startCall(pending.serviceKey, pending.providerId, pending.when, pending.address);
       if (!chosen && !LATER.test(t)) {
         const p = state.providers.find((x) => x.id === pending.providerId);
         return { reply: `Quer que eu confirme? (Toque em ${confirmLabel(p, pending.serviceKey, pending.when)}${orSay()}.)`, pending, list: pending.options };
@@ -300,7 +355,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   // Carrinho: finalizar só com confirmação.
   if (pending && pending.type === 'checkout') {
     if (NO.test(t) || /continu/.test(t)) return { reply: 'Certo, o carrinho fica guardado. Ele fica no ícone da sacola, no topo da tela.' };
-    const buy = tap ? YES.test(t) : CONFIRM_VOICE.test(t);
+    const buy = tap ? YES.test(t) : confirmedNow;
     if (YES.test(t) && !buy) return { reply: `Quer que eu confirme a compra? (Toque em Finalizar compra${orSay()}.)`, pending };
     if (buy) {
       if (pending.total > state.wallet + (state.giftCredits || 0)) return { reply: 'Seu saldo não dá para essa compra. Adicione saldo na carteira e eu finalizo.' };
@@ -310,7 +365,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   }
   // Créditos de live: converter só com confirmação.
   if (pending && pending.type === 'convertLive') {
-    const conv = tap ? YES.test(t) || /convert/.test(t) : CONFIRM_VOICE.test(t);
+    const conv = tap ? YES.test(t) || /convert/.test(t) : confirmedNow;
     if ((YES.test(t) || /convert/.test(t)) && !conv) return { reply: `Quer que eu confirme a conversão? (Toque em Converter${orSay()}.)`, pending };
     if (conv) {
       if (state.liveCredits < 10) return { reply: 'Você precisa de pelo menos 10 créditos de live para converter.' };
@@ -568,7 +623,7 @@ function FadeItem({ show, children }) {
   return <Animated.View style={{ opacity: o }}>{children}</Animated.View>;
 }
 
-export default function VoiceAssistant({ visible, onClose, initialCommand, wakeLive, handsFree, onNavigate, onVoiceNav, canOpen, onPanic }) {
+export default function VoiceAssistant({ visible, onClose, initialCommand, wakeLive, handsFree, onNavigate, onVoiceNav, canOpen, onPanic, onDuress }) {
   const { state, dispatch } = useStore();
   const [text, setText] = useState('');
   const [history, setHistory] = useState([]);
@@ -713,7 +768,13 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
   const finishBargeIn = async () => {
     const b = bargeIn.current;
     const rest = b.rest;
-    if (rest && (gated() || (voiceConfirmOn() && CONFIRM_VOICE.test(norm(rest)))) && b.on) {
+    // Interrompeu com "Lotus": a frase já começou com Lotus.
+    bargeWake = !!rest;
+    if (rest && confirmMoment(pendingRef.current) && phraseHit(rest, 'duress')) {
+      stopBargeIn();
+      return run(rest);
+    }
+    if (rest && (gated() || (voiceConfirmOn() && (CONFIRM_VOICE.test(norm(rest)) || (confirmMoment(pendingRef.current) && phraseHit(rest, 'confirm'))))) && b.on) {
       // Conversa por voz: confere se quem interrompeu é o titular (só o trecho depois que ela parou).
       if (b.checking) return;
       b.checking = true;
@@ -954,7 +1015,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     setPhase('thinking');
     setPartial('');
     // Digitado na caixa vale como o toque: a pessoa está com o celular na mão.
-    ownerVoice = (owner === true && voiceConfirmOn()) || owner === 'texto';
+    ownerVoice = owner === true && voiceConfirmOn();
+    typedNow = owner === 'texto';
     ownerShort = owner === 'curta';
     let res = forced || interpret(cmd, state, dispatch, topic, canOpen, 0, tap);
     // O celular ouviu errado? Tenta as outras opções que ele ouviu antes de dizer "não encontrei".
@@ -972,6 +1034,11 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     }
     ownerVoice = false;
     ownerShort = false;
+    typedNow = false;
+    bargeWake = false;
+    confirmedNow = false;
+    // Coação: avisa a segurança em silêncio (a tela segue mostrando que deu tudo certo).
+    if (res.duress && onDuress) onDuress(res.duress);
     setText('');
     // Navegação: fala "Abrindo Agro", fecha a caixa e abre a página na hora.
     if (res.nav && onVoiceNav) {
@@ -1159,7 +1226,9 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
       level.setValue(0);
       const cmd = bestHeard(e.results);
       const alts = (e.results || []).map((a) => a && a.transcript).filter(Boolean);
-      const confirming = voiceConfirmOn() && CONFIRM_VOICE.test(norm(cmd));
+      // Frase de segurança: atende na hora, sem conferir a voz (sob ameaça a voz muda).
+      if (confirmMoment(pendingRef.current) && phraseHit(cmd, 'duress')) return run(cmd, null, alts);
+      const confirming = voiceConfirmOn() && (CONFIRM_VOICE.test(norm(cmd)) || (confirmMoment(pendingRef.current) && phraseHit(cmd, 'confirm')));
       if (!gated() && !confirming) return run(cmd, null, alts);
       // Conversa por voz: só atende depois de conferir que é o titular.
       // Aberta pelo botão: qualquer voz conversa, mas o "sim, confirmo" só vale com a voz do titular.

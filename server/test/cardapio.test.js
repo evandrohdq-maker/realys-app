@@ -16,7 +16,7 @@ before(async () => {
   const res = await fetch(base + '/auth/signup', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ kind: 'empresa', name: 'Sushi Ya', doc: '11.222.333/0001-81', username: 'sushiya', email: 'contato@sushiya.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v4', segment: 'Comida japonesa' }),
+    body: JSON.stringify({ kind: 'empresa', name: 'Sushi Ya', doc: '11.222.333/0001-81', username: 'sushiya', email: 'contato@sushiya.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v5', segment: 'Comida japonesa' }),
   });
   token = (await res.json()).accessToken;
   db = app.db;
@@ -87,7 +87,7 @@ async function signupPessoa(username, nascimento = '1990-05-10', doc = '529.982.
   const r = await fetch(base + '/auth/signup', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ kind: 'pessoa', name: 'Pessoa ' + username, doc, username, email: username + '@realys.com', password: 'senha1234', nascimento, aceiteTermos: '2026-11-adesao-v4' }),
+    body: JSON.stringify({ kind: 'pessoa', name: 'Pessoa ' + username, doc, username, email: username + '@realys.com', password: 'senha1234', nascimento, aceiteTermos: '2026-11-adesao-v5' }),
   });
   return { status: r.status, data: await r.json() };
 }
