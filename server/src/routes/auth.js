@@ -79,6 +79,7 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
       db.prepare(
         `INSERT INTO users (id, kind, name, username, doc, email, phone, pass_hash, roles, social_class, about, nascimento, maior_idade, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
       ).run(id, kind, name, username, doc, email, onlyDigits(body.phone).slice(0, 13), hashPassword(body.password), JSON.stringify(roles), body.socialClass ? String(body.socialClass).slice(0, 40) : null, String(body.about || '').slice(0, 300), nascimento, maiorDeIdade, now());
+      db.prepare('UPDATE users SET termos_versao = ?, termos_aceite_at = ? WHERE id = ?').run(TERMO_ADESAO_VERSAO, now(), id);
       wallet.ensure(id);
       if (kind === 'empresa') {
         db.prepare('INSERT INTO companies (id, owner_id, name, cnpj, segment, created_at) VALUES (?,?,?,?,?,?)').run(newId('e'), id, name, doc, String(body.segment || '').slice(0, 60), now());
@@ -90,6 +91,18 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
 
   r.get('/termos/adesao', () => TERMO_ADESAO, { auth: false });
   r.get('/termos/empresa', () => TERMO_EMPRESA, { auth: false });
+
+  // Termo mudou: quem já tem conta vê se precisa aceitar a nova versão e registra o aceite.
+  r.get('/termos/adesao/meu', ({ user }) => {
+    const u = db.prepare('SELECT termos_versao, termos_aceite_at FROM users WHERE id = ?').get(user.id) || {};
+    return { versaoAtual: TERMO_ADESAO_VERSAO, versaoAceita: u.termos_versao || null, aceiteEm: u.termos_aceite_at || null, precisaAceitar: u.termos_versao !== TERMO_ADESAO_VERSAO };
+  });
+  r.post('/termos/adesao/aceite', ({ body, user }) => {
+    if (body.versao !== TERMO_ADESAO_VERSAO) fail(400, 'Essa não é a versão atual do termo. Abra o termo de novo.', 'termos');
+    const at = now();
+    db.prepare('UPDATE users SET termos_versao = ?, termos_aceite_at = ? WHERE id = ?').run(TERMO_ADESAO_VERSAO, at, user.id);
+    return { versaoAceita: TERMO_ADESAO_VERSAO, aceiteEm: at };
+  });
 
   // Entrar com usuário, CPF ou CNPJ + senha.
   r.post('/auth/login', ({ body, ip }) => {

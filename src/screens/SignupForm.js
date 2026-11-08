@@ -18,6 +18,7 @@ import {
   ageFromBirth,
   confirmBiometric,
 } from '../accounts';
+import { saveAccepted } from '../termsAccept';
 import TermoAdesaoModal from '../components/TermoAdesaoModal';
 import { ProfileQuiz } from '../components/SocialClass';
 import { classifyProfile } from '../socialClasses';
@@ -84,6 +85,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
       const social = empresa ? null : quiz.manual && quiz.social ? quiz.social : classifyProfile(`${quiz.about} ${quiz.work}`, quiz.hobbies);
       const { account, error } = await createAccount({ kind, name, doc, username, email, phone, password, birth: empresa ? null : birth, social, about: empresa ? '' : quiz.about, work: empresa ? '' : quiz.work });
       if (error) return Alert.alert('Não foi possível cadastrar', error);
+      await saveAccepted(account.id); // versão e data do aceite do termo
       Alert.alert(
         'Conta criada!',
         bio === 'sem'

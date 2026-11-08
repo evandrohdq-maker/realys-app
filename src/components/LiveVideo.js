@@ -4,12 +4,14 @@
 // - VideoCallHost: toca quando alguém liga, atende/recusa e mostra a chamada (montado uma vez no App).
 // Sem servidor contratado, nada disso aparece e o app segue no modo demonstração.
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, serverOn } from '../api';
 import { useStore } from '../store';
 import { colors } from '../theme';
+import { isDateSubscriber } from '../datePlans';
+import { usePrivateScreen } from '../privacyGuard';
 import { RTCView, videoStatus, startBroadcast, watchLive, startCall, declineCall, onCallEvents, webrtcOk } from '../video';
 
 // Fundo de vídeo da live: transmite (mine) ou assiste. onError avisa a tela (ex.: sem permissão).
@@ -108,22 +110,30 @@ export function VideoCallHost() {
   const [mute, setMute] = useState(false);
   const [cam, setCam] = useState(true);
   const enabled = !!(state.user && serverOn() && webrtcOk());
+  usePrivateScreen(!!call, 'chamada-real');
 
   // Chamada que chega.
   useEffect(() => {
     if (!enabled) return;
     return onCallEvents((e) => {
-      if (e.type === 'call' && e.data && !call) setRinging({ id: e.data.id, from: e.data.from || {}, kind: e.data.kind });
+      if (e.type === 'call' && e.data && !call) setRinging({ id: e.data.id, from: e.data.from || {}, kind: e.data.kind, ctx: e.data.ctx || null });
       if ((e.type === 'call-end' || e.type === 'call-answer') && ringing && e.data && e.data.id === ringing.id) setRinging(null);
     });
   }, [enabled, call, ringing]);
+
+  // Convite sem resposta some sozinho em 1 minuto.
+  useEffect(() => {
+    if (!ringing) return;
+    const t = setTimeout(() => setRinging(null), 60000);
+    return () => clearTimeout(t);
+  }, [ringing && ringing.id]);
 
   // Ligar para alguém (dispatch({ type: 'START_VIDEO_CALL', to, name })).
   useEffect(() => {
     const out = state.videoCall;
     if (!out || !enabled) return;
     dispatch({ type: 'CLEAR_VIDEO_CALL' });
-    begin({ role: 'caller', to: out.to, kind: out.kind || 'video' }, out.name);
+    begin({ role: 'caller', to: out.to, kind: out.kind || 'video', ctx: out.ctx || null }, out.name);
   }, [state.videoCall && state.videoCall.at]);
 
   useEffect(() => {
@@ -149,6 +159,35 @@ export function VideoCallHost() {
     }
   };
 
+  // Convite do Date: caixa discreta no topo, sem toque, sem bip e sem vibração. Entrar só com Date+.
+  if (ringing && !call && ringing.ctx === 'date') {
+    const no = () => (declineCall(ringing.id), setRinging(null));
+    const join = () => {
+      if (!isDateSubscriber(state)) {
+        Alert.alert('Assine o Date+ para entrar', 'Entrar em chamada de vídeo no Date é para assinantes. Assine em Encontros › Ajustes e peça um novo convite.');
+        return no();
+      }
+      const r = ringing;
+      setRinging(null);
+      begin({ role: 'callee', callId: r.id, kind: r.kind, ctx: 'date' }, r.from.name);
+    };
+    return (
+      <View pointerEvents="box-none" style={[StyleSheet.absoluteFill, { zIndex: 50 }]}>
+        <View style={[st.invite, { top: insets.top + 8 }]}>
+          <Text style={st.inviteTitle}>💘 {ringing.from.name || 'Seu crush'} chamou você para uma chamada de vídeo</Text>
+          <Text style={st.inviteSub}>Convite do Date · só vocês dois</Text>
+          <View style={{ flexDirection: 'row', marginTop: 10 }}>
+            <TouchableOpacity style={[st.inviteBtn, { backgroundColor: '#F1F1F4' }]} onPress={no} accessibilityLabel="Recusar">
+              <Text style={{ color: colors.text, fontWeight: '800' }}>Recusar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[st.inviteBtn, { backgroundColor: '#E0567A', marginLeft: 10 }]} onPress={join} accessibilityLabel="Entrar agora">
+              <Text style={{ color: '#fff', fontWeight: '800' }}>Entrar agora</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  }
   if (ringing && !call) {
     return (
       <Modal visible transparent animationType="fade" onRequestClose={() => (declineCall(ringing.id), setRinging(null))}>
@@ -212,6 +251,10 @@ const Btn = ({ icon, on, onPress }) => (
 
 const st = StyleSheet.create({
   flip: { position: 'absolute', right: 16, top: 120, width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' },
+  invite: { position: 'absolute', left: 12, right: 12, backgroundColor: '#fff', borderRadius: 18, padding: 14, elevation: 8, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
+  inviteTitle: { color: colors.text, fontWeight: '800' },
+  inviteSub: { color: colors.muted, fontSize: 12, marginTop: 2 },
+  inviteBtn: { flex: 1, borderRadius: 12, paddingVertical: 11, alignItems: 'center' },
   ringBack: { flex: 1, backgroundColor: 'rgba(3,5,10,0.6)', alignItems: 'center', justifyContent: 'center', padding: 30 },
   ringCard: { width: '100%', backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center' },
   ringName: { fontSize: 20, fontWeight: '800', color: colors.text, marginTop: 10 },

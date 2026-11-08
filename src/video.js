@@ -136,7 +136,7 @@ export function onCallEvents(fn) {
 }
 
 // Cria a ligação. role 'caller' (quem liga) ou 'callee' (quem atende). onRemote(stream) mostra o outro.
-export async function startCall({ role, callId, to, kind = 'video', onRemote, onEnd }) {
+export async function startCall({ role, callId, to, kind = 'video', ctx = null, onRemote, onEnd }) {
   // Prepara tudo ANTES de tocar/atender: câmera, conexão e escuta dos sinais (nenhum sinal se perde).
   const { iceServers } = await api('GET', '/video-calls/ice');
   const local = await openCamera({ front: true, quality: '480p', audioOnly: kind === 'audio' });
@@ -181,7 +181,7 @@ export async function startCall({ role, callId, to, kind = 'video', onRemote, on
     } catch (err) {}
   });
   try {
-    if (role === 'caller') id = (await api('POST', '/video-calls', { to, kind })).id;
+    if (role === 'caller') id = (await api('POST', '/video-calls', { to, kind, ctx })).id;
     else await api('POST', `/video-calls/${id}/answer`, { accept: true });
   } catch (err) {
     end(false);

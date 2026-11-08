@@ -2,7 +2,7 @@
 // Texto inicial para a equipe revisar. Antes de lançar de verdade, precisa passar por um advogado
 // (principalmente a parte de dados pessoais e LGPD).
 
-export const TERMS_VERSION = 'Proposta v0.1 · novembro de 2026';
+export const TERMS_VERSION = 'Proposta v0.2 · novembro de 2026';
 
 export const ENCONTROS_TERMS = [
   {
@@ -51,7 +51,22 @@ export const ENCONTROS_TERMS = [
       'O Realys oferece a ferramenta para as pessoas se conhecerem, mas não participa dos encontros. Cada participante é responsável pelas próprias atitudes, dentro e fora do app. O Realys colabora com as autoridades sempre que houver ordem legal ou risco à segurança de alguém.',
   },
   {
-    title: '10. Mudanças nestes termos',
+    title: '10. Date+ (assinatura)',
+    body:
+      'O Date é gratuito para usar. A assinatura Date+ (semanal R$ 9,90, mensal R$ 14,90, semestral R$ 59,90 e anual R$ 89,90, ou o valor em pontos) libera a chamada de vídeo com seus crushes, charmes extras todo dia e o selo Date+. Boosts são vendidos à parte. Assinar de novo soma os dias no fim da assinatura atual. Cancelar desliga só a renovação: o que já foi pago vale até o fim do período. Os preços podem mudar; a mudança vale para as próximas assinaturas.',
+  },
+  {
+    title: '11. Chamada de vídeo por convite',
+    body:
+      'O botão de chamar por vídeo aparece no chat só quando vocês já deram match e a outra pessoa está online no Date. Se ela estiver offline, nada chega no celular dela. A chamada não toca, não faz bip e não vibra: aparece como um convite discreto na tela, com "Entrar agora" ou "Recusar". Chamar e entrar na chamada é só para assinantes do Date+. Ninguém é obrigado a aceitar, e recusar não é informado com detalhes à outra pessoa.',
+  },
+  {
+    title: '12. Privacidade das conversas e chamadas',
+    body:
+      'O que vocês conversam fica só entre vocês. O Realys não usa o conteúdo das conversas para anúncios nem para a Lotus, e bloqueia print e gravação de tela enquanto o chat ou a chamada estão abertos (no Android). Entre adultos que concordam, a conversa pode ser íntima, inclusive mostrar o próprio corpo na chamada ou mandar uma foto de si mesmo a quem quer receber. Isso é escolha das duas pessoas: o Realys não oferece esse conteúdo como serviço. É proibido mandar conteúdo íntimo a quem não pediu, gravar ou repassar a imagem íntima de alguém sem autorização (crime, art. 218-C do Código Penal), usar esse conteúdo para chantagem e cobrar por conteúdo sexual. Nas fotos do perfil do Date não pode haver nudez; biquíni e sunga pode. A equipe só vê uma conversa quando um dos dois a denuncia (só o trecho denunciado) ou por ordem judicial.',
+  },
+  {
+    title: '13. Mudanças nestes termos',
     body:
       'Se estes termos mudarem, você é avisado no app e precisa aceitar a nova versão para continuar no Encontros.',
   },

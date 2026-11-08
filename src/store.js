@@ -1,4 +1,7 @@
+import { subscribeQuote } from './datePlans';
+import { moderateAction } from './moderation';
 import { MANDADOS_DEMO } from './empresaDemo';
+import { Alert } from 'react-native';
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { checkText, claimOf } from './lm/factCheck';
@@ -1278,8 +1281,32 @@ function baseReducer(state, a) {
     }
 
     // ---------- Serviço público e SUS (src/publicServices.js) ----------
+    case 'MOD_BLOCK':
+      // Registra a tentativa (sem guardar o texto) para a equipe de moderação.
+      return {
+        ...state,
+        reports: [{ id: newId('rp'), kind: a.kind === 'menor' ? 'Conteúdo com menor' : a.kind === 'odio' ? 'Racismo / ódio' : 'Nudez', target: 'Tentativa bloqueada antes de publicar', detail: `Bloqueado pela moderação automática (${a.action}).`, status: 'removido', count: 1 }, ...(state.reports || [])],
+      };
+    case 'DATE_SUBSCRIBE': {
+      const q = subscribeQuote(state, a.planId, a.pay);
+      if (!q.ok) return state;
+      const now = Date.now();
+      const sub = { planId: q.plan.id, title: q.plan.title, start: q.start, until: q.until, paidWith: a.pay === 'pontos' ? `${q.cost} pontos` : brl(q.cost), at: now };
+      const enc = { ...state.encontros, sub, subHistory: [sub, ...((state.encontros && state.encontros.subHistory) || [])].slice(0, 20) };
+      return a.pay === 'pontos'
+        ? { ...state, points: state.points - q.cost, encontros: enc }
+        : {
+            ...state,
+            wallet: +(state.wallet - q.cost).toFixed(2),
+            walletTx: [{ id: newId('w'), ts: now, kind: 'gasto', cat: 'Date', desc: `Assinatura Date+ ${q.plan.title}`, amount: q.cost }, ...state.walletTx],
+            encontros: enc,
+          };
+    }
+    case 'DATE_SUB_CANCEL':
+      // Cancelar só desliga a renovação: o que já foi pago vale até o fim.
+      return state.encontros && state.encontros.sub ? { ...state, encontros: { ...state.encontros, sub: { ...state.encontros.sub, renew: false } } } : state;
     case 'START_VIDEO_CALL':
-      return { ...state, videoCall: { to: a.to, name: a.name, kind: a.kind || 'video', at: Date.now() } };
+      return { ...state, videoCall: { to: a.to, name: a.name, kind: a.kind || 'video', ctx: a.ctx || null, at: Date.now() } };
     case 'CLEAR_VIDEO_CALL':
       return { ...state, videoCall: null };
     case 'OPEN_PUBLIC':
@@ -1595,7 +1622,14 @@ export function StoreProvider({ children }) {
     if (!susKey || susLoaded.current !== susKey) return;
     SecureStore.setItemAsync(susKey, JSON.stringify({ sus: state.sus, bookings: state.susBookings })).catch(() => {});
   }, [state.sus, state.susBookings]);
-  return <StoreContext.Provider value={{ state, dispatch }}>{children}</StoreContext.Provider>;
+  // Moderação: texto público ou privado passa pelas regras antes de entrar (racismo, ódio, menores, nudez).
+  const guarded = React.useCallback((a) => {
+    const m = moderateAction(a);
+    if (m.ok) return dispatch(a);
+    dispatch({ type: 'MOD_BLOCK', kind: m.kind, action: a.type });
+    Alert.alert('Não foi enviado', m.why);
+  }, []);
+  return <StoreContext.Provider value={{ state, dispatch: guarded }}>{children}</StoreContext.Provider>;
 }
 
 export const useStore = () => useContext(StoreContext);

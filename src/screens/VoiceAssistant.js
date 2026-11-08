@@ -22,6 +22,7 @@ import { stripWake, findCall, hearCall, stripEcho, fixMotos } from '../wakeMatch
 import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences, forSpeech } from '../voice';
 import { voiceGateOn, recordingFor, verifySpeech, REJECT_TEXT } from '../voicePrint';
 import { isPanic } from '../panic';
+import { lotusRefusal } from '../lotusConduta';
 import { findPublicOrg, PUBLIC_ORGS } from '../publicServices';
 import { emergencyNumbers } from '../extraData';
 import { confirmCall } from '../phone';
@@ -139,6 +140,9 @@ function dropRefused(text) {
 // visita, contratar, chamar e finalizar compra só acontecem quando a pessoa aperta o botão.
 function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = false) {
   // Mudou de ideia no meio: "quero um motorista, não quero um eletricista" → vale só o motorista.
+  // Regras de conduta: pedidos para trair, brigar, discriminar, mandar mensagem ou mexer em dinheiro sozinha.
+  const refused = depth === 0 ? lotusRefusal(text) : null;
+  if (refused) return { reply: refused };
   const changed = dropRefused(text);
   if (changed !== text && changed) return interpret(changed, state, dispatch, pending, canOpen, depth, tap);
   // O celular às vezes separa palavras: "a gronomo", "agro nomo" → agrônomo.

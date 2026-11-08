@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { moderateText } from '../../../moderation';
+import { usePrivateScreen } from '../../../privacyGuard';
 import { giftPoints } from '../../../rewards';
 import GiftIcon from '../../../components/GiftIcon';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, Animated, Easing } from 'react-native';
@@ -24,7 +26,8 @@ const now = () => {
 const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
 // Conversa com histórico de mensagens.
-export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo }) {
+export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo, hideVoice }) {
+  usePrivateScreen(!!visible, 'chat');
   const insets = useSafeAreaInsets();
   const { state, dispatch } = useStore();
   const [text, setText] = useState('');
@@ -68,16 +71,21 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
               <Text style={styles.headStatus}>{contact.status ? `${contact.status} · ` : ''}ver perfil</Text>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.iconBtn}
-            onPress={() => Alert.alert('Chamada de voz', `Ligando para ${contact.name} pela Realys.`)}
-            accessibilityLabel="Chamada de voz"
-          >
-            <Ionicons name="call-outline" size={19} color={colors.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.iconBtn, { marginLeft: 8 }]} onPress={onVideo} accessibilityLabel="Chamada de vídeo">
-            <Ionicons name="videocam-outline" size={20} color={colors.primary} />
-          </TouchableOpacity>
+          {hideVoice ? null : (
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={() => Alert.alert('Chamada de voz', `Ligando para ${contact.name} pela Realys.`)}
+              accessibilityLabel="Chamada de voz"
+            >
+              <Ionicons name="call-outline" size={19} color={colors.primary} />
+            </TouchableOpacity>
+          )}
+          {/* Sem onVideo (ex.: no Date, com a pessoa offline) o botão de vídeo não aparece. */}
+          {onVideo ? (
+            <TouchableOpacity style={[styles.iconBtn, { marginLeft: 8 }]} onPress={onVideo} accessibilityLabel="Chamar por vídeo">
+              <Ionicons name="videocam-outline" size={20} color={colors.primary} />
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         <ScrollView
@@ -138,6 +146,7 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
 
 // Chamada de vídeo entre usuários (demonstração visual; a real precisa do servidor).
 export function VideoCallModal({ contact, visible, onClose }) {
+  usePrivateScreen(!!visible, 'chamada');
   const insets = useSafeAreaInsets();
   const [secs, setSecs] = useState(0);
   const [connected, setConnected] = useState(false);
@@ -149,7 +158,7 @@ export function VideoCallModal({ contact, visible, onClose }) {
     if (!visible) return;
     // Contato com conta no servidor e vídeo disponível: chamada de verdade, direto entre os celulares.
     if (contact && contact.serverId && serverOn() && webrtcOk()) {
-      callDispatch({ type: 'START_VIDEO_CALL', to: contact.serverId, name: contact.name });
+      callDispatch({ type: 'START_VIDEO_CALL', to: contact.serverId, name: contact.name, ctx: contact.ctx || null });
       onClose();
       return;
     }
@@ -172,7 +181,7 @@ export function VideoCallModal({ contact, visible, onClose }) {
 
         <View style={{ paddingTop: insets.top + 24, alignItems: 'center' }}>
           <Text style={styles.callName}>{contact.name}</Text>
-          <Text style={styles.callStatus}>{connected ? `Chamada de vídeo · ${mmss(Math.max(0, secs - 2))}` : 'Chamando…'}</Text>
+          <Text style={styles.callStatus}>{connected ? `Chamada de vídeo · ${mmss(Math.max(0, secs - 2))}` : contact.ctx === 'date' ? 'Convite enviado · esperando entrar…' : 'Chamando…'}</Text>
         </View>
 
         <View style={[styles.selfTile, { top: insets.top + 100 }]}>
@@ -325,6 +334,8 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
 
   const send = () => {
     if (!text.trim()) return;
+    const m = moderateText(text, 'publico');
+    if (!m.ok) return Alert.alert('Não foi enviado', m.why);
     setComments((cs) => [...cs.slice(-5), { who: userName || 'Você', what: text.trim() }]);
     setText('');
   };

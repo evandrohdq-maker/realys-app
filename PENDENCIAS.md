@@ -47,6 +47,25 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] Reprise das lives (opcional do streamer, com prazo para sumir) e anúncios dentro das lives.
 - [ ] Chamadas em grupo (hoje a chamada direta é de 1 para 1).
 
+## Conteúdo, moderação e privacidade
+
+- [ ] **IA de imagem no servidor para nudez** (fotos de posts, stories, perfil do Date e quadros das lives).
+      Hoje o texto é moderado no celular (src/moderation.js) e as fotos têm a regra confirmada por quem publica
+      e denúncia; falta a checagem automática da imagem (modelo aberto rodando no próprio servidor, sem mandar
+      foto para fora).
+- [ ] **Repetir a moderação de texto no servidor** quando posts, comentários e mensagens passarem por ele.
+- [ ] **Canal de denúncia às autoridades** (SaferNet / Polícia Federal) para conteúdo com menores, com
+      preservação das provas, e responsável pela moderação definido na empresa.
+- [ ] **Advogado revisar o Termo de Adesão v3** e os Termos do Encontros v0.2 antes do lançamento oficial.
+
+## Date+
+
+- [ ] **Cobrança da assinatura pela loja:** assinatura de conteúdo digital vendida dentro do app precisa seguir
+      as regras do Google Play (cobrança do Google Play ou o sistema alternativo permitido no Brasil). Hoje o
+      Date+ é pago com saldo ou pontos; confirmar o modelo com o contador e as regras da loja antes de lançar.
+- [ ] Guardar a assinatura no servidor e checar o Date+ também lá na chamada de vídeo (hoje é conferido no app).
+- [ ] Revisar os preços do Date+ a cada 6 meses comparando com Tinder, Happn e Bumble.
+
 ## Lotus
 
 - [ ] Calibrar a **voz do titular** com vozes reais (o Evandro manda os números da "Última conferência"

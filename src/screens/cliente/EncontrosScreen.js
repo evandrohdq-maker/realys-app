@@ -7,6 +7,8 @@ import { colors, soft } from '../../theme';
 import { Screen, Card, Row, Button, Photo, Section, Empty } from '../../components/ui';
 import { datePeople, datePerson, DATE_SPOTS, CHARMS_PER_DAY, minutesAgo } from '../../dateData';
 import { BoostButton } from '../../components/Boost';
+import { DatePlanCard, DatePlansModal } from '../../components/DatePlans';
+import { isDateSubscriber, isOnline } from '../../datePlans';
 import { ENCONTROS_TERMS, TERMS_VERSION, RELATIONSHIP_STATUS, statusAllowed } from '../../encontrosTerms';
 import { ChatModal, VideoCallModal } from './home/Social';
 import { PROFILE_FIELDS, INTEREST_GROUPS, profileScore } from '../../encontrosProfile';
@@ -243,10 +245,12 @@ function Main({ openTerms }) {
   const [note, setNote] = useState(null);
   const [person, setPerson] = useState(null);
   const [editProfile, setEditProfile] = useState(false);
+  const [plans, setPlans] = useState(null); // null = fechado; string = motivo
+  const subscriber = isDateSubscriber(state);
   const myScore = profileScore(e);
   const charms = e.charms || {};
   // Charmes extras comprados hoje com pontos ou saldo (boost do Date).
-  const extraCharms = (state.boosts || []).filter((b) => b.offerId === 'bd2' && new Date(b.at).toDateString() === new Date().toDateString()).length * 3;
+  const extraCharms = (state.boosts || []).filter((b) => b.offerId === 'bd2' && new Date(b.at).toDateString() === new Date().toDateString()).length * 3 + (subscriber ? 3 : 0);
   const charmsLeft = Math.max(0, CHARMS_PER_DAY + extraCharms - (e.charmDay === new Date().toDateString() ? e.charmsUsed || 0 : 0));
 
   // Só aparece quem também aceitou os termos e está disponível. Casados e namorando ficam de fora.
@@ -312,7 +316,14 @@ function Main({ openTerms }) {
         onPress: () => dispatch({ type: 'ENC_UNMATCH', id: p.id, block: true }),
       },
     ]);
-  const contactOf = (p) => ({ id: 'enc-' + p.id, name: p.name, status: 'crush do Date', photo: p.photo });
+  const contactOf = (p) => ({ id: 'enc-' + p.id, name: p.name, status: isOnline(p) ? 'online agora' : 'offline', photo: p.photo, serverId: p.serverId, ctx: 'date' });
+  // Chamada de vídeo do Date: só entre crushes, só com a pessoa online e só para quem assina o Date+.
+  const callVideo = (p) => {
+    if (!p || !e.matches.includes(p.id)) return setNote('Chamada de vídeo só com quem já é crush.');
+    if (!isOnline(p)) return setNote(`${p.name} está offline. A chamada só pode ser feita com a pessoa online no Date.`);
+    if (!subscriber) return setPlans('Chamada de vídeo no Date é para assinantes do Date+. Ela não toca nem faz bip: chega como convite discreto na tela da outra pessoa.');
+    setVideo(contactOf(p));
+  };
   const actions = { onLike: like, onPass: pass, onCharm: charm, onOpen: setPerson, onReport: report };
 
   return (
@@ -338,6 +349,7 @@ function Main({ openTerms }) {
         <Screen>
           <RadarRow on={e.radar} km={e.maxKm} onChange={(v) => dispatch({ type: 'ENC_SET', patch: { radar: v } })} />
           <BoostButton target="date" label="Boost no Date" hint="Apareça primeiro para quem está perto ou ganhe mais charmes" />
+          <DatePlanCard onOpen={() => setPlans('')} />
           {myScore < 70 ? <ScoreBar score={myScore} onPress={() => setEditProfile(true)} /> : null}
           {!e.radar ? (
             <Empty text="Com o radar desligado você não aparece para ninguém e não vê quem cruzou com você." />
@@ -408,6 +420,7 @@ function Main({ openTerms }) {
                   </TouchableOpacity>
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text style={{ color: colors.text, fontWeight: '700' }}>
+                      {isOnline(p) ? <Text style={{ color: '#1E9E63' }}>● </Text> : null}
                       {p.name}, {p.age} <Ionicons name="shield-checkmark" size={12} color={colors.primary} />
                       {charms[p.id] ? <Text style={{ color: colors.gold }}> ✨</Text> : null}
                     </Text>
@@ -435,7 +448,7 @@ function Main({ openTerms }) {
         </Screen>
       ) : null}
 
-      {seg === 'ajustes' ? <Settings openTerms={openTerms} openProfile={() => setEditProfile(true)} /> : null}
+      {seg === 'ajustes' ? <Settings openTerms={openTerms} openProfile={() => setEditProfile(true)} openPlans={() => setPlans('')} /> : null}
 
       {banner && e.radar ? (
         <TouchableOpacity style={[styles.banner, { top: 8 }]} onPress={() => (setBanner(null), setPerson(banner))} activeOpacity={0.9}>
@@ -495,8 +508,10 @@ function Main({ openTerms }) {
         messages={chat ? e.chats[chat.id] || [] : []}
         onClose={() => setChat(null)}
         onSend={(msg) => dispatch({ type: 'ENC_MSG', id: chat.id, msg })}
-        onVideo={() => setVideo(contactOf(chat))}
+        hideVoice
+        onVideo={chat && e.matches.includes(chat.id) && isOnline(chat) ? () => callVideo(chat) : null}
       />
+      <DatePlansModal visible={plans !== null} reason={plans} onClose={() => setPlans(null)} />
       <VideoCallModal contact={video} visible={!!video} onClose={() => setVideo(null)} />
     </View>
   );
@@ -689,7 +704,7 @@ function MatchModal({ p, onClose, onChat }) {
   );
 }
 
-function Settings({ openTerms, openProfile }) {
+function Settings({ openTerms, openProfile, openPlans }) {
   const { state, dispatch } = useStore();
   const e = state.encontros;
   const setStatus = (s) => {
@@ -713,6 +728,7 @@ function Settings({ openTerms, openProfile }) {
   return (
     <Screen>
       <ScoreBar score={profileScore(e)} onPress={openProfile} />
+      <DatePlanCard onOpen={openPlans} />
       <Section title="Status de relacionamento">
         <View style={styles.wrap}>
           {RELATIONSHIP_STATUS.map((s) => (

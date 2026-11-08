@@ -24,6 +24,7 @@
     "expo-local-authentication": "*",
     "expo-location": "*",
     "expo-print": "*",
+    "expo-screen-capture": "*",
     "expo-secure-store": "*",
     "expo-sharing": "*",
     "expo-speech": "*",

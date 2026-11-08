@@ -30,6 +30,8 @@ export const KNOWLEDGE_RULES = [
   { icon: 'lock-closed-outline', title: 'Nunca lê dados privados', text: 'Custo dos produtos, estoque interno, caixa, carteira, mensagens, Date e pedidos de outras pessoas ficam fora do conhecimento dela.' },
   { icon: 'chatbubbles-outline', title: 'Usa só para responder clientes', text: 'O conhecimento serve para responder o que o cliente perguntou e para o levantamento do administrador, sempre em números agregados.' },
   { icon: 'hand-left-outline', title: 'Nunca para uso próprio', text: 'A Lotus não compra, não vende, não negocia, não anuncia e não age sozinha. Chamar um prestador ou comprar só acontece com a confirmação da pessoa.' },
+  { icon: 'people-outline', title: 'Nunca interfere nas relações humanas', text: 'Não manda mensagem por ninguém, não entra nas conversas e não incentiva briga, traição, discriminação ou racismo.' },
+  { icon: 'card-outline', title: 'Nunca mexe em dinheiro sozinha', text: 'Pagamento, transferência, saque ou uso de pontos só com a confirmação da pessoa na tela.' },
   { icon: 'scale-outline', title: 'Imparcial', text: 'Patrocínio não muda as análises: preço médio, faixa de preço e "mais em conta" contam todas as ofertas do mesmo jeito.' },
   { icon: 'shield-outline', title: 'Não repassa segredo de ninguém', text: 'Uma empresa só fica sabendo o que as outras já publicaram para todo mundo.' },
 ];

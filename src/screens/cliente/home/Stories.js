@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, Pressable, KeyboardAvoidingView, Platform, Image } from 'react-native';
+import { PHOTO_RULE } from '../../../moderation';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, Pressable, KeyboardAvoidingView, Platform, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../../theme';
@@ -188,7 +189,12 @@ export function StoryComposer({ visible, onClose, onPublish }) {
 
   const publish = () => {
     if (!text.trim() && !image) return;
-    onPublish({ id: 'me' + Date.now(), text: text.trim(), bg, image, time: 'agora', views: 0 });
+    const go = () => onPublish({ id: 'me' + Date.now(), text: text.trim(), bg, image, time: 'agora', views: 0 });
+    if (!image) return go();
+    Alert.alert('Antes de publicar a foto', PHOTO_RULE, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Está dentro da regra', onPress: go },
+    ]);
   };
 
   return (

@@ -76,6 +76,8 @@ function enrich(p) {
     photos: [p.photo || photo(base), photo(base + '-2'), photo(base + '-3')],
     crossings: list,
     spot: spot.key,
+    // demonstração: metade está online agora (no app real vem do servidor)
+    online: typeof p.online === 'boolean' ? p.online : h % 2 === 0,
   };
 }
 

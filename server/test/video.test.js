@@ -27,7 +27,7 @@ async function api(b, method, path, { who, body } = {}) {
   return { status: res.status, data };
 }
 const signup = (b, who, doc, username) =>
-  api(b, 'POST', '/auth/signup', { body: { kind: 'pessoa', name: who, doc, username, email: `${username}@realys.com`, password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v2' } }).then((r) => {
+  api(b, 'POST', '/auth/signup', { body: { kind: 'pessoa', name: who, doc, username, email: `${username}@realys.com`, password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v3' } }).then((r) => {
     assert.ok(r.status < 300, JSON.stringify(r.data));
     S[who] = { token: r.data.accessToken, id: r.data.user.id };
   });
@@ -90,6 +90,11 @@ test('chamada 1 para 1: tocar, atender, sinalizar e encerrar', async () => {
   const ice = await api(base, 'GET', '/video-calls/ice', { who: 'Fã' });
   const turn = ice.data.iceServers.find((s) => String(s.urls).includes('turn:'));
   assert.match(turn.username, /^\d+:/);
+});
+
+test('Date: só chama quem está online; offline não chega no celular', async () => {
+  const r = await api(base, 'POST', '/video-calls', { who: 'Fã', body: { to: S.Streamer.id, kind: 'video', ctx: 'date' } });
+  assert.equal(r.status, 409); // ninguém conectado no teste: a pessoa está offline
 });
 
 test('sem servidor de vídeo contratado: avisa e o app segue na demonstração', async () => {

@@ -365,6 +365,11 @@ const MIGRATIONS = [
   ALTER TABLE users ADD COLUMN nascimento TEXT;
   ALTER TABLE users ADD COLUMN maior_idade INTEGER NOT NULL DEFAULT 0;
   `,
+  // 8: versão e data do aceite do termo de adesão (prova do consentimento; nova versão pede novo aceite)
+  `
+  ALTER TABLE users ADD COLUMN termos_versao TEXT;
+  ALTER TABLE users ADD COLUMN termos_aceite_at INTEGER;
+  `,
 ];
 
 export function openDb(file) {

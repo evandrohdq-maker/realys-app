@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { PHOTO_RULE } from '../moderation';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Pressable, TextInput, Image, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -259,6 +260,7 @@ function PostComposer({ visible, onClose, onPublish }) {
             <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>{image ? 'Trocar foto' : 'Adicionar foto'}</Text>
           </TouchableOpacity>
           <Text style={{ color: colors.muted, fontSize: 11, marginTop: 10 }}>Só pessoas verificadas por biometria veem e comentam.</Text>
+          <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6 }}>{PHOTO_RULE}</Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </Modal>

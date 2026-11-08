@@ -125,9 +125,13 @@ export default function videoRoutes(r, { db, cfg, hub, publicUser, userById }) {
     const to = str(body.to, 'para quem é a chamada', { max: 64 });
     if (!to || to === user.id) fail(400, 'Para quem é a chamada?');
     if (!userById(to)) fail(404, 'Pessoa não encontrada.');
-    const c = { id: newId('call'), from: user.id, to, kind: body.kind === 'audio' ? 'audio' : 'video', status: 'tocando', at: now() };
+    // Date: só chama quem está online agora. Se não estiver, nada chega no celular da pessoa.
+    const ctx = body.ctx === 'date' ? 'date' : null;
+    if (ctx === 'date' && !hub.online(to)) fail(409, 'A pessoa está offline no Date. A chamada só pode ser feita com ela online.', 'offline');
+    const c = { id: newId('call'), from: user.id, to, kind: body.kind === 'audio' ? 'audio' : 'video', ctx, status: 'tocando', at: now() };
     calls.set(c.id, c);
-    hub.send(to, 'call', { id: c.id, kind: c.kind, from: publicUser(userById(user.id)) });
+    // silent: o celular mostra um convite na tela, sem toque, bip ou vibração.
+    hub.send(to, 'call', { id: c.id, kind: c.kind, ctx, silent: ctx === 'date', from: publicUser(userById(user.id)) });
     return { id: c.id, iceServers: iceFor(user.id), online: hub.online(to) };
   });
 
