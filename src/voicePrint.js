@@ -60,6 +60,11 @@ export async function saveEnrollment({ wake, vecs, trato, phrases }) {
 }
 // Frase de confirmação e frase de segurança (coação): só existem com a voz do dono cadastrada.
 export const phrasesOf = () => (current.store && current.store.phrases) || null;
+// Pergunta de segurança completa (pergunta + resposta que libera + resposta de segurança), ou null.
+export const securityQuestion = () => {
+  const q = current.store && current.store.phrases;
+  return q && q.question && q.allow && q.duress ? q : null;
+};
 export async function setPhrases(phrases) {
   if (current.store) await save({ ...current.store, phrases });
 }

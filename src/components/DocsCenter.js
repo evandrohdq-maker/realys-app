@@ -9,6 +9,9 @@ import { useStore } from '../store';
 import { colors } from '../theme';
 import { specialists } from '../extraData';
 import { CONTRACT_TYPES, contractType, contractBody, canPrescribe, parseDictation, docTitle, allSigned } from '../documents';
+import SecurityQuestion from './SecurityQuestion';
+import { securityQuestion } from '../voicePrint';
+import { triggerDuress } from '../duress';
 import { hashOf, signWithBiometric, sharePdf, printDoc, startGovbr, pickSignedPdf, shareFile } from '../documentsIO';
 
 const newId = (p) => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -289,7 +292,7 @@ function NewPrescription({ draft, onDone }) {
 }
 
 function DocView({ doc }) {
-  const { dispatch } = useStore();
+  const { state, dispatch } = useStore();
   const [busy, setBusy] = useState('');
   const done = allSigned(doc);
   const rx = doc.kind === 'receita';
@@ -303,11 +306,31 @@ function DocView({ doc }) {
     }
     setBusy('');
   };
+  // Quem cadastrou a voz do dono responde a pergunta de segurança depois da biometria.
+  const [ask, setAsk] = useState(null); // índice da parte assinando
   const signHere = (i) =>
     run('sign' + i, async () => {
       const ok = await signWithBiometric(docTitle(doc));
-      if (ok) dispatch({ type: 'DOC_SIGN', id: doc.id, index: i, method: 'realys' });
+      if (!ok) return;
+      if (securityQuestion()) return setAsk(i);
+      dispatch({ type: 'DOC_SIGN', id: doc.id, index: i, method: 'realys' });
+      Alert.alert('Contrato finalizado com sucesso.', 'Sua assinatura foi registrada.');
     });
+  const answered = (kind) => {
+    const i = ask;
+    setAsk(null);
+    if (kind === 'libera') {
+      dispatch({ type: 'DOC_SIGN', id: doc.id, index: i, method: 'realys' });
+      return Alert.alert('Contrato finalizado com sucesso.', 'Sua assinatura foi registrada.');
+    }
+    if (kind === 'seguranca') {
+      // Parece assinado, mas a assinatura não vale (fica marcada como feita sob coação) e a segurança é acionada.
+      dispatch({ type: 'DOC_SIGN', id: doc.id, index: i, method: 'realys', coacao: true });
+      triggerDuress(dispatch, state, { what: `Assinatura do contrato "${docTitle(doc)}" (sob coação, a assinatura não vale)` });
+      return Alert.alert('Contrato confirmado com sucesso, parabéns.', 'Sua assinatura foi registrada.');
+    }
+    Alert.alert('Não assinado', 'A resposta não confere. Nada foi assinado.');
+  };
   const govbr = (i) =>
     run('gov' + i, async () => {
       await startGovbr(doc);
@@ -407,6 +430,7 @@ function DocView({ doc }) {
           <SmallBtn label="Imprimir" icon="print-outline" busy={busy === 'print'} onPress={() => run('print', () => printDoc(doc))} />
         </>
       )}
+      <SecurityQuestion secq={securityQuestion()} visible={ask !== null} onResult={answered} onCancel={() => setAsk(null)} />
     </ScrollView>
   );
 }

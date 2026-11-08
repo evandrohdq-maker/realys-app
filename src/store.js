@@ -1372,7 +1372,7 @@ function baseReducer(state, a) {
       return {
         ...state,
         documents: (state.documents || []).map((d) =>
-          d.id === a.id ? { ...d, parties: d.parties.map((p, i) => (i === a.index && !p.signedAt ? { ...p, signedAt: Date.now(), method: a.method || 'realys', file: a.file || null } : p)) } : d
+          d.id === a.id ? { ...d, ...(a.coacao ? { coacao: true } : {}), parties: d.parties.map((p, i) => (i === a.index && !p.signedAt ? { ...p, signedAt: Date.now(), method: a.method || 'realys', file: a.file || null, ...(a.coacao ? { coacao: true } : {}) } : p)) } : d
         ),
       };
 

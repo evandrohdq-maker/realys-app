@@ -44,7 +44,8 @@ import { SoftAlertHost, installSoftAlert } from './src/components/SoftAlert';
 // Avisos no estilo do Realys no app inteiro (no lugar da caixa cinza do Android).
 installSoftAlert();
 import { callNow } from './src/phone';
-import { getDevicePoint, addressOf } from './src/geo';
+import { getDevicePoint } from './src/geo';
+import { triggerDuress } from './src/duress';
 import { stopSpeaking } from './src/voice';
 import { findNavigation, navReply } from './src/voiceNav';
 import { findMandadoAction } from './src/voiceMandados';
@@ -191,34 +192,7 @@ function Shell() {
   };
   // Frase de segurança (coação) na hora de confirmar: a Lotus mostra que deu certo, nada é cobrado,
   // e em silêncio vai o alerta com GPS e endereço para a segurança do Realys, e a ligação para o 190.
-  const duressNow = (info) => {
-    const st = stateRef.current;
-    const cfg = panicConfig() || {};
-    const id = 'pa' + Date.now();
-    dispatch({
-      type: 'PANIC_ALERT',
-      alert: {
-        id,
-        at: Date.now(),
-        kind: 'coacao',
-        userId: st.user ? st.user.id : null,
-        who: st.user ? st.user.name : 'Cliente',
-        what: info && info.what,
-        point: null,
-        address: null,
-        called190: cfg.call190 !== false,
-        status: 'aberto',
-      },
-    });
-    getDevicePoint().then(async (p) => {
-      if (!p) return;
-      dispatch({ type: 'PANIC_UPDATE', id, data: { point: p } });
-      const address = await addressOf(p);
-      if (address) dispatch({ type: 'PANIC_UPDATE', id, data: { address } });
-    });
-    // Espera a tela de "deu certo" aparecer antes de ligar.
-    if (cfg.call190 !== false) setTimeout(() => callNow('190'), 4000);
-  };
+  const duressNow = (info) => triggerDuress(dispatch, stateRef.current, info);
   const [acaoPendente, setAcaoPendente] = useState(null); // mensagem da Lotus aguardando sim/não (só chat)
   const [cartaoLotus, setCartaoLotus] = useState(null); // cartão de confirmação com botões (finalização, dinheiro)
   const [menu, setMenu] = useState(false);
