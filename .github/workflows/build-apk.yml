@@ -34,7 +34,14 @@ jobs:
       - name: Instalar dependências (versões compatíveis com o Expo)
         run: |
           npm install --legacy-peer-deps
-          npx expo install --fix -- --legacy-peer-deps
+          # O --fix acerta as versões e, no fim, tenta escrever plugins no app.config.js (que é gerado
+          # na hora e não aceita). As versões já ficaram certas; só esse último passo é ignorado.
+          if npx expo install --fix -- --legacy-peer-deps > /tmp/fix.log 2>&1; then
+            cat /tmp/fix.log
+          else
+            cat /tmp/fix.log
+            grep -q "Cannot automatically write to dynamic config" /tmp/fix.log
+          fi
 
       - name: Gravar o número da versão no app
         run: |
