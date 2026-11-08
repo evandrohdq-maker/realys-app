@@ -4,6 +4,9 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
+import android.media.AudioManager
+import android.os.SystemClock
+import android.view.KeyEvent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -30,6 +33,24 @@ class RealysUpdaterModule : Module() {
       }
     }
     OnDestroy { InstallResultReceiver.listener = null }
+
+    // Música de outro app (Spotify, YouTube Music, rádio…) tocando agora?
+    // A Lotus usa isso para não pausar a música: com música tocando, o "abrir Lotus" fica desligado.
+    Function("isMusicActive") {
+      val am = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+      am?.isMusicActive ?: false
+    }
+
+    // Dá "play" de novo no app de música que estava tocando (o microfone do Google pausa a música
+    // enquanto ouve a Lotus). É o mesmo botão de play do fone/volante do carro.
+    Function("resumeMusic") {
+      val am = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+      if (am != null && !am.isMusicActive) {
+        val t = SystemClock.uptimeMillis()
+        am.dispatchMediaKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY, 0))
+        am.dispatchMediaKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PLAY, 0))
+      }
+    }
 
     // true no Android 12 ou mais novo: dá para atualizar sem a tela de confirmação.
     Function("supportsSilentUpdate") { Build.VERSION.SDK_INT >= Build.VERSION_CODES.S }

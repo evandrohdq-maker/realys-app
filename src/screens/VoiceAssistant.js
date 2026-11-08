@@ -17,6 +17,7 @@ import StarField, { skyBg } from '../components/StarField';
 import { getWeather, skyOf, weatherIcon } from '../weather';
 import { searchAll, contentReply, CONTENT_WORDS } from '../search';
 import { greetingReply } from '../lotusGreetings';
+import { rememberMusic, giveMusicBack } from '../musicGuard';
 import { stripWake, findCall, hearCall, stripEcho, fixMotos } from '../wakeMatch';
 import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences, forSpeech } from '../voice';
 import { emergencyNumbers } from '../extraData';
@@ -664,6 +665,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     stopListening();
     stopSpeaking();
     setPhase('idle');
+    giveMusicBack();
     onClose();
   };
   // Minimizou o app (ou bloqueou a tela): a Lotus para de ouvir e de falar e a caixa fecha,
@@ -700,6 +702,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
       onDone: () => {
         // Mãos livres: se a Lotus fez uma pergunta ("quer que eu chame?"), já abre o microfone para a resposta.
         if (ended() && handsFree && res.pending) setTimeout(listen, 150);
+        // Terminou e não ficou esperando resposta: a música (Spotify etc.) volta a tocar.
+        else if (id === speechId.current && !(handsFree && res.pending)) giveMusicBack(700);
       },
       onStopped: ended,
       onError: ended,
@@ -850,6 +854,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
         }
       }
     } catch (e) {}
+    rememberMusic(); // tinha música tocando? no fim a Lotus dá play de novo
     session.current = { active: true, started: false, retried: false };
     setPartial('');
     setPhase('listening');

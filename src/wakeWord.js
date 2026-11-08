@@ -8,6 +8,11 @@ import { AppState, Platform } from 'react-native';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 import { findWake, normSame, hearCall } from './wakeMatch';
 import { stopSpeaking } from './voice';
+import { musicPlaying } from './musicGuard';
+
+// Com música de outro app tocando, o "abrir Lotus" fica desligado (o microfone do Android pausaria
+// a música). Confere de tempos em tempos e volta a ouvir sozinho quando a música para.
+const MUSIC_CHECK_MS = 4000;
 
 // Pausa depois de "abrir Lotus" para abrir a assistente (no máximo meio segundo).
 const WAKE_PAUSE_MS = 450;
@@ -42,7 +47,7 @@ export function wakeWordSupported() {
 }
 
 // Componente invisível que escuta enquanto `enabled` for verdadeiro.
-export function WakeWordListener({ enabled, onWake, onListening, onFatal }) {
+export function WakeWordListener({ enabled, onWake, onListening, onFatal, onMusic }) {
   const on = useRef(false);
   const running = useRef(false);
   const woke = useRef(null); // { rest, timer }
@@ -50,8 +55,18 @@ export function WakeWordListener({ enabled, onWake, onListening, onFatal }) {
   const restartTimer = useRef(null);
   const appActive = useRef(AppState.currentState === 'active');
 
+  const music = useRef(false);
   const start = () => {
     if (!on.current || running.current || !appActive.current) return;
+    const playing = musicPlaying();
+    if (playing !== music.current) {
+      music.current = playing;
+      onMusic && onMusic(playing);
+    }
+    if (playing) {
+      onListening && onListening(false);
+      return scheduleRestart(MUSIC_CHECK_MS);
+    }
     try {
       running.current = true;
       ExpoSpeechRecognitionModule.start({

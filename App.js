@@ -139,6 +139,7 @@ function Shell() {
   const [noting, setNoting] = useState(false);
   const [wakeCmd, setWakeCmd] = useState(null);
   const [hearing, setHearing] = useState(false);
+  const [musicOn, setMusicOn] = useState(false); // música de outro app tocando: fala com a Lotus tocando na flor
   const [searching, setSearching] = useState(false);
   // Sub-aba aberta na Community ('comunidade' = feed, 'noticias' = Feed de Notícias...).
   const [commTop, setCommTop] = useState('comunidade');
@@ -321,7 +322,7 @@ function Shell() {
         {state.handsFree ? (
           <View style={[styles.idPill, hearing && { backgroundColor: 'rgba(47,116,208,0.1)' }]}>
             <Ionicons name={hearing ? 'ear' : 'ear-outline'} size={12} color={hearing ? colors.accent : colors.muted} />
-            <Text style={[styles.idText, { color: hearing ? colors.accent : colors.muted }]}>{hearing ? 'Diga "abrir Lotus"' : 'Mãos livres'}</Text>
+            <Text style={[styles.idText, { color: hearing ? colors.accent : colors.muted }]}>{hearing ? 'Diga "abrir Lotus"' : state.handsFree && musicOn ? 'Música tocando · toque na flor' : 'Mãos livres'}</Text>
           </View>
         ) : null}
       </View>
@@ -397,6 +398,7 @@ function Shell() {
       <WakeWordListener
         enabled={state.handsFree && !voice && !menu && !noting && !searching}
         onListening={setHearing}
+        onMusic={setMusicOn}
         onWake={(text) => {
           // "abrir Lotus, me leva pro Agro": vai direto, sem abrir a caixa da Lotus.
           // "abrir Lotus, abre o perfil do Diego": abre o perfil direto.
