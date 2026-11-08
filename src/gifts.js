@@ -55,18 +55,25 @@ export const LIVE_GIFT_QTY = [1, 5, 10];
 export const LIVE_CONVERT_MIN = 10; // mínimo de créditos de live para converter em moeda Realys
 
 // Saque do que a pessoa RECEBEU de presente (créditos de presente + créditos de live).
-// Cada R$ 1 recebido = 100 pontos de saque. Libera a partir de 50.000 pontos (R$ 500) e o Realys fica
-// com 10% do saque. Pontos que a PLATAFORMA dá (avaliar, assistir, comprar, mandar presente) nunca
-// viram saque: só servem dentro do Realys.
+// Cada R$ 1 recebido em créditos = 100 pontos de saque. Do valor dos presentes que o fã pagou:
+//   - saque normal, a partir de 50.000 pontos: o streamer fica com 75% (o Realys com 25%);
+//   - saque antecipado, a partir de 10.000 pontos: fica com 60% (perde mais 15%).
+// Os 10% do presente já saíram quando ele foi enviado; o resto da parte do Realys sai no saque.
+// Pontos que a PLATAFORMA dá (avaliar, assistir, comprar, mandar presente) nunca viram saque.
 export const CASHOUT_POINTS_PER_REAL = 100;
 export const CASHOUT_MIN_POINTS = 50000;
-export const CASHOUT_FEE_PCT = 10;
+export const CASHOUT_EARLY_MIN_POINTS = 10000;
+export const CASHOUT_KEEP_PCT = 75; // do valor dos presentes, no saque normal
+export const CASHOUT_EARLY_KEEP_PCT = 60; // no saque antecipado (75% - 15%)
 export const receivedPool = (state) => +((state.giftCredits || 0) + (state.liveCredits || 0)).toFixed(2);
 export const cashoutPoints = (state) => Math.floor(receivedPool(state) * CASHOUT_POINTS_PER_REAL);
-export const cashoutQuote = (state) => {
-  const gross = receivedPool(state);
-  const fee = +((gross * CASHOUT_FEE_PCT) / 100).toFixed(2);
-  return { points: cashoutPoints(state), gross, fee, net: +(gross - fee).toFixed(2), ok: cashoutPoints(state) >= CASHOUT_MIN_POINTS };
+export const cashoutQuote = (state, early = false) => {
+  const gross = receivedPool(state); // créditos (90% do que os fãs pagaram)
+  const giftValue = gross / (1 - GIFT_FEE_PCT / 100); // o que os fãs pagaram nos presentes
+  const keep = early ? CASHOUT_EARLY_KEEP_PCT : CASHOUT_KEEP_PCT;
+  const net = +((giftValue * keep) / 100).toFixed(2);
+  const points = cashoutPoints(state);
+  return { points, gross, giftValue: +giftValue.toFixed(2), keep, fee: +(gross - net).toFixed(2), net, early, ok: points >= (early ? CASHOUT_EARLY_MIN_POINTS : CASHOUT_MIN_POINTS) };
 };
 export const liveGiftOf = (key) => LIVE_GIFTS.find((g) => g.key === key) || LIVE_GIFTS[0];
 export const liveGiftCost = (gift, qty = 1) => {

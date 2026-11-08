@@ -988,14 +988,14 @@ function baseReducer(state, a) {
     // Saque dos presentes recebidos: tudo o que juntou (créditos de presente + de live), a partir de
     // 50.000 pontos (R$ 500). O Realys fica com 10%; o resto vai por Pix.
     case 'GIFT_CASHOUT': {
-      const q = cashoutQuote(state);
+      const q = cashoutQuote(state, !!a.early);
       if (!q.ok) return state;
       return {
         ...state,
         giftCredits: 0,
         liveCredits: 0,
         cashoutFees: +((state.cashoutFees || 0) + q.fee).toFixed(2),
-        walletTx: [{ id: newId('w'), ts: Date.now(), kind: 'saque', cat: 'Saque de presentes', desc: `Saque de presentes recebidos para ${a.dest} (${q.points.toLocaleString('pt-BR')} pontos = ${brl(q.gross)}; taxa ${brl(q.fee)})`, amount: q.net }, ...state.walletTx],
+        walletTx: [{ id: newId('w'), ts: Date.now(), kind: 'saque', cat: 'Saque de presentes', desc: `Saque${q.early ? ' antecipado' : ''} de presentes recebidos para ${a.dest} (${q.points.toLocaleString('pt-BR')} pontos; você fica com ${q.keep}% de ${brl(q.giftValue)} em presentes; taxa ${brl(q.fee)})`, amount: q.net }, ...state.walletTx],
       };
     }
     case 'WALLET_DEPOSIT': {

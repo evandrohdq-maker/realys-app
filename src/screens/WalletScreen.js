@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { colors, brl, soft } from '../theme';
-import { GIFT_FEE_PCT, LIVE_CONVERT_MIN, liveGiftOf, cashoutQuote, CASHOUT_MIN_POINTS, CASHOUT_POINTS_PER_REAL, CASHOUT_FEE_PCT } from '../gifts';
+import { GIFT_FEE_PCT, LIVE_CONVERT_MIN, liveGiftOf, cashoutQuote, CASHOUT_MIN_POINTS, CASHOUT_EARLY_MIN_POINTS, CASHOUT_POINTS_PER_REAL, CASHOUT_KEEP_PCT, CASHOUT_EARLY_KEEP_PCT } from '../gifts';
 import { POINTS_PER_RATING, POINTS_COMMENT_BONUS, POINT_RULES } from '../rewards';
 import { BoostOffers, MyBoosts } from '../components/Boost';
 import { levelOf, nextLevel, ORDERS_FOR_BONUS, BONUS, STAMPS_FOR_REWARD, STAMP_BACK_PCT, initialLoyalty } from '../loyalty';
@@ -38,18 +38,24 @@ const fmtDate = (ts) => {
 };
 const toNumber = (t) => Number(String(t || '').replace(/[^\d,.]/g, '').replace(/\./g, '').replace(',', '.')) || 0;
 
-// Saque dos presentes recebidos: barra até 50.000 pontos e botão de sacar (10% para o Realys).
+// Saque dos presentes recebidos: barra até 50.000 pontos, saque normal (75%) e antecipado (60%).
 function GiftCashout() {
   const { state, dispatch } = useStore();
   const q = cashoutQuote(state);
+  const qe = cashoutQuote(state, true);
   const pct = Math.min(1, q.points / CASHOUT_MIN_POINTS);
   const pts = (n) => n.toLocaleString('pt-BR');
-  const sacar = () => {
-    if (!q.ok) return Alert.alert('Ainda não dá para sacar', `Faltam ${pts(CASHOUT_MIN_POINTS - q.points)} pontos (${brl((CASHOUT_MIN_POINTS - q.points) / CASHOUT_POINTS_PER_REAL)} em presentes recebidos).`);
-    Alert.alert('Sacar presentes recebidos?', `${pts(q.points)} pontos = ${brl(q.gross)}.\nTaxa do Realys (${CASHOUT_FEE_PCT}%): ${brl(q.fee)}.\nVocê recebe ${brl(q.net)} por Pix na chave cadastrada.`, [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: `Sacar ${brl(q.net)}`, onPress: () => (dispatch({ type: 'GIFT_CASHOUT', dest: 'Pix cadastrado' }), Alert.alert('Saque pedido ✅', `${brl(q.net)} vão cair por Pix.`)) },
-    ]);
+  const sacar = (x) => {
+    const min = x.early ? CASHOUT_EARLY_MIN_POINTS : CASHOUT_MIN_POINTS;
+    if (!x.ok) return Alert.alert('Ainda não dá para sacar', `Faltam ${pts(min - x.points)} pontos (${brl((min - x.points) / CASHOUT_POINTS_PER_REAL)} em presentes recebidos).`);
+    Alert.alert(
+      x.early ? 'Saque antecipado?' : 'Sacar presentes recebidos?',
+      `${pts(x.points)} pontos · ${brl(x.giftValue)} em presentes.\nVocê fica com ${x.keep}%: ${brl(x.net)} por Pix na chave cadastrada.${x.early ? `\nEsperando chegar a ${pts(CASHOUT_MIN_POINTS)} pontos, você ficaria com ${CASHOUT_KEEP_PCT}%.` : ''}`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: `Sacar ${brl(x.net)}`, onPress: () => (dispatch({ type: 'GIFT_CASHOUT', dest: 'Pix cadastrado', early: x.early }), Alert.alert('Saque pedido ✅', `${brl(x.net)} vão cair por Pix.`)) },
+      ]
+    );
   };
   return (
     <View style={{ marginTop: 10, backgroundColor: 'rgba(168,121,10,0.08)', borderRadius: 12, padding: 10 }}>
@@ -61,11 +67,18 @@ function GiftCashout() {
         <View style={{ width: `${pct * 100}%`, height: 8, backgroundColor: colors.primary }} />
       </View>
       <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6, lineHeight: 15 }}>
-        Cada R$ 1 recebido em presente (inclusive nas lives) = {CASHOUT_POINTS_PER_REAL} pontos. A partir de {pts(CASHOUT_MIN_POINTS)} pontos ({brl(CASHOUT_MIN_POINTS / CASHOUT_POINTS_PER_REAL)}) você saca, com {CASHOUT_FEE_PCT}% para o Realys. Pontos que a plataforma dá (avaliar, assistir, comprar) não viram saque.
+        Cada R$ 1 em créditos de presente (inclusive das lives) = {CASHOUT_POINTS_PER_REAL} pontos. A partir de {pts(CASHOUT_MIN_POINTS)} pontos você fica com {CASHOUT_KEEP_PCT}% do valor dos presentes. Antecipado, a partir de {pts(CASHOUT_EARLY_MIN_POINTS)} pontos, fica com {CASHOUT_EARLY_KEEP_PCT}%. Pontos que a plataforma dá (avaliar, assistir, comprar) não viram saque.
       </Text>
-      <TouchableOpacity onPress={sacar} style={{ marginTop: 8, alignSelf: 'flex-start', backgroundColor: q.ok ? colors.primary : 'rgba(0,0,0,0.08)', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 }}>
-        <Text style={{ color: q.ok ? '#fff' : colors.muted, fontWeight: '800', fontSize: 12.5 }}>{q.ok ? `Sacar ${brl(q.net)}` : 'Sacar (ainda não liberado)'}</Text>
-      </TouchableOpacity>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>
+        <TouchableOpacity onPress={() => sacar(q)} style={{ marginRight: 8, marginBottom: 6, backgroundColor: q.ok ? colors.primary : 'rgba(0,0,0,0.08)', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 }}>
+          <Text style={{ color: q.ok ? '#fff' : colors.muted, fontWeight: '800', fontSize: 12.5 }}>{q.ok ? `Sacar ${brl(q.net)} (${CASHOUT_KEEP_PCT}%)` : `Sacar (${pts(CASHOUT_MIN_POINTS)} pts)`}</Text>
+        </TouchableOpacity>
+        {!q.ok ? (
+          <TouchableOpacity onPress={() => sacar(qe)} style={{ marginBottom: 6, borderWidth: 1, borderColor: qe.ok ? colors.primary : 'rgba(0,0,0,0.12)', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 }}>
+            <Text style={{ color: qe.ok ? colors.primary : colors.muted, fontWeight: '800', fontSize: 12.5 }}>{qe.ok ? `Antecipar ${brl(qe.net)} (${CASHOUT_EARLY_KEEP_PCT}%)` : `Antecipar (${pts(CASHOUT_EARLY_MIN_POINTS)} pts)`}</Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
     </View>
   );
 }
