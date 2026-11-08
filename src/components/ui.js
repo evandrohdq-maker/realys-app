@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, ScrollView, Image } from 'react-native';
 import { colors, soft } from '../theme';
 
-export function Screen({ children, scroll = true }) {
+export function Screen({ children, scroll = true, scrollRef }) {
   if (!scroll) return <View style={styles.screen}>{children}</View>;
   return (
-    <ScrollView style={styles.screenScroll} contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
+    <ScrollView ref={scrollRef} style={styles.screenScroll} contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
       {children}
     </ScrollView>
   );

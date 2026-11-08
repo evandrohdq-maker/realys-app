@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, buildServiceCall, callReply, serviceType, priceText, detectService } from '../../store';
@@ -97,6 +97,10 @@ export default function ServicesScreen({ explore, navigate }) {
   const [found, setFound] = useState(null); // tipo de serviço achado pela pesquisa
   const [howOpen, setHowOpen] = useState(false);
   const [showMap, setShowMap] = useState(true);
+  // Prestador em destaque acima do GPS: rolagem até ele e tamanho do mapa (para a linha até o pino).
+  const scrollRef = useRef(null);
+  const [featY, setFeatY] = useState(0);
+  const [mapSize, setMapSize] = useState({ w: 0, h: 0 });
   // Pedir para outra pessoa (buscar a esposa, os filhos…) e o que o carro precisa ter.
   const [forOther, setForOther] = useState(false);
   const [other, setOther] = useState({ name: '', phone: '', from: '', to: '' });
@@ -161,7 +165,32 @@ export default function ServicesScreen({ explore, navigate }) {
   const cheapestId = [...byDist].sort((a, b) => a.price - b.price)[0]?.id;
   const num = {};
   byDist.forEach((p, i) => (num[p.id] = i + 1));
-  const sel = byDist.find((p) => p.id === selId) || nearestP;
+  // Em destaque acima do GPS: o primeiro da categoria pesquisada (como aparece na lista)
+  // até o cliente escolher outro; aí o escolhido toma o lugar dele.
+  const firstP = sponsoredP || list[0] || nearestP;
+  const sel = byDist.find((p) => p.id === selId) || firstP;
+  const selPos = sel ? mapPos(sel) : null;
+  const pinLeft = selPos ? Math.min(92, Math.max(4, selPos.left)) : 50;
+  const pinTop = selPos ? Math.min(84, Math.max(6, selPos.top)) : 50;
+  // Linha do "você" (centro do mapa) até o pino do prestador em destaque.
+  const routeLine = (() => {
+    if (!sel || !mapSize.w) return null;
+    const dx = ((pinLeft - 50) / 100) * mapSize.w;
+    const dy = ((pinTop - 50) / 100) * mapSize.h;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len < 4) return null;
+    return {
+      left: mapSize.w / 2 + dx / 2 - len / 2,
+      top: mapSize.h / 2 + dy / 2 - 1,
+      width: len,
+      transform: [{ rotate: `${Math.atan2(dy, dx)}rad` }],
+    };
+  })();
+  // Escolher outro prestador: ele sobe para o destaque e a tela volta até o GPS.
+  const pick = (p) => {
+    setSelId(p.id);
+    if (scrollRef.current) scrollRef.current.scrollTo({ y: Math.max(0, featY - 8), animated: true });
+  };
   const lastCall = state.rides.find((r) => r.provider && r.serviceKey && !r.done);
   const toRate = state.rides.find((r) => r.provider && r.serviceKey && r.done && !r.rated);
   // Visitas em andamento primeiro; as encerradas somem depois de avaliadas.
@@ -205,10 +234,10 @@ export default function ServicesScreen({ explore, navigate }) {
   const message = (p) => Alert.alert('Mensagem', `Conversa com ${first(p.name)} aberta no chat do Realys.`);
 
   // Cartão de um prestador na lista (também usado no bloco Patrocinado).
-  const renderCard = (p, isSponsored) => {
+  const renderCard = (p, isSponsored, featured) => {
     const visitService = isVisitService(p.service);
     const stats = providerStats(p);
-    const on = sel && p.id === sel.id && !isSponsored;
+    const on = !!featured;
     const badges = [];
     if (isSponsored) badges.push(['Patrocinado', colors.sponsored]);
     else if (sort === 'rank' && meritPos[p.id]) badges.push([`#${meritPos[p.id]} por mérito`, colors.primary]);
@@ -221,12 +250,10 @@ export default function ServicesScreen({ explore, navigate }) {
 
     return (
       <TouchableOpacity
-        key={(isSponsored ? 'sp-' : '') + p.id}
+        key={(featured ? 'ft-' : isSponsored ? 'sp-' : '') + p.id}
         activeOpacity={0.92}
-        onPress={() => {
-          setSelId(p.id);
-          setPreview(p);
-        }}
+        // No destaque, tocar abre a prévia do perfil; na lista, tocar leva o prestador para o destaque.
+        onPress={() => (featured ? setPreview(p) : pick(p))}
         style={[styles.pCard, on && styles.pCardOn, isSponsored && styles.pCardSponsored]}
       >
         <Row style={{ alignItems: 'flex-start' }}>
@@ -311,7 +338,7 @@ export default function ServicesScreen({ explore, navigate }) {
   }
 
   return (
-    <Screen>
+    <Screen scrollRef={scrollRef}>
       {menu}
 
       <SearchBar
@@ -456,6 +483,14 @@ export default function ServicesScreen({ explore, navigate }) {
         </TouchableOpacity>
       ) : null}
 
+      {/* Prestador em destaque: o primeiro da categoria, ou o que o cliente escolheu. O GPS vem logo abaixo dele. */}
+      {!onlineSel && sel ? (
+        <View onLayout={(e) => setFeatY(e.nativeEvent.layout.y)}>
+          <SectionHead title={selId ? 'Você escolheu' : `Primeiro em ${type.label.toLowerCase()}`} right="no GPS abaixo ↓" />
+          {renderCard(sel, !!(sponsoredP && sel.id === sponsoredP.id), true)}
+        </View>
+      ) : null}
+
       {/* Onde: endereço + mapa (dá para esconder o mapa) */}
       {!onlineSel ? (
       <View style={styles.whereCard}>
@@ -473,7 +508,7 @@ export default function ServicesScreen({ explore, navigate }) {
           </TouchableOpacity>
         </Row>
         {showMap ? (
-          <View style={styles.map}>
+          <View style={styles.map} onLayout={(e) => setMapSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
             {[...Array(14)].map((_, i) => (
               <View key={'v' + i} style={[styles.gridV, { left: `${i * 7.5}%` }]} />
             ))}
@@ -482,6 +517,7 @@ export default function ServicesScreen({ explore, navigate }) {
             ))}
             <View style={[styles.road, { top: '46%', transform: [{ rotate: '-8deg' }] }]} />
             <View style={[styles.roadV, { left: '38%', transform: [{ rotate: '14deg' }] }]} />
+            {routeLine ? <View style={[styles.routeLine, routeLine]} /> : null}
             <View style={styles.me}>
               <View style={styles.meDot} />
             </View>
@@ -492,6 +528,7 @@ export default function ServicesScreen({ explore, navigate }) {
                 <TouchableOpacity
                   key={p.id}
                   onPress={() => setSelId(p.id)}
+                  hitSlop={6}
                   accessibilityLabel={`Selecionar ${p.name}`}
                   style={[styles.pin, { left: `${Math.min(92, Math.max(4, pos.left))}%`, top: `${Math.min(84, Math.max(6, pos.top))}%` }, on && styles.pinOn]}
                 >
@@ -499,6 +536,14 @@ export default function ServicesScreen({ explore, navigate }) {
                 </TouchableOpacity>
               );
             })}
+            {sel ? (
+              <View style={styles.mapSel}>
+                <Ionicons name="navigate" size={12} color={colors.primary} />
+                <Text style={styles.mapSelText} numberOfLines={1}>
+                  {first(sel.name)} · {kmText(sel.distanceKm)} · ~{etaMin(sel)} min
+                </Text>
+              </View>
+            ) : null}
             <Text style={styles.mapLabel}>
               {byDist.length} {type.label.toLowerCase()}(s) com GPS ligado · você em roxo
             </Text>
@@ -506,10 +551,12 @@ export default function ServicesScreen({ explore, navigate }) {
         ) : null}
         {byDist.length ? (
           <View style={styles.quickRow}>
-            <TouchableOpacity style={[styles.quickBtn, styles.quickGhost]} onPress={() => hire(nearestP)}>
-              <Ionicons name="flash" size={16} color={colors.primary} />
-              <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 6 }}>Mais perto</Text>
-            </TouchableOpacity>
+            {nearestP && sel && nearestP.id !== sel.id ? (
+              <TouchableOpacity style={[styles.quickBtn, styles.quickGhost]} onPress={() => setSelId(nearestP.id)}>
+                <Ionicons name="navigate-outline" size={16} color={colors.primary} />
+                <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 6 }}>Ver o mais perto</Text>
+              </TouchableOpacity>
+            ) : null}
             <TouchableOpacity style={[styles.quickBtn, styles.quickMain]} onPress={() => hire(sel)}>
               <Text style={{ color: colors.onPrimary, fontWeight: '700' }} numberOfLines={1}>
                 {isVisit ? 'Pedir visita a' : 'Contratar'} {first(sel.name)}
@@ -562,14 +609,15 @@ export default function ServicesScreen({ explore, navigate }) {
         </View>
       ) : null}
 
-      {sponsoredP ? (
+      {sponsoredP && !(sel && !onlineSel && sel.id === sponsoredP.id) ? (
         <>
           <Text style={styles.listLabel}>PATROCINADO</Text>
           {renderCard(sponsoredP, true)}
           <Text style={styles.listLabel}>RANKING POR MÉRITO</Text>
         </>
       ) : null}
-      {list.map((p) => renderCard(p, false))}
+      {/* O prestador em destaque já está acima do GPS, então sai da lista (troca de lugar com o escolhido). */}
+      {list.filter((p) => onlineSel || !sel || p.id !== sel.id).map((p) => renderCard(p, false))}
 
       {tab === 'aulas' ? <LiveClasses items={lives.filter((l) => l.aula)} navigate={navigate} /> : null}
 
@@ -670,6 +718,9 @@ const styles = StyleSheet.create({
   pin: { position: 'absolute', marginLeft: -15, marginTop: -15, width: 30, height: 30, borderRadius: 15, backgroundColor: colors.card, borderWidth: 1.5, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   pinOn: { width: 38, height: 38, borderRadius: 19, marginLeft: -19, marginTop: -19, backgroundColor: colors.primary, borderColor: '#FFFFFF', borderWidth: 2, shadowColor: colors.primary, shadowOpacity: 0.8, shadowRadius: 12, elevation: 8 },
   pinText: { color: colors.primary, fontWeight: '700', fontSize: 12 },
+  routeLine: { position: 'absolute', height: 2, borderRadius: 1, backgroundColor: colors.primary, opacity: 0.55 },
+  mapSel: { position: 'absolute', left: 10, top: 10, maxWidth: '80%', flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.94)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  mapSelText: { color: colors.text, fontSize: 11, fontWeight: '700', marginLeft: 4, flexShrink: 1 },
   mapLabel: { position: 'absolute', left: 10, bottom: 10, color: colors.text, fontSize: 11, backgroundColor: 'rgba(255,255,255,0.92)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, overflow: 'hidden' },
   quickRow: { flexDirection: 'row', marginTop: 10 },
   quickBtn: { flex: 1, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
