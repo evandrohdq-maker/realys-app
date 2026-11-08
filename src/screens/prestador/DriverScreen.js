@@ -178,6 +178,16 @@ function DriverMain({ goTo, onCadastro }) {
         </Row>
       </Card>
       <SafetyKey />
+      <Card onPress={() => dispatch({ type: 'OPEN_DOCS', mode: 'lista' })}>
+        <Row>
+          <Ionicons name="document-text-outline" size={22} color={colors.primary} style={{ marginRight: 8 }} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>Contratos e receitas</Text>
+            <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Contrato do serviço com o cliente e, se a sua profissão permite, receitas no atendimento (por voz ou digitando).</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+        </Row>
+      </Card>
 
       <Section
         title="Meu cadastro profissional"

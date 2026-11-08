@@ -68,6 +68,8 @@ const initialState = {
   ready: false, // vira true depois de ler a sessão salva (evita piscar a tela de login)
   user: null, // { name, roles: [], cnpj }
   panicAlerts: [], // alertas da chave de segurança dos motoristas (painel do administrador)
+  documents: [], // contratos e receitas (src/documents.js)
+  docsOpen: null, // { mode: 'lista' | 'contrato' | 'receita', draft? } — tela de contratos e receitas
   activeRole: null,
   wallet: 750, // saldo em moeda Realys (1 RLS = R$ 1,00 na demonstração)
   walletTx: initialWalletTx, // extrato da carteira
@@ -1250,6 +1252,24 @@ function baseReducer(state, a) {
       // Corrida que EU fiz como motorista: o valor (já recebido ao aceitar) fica comigo.
       return { ...state, rides };
     }
+
+    // ---------- Contratos e receitas (src/documents.js) ----------
+    case 'OPEN_DOCS':
+      return { ...state, docsOpen: { mode: a.mode || 'lista', draft: a.draft || '', at: Date.now() } };
+    case 'CLOSE_DOCS':
+      return { ...state, docsOpen: null };
+    case 'DOC_SAVE': {
+      const exists = (state.documents || []).some((d) => d.id === a.doc.id);
+      return { ...state, documents: exists ? state.documents.map((d) => (d.id === a.doc.id ? a.doc : d)) : [a.doc, ...(state.documents || [])] };
+    }
+    // Uma parte assinou (no Realys com biometria, ou pelo gov.br com o PDF assinado anexado).
+    case 'DOC_SIGN':
+      return {
+        ...state,
+        documents: (state.documents || []).map((d) =>
+          d.id === a.id ? { ...d, parties: d.parties.map((p, i) => (i === a.index && !p.signedAt ? { ...p, signedAt: Date.now(), method: a.method || 'realys', file: a.file || null } : p)) } : d
+        ),
+      };
 
     // ---------- Chave de segurança do motorista (src/panic.js) ----------
     case 'PANIC_ALERT':

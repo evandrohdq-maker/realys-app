@@ -299,6 +299,12 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   }
   if (pending && NO.test(t)) return { reply: 'Tudo bem. Se precisar, é só chamar.' };
 
+  // Contratos e receitas: "Lotus, receita para Maria: dipirona 500 mg...", "fazer um contrato de aluguel".
+  // ("receita de bolo" é comida: não abre a receita médica.)
+  if (/\b(receitar|prescrever|prescricao|receita (medica|para|pra|pro|ao|a paciente|do paciente|da paciente))\b/.test(t) && !/\breceita de\b/.test(t))
+    return { openDocs: { mode: 'receita', draft: stripWake(text) }, reply: 'Abrindo a receita. Confira os dados antes de gerar.' };
+  if (/\bcontrato\b/.test(t)) return { openDocs: { mode: 'contrato' }, reply: 'Abrindo um novo contrato.' };
+
   // Emergência: "Lotus, liga para o SAMU", "chama os bombeiros", "socorro!".
   const EM = { samu: /\b(samu|ambulancia)\b/, bombeiros: /\bbombeiros?\b/, policia: /\bpolicia\b(?! rodoviaria)/, prf: /\bpolicia rodoviaria\b/, defesa: /\bdefesa civil\b/, cvv: /\bcvv\b/ };
   const emKey = Object.keys(EM).find((k) => EM[k].test(t));
@@ -937,6 +943,14 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
       setPhase('idle');
       speakSoft(res.reply);
       dispatch({ type: 'OPEN_VENUE' });
+      onClose();
+      return;
+    }
+    if (res.openDocs) {
+      setPending(null);
+      setPhase('idle');
+      speakSoft(res.reply);
+      dispatch({ type: 'OPEN_DOCS', ...res.openDocs });
       onClose();
       return;
     }

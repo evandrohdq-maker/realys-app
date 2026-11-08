@@ -330,6 +330,17 @@ export default function ProfileScreen({ navigate, explore }) {
         }}
       />
 
+      <Card onPress={() => dispatch({ type: 'OPEN_DOCS' })}>
+        <Row>
+          <Ionicons name="document-text-outline" size={22} color={colors.primary} style={{ marginRight: 10 }} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>Contratos e receitas</Text>
+            <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Contratos de aluguel, compra e venda e serviços com assinatura online e cópia para cada parte. Receitas dos seus atendimentos.</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+        </Row>
+      </Card>
+
       <Card>
         <Row>
           <Ionicons name="people-outline" size={22} color={colors.primary} style={{ marginRight: 10 }} />

@@ -34,6 +34,7 @@ import { WakeWordListener } from './src/wakeWord';
 import { loadVoicePrint } from './src/voicePrint';
 import { loadPanic, panicConfig } from './src/panic';
 import { RideWatcher } from './src/rideRules';
+import DocsCenter from './src/components/DocsCenter';
 import { callNow } from './src/phone';
 import { getDevicePoint } from './src/geo';
 import { stopSpeaking } from './src/voice';
@@ -446,8 +447,9 @@ function Shell() {
         onPanic={panicNow}
       />
       <RideWatcher />
+      <DocsCenter />
       <WakeWordListener
-        enabled={state.handsFree && (!voice || wakeCapture) && !menu && !noting && !searching}
+        enabled={state.handsFree && (!voice || wakeCapture) && !menu && !noting && !searching && !state.docsOpen}
         onListening={setHearing}
         onMusic={setMusicOn}
         onWakeStart={() => {
