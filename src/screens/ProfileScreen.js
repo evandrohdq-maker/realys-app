@@ -4,6 +4,8 @@ import { ScoreCard } from '../components/Engage';
 import { View, Text, TouchableOpacity, Switch, Alert, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { askMicPermission, wakeWordSupported } from '../wakeWord';
+import VoiceEnroll from '../components/VoiceEnroll';
+import { voicePrintOf, voicePrintSupported, onVoicePrintChange, setVoiceGate, deleteVoicePrint, lastVoiceCheck } from '../voicePrint';
 import { useStore } from '../store';
 import { colors, brl, ROLE_LABELS } from '../theme';
 import { Screen, Title, Card, Row, Button, Badge } from '../components/ui';
@@ -29,6 +31,18 @@ export default function ProfileScreen({ navigate, explore }) {
   const [bioOpen, setBioOpen] = useState(false);
   const [demoOpen, setDemoOpen] = useState(false);
   const [quizOpen, setQuizOpen] = useState(false);
+  // Voz do titular (só neste celular): cadastro ao ligar o "abrir Lotus".
+  const [enrollOpen, setEnrollOpen] = useState(false);
+  const [vp, setVp] = useState(voicePrintOf());
+  const [vcheck, setVcheck] = useState(lastVoiceCheck());
+  useEffect(() => onVoicePrintChange((x) => (setVp(x), setVcheck(lastVoiceCheck()))), []);
+  const enrollWasOn = React.useRef(false);
+  const openEnroll = () => {
+    // Enquanto grava a voz, o "abrir Lotus" fica desligado (os dois usam o mesmo microfone).
+    enrollWasOn.current = state.handsFree;
+    if (state.handsFree) dispatch({ type: 'SET_HANDSFREE', on: false });
+    setEnrollOpen(true);
+  };
   const prof = state.myProfile;
   const priv = state.privacy;
   // "Lotus, abre minha carteira": já abre a carteira.
@@ -243,6 +257,8 @@ export default function ProfileScreen({ navigate, explore }) {
               }
               const ok = await askMicPermission();
               if (!ok) return Alert.alert('Microfone bloqueado', 'Permita o microfone para o Realys nas configurações do celular.');
+              // Primeira vez: a Lotus aprende a voz do titular antes de ligar.
+              if (!voicePrintOf() && voicePrintSupported()) return openEnroll();
               dispatch({ type: 'SET_HANDSFREE', on: true });
             }}
             trackColor={{ false: colors.border, true: colors.primary }}
@@ -252,7 +268,67 @@ export default function ProfileScreen({ navigate, explore }) {
         <Text style={{ color: colors.muted, fontSize: 11, marginTop: 8 }}>
           Funciona com o Realys aberto e a tela ligada. Com o celular bloqueado será a próxima etapa.
         </Text>
+        {/* Voz do titular: só a voz do dono da conta abre a Lotus falando "abrir Lotus". */}
+        <View style={{ borderTopWidth: 1, borderTopColor: 'rgba(168,121,10,0.2)', marginTop: 12, paddingTop: 12 }}>
+          <Row>
+            <Ionicons name="mic-circle-outline" size={22} color={colors.primary} style={{ marginRight: 8 }} />
+            <View style={{ flex: 1, paddingRight: 10 }}>
+              <Text style={{ fontWeight: '700', color: colors.text, fontSize: 14 }}>Só a minha voz abre a Lotus</Text>
+              <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
+                {!voicePrintSupported()
+                  ? 'Precisa de Android 13 ou mais novo.'
+                  : vp
+                  ? 'Voz cadastrada neste celular. Tocando no botão da Lotus, qualquer pessoa fala com ela.'
+                  : 'Cadastre sua voz para a Lotus atender só você quando chamada por voz.'}
+              </Text>
+            </View>
+            {vp ? (
+              <Switch
+                value={vp.on !== false}
+                onValueChange={(on) => setVoiceGate(on)}
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor={vp.on !== false ? '#FFFFFF' : colors.muted}
+              />
+            ) : null}
+          </Row>
+          {voicePrintSupported() ? (
+            <Row style={{ marginTop: 10 }}>
+              <TouchableOpacity onPress={openEnroll} style={{ marginRight: 18 }}>
+                <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{vp ? 'Refazer cadastro da voz' : 'Cadastrar minha voz'}</Text>
+              </TouchableOpacity>
+              {vp ? (
+                <TouchableOpacity
+                  onPress={() =>
+                    Alert.alert('Apagar minha voz', 'A assinatura da sua voz será apagada deste celular. A Lotus volta a atender qualquer voz no "abrir Lotus".', [
+                      { text: 'Cancelar', style: 'cancel' },
+                      { text: 'Apagar', style: 'destructive', onPress: () => deleteVoicePrint() },
+                    ])
+                  }
+                >
+                  <Text style={{ color: '#B4532A', fontWeight: '700', fontSize: 13 }}>Apagar minha voz</Text>
+                </TouchableOpacity>
+              ) : null}
+            </Row>
+          ) : null}
+          {vp ? (
+            <Text style={{ color: colors.muted, fontSize: 11, marginTop: 8 }}>
+              {`Aprendeu com ${((vp.learned || []).length)} uso(s).`}
+              {vcheck ? ` Última conferência (${vcheck.kind}): ${vcheck.ok ? 'reconheceu você' : 'não reconheceu'}${vcheck.d != null ? ` · ${String(vcheck.d).replace('.', ',')} de ${String(vcheck.limit).replace('.', ',')}` : ''}.` : ''}
+            </Text>
+          ) : null}
+        </View>
       </Card>
+      <VoiceEnroll
+        visible={enrollOpen}
+        onClose={() => {
+          setEnrollOpen(false);
+          if (enrollWasOn.current) dispatch({ type: 'SET_HANDSFREE', on: true });
+        }}
+        onDone={() => {
+          setEnrollOpen(false);
+          dispatch({ type: 'SET_HANDSFREE', on: true });
+        }}
+      />
 
       <Card>
         <Row>

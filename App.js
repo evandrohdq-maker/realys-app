@@ -31,6 +31,7 @@ import CategoryMenu from './src/components/CategoryMenu';
 import UpdateChecker from './src/components/UpdateChecker';
 import { AdminSystem, NoteModal, SYSTEM_MAP } from './src/screens/admin/AdminSystem';
 import { WakeWordListener } from './src/wakeWord';
+import { loadVoicePrint } from './src/voicePrint';
 import { findNavigation, navReply } from './src/voiceNav';
 import { findMandadoAction } from './src/voiceMandados';
 import LotusCartao from './src/components/LotusCartao';
@@ -135,6 +136,11 @@ function Shell() {
   // "abrir Lotus" ouvido: a caixa já abriu e o mesmo microfone segue ouvindo o resto do pedido.
   const [wakeCapture, setWakeCapture] = useState(false);
   const [wakeLive, setWakeLive] = useState('');
+  // Voz do titular: cada conta tem a sua (celular compartilhado = cada um com a própria voz).
+  const voiceOwner = state.user ? state.user.id || state.user.login || state.user.cpf || state.user.cnpj || state.user.name : null;
+  useEffect(() => {
+    loadVoicePrint(voiceOwner);
+  }, [voiceOwner]);
   const [acaoPendente, setAcaoPendente] = useState(null); // mensagem da Lotus aguardando sim/não (só chat)
   const [cartaoLotus, setCartaoLotus] = useState(null); // cartão de confirmação com botões (finalização, dinheiro)
   const [menu, setMenu] = useState(false);
@@ -412,6 +418,12 @@ function Shell() {
           setVoice(true);
         }}
         onWakeHeard={setWakeLive}
+        onReject={() => {
+          // "abrir Lotus" com a voz de outra pessoa: a caixa avisa e fecha sozinha.
+          setWakeCapture(false);
+          setWakeCmd({ rejected: true, text: '', at: Date.now() });
+          setVoice(true);
+        }}
         onWake={(text) => {
           setWakeCapture(false);
           // Caixa já aberta pelo "abrir Lotus": se o pedido for resolvido sem ela, fecha.

@@ -9,6 +9,7 @@ import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-spe
 import { findWake, normSame, hearCall } from './wakeMatch';
 import { stopSpeaking } from './voice';
 import { musicPlaying } from './musicGuard';
+import { voiceGateOn, recordingFor, verifyWake } from './voicePrint';
 
 // Com música de outro app tocando, o "abrir Lotus" fica desligado (o microfone do Android pausaria
 // a música). Confere de tempos em tempos e volta a ouvir sozinho quando a música para.
@@ -52,13 +53,16 @@ export function wakeWordSupported() {
 }
 
 // Componente invisível que escuta enquanto `enabled` for verdadeiro.
-export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, onListening, onFatal, onMusic }) {
+export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, onReject, onListening, onFatal, onMusic }) {
   const on = useRef(false);
   const running = useRef(false);
   const woke = useRef(null); // { rest, timer }
   const errors = useRef(0);
   const restartTimer = useRef(null);
   const appActive = useRef(AppState.currentState === 'active');
+  // Voz do titular: o celular grava o que o microfone ouve e, no "abrir Lotus", o app confere a voz.
+  const audio = useRef({ uri: null, waiters: [] });
+  const firing = useRef(false);
 
   const music = useRef(false);
   const start = () => {
@@ -81,6 +85,8 @@ export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, on
         maxAlternatives: 5,
         // Dica para o reconhecedor do celular: estas palavras existem e são prováveis.
         contextualStrings: ['abrir Lotus', 'Lotus', 'Lótus'],
+        // Com a voz do titular cadastrada, o celular entrega o áudio para conferir quem chamou.
+        ...(voiceGateOn() ? recordingFor('wake') : {}),
       });
     } catch (e) {
       running.current = false;
@@ -103,12 +109,43 @@ export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, on
     if (!appActive.current) return; // em segundo plano não religa o microfone
     restartTimer.current = setTimeout(start, ms);
   };
-  const fire = (rest) => {
-    stop();
+  // Espera o celular fechar o arquivo de áudio (no máximo 900 ms).
+  const audioDone = () =>
+    new Promise((resolve) => {
+      const t = setTimeout(() => resolve(audio.current.uri), 900);
+      audio.current.waiters.push((uri) => (clearTimeout(t), resolve(uri)));
+    });
+  const fire = async (rest) => {
+    if (firing.current) return;
+    const gate = voiceGateOn();
+    if (!gate) {
+      stop();
+      onListening && onListening(false);
+      onWake(rest.trim());
+      // Se o pedido foi só de navegação ("abrir Lotus, me leva pro Agro"), a caixa não abre:
+      // volta a ouvir sozinho. Se a caixa abrir, o stop() cancela esta volta.
+      if (on.current) scheduleRestart(700);
+      return;
+    }
+    // Voz do titular: termina a gravação (stop, não abort, para o arquivo fechar), confere a voz e só
+    // então a Lotus atende. A caixa já está aberta na tela; só o pedido espera a conferência.
+    firing.current = true;
+    clearTimeout(restartTimer.current);
+    if (woke.current) clearTimeout(woke.current.timer);
+    woke.current = null;
+    const wait = audioDone();
+    if (running.current) {
+      try {
+        ExpoSpeechRecognitionModule.stop();
+      } catch (e) {}
+    }
     onListening && onListening(false);
-    onWake(rest.trim());
-    // Se o pedido foi só de navegação ("abrir Lotus, me leva pro Agro"), a caixa não abre:
-    // volta a ouvir sozinho. Se a caixa abrir, o stop() cancela esta volta.
+    const uri = await wait;
+    const v = await verifyWake(uri);
+    firing.current = false;
+    running.current = false;
+    if (v.ok === false) onReject && onReject(v);
+    else onWake(rest.trim());
     if (on.current) scheduleRestart(700);
   };
 
@@ -141,8 +178,19 @@ export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, on
     onListening && onListening(true);
   });
 
-  useSpeechRecognitionEvent('result', (event) => {
+  useSpeechRecognitionEvent('audiostart', (e) => {
+    if (on.current && running.current && e && e.uri) audio.current.uri = e.uri;
+  });
+  useSpeechRecognitionEvent('audioend', (e) => {
     if (!on.current) return;
+    if (e && e.uri) audio.current.uri = e.uri;
+    const w = audio.current.waiters;
+    audio.current.waiters = [];
+    w.forEach((fn) => fn(audio.current.uri));
+  });
+
+  useSpeechRecognitionEvent('result', (event) => {
+    if (!on.current || firing.current) return;
     if (!appActive.current) return stop();
     const heard = hearWake(event.results);
     // Chamou "Lotus" enquanto ela fala (caixa fechada, ex.: "Abrindo Agro"): ela se cala na hora.
@@ -161,7 +209,7 @@ export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, on
 
   useSpeechRecognitionEvent('end', () => {
     running.current = false;
-    if (!on.current) return;
+    if (!on.current || firing.current) return;
     // O celular desligou o microfone logo depois do "abrir Lotus": a caixa (já aberta) assume e ouve.
     if (woke.current) return fire(woke.current.rest);
     onListening && onListening(false);

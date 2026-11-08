@@ -20,6 +20,7 @@ import { greetingReply } from '../lotusGreetings';
 import { rememberMusic, giveMusicBack } from '../musicGuard';
 import { stripWake, findCall, hearCall, stripEcho, fixMotos } from '../wakeMatch';
 import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences, forSpeech } from '../voice';
+import { voiceGateOn, recordingFor, verifySpeech, REJECT_TEXT } from '../voicePrint';
 import { emergencyNumbers } from '../extraData';
 import { confirmCall } from '../phone';
 import { findNavigation, navReply } from '../voiceNav';
@@ -556,6 +557,24 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
   pendingRef.current = pending;
   // Escuta enquanto a Lotus fala, para interromper quando a pessoa chama "Lotus" de novo.
   const bargeIn = useRef({ on: false, heard: false, rest: '', timer: null, tries: 0 });
+  // Conversa aberta FALANDO "abrir Lotus": os pedidos falados também são conferidos com a voz do
+  // titular. Aberta tocando no botão (ou tocou na flor): qualquer pessoa fala (menos a própria Lotus,
+  // que nunca é ouvida: ver stripEcho).
+  const byVoice = useRef(false);
+  const gated = () => byVoice.current && voiceGateOn();
+  // Áudio da escuta atual (para conferir a voz): uri, quando começou e quem espera o arquivo fechar.
+  const audioRef = useRef({ uri: null, at: 0, waiters: [] });
+  const audioDone = () =>
+    new Promise((resolve) => {
+      const t = setTimeout(() => resolve(audioRef.current.uri), 900);
+      audioRef.current.waiters.push((uri) => (clearTimeout(t), resolve(uri)));
+    });
+  const reject = () => {
+    setPhase(restPhase());
+    setPartial('');
+    setHistory((h) => [{ at: Date.now(), q: '🎙️', reply: REJECT_TEXT }, ...h]);
+    speakSoft('Não reconheci a sua voz.');
+  };
   // Cada fala tem um número: quando ela é interrompida, os avisos da fala antiga são ignorados.
   const speechId = useRef(0);
   // O que ela está falando agora (frases e em qual está) e, quando pausada, de onde continuar.
@@ -608,6 +627,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
         contextualStrings: ['Lotus', 'Lótus', ...HINTS],
         // Volume do microfone: é assim que ela percebe a voz da pessoa por cima da dela.
         volumeChangeEventOptions: { enabled: true, intervalMillis: 100 },
+        ...(gated() ? recordingFor('barge') : {}),
         // Em Androids mais antigos o "continuous" não existe e o microfone desliga sozinho depois de
         // cada frase que ouve (inclusive a voz da própria Lotus). Aqui ele aguenta mais tempo ligado.
         androidIntentOptions: {
@@ -646,8 +666,27 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
 
   // A pessoa chamou "Lotus" no meio da fala: ela PAUSA (guarda a frase em que estava e o assunto,
   // como a lista de motoristas) e ouve o novo pedido, que é entendido junto com o que já foi pedido.
-  const finishBargeIn = () => {
-    const rest = bargeIn.current.rest;
+  const finishBargeIn = async () => {
+    const b = bargeIn.current;
+    const rest = b.rest;
+    if (rest && gated() && b.on) {
+      // Conversa por voz: confere se quem interrompeu é o titular (só o trecho depois que ela parou).
+      if (b.checking) return;
+      b.checking = true;
+      clearTimeout(b.timer);
+      const wait = audioDone();
+      b.on = false;
+      setEar(null);
+      setEarHeard('');
+      try {
+        ExpoSpeechRecognitionModule.stop();
+      } catch (e) {}
+      level.setValue(0);
+      setPhase('thinking');
+      const from = b.cutAt && audioRef.current.at ? Math.max(0, (b.cutAt - audioRef.current.at) / 1000 - 0.6) : 0;
+      const v = await verifySpeech(await wait, from);
+      return v.ok === false ? reject() : run(rest);
+    }
     stopBargeIn();
     level.setValue(0);
     if (rest) return run(rest);
@@ -670,6 +709,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     if (!b.on || b.ducked || b.heard || !talking.current) return;
     const cur = talking.current;
     b.ducked = true;
+    b.cutAt = Date.now();
     b.base = b.last || '';
     b.spoken = herRecent(cur.parts.join(' '));
     pauseTalk();
@@ -714,6 +754,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     if (!b.heard) {
       if (call) {
         b.heard = true;
+        if (!b.cutAt) b.cutAt = Date.now();
         // Guarda o que ela falou: o que vier igual a isso depois do "Lotus" é eco da voz dela.
         if (!b.ducked) b.spoken = herAll;
         pauseTalk(); // não apaga o assunto (pending): "Lotus… tem mais barato?" segue nos mesmos motoristas
@@ -934,6 +975,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
         maxAlternatives: 3,
         contextualStrings: HINTS,
         volumeChangeEventOptions: { enabled: true, intervalMillis: 90 },
+        ...(gated() ? recordingFor('cmd') : {}),
       });
     } catch (e) {
       session.current.active = false;
@@ -1008,6 +1050,18 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     const v = Math.max(0, Math.min(1, ((e && e.value) + 2) / 12));
     Animated.timing(level, { toValue: v, duration: 90, useNativeDriver: true }).start();
   });
+  useSpeechRecognitionEvent('audiostart', (e) => {
+    if (!visible || !(session.current.active || bargeIn.current.on)) return;
+    audioRef.current.uri = (e && e.uri) || null;
+    audioRef.current.at = Date.now();
+  });
+  useSpeechRecognitionEvent('audioend', (e) => {
+    if (!visible) return;
+    if (e && e.uri) audioRef.current.uri = e.uri;
+    const w = audioRef.current.waiters;
+    audioRef.current.waiters = [];
+    w.forEach((fn) => fn(audioRef.current.uri));
+  });
   useSpeechRecognitionEvent('result', (e) => {
     if (bargeIn.current.on) return onBargeHeard(e && e.results, e && e.isFinal);
     if (!session.current.active) return;
@@ -1016,7 +1070,12 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     if (e.isFinal) {
       session.current.active = false;
       level.setValue(0);
-      run(bestHeard(e.results), null, (e.results || []).map((a) => a && a.transcript).filter(Boolean));
+      const cmd = bestHeard(e.results);
+      const alts = (e.results || []).map((a) => a && a.transcript).filter(Boolean);
+      if (!gated()) return run(cmd, null, alts);
+      // Conversa por voz: só atende depois de conferir que é o titular.
+      setPhase('thinking');
+      audioDone().then((uri) => verifySpeech(uri)).then((v) => (v.ok === false ? reject() : run(cmd, null, alts)));
     }
   });
   useSpeechRecognitionEvent('end', () => {
@@ -1088,6 +1147,16 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     prepareVoice();
     setOpenBase(history.length);
     Animated.timing(enter, { toValue: 1, duration: 140, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+    byVoice.current = !!(initialCommand && (initialCommand.waiting || initialCommand.text || initialCommand.rejected));
+    // Voz de outra pessoa no "abrir Lotus": avisa e fecha sozinha.
+    if (initialCommand && initialCommand.rejected) {
+      setPhase('idle');
+      setPartial('');
+      setHistory((h) => [{ at: Date.now(), q: '🎙️', reply: REJECT_TEXT }, ...h]);
+      speakSoft('Não reconheci a sua voz.');
+      const t = setTimeout(() => closeRef.current(), 3500);
+      return () => clearTimeout(t);
+    }
     // Aberta pelo "abrir Lotus": o microfone do "abrir Lotus" continua ouvindo o resto do pedido.
     // A caixa só mostra "Ouvindo…" e o que está sendo dito (sem ligar outro microfone por cima).
     if (initialCommand && initialCommand.waiting) {
@@ -1157,7 +1226,16 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
             </View>
           </View>
 
-          <LotusFlower phase={phase} level={level} onPress={listen} visible={visible} mood={mood} />
+          <LotusFlower
+            phase={phase}
+            level={level}
+            onPress={() => {
+              byVoice.current = false; // tocou com a mão: atende qualquer voz (menos a da Lotus)
+              listen();
+            }}
+            visible={visible}
+            mood={mood}
+          />
           <View style={styles.statusRow}>
             <View style={[styles.statusDot, { backgroundColor: phase === 'listening' ? '#60A5FA' : phase === 'idle' ? 'rgba(255,255,255,0.4)' : colors.gold }]} />
             <Text style={styles.status}>{PHASE_TEXT[phase]}</Text>
@@ -1336,7 +1414,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
                 <Ionicons name="arrow-up" size={20} color={colors.onPrimary} />
               </TouchableOpacity>
             ) : (
-              <TouchableOpacity onPress={listen} style={[styles.sendBtn, phase === 'listening' && { backgroundColor: colors.accent }]} accessibilityLabel="Falar">
+              <TouchableOpacity onPress={() => ((byVoice.current = false), listen())} style={[styles.sendBtn, phase === 'listening' && { backgroundColor: colors.accent }]} accessibilityLabel="Falar">
                 <Ionicons name={phase === 'listening' ? 'stop' : 'mic'} size={19} color={colors.onPrimary} />
               </TouchableOpacity>
             )}
