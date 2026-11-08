@@ -13,6 +13,9 @@ import { HostChip, useOpenHost } from '../../../components/HostChip';
 import { LIVE_CATS, hostOptions, defaultHost, catOf, subOf, HOST_TYPES, missionId, LIVE_MISSION_SECS, LIVE_MISSION_POINTS } from '../../../liveData';
 import { members } from '../../../people';
 import { artists } from '../../../extraData';
+import { LiveStage, openRealLive, endRealLive } from '../../../components/LiveVideo';
+import { serverOn } from '../../../api';
+import { webrtcOk } from '../../../video';
 
 const now = () => {
   const d = new Date();
@@ -141,8 +144,15 @@ export function VideoCallModal({ contact, visible, onClose }) {
   const [mute, setMute] = useState(false);
   const [cam, setCam] = useState(true);
 
+  const { dispatch: callDispatch } = useStore();
   useEffect(() => {
     if (!visible) return;
+    // Contato com conta no servidor e vídeo disponível: chamada de verdade, direto entre os celulares.
+    if (contact && contact.serverId && serverOn() && webrtcOk()) {
+      callDispatch({ type: 'START_VIDEO_CALL', to: contact.serverId, name: contact.name });
+      onClose();
+      return;
+    }
     setSecs(0);
     setConnected(false);
     const c = setTimeout(() => setConnected(true), 1800);
@@ -230,19 +240,29 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
   const hosts = hostOptions(state);
   const me = host || defaultHost(state);
   const type = cat === 'cursos' || cat === 'faculdades' ? 'aula' : cat === 'compras' ? 'venda' : 'papo';
+  // Live de verdade (servidor de vídeo contratado): id da live no servidor.
+  const [realId, setRealId] = useState(null);
   const close = () => {
     if (mine && onAir) dispatch({ type: 'LIVE_END' });
+    if (realId) endRealLive(realId);
+    setRealId(null);
     onClose();
   };
   const start = () => {
     const sb = subOf(cat, sub);
-    dispatch({ type: 'LIVE_START', live: { cat, sub: sb ? sb.key : null, hostType: me.type, hostId: me.id, host: me.name, title: title.trim() || (sb ? sb.label : catOf(cat).title), viewers: 0, tag: sb ? sb.label : catOf(cat).label, photo: null, sponsored: false } });
+    const liveTitle = title.trim() || (sb ? sb.label : catOf(cat).title);
+    dispatch({ type: 'LIVE_START', live: { cat, sub: sb ? sb.key : null, hostType: me.type, hostId: me.id, host: me.name, title: liveTitle, viewers: 0, tag: sb ? sb.label : catOf(cat).label, photo: null, sponsored: false } });
     setOnAir(true);
+    // Com o servidor de vídeo contratado, abre a live de verdade e a câmera passa a transmitir.
+    openRealLive({ title: liveTitle, cat, hostType: me.type })
+      .then((id) => id && setRealId(id))
+      .catch((e) => Alert.alert('Live', (e && e.message) || 'Não foi possível abrir a live no servidor.'));
   };
 
   useEffect(() => {
     if (!visible) return;
     setOnAir(!mine);
+    setRealId(null);
     setViewers(live ? live.viewers : 0);
     setSecs(0);
     setComments([]);
@@ -260,7 +280,8 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
   }, [secs]);
 
   useEffect(() => {
-    if (!visible || !onAir) return;
+    // Live de verdade: plateia, comentários e presentes são reais (nada simulado).
+    if (!visible || !onAir || realId || (live && live.real)) return;
     const names = ['Ana', 'Diego', 'Lívia', 'Rogério', 'Paula', 'Marcos', 'Bia'];
     const t = setInterval(() => {
       setSecs((s) => s + 1);
@@ -288,7 +309,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
       clearInterval(t);
       clearInterval(c);
     };
-  }, [visible, onAir]);
+  }, [visible, onAir, realId]);
 
   const gift = liveGiftOf(pick);
   const cost = liveGiftCost(gift, qty);
@@ -311,14 +332,16 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={close}>
       <View style={{ flex: 1, backgroundColor: '#03050A' }}>
-        {live ? <Photo uri={live.photo.replace('800/500', '800/1400')} style={StyleSheet.absoluteFill} fallback="🎥" /> : null}
+        {live ? <Photo uri={live.photo ? live.photo.replace('800/500', '800/1400') : null} style={StyleSheet.absoluteFill} fallback="🎥" /> : null}
         {mine ? (
           <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', backgroundColor: '#1F2A44' }]}>
             <Ionicons name="videocam-outline" size={64} color="rgba(168,121,10,0.35)" />
             <Text style={{ color: colors.muted, marginTop: 8 }}>Prévia da sua câmera</Text>
           </View>
         ) : null}
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(3,5,10,0.25)' }]} />
+        {/* Vídeo de verdade: minha câmera transmitindo, ou a live que estou assistindo. */}
+        <LiveStage liveId={mine ? realId : live && live.real ? live.id : null} mine={mine} onAir={onAir} onError={(m) => Alert.alert('Vídeo da live', m)} />
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(3,5,10,0.25)' }]} pointerEvents="none" />
 
         <View style={[styles.liveTop, { paddingTop: insets.top + 12 }]}>
           {onAir ? (

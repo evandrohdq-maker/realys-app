@@ -16,6 +16,7 @@ import livesRoutes from './routes/lives.js';
 import mediaRoutes from './routes/media.js';
 import adminRoutes from './routes/admin.js';
 import biometriaRoutes from './routes/biometria.js';
+import videoRoutes from './routes/video.js';
 import { makeCipher, parseKeys } from './crypto.js';
 import { makeMatcher } from './biometria/matcher.js';
 import { makeBiometria } from './biometria/service.js';
@@ -67,7 +68,7 @@ export function createApp(cfg) {
     attempts.set(key, a);
   };
   deps.clearLogin = (key) => attempts.delete(key);
-  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes].forEach((r) => r(router, deps));
+  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes].forEach((r) => r(router, deps));
   router.get('/health', () => ({ ok: true, name: 'Realys', time: now() }), { auth: false });
 
   // Administrador inicial (ADMIN_PASSWORD no .env).

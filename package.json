@@ -11,6 +11,7 @@
   "dependencies": {
     "@expo/vector-icons": "*",
     "@react-native-async-storage/async-storage": "*",
+    "@config-plugins/react-native-webrtc": "*",
     "@react-native-ml-kit/face-detection": "*",
     "expo": "~56.0.0",
     "expo-camera": "*",
@@ -31,6 +32,7 @@
     "react": "*",
     "react-native": "*",
     "react-native-safe-area-context": "*",
+    "react-native-webrtc": "*",
     "realys-updater": "file:./modules/realys-updater"
   }
 }

@@ -1,0 +1,36 @@
+# Configuração do servidor de vídeo do Realys (MediaMTX). O setup-video.sh troca os __VALORES__.
+# Só as lives passam por aqui; chamadas de vídeo vão direto entre os celulares (TURN no coturn).
+logLevel: info
+
+# Antes de deixar transmitir ou assistir, pergunta ao Realys se o passe (token) vale.
+authMethod: http
+authHTTPAddress: __API_URL__/video/auth?k=__VIDEO_SECRET__
+authHTTPExclude:
+  - action: api
+  - action: metrics
+  - action: pprof
+
+# Só o que o Realys usa (o resto fica desligado: menos portas abertas, menos uso do servidor).
+api: no
+metrics: no
+pprof: no
+playback: no
+rtsp: no
+rtmp: no
+srt: no
+
+# WebRTC: o streamer envia (WHIP) e quem assiste recebe (WHEP), com poucos décimos de segundo de atraso.
+# Uma qualidade só, sem converter o vídeo: quase não usa processador.
+webrtc: yes
+webrtcAddress: 127.0.0.1:8889
+webrtcLocalUDPAddress: :8189
+webrtcAdditionalHosts: [__PUBLIC_IP__]
+
+# HLS: fica pronto para quando entrar uma rede de entrega (CDN) com muita gente assistindo.
+hls: yes
+hlsAddress: 127.0.0.1:8888
+hlsVariant: lowLatency
+
+# Lives: uma por caminho (live/<id-da-live>). Sem gravação (não ocupa espaço).
+paths:
+  all_others:

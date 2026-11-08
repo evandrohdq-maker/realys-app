@@ -77,6 +77,7 @@ const initialState = {
   publicSlots: [],
   // SUS do cidadão: Cartão Nacional de Saúde no próprio perfil e consultas agendadas pelo Realys.
   sus: null, // { cns, name, birth, unit }
+  videoCall: null, // chamada de vídeo de saída: { to, name, kind, at } (src/components/LiveVideo.js)
   susBookings: [],
   docsOpen: null, // { mode: 'lista' | 'contrato' | 'receita', draft? } — tela de contratos e receitas
   activeRole: null,
@@ -1277,6 +1278,10 @@ function baseReducer(state, a) {
     }
 
     // ---------- Serviço público e SUS (src/publicServices.js) ----------
+    case 'START_VIDEO_CALL':
+      return { ...state, videoCall: { to: a.to, name: a.name, kind: a.kind || 'video', at: Date.now() } };
+    case 'CLEAR_VIDEO_CALL':
+      return { ...state, videoCall: null };
     case 'OPEN_PUBLIC':
       return { ...state, publicOpen: { id: a.id, tab: a.tab || 'inicio', at: Date.now() } };
     case 'CLOSE_PUBLIC':

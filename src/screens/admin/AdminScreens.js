@@ -1,4 +1,45 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { serverOn } from '../../api';
+import { videoStatus } from '../../video';
+
+// Avisos de contratação: o que ainda precisa ser contratado para o Realys funcionar de verdade.
+function HireNotices() {
+  const [video, setVideo] = useState(null);
+  useEffect(() => {
+    videoStatus(true).then(setVideo).catch(() => setVideo({ on: false }));
+  }, []);
+  const app = serverOn();
+  const items = [
+    {
+      done: app,
+      title: 'Servidor do app (contas, carteira, pedidos)',
+      text: 'VPS Ubuntu (ex.: Hetzner CX22 na Europa, ~€ 4 a 6/mês). Instalação: server/deploy/setup-ubuntu.sh. Depois, colocar o endereço em app.json → extra.apiUrl.',
+    },
+    {
+      done: !!(video && video.on),
+      title: 'Servidor de vídeo (lives e chamadas)',
+      text: 'Hetzner CX22 ou CAX11 na Alemanha/Finlândia: ~€ 4 a 10/mês com 20 TB de tráfego incluídos (~44 mil horas de live assistidas). Pode ser a mesma VPS do app na fase de testes. Passo a passo: server/deploy/video/LEIA-ME.md.',
+    },
+    { done: app, title: 'Domínio', text: 'Ex.: api.seudominio.com.br e video.seudominio.com.br apontando para as VPS (registro A).' },
+  ];
+  if (items.every((i) => i.done)) return null;
+  return (
+    <Section title="⚠️ Avisos: contratação">
+      {items.map((i) => (
+        <Card key={i.title} style={{ borderColor: i.done ? '#1E9E63' : '#C77D12', borderWidth: 1 }}>
+          <Row>
+            <Ionicons name={i.done ? 'checkmark-circle' : 'alert-circle'} size={20} color={i.done ? '#1E9E63' : '#C77D12'} />
+            <Text style={{ color: colors.text, fontWeight: '800', marginLeft: 8, flex: 1 }}>{i.title}</Text>
+            <Badge label={i.done ? 'Contratado' : 'Contratar'} color={i.done ? '#1E9E63' : '#C77D12'} />
+          </Row>
+          {!i.done ? <Text style={{ color: colors.muted, fontSize: 12, marginTop: 6, lineHeight: 17 }}>{i.text}</Text> : null}
+        </Card>
+      ))}
+      <Text style={{ color: colors.muted, fontSize: 11, marginBottom: 8 }}>Até contratar, lives e chamadas seguem no modo demonstração.</Text>
+    </Section>
+  );
+}
 import { View, Text } from 'react-native';
 import { useStore } from '../../store';
 import { platformStats } from '../../data';
@@ -22,6 +63,7 @@ export function AdminOverview() {
   return (
     <Screen>
       <Title sub="Controle geral da plataforma Realys">Administração</Title>
+      <HireNotices />
 
       {/* Chave de segurança dos motoristas: alerta silencioso com GPS e dados da corrida. */}
       {(state.panicAlerts || []).length ? (

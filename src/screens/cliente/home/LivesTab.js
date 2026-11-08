@@ -13,6 +13,7 @@ import { LIVE_CATS, catOf, subOf, liveScore, missionId, LIVE_MISSION_POINTS, LIV
 import { HostChip, useOpenHost } from '../../../components/HostChip';
 import { allLives } from '../../../components/LiveBits';
 import { shopSectorItems } from '../../../shopSectorsData';
+import { useRealLives } from '../../../components/LiveVideo';
 
 const fmt = (n) => Math.round(n).toLocaleString('pt-BR');
 const rank = (a, b) => (b.mine ? 1 : 0) - (a.mine ? 1 : 0) || (b.sponsored ? 1 : 0) - (a.sponsored ? 1 : 0) || liveScore(b) - liveScore(a);
@@ -25,6 +26,8 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
   useEffect(() => setSub('todas'), [f]);
 
   const every = allLives(state);
+  // Lives no ar de verdade (servidor do Realys), quando houver servidor.
+  const real = useRealLives(true);
   const cat = f === 'todas' ? null : catOf(f);
   const inCat = cat ? every.filter((l) => l.cat === cat.key) : every;
   const list = inCat.filter((l) => sub === 'todas' || l.sub === sub).sort(rank);
@@ -49,6 +52,22 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
         </View>
         <Ionicons name="chevron-forward" size={18} color={colors.muted} />
       </TouchableOpacity>
+
+      {real.length ? (
+        <View style={{ marginBottom: 12 }}>
+          <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15, marginBottom: 6 }}>🔴 Ao vivo agora no Realys</Text>
+          {real.map((l) => (
+            <TouchableOpacity key={l.id} onPress={() => onWatch(l)} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 8 }}>
+              <Ionicons name="radio" size={20} color="#FF3B5C" />
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>{l.title}</Text>
+                <Text style={{ color: colors.muted, fontSize: 12 }}>{l.host} · {l.viewers} assistindo</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+            </TouchableOpacity>
+          ))}
+        </View>
+      ) : null}
 
       {/* Classes */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 12 }} contentContainerStyle={{ paddingHorizontal: 16 }}>

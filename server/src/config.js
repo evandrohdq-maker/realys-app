@@ -46,6 +46,13 @@ export function loadConfig(overrides = {}) {
     liveConvertMin: num(env.LIVE_CONVERT_MIN, 10),
     orderFeePct: num(env.ORDER_FEE_PCT, 0), // comissão do Realys sobre vendas (0 na fase de testes)
     withdrawMin: num(env.WITHDRAW_MIN, 10),
+    // Servidor de vídeo próprio (MediaMTX + coturn numa VPS, ver deploy/video/LEIA-ME.md).
+    // Vazio = ainda não contratado: as lives ficam no modo demonstração.
+    videoUrl: env.VIDEO_URL || '', // ex.: https://video.realys.com.br
+    videoSecret: env.VIDEO_SECRET || '', // mesmo valor no MediaMTX (authHTTPAddress ...?k=)
+    videoQuality: env.VIDEO_QUALITY || '720p', // qualidade padrão das lives (480p ou 720p economiza tráfego)
+    turnUrl: env.TURN_URL || '', // ex.: turn:video.realys.com.br:3478?transport=udp,turn:video.realys.com.br:3478?transport=tcp
+    turnSecret: env.TURN_SECRET || '', // mesmo valor do static-auth-secret do coturn
     // Administrador criado na primeira vez que o servidor sobe.
     adminUsername: env.ADMIN_USERNAME || 'admin',
     adminPassword: env.ADMIN_PASSWORD || '',

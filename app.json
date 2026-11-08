@@ -19,6 +19,8 @@
         "USE_BIOMETRIC",
         "USE_FINGERPRINT",
         "RECORD_AUDIO",
+        "CAMERA",
+        "MODIFY_AUDIO_SETTINGS",
         "INTERNET",
         "CALL_PHONE",
         "REQUEST_INSTALL_PACKAGES",
@@ -28,6 +30,13 @@
       ]
     },
     "plugins": [
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          "cameraPermission": "O Realys usa a câmera para as suas lives e chamadas de vídeo.",
+          "microphonePermission": "O Realys usa o microfone nas suas lives e chamadas de vídeo."
+        }
+      ],
       [
         "expo-local-authentication",
         {

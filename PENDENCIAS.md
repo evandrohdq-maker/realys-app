@@ -2,6 +2,15 @@
 
 Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro de 2026.
 
+## ⚠️ CONTRATAR (aviso também no painel do administrador)
+
+- [ ] **Servidor de vídeo (lives e chamadas)**: VPS **Hetzner CX22 ou CAX11**, Alemanha ou Finlândia,
+      ~€ 4 a 10/mês com **20 TB de tráfego incluídos** (~44 mil horas de live assistidas por mês;
+      passou disso, € 1 por TB). O sistema já está pronto: MediaMTX (lives) + coturn (chamadas).
+      Passo a passo em `server/deploy/video/LEIA-ME.md`. Na fase de testes pode ser a mesma VPS do app.
+- [ ] **Servidor do app** (contas, carteira, pedidos): `server/deploy/setup-ubuntu.sh`.
+- [ ] **Domínios**: `api.` e `video.` apontando para as VPS.
+
 ## Quando contratar o servidor (fase de testes, 10 a 20 usuários)
 
 - [ ] **Hospedar o Realys num servidor na nuvem**, para as pessoas acessarem de verdade.
@@ -30,6 +39,13 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] Agendamento do SUS ligado aos sistemas oficiais (cadastro do Cartão Nacional de Saúde e regulação
       de consultas). Hoje os horários são publicados pelas unidades dentro do Realys e o app confere o
       número do cartão pela regra oficial.
+
+## Vídeo (já pronto, falta o servidor)
+
+- [ ] Depois de instalar: testar live real (transmitir num celular, assistir em outro) e chamada 1 para 1.
+- [ ] Com muita gente assistindo: rede de entrega (CDN) com ponto em São Paulo na frente do `/hls/`.
+- [ ] Reprise das lives (opcional do streamer, com prazo para sumir) e anúncios dentro das lives.
+- [ ] Chamadas em grupo (hoje a chamada direta é de 1 para 1).
 
 ## Lotus
 
