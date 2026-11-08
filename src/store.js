@@ -1328,7 +1328,7 @@ function baseReducer(state, a) {
       return { ...state, credentials: (state.credentials || []).filter((c) => c.id !== a.id) };
     case 'CASE_FOLLOW':
       // Profissional decidiu acompanhar o caso (o pedido mostra quem está acompanhando).
-      return { ...state, sosRequests: (state.sosRequests || []).map((x) => (x.id === a.id ? { ...x, followers: [...new Set([...(x.followers || []), a.who])], status: 'em acompanhamento' } : x)) };
+      return { ...state, sosRequests: (state.sosRequests || []).map((x) => (x.id === a.id ? { ...x, followers: [...new Set([...(x.followers || []), a.who])], followerLabels: [...new Set([...(x.followerLabels || []), a.label || 'Profissional verificado'])], status: 'em acompanhamento' } : x)) };
     case 'DATE_SUBSCRIBE': {
       const q = subscribeQuote(state, a.planId, a.pay);
       if (!q.ok) return state;

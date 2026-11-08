@@ -370,6 +370,34 @@ const MIGRATIONS = [
   ALTER TABLE users ADD COLUMN termos_versao TEXT;
   ALTER TABLE users ADD COLUMN termos_aceite_at INTEGER;
   `,
+  // 9: carteira profissional (OAB, CRM, carteira funcional...) com as conferências feitas
+  `
+  CREATE TABLE credenciais (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    prof TEXT NOT NULL,
+    numero TEXT NOT NULL,
+    uf TEXT,
+    orgao TEXT,
+    gov INTEGER NOT NULL DEFAULT 0,
+    discreto INTEGER NOT NULL DEFAULT 0, -- sigilo: a profissão não aparece no perfil público
+    nome_confere INTEGER,
+    rosto_semelhanca REAL,
+    conselho_status TEXT,
+    conselho_info TEXT,
+    email_inst TEXT,
+    email_hash TEXT,
+    email_exp INTEGER,
+    email_tentativas INTEGER NOT NULL DEFAULT 0,
+    email_ok INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'em_analise' CHECK (status IN ('em_analise','aprovado','recusado')),
+    recebe_casos INTEGER NOT NULL DEFAULT 0,
+    motivo TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE INDEX credenciais_user ON credenciais(user_id);
+  `,
 ];
 
 export function openDb(file) {

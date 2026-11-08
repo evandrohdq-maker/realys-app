@@ -56,7 +56,7 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] **Repetir a moderação de texto no servidor** quando posts, comentários e mensagens passarem por ele.
 - [ ] **Canal de denúncia às autoridades** (SaferNet / Polícia Federal) para conteúdo com menores, com
       preservação das provas, e responsável pela moderação definido na empresa.
-- [ ] **Advogado revisar o Termo de Adesão v12** e os Termos do Encontros v0.2 antes do lançamento oficial.
+- [ ] **Advogado revisar o Termo de Adesão v13** e os Termos do Encontros v0.2 antes do lançamento oficial.
 
 ## Date+
 
@@ -95,8 +95,13 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] Convênio, regras de sigilo dos dados (LGPD, poder público) e integração com o 190/192 de cada estado.
 - [ ] Levar os pedidos (sosRequests) para o servidor, com fila da central 24 h.
 
-- [ ] **Carteira profissional:** conferir automaticamente com os conselhos (OAB, CFM/CRM, COREN, CRP...)
-      e com os órgãos públicos; guardar a foto da carteira no servidor com acesso restrito à equipe.
+- [ ] **Carteira profissional (já pronto no código, falta contratar):**
+      - CFM (médicos): webservice oficial, R$ 948/ano → CFM_WS_URL/CFM_WS_KEY; ajustar src/cfm.js ao manual que vem com a chave.
+      - CRP, CRMV, COREN, CRO, CREA: Infosimples → INFOSIMPLES_TOKEN; conferir os caminhos de COREN/CRO/CREA de cada
+        estado e preencher CONSELHO_PATHS. Testar uma consulta real de cada conselho antes de lançar.
+      - OAB: pedir acordo ao Conselho Federal (o CNA não pode ser repassado sem autorização); até lá, conferência manual.
+      - E-mail institucional: contratar o envio (Resend) → RESEND_API_KEY/EMAIL_FROM.
+      - Painel do administrador ler a fila do servidor (/admin/credenciais) quando o servidor estiver no ar.
 - [ ] Casos para profissionais: levar para o servidor, com registro de quem viu e quem acompanhou cada caso.
 
 ## Lotus
@@ -108,6 +113,9 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] "Abrir Lotus" com o **celular bloqueado** (serviço em segundo plano com aviso fixo).
 
 ## Negócio
+
+- [ ] **Alinhar a taxa de presentes do servidor com o app:** no app são 10% descontados do presente; o servidor
+      ainda cobra 5% por cima (GIFT_FEE_PCT). Mudar junto com os testes antes de ligar os pagamentos reais.
 
 - [ ] **Calibrar a Tarifa Realys e as faixas justas** com dados reais da plataforma (src/pricing.js):
       os apps grandes não divulgam mais as tarifas; as faixas de consulta médica geral estão marcadas

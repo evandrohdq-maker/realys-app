@@ -1,6 +1,6 @@
 // Termo de adesão do Realys. Aceito no primeiro acesso (cadastro). Quando o texto mudar, a versão muda,
 // e quem já aceitou é convidado a aceitar de novo.
-export const TERMO_ADESAO_VERSAO = '2026-11-adesao-v12';
+export const TERMO_ADESAO_VERSAO = '2026-11-adesao-v13';
 
 // Itens 1 a 13 tratam da conta e da biometria; 14 em diante, das regras de cada serviço, das taxas,
 // da Lotus e do conteúdo. Texto a ser revisado por advogado antes do lançamento oficial.
@@ -115,7 +115,7 @@ export const TERMO_ADESAO = {
     },
     {
       titulo: '25-B. Carteira profissional e servidores públicos',
-      texto: 'Quem quiser se apresentar no Realys com uma profissão regulamentada precisa cadastrar a carteira dela (por exemplo, OAB para advogados, CRM para médicos, carteira funcional para policiais e bombeiros), que é conferida pela equipe do Realys antes de ser aprovada. Usar profissão ou carteira falsa leva ao encerramento da conta e é crime. O cadastro é opcional. Servidores públicos não prestam serviço para o Realys e não têm vínculo com a plataforma; se escolherem atender alguém pelo Realys, o atendimento é gratuito e sem taxa do Realys. Depois de aprovado, o profissional pode ativar o recebimento de casos (denúncias, pedidos de socorro e emergências da sua área) para analisar e decidir se quer acompanhar. Nesses casos, o nome de quem pediu não é mostrado, a denúncia anônima continua anônima e a localização exata só aparece em perigo ou emergência. Enquanto não houver convênio com o governo, esse é um canal entre o profissional e o cliente, que não substitui os canais oficiais.',
+      texto: 'Quem quiser se apresentar no Realys com uma profissão regulamentada precisa cadastrar a carteira dela (por exemplo, OAB para advogados, CRM para médicos, carteira funcional para policiais e bombeiros), que é conferida pela equipe do Realys antes de ser aprovada. Para isso o Realys confere: (a) o registro no conselho, por consulta automática quando disponível (positivo ou negativo na hora) ou pela equipe; (b) se o nome no conselho e na carteira é o mesmo da conta; (c) se o rosto da foto da carteira é o mesmo do cadastro biométrico (a foto é comparada e descartada); e (d) para servidores públicos, o e-mail institucional do órgão, por código, ou a confirmação direta com o órgão. Usar profissão ou carteira falsa leva ao encerramento da conta e é crime. O cadastro é opcional. O profissional pode pedir sigilo: a profissão não aparece no perfil público e os atendimentos ficam registrados só dentro do Realys; para servidores públicos, o sigilo vem ligado. Servidores públicos não prestam serviço para o Realys e não têm vínculo com a plataforma; se escolherem atender alguém pelo Realys, o atendimento é gratuito e sem taxa do Realys. Depois de aprovado, o profissional pode ativar o recebimento de casos (denúncias, pedidos de socorro e emergências da sua área) para analisar e decidir se quer acompanhar. Nesses casos, o nome de quem pediu não é mostrado, a denúncia anônima continua anônima e a localização exata só aparece em perigo ou emergência. Enquanto não houver convênio com o governo, esse é um canal entre o profissional e o cliente, que não substitui os canais oficiais.',
     },
     {
       titulo: '26. A Lotus, assistente do Realys',

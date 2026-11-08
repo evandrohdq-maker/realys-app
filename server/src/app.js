@@ -1,4 +1,5 @@
 // Monta o servidor: banco, rotas, autenticação, WebSocket.
+import credentialRoutes from './routes/credentials.js';
 import { createServer } from 'node:http';
 import { join } from 'node:path';
 import { openDb } from './db.js';
@@ -68,7 +69,7 @@ export function createApp(cfg) {
     attempts.set(key, a);
   };
   deps.clearLogin = (key) => attempts.delete(key);
-  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes].forEach((r) => r(router, deps));
+  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes].forEach((r) => r(router, deps));
   router.get('/health', () => ({ ok: true, name: 'Realys', time: now() }), { auth: false });
 
   // Administrador inicial (ADMIN_PASSWORD no .env).

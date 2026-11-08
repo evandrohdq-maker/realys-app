@@ -396,5 +396,17 @@ export function makeBiometria({ db, cfg, matcher, cipher }) {
     return { ok: true };
   }
 
-  return { consent, submit, submitScan, status, revoke, queue, decide, purgeImages, approvedTemplates, sealVector, setStatus, log, row, readMedia, verify, verifyScan, consume, periodicOk, verifyDevice, consumeDeviceToken, hasBiometria };
+  // Carteira profissional: o rosto da foto da carteira é o mesmo do cadastro biométrico desta conta?
+  // A foto é comparada e descartada. Devolve { checked, semelhanca, ok }.
+  async function faceOfCard(userId, buf) {
+    const r = row(userId);
+    if (!r || r.status !== 'aprovado' || !r.template || !matcher.ready || !buf || !buf.length) return { checked: false };
+    const e = await matcher.embed(buf);
+    if (!e) return { checked: true, semelhanca: 0, ok: false };
+    const sim = Math.round(similarity(openVec(r.template), e) * 1000) / 1000;
+    log(userId, 'carteira_profissional', `rosto da carteira: ${Math.round(sim * 100)}%`);
+    return { checked: true, semelhanca: sim, ok: sim >= cfg.biometricMatchMin };
+  }
+
+  return { faceOfCard, consent, submit, submitScan, status, revoke, queue, decide, purgeImages, approvedTemplates, sealVector, setStatus, log, row, readMedia, verify, verifyScan, consume, periodicOk, verifyDevice, consumeDeviceToken, hasBiometria };
 }

@@ -39,7 +39,7 @@ export function loadConfig(overrides = {}) {
     // Desligado, o depósito fica pendente até o administrador confirmar.
     testDeposits: bool(env.TEST_DEPOSITS, true),
     // Regras de dinheiro (mesmas do app). Valores em reais.
-    giftFeePct: num(env.GIFT_FEE_PCT, 5),
+    giftFeePct: num(env.GIFT_FEE_PCT, 5), // TODO alinhar com o app: 10% descontado do presente (ver PENDENCIAS)
     giftFeeMin: num(env.GIFT_FEE_MIN, 0.5),
     giftMin: num(env.GIFT_MIN, 5),
     giftMax: num(env.GIFT_MAX, 2000),
@@ -48,6 +48,15 @@ export function loadConfig(overrides = {}) {
     withdrawMin: num(env.WITHDRAW_MIN, 10),
     // Servidor de vídeo próprio (MediaMTX + coturn numa VPS, ver deploy/video/LEIA-ME.md).
     // Vazio = ainda não contratado: as lives ficam no modo demonstração.
+    // E-mail (código do e-mail institucional). Serviço Resend: RESEND_API_KEY e EMAIL_FROM.
+    resendKey: env.RESEND_API_KEY || '',
+    emailFrom: env.EMAIL_FROM || 'Realys <nao-responda@realys.com.br>',
+    // Consulta de médicos do CFM (contratada à parte). Sem chave, a conferência fica manual.
+    cfmWsUrl: env.CFM_WS_URL || '',
+    cfmWsKey: env.CFM_WS_KEY || '',
+    // Consulta automática nos outros conselhos (CRP, CRMV, COREN, CRO, CREA) pelo Infosimples.
+    infosimplesToken: env.INFOSIMPLES_TOKEN || '',
+    conselhoPaths: env.CONSELHO_PATHS || '',
     videoUrl: env.VIDEO_URL || '', // ex.: https://video.realys.com.br
     videoSecret: env.VIDEO_SECRET || '', // mesmo valor no MediaMTX (authHTTPAddress ...?k=)
     videoQuality: env.VIDEO_QUALITY || '720p', // qualidade padrão das lives (480p ou 720p economiza tráfego)

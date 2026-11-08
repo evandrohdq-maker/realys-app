@@ -22,6 +22,22 @@ function HireNotices() {
       text: 'Hetzner CX22 ou CAX11 na Alemanha/Finlândia: ~€ 4 a 10/mês com 20 TB de tráfego incluídos (~44 mil horas de live assistidas). Pode ser a mesma VPS do app na fase de testes. Passo a passo: server/deploy/video/LEIA-ME.md.',
     },
     { done: app, title: 'Domínio', text: 'Ex.: api.seudominio.com.br e video.seudominio.com.br apontando para as VPS (registro A).' },
+    {
+      done: false,
+      title: 'Consulta de médicos do CFM (CRM)',
+      text: 'Webservice oficial do CFM: empresas pagam R$ 948,00 por ano. Pedido em sistemas.cfm.org.br/listamedicos/informacoes (Peticionamento). Colocar CFM_WS_URL e CFM_WS_KEY no .env do servidor.',
+    },
+    {
+      done: false,
+      title: 'Consulta automática dos conselhos (CRP, CRMV, COREN, CRO, CREA)',
+      text: 'Serviço de consultas em fontes públicas (Infosimples, pago por consulta). Colocar INFOSIMPLES_TOKEN no .env. CRP e CRMV são nacionais; COREN, CRO e CREA dependem do estado (conferir no painel deles e preencher CONSELHO_PATHS).',
+    },
+    {
+      done: false,
+      title: 'Envio de e-mail (código do e-mail institucional)',
+      text: 'Resend (resend.com) ou similar, com o domínio do Realys. Colocar RESEND_API_KEY e EMAIL_FROM no .env do servidor.',
+    },
+    { done: false, title: 'Acordo com a OAB', text: 'O Cadastro Nacional dos Advogados não pode ser repassado a terceiros sem autorização: até haver acordo, a equipe confere cada advogado em cna.oab.org.br.' },
   ];
   if (items.every((i) => i.done)) return null;
   return (
@@ -40,7 +56,8 @@ function HireNotices() {
     </Section>
   );
 }
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, Linking } from 'react-native';
+import { CONSELHO_TEXT, CONSULTA_URL, professionOf } from '../../credentials';
 import { useStore } from '../../store';
 import { platformStats } from '../../data';
 import { ORDER_FEE_PCT, SERVICE_FEE_PCT, GIFT_FEE_PCT, GIFT_FUND_SPLIT, orderFee, splitGiftFees } from '../../fees';
@@ -121,8 +138,23 @@ export function AdminOverview() {
               <Card key={c.id}>
                 <Text style={{ color: colors.text, fontWeight: '800' }}>{c.who || 'Usuário'} · {c.label}</Text>
                 <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
-                  {c.doc} nº {c.number}{c.uf ? `/${c.uf}` : ''}{c.orgao ? ` · ${c.orgao}` : ''}{c.gov ? ' · servidor público (gratuito)' : ''}
+                  {c.doc} nº {c.number}{c.uf ? `/${c.uf}` : ''}{c.orgao ? ` · ${c.orgao}` : ''}{c.gov ? ' · servidor público (gratuito)' : ''}{c.discreto ? ' · sigilo' : ''}
                 </Text>
+                <Text style={{ color: colors.text, fontSize: 12, marginTop: 4 }}>
+                  Conselho: {(CONSELHO_TEXT[c.conselho] || CONSELHO_TEXT.manual)[0]}
+                  {c.nomeConfere != null ? ` · nome ${c.nomeConfere ? 'confere' : 'NÃO confere'}` : ''}
+                  {c.rostoSemelhanca != null ? ` · rosto ${Math.round(c.rostoSemelhanca * 100)}%` : ''}
+                  {c.gov ? ` · e-mail institucional ${c.emailOk ? 'confirmado' : 'pendente'}` : ''}
+                </Text>
+                {(() => {
+                  const cons = (professionOf(c.prof) || {}).conselho;
+                  const url = CONSULTA_URL[cons] || `https://www.google.com/search?q=${encodeURIComponent(`consulta inscrição ${cons || ''} ${c.uf || ''} ${c.number}`)}`;
+                  return (
+                    <TouchableOpacity onPress={() => Linking.openURL(url).catch(() => {})} style={{ marginTop: 6 }}>
+                      <Text style={{ color: colors.primary, fontWeight: '700' }}>Abrir a consulta do {c.gov ? 'órgão' : cons || 'conselho'} ({c.number})</Text>
+                    </TouchableOpacity>
+                  );
+                })()}
                 <Row style={{ marginTop: 10 }}>
                   <TouchableOpacity onPress={() => dispatch({ type: 'CRED_SET', id: c.id, patch: { status: 'aprovado', reviewedAt: Date.now() } })} style={{ marginRight: 18 }}>
                     <Text style={{ color: colors.success, fontWeight: '700' }}>Aprovar (conferido)</Text>
@@ -145,7 +177,7 @@ export function AdminOverview() {
                 <Text style={{ color: colors.text, fontWeight: '800', flex: 1 }}>{x.tipo} · {x.protocol}</Text>
                 <Badge label={new Date(x.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} color={x.kind === 'emergencia' ? '#D35400' : '#6B4BA1'} />
               </Row>
-              <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>{x.anon ? 'Anônima' : x.who || 'Usuário'}{x.responder ? ` · ${x.responder} avisada` : ''}</Text>
+              <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>{x.anon ? 'Anônima' : x.who || 'Usuário'}{x.responder ? ` · ${x.responder} avisada` : ''}{(x.followerLabels || []).length ? ` · acompanhando: ${x.followerLabels.join(', ')}` : ''}</Text>
               {x.texto ? <Text style={{ color: colors.text, fontSize: 13, marginTop: 4 }}>{x.texto}</Text> : null}
               {x.onde ? <Text style={{ color: colors.text, fontSize: 13, marginTop: 2 }}>Local informado: {x.onde}</Text> : null}
               <Text style={{ color: colors.muted, fontSize: 12, marginTop: 4 }}>

@@ -38,3 +38,29 @@ export const roughPlace = (r) => {
   const parts = a.split(' · ');
   return parts.length > 1 ? parts.slice(1).join(' · ') : a ? 'local informado' : 'sem local';
 };
+
+export const isGovEmail = (e) => /^[^\s@]+@([a-z0-9-]+\.)+(gov|jus|mp|leg|mil|def)\.br$/i.test(String(e || '').trim());
+
+// Resultado da consulta no conselho: [título, explicação, cor].
+export const CONSELHO_TEXT = {
+  ativo: ['✔ Registro ativo no conselho', 'O conselho confirmou o seu registro.', '#1E9E63'],
+  nao_encontrado: ['✖ Registro não encontrado no conselho', 'Confira o número e a UF. Se estiverem certos, a equipe confere manualmente.', '#C0392B'],
+  irregular: ['✖ Registro irregular no conselho', 'O conselho informa que o registro está suspenso, cancelado ou inativo.', '#C0392B'],
+  nome_diferente: ['✖ O nome no conselho é diferente do nome da conta', 'A carteira precisa ser de quem é dono da conta.', '#C0392B'],
+  verificar: ['Registro encontrado, situação a conferir', 'A equipe confere a situação com o conselho.', '#C77D12'],
+  manual: ['Conferência com o conselho pela equipe', 'A consulta automática deste conselho ainda não está ligada; a equipe confere.', '#C77D12'],
+  erro: ['Conselho fora do ar agora', 'A equipe confere assim que o site do conselho voltar.', '#C77D12'],
+  orgao_publico: ['Conferência com o órgão público', 'Servidor público: confirmamos pelo e-mail institucional ou direto com o órgão.', '#C77D12'],
+};
+
+// Consulta pública de cada conselho (para a equipe conferir no painel).
+export const CONSULTA_URL = {
+  OAB: 'https://cna.oab.org.br/',
+  CRM: 'https://portal.cfm.org.br/busca-medicos/',
+  CRP: 'https://cadastro.cfp.org.br/',
+  CRMV: 'https://www.cfmv.gov.br/busca-por-profissionais/servicos/2018/10/09/',
+};
+
+// Profissões que podem aparecer no perfil público: só aprovadas e sem sigilo.
+export const publicCredentials = (state, userId) =>
+  (state.credentials || []).filter((c) => c.status === 'aprovado' && !c.discreto && (!userId || c.userId === userId));
