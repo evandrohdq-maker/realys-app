@@ -112,6 +112,10 @@ export function PhrasesEditor({ initial, onSave, onSkip, saveLabel = 'Salvar e c
       {own ? <TextInput style={st.input} value={question} onChangeText={(v) => setQuestion(v.slice(0, 70))} placeholder="Sua pergunta" placeholderTextColor={colors.muted} /> : null}
       {answer({ which: "allow", value: allow, set: setAllow, label: "Resposta que libera", hint: "Com ela, a compra ou contratação é feita. Ex.: branco." })}
       {answer({ which: "duress", value: duress, set: setDuress, label: "Resposta de segurança", hint: "Use só se alguém estiver obrigando você (assalto, abordagem). A Lotus mostra que deu tudo certo, mas nada é comprado e nenhum dinheiro sai; em silêncio, ela avisa a segurança com a sua localização e liga para o 190. Ex.: preto." })}
+      <View style={st.trato}>
+        <Text style={st.ansLabel}>Como saber o que aconteceu</Text>
+        <Text style={st.ansHint}>{'Resposta que libera: a Lotus diz "Contrato finalizado com sucesso" (ou "Compra finalizada com sucesso"). Foi feito de verdade.\n\nResposta de segurança: a Lotus diz "Contrato confirmado com sucesso, parabéns" (ou "Compra confirmada com sucesso, parabéns"). Nada foi feito: o "parabéns" é o sinal, só seu, de que a segurança já foi acionada. Para quem está do lado, as duas parecem um sucesso normal.'}</Text>
+      </View>
       <Text style={[st.p, { marginTop: 12, color: '#B4532A' }]}>Atenção: chamada falsa (brincadeira, teste ou trote) leva ao bloqueio imediato da conta e do saldo, além de ser crime.</Text>
       {err ? <Text style={{ color: colors.danger, fontWeight: '700', marginTop: 4 }}>{err}</Text> : null}
       <TouchableOpacity style={st.btn} onPress={go}>

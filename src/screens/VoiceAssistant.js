@@ -157,20 +157,30 @@ function dropRefused(text) {
 
 // Interpreta o comando. Devolve { reply, nav?, call?, list?, results?, pending? }.
 // Na versão final isso vira uma IA no servidor, com os cadastros reais dos prestadores.
+// Frase final da confirmação. A de verdade diz "finalizado(a) com sucesso"; a da resposta de segurança
+// diz "confirmado(a) com sucesso, parabéns". Para quem está do lado, as duas soam como sucesso; para o
+// cliente, o "parabéns" é o sinal de que a segurança foi acionada.
+const DONE = {
+  compra: ['Compra finalizada com sucesso.', 'Compra confirmada com sucesso, parabéns.'],
+  contrato: ['Contrato finalizado com sucesso.', 'Contrato confirmado com sucesso, parabéns.'],
+  operacao: ['Operação finalizada com sucesso.', 'Operação confirmada com sucesso, parabéns.'],
+};
+const doneLine = (kind, duress = false) => DONE[kind][duress ? 1 : 0];
+
 // Coação: a tela mostra o mesmo "deu certo" de sempre, mas nada é comprado, chamado ou pago.
 function duressReply(state, dispatch, pending) {
-  let reply = 'Certo, confirmado.';
+  let reply = doneLine('operacao', true);
   let what = 'Confirmação sob coação';
   if (pending.type === 'checkout') {
     dispatch({ type: 'CHECKOUT_FAKE' });
-    reply = `Compra finalizada, ${brl(pending.total)}, com pagamento protegido. Acompanhe em Pedidos.`;
+    reply = `${doneLine('compra', true)} ${brl(pending.total)}, com pagamento protegido. Acompanhe em Pedidos.`;
     what = `Compra de ${brl(pending.total)} (simulada, nada foi cobrado)`;
   } else if (pending.type === 'convertLive') {
-    reply = `Pronto, ${brl(state.liveCredits)} em créditos de live viraram moeda Realys no seu saldo.`;
+    reply = `${doneLine('operacao', true)} ${brl(state.liveCredits)} em créditos de live viraram moeda Realys no seu saldo.`;
     what = 'Conversão de créditos (simulada)';
   } else if (pending.type === 'service') {
     const call = buildServiceCall(state, pending.address || '', pending.serviceKey, pending.providerId);
-    if (call) reply = callReply(call);
+    reply = call ? `${doneLine('contrato', true)} ${callReply(call)}` : doneLine('contrato', true);
     what = `Contratação de ${(call && call.serviceLabel) || 'serviço'} (simulada, ninguém foi chamado)`;
   }
   return { reply, duress: { what, at: Date.now() } };
@@ -256,7 +266,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
       call.status = `${call.serviceLabel} agendado para ${when}`;
     }
     dispatch({ type: 'REQUEST_RIDE', ride: call });
-    return { call, reply: callReply(call) };
+    return { call, reply: `${doneLine('contrato')} ${callReply(call)}` };
   };
   // Por voz ela NÃO executa: deixa tudo pronto e mostra o botão (Agendar, Confirmar visita,
   // Contratar ou Chamar agora). Só o toque no botão coloca a decisão em prática.
@@ -385,7 +395,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
     if (buy) {
       if (pending.total > state.wallet + (state.giftCredits || 0)) return { reply: 'Seu saldo não dá para essa compra. Adicione saldo na carteira e eu finalizo.' };
       dispatch({ type: 'CHECKOUT' });
-      return { reply: `Compra finalizada, ${brl(pending.total)}, com pagamento protegido. Acompanhe em Pedidos.` };
+      return { reply: `${doneLine('compra')} ${brl(pending.total)}, com pagamento protegido. Acompanhe em Pedidos.` };
     }
   }
   // Créditos de live: converter só com confirmação.
@@ -395,7 +405,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
     if (conv) {
       if (state.liveCredits < 10) return { reply: 'Você precisa de pelo menos 10 créditos de live para converter.' };
       dispatch({ type: 'CONVERT_LIVE_CREDITS', amount: state.liveCredits });
-      return { reply: `Pronto, ${brl(state.liveCredits)} em créditos de live viraram moeda Realys no seu saldo.` };
+      return { reply: `${doneLine('operacao')} ${brl(state.liveCredits)} em créditos de live viraram moeda Realys no seu saldo.` };
     }
   }
   if (pending && NO.test(t)) return { reply: 'Tudo bem. Se precisar, é só chamar.' };
@@ -1364,7 +1374,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     const call = buildServiceCall(state, '', p.service);
     call.provider = p;
     dispatch({ type: 'REQUEST_RIDE', ride: call });
-    run(`Chamar ${p.name}`, { reply: callReply(call), call });
+    run(`Chamar ${p.name}`, { reply: `${doneLine('contrato')} ${callReply(call)}`, call });
   };
 
   const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [36, 0] });
