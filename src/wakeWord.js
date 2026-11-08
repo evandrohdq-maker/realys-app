@@ -14,8 +14,13 @@ import { musicPlaying } from './musicGuard';
 // a música). Confere de tempos em tempos e volta a ouvir sozinho quando a música para.
 const MUSIC_CHECK_MS = 4000;
 
-// Pausa depois de "abrir Lotus" para abrir a assistente (no máximo meio segundo).
-const WAKE_PAUSE_MS = 450;
+// A caixa da Lotus abre NA HORA em que o "abrir Lotus" é reconhecido (sem esperar a pessoa terminar
+// de falar). O resto do pedido continua sendo ouvido pelo MESMO microfone, já com a caixa aberta:
+// assim nenhuma palavra se perde na troca de microfone.
+// Depois do pedido, espera esta pausa para entender que a pessoa terminou de falar:
+const WAKE_REST_PAUSE_MS = 900;
+// Disse só "abrir Lotus": espera o pedido por até 3 segundos.
+const WAKE_EMPTY_WAIT_MS = 3000;
 
 // "abrir Lotus" é reconhecido pelo SOM (ver src/wakeMatch.js), não por uma lista de grafias:
 // o celular escreve "Lótus", "lotos", "lots", "abre", "abra"... e todos contam.
@@ -47,7 +52,7 @@ export function wakeWordSupported() {
 }
 
 // Componente invisível que escuta enquanto `enabled` for verdadeiro.
-export function WakeWordListener({ enabled, onWake, onListening, onFatal, onMusic }) {
+export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, onListening, onFatal, onMusic }) {
   const on = useRef(false);
   const running = useRef(false);
   const woke = useRef(null); // { rest, timer }
@@ -145,18 +150,22 @@ export function WakeWordListener({ enabled, onWake, onListening, onFatal, onMusi
     if (!heard) return;
     const { said, m } = heard;
     const rest = said.slice(m.end).replace(/^[\s,.!?]+/, '');
-    if (event.isFinal) return fire(rest);
-    // Ouviu "abrir Lotus": abre assim que a pessoa faz uma pausa de meio segundo.
+    // Primeira vez que ouviu "abrir Lotus": abre a caixa AGORA (o pedido vem depois).
+    if (!woke.current) onWakeStart && onWakeStart();
+    onWakeHeard && onWakeHeard(rest);
+    if (event.isFinal && rest) return fire(rest);
     // Cada palavra nova reinicia a contagem, para não cortar o pedido no meio.
     if (woke.current) clearTimeout(woke.current.timer);
-    woke.current = { rest, timer: setTimeout(() => woke.current && fire(woke.current.rest), WAKE_PAUSE_MS) };
+    woke.current = { rest, timer: setTimeout(() => woke.current && fire(woke.current.rest), rest ? WAKE_REST_PAUSE_MS : WAKE_EMPTY_WAIT_MS) };
   });
 
   useSpeechRecognitionEvent('end', () => {
     running.current = false;
     if (!on.current) return;
+    // O celular desligou o microfone logo depois do "abrir Lotus": a caixa (já aberta) assume e ouve.
+    if (woke.current) return fire(woke.current.rest);
     onListening && onListening(false);
-    if (on.current && appActive.current) scheduleRestart(errors.current > 4 ? 5000 : 350);
+    if (on.current && appActive.current) scheduleRestart(errors.current > 4 ? 5000 : 150);
   });
 
   useSpeechRecognitionEvent('error', (event) => {

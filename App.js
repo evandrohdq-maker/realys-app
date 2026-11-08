@@ -132,6 +132,9 @@ function Shell() {
   const lastBack = useRef(0);
   const live = useRef({});
   const [voice, setVoice] = useState(false);
+  // "abrir Lotus" ouvido: a caixa já abriu e o mesmo microfone segue ouvindo o resto do pedido.
+  const [wakeCapture, setWakeCapture] = useState(false);
+  const [wakeLive, setWakeLive] = useState('');
   const [acaoPendente, setAcaoPendente] = useState(null); // mensagem da Lotus aguardando sim/não (só chat)
   const [cartaoLotus, setCartaoLotus] = useState(null); // cartão de confirmação com botões (finalização, dinheiro)
   const [menu, setMenu] = useState(false);
@@ -384,8 +387,10 @@ function Shell() {
         onClose={() => {
           setVoice(false);
           setWakeCmd(null);
+          setWakeCapture(false);
         }}
         initialCommand={wakeCmd}
+        wakeLive={wakeLive}
         handsFree={state.handsFree}
         onNavigate={(go) => {
           setVoice(false);
@@ -396,17 +401,31 @@ function Shell() {
         canOpen={canOpen}
       />
       <WakeWordListener
-        enabled={state.handsFree && !voice && !menu && !noting && !searching}
+        enabled={state.handsFree && (!voice || wakeCapture) && !menu && !noting && !searching}
         onListening={setHearing}
         onMusic={setMusicOn}
+        onWakeStart={() => {
+          // Abre a caixa da Lotus na hora (menos de meio segundo depois do "abrir Lotus").
+          setWakeLive('');
+          setWakeCapture(true);
+          setWakeCmd({ waiting: true, text: '', at: Date.now() });
+          setVoice(true);
+        }}
+        onWakeHeard={setWakeLive}
         onWake={(text) => {
+          setWakeCapture(false);
+          // Caixa já aberta pelo "abrir Lotus": se o pedido for resolvido sem ela, fecha.
+          const closeBox = () => {
+            setVoice(false);
+            setWakeCmd(null);
+          };
           // "abrir Lotus, me leva pro Agro": vai direto, sem abrir a caixa da Lotus.
           // "abrir Lotus, abre o perfil do Diego": abre o perfil direto.
           const prof = text ? findProfile(stripWake(text), state) : null;
           if (prof && prof.open) {
             speakSoft(openReply(prof.open, prof.others));
             dispatch({ type: prof.open.kind === 'company' ? 'OPEN_COMPANY' : 'OPEN_PROFILE', id: prof.open.id });
-            return;
+            return closeBox();
           }
           // Ação pendente de confirmação: "sim" executa, "não" cancela; outra fala descarta a pergunta.
           if (acaoPendente && text) {
@@ -415,11 +434,11 @@ function Shell() {
             if (/^(sim|confirma|confirmo|pode sim|pode confirmar|isso|claro|ok|beleza)\b/.test(resp)) {
               speakSoft(acaoPendente.reply);
               dispatch({ type: 'MANDADOS_UPDATE', updater: acaoPendente.updater });
-              return;
+              return closeBox();
             }
             if (/^(nao|não|cancela|cancelar|deixa)\b/.test(resp)) {
               speakSoft('Cancelado. Nada foi enviado.');
-              return;
+              return closeBox();
             }
           }
           // Mandados de serviço: "finaliza com o código QR-…" e "manda no chat: …" (dentro do prazo).
@@ -430,19 +449,20 @@ function Shell() {
               const updater = acao.updater;
               setCartaoLotus({ ...acao.cartao, confirmar: () => dispatch({ type: 'MANDADOS_UPDATE', updater }) });
               speakSoft(acao.reply);
-              return;
+              return closeBox();
             }
             if (acao.updater && acao.pergunta) {
               setAcaoPendente(acao);
               speakSoft(acao.pergunta);
-              return;
+              return closeBox();
             }
             speakSoft(acao.reply);
-            return;
+            return closeBox();
           }
           const nav = text && !prof ? findNavigation(stripWake(text)) : null;
           if (nav && (nav.back || canOpen(nav.go.tab))) {
             speakSoft(navReply(nav));
+            closeBox();
             return voiceGo(nav);
           }
           setWakeCmd({ text, at: Date.now() });

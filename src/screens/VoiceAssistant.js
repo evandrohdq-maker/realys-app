@@ -526,7 +526,7 @@ function FadeItem({ show, children }) {
   return <Animated.View style={{ opacity: o }}>{children}</Animated.View>;
 }
 
-export default function VoiceAssistant({ visible, onClose, initialCommand, handsFree, onNavigate, onVoiceNav, canOpen }) {
+export default function VoiceAssistant({ visible, onClose, initialCommand, wakeLive, handsFree, onNavigate, onVoiceNav, canOpen }) {
   const { state, dispatch } = useStore();
   const [text, setText] = useState('');
   const [history, setHistory] = useState([]);
@@ -1087,7 +1087,14 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     }
     prepareVoice();
     setOpenBase(history.length);
-    Animated.timing(enter, { toValue: 1, duration: 170, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+    Animated.timing(enter, { toValue: 1, duration: 140, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+    // Aberta pelo "abrir Lotus": o microfone do "abrir Lotus" continua ouvindo o resto do pedido.
+    // A caixa só mostra "Ouvindo…" e o que está sendo dito (sem ligar outro microfone por cima).
+    if (initialCommand && initialCommand.waiting) {
+      setPhase('listening');
+      setPartial('');
+      return;
+    }
     if (initialCommand && initialCommand.text) {
       run(initialCommand.text);
       return;
@@ -1096,6 +1103,10 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     const t = setTimeout(listen, 120);
     return () => clearTimeout(t);
   }, [visible, initialCommand && initialCommand.at]);
+
+  useEffect(() => {
+    if (visible && initialCommand && initialCommand.waiting) setPartial(wakeLive || '');
+  }, [wakeLive]);
 
   // Chamar um prestador sempre passa pela Lotus (contato taxado pela plataforma).
   const callProvider = (p) => {
@@ -1112,7 +1123,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
   const win = Dimensions.get('window');
 
   return (
-    <Modal visible={visible} animationType="fade" transparent onRequestClose={() => (preview ? setPreview(null) : close())} statusBarTranslucent>
+    <Modal visible={visible} animationType="none" transparent onRequestClose={() => (preview ? setPreview(null) : close())} statusBarTranslucent>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
         <Pressable style={{ flex: 1 }} onPress={close} />
         <Animated.View style={[styles.sheet, { backgroundColor: skyBg(sky), paddingBottom: 16 + insets.bottom, opacity: enter, transform: [{ translateY }] }]}>
