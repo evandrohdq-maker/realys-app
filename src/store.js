@@ -1310,6 +1310,15 @@ function baseReducer(state, a) {
       return { ...state, panicAlerts: (state.panicAlerts || []).map((x) => (x.id === a.id ? { ...x, status: 'atendido', closedAt: Date.now() } : x)) };
     case 'LOAD_BLOCK':
       return { ...state, accountBlock: a.block || null };
+    // Lotus Denúncia e Lotus Emergência (abertos pela voz). Os pedidos vão para a central de segurança.
+    case 'OPEN_SOS_FLOW':
+      return { ...state, sosFlow: { kind: a.kind, at: Date.now() } };
+    case 'CLOSE_SOS_FLOW':
+      return { ...state, sosFlow: null };
+    case 'SOS_REQUEST':
+      return { ...state, sosRequests: [a.req, ...(state.sosRequests || [])] };
+    case 'SOS_UPDATE':
+      return { ...state, sosRequests: (state.sosRequests || []).map((x) => (x.id === a.id ? { ...x, ...a.data } : x)) };
     case 'DATE_SUBSCRIBE': {
       const q = subscribeQuote(state, a.planId, a.pay);
       if (!q.ok) return state;

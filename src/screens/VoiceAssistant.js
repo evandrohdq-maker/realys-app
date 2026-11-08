@@ -23,6 +23,7 @@ import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences, forS
 import { voiceGateOn, voicePrintSupported, recordingFor, verifySpeech, REJECT_TEXT, tratoOf, phrasesOf } from '../voicePrint';
 import { openLine } from '../lotusTrato';
 import { answerKind } from '../voicePhrases';
+import FaceCheck, { FACE_ABOVE } from '../components/FaceCheck';
 import { isPanic } from '../panic';
 import { lotusRefusal } from '../lotusConduta';
 import { findPublicOrg, PUBLIC_ORGS } from '../publicServices';
@@ -167,6 +168,19 @@ const DONE = {
 };
 const doneLine = (kind, duress = false) => DONE[kind][duress ? 1 : 0];
 
+// Valor do que está sendo confirmado (para a regra da biometria facial acima de R$ 1.000).
+function amountOf(p, state) {
+  if (!p) return 0;
+  if (p.type === 'checkout') return p.total || 0;
+  if (p.type === 'convertLive') return state.liveCredits || 0;
+  if (p.type === 'service') {
+    const prov = (state.providers || []).find((x) => x.id === p.providerId);
+    return prov && typeof prov.price === 'number' ? prov.price : 0;
+  }
+  return 0;
+}
+const FACE_TEXT = 'Para valores acima de mil reais, falta a biometria facial. Olhe para a câmera.';
+
 // Coação: a tela mostra o mesmo "deu certo" de sempre, mas nada é comprado, chamado ou pago.
 function duressReply(state, dispatch, pending) {
   let reply = doneLine('operacao', true);
@@ -193,6 +207,15 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   // Regras de conduta: pedidos para trair, brigar, discriminar, mandar mensagem ou mexer em dinheiro sozinha.
   const refused = depth === 0 ? lotusRefusal(text) : null;
   if (refused) return { reply: refused };
+  // "Lotus, denúncia" (violência, pedido de socorro) e "Lotus, emergência" (saúde): sem aba, só pela voz.
+  if (depth === 0 && !(pending && pending.secq)) {
+    const n0 = norm(stripWake(text));
+    const denunciaPost = /\b(perfil|post|publicacao|comentario|anuncio|loja|live|golpe na plataforma)\b/.test(n0);
+    if (!denunciaPost && /^(lotus )?(denuncia|denunciar|fazer (uma )?denuncia)\b|\b(quero|preciso|vou) (fazer (uma )?denuncia|denunciar)\b|\b(estou|to|tô) sendo (agredida|agredido|ameacada|ameacado)|\bviolencia domestica\b|\bmaria da penha\b|\bme (bateu|agrediu)\b/.test(n0))
+      return { openSos: { kind: 'denuncia' }, reply: 'Certo.' };
+    if (/^(lotus )?emergencia\b|\bemergencia medica\b|\b(estou|to|tô) passando mal\b|\b(infarto|desmaiou|desmaio|convulsao|nao consigo respirar|falta de ar forte|engasgad[oa])\b/.test(n0))
+      return { openSos: { kind: 'emergencia' }, reply: 'Abrindo a emergência. Se for grave, ligue 192.' };
+  }
   if (depth === 0) {
     confirmedNow = false;
     const secq = secqOf();
@@ -204,6 +227,8 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
       delete base.secqMiss;
       const k = answerKind(text, secq);
       // Resposta de segurança: finge que deu certo, nada é cobrado, e avisa a segurança em silêncio.
+      // Acima de R$ 1.000: falta a biometria facial (nos dois casos, para parecer igual a quem está do lado).
+      if (k && amountOf(base, state) > FACE_ABOVE) return { reply: FACE_TEXT, pending: base, needFace: { duress: k === 'seguranca' } };
       if (k === 'seguranca') return duressReply(state, dispatch, base);
       if (k === 'libera') {
         // Segue como uma confirmação comum (a resposta, como "branco", não vira pesquisa).
@@ -723,6 +748,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     return [...herLog.current.map((x) => x.text), now || ''].join(' ');
   };
   const [paused, setPaused] = useState(null);
+  const [faceAsk, setFaceAsk] = useState(null); // biometria facial pendente (acima de R$ 1.000)
   // Prestador cuja prévia do perfil de trabalho está aberta (toque num resultado).
   const [preview, setPreview] = useState(null);
   // Céu da caixa conforme o tempo no local do usuário (GPS): sol, lua, nublado ou chuvoso.
@@ -1095,6 +1121,15 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
       onClose();
       return;
     }
+    if (res.openSos) {
+      setPending(null);
+      setPhase('idle');
+      // Denúncia: discreta, sem fala alta e sem ficar no histórico da Lotus.
+      if (res.openSos.kind !== 'denuncia') speakSoft(res.reply);
+      dispatch({ type: 'OPEN_SOS_FLOW', kind: res.openSos.kind });
+      onClose();
+      return;
+    }
     if (res.openDocs) {
       setPending(null);
       setPhase('idle');
@@ -1124,6 +1159,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     // Pergunta sobre a lista que ela mostrou: mantém a lista na tela.
     if (!res.list && res.pending && res.pending.type === 'service' && pendingRef.current && pendingRef.current.type === 'service') res = { ...res, list: res.pending.options };
     setPending(res.pending || null);
+    if (res.needFace) setFaceAsk(res.needFace);
     setHistory((h) => [{ at: Date.now(), q: cmd, ...res }, ...h]);
     say(res, splitSentences(forSpeech(res.reply)), 0);
   };
@@ -1620,6 +1656,24 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
           color={MOODS[mood].mid}
         />
       </KeyboardAvoidingView>
+      <FaceCheck
+        visible={!!faceAsk}
+        purpose="compra"
+        title="Biometria facial: acima de R$ 1.000"
+        onDone={(ok) => {
+          const fa = faceAsk;
+          setFaceAsk(null);
+          // Resposta de segurança: o rosto não importa, a tela mostra que deu certo e a segurança é avisada.
+          if (fa && fa.duress) return run('sim, confirmo', duressReply(state, dispatch, pendingRef.current || {}));
+          if (ok) return run('sim, confirmo', null, null, true);
+          run('não', { reply: 'Biometria não confirmada. Não confirmei nada.' });
+        }}
+        onClose={() => {
+          const fa = faceAsk;
+          setFaceAsk(null);
+          if (fa && fa.duress) run('sim, confirmo', duressReply(state, dispatch, pendingRef.current || {}));
+        }}
+      />
     </Modal>
   );
 }

@@ -8,6 +8,9 @@
 import { GIFT_FEE_PCT } from './gifts';
 import { REALYS_FEE_PCT } from './serviceVisits';
 
+// Serviços prestados pelo governo (SUS, UPA, UBS, hospitais públicos, Bombeiros, Defesa Civil, SAMU,
+// polícia): sem nenhuma taxa do Realys, nem para o cidadão nem para o órgão.
+export const PUBLIC_SERVICE_FEE_PCT = 0;
 export const ORDER_FEE_PCT = 10; // sobre cada pedido, descontado do vendedor (o cliente não paga a mais)
 export const SERVICE_FEE_PCT = REALYS_FEE_PCT; // sobre a taxa de visita da contratação de serviço
 export { GIFT_FEE_PCT };

@@ -206,3 +206,10 @@ export function prescriptionHtml(doc) {
 export const docHtml = (doc) => (doc.kind === 'receita' ? prescriptionHtml(doc) : contractHtml(doc));
 export const docTitle = (doc) => (doc.kind === 'receita' ? `Receita · ${doc.patient.name}` : `${contractType(doc.type).label} · ${doc.parties[1].name}`);
 export const allSigned = (doc) => doc.parties.every((p) => p.signedAt);
+
+// Valor do contrato em reais ("1.500,00", "R$ 2500", "1500/mês" → 1500). Sem valor, 0.
+export function contractValue(doc) {
+  const v = String((doc && doc.fields && doc.fields.valor) || '');
+  const m = v.match(/(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d{1,2}))?/);
+  return m ? Number(m[1].replace(/\./g, '') + (m[2] ? '.' + m[2] : '')) : 0;
+}

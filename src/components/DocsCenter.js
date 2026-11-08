@@ -8,8 +8,9 @@ import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-spe
 import { useStore } from '../store';
 import { colors } from '../theme';
 import { specialists } from '../extraData';
-import { CONTRACT_TYPES, contractType, contractBody, canPrescribe, parseDictation, docTitle, allSigned } from '../documents';
+import { CONTRACT_TYPES, contractType, contractBody, canPrescribe, parseDictation, docTitle, allSigned, contractValue } from '../documents';
 import SecurityQuestion from './SecurityQuestion';
+import FaceCheck, { FACE_ABOVE } from './FaceCheck';
 import { securityQuestion } from '../voicePrint';
 import { triggerDuress } from '../duress';
 import { hashOf, signWithBiometric, sharePdf, printDoc, startGovbr, pickSignedPdf, shareFile } from '../documentsIO';
@@ -308,10 +309,19 @@ function DocView({ doc }) {
   };
   // Quem cadastrou a voz do dono responde a pergunta de segurança depois da biometria.
   const [ask, setAsk] = useState(null); // índice da parte assinando
+  // Contrato acima de R$ 1.000: biometria facial + pergunta de segurança pela voz (as duas, sempre).
+  const [face, setFace] = useState(null); // índice da parte fazendo a biometria facial
+  const big = !rx && contractValue(doc) > FACE_ABOVE;
   const signHere = (i) =>
     run('sign' + i, async () => {
+      if (big && !securityQuestion())
+        return Alert.alert(
+          'Falta cadastrar a sua voz',
+          'Contratos acima de R$ 1.000 precisam da biometria facial e da sua voz (pergunta de segurança). Cadastre em Perfil › Voz do titular e volte para assinar.'
+        );
       const ok = await signWithBiometric(docTitle(doc));
       if (!ok) return;
+      if (big) return setFace(i);
       if (securityQuestion()) return setAsk(i);
       dispatch({ type: 'DOC_SIGN', id: doc.id, index: i, method: 'realys' });
       Alert.alert('Contrato finalizado com sucesso.', 'Sua assinatura foi registrada.');
@@ -431,6 +441,18 @@ function DocView({ doc }) {
         </>
       )}
       <SecurityQuestion secq={securityQuestion()} visible={ask !== null} onResult={answered} onCancel={() => setAsk(null)} />
+      <FaceCheck
+        visible={face !== null}
+        purpose="contrato"
+        refId={doc.id}
+        title="Biometria facial: contrato acima de R$ 1.000"
+        onDone={(ok) => {
+          const i = face;
+          setFace(null);
+          if (ok) setAsk(i);
+        }}
+        onClose={() => setFace(null)}
+      />
     </ScrollView>
   );
 }

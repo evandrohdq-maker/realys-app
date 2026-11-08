@@ -39,6 +39,7 @@ import { PublicOrgModal } from './src/components/PublicOrg';
 import { VideoCallHost } from './src/components/LiveVideo';
 import TermoReaceite from './src/components/TermoReaceite';
 import AccountBlocked from './src/components/AccountBlocked';
+import LotusSOS from './src/components/LotusSOS';
 import { SoftAlertHost, installSoftAlert } from './src/components/SoftAlert';
 
 // Avisos no estilo do Realys no app inteiro (no lugar da caixa cinza do Android).
@@ -465,6 +466,7 @@ function Shell() {
       <PublicOrgModal />
       <VideoCallHost />
       <TermoReaceite />
+      <LotusSOS />
       <AccountBlocked />
       <WakeWordListener
         enabled={state.handsFree && (!voice || wakeCapture) && !menu && !noting && !searching && !state.docsOpen}

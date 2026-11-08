@@ -112,6 +112,26 @@ export function AdminOverview() {
         </Section>
       ) : null}
 
+      {/* Lotus Denúncia e Lotus Emergência: pedidos feitos pela voz, com protocolo, GPS e endereço. */}
+      {(state.sosRequests || []).length ? (
+        <Section title="🆘 Denúncias e emergências">
+          {state.sosRequests.map((x) => (
+            <Card key={x.id} style={{ borderColor: x.kind === 'emergencia' ? '#D35400' : '#6B4BA1', borderWidth: 1.5 }}>
+              <Row style={{ justifyContent: 'space-between' }}>
+                <Text style={{ color: colors.text, fontWeight: '800', flex: 1 }}>{x.tipo} · {x.protocol}</Text>
+                <Badge label={new Date(x.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} color={x.kind === 'emergencia' ? '#D35400' : '#6B4BA1'} />
+              </Row>
+              <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>{x.anon ? 'Anônima' : x.who || 'Usuário'}{x.responder ? ` · ${x.responder} avisada` : ''}</Text>
+              {x.texto ? <Text style={{ color: colors.text, fontSize: 13, marginTop: 4 }}>{x.texto}</Text> : null}
+              {x.onde ? <Text style={{ color: colors.text, fontSize: 13, marginTop: 2 }}>Local informado: {x.onde}</Text> : null}
+              <Text style={{ color: colors.muted, fontSize: 12, marginTop: 4 }}>
+                {x.address ? `🏠 ${x.address}` : x.point ? `📍 ${x.point.lat.toFixed(5)}, ${x.point.lon.toFixed(5)}` : x.kind === 'denuncia' && !x.point ? 'sem localização' : '📍 buscando localização…'}
+              </Text>
+            </Card>
+          ))}
+        </Section>
+      ) : null}
+
       <Row style={{ marginHorizontal: -4, marginBottom: 8 }}>
         <Stat label="Usuários verificados" value={fmt(s.users)} color={colors.primary} />
         <Stat label="Empresas (CNPJ)" value={fmt(s.companies)} />

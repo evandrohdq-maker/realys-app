@@ -56,7 +56,7 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] **Repetir a moderação de texto no servidor** quando posts, comentários e mensagens passarem por ele.
 - [ ] **Canal de denúncia às autoridades** (SaferNet / Polícia Federal) para conteúdo com menores, com
       preservação das provas, e responsável pela moderação definido na empresa.
-- [ ] **Advogado revisar o Termo de Adesão v8** e os Termos do Encontros v0.2 antes do lançamento oficial.
+- [ ] **Advogado revisar o Termo de Adesão v9** e os Termos do Encontros v0.2 antes do lançamento oficial.
 
 ## Date+
 
@@ -77,6 +77,19 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 
 - [ ] Contrato assinado sob coação: marcar o PDF/verificação do contrato como sem validade também no
       servidor (hoje a marca fica no celular) e avisar a outra parte só depois da apuração.
+
+## Polícia Inteligente (proposta para o governo)
+
+- [ ] Montar a proposta para cadastrar os órgãos de polícia **estaduais (PM/Brigada, Polícia Civil),
+      federais (PF, PRF) e municipais (Guarda Municipal)** no Realys.
+- [ ] Policial em serviço abre o app no turno ("estou na ativa"), com GPS ligado e identidade funcional
+      verificada (matrícula + biometria facial).
+- [ ] Pedido de emergência do cidadão (Lotus Denúncia "estou em perigo", resposta de segurança, chave do
+      motorista): vai para a central do órgão e notifica o **policial mais próximo da vítima**, com a
+      localização e o protocolo. Só para emergência; dúvidas ficam com a Lotus.
+- [ ] O mesmo modelo para SAMU, Bombeiros e Defesa Civil (Lotus Emergência → socorrista mais perto).
+- [ ] Convênio, regras de sigilo dos dados (LGPD, poder público) e integração com o 190/192 de cada estado.
+- [ ] Levar os pedidos (sosRequests) para o servidor, com fila da central 24 h.
 
 ## Lotus
 

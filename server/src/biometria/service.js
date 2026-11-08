@@ -172,7 +172,7 @@ export function makeBiometria({ db, cfg, matcher, cipher }) {
   }
 
   const openVec = (tpl) => new Float32Array(new Uint8Array(cipher.open(tpl)).buffer);
-  const PURPOSES = ['aceite', 'finalizacao', 'periodica', 'venda', 'saque'];
+  const PURPOSES = ['aceite', 'finalizacao', 'periodica', 'venda', 'saque', 'contrato', 'compra'];
   const NEEDS_CALL = ['aceite', 'finalizacao', 'venda'];
 
   // Verificação do dia a dia (aceite, finalização, a cada 2 h). A foto é comparada e apagada na hora:
