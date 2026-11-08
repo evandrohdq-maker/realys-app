@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View, Text, Modal, TouchableOpacity, StyleSheet, ScrollView, Platform, KeyboardAvoidingView,
-  Animated, Easing, TextInput, Pressable, Dimensions,
+  Animated, Easing, TextInput, Pressable, Dimensions, AppState,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -666,6 +666,17 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     setPhase('idle');
     onClose();
   };
+  // Minimizou o app (ou bloqueou a tela): a Lotus para de ouvir e de falar e a caixa fecha,
+  // para não gastar bateria. O comando de voz só funciona com o app aberto na tela.
+  const closeRef = useRef(close);
+  closeRef.current = close;
+  useEffect(() => {
+    if (!visible) return;
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s !== 'active') closeRef.current();
+    });
+    return () => sub.remove();
+  }, [visible]);
 
   // Fala a resposta frase por frase, ouvindo "Lotus" ao mesmo tempo para poder ser pausada.
   const say = (res, parts, from) => {

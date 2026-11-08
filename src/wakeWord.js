@@ -80,6 +80,7 @@ export function WakeWordListener({ enabled, onWake, onListening, onFatal }) {
   };
   const scheduleRestart = (ms) => {
     clearTimeout(restartTimer.current);
+    if (!appActive.current) return; // em segundo plano não religa o microfone
     restartTimer.current = setTimeout(start, ms);
   };
   const fire = (rest) => {
@@ -103,7 +104,12 @@ export function WakeWordListener({ enabled, onWake, onListening, onFatal }) {
     const sub = AppState.addEventListener('change', (s) => {
       appActive.current = s === 'active';
       if (appActive.current) start();
-      else stop();
+      else {
+        // App minimizado ou tela bloqueada: desliga o microfone e cala a Lotus (economiza bateria).
+        stop();
+        stopSpeaking();
+        onListening && onListening(false);
+      }
     });
     return () => sub.remove();
   }, []);
@@ -117,6 +123,7 @@ export function WakeWordListener({ enabled, onWake, onListening, onFatal }) {
 
   useSpeechRecognitionEvent('result', (event) => {
     if (!on.current) return;
+    if (!appActive.current) return stop();
     const heard = hearWake(event.results);
     // Chamou "Lotus" enquanto ela fala (caixa fechada, ex.: "Abrindo Agro"): ela se cala na hora.
     if (!heard && !woke.current && running.current && hearCall(event.results)) stopSpeaking();
@@ -134,7 +141,7 @@ export function WakeWordListener({ enabled, onWake, onListening, onFatal }) {
     running.current = false;
     if (!on.current) return;
     onListening && onListening(false);
-    if (on.current) scheduleRestart(errors.current > 4 ? 5000 : 350);
+    if (on.current && appActive.current) scheduleRestart(errors.current > 4 ? 5000 : 350);
   });
 
   useSpeechRecognitionEvent('error', (event) => {
