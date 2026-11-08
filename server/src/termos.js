@@ -1,6 +1,6 @@
 // Termo de adesão do Realys. Aceito no primeiro acesso (cadastro). Quando o texto mudar, a versão muda,
 // e quem já aceitou é convidado a aceitar de novo.
-export const TERMO_ADESAO_VERSAO = '2026-11-adesao-v11';
+export const TERMO_ADESAO_VERSAO = '2026-11-adesao-v12';
 
 // Itens 1 a 13 tratam da conta e da biometria; 14 em diante, das regras de cada serviço, das taxas,
 // da Lotus e do conteúdo. Texto a ser revisado por advogado antes do lançamento oficial.
@@ -112,6 +112,10 @@ export const TERMO_ADESAO = {
     {
       titulo: '25-A. Lotus Denúncia e Lotus Emergência',
       texto: 'Ao dizer "Lotus, denúncia", você abre, de forma discreta, o pedido de socorro e de denúncia: (a) "estou em perigo agora", que envia na hora a sua localização à central de segurança do Realys e mostra os botões para ligar para o 190 e para o Ligue 180; (b) a denúncia, que pode ser anônima, recebe um número de protocolo e é registrada na central de segurança do Realys; e (c) orientações sobre a Lei Maria da Penha e a rede de apoio. Essa tela não fica no histórico da Lotus. A denúncia feita no Realys não substitui o registro nos canais oficiais (190, Ligue 180, Disque 100 ou delegacia), que o aplicativo indica em seguida. Ao dizer "Lotus, emergência", você abre a emergência médica, com ligação para o SAMU (192) e os Bombeiros (193), o envio da sua localização e os prontos-atendimentos mais próximos. A Lotus não dá diagnóstico nem substitui o atendimento médico. Quando houver convênio com os órgãos públicos, os pedidos poderão ser enviados direto ao profissional mais próximo (socorrista, ambulância ou policial). Policiais e demais servidores públicos (como socorristas do SAMU, bombeiros e agentes da Defesa Civil) podem se cadastrar com a carteira funcional e, se quiserem, ativar o recebimento desses alertas; eles não prestam serviço para o Realys, não pagam taxa e não têm vínculo com a plataforma. Esses canais são só para situações reais: uso falso ou por brincadeira segue a regra de chamada falsa do item 18.',
+    },
+    {
+      titulo: '25-B. Carteira profissional e servidores públicos',
+      texto: 'Quem quiser se apresentar no Realys com uma profissão regulamentada precisa cadastrar a carteira dela (por exemplo, OAB para advogados, CRM para médicos, carteira funcional para policiais e bombeiros), que é conferida pela equipe do Realys antes de ser aprovada. Usar profissão ou carteira falsa leva ao encerramento da conta e é crime. O cadastro é opcional. Servidores públicos não prestam serviço para o Realys e não têm vínculo com a plataforma; se escolherem atender alguém pelo Realys, o atendimento é gratuito e sem taxa do Realys. Depois de aprovado, o profissional pode ativar o recebimento de casos (denúncias, pedidos de socorro e emergências da sua área) para analisar e decidir se quer acompanhar. Nesses casos, o nome de quem pediu não é mostrado, a denúncia anônima continua anônima e a localização exata só aparece em perigo ou emergência. Enquanto não houver convênio com o governo, esse é um canal entre o profissional e o cliente, que não substitui os canais oficiais.',
     },
     {
       titulo: '26. A Lotus, assistente do Realys',

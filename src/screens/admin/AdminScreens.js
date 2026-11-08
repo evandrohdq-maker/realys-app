@@ -112,6 +112,30 @@ export function AdminOverview() {
         </Section>
       ) : null}
 
+      {/* Carteiras profissionais para conferir com o conselho/órgão antes de liberar os casos. */}
+      {(state.credentials || []).filter((c) => c.status === 'em_analise').length ? (
+        <Section title="🪪 Carteiras profissionais para conferir">
+          {state.credentials
+            .filter((c) => c.status === 'em_analise')
+            .map((c) => (
+              <Card key={c.id}>
+                <Text style={{ color: colors.text, fontWeight: '800' }}>{c.who || 'Usuário'} · {c.label}</Text>
+                <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
+                  {c.doc} nº {c.number}{c.uf ? `/${c.uf}` : ''}{c.orgao ? ` · ${c.orgao}` : ''}{c.gov ? ' · servidor público (gratuito)' : ''}
+                </Text>
+                <Row style={{ marginTop: 10 }}>
+                  <TouchableOpacity onPress={() => dispatch({ type: 'CRED_SET', id: c.id, patch: { status: 'aprovado', reviewedAt: Date.now() } })} style={{ marginRight: 18 }}>
+                    <Text style={{ color: colors.success, fontWeight: '700' }}>Aprovar (conferido)</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => dispatch({ type: 'CRED_SET', id: c.id, patch: { status: 'recusado', receiveCases: false, reviewedAt: Date.now() } })}>
+                    <Text style={{ color: colors.danger, fontWeight: '700' }}>Recusar</Text>
+                  </TouchableOpacity>
+                </Row>
+              </Card>
+            ))}
+        </Section>
+      ) : null}
+
       {/* Lotus Denúncia e Lotus Emergência: pedidos feitos pela voz, com protocolo, GPS e endereço. */}
       {(state.sosRequests || []).length ? (
         <Section title="🆘 Denúncias e emergências">

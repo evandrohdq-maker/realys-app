@@ -66,7 +66,7 @@ const PATTERNS = [
   ['hi', /^(oi+|ola|ei|e ai|eai|opa|salve|alo|hey)\b/],
 ];
 
-const FILLER = /^[\s,.!?;:-]*(lotus|lotos|lotis|lottus|realys|minha (querida|amiga)|querida|amiga)?[\s,.!?;:-]*/;
+const FILLER = /^[\s,.!?;:-]*(lotus|lotos|lotis|lottus|lote|loti|realys|minha (querida|amiga)|querida|amiga)?[\s,.!?;:-]*/;
 
 // Devolve { reply, rest } se a fala começa com uma saudação; senão null.
 export function greetingReply(text, userName, date = new Date(), trato = null) {

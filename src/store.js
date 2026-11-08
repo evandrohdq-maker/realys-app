@@ -1319,6 +1319,16 @@ function baseReducer(state, a) {
       return { ...state, sosRequests: [a.req, ...(state.sosRequests || [])] };
     case 'SOS_UPDATE':
       return { ...state, sosRequests: (state.sosRequests || []).map((x) => (x.id === a.id ? { ...x, ...a.data } : x)) };
+    // Carteira profissional (src/credentials.js).
+    case 'CRED_ADD':
+      return { ...state, credentials: [{ ...a.cred, id: newId('cr'), status: 'em_analise', receiveCases: false, userId: state.user ? state.user.id : null, who: state.user ? state.user.name : null, at: Date.now() }, ...(state.credentials || [])] };
+    case 'CRED_SET':
+      return { ...state, credentials: (state.credentials || []).map((c) => (c.id === a.id ? { ...c, ...a.patch } : c)) };
+    case 'CRED_REMOVE':
+      return { ...state, credentials: (state.credentials || []).filter((c) => c.id !== a.id) };
+    case 'CASE_FOLLOW':
+      // Profissional decidiu acompanhar o caso (o pedido mostra quem está acompanhando).
+      return { ...state, sosRequests: (state.sosRequests || []).map((x) => (x.id === a.id ? { ...x, followers: [...new Set([...(x.followers || []), a.who])], status: 'em acompanhamento' } : x)) };
     case 'DATE_SUBSCRIBE': {
       const q = subscribeQuote(state, a.planId, a.pay);
       if (!q.ok) return state;

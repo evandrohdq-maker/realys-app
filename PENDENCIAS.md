@@ -56,7 +56,7 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] **Repetir a moderação de texto no servidor** quando posts, comentários e mensagens passarem por ele.
 - [ ] **Canal de denúncia às autoridades** (SaferNet / Polícia Federal) para conteúdo com menores, com
       preservação das provas, e responsável pela moderação definido na empresa.
-- [ ] **Advogado revisar o Termo de Adesão v11** e os Termos do Encontros v0.2 antes do lançamento oficial.
+- [ ] **Advogado revisar o Termo de Adesão v12** e os Termos do Encontros v0.2 antes do lançamento oficial.
 
 ## Date+
 
@@ -94,6 +94,10 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
       alertas se quiser, **não presta serviço para o Realys** e não paga taxa (Lotus Emergência → socorrista mais perto).
 - [ ] Convênio, regras de sigilo dos dados (LGPD, poder público) e integração com o 190/192 de cada estado.
 - [ ] Levar os pedidos (sosRequests) para o servidor, com fila da central 24 h.
+
+- [ ] **Carteira profissional:** conferir automaticamente com os conselhos (OAB, CFM/CRM, COREN, CRP...)
+      e com os órgãos públicos; guardar a foto da carteira no servidor com acesso restrito à equipe.
+- [ ] Casos para profissionais: levar para o servidor, com registro de quem viu e quem acompanhou cada caso.
 
 ## Lotus
 

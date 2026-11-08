@@ -19,6 +19,7 @@ import BiometriaScreen from './BiometriaScreen';
 import DemoScreen from './DemoScreen';
 import { ProfileEditor, PrivacyPanel, StudioPanel, FutureIcon, audienceLabel } from '../components/ProfileStudio';
 import { Photo } from '../components/ui';
+import Credentials from '../components/Credentials';
 import { SocialBadge, ProfileQuizModal } from '../components/SocialClass';
 
 const ROLE_ICON = { cliente: '🛍️', empresa: '🏪', prestador: '🛵', fornecedor: '🚚', admin: '🛡️' };
@@ -352,6 +353,9 @@ export default function ProfileScreen({ navigate, explore }) {
 
       {/* Cartão do SUS: fica no perfil e é conferido quando o cidadão agenda na rede pública. */}
       <SusCard />
+
+      {/* Carteira profissional (OAB, CRM, carteira policial...): opcional, conferida pela equipe. */}
+      <Credentials />
 
       <Card onPress={() => dispatch({ type: 'OPEN_DOCS' })}>
         <Row>

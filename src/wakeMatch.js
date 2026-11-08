@@ -88,8 +88,23 @@ function motoIsLotus(words, i) {
   return !(prev && MOTO_BEFORE.has(prev)) && !(next && MOTO_AFTER.has(next));
 }
 
+// O celular também escreve "Lotus" como "lote"/"loti". Só vale como o nome dela quando não é um lote de
+// terreno: "um lote", "lote de 300 metros", "comprar lote", "lote à venda" continuam sendo lote.
+const LOTE = new Set(['lote', 'lotes', 'loti', 'lotis', 'loto', 'lotu', 'lotz']);
+const LOTE_BEFORE = new Set(['um', 'uns', 'o', 'os', 'do', 'dos', 'de', 'da', 'no', 'num', 'meu', 'meus', 'seu', 'esse', 'este', 'aquele', 'terreno', 'terrenos', 'comprar', 'compro', 'compra', 'vender', 'vendo', 'venda', 'alugar', 'aluguel', 'ver', 'procuro', 'procurando', 'quero', 'tem', 'mostra', 'mostrar', 'algum', 'cada', 'novo', 'primeiro', 'segundo', 'mercadoria', 'produtos', 'produto', 'estoque', 'pedido', 'grande', 'pequeno']);
+const LOTE_AFTER = new Set(['de', 'do', 'da', 'em', 'no', 'na', 'a', 'com', 'para', 'pra', 'por', 'terreno', 'venda', 'vendo', 'urbano', 'rural', 'comercial', 'residencial', 'barato', 'baratos', 'quitado', 'metros', 'm', 'mil', 'numero', 'n', 'quadra', 'esquina', 'plano', 'inteiro', 'vazio', 'murado', 'escriturado']);
+function loteIsLotus(words, i) {
+  if (!LOTE.has(words[i].w)) return false;
+  const prev = words[i - 1] && words[i - 1].w;
+  const next = words[i + 1] && words[i + 1].w;
+  if (next && (LOTE_AFTER.has(next) || /^\d/.test(next))) return false;
+  if (prev && LOTE_BEFORE.has(prev)) return false;
+  return true;
+}
+
 function lotusAt(words, i) {
   if (motoIsLotus(words, i)) return { dist: 1, end: words[i].end, next: i + 1 };
+  if (loteIsLotus(words, i)) return { dist: 1, end: words[i].end, next: i + 1 };
   let best = null;
   for (let n = 1; n <= 2 && i + n <= words.length; n++) {
     const part = words.slice(i, i + n);
