@@ -56,9 +56,23 @@ const YES = /^(sim|pode|pode sim|quero|chama|chame|manda|ok|beleza|isso|confirmo
 const NO = /^(nao|deixa|cancela|agora nao|nenhum|esquece)\b/;
 const CALL_NOW = /\b(chama|chame|manda|mande|solicita)\b/;
 // Lotus em pausa: "continua" retoma de onde parou, "repete" fala tudo de novo.
-const RESUME = /^(continua\w*|continue|pode continuar|segue|siga|prossegue|prossiga|pode falar|termina\w*|volta a falar|fala o resto)\b/;
-const REPEAT = /^(repete|repita|fala de novo|de novo|nao entendi|como)\b/;
-const HOLD = /^(espera|pera|aguarda|aguarde|pausa|pause|um momento|so um minuto|calma)\b/;
+// Só vale quando é a frase INTEIRA ("continua", "pode continuar"): "como faço pra…" ou
+// "segue pro centro" são pedidos novos, não ordem de voltar à fala antiga.
+const RESUME = /^(continua|continue|pode continuar|continua falando|segue|siga|prossegue|prossiga|pode falar|termina|termina de falar|volta a falar|fala o resto)$/;
+const REPEAT = /^(repete|repita|repete por favor|fala de novo|repete de novo|nao entendi|como e que e)$/;
+const HOLD = /^(espera|pera|aguarda|aguarde|pausa|pause|um momento|so um minuto|calma)$/;
+const bare = (c) => c.replace(/[^a-z\s]/g, ' ').replace(/\b(lotus|por favor|ai)\b/g, ' ').replace(/\s+/g, ' ').trim();
+// Depois de interromper a Lotus: o pedido novo só aproveita o assunto anterior (a lista de
+// motoristas, o carrinho…) se for continuação dele: "sim", "não", "o mais barato", "a segunda",
+// "agenda pra amanhã". Qualquer outro pedido é entendido do zero.
+const isFollowUp = (c, p) => {
+  if (!p) return false;
+  const n = bare(c).split(' ').filter(Boolean).length;
+  if (n <= 3 && (YES.test(c) || NO.test(c))) return true;
+  if (p.type === 'service' && (FOLLOW.test(c) || LATER.test(c))) return true;
+  if (p.type === 'checkout' && /continu/.test(c)) return true;
+  return !!(p.options && pickOption(c, p.options));
+};
 // Perguntas sobre as opções que ela acabou de mostrar (sem precisar repetir o serviço).
 const FOLLOW = /(mais barat|menor preco|mais em conta|economic|mais pert|mais proxim|melhor (nota|avaliad)|mais bem avaliad|maior nota|\boutr[oa]\b|tem mais|mais alguem|quanto (cobra|custa|fica|e|sai)|preco|valor|nota dele|nota dela|avaliac|quanto tempo|demora|chega em|distancia|longe|que carro|qual carro|placa|o que (ele|ela) faz)/;
 const kmText = (p) => String(p.distanceKm.toFixed(1)).replace('.', ',');
@@ -377,13 +391,15 @@ function bestHeard(alts) {
 
 // Chamar "Lotus" enquanto ela fala: espera esta pausa depois do nome para pegar o novo pedido
 // ("Lotus… me leva pro Agro"). Se a pessoa disser só "Lotus", ela abre o microfone para ouvir.
-const CALL_PAUSE_MS = 900;
+// (1,4 s: dá tempo de respirar no meio da frase sem ela cortar o pedido pela metade.)
+const CALL_PAUSE_MS = 1400;
 // Depois de ouvir só "Lotus", espera o pedido por até 3 segundos.
 const CALL_WAIT_MS = 3000;
 // Interromper a Lotus no meio da fala: assim que o microfone percebe a voz da pessoa por cima da
 // dela (volume mais alto que o eco dela, ou palavras que não são da fala dela), ela PARA de falar
-// na hora e ouve. Se em DUCK_WAIT_MS ninguém pedir nada, ela continua da frase em que parou.
-const DUCK_WAIT_MS = 2600;
+// na hora e ouve. Ela NÃO volta sozinha para a fala antiga: só se em DUCK_WAIT_MS o microfone não
+// pegou palavra nenhuma (foi barulho, não gente). Se a pessoa falou, ela ouve até o fim e atende.
+const DUCK_WAIT_MS = 3500;
 const VOL_LEARN_MS = 700; // primeiro ela aprende o volume do próprio eco no microfone
 const VOL_JUMP = 2.2; // quanto a voz da pessoa precisa passar do eco dela
 const VOL_MIN = 5;
@@ -543,7 +559,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     if (!supported) return;
     // Se a própria resposta tem o nome "Lotus", o microfone poderia ouvir a voz dela e se interromper.
     if (findCall(reply)) return;
-    bargeIn.current = { on: true, heard: false, rest: '', timer: null, tries: 0, ducked: false, base: '', last: '', ema: null, vStart: 0, loud: 0 };
+    bargeIn.current = { on: true, heard: false, rest: '', timer: null, tries: 0, ducked: false, base: '', last: '', kept: '', any: false, ema: null, vStart: 0, loud: 0 };
     setEar('wait');
     setEarHeard('');
     startBargeRecognizer();
@@ -594,9 +610,23 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     clearTimeout(b.timer);
     b.timer = setTimeout(unduck, DUCK_WAIT_MS);
   };
+  // O que a pessoa disse depois que ela parou (somando o que o microfone pegou antes de reiniciar).
+  const saidAfterDuck = (full) => {
+    const b = bargeIn.current;
+    const after = b.base && full.startsWith(b.base) ? full.slice(b.base.length) : full;
+    return `${b.kept || ''} ${after}`.trim();
+  };
   const unduck = () => {
     const b = bargeIn.current;
     if (!b.on || b.heard || !b.ducked) return;
+    // A pessoa falou alguma coisa depois que ela parou: é um pedido novo. Atende o que ouviu
+    // (ou abre o microfone de novo) e NUNCA volta para a frase antiga.
+    if (b.any) {
+      b.rest = stripEcho(saidAfterDuck(b.last || ''), b.spoken || '');
+      b.heard = true;
+      return finishBargeIn();
+    }
+    // Silêncio total: foi barulho (buzina, música), não gente. Aí sim ela continua de onde parou.
     stopBargeIn();
     level.setValue(0);
     if (!resume(false)) setPhase(restPhase());
@@ -623,8 +653,13 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
         setPhase('listening');
       } else if (b.ducked) {
         // Já parou de falar: o que vier de novo (depois do que já estava no microfone) é a pessoa.
-        const after = b.base && full.startsWith(b.base) ? full.slice(b.base.length) : full;
-        const fresh = stripEcho(after, b.spoken || '');
+        const fresh = stripEcho(saidAfterDuck(full), b.spoken || '');
+        if (wordsOf(fresh).length) {
+          // Tem gente falando: ela não volta mais para a fala antiga e espera a pessoa terminar.
+          b.any = true;
+          clearTimeout(b.timer);
+          b.timer = setTimeout(unduck, CALL_PAUSE_MS);
+        }
         if (foreignCount(fresh, b.spoken) < 1 || wordsOf(fresh).length < 2) return;
         b.heard = true;
         b.rest = fresh;
@@ -635,10 +670,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
       }
     }
     if (call) b.rest = stripEcho(call.rest, b.spoken || '');
-    else if (b.ducked) {
-      const after = b.base && full.startsWith(b.base) ? full.slice(b.base.length) : full;
-      b.rest = stripEcho(after, b.spoken || '') || b.rest;
-    }
+    else if (b.ducked) b.rest = stripEcho(saidAfterDuck(full), b.spoken || '') || b.rest;
     setPartial(b.rest || '');
     clearTimeout(b.timer);
     // Disse só "Lotus": continua com o MESMO microfone aberto esperando o pedido (até 3 s de
@@ -696,6 +728,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
       return true;
     };
     speakParts(parts, from, {
+      alive: () => id === speechId.current, // interrompida antes de começar: não fala a resposta antiga
       onPart: (i) => {
         if (id === speechId.current && talking.current) talking.current.index = i;
       },
@@ -725,23 +758,32 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     // "quero ver Lotus usadas" → o celular trocou "motos" por "Lotus".
     let cmd = fixMotos(cmdIn);
     // Em pausa: "continua" retoma da frase em que parou; "repete" fala tudo de novo; "espera" segue pausada.
+    // Foi interrompida? Então o pedido novo é entendido do zero, sem o raciocínio da fala antiga.
+    let topic = pendingRef.current;
     if (!forced && pausedRef.current) {
-      const c = norm(stripWake(cmd));
+      const c = bare(norm(stripWake(cmd)));
       setPartial('');
       if (RESUME.test(c) && resume(false)) return;
       if (REPEAT.test(c) && resume(true)) return;
       if (HOLD.test(c)) return setPhase('paused');
-      setPaused(null); // pedido novo: a fala antiga fica para trás, mas o assunto (pending) continua valendo
+      // Pedido novo: a fala antiga é descartada de vez (não volta mais). O assunto anterior só
+      // continua se a frase for continuação dele ("o mais barato", "sim", "agenda pra amanhã").
+      setPaused(null);
+      if (!isFollowUp(c, topic)) {
+        topic = null;
+        setPending(null);
+        pendingRef.current = null;
+      }
     }
     setPhase('thinking');
     setPartial('');
-    let res = forced || interpret(cmd, state, dispatch, pendingRef.current, canOpen);
+    let res = forced || interpret(cmd, state, dispatch, topic, canOpen);
     // O celular ouviu errado? Tenta as outras opções que ele ouviu antes de dizer "não encontrei".
     const empty = (r) => !!r.miss;
     if (!forced && empty(res) && alts && alts.length > 1) {
       for (const alt of alts) {
         if (alt === cmd) continue;
-        const r = interpret(fixMotos(alt), state, dispatch, pendingRef.current, canOpen);
+        const r = interpret(fixMotos(alt), state, dispatch, topic, canOpen);
         if (!empty(r)) {
           res = r;
           cmd = alt;
@@ -914,6 +956,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
       if (b.heard) return finishBargeIn();
       // O celular parou de ouvir sozinho, mas ela ainda está falando: volta a ouvir na hora,
       // quantas vezes precisar (só desiste se ele falhar muitas vezes seguidas sem nem começar).
+      // Ela já tinha parado e a pessoa estava falando: guarda o que já ouviu antes de reiniciar o microfone.
+      if (b.ducked && b.last) b.kept = saidAfterDuck(b.last);
       b.base = '';
       b.last = '';
       if (b.tries++ < 12) setTimeout(() => b.on && !b.heard && startBargeRecognizer(), 80);
@@ -934,6 +978,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
         stopBargeIn();
         return setEar('off');
       }
+      // Ela já tinha parado e a pessoa estava falando: guarda o que já ouviu antes de reiniciar o microfone.
+      if (b.ducked && b.last) b.kept = saidAfterDuck(b.last);
       b.base = '';
       b.last = '';
       if (b.tries++ < 12) setTimeout(() => b.on && !b.heard && startBargeRecognizer(), code === 'no-speech' || code === 'speech-timeout' ? 80 : 250);
@@ -1318,3 +1364,4 @@ const styles = StyleSheet.create({
 
 // Para testes no computador.
 export const _interpret = interpret;
+export const _afterInterrupt = { isFollowUp, bare, RESUME, REPEAT, norm };

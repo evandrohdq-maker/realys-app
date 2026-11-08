@@ -90,8 +90,11 @@ export function forSpeech(text) {
 
 // Fala as frases a partir da frase `from`. onPart(i) avisa qual frase começou.
 // onDone só no fim da última; onStopped/onError uma vez só (quando ela é parada).
-export async function speakParts(parts, from = 0, { onPart, onDone, onStopped, onError } = {}) {
+// alive(): se devolver false, a fala foi cancelada (a pessoa interrompeu) e nada é falado.
+export async function speakParts(parts, from = 0, { onPart, onDone, onStopped, onError, alive } = {}) {
   const voice = await prepareVoice();
+  // Enquanto preparava a voz, a pessoa chamou "Lotus": não começa a resposta que ficou para trás.
+  if (alive && !alive()) return onStopped && onStopped();
   Speech.stop();
   let over = false;
   const once = (fn) => () => {
