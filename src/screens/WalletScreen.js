@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { colors, brl, soft } from '../theme';
-import { GIFT_FEE_PCT, LIVE_CONVERT_MIN, liveGiftOf } from '../gifts';
+import { GIFT_FEE_PCT, LIVE_CONVERT_MIN, liveGiftOf, cashoutQuote, CASHOUT_MIN_POINTS, CASHOUT_POINTS_PER_REAL, CASHOUT_FEE_PCT } from '../gifts';
 import { POINTS_PER_RATING, POINTS_COMMENT_BONUS, POINT_RULES } from '../rewards';
 import { BoostOffers, MyBoosts } from '../components/Boost';
 import { levelOf, nextLevel, ORDERS_FOR_BONUS, BONUS, STAMPS_FOR_REWARD, STAMP_BACK_PCT, initialLoyalty } from '../loyalty';
@@ -37,6 +37,38 @@ const fmtDate = (ts) => {
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} · ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 };
 const toNumber = (t) => Number(String(t || '').replace(/[^\d,.]/g, '').replace(/\./g, '').replace(',', '.')) || 0;
+
+// Saque dos presentes recebidos: barra até 50.000 pontos e botão de sacar (10% para o Realys).
+function GiftCashout() {
+  const { state, dispatch } = useStore();
+  const q = cashoutQuote(state);
+  const pct = Math.min(1, q.points / CASHOUT_MIN_POINTS);
+  const pts = (n) => n.toLocaleString('pt-BR');
+  const sacar = () => {
+    if (!q.ok) return Alert.alert('Ainda não dá para sacar', `Faltam ${pts(CASHOUT_MIN_POINTS - q.points)} pontos (${brl((CASHOUT_MIN_POINTS - q.points) / CASHOUT_POINTS_PER_REAL)} em presentes recebidos).`);
+    Alert.alert('Sacar presentes recebidos?', `${pts(q.points)} pontos = ${brl(q.gross)}.\nTaxa do Realys (${CASHOUT_FEE_PCT}%): ${brl(q.fee)}.\nVocê recebe ${brl(q.net)} por Pix na chave cadastrada.`, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: `Sacar ${brl(q.net)}`, onPress: () => (dispatch({ type: 'GIFT_CASHOUT', dest: 'Pix cadastrado' }), Alert.alert('Saque pedido ✅', `${brl(q.net)} vão cair por Pix.`)) },
+    ]);
+  };
+  return (
+    <View style={{ marginTop: 10, backgroundColor: 'rgba(168,121,10,0.08)', borderRadius: 12, padding: 10 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Text style={{ color: colors.text, fontWeight: '800', fontSize: 13 }}>Saque de presentes recebidos</Text>
+        <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 13 }}>{pts(q.points)} / {pts(CASHOUT_MIN_POINTS)}</Text>
+      </View>
+      <View style={{ height: 8, borderRadius: 4, backgroundColor: 'rgba(0,0,0,0.08)', marginTop: 8, overflow: 'hidden' }}>
+        <View style={{ width: `${pct * 100}%`, height: 8, backgroundColor: colors.primary }} />
+      </View>
+      <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6, lineHeight: 15 }}>
+        Cada R$ 1 recebido em presente (inclusive nas lives) = {CASHOUT_POINTS_PER_REAL} pontos. A partir de {pts(CASHOUT_MIN_POINTS)} pontos ({brl(CASHOUT_MIN_POINTS / CASHOUT_POINTS_PER_REAL)}) você saca, com {CASHOUT_FEE_PCT}% para o Realys. Pontos que a plataforma dá (avaliar, assistir, comprar) não viram saque.
+      </Text>
+      <TouchableOpacity onPress={sacar} style={{ marginTop: 8, alignSelf: 'flex-start', backgroundColor: q.ok ? colors.primary : 'rgba(0,0,0,0.08)', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 }}>
+        <Text style={{ color: q.ok ? '#fff' : colors.muted, fontWeight: '800', fontSize: 12.5 }}>{q.ok ? `Sacar ${brl(q.net)}` : 'Sacar (ainda não liberado)'}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
 
 export default function WalletScreen({ visible, onClose }) {
   const { state, dispatch } = useStore();
@@ -113,8 +145,9 @@ export default function WalletScreen({ visible, onClose }) {
               </View>
             </View>
             <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6, lineHeight: 16 }}>
-              Só dentro do Realys: lojas, Food, Shop, Tecnologia, Agro e contratação de serviços. Não podem ser sacados. São usados primeiro, antes do saldo.
+              Para usar dentro do Realys: lojas, Food, Shop, Tecnologia, Agro e contratação de serviços. São usados primeiro, antes do saldo. Para sacar, junte {CASHOUT_MIN_POINTS.toLocaleString('pt-BR')} pontos em presentes recebidos (abaixo).
             </Text>
+            <GiftCashout />
             {state.gifts.slice(0, 6).map((g) => (
               <View key={g.id} style={styles.giftRow}>
                 <Text style={{ fontSize: 16, width: 26 }}>{g.dir === 'recebido' ? (g.from.logo || '🎁') : g.dir === 'enviado' ? '💝' : '🛍️'}</Text>
@@ -152,7 +185,7 @@ export default function WalletScreen({ visible, onClose }) {
                 onPress={() => {
                   if (state.liveCredits < LIVE_CONVERT_MIN) return Alert.alert('Ainda não dá', `Junte pelo menos ${LIVE_CONVERT_MIN} créditos de live para converter.`);
                   const v = state.liveCredits;
-                  Alert.alert('Converter em moeda Realys', `${brl(v)} em créditos de live viram ${v.toFixed(2).replace('.', ',')} RLS no seu saldo. Confirmar?`, [
+                  Alert.alert('Converter em moeda Realys', `${brl(v)} em créditos de live viram ${v.toFixed(2).replace('.', ',')} RLS em créditos de presente, para usar no Realys. Para sacar, use o saque de presentes recebidos. Confirmar?`, [
                     { text: 'Cancelar', style: 'cancel' },
                     { text: 'Converter', onPress: () => dispatch({ type: 'CONVERT_LIVE_CREDITS', amount: v }) },
                   ]);
@@ -163,7 +196,7 @@ export default function WalletScreen({ visible, onClose }) {
               </TouchableOpacity>
             </View>
             <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6, lineHeight: 16 }}>
-              Presentes que você ganha quando transmite ao vivo. Converta em moeda Realys (1 crédito = 1 RLS) e use como saldo normal: comprar, presentear ou sacar.
+              Presentes que você ganha quando transmite ao vivo. Converta em moeda Realys (1 crédito = 1 RLS) para usar dentro do app. Eles também contam para o saque de presentes recebidos.
             </Text>
             {state.liveGifts.slice(0, 5).map((g) => {
               const lg = liveGiftOf(g.gift);

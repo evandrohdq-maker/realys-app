@@ -6,7 +6,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as D from './data';
 import { initialFriends } from './people';
 import { brl } from './theme';
-import { initialGifts, initialGiftCredits, giftFee, giftNet, GIFT_MIN, GIFT_MAX, liveGiftOf, liveGiftCost, initialLiveCredits, initialLiveGifts, LIVE_CONVERT_MIN } from './gifts';
+import { initialGifts, initialGiftCredits, giftFee, giftNet, GIFT_MIN, GIFT_MAX, liveGiftOf, liveGiftCost, initialLiveCredits, initialLiveGifts, LIVE_CONVERT_MIN, cashoutQuote } from './gifts';
 import { INTEL_PLAN, subPlan } from './engage';
 import { fareQuote, TARIFFS, surgeText } from './pricing';
 import { protectionFee } from './guarantee';
@@ -977,11 +977,25 @@ function baseReducer(state, a) {
     case 'CONVERT_LIVE_CREDITS': {
       const v = +Math.min(state.liveCredits, Number(a.amount || state.liveCredits)).toFixed(2);
       if (!(v >= LIVE_CONVERT_MIN)) return state;
+      // Viram créditos de presente (moeda Realys para usar dentro do app). Sacar dinheiro só pelo
+      // saque de presentes recebidos (50.000 pontos, 10% de taxa): ver GIFT_CASHOUT.
       return {
         ...state,
         liveCredits: +(state.liveCredits - v).toFixed(2),
-        wallet: +(state.wallet + v).toFixed(2),
-        walletTx: [{ id: newId('w'), ts: Date.now(), kind: 'deposito', cat: 'Lives', desc: `Créditos de live convertidos em moeda Realys (${v.toFixed(2).replace('.', ',')} RLS)`, amount: v }, ...state.walletTx],
+        giftCredits: +(state.giftCredits + v).toFixed(2),
+      };
+    }
+    // Saque dos presentes recebidos: tudo o que juntou (créditos de presente + de live), a partir de
+    // 50.000 pontos (R$ 500). O Realys fica com 10%; o resto vai por Pix.
+    case 'GIFT_CASHOUT': {
+      const q = cashoutQuote(state);
+      if (!q.ok) return state;
+      return {
+        ...state,
+        giftCredits: 0,
+        liveCredits: 0,
+        cashoutFees: +((state.cashoutFees || 0) + q.fee).toFixed(2),
+        walletTx: [{ id: newId('w'), ts: Date.now(), kind: 'saque', cat: 'Saque de presentes', desc: `Saque de presentes recebidos para ${a.dest} (${q.points.toLocaleString('pt-BR')} pontos = ${brl(q.gross)}; taxa ${brl(q.fee)})`, amount: q.net }, ...state.walletTx],
       };
     }
     case 'WALLET_DEPOSIT': {

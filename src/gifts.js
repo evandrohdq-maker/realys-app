@@ -53,6 +53,21 @@ export const LIVE_GIFTS = [
 ];
 export const LIVE_GIFT_QTY = [1, 5, 10];
 export const LIVE_CONVERT_MIN = 10; // mínimo de créditos de live para converter em moeda Realys
+
+// Saque do que a pessoa RECEBEU de presente (créditos de presente + créditos de live).
+// Cada R$ 1 recebido = 100 pontos de saque. Libera a partir de 50.000 pontos (R$ 500) e o Realys fica
+// com 10% do saque. Pontos que a PLATAFORMA dá (avaliar, assistir, comprar, mandar presente) nunca
+// viram saque: só servem dentro do Realys.
+export const CASHOUT_POINTS_PER_REAL = 100;
+export const CASHOUT_MIN_POINTS = 50000;
+export const CASHOUT_FEE_PCT = 10;
+export const receivedPool = (state) => +((state.giftCredits || 0) + (state.liveCredits || 0)).toFixed(2);
+export const cashoutPoints = (state) => Math.floor(receivedPool(state) * CASHOUT_POINTS_PER_REAL);
+export const cashoutQuote = (state) => {
+  const gross = receivedPool(state);
+  const fee = +((gross * CASHOUT_FEE_PCT) / 100).toFixed(2);
+  return { points: cashoutPoints(state), gross, fee, net: +(gross - fee).toFixed(2), ok: cashoutPoints(state) >= CASHOUT_MIN_POINTS };
+};
 export const liveGiftOf = (key) => LIVE_GIFTS.find((g) => g.key === key) || LIVE_GIFTS[0];
 export const liveGiftCost = (gift, qty = 1) => {
   const value = +(gift.value * qty).toFixed(2);
