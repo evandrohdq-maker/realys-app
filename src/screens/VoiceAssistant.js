@@ -91,9 +91,21 @@ const withCartOffer = (res, state) => {
   return { ...res, pending: { type: 'cart', options }, reply: `${res.reply} Quer que eu adicione ${options.length > 1 ? 'algum deles' : options[0].name} ao carrinho?` };
 };
 
+// Tira do pedido o que a pessoa recusou ("não quero eletricista", "mudei de ideia", "esquece o eletricista").
+const REFUSED = /(^|[\s,.;!?])((eu )?(n[ãa]o|nem) ((quero|preciso|vou querer)( mais)?( de)?( (um|uma|o|a|os|as))?|[ée] (um|uma|o|a)) [\wÀ-ú-]+|esquece( (o|a|os|as))? [\wÀ-ú-]+|mudei de ideia|troca(r)? (por|para|pra))(?=$|[\s,.;!?])/gi;
+function dropRefused(text) {
+  const s = String(text || '');
+  if (!REFUSED.test(s)) return s;
+  REFUSED.lastIndex = 0;
+  return s.replace(REFUSED, ' ').replace(/\s*[,;]\s*(?=[,;]|$)/g, '').replace(/^[\s,.;!?]+|[\s,;]+$/g, '').replace(/\s{2,}/g, ' ').trim();
+}
+
 // Interpreta o comando. Devolve { reply, nav?, call?, list?, results?, pending? }.
 // Na versão final isso vira uma IA no servidor, com os cadastros reais dos prestadores.
 function interpret(text, state, dispatch, pending, canOpen, depth = 0) {
+  // Mudou de ideia no meio: "quero um motorista, não quero um eletricista" → vale só o motorista.
+  const changed = dropRefused(text);
+  if (changed !== text && changed) return interpret(changed, state, dispatch, pending, canOpen, depth);
   // O celular às vezes separa palavras: "a gronomo", "agro nomo" → agrônomo.
   const t = norm(stripWake(text)).replace(/\ba ?gro ?no ?m([oa]s?)\b/g, 'agronom$1');
   const addrMatch = text.match(/((rua|r\.|avenida|av\.?|alameda|travessa|praca|praça|estrada)\s.+)$/i);
@@ -367,6 +379,26 @@ function bestHeard(alts) {
 const CALL_PAUSE_MS = 900;
 // Depois de ouvir só "Lotus", espera o pedido por até 3 segundos.
 const CALL_WAIT_MS = 3000;
+// Interromper a Lotus no meio da fala: assim que o microfone percebe a voz da pessoa por cima da
+// dela (volume mais alto que o eco dela, ou palavras que não são da fala dela), ela PARA de falar
+// na hora e ouve. Se em DUCK_WAIT_MS ninguém pedir nada, ela continua da frase em que parou.
+const DUCK_WAIT_MS = 2600;
+const VOL_LEARN_MS = 700; // primeiro ela aprende o volume do próprio eco no microfone
+const VOL_JUMP = 2.2; // quanto a voz da pessoa precisa passar do eco dela
+const VOL_MIN = 5;
+const VOL_HITS = 3; // ~3 leituras seguidas (uns 300 ms) de voz alta
+const wordsOf = (x) =>
+  norm(String(x || ''))
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+// Palavras que a pessoa disse e que não estão na fala da Lotus (só as últimas, as mais novas).
+const foreignCount = (said, her) => {
+  const mine = new Set(wordsOf(her));
+  return wordsOf(said)
+    .slice(-6)
+    .filter((w) => w.length >= 3 && !mine.has(w)).length;
+};
 
 const speechOk = () => {
   try {
@@ -490,6 +522,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
         continuous: true,
         maxAlternatives: 5,
         contextualStrings: ['Lotus', 'Lótus', ...HINTS],
+        // Volume do microfone: é assim que ela percebe a voz da pessoa por cima da dela.
+        volumeChangeEventOptions: { enabled: true, intervalMillis: 100 },
         // Em Androids mais antigos o "continuous" não existe e o microfone desliga sozinho depois de
         // cada frase que ouve (inclusive a voz da própria Lotus). Aqui ele aguenta mais tempo ligado.
         androidIntentOptions: {
@@ -508,7 +542,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     if (!supported) return;
     // Se a própria resposta tem o nome "Lotus", o microfone poderia ouvir a voz dela e se interromper.
     if (findCall(reply)) return;
-    bargeIn.current = { on: true, heard: false, rest: '', timer: null, tries: 0 };
+    bargeIn.current = { on: true, heard: false, rest: '', timer: null, tries: 0, ducked: false, base: '', last: '', ema: null, vStart: 0, loud: 0 };
     setEar('wait');
     setEarHeard('');
     startBargeRecognizer();
@@ -545,27 +579,65 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     if (cur) setPaused({ parts: cur.parts, index: cur.index, res: cur.res });
   };
 
+  // Ela percebeu a voz da pessoa: para de falar NA HORA (guarda a frase em que estava e o assunto)
+  // e fica ouvindo com o mesmo microfone. Sem pedido em poucos segundos, continua de onde parou.
+  const duck = () => {
+    const b = bargeIn.current;
+    if (!b.on || b.ducked || b.heard || !talking.current) return;
+    const cur = talking.current;
+    b.ducked = true;
+    b.base = b.last || '';
+    b.spoken = cur.parts.join(' ');
+    pauseTalk();
+    setPhase('listening');
+    clearTimeout(b.timer);
+    b.timer = setTimeout(unduck, DUCK_WAIT_MS);
+  };
+  const unduck = () => {
+    const b = bargeIn.current;
+    if (!b.on || b.heard || !b.ducked) return;
+    stopBargeIn();
+    level.setValue(0);
+    if (!resume(false)) setPhase(restPhase());
+  };
+
   const onBargeHeard = (results, isFinal) => {
     const b = bargeIn.current;
+    const full = results && results[0] ? String(results[0].transcript || '') : '';
+    b.last = full;
     const call = hearCall(results);
-    // Mostra o que o microfone está pegando enquanto ela fala (ajuda a ver se está ouvindo).
-    // (sem as palavras da própria Lotus, que o microfone também pega)
     const cur = talking.current;
+    const herAll = cur ? cur.parts.join(' ') : b.spoken || '';
     const herNow = cur ? cur.parts.slice(Math.max(0, cur.index - 1), cur.index + 2).join(' ') : b.spoken || '';
-    const said = results && results[0] ? stripEcho(String(results[0].transcript || '').split(/[.!?]/).pop(), herNow) : '';
-    setEarHeard(said ? (said.length > 42 ? '…' + said.slice(-42) : said) : '');
+    // Mostra o que o microfone está pegando enquanto ela fala (sem as palavras dela).
+    const said = full ? stripEcho(full.split(/[.!?]/).pop(), herNow) : '';
+    if (!b.ducked) setEarHeard(said ? (said.length > 42 ? '…' + said.slice(-42) : said) : '');
+
     if (!b.heard) {
-      if (!call) return;
-      b.heard = true;
-      // Guarda o que ela estava falando: o que vier igual a isso depois do "Lotus" é a voz dela
-      // captada pelo microfone, não o pedido da pessoa.
-      const cur = talking.current;
-      b.spoken = cur ? cur.parts.slice(Math.max(0, cur.index - 1), cur.index + 2).join(' ') : '';
-      // Não apaga o assunto (pending): "Lotus… tem mais barato?" continua falando dos mesmos motoristas.
-      pauseTalk();
-      setPhase('listening');
+      if (call) {
+        b.heard = true;
+        // Guarda o que ela falou: o que vier igual a isso depois do "Lotus" é eco da voz dela.
+        if (!b.ducked) b.spoken = herAll;
+        pauseTalk(); // não apaga o assunto (pending): "Lotus… tem mais barato?" segue nos mesmos motoristas
+        setPhase('listening');
+      } else if (b.ducked) {
+        // Já parou de falar: o que vier de novo (depois do que já estava no microfone) é a pessoa.
+        const after = b.base && full.startsWith(b.base) ? full.slice(b.base.length) : full;
+        const fresh = stripEcho(after, b.spoken || '');
+        if (foreignCount(fresh, b.spoken) < 1 || wordsOf(fresh).length < 2) return;
+        b.heard = true;
+        b.rest = fresh;
+      } else {
+        // Ainda falando: várias palavras que não são dela = a pessoa está falando por cima.
+        if (cur && foreignCount(said, herAll) >= 3) duck();
+        return;
+      }
     }
     if (call) b.rest = stripEcho(call.rest, b.spoken || '');
+    else if (b.ducked) {
+      const after = b.base && full.startsWith(b.base) ? full.slice(b.base.length) : full;
+      b.rest = stripEcho(after, b.spoken || '') || b.rest;
+    }
     setPartial(b.rest || '');
     clearTimeout(b.timer);
     // Disse só "Lotus": continua com o MESMO microfone aberto esperando o pedido (até 3 s de
@@ -781,6 +853,30 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
     if (session.current.active) session.current.started = true;
   });
   useSpeechRecognitionEvent('volumechange', (e) => {
+    const b = bargeIn.current;
+    // Enquanto ela fala: aprende o volume do eco dela e, se a voz da pessoa passar disso, para na hora.
+    if (b.on && !b.heard && !b.ducked && talking.current) {
+      const v = e && typeof e.value === 'number' ? e.value : null;
+      if (v == null) return;
+      const now = Date.now();
+      if (!b.vStart) b.vStart = now;
+      if (b.ema == null || now - b.vStart < VOL_LEARN_MS) {
+        b.ema = b.ema == null ? v : b.ema * 0.8 + v * 0.2;
+        return;
+      }
+      if (v >= VOL_MIN && v > b.ema + VOL_JUMP) {
+        if (++b.loud >= VOL_HITS) duck();
+      } else {
+        b.loud = 0;
+        b.ema = b.ema * 0.95 + v * 0.05;
+      }
+      return;
+    }
+    if (b.on && (b.ducked || b.heard)) {
+      const v = Math.max(0, Math.min(1, ((e && e.value) + 2) / 12));
+      Animated.timing(level, { toValue: v, duration: 90, useNativeDriver: true }).start();
+      return;
+    }
     if (!session.current.active) return;
     const v = Math.max(0, Math.min(1, ((e && e.value) + 2) / 12));
     Animated.timing(level, { toValue: v, duration: 90, useNativeDriver: true }).start();
@@ -802,6 +898,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
       if (b.heard) return finishBargeIn();
       // O celular parou de ouvir sozinho, mas ela ainda está falando: volta a ouvir na hora,
       // quantas vezes precisar (só desiste se ele falhar muitas vezes seguidas sem nem começar).
+      b.base = '';
+      b.last = '';
       if (b.tries++ < 12) setTimeout(() => b.on && !b.heard && startBargeRecognizer(), 80);
       else setEar('off');
       return;
@@ -820,6 +918,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, hands
         stopBargeIn();
         return setEar('off');
       }
+      b.base = '';
+      b.last = '';
       if (b.tries++ < 12) setTimeout(() => b.on && !b.heard && startBargeRecognizer(), code === 'no-speech' || code === 'speech-timeout' ? 80 : 250);
       else setEar('off');
       return;
