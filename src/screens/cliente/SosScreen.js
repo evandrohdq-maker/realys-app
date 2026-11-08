@@ -4,12 +4,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, brl, soft } from '../../theme';
 import { Screen, Title, Card, Row, Photo, Badge, Chip } from '../../components/ui';
 import { emergencyNumbers, SOS_SEGMENTS, hospitals, specialists, SPECIALTIES, responders, MY_SPOT } from '../../extraData';
+import { PUBLIC_ORGS, PUBLIC_KINDS } from '../../publicServices';
+import { SusCard } from '../../components/PublicOrg';
+import { useStore } from '../../store';
 import { hasCallPermission, askCallPermission, confirmCall, demoCall, openRoute } from '../../phone';
 
 const km = (v) => v.toFixed(1).replace('.', ',') + ' km';
 
 // Socorro e saúde: emergência, hospitais mais próximos, especialistas médicos e ambulâncias.
 export default function SosScreen({ explore }) {
+  const { dispatch } = useStore();
   const [seg, setSeg] = useState('emergencia');
   const [spec, setSpec] = useState('Todos');
   const [canCall, setCanCall] = useState(false);
@@ -60,6 +64,22 @@ export default function SosScreen({ explore }) {
           <Text style={styles.okText}>Ligações liberadas: o Realys liga direto</Text>
         </View>
       )}
+
+      {/* Serviços públicos: perfis oficiais com números, equipe de plantão e publicações. */}
+      <Text style={styles.gpsLine}>Serviços públicos</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12, marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
+        {PUBLIC_ORGS.map((o) => {
+          const k = PUBLIC_KINDS[o.kind];
+          return (
+            <TouchableOpacity key={o.id} onPress={() => dispatch({ type: 'OPEN_PUBLIC', id: o.id })} style={{ alignItems: 'center', width: 78, marginRight: 10 }}>
+              <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: k.color, alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name={k.icon} size={24} color="#fff" />
+              </View>
+              <Text style={{ fontSize: 11, color: colors.text, textAlign: 'center', marginTop: 4 }} numberOfLines={2}>{k.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14, marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
         {SOS_SEGMENTS.map((s) => {
@@ -113,6 +133,7 @@ export default function SosScreen({ explore }) {
 
       {seg === 'hospitais' ? (
         <>
+          <SusCard />
           <Text style={styles.gpsLine}>📍 Mais próximos de você pelo GPS</Text>
           {[...hospitals].sort((a, b) => a.distanceKm - b.distanceKm).map((h) => (
             <Card key={h.id}>
@@ -133,6 +154,9 @@ export default function SosScreen({ explore }) {
               <Row style={{ marginTop: 10 }}>
                 <Action icon="call" label="Ligar" color={colors.danger} onPress={() => demoCall(h.name, h.phone)} />
                 <Action icon="navigate" label="Rota" color={colors.accent} onPress={() => openRoute(h.name.replace(' (demo)', '') + ' São Paulo')} />
+                {h.network === 'SUS' ? (
+                  <Action icon="business" label="Perfil" color={colors.primary} onPress={() => dispatch({ type: 'OPEN_PUBLIC', id: /UPA/.test(h.name) ? 'pub-upa' : 'pub-hospital' })} />
+                ) : null}
               </Row>
             </Card>
           ))}

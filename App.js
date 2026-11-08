@@ -35,6 +35,7 @@ import { loadVoicePrint } from './src/voicePrint';
 import { loadPanic, panicConfig } from './src/panic';
 import { RideWatcher } from './src/rideRules';
 import DocsCenter from './src/components/DocsCenter';
+import { PublicOrgModal } from './src/components/PublicOrg';
 import { SoftAlertHost, installSoftAlert } from './src/components/SoftAlert';
 
 // Avisos no estilo do Realys no app inteiro (no lugar da caixa cinza do Android).
@@ -452,6 +453,7 @@ function Shell() {
       />
       <RideWatcher />
       <DocsCenter />
+      <PublicOrgModal />
       <WakeWordListener
         enabled={state.handsFree && (!voice || wakeCapture) && !menu && !noting && !searching && !state.docsOpen}
         onListening={setHearing}

@@ -70,6 +70,14 @@ const initialState = {
   user: null, // { name, roles: [], cnpj }
   panicAlerts: [], // alertas da chave de segurança dos motoristas (painel do administrador)
   documents: [], // contratos e receitas (src/documents.js)
+  // Serviço público (src/publicServices.js): perfil aberto, publicações e horários novos dos órgãos.
+  publicOpen: null, // { id, tab, at }
+  publicPosts: [],
+  publicEdits: {},
+  publicSlots: [],
+  // SUS do cidadão: Cartão Nacional de Saúde no próprio perfil e consultas agendadas pelo Realys.
+  sus: null, // { cns, name, birth, unit }
+  susBookings: [],
   docsOpen: null, // { mode: 'lista' | 'contrato' | 'receita', draft? } — tela de contratos e receitas
   activeRole: null,
   wallet: 750, // saldo em moeda Realys (1 RLS = R$ 1,00 na demonstração)
@@ -1254,6 +1262,33 @@ function baseReducer(state, a) {
       return { ...state, rides };
     }
 
+    // ---------- Serviço público e SUS (src/publicServices.js) ----------
+    case 'OPEN_PUBLIC':
+      return { ...state, publicOpen: { id: a.id, tab: a.tab || 'inicio', at: Date.now() } };
+    case 'CLOSE_PUBLIC':
+      return { ...state, publicOpen: null };
+    case 'PUBLIC_POST':
+      return { ...state, publicPosts: [{ id: newId('pp'), at: Date.now(), ...a.post, orgId: a.orgId }, ...(state.publicPosts || [])] };
+    case 'PUBLIC_EDIT': {
+      const cur = (state.publicEdits || {})[a.orgId] || {};
+      return { ...state, publicEdits: { ...state.publicEdits, [a.orgId]: { ...cur, ...a.data, staff: { ...(cur.staff || {}), ...(a.data.staff || {}) } } } };
+    }
+    case 'PUBLIC_SLOT_ADD':
+      return { ...state, publicSlots: [...(state.publicSlots || []), { id: newId('sl'), ...a.slot, orgId: a.orgId }] };
+    case 'SUS_LOAD':
+      return { ...state, sus: a.sus || null, susBookings: a.bookings || [] };
+    case 'SUS_SAVE':
+      return { ...state, sus: a.sus };
+    // Agendou pelo Realys: confere o cartão do SUS e reserva o horário.
+    case 'SUS_BOOK': {
+      if (!state.sus || !state.sus.cns) return state;
+      if ((state.susBookings || []).some((b) => b.slotId === a.slot.id && b.status === 'agendado')) return state;
+      const booking = { id: newId('ag'), orgId: a.orgId, orgName: a.orgName, slotId: a.slot.id, specialty: a.slot.specialty, who: a.slot.who, at: a.slot.at, cns: state.sus.cns, status: 'agendado', createdAt: Date.now() };
+      return { ...state, susBookings: [booking, ...(state.susBookings || [])] };
+    }
+    case 'SUS_CANCEL':
+      return { ...state, susBookings: (state.susBookings || []).map((b) => (b.id === a.id ? { ...b, status: 'cancelado' } : b)) };
+
     // ---------- Contratos e receitas (src/documents.js) ----------
     case 'OPEN_DOCS':
       return { ...state, docsOpen: { mode: a.mode || 'lista', draft: a.draft || '', at: Date.now() } };
@@ -1526,6 +1561,21 @@ export function StoreProvider({ children }) {
     if (!profileKey || profileLoaded.current !== profileKey) return;
     AsyncStorage.setItem(profileKey, JSON.stringify({ myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, agendaRemind: state.agendaRemind })).catch(() => {});
   }, [state.myProfile, state.privacy, state.creations, state.myPage, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
+  // Cartão do SUS e agendamentos: dado de saúde, guardado no cofre criptografado do Android, por conta.
+  const susKey = state.user ? `realys_sus_${String(state.user.id || state.user.cpf || state.user.cnpj || state.user.name).replace(/[^A-Za-z0-9._-]/g, '_')}` : null;
+  const susLoaded = useRef(null);
+  useEffect(() => {
+    if (!susKey) return;
+    susLoaded.current = null;
+    SecureStore.getItemAsync(susKey)
+      .then((raw) => dispatch({ type: 'SUS_LOAD', ...(raw ? JSON.parse(raw) : {}) }))
+      .catch(() => {})
+      .finally(() => (susLoaded.current = susKey));
+  }, [susKey]);
+  useEffect(() => {
+    if (!susKey || susLoaded.current !== susKey) return;
+    SecureStore.setItemAsync(susKey, JSON.stringify({ sus: state.sus, bookings: state.susBookings })).catch(() => {});
+  }, [state.sus, state.susBookings]);
   return <StoreContext.Provider value={{ state, dispatch }}>{children}</StoreContext.Provider>;
 }
 

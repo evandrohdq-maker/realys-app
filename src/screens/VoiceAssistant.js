@@ -22,6 +22,7 @@ import { stripWake, findCall, hearCall, stripEcho, fixMotos } from '../wakeMatch
 import { speakSoft, stopSpeaking, prepareVoice, speakParts, splitSentences, forSpeech } from '../voice';
 import { voiceGateOn, recordingFor, verifySpeech, REJECT_TEXT } from '../voicePrint';
 import { isPanic } from '../panic';
+import { findPublicOrg, PUBLIC_ORGS } from '../publicServices';
 import { emergencyNumbers } from '../extraData';
 import { confirmCall } from '../phone';
 import { findNavigation, navReply } from '../voiceNav';
@@ -304,6 +305,19 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   if (/\b(receitar|prescrever|prescricao|receita (medica|para|pra|pro|ao|a paciente|do paciente|da paciente))\b/.test(t) && !/\breceita de\b/.test(t))
     return { openDocs: { mode: 'receita', draft: stripWake(text) }, reply: 'Abrindo a receita. Confira os dados antes de gerar.' };
   if (/\bcontrato\b/.test(t)) return { openDocs: { mode: 'contrato' }, reply: 'Abrindo um novo contrato.' };
+
+  // Serviço público: "abre o perfil dos bombeiros", "Defesa Civil", "agendar consulta no posto pelo SUS".
+  // (Pedir socorro — "liga para os bombeiros", "chama o SAMU" — continua indo direto para a ligação.)
+  const asksCall = /\b(liga|ligue|ligar|chama|chame|chamar|socorro|emergencia|urgente|incendio|fogo)\b/.test(t);
+  if (/\b(agend|marc)\w* .*\b(consulta|atendimento|vacina)\b|\b(consulta|atendimento) (no|pelo) (sus|posto)\b/.test(t) && /\b(sus|posto|ubs|unidade basica|postinho)\b/.test(t)) {
+    const o = PUBLIC_ORGS.find((x) => x.id === 'pub-ubs');
+    return { openPublic: { id: o.id, tab: 'agendar' }, reply: `Abrindo os horários do ${o.name.replace(' (demo)', '')}. Escolha um horário e confirme.` };
+  }
+  const pubId = !asksCall && findPublicOrg(t);
+  if (pubId) {
+    const o = PUBLIC_ORGS.find((x) => x.id === pubId);
+    return { openPublic: { id: pubId }, reply: `Abrindo o perfil: ${o.name.replace(' (demo)', '')}.` };
+  }
 
   // Emergência: "Lotus, liga para o SAMU", "chama os bombeiros", "socorro!".
   const EM = { samu: /\b(samu|ambulancia)\b/, bombeiros: /\bbombeiros?\b/, policia: /\bpolicia\b(?! rodoviaria)/, prf: /\bpolicia rodoviaria\b/, defesa: /\bdefesa civil\b/, cvv: /\bcvv\b/ };
@@ -943,6 +957,14 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
       setPhase('idle');
       speakSoft(res.reply);
       dispatch({ type: 'OPEN_VENUE' });
+      onClose();
+      return;
+    }
+    if (res.openPublic) {
+      setPending(null);
+      setPhase('idle');
+      speakSoft(res.reply);
+      dispatch({ type: 'OPEN_PUBLIC', ...res.openPublic });
       onClose();
       return;
     }

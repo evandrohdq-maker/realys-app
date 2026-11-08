@@ -5,6 +5,7 @@ import { View, Text, TouchableOpacity, Switch, Alert, StyleSheet } from 'react-n
 import { Ionicons } from '@expo/vector-icons';
 import { askMicPermission, wakeWordSupported } from '../wakeWord';
 import VoiceEnroll from '../components/VoiceEnroll';
+import { SusCard } from '../components/PublicOrg';
 import { voicePrintOf, voicePrintSupported, onVoicePrintChange, setVoiceGate, deleteVoicePrint, lastVoiceCheck } from '../voicePrint';
 import { useStore } from '../store';
 import { colors, brl, ROLE_LABELS } from '../theme';
@@ -329,6 +330,9 @@ export default function ProfileScreen({ navigate, explore }) {
           dispatch({ type: 'SET_HANDSFREE', on: true });
         }}
       />
+
+      {/* Cartão do SUS: fica no perfil e é conferido quando o cidadão agenda na rede pública. */}
+      <SusCard />
 
       <Card onPress={() => dispatch({ type: 'OPEN_DOCS' })}>
         <Row>

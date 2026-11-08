@@ -22,6 +22,15 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] Alertas da chave de segurança do motorista chegarem ao painel do administrador **em tempo real**
       (hoje ficam no celular, porque ainda não há servidor).
 
+## Parceria com o governo (serviço público e SUS)
+
+- [ ] Contas verificadas para os órgãos públicos (Bombeiros, Defesa Civil, SAMU, hospitais, UPAs, UBSs):
+      cada órgão entra com conta oficial e usa o Painel do órgão (hoje aberto só para demonstração).
+- [ ] Números reais de cada cidade (0800 e contatos); hoje os 0800 dos perfis são de demonstração.
+- [ ] Agendamento do SUS ligado aos sistemas oficiais (cadastro do Cartão Nacional de Saúde e regulação
+      de consultas). Hoje os horários são publicados pelas unidades dentro do Realys e o app confere o
+      número do cartão pela regra oficial.
+
 ## Lotus
 
 - [ ] Calibrar a **voz do titular** com vozes reais (o Evandro manda os números da "Última conferência"
