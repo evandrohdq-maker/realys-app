@@ -11,6 +11,7 @@
   "dependencies": {
     "@expo/vector-icons": "*",
     "@react-native-async-storage/async-storage": "*",
+    "@react-native-ml-kit/face-detection": "*",
     "expo": "~56.0.0",
     "expo-camera": "*",
     "expo-constants": "*",
