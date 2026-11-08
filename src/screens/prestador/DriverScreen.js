@@ -27,6 +27,36 @@ import { buildAgenda, nextJob, agendaStats, dayLabel, hhmm, untilText } from '..
 import { panicConfig, savePanic, onPanicChange, phraseOk, PANIC_EXAMPLES } from '../../panic';
 import { askCallPermission } from '../../phone';
 import { isTransport, isWaiting, WaitCountdown, NO_SHOW_MIN } from '../../rideRules';
+import { checkFair, priceRef, refText, fareQuote, driverEarnings, TARIFFS, RIDE_FEE_PCT, SURGE_MAX } from '../../pricing';
+
+// Tarifa do Realys para motorista e motoboy: quanto o cliente paga e quanto fica com o prestador.
+function RideEarnings({ service }) {
+  const t = TARIFFS[service];
+  if (!t) return null;
+  const now = fareQuote(service, 5);
+  const peak = fareQuote(service, 5, { at: (() => { const d = new Date(); d.setHours(18, 0, 0, 0); if (d.getDay() === 0) d.setDate(d.getDate() + 1); if (d.getDay() === 6) d.setDate(d.getDate() + 2); return d; })() });
+  const e1 = driverEarnings(now, service === 'motoboy' ? { kmPerLiter: 35 } : {});
+  const e2 = driverEarnings(peak, service === 'motoboy' ? { kmPerLiter: 35 } : {});
+  const line = (label, q, e) => (
+    <Row style={{ justifyContent: 'space-between', marginTop: 6 }}>
+      <Text style={{ color: colors.text, fontSize: 13, flex: 1 }}>{label}</Text>
+      <Text style={{ color: colors.text, fontSize: 13, fontWeight: '700' }}>{brl(q.total)} → você {brl(q.driverGets)}</Text>
+    </Row>
+  );
+  return (
+    <Card>
+      <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>Tarifa Realys ({t.label})</Text>
+      <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
+        Igual para todos: {brl(t.base)} de saída{t.kmFree ? ` (até ${t.kmFree} km)` : ''} + {brl(t.km)} por km + {brl(t.min)} por minuto, mínimo {brl(t.minimo)}. O Realys fica com {RIDE_FEE_PCT}%.
+      </Text>
+      {line(`Corrida de 5 km agora (${now.minutes} min)`, now, e1)}
+      {line(`No pico (18h, ${peak.minutes} min)`, peak, e2)}
+      <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6 }}>
+        No pico e com muita procura o valor sobe (no máximo {String(SURGE_MAX).replace('.', ',')}x), porque o trânsito parado gasta mais combustível e tempo. Combustível estimado: {brl(e1.fuel)} agora, {brl(e2.fuel)} no pico. Ganho líquido estimado: {brl(e1.net)} ({brl(e1.perHour)}/h) agora e {brl(e2.net)} ({brl(e2.perHour)}/h) no pico.
+      </Text>
+    </Card>
+  );
+}
 
 // Chave de segurança: "Lotus" + frase secreta = alerta silencioso com GPS e ligação para a polícia.
 function SafetyKey() {
@@ -131,6 +161,13 @@ function DriverMain({ goTo, onCadastro }) {
     if (!list.length || isNaN(v)) return Alert.alert('Informe o que você faz e quanto cobra.');
     const f = parseFloat(fee.replace(',', '.'));
     if (byVisit && (isNaN(f) || f <= 0)) return Alert.alert('Informe a taxa de visita', 'É o valor que o cliente paga para você ir até ele avaliar o serviço.');
+    // Faixa justa: ninguém cobra acima do teto (justo para o cliente e equilibrado entre prestadores).
+    const online = (serviceType(service) || {}).mode === 'online';
+    const fv = byVisit ? checkFair(service, 'visita', f) : { ok: true };
+    const fp = checkFair(service, unit, v, { online });
+    if (!fv.ok) return Alert.alert('Taxa de visita acima da faixa justa', `Para ${(serviceType(service) || {}).label || 'este serviço'}, a visita no Realys vai de ${refText(fv.ref)}. Ajuste para no máximo R$ ${fv.ref.max}.`);
+    if (!fp.ok) return Alert.alert('Valor acima da faixa justa', `A faixa justa é de ${refText(fp.ref)}. Ajuste para no máximo R$ ${fp.ref.max}.`);
+    if (fv.level === 'baixo' || fp.level === 'baixo') Alert.alert('Valor abaixo do comum', 'Seu valor está abaixo da faixa de referência. Pode não cobrir seus custos (deslocamento, ferramentas, impostos). Você pode manter assim se quiser.');
     if (moves && (!vehicle.trim() || !plate.trim())) return Alert.alert('Dados do veículo', 'Informe o modelo e a placa. O cliente vê esses dados antes de embarcar.');
     const car = {};
     feats.forEach((k) => (car[k] = true));
@@ -178,6 +215,7 @@ function DriverMain({ goTo, onCadastro }) {
         </Row>
       </Card>
       <SafetyKey />
+      {me && TARIFFS[me.service] ? <RideEarnings service={me.service} /> : null}
       <Card onPress={() => dispatch({ type: 'OPEN_DOCS', mode: 'lista' })}>
         <Row>
           <Ionicons name="document-text-outline" size={22} color={colors.primary} style={{ marginRight: 8 }} />
@@ -237,7 +275,15 @@ function DriverMain({ goTo, onCadastro }) {
               multiline
             />
             <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Quanto você cobra</Text>
+            {TARIFFS[service] ? (
+              <Text style={{ color: colors.muted, fontSize: 12, marginBottom: 8 }}>Motorista e motoboy seguem a Tarifa Realys, igual para todos (com valor dinâmico no pico). O valor abaixo fica só como referência sua.</Text>
+            ) : null}
             <Input placeholder="Valor em R$" keyboardType="decimal-pad" value={price} onChangeText={setPrice} />
+            {priceRef(service, unit, { online: (serviceType(service) || {}).mode === 'online' }) ? (
+              <Text style={{ color: colors.primary, fontSize: 12, marginTop: -4, marginBottom: 8 }}>
+                Faixa justa Realys: {refText(priceRef(service, unit, { online: (serviceType(service) || {}).mode === 'online' }))}
+              </Text>
+            ) : null}
             <Row style={{ flexWrap: 'wrap', marginBottom: 12 }}>
               {UNITS.map((u) => (
                 <View key={u} style={{ marginBottom: 8 }}>
@@ -249,6 +295,9 @@ function DriverMain({ goTo, onCadastro }) {
               <>
                 <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Taxa de visita</Text>
                 <Input placeholder="Valor em R$ (ex.: 60)" keyboardType="decimal-pad" value={fee} onChangeText={setFee} />
+                {priceRef(service, 'visita') ? (
+                  <Text style={{ color: colors.primary, fontSize: 12, marginTop: -4, marginBottom: 6 }}>Faixa justa da visita: {refText(priceRef(service, 'visita'))}</Text>
+                ) : null}
                 <Text style={{ color: colors.muted, fontSize: 12, marginTop: -4, marginBottom: 10 }}>
                   O cliente paga pelo Realys e o valor fica retido até ele confirmar a visita. Você recebe{' '}
                   {100 - REALYS_FEE_PCT}% e o Realys fica com {REALYS_FEE_PCT}%. O valor do serviço vocês combinam direto, sem taxa.

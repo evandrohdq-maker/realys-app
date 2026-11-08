@@ -32,6 +32,10 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 
 ## Negócio
 
+- [ ] **Calibrar a Tarifa Realys e as faixas justas** com dados reais da plataforma (src/pricing.js):
+      os apps grandes não divulgam mais as tarifas; as faixas de consulta médica geral estão marcadas
+      como provisórias. Revisar a parte do Realys nas corridas (hoje 15%).
+
 - [ ] **Dezembro de 2026:** revisar a Taxa de proteção Realys (R$ 0,99 fixa) e a ideia de taxa
       variando por horário.
 - [ ] Aba **Desapego** (clientes vendendo itens usados entre eles).

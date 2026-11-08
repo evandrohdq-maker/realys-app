@@ -14,6 +14,7 @@
 // O ranking pesa nota e serviços finalizados nos últimos 90 dias, taxa e tempo de resposta e
 // proximidade. Recusar NÃO pune; faltar numa visita aceita pune. Prestador novo ganha impulso
 // nos primeiros 30 dias. Quem paga o plano de destaque aparece separado, como "Patrocinado".
+import { priceRef } from './pricing';
 import { serviceTypes } from './data';
 
 // Porcentagem do Realys sobre a taxa de visita. O valor da visita é o prestador quem define;
@@ -48,6 +49,9 @@ export function isVisitService(serviceKey) {
 export function visitFee(p) {
   if (p.visitFee != null) return Number(p.visitFee);
   if (p.priceUnit === 'visita') return Number(p.price);
+  // Sem taxa informada: usa o valor comum da faixa justa do serviço (src/pricing.js).
+  const ref = priceRef(p.service, 'visita');
+  if (ref) return ref.typical;
   return 40 + (hash(p.id + 'fee') % 6) * 10; // R$ 40 a R$ 90
 }
 

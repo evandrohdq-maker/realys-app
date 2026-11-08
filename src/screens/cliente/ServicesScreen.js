@@ -19,6 +19,7 @@ import { CAR_FEATURES, featuresOf, featureIcon, featureLabel, hasAll, isPassenge
 import { useBack } from '../../back';
 import { lives } from '../../homeData';
 import { isTransport, isWaiting, WaitCountdown, NO_SHOW_MIN } from '../../rideRules';
+import { surgeText } from '../../pricing';
 import { SERVICE_TABS, SERVICE_TAB_KEYS, TAB_TYPES, isOnlineType, tabOfType, OnlineTab, CoursesTab, LiveClasses } from './ServiceTabs';
 
 // Cartão do chamado (usado também pelo assistente de voz).
@@ -80,9 +81,16 @@ export function ServiceCallCard({ call }) {
           Corrida encerrada: você não embarcou em {NO_SHOW_MIN} minutos. O valor foi pago ao motorista.
         </Text>
       ) : (
-        <Text style={{ color: colors.muted, marginTop: 10, fontSize: 13 }}>
-          Chega em {call.eta} min · {priceText(p)} · acompanhe pelo GPS na aba Serviços
-        </Text>
+        <View style={{ marginTop: 10 }}>
+          <Text style={{ color: colors.muted, fontSize: 13 }}>
+            Chega em {call.eta} min · {call.fare ? `corrida estimada ${brl(call.fare.total)} (${call.fare.km} km, ~${call.fare.minutes} min)` : priceText(p)} · acompanhe pelo GPS na aba Serviços
+          </Text>
+          {call.fare && call.fare.mult > 1 ? (
+            <Text style={{ color: colors.primary, fontSize: 12, marginTop: 4 }}>
+              Valor dinâmico {String(call.fare.mult).replace('.', ',')}x: {surgeText(call.fare)}. Normal seria {brl(call.fare.normal)}.
+            </Text>
+          ) : null}
+        </View>
       )}
       {DemoArrive ? <DemoArrive call={call} /> : null}
     </Card>

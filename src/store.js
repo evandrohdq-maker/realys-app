@@ -8,6 +8,7 @@ import { initialFriends } from './people';
 import { brl } from './theme';
 import { initialGifts, initialGiftCredits, giftFee, giftNet, GIFT_MIN, GIFT_MAX, liveGiftOf, liveGiftCost, initialLiveCredits, initialLiveGifts, LIVE_CONVERT_MIN } from './gifts';
 import { INTEL_PLAN, subPlan } from './engage';
+import { fareQuote, TARIFFS, surgeText } from './pricing';
 import { protectionFee } from './guarantee';
 import { pointsFor, pointOffer, giftPoints, initialPoints, promoDiscount, POINT_RULES, watchedToday } from './rewards';
 import { initialLoyalty, onDelivered } from './loyalty';
@@ -1577,6 +1578,12 @@ export function buildServiceCall(state, address, serviceKey = 'motorista', provi
   const type = serviceType(serviceKey);
   const transport = type.group === 'Transporte';
   const eta = Math.max(3, Math.round(provider.distanceKm * (transport ? 4 : 6)));
+  // Corrida: tarifa do Realys (base + km + minuto), com o pico e a procura do momento.
+  // Sem destino informado, estima um trajeto de 5 km (o valor final segue o trajeto feito).
+  const tripKm = 5;
+  const waiting = (state.rideRequests || []).length;
+  const free = (state.providers || []).filter((p) => p.service === serviceKey).length || 1;
+  const fare = transport ? fareQuote(serviceKey, tripKm, { demand: Math.max(0, waiting / free - 1) }) : null;
   return {
     id: newId('r'),
     client: state.user ? state.user.name : 'Cliente',
@@ -1588,7 +1595,8 @@ export function buildServiceCall(state, address, serviceKey = 'motorista', provi
     icon: type.icon,
     eta,
     status: transport ? `${type.label} a caminho` : `${type.label} confirmado`,
-    price: transport ? +(provider.price + provider.distanceKm * 2.5).toFixed(2) : provider.price,
+    price: transport ? fare.total : provider.price,
+    fare,
   };
 }
 
@@ -1598,11 +1606,17 @@ export function callReply(call) {
   const plate = p.plate ? `, placa ${p.plate.split('').join(' ')}` : '';
   const vehicle = p.vehicle ? ` ${p.vehicle}${plate}.` : '';
   if (call.when) return `Pronto, agendado para ${call.when}. ${call.serviceLabel} ${p.name}, nota ${String(p.rating).replace('.', ',')}.${vehicle}`;
-  return `Ok, chamando agora. ${call.serviceLabel} ${p.name}, nota ${String(p.rating).replace('.', ',')}, chega em ${call.eta} minutos.${vehicle}`;
+  const fare = call.fare ? ` Corrida estimada em ${brl(call.fare.total)}${call.fare.mult > 1 ? ', um pouco acima do normal pelo horário e pela procura' : ''}.` : '';
+  return `Ok, chamando agora. ${call.serviceLabel} ${p.name}, nota ${String(p.rating).replace('.', ',')}, chega em ${call.eta} minutos.${vehicle}${fare}`;
 }
 
 // "R$ 80,00 por hora", "R$ 35,00 por m²"...
-export const priceText = (p) => `${brl(p.price)} por ${p.priceUnit}`;
+// Motorista e motoboy seguem a tarifa do Realys (igual para todos): justo e sem disputa de preço.
+export const priceText = (p) => {
+  const t = p && TARIFFS[p.service];
+  if (t) return `corrida a partir de ${brl(t.minimo)}, mais ${brl(t.km)} por km`;
+  return `${brl(p.price)} por ${p.priceUnit}`;
+};
 
 export function nearbyOf(state, serviceKey, max = 3) {
   return [...state.providers]
