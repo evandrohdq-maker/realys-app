@@ -56,7 +56,7 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] **Repetir a moderação de texto no servidor** quando posts, comentários e mensagens passarem por ele.
 - [ ] **Canal de denúncia às autoridades** (SaferNet / Polícia Federal) para conteúdo com menores, com
       preservação das provas, e responsável pela moderação definido na empresa.
-- [ ] **Advogado revisar o Termo de Adesão v9** e os Termos do Encontros v0.2 antes do lançamento oficial.
+- [ ] **Advogado revisar o Termo de Adesão v10** e os Termos do Encontros v0.2 antes do lançamento oficial.
 
 ## Date+
 
@@ -82,8 +82,10 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 
 - [ ] Montar a proposta para cadastrar os órgãos de polícia **estaduais (PM/Brigada, Polícia Civil),
       federais (PF, PRF) e municipais (Guarda Municipal)** no Realys.
-- [ ] Policial em serviço abre o app no turno ("estou na ativa"), com GPS ligado e identidade funcional
-      verificada (matrícula + biometria facial).
+- [ ] **Participação opcional do policial:** ele se cadastra com a **carteira funcional (carteira de serviço)**
+      + biometria facial e escolhe se quer **ativar o recebimento de alertas** da plataforma ("estou na ativa",
+      com GPS). Ele **não presta serviço para o Realys**: não é prestador, não recebe pagamento da plataforma e
+      não tem vínculo; só recebe as informações dos pedidos de emergência perto dele. Pode desativar quando quiser.
 - [ ] Pedido de emergência do cidadão (Lotus Denúncia "estou em perigo", resposta de segurança, chave do
       motorista): vai para a central do órgão e notifica o **policial mais próximo da vítima**, com a
       localização e o protocolo. Só para emergência; dúvidas ficam com a Lotus.

@@ -1,7 +1,7 @@
 // Termo de adesão do Realys (texto igual ao do servidor: server/src/termos.js). Gerado a partir dele.
-export const TERMO_ADESAO_VERSAO = "2026-11-adesao-v9";
+export const TERMO_ADESAO_VERSAO = "2026-11-adesao-v10";
 export const TERMO_ADESAO = {
-  "versao": "2026-11-adesao-v9",
+  "versao": "2026-11-adesao-v10",
   "titulo": "Termo de Adesão ao aplicativo Realys",
   "atualizado": "8 de novembro de 2026",
   "itens": [
@@ -107,7 +107,7 @@ export const TERMO_ADESAO = {
     },
     {
       "titulo": "25-A. Lotus Denúncia e Lotus Emergência",
-      "texto": "Ao dizer \"Lotus, denúncia\", você abre, de forma discreta, o pedido de socorro e de denúncia: (a) \"estou em perigo agora\", que envia na hora a sua localização à central de segurança do Realys e mostra os botões para ligar para o 190 e para o Ligue 180; (b) a denúncia, que pode ser anônima, recebe um número de protocolo e é registrada na central de segurança do Realys; e (c) orientações sobre a Lei Maria da Penha e a rede de apoio. Essa tela não fica no histórico da Lotus. A denúncia feita no Realys não substitui o registro nos canais oficiais (190, Ligue 180, Disque 100 ou delegacia), que o aplicativo indica em seguida. Ao dizer \"Lotus, emergência\", você abre a emergência médica, com ligação para o SAMU (192) e os Bombeiros (193), o envio da sua localização e os prontos-atendimentos mais próximos. A Lotus não dá diagnóstico nem substitui o atendimento médico. Quando houver convênio com os órgãos públicos, os pedidos poderão ser enviados direto ao profissional em serviço mais próximo (policial, socorrista ou ambulância). Esses canais são só para situações reais: uso falso ou por brincadeira segue a regra de chamada falsa do item 18."
+      "texto": "Ao dizer \"Lotus, denúncia\", você abre, de forma discreta, o pedido de socorro e de denúncia: (a) \"estou em perigo agora\", que envia na hora a sua localização à central de segurança do Realys e mostra os botões para ligar para o 190 e para o Ligue 180; (b) a denúncia, que pode ser anônima, recebe um número de protocolo e é registrada na central de segurança do Realys; e (c) orientações sobre a Lei Maria da Penha e a rede de apoio. Essa tela não fica no histórico da Lotus. A denúncia feita no Realys não substitui o registro nos canais oficiais (190, Ligue 180, Disque 100 ou delegacia), que o aplicativo indica em seguida. Ao dizer \"Lotus, emergência\", você abre a emergência médica, com ligação para o SAMU (192) e os Bombeiros (193), o envio da sua localização e os prontos-atendimentos mais próximos. A Lotus não dá diagnóstico nem substitui o atendimento médico. Quando houver convênio com os órgãos públicos, os pedidos poderão ser enviados direto ao profissional mais próximo (socorrista, ambulância ou policial). Policiais podem se cadastrar com a carteira funcional e, se quiserem, ativar o recebimento desses alertas; eles não prestam serviço para o Realys nem têm vínculo com a plataforma. Esses canais são só para situações reais: uso falso ou por brincadeira segue a regra de chamada falsa do item 18."
     },
     {
       "titulo": "26. A Lotus, assistente do Realys",
