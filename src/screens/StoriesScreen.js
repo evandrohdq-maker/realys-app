@@ -16,7 +16,7 @@ import { TestimonialComposer } from '../components/SocialProfile';
 // Página Community (botão "Community" na barra de baixo): stories e comunidade.
 // Em cima, a faixa de bolinhas como no Instagram; embaixo, a Comunidade: feed único de posts e
 // depoimentos (curtir, comentar, compartilhar), mensagens, contatos e live.
-export default function StoriesScreen({ navigate, explore }) {
+export default function StoriesScreen({ navigate, explore, onTop }) {
   const { state, dispatch } = useStore();
   const [view, setView] = useState(null); // { groups, start, mine }
   const [composing, setComposing] = useState(false);
@@ -30,6 +30,11 @@ export default function StoriesScreen({ navigate, explore }) {
     if (!explore || explore.tab !== 'stories') return;
     setTop(explore.top && COMMUNITY_TOP_KEYS.includes(explore.top) ? explore.top : 'comunidade');
   }, [explore]);
+  // Avisa o app qual sub-aba está aberta (para o arrastar para os lados saber onde está).
+  useEffect(() => {
+    if (onTop) onTop(top);
+  }, [top]);
+  useEffect(() => () => onTop && onTop('comunidade'), []);
   const userName = state.user ? state.user.name : 'Você';
   const seen = state.storySeen;
   const mine = { id: 'mine', mine: true, name: userName, items: state.myStories };

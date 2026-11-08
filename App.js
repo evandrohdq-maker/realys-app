@@ -58,6 +58,7 @@ import HRScreen from './src/screens/empresa/HRScreen';
 import { TechScreen, AgroScreen } from './src/screens/cliente/TechAgroScreen';
 import { ElectronicsScreen, FashionScreen, HomeGoodsScreen, AppliancesScreen, FurnitureScreen, VariousScreen, EXTRA_SECTOR_KEYS, SECTOR_SCREENS } from './src/screens/cliente/ShopSectorScreen';
 import { SHOP_SECTORS } from './src/shopSectorsData';
+import SwipePages from './src/components/SwipePages';
 
 // Cada perfil enxerga abas diferentes dentro do MESMO app.
 const TABS = {
@@ -139,6 +140,8 @@ function Shell() {
   const [wakeCmd, setWakeCmd] = useState(null);
   const [hearing, setHearing] = useState(false);
   const [searching, setSearching] = useState(false);
+  // Sub-aba aberta na Community ('comunidade' = feed, 'noticias' = Feed de Notícias...).
+  const [commTop, setCommTop] = useState('comunidade');
   const isAdmin = state.user.roles.includes('admin');
   const pendingTab = useRef(null);
   const insets = useSafeAreaInsets();
@@ -228,6 +231,23 @@ function Shell() {
     if (role === state.activeRole) return setTab(tabKey);
     switchRole(role, tabKey);
   };
+  // Gestos de arrastar: Perfil ← [página inicial] → Feed de Notícias.
+  const homeKey = tabs[0].key;
+  const onNews = current.key === 'stories' && commTop === 'noticias';
+  const onCommunityFeed = current.key === 'stories' && commTop === 'comunidade';
+  const isHome = current.key === homeKey && (current.key !== 'stories' || commTop === 'comunidade');
+  const openNews = () => pick({ tab: 'stories', top: 'noticias' });
+  const openProfile = () => pick({ tab: 'perfil' });
+  const backHome = () => (homeKey === 'stories' ? pick({ tab: 'stories' }) : setTab(homeKey));
+  const swipe =
+    isHome || onCommunityFeed
+      ? { left: openNews, right: openProfile }
+      : onNews
+      ? { right: backHome }
+      : current.key === 'perfil'
+      ? { left: backHome }
+      : {};
+
   const mapped = SYSTEM_MAP.flatMap((g) => g.items).filter((i) => i.role === state.activeRole && i.tab === current.key);
   const where = mapped.length === 1 ? mapped[0].name : `${ROLE_LABELS[state.activeRole]} › ${current.label}`;
 
@@ -306,9 +326,11 @@ function Shell() {
         ) : null}
       </View>
 
-      <View style={{ flex: 1 }}>
-        <Comp goTo={setTab} openVoice={() => setVoice(true)} explore={explore} openArea={openArea} navigate={pick} />
-      </View>
+      {/* Página inicial com arrastar para os lados (qualquer perfil):
+          esquerda → Feed de Notícias, direita → Perfil. De lá, o gesto contrário volta. */}
+      <SwipePages onLeft={swipe.left} onRight={swipe.right}>
+        <Comp goTo={setTab} openVoice={() => setVoice(true)} explore={explore} openArea={openArea} navigate={pick} onTop={setCommTop} />
+      </SwipePages>
 
       <TouchableOpacity
         style={[styles.fab, { bottom: 84 + insets.bottom }]}
