@@ -398,6 +398,23 @@ const MIGRATIONS = [
   );
   CREATE INDEX credenciais_user ON credenciais(user_id);
   `,
+  // 10: moderação de imagens (nudez): resultado da IA e fila de revisão humana
+  `
+  ALTER TABLE media ADD COLUMN uso TEXT NOT NULL DEFAULT 'publico';
+  ALTER TABLE media ADD COLUMN moderacao TEXT NOT NULL DEFAULT 'liberado';
+  ALTER TABLE media ADD COLUMN nudez REAL;
+  CREATE INDEX media_moderacao ON media(moderacao);
+  CREATE TABLE moderacao_log (
+    id TEXT PRIMARY KEY,
+    user_id TEXT,
+    kind TEXT NOT NULL, -- foto | video | live
+    ref TEXT,
+    nudez REAL,
+    decisao TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX moderacao_log_user ON moderacao_log(user_id, created_at);
+  `,
 ];
 
 export function openDb(file) {

@@ -57,6 +57,11 @@ export function loadConfig(overrides = {}) {
     // Consulta automática nos outros conselhos (CRP, CRMV, COREN, CRO, CREA) pelo Infosimples.
     infosimplesToken: env.INFOSIMPLES_TOKEN || '',
     conselhoPaths: env.CONSELHO_PATHS || '',
+    // Moderação de imagens (server/moderacao-ia): fotos, vídeos e lives. Vazio = desligada.
+    moderacaoUrl: env.MODERACAO_URL || '',
+    ffmpegPath: env.FFMPEG_PATH || 'ffmpeg',
+    liveRtspBase: env.LIVE_RTSP_BASE || 'rtsp://127.0.0.1:8554/',
+    liveCheckSec: num(env.LIVE_CHECK_SEC, 20),
     videoUrl: env.VIDEO_URL || '', // ex.: https://video.realys.com.br
     videoSecret: env.VIDEO_SECRET || '', // mesmo valor no MediaMTX (authHTTPAddress ...?k=)
     videoQuality: env.VIDEO_QUALITY || '720p', // qualidade padrão das lives (480p ou 720p economiza tráfego)

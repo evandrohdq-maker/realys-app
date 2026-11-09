@@ -16,6 +16,7 @@
 //
 // Sem servidor de vídeo configurado (VIDEO_URL vazio), as rotas avisam e o app segue no modo
 // demonstração. Ver deploy/video/LEIA-ME.md e PENDENCIAS.md.
+import { makeImageModerator } from '../moderacaoImagem.js';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { fail, newId, now, str } from '../http.js';
 
@@ -39,8 +40,53 @@ function check(secret, token) {
   }
 }
 
+// Lives: a cada LIVE_CHECK_SEC segundos, o servidor tira 2 quadros de cada live no ar (pelo RTSP local do
+// MediaMTX) e pergunta à IA de moderação. Nudez com certeza = a live é encerrada na hora e o criador avisado;
+// dúvida = fica registrada para a equipe olhar. Precisa do serviço de moderação e do ffmpeg no servidor.
+export function makeLiveMonitor({ db, cfg, hub, mod }) {
+  const check = async (l) => {
+    const path = `live/${l.id}`;
+    const token = sign(cfg.videoSecret, { act: 'read', path, uid: 'moderacao', exp: now() + 120000 });
+    const base = cfg.liveRtspBase.replace(/\/?$/, '/').replace('rtsp://', `rtsp://moderacao:${encodeURIComponent(token)}@`);
+    const frames = await mod.grab(base + path, { count: 2, everySec: 1 });
+    if (!frames.length) return null;
+    const res = await mod.frames(frames);
+    db.prepare('INSERT INTO moderacao_log (id, user_id, kind, ref, nudez, decisao, created_at) VALUES (?,?,?,?,?,?,?)').run(newId('ml'), l.host_id, 'live', l.id, res.nudez == null ? null : res.nudez, res.decisao, now());
+    if (res.decisao === 'bloquear') {
+      db.prepare(`UPDATE lives SET status = 'encerrada', ended_at = ? WHERE id = ? AND status = 'ao_vivo'`).run(now(), l.id);
+      hub.send(l.host_id, 'live-encerrada', { id: l.id, motivo: 'Nudez não é permitida nas lives. A live foi encerrada pela moderação.' });
+    }
+    return res;
+  };
+  let timer = null;
+  let busy = false;
+  const tick = async () => {
+    if (busy) return;
+    busy = true;
+    try {
+      for (const l of db.prepare(`SELECT id, host_id FROM lives WHERE status = 'ao_vivo'`).all()) await check(l).catch(() => null);
+    } finally {
+      busy = false;
+    }
+  };
+  return {
+    check,
+    start() {
+      if (timer || !mod.ready || !cfg.videoUrl || !cfg.videoSecret) return false;
+      timer = setInterval(tick, Math.max(10, cfg.liveCheckSec || 20) * 1000);
+      timer.unref();
+      return true;
+    },
+    stop() {
+      clearInterval(timer);
+      timer = null;
+    },
+  };
+}
+
 export default function videoRoutes(r, { db, cfg, hub, publicUser, userById }) {
   const on = () => !!(cfg.videoUrl && cfg.videoSecret);
+  const mod = cfg.imageModerator || makeImageModerator(cfg);
   const off = () => fail(503, 'O servidor de vídeo ainda não foi contratado. As lives seguem no modo demonstração.', 'video_off');
   const base = () => cfg.videoUrl.replace(/\/$/, '');
 
@@ -160,4 +206,6 @@ export default function videoRoutes(r, { db, cfg, hub, publicUser, userById }) {
     hub.send(other(c, user.id), 'call-end', { id: c.id });
     return { ok: true };
   });
+  // Vigia das lives (só liga com a moderação e o servidor de vídeo configurados).
+  makeLiveMonitor({ db, cfg, hub, mod }).start();
 }

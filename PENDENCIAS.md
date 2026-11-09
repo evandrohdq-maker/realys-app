@@ -49,10 +49,14 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 
 ## Conteúdo, moderação e privacidade
 
-- [ ] **IA de imagem no servidor para nudez** (fotos de posts, stories, perfil do Date e quadros das lives).
-      Hoje o texto é moderado no celular (src/moderation.js) e as fotos têm a regra confirmada por quem publica
-      e denúncia; falta a checagem automática da imagem (modelo aberto rodando no próprio servidor, sem mandar
-      foto para fora).
+- [x] **IA de imagem para nudez: pronta no servidor** (server/moderacao-ia + src/moderacaoImagem.js):
+      fotos e vídeos públicos são conferidos no envio (bloqueia / manda para revisão / libera), as lives são
+      conferidas a cada 20 s (nudez = live encerrada) e há fila de revisão para o administrador.
+      Conversas privadas não passam pela regra. **Falta, ao contratar o servidor:** instalar
+      (server/moderacao-ia/LEIA-ME.md), testar com fotos de praia e ajustar os limites; depois ligar no app o
+      envio com `?uso=privado` nas conversas e a mensagem de "nudez" no envio de fotos (gerar APK nessa hora).
+- [ ] **Detecção de abuso infantil por "impressão digital" de imagem** (lista de imagens já conhecidas, como o
+      PhotoDNA): só por parceria com organizações autorizadas (ex.: SaferNet); a IA de nudez não substitui isso.
 - [ ] **Repetir a moderação de texto no servidor** quando posts, comentários e mensagens passarem por ele.
 - [ ] **Canal de denúncia às autoridades** (SaferNet / Polícia Federal) para conteúdo com menores, com
       preservação das provas, e responsável pela moderação definido na empresa.

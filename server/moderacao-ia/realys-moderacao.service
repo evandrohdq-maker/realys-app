@@ -1,0 +1,15 @@
+# Serviço de biometria como systemd unit. Copie para /etc/systemd/system/ e rode: systemctl enable --now realys-moderacao
+[Unit]
+Description=Realys: serviço de moderação de imagens (nudez)
+After=network.target
+
+[Service]
+User=realys
+WorkingDirectory=/opt/realys/server/moderacao-ia
+EnvironmentFile=/opt/realys/server/moderacao-ia/.env
+ExecStart=/opt/realys/moderacao-venv/bin/python3 /opt/realys/server/moderacao-ia/servico.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

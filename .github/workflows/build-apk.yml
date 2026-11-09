@@ -4,6 +4,12 @@ name: Gerar APK do Realys
 on:
   push:
     branches: [main]
+    # Mudanças só do servidor ou das anotações não geram APK novo (o app não muda).
+    paths-ignore:
+      - 'server/**'
+      - 'PENDENCIAS.md'
+      - 'tools/**'
+      - '.github/**'
   workflow_dispatch:
 
 permissions:
