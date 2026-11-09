@@ -3,6 +3,7 @@
 import { getDevicePoint, addressOf } from './geo';
 import { callNow } from './phone';
 import { panicConfig } from './panic';
+import { syncAlert, syncAlertPlace } from './securitySync';
 
 export function triggerDuress(dispatch, state, info) {
   const cfg = panicConfig() || {};
@@ -22,11 +23,13 @@ export function triggerDuress(dispatch, state, info) {
       status: 'aberto',
     },
   });
+  syncAlert(id, 'coacao', { tipo: 'Resposta de segurança (coação)', what: info && info.what });
   getDevicePoint().then(async (p) => {
     if (!p) return;
     dispatch({ type: 'PANIC_UPDATE', id, data: { point: p } });
     const address = await addressOf(p);
     if (address) dispatch({ type: 'PANIC_UPDATE', id, data: { address } });
+    syncAlertPlace(id, p, address);
   });
   // Espera a tela de "deu certo" aparecer antes de ligar.
   if (cfg.call190 !== false) setTimeout(() => callNow('190'), 4000);

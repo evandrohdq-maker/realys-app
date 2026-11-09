@@ -59,6 +59,7 @@ const TEXT_OF = {
   ENC_MSG: (a) => [a.msg && a.msg.text, 'privado'],
   LIVE_COMMENT: (a) => [a.text, 'publico'],
   PUBLISH_STORY: (a) => [a.item && (a.item.text || a.item.caption), 'publico'],
+  DESAPEGO_ADD: (a) => [a.item && `${a.item.title} ${a.item.desc || ''}`, 'publico'],
 };
 
 export function moderateAction(a) {

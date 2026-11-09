@@ -12,6 +12,7 @@ import { colors } from '../theme';
 import { callNow } from '../phone';
 import { getDevicePoint, addressOf } from '../geo';
 import { hospitals, responders } from '../extraData';
+import { syncAlert, syncAlertPlace } from '../securitySync';
 
 const RED = '#C0392B';
 const WHATS_180 = 'https://wa.me/556196100180';
@@ -26,7 +27,14 @@ function useLocate(dispatch) {
       dispatch({ type: 'SOS_UPDATE', id, data: { point: p } });
       const address = await addressOf(p);
       if (address) dispatch({ type: 'SOS_UPDATE', id, data: { address } });
+      syncAlertPlace(id, p, address);
     });
+}
+
+// Registra o pedido no celular e manda para a central do servidor.
+function request(dispatch, req) {
+  dispatch({ type: 'SOS_REQUEST', req });
+  syncAlert(req.id, req.kind, { tipo: req.tipo, texto: req.texto, onde: req.onde, anon: req.anon, protocolo: req.protocol });
 }
 
 export default function LotusSOS() {
@@ -110,17 +118,14 @@ function Denuncia({ onClose }) {
   const perigo = () => {
     // Em perigo agora: alerta silencioso com GPS para a segurança do Realys, na hora.
     const id = 'sos' + Date.now();
-    dispatch({ type: 'SOS_REQUEST', req: { id, kind: 'perigo', tipo: 'Pessoa em perigo agora', who: state.user ? state.user.name : null, userId: state.user ? state.user.id : null, protocol: protocolo(), at: Date.now(), status: 'aberto' } });
+    request(dispatch, { id, kind: 'perigo', tipo: 'Pessoa em perigo agora', who: state.user ? state.user.name : null, userId: state.user ? state.user.id : null, protocol: protocolo(), at: Date.now(), status: 'aberto' });
     locate(id);
     setStep('perigo');
   };
   const enviar = () => {
     const id = 'sos' + Date.now();
     const p = protocolo();
-    dispatch({
-      type: 'SOS_REQUEST',
-      req: { id, kind: 'denuncia', tipo, texto: texto.trim(), onde: onde.trim(), anon, who: anon ? null : state.user ? state.user.name : null, userId: state.user ? state.user.id : null, protocol: p, at: Date.now(), status: 'aberto' },
-    });
+    request(dispatch, { id, kind: 'denuncia', tipo, texto: texto.trim(), onde: onde.trim(), anon, who: anon ? null : state.user ? state.user.name : null, userId: state.user ? state.user.id : null, protocol: p, at: Date.now(), status: 'aberto' });
     if (gps) locate(id);
     setProt(p);
     setStep('feito');
@@ -218,7 +223,7 @@ function Emergencia({ onClose }) {
 
   // Ao abrir: registra o pedido com GPS para a central (e para o socorrista mais perto, quando houver convênio).
   useEffect(() => {
-    dispatch({ type: 'SOS_REQUEST', req: { id, kind: 'emergencia', tipo: 'Emergência médica', who: state.user ? state.user.name : null, userId: state.user ? state.user.id : null, protocol: protocolo(), at: Date.now(), status: 'aberto' } });
+    request(dispatch, { id, kind: 'emergencia', tipo: 'Emergência médica', who: state.user ? state.user.name : null, userId: state.user ? state.user.id : null, protocol: protocolo(), at: Date.now(), status: 'aberto' });
     locate(id);
   }, []);
   const share = async () => {

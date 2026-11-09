@@ -23,7 +23,8 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
     venda de imóvel (a compra de imóvel ainda precisa de escritura no cartório).
   - Hoje (etapa 1) o app já monta e entrega os documentos; o médico assina a receita pelo próprio
     certificado (ex.: Prescrição Eletrônica do CFM) e os contratos podem ser assinados pelo gov.br.
-  - Gerar **QR Code de conferência** nos PDFs apontando para uma página de verificação do Realys.
+  - [x] Página de conferência pronta (/v/<código>) e o código vai no PDF do contrato. Falta desenhar o QR Code
+        no PDF (biblioteca de QR no app, quando gerarmos o APK com o servidor).
 - [ ] **Assinatura gov.br direto no app**: hoje a API do gov.br só é liberada para órgãos públicos.
       Acompanhar a abertura anunciada pelo ITI para empresas privadas.
 - [ ] Conferência dos registros profissionais nos conselhos (CRM, CRO, CRMV, COREN, CRP, CRN…)
@@ -57,7 +58,7 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
       envio com `?uso=privado` nas conversas e a mensagem de "nudez" no envio de fotos (gerar APK nessa hora).
 - [ ] **Detecção de abuso infantil por "impressão digital" de imagem** (lista de imagens já conhecidas, como o
       PhotoDNA): só por parceria com organizações autorizadas (ex.: SaferNet); a IA de nudez não substitui isso.
-- [ ] **Repetir a moderação de texto no servidor** quando posts, comentários e mensagens passarem por ele.
+- [x] **Moderação de texto no servidor** (posts, depoimentos e mensagens): pronta (server/src/moderacaoTexto.js).
 - [ ] **Canal de denúncia às autoridades** (SaferNet / Polícia Federal) para conteúdo com menores, com
       preservação das provas, e responsável pela moderação definido na empresa.
 - [ ] **Advogado revisar o Termo de Adesão v13** e os Termos do Encontros v0.2 antes do lançamento oficial.
@@ -72,15 +73,15 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 
 ## Segurança do cliente (pergunta de segurança)
 
-- [ ] Levar os alertas de segurança e o bloqueio por chamada falsa para o servidor (hoje ficam no celular e
-      no painel local); bloquear a conta e reter o saldo também na carteira do servidor.
-- [ ] Central de segurança do Realys 24 h recebendo os alertas e falando com a polícia, para não depender
-      só da ligação do celular (a ligação para o 190 aparece na tela de quem está perto).
+- [x] Alertas de segurança e bloqueio por chamada falsa no servidor: prontos (server/src/routes/seguranca.js);
+      a conta é bloqueada, as sessões encerradas e o saldo retido. O app manda os alertas quando o servidor estiver no ar.
+- [x] Tela da central de segurança no painel do administrador (alertas na hora, mapa, atendido / chamada falsa).
+- [ ] **Pessoas para a central 24 h** (operar a tela e falar com a polícia).
 - [ ] Advogado revisar a retenção do saldo por chamada falsa (reter durante a apuração e para ressarcir custos
       é mais seguro do que perder tudo automaticamente).
 
-- [ ] Contrato assinado sob coação: marcar o PDF/verificação do contrato como sem validade também no
-      servidor (hoje a marca fica no celular) e avisar a outra parte só depois da apuração.
+- [x] Contrato sob coação marcado no servidor: a página de conferência mostra só "em análise".
+- [ ] Definir com o advogado quando avisar a outra parte depois da apuração.
 
 ## Polícia Inteligente (proposta para o governo)
 
@@ -97,7 +98,8 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
       guardas, fiscais etc.): cadastro opcional com a carteira funcional + biometria, liga o recebimento de
       alertas se quiser, **não presta serviço para o Realys** e não paga taxa (Lotus Emergência → socorrista mais perto).
 - [ ] Convênio, regras de sigilo dos dados (LGPD, poder público) e integração com o 190/192 de cada estado.
-- [ ] Levar os pedidos (sosRequests) para o servidor, com fila da central 24 h.
+- [x] Pedidos da Lotus Denúncia e Emergência no servidor, com a fila da central; plantão ("estou na ativa") e
+      aviso ao profissional mais perto prontos.
 
 - [ ] **Carteira profissional (já pronto no código, falta contratar):**
       - CFM (médicos): webservice oficial, R$ 948/ano → CFM_WS_URL/CFM_WS_KEY; ajustar src/cfm.js ao manual que vem com a chave.
@@ -106,7 +108,7 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
       - OAB: pedir acordo ao Conselho Federal (o CNA não pode ser repassado sem autorização); até lá, conferência manual.
       - E-mail institucional: contratar o envio (Resend) → RESEND_API_KEY/EMAIL_FROM.
       - Painel do administrador ler a fila do servidor (/admin/credenciais) quando o servidor estiver no ar.
-- [ ] Casos para profissionais: levar para o servidor, com registro de quem viu e quem acompanhou cada caso.
+- [x] Casos para profissionais no servidor, com registro de quem acompanhou cada caso.
 
 ## Lotus
 
@@ -118,8 +120,7 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 
 ## Negócio
 
-- [ ] **Alinhar a taxa de presentes do servidor com o app:** no app são 10% descontados do presente; o servidor
-      ainda cobra 5% por cima (GIFT_FEE_PCT). Mudar junto com os testes antes de ligar os pagamentos reais.
+- [x] Taxa de presentes do servidor igual à do app (10% sai do presente; gorjeta sem taxa).
 
 - [ ] **Calibrar a Tarifa Realys e as faixas justas** com dados reais da plataforma (src/pricing.js):
       os apps grandes não divulgam mais as tarifas; as faixas de consulta médica geral estão marcadas
@@ -127,5 +128,6 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 
 - [ ] **Dezembro de 2026:** revisar a Taxa de proteção Realys (R$ 0,99 fixa) e a ideia de taxa
       variando por horário.
-- [ ] Aba **Desapego** (clientes vendendo itens usados entre eles).
+- [x] Aba **Desapego** pronta (menu ⋮ e "Lotus, me leva pro desapego"), com a Garantia Realys e taxa de 10%.
+      Falta levar os anúncios para o servidor.
 - [ ] Decidir banco (nacional ou estrangeiro) e o cálculo de margem com os impostos da nota.

@@ -1,7 +1,61 @@
 import React, { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { serverOn } from '../../api';
+import { serverOn, api } from '../../api';
 import { videoStatus } from '../../video';
+
+// Central de segurança (com o servidor no ar): lista os alertas abertos e atualiza sozinha.
+const KIND_LABEL = { chave: 'Chave do motorista', coacao: 'Coação (resposta de segurança)', perigo: 'Em perigo agora', denuncia: 'Denúncia', emergencia: 'Emergência médica' };
+function CentralSeguranca() {
+  const { state, dispatch } = useStore();
+  const on = serverOn();
+  useEffect(() => {
+    if (!on) return;
+    api('GET', '/admin/alertas').then((r) => dispatch({ type: 'CENTRAL_LOAD', items: r.items })).catch(() => {});
+  }, [on]);
+  if (!on) return null;
+  const list = (state.centralAlerts || []).filter((x) => x.status === 'aberto' || x.status === 'em_acompanhamento');
+  const act = (x, acao) =>
+    api('POST', `/admin/alertas/${x.id}/${acao}`, {})
+      .then(() => dispatch({ type: 'CENTRAL_SET', id: x.id, status: acao === 'falso' ? 'falso' : 'atendido' }))
+      .catch((e) => Alert.alert('Não deu certo', (e && e.message) || 'Tente de novo.'));
+  return (
+    <Section title={`🛡️ Central de segurança${list.length ? ` (${list.length})` : ''}`}>
+      {!list.length ? <Text style={{ color: colors.muted, fontSize: 12, marginBottom: 8 }}>Nenhum alerta aberto agora.</Text> : null}
+      {list.map((x) => (
+        <Card key={x.id} style={{ borderColor: '#C0392B', borderWidth: 1.5 }}>
+          <Text style={{ color: '#C0392B', fontWeight: '800' }}>{KIND_LABEL[x.kind] || x.tipo} · {x.protocolo}</Text>
+          <Text style={{ color: colors.text, fontSize: 13, marginTop: 2 }}>{x.quem || 'Anônimo'}{x.what ? ` · ${x.what}` : ''}</Text>
+          {x.texto ? <Text style={{ color: colors.text, fontSize: 13, marginTop: 2 }}>{x.texto}</Text> : null}
+          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 4 }}>
+            {x.local && x.local.endereco ? `🏠 ${x.local.endereco}` : x.local && x.local.lat != null ? `📍 ${x.local.lat.toFixed(5)}, ${x.local.lon.toFixed(5)}` : '📍 aguardando localização'}
+            {x.avisado ? ' · profissional de plantão avisado' : ''}
+            {(x.por || []).length ? ` · acompanhando: ${x.por.join(', ')}` : ''}
+          </Text>
+          <Row style={{ marginTop: 10 }}>
+            {x.local && x.local.lat != null ? (
+              <TouchableOpacity onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${x.local.lat},${x.local.lon}`).catch(() => {})} style={{ marginRight: 16 }}>
+                <Text style={{ color: colors.primary, fontWeight: '700' }}>Mapa</Text>
+              </TouchableOpacity>
+            ) : null}
+            <TouchableOpacity onPress={() => act(x, 'atendido')} style={{ marginRight: 16 }}>
+              <Text style={{ color: colors.success, fontWeight: '700' }}>Atendido</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() =>
+                Alert.alert('Chamada falsa?', 'Só quando a polícia ou a segurança confirmar. A conta é bloqueada e o saldo fica retido.', [
+                  { text: 'Cancelar', style: 'cancel' },
+                  { text: 'Confirmar', style: 'destructive', onPress: () => act(x, 'falso') },
+                ])
+              }
+            >
+              <Text style={{ color: colors.danger, fontWeight: '700' }}>Chamada falsa</Text>
+            </TouchableOpacity>
+          </Row>
+        </Card>
+      ))}
+    </Section>
+  );
+}
 
 // Avisos de contratação: o que ainda precisa ser contratado para o Realys funcionar de verdade.
 function HireNotices() {
@@ -81,6 +135,9 @@ export function AdminOverview() {
     <Screen>
       <Title sub="Controle geral da plataforma Realys">Administração</Title>
       <HireNotices />
+
+      {/* Central de segurança 24 h (servidor): todos os alertas chegam aqui na hora. */}
+      <CentralSeguranca />
 
       {/* Chave de segurança dos motoristas: alerta silencioso com GPS e dados da corrida. */}
       {(state.panicAlerts || []).length ? (

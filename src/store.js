@@ -1,5 +1,6 @@
 import { subscribeQuote } from './datePlans';
 import { moderateAction } from './moderation';
+import { DESAPEGO_DEMO } from './desapego';
 import { MANDADOS_DEMO } from './empresaDemo';
 import { Alert } from 'react-native';
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
@@ -72,6 +73,7 @@ const initialState = {
   ready: false, // vira true depois de ler a sessão salva (evita piscar a tela de login)
   user: null, // { name, roles: [], cnpj }
   panicAlerts: [], // alertas da chave de segurança dos motoristas (painel do administrador)
+  desapego: DESAPEGO_DEMO, // itens usados entre pessoas (src/desapego.js)
   documents: [], // contratos e receitas (src/documents.js)
   // Serviço público (src/publicServices.js): perfil aberto, publicações e horários novos dos órgãos.
   publicOpen: null, // { id, tab, at }
@@ -1329,6 +1331,36 @@ function baseReducer(state, a) {
     case 'CASE_FOLLOW':
       // Profissional decidiu acompanhar o caso (o pedido mostra quem está acompanhando).
       return { ...state, sosRequests: (state.sosRequests || []).map((x) => (x.id === a.id ? { ...x, followers: [...new Set([...(x.followers || []), a.who])], followerLabels: [...new Set([...(x.followerLabels || []), a.label || 'Profissional verificado'])], status: 'em acompanhamento' } : x)) };
+    // Central de segurança: alertas vindos do servidor (administradores).
+    case 'CENTRAL_LOAD':
+      return { ...state, centralAlerts: a.items || [] };
+    case 'CENTRAL_EVENT': {
+      const list = state.centralAlerts || [];
+      const al = a.alerta || {};
+      if (a.event === 'alerta-acompanhado') return { ...state, centralAlerts: list.map((x) => (x.id === al.id ? { ...x, status: 'em_acompanhamento', por: [...(x.por || []), al.por] } : x)) };
+      const has = list.some((x) => x.id === al.id);
+      return { ...state, centralAlerts: has ? list.map((x) => (x.id === al.id ? { ...x, ...al } : x)) : [al, ...list] };
+    }
+    case 'CENTRAL_SET':
+      return { ...state, centralAlerts: (state.centralAlerts || []).map((x) => (x.id === a.id ? { ...x, status: a.status } : x)) };
+    // Desapego (src/desapego.js): pagamento retido na Garantia Realys até o comprador confirmar.
+    case 'DESAPEGO_ADD':
+      return { ...state, desapego: [{ ...a.item, id: newId('dz'), seller: state.user ? state.user.name : 'Você', status: 'disponivel', at: Date.now() }, ...(state.desapego || [])] };
+    case 'DESAPEGO_REMOVE':
+      return { ...state, desapego: (state.desapego || []).filter((x) => x.id !== a.id) };
+    case 'DESAPEGO_BUY': {
+      const it = (state.desapego || []).find((x) => x.id === a.id);
+      if (!it || it.status !== 'disponivel' || state.wallet < it.price) return state;
+      const now = Date.now();
+      return {
+        ...state,
+        wallet: +(state.wallet - it.price).toFixed(2),
+        walletTx: [{ id: newId('w'), ts: now, kind: 'gasto', cat: 'Desapego', desc: `${it.title} (retido na Garantia Realys)`, amount: it.price }, ...state.walletTx],
+        desapego: state.desapego.map((x) => (x.id === a.id ? { ...x, status: 'reservado', buyer: state.user ? state.user.name : 'Você', boughtAt: now } : x)),
+      };
+    }
+    case 'DESAPEGO_RECEIVED':
+      return { ...state, desapego: (state.desapego || []).map((x) => (x.id === a.id ? { ...x, status: 'vendido', receivedAt: Date.now() } : x)) };
     case 'DATE_SUBSCRIBE': {
       const q = subscribeQuote(state, a.planId, a.pay);
       if (!q.ok) return state;

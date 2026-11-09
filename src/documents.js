@@ -185,7 +185,7 @@ export function contractHtml(doc) {
   <ol>${contractBody(doc).map((c) => `<li>${esc(c)}</li>`).join('')}</ol>
   ${doc.extra ? `<div class="box"><b>Combinado entre as partes:</b><br/>${esc(doc.extra)}</div>` : ''}
   <div>${signBlock(a, t.roles[0])}${signBlock(b, t.roles[1])}</div>
-  <div class="foot">Código do documento (SHA-256): <span class="code">${esc(doc.hash || '')}</span><br/>Via de: ${esc(doc.copyFor || 'todas as partes')}. Assinatura eletrônica entre as partes (Lei 14.063/2020; MP 2.200-2/2001, art. 10, § 2º). Para registro em cartório, é preciso assinatura qualificada ICP-Brasil.</div>
+  <div class="foot">Código do documento (SHA-256): <span class="code">${esc(doc.hash || '')}</span><br/>${doc.verifyUrl ? `Confira este documento em <b>${esc(doc.verifyUrl)}</b> (código ${esc(doc.verifyCode)}).<br/>` : ''}Via de: ${esc(doc.copyFor || 'todas as partes')}. Assinatura eletrônica entre as partes (Lei 14.063/2020; MP 2.200-2/2001, art. 10, § 2º). Para registro em cartório, é preciso assinatura qualificada ICP-Brasil.</div>
   </body></html>`;
 }
 

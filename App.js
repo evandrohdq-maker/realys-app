@@ -40,6 +40,7 @@ import { VideoCallHost } from './src/components/LiveVideo';
 import TermoReaceite from './src/components/TermoReaceite';
 import AccountBlocked from './src/components/AccountBlocked';
 import LotusSOS from './src/components/LotusSOS';
+import SecurityEvents from './src/components/SecurityEvents';
 import { SoftAlertHost, installSoftAlert } from './src/components/SoftAlert';
 
 // Avisos no estilo do Realys no app inteiro (no lugar da caixa cinza do Android).
@@ -47,6 +48,7 @@ installSoftAlert();
 import { callNow } from './src/phone';
 import { getDevicePoint } from './src/geo';
 import { triggerDuress } from './src/duress';
+import { syncAlert, syncAlertPlace } from './src/securitySync';
 import { stopSpeaking } from './src/voice';
 import { findNavigation, navReply } from './src/voiceNav';
 import { findMandadoAction } from './src/voiceMandados';
@@ -71,6 +73,7 @@ import SosScreen from './src/screens/cliente/SosScreen';
 import ArtistsScreen from './src/screens/cliente/ArtistsScreen';
 import PageScreen from './src/screens/empresa/PageScreen';
 import JobsScreen from './src/screens/cliente/JobsScreen';
+import DesapegoScreen from './src/screens/cliente/DesapegoScreen';
 import HRScreen from './src/screens/empresa/HRScreen';
 import { TechScreen, AgroScreen } from './src/screens/cliente/TechAgroScreen';
 import { ElectronicsScreen, FashionScreen, HomeGoodsScreen, AppliancesScreen, FurnitureScreen, VariousScreen, EXTRA_SECTOR_KEYS, SECTOR_SCREENS } from './src/screens/cliente/ShopSectorScreen';
@@ -101,6 +104,7 @@ const TABS = {
     { key: 'socorro', label: 'Socorro', icon: 'medkit-outline', Comp: SosScreen, hidden: true },
     { key: 'artistas', label: 'Artistas', icon: 'musical-notes-outline', Comp: ArtistsScreen, hidden: true },
     { key: 'vagas', label: 'Empregos', icon: 'briefcase-outline', Comp: JobsScreen, hidden: true },
+    { key: 'desapego', label: 'Desapego', icon: 'pricetags-outline', Comp: DesapegoScreen, hidden: true },
     { key: 'tecnologia', label: 'Tecnologia', icon: 'hardware-chip-outline', Comp: TechScreen, hidden: true },
     { key: 'agro', label: 'Agro', icon: 'leaf-outline', Comp: AgroScreen, hidden: true },
     { key: 'eletronicos', label: 'Eletrônicos', icon: 'phone-portrait-outline', Comp: ElectronicsScreen, hidden: true },
@@ -188,7 +192,12 @@ function Shell() {
         status: 'aberto',
       },
     });
-    getDevicePoint().then((p) => p && dispatch({ type: 'PANIC_UPDATE', id, data: { point: p } }));
+    syncAlert(id, 'chave', { tipo: 'Chave de segurança do motorista', what: ride ? `Corrida${ride.client ? ` com ${ride.client}` : ''}${me.plate ? ` · placa ${me.plate}` : ''}` : null });
+    getDevicePoint().then((p) => {
+      if (!p) return;
+      dispatch({ type: 'PANIC_UPDATE', id, data: { point: p } });
+      syncAlertPlace(id, p);
+    });
     if (cfg.call190 !== false) setTimeout(() => callNow('190'), 1200);
   };
   // Frase de segurança (coação) na hora de confirmar: a Lotus mostra que deu certo, nada é cobrado,
@@ -467,6 +476,7 @@ function Shell() {
       <VideoCallHost />
       <TermoReaceite />
       <LotusSOS />
+      <SecurityEvents />
       <AccountBlocked />
       <WakeWordListener
         enabled={state.handsFree && (!voice || wakeCapture) && !menu && !noting && !searching && !state.docsOpen}

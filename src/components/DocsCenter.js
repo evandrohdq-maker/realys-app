@@ -13,6 +13,7 @@ import SecurityQuestion from './SecurityQuestion';
 import FaceCheck, { FACE_ABOVE } from './FaceCheck';
 import { securityQuestion } from '../voicePrint';
 import { triggerDuress } from '../duress';
+import { api, serverOn, API_URL } from '../api';
 import { hashOf, signWithBiometric, sharePdf, printDoc, startGovbr, pickSignedPdf, shareFile } from '../documentsIO';
 
 const newId = (p) => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -324,18 +325,32 @@ function DocView({ doc }) {
       if (big) return setFace(i);
       if (securityQuestion()) return setAsk(i);
       dispatch({ type: 'DOC_SIGN', id: doc.id, index: i, method: 'realys' });
+      register(i, false);
       Alert.alert('Contrato finalizado com sucesso.', 'Sua assinatura foi registrada.');
     });
+  // Com o servidor: registra o documento para a conferência pública (/v/<código>, que vai no PDF).
+  const register = async (signedIndex, coacao) => {
+    if (!serverOn() || rx) return;
+    const partes = doc.parties.map((p, j) => ({ papel: p.role, nome: p.name, assinadoEm: j === signedIndex ? Date.now() : p.signedAt || null, metodo: j === signedIndex ? 'realys' : p.method || null }));
+    try {
+      if (!doc.verifyCode) {
+        const r = await api('POST', '/documentos', { hash: doc.hash, titulo: docTitle(doc), tipo: 'contrato', partes, coacao: !!coacao });
+        dispatch({ type: 'DOC_SAVE', doc: { ...doc, verifyCode: r.codigo, verifyUrl: API_URL + r.url, parties: doc.parties.map((p, j) => (j === signedIndex && !p.signedAt ? { ...p, signedAt: Date.now(), method: 'realys', ...(coacao ? { coacao: true } : {}) } : p)), ...(coacao ? { coacao: true } : {}) } });
+      } else await api('POST', `/documentos/${doc.verifyCode}`, { partes, coacao: !!coacao });
+    } catch (e) {}
+  };
   const answered = (kind) => {
     const i = ask;
     setAsk(null);
     if (kind === 'libera') {
       dispatch({ type: 'DOC_SIGN', id: doc.id, index: i, method: 'realys' });
+      register(i, false);
       return Alert.alert('Contrato finalizado com sucesso.', 'Sua assinatura foi registrada.');
     }
     if (kind === 'seguranca') {
       // Parece assinado, mas a assinatura não vale (fica marcada como feita sob coação) e a segurança é acionada.
       dispatch({ type: 'DOC_SIGN', id: doc.id, index: i, method: 'realys', coacao: true });
+      register(i, true);
       triggerDuress(dispatch, state, { what: `Assinatura do contrato "${docTitle(doc)}" (sob coação, a assinatura não vale)` });
       return Alert.alert('Contrato confirmado com sucesso, parabéns.', 'Sua assinatura foi registrada.');
     }

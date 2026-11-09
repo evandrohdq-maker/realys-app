@@ -1,6 +1,6 @@
 // Perfil › Carteira profissional: cadastrar a carteira da profissão e, depois de aprovada, escolher se
 // quer receber casos da plataforma (servidor público atende de graça, sem taxa do Realys).
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Switch, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -8,6 +8,7 @@ import { useStore } from '../store';
 import { colors } from '../theme';
 import { PROFESSIONS, professionOf, casesFor, roughPlace, isGovEmail, CONSELHO_TEXT } from '../credentials';
 import { api, serverOn } from '../api';
+import { getDevicePoint } from '../geo';
 
 const STATUS = { em_analise: ['Em análise', '#C77D12'], aprovado: ['Aprovada', '#1E9E63'], recusado: ['Recusada', '#C0392B'] };
 
@@ -27,6 +28,39 @@ export default function Credentials() {
   const [busy, setBusy] = useState(false);
   const [mail, setMail] = useState({}); // { [credId]: { email, code, sent, demo } }
   const p = professionOf(prof);
+  // Plantão ("estou na ativa"): servidor público ou profissional de saúde aprovado manda o GPS a cada 5 min
+  // e pode ser avisado como o mais perto de uma vítima. Só com o servidor no ar.
+  const [plantao, setPlantao] = useState(false);
+  const [srvCases, setSrvCases] = useState([]);
+  const tick = useRef(null);
+  const sendPos = async () => {
+    const pt = await getDevicePoint();
+    if (!pt) return Alert.alert('GPS', 'Ligue a localização para ficar de plantão.');
+    await api('POST', '/plantao', { on: true, lat: pt.lat, lon: pt.lon });
+  };
+  const togglePlantao = async (v) => {
+    try {
+      if (v) {
+        await sendPos();
+        tick.current = setInterval(() => sendPos().catch(() => {}), 5 * 60 * 1000);
+      } else {
+        clearInterval(tick.current);
+        await api('POST', '/plantao', { on: false });
+      }
+      setPlantao(v);
+    } catch (e) {
+      Alert.alert('Plantão', (e && e.message) || 'Tente de novo.');
+    }
+  };
+  useEffect(() => () => clearInterval(tick.current), []);
+  const anyReceive = mine.some((c) => c.status === 'aprovado' && c.receiveCases);
+  useEffect(() => {
+    if (!serverOn() || !anyReceive) return;
+    const load = () => api('GET', '/casos').then((r) => setSrvCases(r.items || [])).catch(() => {});
+    load();
+    const t = setInterval(load, 60000);
+    return () => clearInterval(t);
+  }, [anyReceive]);
   const setM = (id, patch) => setMail((m) => ({ ...m, [id]: { ...(m[id] || {}), ...patch } }));
 
   // E-mail institucional: código de 6 números (com servidor, chega no e-mail; na demonstração, aparece na tela).
@@ -109,7 +143,12 @@ export default function Credentials() {
 
       {mine.map((c) => {
         const [label, color] = STATUS[c.status] || STATUS.em_analise;
-        const cases = casesFor(c, state.sosRequests);
+        // Com servidor: os casos vêm da central; sem servidor, os pedidos deste celular (demonstração).
+        const cases = serverOn()
+          ? c.status === 'aprovado' && c.receiveCases
+            ? srvCases.map((x) => ({ id: x.id, tipo: x.tipo || x.kind, protocol: x.protocolo, address: x.local && x.local.endereco, kind: x.kind, texto: x.texto, followers: x.acompanhando ? [state.user && state.user.name] : [], server: true }))
+            : []
+          : casesFor(c, state.sosRequests);
         return (
           <View key={c.id} style={st.item}>
             <Text style={st.itemTitle}>{c.label}</Text>
@@ -152,10 +191,22 @@ export default function Credentials() {
                 }}
               />
             </View>
+            {c.status === 'aprovado' && serverOn() && (c.gov || c.prof === 'medico' || c.prof === 'enfermeiro') ? (
+              <View style={st.switchRow}>
+                <Text style={st.switchText}>Estou na ativa (plantão): ser avisado quando eu for o mais perto de uma vítima</Text>
+                <Switch value={plantao} onValueChange={togglePlantao} />
+              </View>
+            ) : null}
             {c.status === 'aprovado' ? (
               <View style={st.switchRow}>
                 <Text style={st.switchText}>Receber casos da plataforma para analisar</Text>
-                <Switch value={!!c.receiveCases} onValueChange={(v) => dispatch({ type: 'CRED_SET', id: c.id, patch: { receiveCases: v } })} />
+                <Switch
+                  value={!!c.receiveCases}
+                  onValueChange={(v) => {
+                    dispatch({ type: 'CRED_SET', id: c.id, patch: { receiveCases: v } });
+                    if (serverOn() && c.serverId) api('POST', `/credenciais/${c.serverId}/casos`, { on: v }).catch(() => {});
+                  }}
+                />
               </View>
             ) : null}
             {cases.map((r) => (
@@ -167,7 +218,7 @@ export default function Credentials() {
                 {(r.followers || []).includes(state.user && state.user.name) ? (
                   <Text style={[st.itemSub, { color: '#1E9E63', fontWeight: '700' }]}>Você está acompanhando</Text>
                 ) : (
-                  <TouchableOpacity onPress={() => dispatch({ type: 'CASE_FOLLOW', id: r.id, who: state.user ? state.user.name : 'Profissional', label: c.discreto ? `${c.label} verificado (sigilo)` : `${c.label} ${state.user ? state.user.name : ''}`.trim() })}>
+                  <TouchableOpacity onPress={() => (r.server ? api('POST', `/casos/${r.id}/acompanhar`, {}).then(() => setSrvCases((l) => l.map((x) => (x.id === r.id ? { ...x, acompanhando: true } : x)))).catch((e) => Alert.alert('Não deu certo', e.message)) : null, !r.server && dispatch({ type: 'CASE_FOLLOW', id: r.id, who: state.user ? state.user.name : 'Profissional', label: c.discreto ? `${c.label} verificado (sigilo)` : `${c.label} ${state.user ? state.user.name : ''}`.trim() }))}>
                     <Text style={st.link}>Quero acompanhar este caso</Text>
                   </TouchableOpacity>
                 )}

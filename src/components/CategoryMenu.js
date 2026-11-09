@@ -223,6 +223,16 @@ export const CATEGORIES = [
     ],
   },
   {
+    key: 'desapego',
+    title: 'Desapego',
+    hint: 'Usados entre pessoas verificadas, com a Garantia Realys',
+    icon: 'pricetags-outline',
+    subs: [
+      { label: 'Ver desapegos', hint: 'Perto de você', icon: 'search-outline', go: { tab: 'desapego' } },
+      { label: 'Anunciar um desapego', hint: 'Venda o que você não usa mais', icon: 'pricetag-outline', go: { tab: 'desapego' } },
+    ],
+  },
+  {
     key: 'social',
     title: 'Comunidade e lives',
     hint: 'Posts, mensagens, vídeo e lives',
