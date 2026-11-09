@@ -1,4 +1,5 @@
 // Parte social: perfis, amizades, posts, stories, depoimentos (como no Orkut), mensagens e denúncias.
+import { moderateText } from '../moderacaoTexto.js';
 import { fail, newId, now, str, oneOf } from '../http.js';
 
 const pair = (a, b) => (a < b ? [a, b] : [b, a]);
@@ -73,6 +74,8 @@ export default function socialRoutes(r, { db, hub, userById, publicUser }) {
     const text = str(body.text, 'o texto', { optional: true, max: 2200 });
     const media = str(body.media, 'a mídia', { optional: true, max: 300 }) || null;
     if (!text && !media) fail(400, 'Escreva algo ou escolha uma foto ou vídeo.');
+    const m = moderateText(text, 'publico');
+    if (!m.ok) fail(422, m.why, m.kind);
     const id = newId('ps');
     const t = now();
     db.prepare('INSERT INTO posts (id, author_id, kind, text, media, visibility, created_at, expires_at) VALUES (?,?,?,?,?,?,?,?)').run(
@@ -111,6 +114,8 @@ export default function socialRoutes(r, { db, hub, userById, publicUser }) {
   r.post('/testimonials', ({ body, user }) => {
     const to = target(body.toId);
     if (to.id === user.id) fail(400, 'Você não pode deixar depoimento para si mesmo.');
+    const mt = moderateText(body.text, 'publico');
+    if (!mt.ok) fail(422, mt.why, mt.kind);
     const id = newId('dp');
     db.prepare('INSERT INTO testimonials (id, from_id, to_id, text, status, created_at) VALUES (?,?,?,?,?,?)').run(id, user.id, to.id, str(body.text, 'o depoimento', { min: 5, max: 600 }), 'pendente', now());
     hub.send(to.id, 'testimonial', { id, from: publicUser(user) });
@@ -138,6 +143,9 @@ export default function socialRoutes(r, { db, hub, userById, publicUser }) {
     if (to.id === user.id) fail(400, 'Escolha outra pessoa.');
     const id = newId('m');
     const msg = { id, from: user.id, to: to.id, text: str(body.text, 'a mensagem', { max: 2000 }), at: now() };
+    // Conversa privada: o conteúdo é das duas pessoas, mas racismo, ódio e sexual com menores nunca passam.
+    const mm = moderateText(msg.text, 'privado');
+    if (!mm.ok) fail(422, mm.why, mm.kind);
     db.prepare('INSERT INTO messages (id, from_id, to_id, text, created_at) VALUES (?,?,?,?,?)').run(id, user.id, to.id, msg.text, msg.at);
     hub.send(to.id, 'message', { ...msg, fromName: user.name });
     return msg;

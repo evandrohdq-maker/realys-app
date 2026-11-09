@@ -56,3 +56,15 @@ test('plantão: só com carteira aprovada; o policial mais perto é avisado; cha
   const login = await api('POST', '/auth/login', { body: { login: 'carladias', password: 'senha1234' } });
   assert.notEqual(login.status, 200); // conta bloqueada
 });
+
+test('QR do documento: página pública confere; coação aparece só como "em análise"', async () => {
+  const d = await api('POST', '/documentos', { who: 'pm', body: { hash: 'ab'.repeat(16), titulo: 'Aluguel · Casa', partes: [{ papel: 'Locador', nome: 'Rui Costa', assinadoEm: Date.now() }, { papel: 'Locatário', nome: 'Ana' }] } });
+  assert.equal(d.status, 201);
+  const page = await (await fetch(base + d.data.url)).text();
+  assert.match(page, /aguardando assinaturas/);
+  assert.equal((await (await fetch(`${base}/documentos/${d.data.codigo}/confere?hash=${'ab'.repeat(16)}`)).json()).confere, true);
+  await api('POST', `/documentos/${d.data.codigo}`, { who: 'pm', body: { coacao: true } });
+  const p2 = await (await fetch(base + d.data.url)).text();
+  assert.match(p2, /em análise/);
+  assert.doesNotMatch(p2, /coação|coacao/i);
+});

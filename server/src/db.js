@@ -454,6 +454,20 @@ const MIGRATIONS = [
   ALTER TABLE users ADD COLUMN bloqueio_motivo TEXT;
   ALTER TABLE users ADD COLUMN saldo_retido INTEGER NOT NULL DEFAULT 0;
   `,
+  // 12: conferência de documentos (QR Code nos PDFs de contratos e receitas)
+  `
+  CREATE TABLE documentos (
+    codigo TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL REFERENCES users(id),
+    hash TEXT NOT NULL,
+    tipo TEXT NOT NULL,
+    titulo TEXT NOT NULL,
+    partes TEXT NOT NULL,
+    coacao INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  `,
 ];
 
 export function openDb(file) {

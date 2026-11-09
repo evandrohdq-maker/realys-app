@@ -55,3 +55,10 @@ test('quadros do ffmpeg: separa os JPEGs colados', () => {
   const b = Buffer.from([0xff, 0xd8, 3, 0xff, 0xd9]);
   assert.equal(splitJpegs(Buffer.concat([a, b])).length, 2);
 });
+
+test('texto: post com racismo é recusado no servidor; mensagem privada com ódio também', async () => {
+  const j = (p, b) => fetch(base + p, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(b) });
+  const r1 = await j('/posts', { text: 'volta pra senzala' });
+  assert.equal(r1.status, 422);
+  assert.equal((await j('/posts', { text: 'Bom dia, Realys!' })).status, 201);
+});
