@@ -131,3 +131,17 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [x] Aba **Desapego** pronta (menu ⋮ e "Lotus, me leva pro desapego"), com a Garantia Realys e taxa de 10%.
       Falta levar os anúncios para o servidor.
 - [ ] Decidir banco (nacional ou estrangeiro) e o cálculo de margem com os impostos da nota.
+
+## Serviços novos (novembro de 2026)
+
+- [x] Classes novas em Serviços: **Turismo e passeios** (guia, trilhas, barco, transfer) e **Meio ambiente e
+      reciclagem** (recicláveis, caçamba, eletrônicos, móveis velhos, terreno); **Intérprete de Libras** e
+      **Acompanhante de pessoa com deficiência** em Cuidados e família.
+- [x] Serviço público: **Central do Cidadão** (segunda via de IPTU, certidões, alvará e MEI, RG com agendamento)
+      e **Ecoponto**. O agendamento agora vale para qualquer órgão; só o SUS pede o Cartão do SUS.
+- [x] **Selo de Equipe** (src/teams.js): prestadores com MEI próprio que trabalham juntos. Cada um recebe na
+      própria carteira e emite a própria nota. Exemplo: Equipe Luz & Força (5 eletricistas).
+- [ ] Selo de Equipe no servidor: convite e aceite de cada membro, e o administrador poder retirar o selo
+      se a equipe funcionar como empresa com empregados (pejotização). Confirmar as regras com um contador.
+- [ ] **Modo acessível**: letras maiores, alto contraste e modo simples para idosos em todo o app.
+- [ ] **Microcrédito e seguros para MEI**: só com parceiro autorizado (Banco Central / Susep).

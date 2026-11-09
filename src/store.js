@@ -1792,6 +1792,7 @@ export function callReply(call) {
 export const priceText = (p) => {
   const t = p && TARIFFS[p.service];
   if (t) return `corrida a partir de ${brl(t.minimo)}, mais ${brl(t.km)} por km`;
+  if (p.price === 0) return `Grátis · ${p.priceUnit.replace(/\s*\(grátis\)/, '')}`;
   return `${brl(p.price)} por ${p.priceUnit}`;
 };
 

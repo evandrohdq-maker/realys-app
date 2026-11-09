@@ -9,6 +9,7 @@ import { providerTarget } from '../../components/GiftSheet';
 import { Photo } from '../../components/ui';
 import { reviewsCount, jobsDone, kmText, ratingText, sampleReviews, etaMin } from '../../providerInfo';
 import { brl } from '../../theme';
+import { teamOf, teamMembers, TEAM_RULES } from '../../teams';
 import { isVisitService, visitFee, visitDiscount, providerStats, isNewProvider, rankPosition } from '../../serviceVisits';
 
 const TABS = [
@@ -22,9 +23,11 @@ export default function ProviderProfile({ provider: p, visible, onClose, onHire,
   const { state, dispatch } = useStore();
   const [tab, setTab] = useState('serv');
   const [fav, setFav] = useState(false);
+  const [showTeam, setShowTeam] = useState(false);
   const insets = useSafeAreaInsets();
   if (!p) return null;
   const type = serviceType(p.service) || { label: 'Prestador', ion: 'person-outline' };
+  const team = teamOf(p);
   const byVisit = isVisitService(p.service);
   const st = providerStats(p);
   const rank = rankPosition(state.providers, p);
@@ -63,7 +66,30 @@ export default function ProviderProfile({ provider: p, visible, onClose, onHire,
                   Disponível · {kmText(p.distanceKm)} · ~{etaMin(p)} min
                 </Text>
               </View>
+              {team ? (
+                <TouchableOpacity style={[styles.pill, styles.pillOn]} onPress={() => setShowTeam(!showTeam)} accessibilityLabel={`Ver a equipe ${team.name}`}>
+                  <Ionicons name="people" size={13} color={colors.primary} />
+                  <Text style={[styles.pillText, { color: colors.primary }]}>Equipe {team.name} · {team.members.length} MEIs</Text>
+                </TouchableOpacity>
+              ) : null}
             </View>
+            {team && showTeam ? (
+              <View style={styles.teamBox}>
+                <Text style={styles.teamTitle}>Equipe {team.name}</Text>
+                <Text style={styles.teamText}>{team.about} Juntos desde {team.since}.</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>
+                  {teamMembers(team).map((m) => (
+                    <View key={m.id} style={styles.teamMember}>
+                      <Photo uri={m.photo} style={styles.teamAvatar} fallback="🧑" />
+                      <Text style={styles.teamName} numberOfLines={1}>{m.name.split(' ')[0]}</Text>
+                    </View>
+                  ))}
+                </View>
+                {TEAM_RULES.slice(0, 2).map((r) => (
+                  <Text key={r} style={styles.teamRule}>• {r}</Text>
+                ))}
+              </View>
+            ) : null}
 
             <View style={styles.stats}>
               <Stat value={ratingText(p.rating)} label={`${reviewsCount(p)} avaliações`} color={colors.accent} />
@@ -219,6 +245,13 @@ const styles = StyleSheet.create({
   name: { color: colors.text, fontSize: 23, fontWeight: '700', marginTop: 12 },
   role: { color: colors.muted, fontSize: 13, marginTop: 3 },
   badges: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
+  teamBox: { borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)', backgroundColor: 'rgba(168,121,10,0.05)', borderRadius: 14, padding: 12, marginTop: 4 },
+  teamTitle: { color: colors.text, fontSize: 15, fontWeight: '700' },
+  teamText: { color: colors.muted, fontSize: 13, marginTop: 3 },
+  teamMember: { width: 58, alignItems: 'center', marginRight: 6, marginBottom: 6 },
+  teamAvatar: { width: 40, height: 40, borderRadius: 20 },
+  teamName: { color: colors.text, fontSize: 11, marginTop: 3 },
+  teamRule: { color: colors.muted, fontSize: 11, marginTop: 4 },
   pill: {
     flexDirection: 'row',
     alignItems: 'center',

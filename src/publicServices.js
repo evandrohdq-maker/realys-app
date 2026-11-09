@@ -14,6 +14,8 @@ export const PUBLIC_KINDS = {
   hospital: { label: 'Hospital público', icon: 'business', color: '#2F74D0' },
   upa: { label: 'UPA 24h', icon: 'pulse', color: '#2F74D0' },
   ubs: { label: 'Posto de saúde (UBS)', icon: 'medical', color: '#1E9E63' },
+  cidadao: { label: 'Atendimento ao cidadão', icon: 'document-text', color: '#6B5BD2' },
+  ecoponto: { label: 'Ecoponto', icon: 'leaf', color: '#2E8B57' },
 };
 
 export const POST_TYPES = [
@@ -148,6 +150,45 @@ export const PUBLIC_ORGS = [
       { id: 'pf2', type: 'equipe', title: 'Agentes comunitários nas ruas', text: '2 equipes visitando as famílias do bairro esta semana.', at: ago(40) },
     ],
   },
+  {
+    id: 'pub-cidadao',
+    kind: 'cidadao',
+    name: 'Central do Cidadão · Prefeitura (demo)',
+    emergency: null,
+    tollFree: '156 (Central da Prefeitura)',
+    contact: '(11) 0000-0156 (demo)',
+    address: 'Praça da Matriz, 50 · Centro',
+    hours: 'Seg a sex, 8h às 17h · Agendamento pelo Realys',
+    functions: ['Segunda via de IPTU e taxas', 'Certidões negativas', 'Alvará de funcionamento e MEI', 'Emissão de RG e CPF (com agendamento)', 'Carteira de trabalho digital e seguro-desemprego', 'Ouvidoria e reclamações da cidade'],
+    staff: { onDuty: 22, available: 9, teamsOut: 0 },
+    gps: false,
+    sus: false,
+    slots: [
+      { id: 'cd1', specialty: 'RG (carteira de identidade)', who: 'Guichê 3', at: day(1, 9) },
+      { id: 'cd2', specialty: 'Alvará e abertura de MEI', who: 'Sala do Empreendedor', at: day(1, 14) },
+      { id: 'cd3', specialty: 'Seguro-desemprego', who: 'Guichê 7', at: day(2, 10) },
+      { id: 'cd4', specialty: 'Parcelamento de IPTU', who: 'Guichê 1', at: day(3, 11) },
+    ],
+    posts: [
+      { id: 'pc1', type: 'aviso', title: 'IPTU com 10% de desconto à vista', text: 'Pagamento até o fim do mês. Segunda via na Central ou pelo site da prefeitura.', at: ago(20) },
+      { id: 'pc2', type: 'evento', title: 'Mutirão do MEI no sábado', text: 'Abertura e regularização de MEI de graça, com orientação de contador voluntário.', at: ago(60) },
+    ],
+  },
+  {
+    id: 'pub-ecoponto',
+    kind: 'ecoponto',
+    name: 'Ecoponto Vila Nova (demo)',
+    emergency: null,
+    tollFree: '156 (Central da Prefeitura)',
+    contact: '(11) 0000-0157 (demo)',
+    address: 'Rua do Parque, 900 · Vila Nova',
+    hours: 'Seg a sáb, 7h às 19h',
+    functions: ['Entulho de pequenas obras (até 1 m³)', 'Móveis velhos e colchões', 'Recicláveis', 'Óleo de cozinha usado', 'Pilhas, baterias e eletrônicos', 'Poda de jardim'],
+    staff: { onDuty: 4, available: 2, teamsOut: 1 },
+    gps: true,
+    sus: false,
+    posts: [{ id: 'pe1', type: 'progresso', title: '12 toneladas recicladas no mês', text: 'Obrigado a quem trouxe o material separado. Tudo vai para a cooperativa de catadores.', at: ago(30) }],
+  },
 ];
 
 export const publicOrg = (state, id) => {
@@ -167,6 +208,8 @@ const WORDS = {
   'pub-hospital': /\bhospital (municipal|publico|central|do sus)\b/,
   'pub-upa': /\bupa\b/,
   'pub-ubs': /\b(ubs|posto de saude|unidade basica|postinho)\b/,
+  'pub-cidadao': /\b(prefeitura|segunda via|iptu|central do cidadao|alvara|certidao|poupatempo|tirar rg|seguro.desemprego)\b/,
+  'pub-ecoponto': /\b(ecoponto|ponto de entrega voluntaria|descartar entulho de graca)\b/,
 };
 export const findPublicOrg = (t) => Object.keys(WORDS).find((k) => WORDS[k].test(t)) || null;
 

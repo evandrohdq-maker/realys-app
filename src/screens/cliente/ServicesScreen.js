@@ -21,6 +21,7 @@ import { lives } from '../../homeData';
 import { isTransport, isWaiting, WaitCountdown, NO_SHOW_MIN } from '../../rideRules';
 import { surgeText } from '../../pricing';
 import { SERVICE_TABS, SERVICE_TAB_KEYS, TAB_TYPES, isOnlineType, tabOfType, OnlineTab, CoursesTab, LiveClasses } from './ServiceTabs';
+import { teamOf } from '../../teams';
 
 // Cartão do chamado (usado também pelo assistente de voz).
 // Demonstração (um celular só faz os dois lados): simula o motorista chegando no local.
@@ -278,6 +279,7 @@ export default function ServicesScreen({ explore, navigate }) {
     const badges = [];
     if (isSponsored) badges.push(['Patrocinado', colors.sponsored]);
     else if (sort === 'rank' && meritPos[p.id]) badges.push([`#${meritPos[p.id]} por mérito`, colors.primary]);
+    if (teamOf(p)) badges.push([`Equipe ${teamOf(p).name}`, colors.gold]);
     if (isNewProvider(p)) badges.push(['Novo no Realys', colors.violet]);
     if (nearestP && p.id === nearestP.id) badges.push(['Mais perto', colors.accent]);
     if (p.id === bestId && sort !== 'rank') badges.push(['Melhor nota', colors.accent]);

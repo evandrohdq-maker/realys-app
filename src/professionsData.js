@@ -107,6 +107,8 @@ export const PROF_CLASSES = [
       ['baba', 'Babá', '🍼', 'happy-outline', ['baba', 'cuidar de crianca', 'cuidar do meu filho', 'baby sitter']],
       ['cuidadoridoso', 'Cuidador(a) de idosos', '🧓', 'heart-outline', ['cuidador de idoso', 'cuidadora de idoso', 'cuidar da minha mae', 'cuidar do meu pai', 'cuidador']],
       ['domestica', 'Empregada doméstica', '🏠', 'home-outline', ['empregada domestica', 'domestica mensalista']],
+      ['libras', 'Intérprete de Libras', '🤟', 'hand-right-outline', ['interprete de libras', 'libras', 'surdo', 'lingua de sinais', 'tradutor de libras']],
+      ['acompanhantepcd', 'Acompanhante de pessoa com deficiência', '♿', 'accessibility-outline', ['acompanhante pcd', 'cuidador de pessoa com deficiencia', 'acompanhante para cadeirante', 'pessoa com deficiencia']],
       ['recreador', 'Recreador infantil', '🎪', 'balloon-outline', ['recreador', 'recreacao infantil', 'animador de festa infantil']],
     ],
   },
@@ -201,6 +203,25 @@ export const PROF_CLASSES = [
       ['alfaiate', 'Alfaiate', '🤵', 'shirt-outline', ['alfaiate', 'terno sob medida']],
       ['sapateiro', 'Sapateiro', '👞', 'footsteps-outline', ['sapateiro', 'consertar sapato', 'trocar sola']],
       ['estilista', 'Estilista e personal stylist', '👗', 'sparkles-outline', ['estilista', 'personal stylist', 'consultoria de imagem'], 'online'],
+    ],
+  },
+  {
+    key: 'turismo', label: 'Turismo e passeios', ion: 'map-outline', emoji: '🧭',
+    subs: [
+      ['guiaturismo', 'Guia de turismo', '🧭', 'map-outline', ['guia de turismo', 'guia turistico', 'city tour', 'roteiro pela cidade', 'conhecer a cidade']],
+      ['ecoturismo', 'Ecoturismo e trilhas', '🥾', 'trail-sign-outline', ['trilha', 'ecoturismo', 'cachoeira', 'rapel', 'passeio na natureza']],
+      ['passeiobarco', 'Passeio de barco', '⛵', 'boat-outline', ['passeio de barco', 'passeio de lancha', 'escuna', 'aluguel de barco']],
+      ['receptivo', 'Receptivo e transfer turístico', '🚐', 'bus-outline', ['transfer do aeroporto', 'receptivo', 'transfer turistico', 'buscar no aeroporto']],
+    ],
+  },
+  {
+    key: 'ambiente', label: 'Meio ambiente e reciclagem', ion: 'leaf-outline', emoji: '♻️',
+    subs: [
+      ['reciclaveis', 'Coleta de recicláveis', '♻️', 'refresh-circle-outline', ['reciclagem', 'coleta de reciclavel', 'reciclaveis', 'catador', 'coleta seletiva', 'oleo de cozinha usado']],
+      ['cacamba', 'Caçamba e retirada de entulho', '🚛', 'trash-bin-outline', ['cacamba', 'entulho', 'retirar entulho', 'restos de obra', 'aluguel de cacamba']],
+      ['eletronicodescarte', 'Descarte de eletrônicos', '🔋', 'battery-dead-outline', ['descarte de eletronicos', 'lixo eletronico', 'descartar celular', 'pilhas e baterias', 'descartar computador']],
+      ['moveisvelhos', 'Retirada de móveis velhos', '🛋️', 'cube-outline', ['retirar movel velho', 'descartar sofa', 'descartar colchao', 'bota-fora']],
+      ['limpezaterreno', 'Limpeza de terreno e roçada', '🌾', 'cut-outline', ['limpeza de terreno', 'rocada', 'rocar terreno', 'capina', 'terreno baldio']],
     ],
   },
   {

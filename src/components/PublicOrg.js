@@ -36,7 +36,7 @@ export function PublicOrgModal() {
   const k = PUBLIC_KINDS[org.kind];
   const close = () => dispatch({ type: 'CLOSE_PUBLIC' });
   // O painel é do próprio órgão (conta verificada). Na demonstração: administrador ou o próprio órgão.
-  const tabs = TABS.filter(([key]) => (key === 'agendar' ? org.sus && org.slots && org.slots.length : true));
+  const tabs = TABS.filter(([key]) => (key === 'agendar' ? org.slots && org.slots.length : true));
 
   return (
     <Modal visible animationType="slide" onRequestClose={close} statusBarTranslucent>
@@ -153,15 +153,18 @@ function Booking({ org }) {
   const mine = (state.susBookings || []).filter((b) => b.orgId === org.id && b.status === 'agendado');
   const taken = new Set((state.susBookings || []).filter((b) => b.status === 'agendado').map((b) => b.slotId));
   const book = (slot) => {
-    if (!state.sus || !validCNS(state.sus.cns)) return Alert.alert('Falta o Cartão do SUS', 'Cadastre o número do seu Cartão Nacional de Saúde aqui embaixo para agendar.');
-    Alert.alert('Confirmar agendamento?', `${slot.specialty}\n${whenText(slot.at)} · ${slot.who}\n${org.name}\nCartão SUS ${maskCNS(state.sus.cns)}`, [
+    // Unidades do SUS conferem o Cartão do SUS; os outros órgãos (ex.: Central do Cidadão) só pedem o documento.
+    if (org.sus && (!state.sus || !validCNS(state.sus.cns))) return Alert.alert('Falta o Cartão do SUS', 'Cadastre o número do seu Cartão Nacional de Saúde aqui embaixo para agendar.');
+    const card = org.sus ? `\nCartão SUS ${maskCNS(state.sus.cns)}` : '';
+    const bring = org.sus ? 'Leve um documento com foto e o Cartão do SUS.' : 'Leve um documento com foto e o CPF.';
+    Alert.alert('Confirmar agendamento?', `${slot.specialty}\n${whenText(slot.at)} · ${slot.who}\n${org.name}${card}`, [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Agendar', onPress: () => (dispatch({ type: 'SUS_BOOK', orgId: org.id, orgName: org.name, slot }), Alert.alert('Agendado ✅', `Leve um documento com foto e o Cartão do SUS. ${whenText(slot.at)}.`)) },
+      { text: 'Agendar', onPress: () => (dispatch({ type: 'SUS_BOOK', orgId: org.id, orgName: org.name, slot }), Alert.alert('Agendado ✅', `${bring} ${whenText(slot.at)}.`)) },
     ]);
   };
   return (
     <View>
-      <SusCard compact />
+      {org.sus ? <SusCard compact /> : null}
       {mine.length ? <Text style={st.h}>Meus agendamentos aqui</Text> : null}
       {mine.map((b) => (
         <View key={b.id} style={[st.slot, { borderColor: '#1E9E63' }]}>
@@ -184,7 +187,7 @@ function Booking({ org }) {
           <Text style={{ color: colors.primary, fontWeight: '800' }}>Agendar</Text>
         </TouchableOpacity>
       ))}
-      <Text style={[st.small, { marginTop: 10 }]}>Urgência não precisa agendar: procure a UPA ou ligue 192. Especialistas precisam de encaminhamento do posto de saúde.</Text>
+      <Text style={[st.small, { marginTop: 10 }]}>{org.sus ? 'Urgência não precisa agendar: procure a UPA ou ligue 192. Especialistas precisam de encaminhamento do posto de saúde.' : 'Chegue 10 minutos antes. Se não puder ir, cancele aqui para liberar o horário.'}</Text>
     </View>
   );
 }
