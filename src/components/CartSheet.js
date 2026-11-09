@@ -13,6 +13,8 @@ import { askPix } from './PixPay';
 import { InstallSuggest } from './Engage';
 import { GuaranteeSeal } from './Guarantee';
 import { protectionFee, PROTECTION_TEXT } from '../guarantee';
+import { teleDoCarrinho } from '../teleGratis';
+import { isFoodStore } from '../data';
 
 const NIGHT = '#0B1124';
 
@@ -24,7 +26,10 @@ export default function CartSheet({ onOrders }) {
   const lines = state.cart.map((c) => ({ ...c, p: state.products.find((x) => x.id === c.productId) })).filter((l) => l.p);
   const promo = promoDiscount(state, lines.map((l) => ({ ...l, product: l.p })));
   const protection = lines.length ? protectionFee(state) : 0;
-  const total = +(cartTotal(state) - promo.off + protection).toFixed(2);
+  const foodStores = [...new Set(lines.map((l) => storeOf(state, l.p.storeId)).filter((s) => isFoodStore(s)))];
+  const foodSubtotal = lines.filter((l) => foodStores.some((s) => s.id === l.p.storeId)).reduce((n, l) => n + l.p.price * l.qty, 0);
+  const tele = teleDoCarrinho(state, foodStores, foodSubtotal);
+  const total = +(cartTotal(state) - promo.off + protection + (tele ? tele.cliente : 0)).toFixed(2);
   const fromGift = Math.min(state.giftCredits || 0, total);
   const fromWallet = total - fromGift;
   const count = lines.reduce((n, l) => n + l.qty, 0);
@@ -115,6 +120,12 @@ export default function CartSheet({ onOrders }) {
                   <Text style={styles.sumLabel}>🛡️ Taxa de proteção Realys <Text style={{ color: colors.primary, fontWeight: '700' }}>ⓘ</Text></Text>
                   <Text style={styles.sumValue}>{protection ? brl(protection) : 'Grátis (Score Diamante)'}</Text>
                 </TouchableOpacity>
+                {tele ? (
+                  <View style={styles.sumRow}>
+                    <Text style={[styles.sumLabel, { flex: 1 }]} numberOfLines={2}>🛵 {tele.texto}</Text>
+                    <Text style={[styles.sumValue, tele.cliente === 0 && { color: '#7BE0B0' }]}>{tele.cliente === 0 ? 'Grátis' : brl(tele.cliente)}</Text>
+                  </View>
+                ) : null}
                 {promo.off > 0 ? (
                   <View style={styles.sumRow}>
                     <Text style={styles.sumLabel}>🏷️ Créditos de parceiros</Text>

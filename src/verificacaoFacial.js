@@ -1,4 +1,4 @@
-// Verificação facial do dia a dia do prestador: no aceite, na finalização e a cada 2 h
+// Verificação facial do dia a dia do prestador: no aceite, na finalização e a cada 6 h
 // (entregador e motorista). A câmera abre na frente, tira uma foto e o servidor confere.
 // A foto é comparada e apagada na hora; o app só recebe "confirmado" ou "não confirmado".
 import * as ImagePicker from 'expo-image-picker';

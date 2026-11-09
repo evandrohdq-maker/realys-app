@@ -20,6 +20,7 @@ import { conversations as initialConversations, communityPosts as initialCommuni
 import * as J from './jobsData';
 import { initialTestimonials, myInitialGallery } from './testimonialsData';
 import { visitFee, visitDiscount, providerStats, splitFee, SAMPLE_VISIT_REQUESTS, HIGHLIGHT_PLAN } from './serviceVisits';
+import { teleDoCarrinho, somarGasto } from './teleGratis';
 import { sampleAgenda, DEFAULT_HOURS, parseWhen } from './agenda';
 
 const StoreContext = createContext(null);
@@ -186,6 +187,7 @@ const initialState = {
   nudgesDismissed: {}, // lembretes da Lotus dispensados
   intelPlan: false, // empresa assina o painel de inteligência
   protectionFees: 0, // taxas de proteção Realys recebidas nesta sessão (demonstração)
+  teleGratisMes: null, // { mes: 'AAAA-MM', gasto } da primeira tele grátis paga pelo Realys
   // Notícias e Alertas (src/newsData.js)
   alertsDismissed: {}, // alertas que a pessoa fechou na faixa do topo
   safeAt: null, // quando marcou "Estou seguro" (os contatos são avisados)
@@ -419,6 +421,9 @@ function baseReducer(state, a) {
     // Carrinho em janela: abre de qualquer tela (ícone no topo, barra da loja ou pela Lotus).
     case 'MANDADOS_UPDATE':
       return { ...state, mandados: a.updater(state.mandados) };
+    // Restaurante liga ou desliga a tele grátis da loja dele, com o pedido mínimo.
+    case 'STORE_TELE_GRATIS':
+      return { ...state, stores: state.stores.map((s) => (s.id === a.storeId ? { ...s, teleGratis: !!a.on, teleGratisMin: a.min || s.teleGratisMin || 40 } : s)) };
     case 'OPEN_CART':
       return { ...state, cartOpen: true };
     case 'CLOSE_CART':
@@ -431,7 +436,11 @@ function baseReducer(state, a) {
       const { off: promoOff, used: promoUsed } = promoDiscount(state, lines);
       // Taxa de proteção Realys (R$ 0,99, isenta para Score Diamante): vai para o Realys.
       const protection = lines.length ? protectionFee(state) : 0;
-      const toPay = +(total - promoOff + protection).toFixed(2);
+      // Tele do Food: o cliente paga, ou é grátis pelo restaurante ou pela primeira tele do Realys.
+      const foodStoreObjs = [...new Set(lines.map((l) => state.stores.find((s) => s.id === l.product.storeId)).filter((s) => D.isFoodStore(s)))];
+      const foodSubtotal = lines.filter((l) => foodStoreObjs.some((s) => s.id === l.product.storeId)).reduce((s, l) => s + l.product.price * l.qty, 0);
+      const tele = teleDoCarrinho(state, foodStoreObjs, foodSubtotal);
+      const toPay = +(total - promoOff + protection + (tele ? tele.cliente : 0)).toFixed(2);
       if (!lines.length || toPay > state.wallet + state.giftCredits) return state;
       // Créditos de presente pagam primeiro; o resto sai do saldo.
       const fromGift = +Math.min(state.giftCredits, toPay).toFixed(2);
@@ -449,6 +458,7 @@ function baseReducer(state, a) {
         ...state,
         nfeSeq: state.nfeSeq + 1,
         protectionFees: +((state.protectionFees || 0) + protection).toFixed(2),
+        teleGratisMes: tele && tele.pagaRealys ? somarGasto(state, tele.pagaRealys) : state.teleGratisMes,
         wallet: +(state.wallet - (toPay - fromGift)).toFixed(2),
         cart: [],
         promoCredits: (state.promoCredits || []).map((pc) => (promoUsed[pc.id] ? { ...pc, used: true } : pc)),
@@ -466,6 +476,7 @@ function baseReducer(state, a) {
             total: +toPay.toFixed(2),
             promoOff: promoOff ? +promoOff.toFixed(2) : undefined,
             protectionFee: protection || undefined,
+            tele: tele ? { valor: tele.tele, cliente: tele.cliente, pagaLoja: tele.pagaLoja, pagaRealys: tele.pagaRealys, motivo: tele.motivo } : undefined,
             status: 'Pagamento protegido',
             store: storeNames.join(', '),
             courier: courier ? courier.name : null,
@@ -478,7 +489,7 @@ function baseReducer(state, a) {
         ],
         // O pedido de entrega também chega para os motoboys (perfil Prestador).
         rideRequests: courier
-          ? [{ id: newId('r'), client: foodStores.join(', '), service: 'Entrega de comida (Food)', from: foodStores.join(', '), to: 'Endereço do cliente', price: +(courier.price + 1.5 * 2).toFixed(2), distanceKm: 2 }, ...state.rideRequests]
+          ? [{ id: newId('r'), client: foodStores.join(', '), service: 'Entrega de comida (Food)', from: foodStores.join(', '), to: 'Endereço do cliente', price: tele ? tele.tele : +(courier.price + 1.5 * 2).toFixed(2), teleGratis: tele && tele.cliente === 0 ? tele.motivo : undefined, distanceKm: 2 }, ...state.rideRequests]
           : state.rideRequests,
         finance: mineTotal
           ? [{ id: newId('m'), date: today(), desc: `Venda no app Realys · NF-e ${nfe}`, type: 'entrada', value: +mineTotal.toFixed(2) }, ...state.finance]

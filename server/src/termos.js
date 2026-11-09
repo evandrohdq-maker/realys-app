@@ -19,7 +19,7 @@ export const TERMO_ADESAO = {
     },
     {
       titulo: '3. Reconhecimento facial',
-      texto: 'O Realys utiliza reconhecimento facial para confirmar que é você quem está usando a conta em situações que exigem maior segurança. Essa verificação ocorre nas seguintes situações: (a) no cadastro biométrico, com a foto do rosto e a foto de um documento de identidade válido; (b) quando um aparelho novo é vinculado à sua conta; (c) ao aceitar ou finalizar um serviço prestado pelo aplicativo; (d) ao realizar vendas e confirmar pedidos, quando você é lojista; (e) ao solicitar saques; e (f) a cada 2 horas, enquanto você estiver disponível para corridas e entregas.',
+      texto: 'O Realys utiliza reconhecimento facial para confirmar que é você quem está usando a conta em situações que exigem maior segurança. Essa verificação ocorre nas seguintes situações: (a) no cadastro biométrico, com a foto do rosto e a foto de um documento de identidade válido; (b) quando um aparelho novo é vinculado à sua conta; (c) ao aceitar ou finalizar um serviço prestado pelo aplicativo; (d) ao realizar vendas e confirmar pedidos, quando você é lojista; (e) ao solicitar saques; e (f) a cada 6 horas, enquanto você estiver disponível para corridas e entregas.',
     },
     {
       titulo: '4. Como os dados biométricos são tratados',

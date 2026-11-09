@@ -225,7 +225,7 @@ test('produtos do mercado: seção validada, filtrada e editável', async () => 
   assert.ok(!(await api('GET', '/products?secao=hortifruti')).data.some((p) => p.id === id));
 });
 
-test('verificação do dia a dia: aceite, finalização e checagem a cada 2 h para quem roda em transporte', async () => {
+test('verificação do dia a dia: aceite, finalização e checagem a cada 6 h para quem roda em transporte', async () => {
   // Motorista aprovado e sem verificação recente: não fica disponível.
   await person('moto', '000.000.001-91', 'motorista');
   await api('PUT', '/providers/me', { who: 'moto', body: { service: 'motorista', functions: ['Corridas'], price: 8, priceUnit: 'corrida' } });
@@ -254,7 +254,7 @@ test('verificação do dia a dia: aceite, finalização e checagem a cada 2 h pa
   assert.equal(impressa.status, 403);
 
   // Verificação vencida (mais de 2 h): fica indisponível de novo.
-  app.db.prepare('UPDATE biometria SET last_verified_at = ? WHERE user_id = ?').run(Date.now() - 3 * 3600000, S.moto.id);
+  app.db.prepare('UPDATE biometria SET last_verified_at = ? WHERE user_id = ?').run(Date.now() - 7 * 3600000, S.moto.id);
   const vencida = await api('POST', '/providers/me/location', { who: 'moto', body: { lat: -23.55, lng: -46.63 } });
   assert.equal(vencida.data.code, 'verificacao_periodica');
   assert.equal(app.db.prepare('SELECT available FROM providers WHERE user_id = ?').get(S.moto.id).available, 0);

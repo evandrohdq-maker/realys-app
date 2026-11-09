@@ -27,7 +27,7 @@ export default function biometriaRoutes(r, { biometria }) {
   });
   // Verificação com uma foto só (aparelhos e casos de contingência). A foto vai no corpo e não é guardada.
   r.post('/biometria/verificar', ({ raw, query, user }) => biometria.verify(user.id, raw, query.purpose, query.callId || null), { raw: true });
-  // Scan do dia a dia (aceite, finalização, venda, saque, a cada 2 h).
+  // Scan do dia a dia (aceite, finalização, venda, saque, a cada 6 h).
   r.post('/biometria/verificar-scan', ({ body, query, user }) => biometria.verifyScan(user.id, scanOf(body), query.purpose || 'periodica', query.callId || null));
   r.delete('/biometria', ({ user }) => biometria.revoke(user.id));
 

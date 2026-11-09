@@ -53,10 +53,10 @@ export default function servicesRoutes(r, { db, wallet, hub, userById, biometria
     const lat = coord(body.lat, 'latitude');
     const lng = coord(body.lng, 'longitude');
     const going = body.available !== false;
-    // Entregador e motorista: sem verificação facial nas últimas 2 h, não ficam disponíveis.
+    // Entregador e motorista: sem verificação facial nas últimas 6 h, não ficam disponíveis.
     if (going && TRANSPORT.includes(p.service) && !biometria.periodicOk(user.id)) {
       db.prepare('UPDATE providers SET available = 0, updated_at = ? WHERE user_id = ?').run(now(), user.id);
-      fail(403, 'Confirme seu rosto para continuar disponível. Isso é feito a cada 2 horas.', 'verificacao_periodica');
+      fail(403, 'Confirme seu rosto para continuar disponível. Isso é feito a cada 6 horas.', 'verificacao_periodica');
     }
     db.prepare('UPDATE providers SET lat = ?, lng = ?, available = ?, updated_at = ? WHERE user_id = ?').run(lat, lng, going ? 1 : 0, now(), user.id);
     for (const c of db.prepare(`SELECT id, client_id FROM service_calls WHERE provider_id = ? AND status IN ('Aceito','A caminho')`).all(user.id)) {

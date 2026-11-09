@@ -215,6 +215,9 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
         <Text style={{ color: colors.muted, marginBottom: 6 }}>
           {s.category} · {s.city} · <Text style={{ color: colors.accent, fontWeight: '700' }}>★ {s.rating}</Text>
         </Text>
+        {food && s.teleGratis ? (
+          <Text style={{ color: colors.success, fontWeight: '800', marginBottom: 6 }}>🛵 Tele grátis acima de {brl(s.teleGratisMin || 40)}</Text>
+        ) : null}
         <TouchableOpacity style={styles.pageBtn} onPress={() => dispatch({ type: 'OPEN_COMPANY', id: s.id })}>
           <Text style={{ color: colors.primary, fontWeight: '700' }}>Ver página da empresa ›</Text>
           <Text style={{ color: colors.muted, fontSize: 12 }}>Apresentação, conteúdos, vídeos e seguir</Text>

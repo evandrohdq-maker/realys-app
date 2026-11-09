@@ -79,7 +79,7 @@ export function loadConfig(overrides = {}) {
     biometricTimeoutMs: num(env.BIOMETRIA_TIMEOUT_MS, 15000),
     biometricVerifyMin: num(env.BIOMETRIA_VERIFY_MIN, 0.8),   // selfie x cadastro, na verificação do dia a dia
     biometricCheckTtlMin: num(env.BIOMETRIA_CHECK_TTL_MIN, 5), // a verificação vale 5 min para a ação
-    biometricPeriodicHours: num(env.BIOMETRIA_PERIODIC_HOURS, 2), // entregador e motorista: a cada 2 h
+    biometricPeriodicHours: num(env.BIOMETRIA_PERIODIC_HOURS, 6), // entregador e motorista: a cada 6 h
     // Manutenção: backups, retenção e rotina diária.
     backupDir: resolve(ROOT, env.BACKUP_DIR || 'data/backups'),
     backupKeep: num(env.BACKUP_KEEP, 14),

@@ -175,7 +175,7 @@ export function makeBiometria({ db, cfg, matcher, cipher }) {
   const PURPOSES = ['aceite', 'finalizacao', 'periodica', 'venda', 'saque', 'contrato', 'compra'];
   const NEEDS_CALL = ['aceite', 'finalizacao', 'venda'];
 
-  // Verificação do dia a dia (aceite, finalização, a cada 2 h). A foto é comparada e apagada na hora:
+  // Verificação do dia a dia (aceite, finalização, a cada 6 h). A foto é comparada e apagada na hora:
   // não é guardada em lugar nenhum. Vale uma vez, por pouco tempo, e só para o chamado indicado.
   async function verify(userId, buf, purpose, callId) {
     const r = row(userId);
@@ -326,7 +326,7 @@ export function makeBiometria({ db, cfg, matcher, cipher }) {
     return true;
   }
 
-  // Quem roda em transporte (entregador, motorista, motoboy) precisa de verificação a cada 2 h.
+  // Quem roda em transporte (entregador, motorista, motoboy) precisa de verificação a cada 6 h (BIOMETRIA_PERIODIC_HOURS).
   function periodicOk(userId) {
     const r = row(userId);
     return !!(r && r.last_verified_at && now() - r.last_verified_at < cfg.biometricPeriodicHours * 3600000);

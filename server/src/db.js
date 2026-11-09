@@ -306,7 +306,7 @@ const MIGRATIONS = [
   ALTER TABLE products ADD COLUMN secao TEXT CHECK (secao IN ('mercearia','hortifruti','acougue','frios','padaria','congelados','limpeza','bebidas','outros'));
   CREATE INDEX products_secao ON products(secao);
   `,
-  // 4: verificação facial em cada serviço (aceite, finalização) e a cada 2 h para quem roda em transporte
+  // 4: verificação facial em cada serviço (aceite, finalização) e a cada 6 h para quem roda em transporte
   `
   ALTER TABLE biometria ADD COLUMN last_verified_at INTEGER;
   CREATE TABLE biometria_checks (

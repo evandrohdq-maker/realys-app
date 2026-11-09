@@ -6,7 +6,8 @@ import { useStore, myProducts } from '../../store';
 import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Input, Button, Badge, Photo } from '../../components/ui';
 import { UPLOAD_PLANS, STORAGE_PLAN } from '../../extraData';
-import { MY_COMPANY_ID } from '../../data';
+import { MY_COMPANY_ID, isFoodStore } from '../../data';
+import { Switch } from 'react-native';
 import { profileById, mediaOf } from '../../components/CompanyProfile';
 import { Stars, reviewer } from '../../components/BusinessPage';
 import { SECTORS, ROLES, SERVE_MODES, GALLERY_TYPES, businessOf, showcaseOf } from '../../companyBusiness';
@@ -45,6 +46,7 @@ function Head({ icon, title, sub }) {
 export default function PageScreen() {
   const { state, dispatch } = useStore();
   const me = profileById(state, MY_COMPANY_ID);
+  const myStore = state.stores.find((x) => x.id === MY_COMPANY_ID) || {};
   const biz = businessOf(state, MY_COMPANY_ID);
   const [bio, setBio] = useState(me.bio);
   const [hours, setHours] = useState(me.hours || '');
@@ -243,6 +245,28 @@ export default function PageScreen() {
           <Text style={styles.previewBtnText}>Ver como cliente</Text>
         </TouchableOpacity>
       </View>
+
+      {isFoodStore(myStore) ? (
+        <>
+          <Head icon="bicycle-outline" title="Tele grátis" />
+          <Card>
+            <Row style={{ justifyContent: 'space-between' }}>
+              <Text style={[styles.label, { flex: 1 }]}>Oferecer tele grátis aos clientes</Text>
+              <Switch value={!!myStore.teleGratis} onValueChange={(on) => dispatch({ type: 'STORE_TELE_GRATIS', storeId: MY_COMPANY_ID, on, min: myStore.teleGratisMin || 40 })} trackColor={{ true: colors.gold, false: colors.border }} thumbColor="#fff" />
+            </Row>
+            <Text style={{ color: colors.muted, fontSize: 12, marginTop: 4 }}>
+              Sua loja paga a tele dos pedidos acima do mínimo e ganha o selo "Tele grátis" com destaque no Food. O motoboy recebe o valor cheio.
+            </Text>
+            {myStore.teleGratis ? (
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>
+                {[30, 40, 50, 60, 80].map((v) => (
+                  <Pick key={v} small label={`Acima de ${brl(v)}`} on={(myStore.teleGratisMin || 40) === v} onPress={() => dispatch({ type: 'STORE_TELE_GRATIS', storeId: MY_COMPANY_ID, on: true, min: v })} />
+                ))}
+              </View>
+            ) : null}
+          </Card>
+        </>
+      ) : null}
 
       <Head icon="id-card-outline" title="Apresentação" />
       <Card>

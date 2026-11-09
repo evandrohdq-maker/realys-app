@@ -178,3 +178,11 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
 - [ ] Ligar no servidor: ORDER_FEE_PCT=10 e FOOD_FEE_PCT=11 quando sair da fase de testes.
 - [ ] Tela "Por que o Realys é mais barato" usando `comparativo()` de src/taxas.js.
 - [ ] Rever a tabela a cada 6 meses (o mercado muda: Shopee e Mercado Livre mudaram em 2026).
+
+## Tele grátis e verificação de entregadores (novembro de 2026)
+
+- [x] Primeira tele grátis paga pelo Realys (pedido mínimo R$ 30, orçamento de R$ 3 mil/mês que pausa sozinho)
+      e tele grátis do restaurante (liga na página da empresa, com pedido mínimo e selo no Food). src/teleGratis.js.
+- [x] Verificação facial de entregadores, motoboys e motoristas a cada 6 horas (BIOMETRIA_PERIODIC_HOURS).
+- [ ] Levar o orçamento da primeira tele grátis para o servidor (hoje é contado no app) e mostrar no painel do administrador.
+- [ ] Pix automático por API de banco (depósito e saque sem o administrador), quando tiver CNPJ e banco escolhido.

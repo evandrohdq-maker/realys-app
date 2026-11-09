@@ -24,6 +24,8 @@ export const stores = [
     id: 'e2',
     name: 'Pizzaria da Praça',
     category: 'Alimentação',
+    teleGratis: true,
+    teleGratisMin: 40,
     city: 'São Paulo - SP',
     rating: 4.9,
     recommended: true,
