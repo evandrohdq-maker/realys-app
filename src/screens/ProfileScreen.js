@@ -19,6 +19,7 @@ import BiometriaScreen from './BiometriaScreen';
 import DemoScreen from './DemoScreen';
 import { ProfileEditor, PrivacyPanel, StudioPanel, FutureIcon, audienceLabel } from '../components/ProfileStudio';
 import { Photo } from '../components/ui';
+import { myPages, MAX_PAGES } from '../userPages';
 import Credentials from '../components/Credentials';
 import { SocialBadge, ProfileQuizModal } from '../components/SocialClass';
 
@@ -200,6 +201,20 @@ export default function ProfileScreen({ navigate, explore }) {
         </Row>
         <StudioPanel />
       </Card>
+
+      {/* Minhas páginas: toda página nasce dentro de um usuário verificado (assinada ou anônima). */}
+      <TouchableOpacity activeOpacity={0.85} onPress={() => navigate && navigate({ tab: 'paginas', seg: 'minhas' })} accessibilityLabel="Minhas páginas">
+        <Card>
+          <Row>
+            <Ionicons name="albums-outline" size={28} color={colors.primary} />
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>Minhas páginas · {myPages(state).length}/{MAX_PAGES}</Text>
+              <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Crie páginas assinadas com seu nome ou anônimas. O dono é sempre você, verificado pelo Realys.</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+          </Row>
+        </Card>
+      </TouchableOpacity>
 
       {/* Quem vê o perfil: exposto ou invisível; vida social e portfólio para todos, só amigos ou só eu. */}
       <Card>

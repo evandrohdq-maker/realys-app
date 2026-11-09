@@ -81,6 +81,7 @@ export function GlobalResults({ query, navigate, title = 'Encontrado no Realys',
   const open = (r) => {
     if (r.profileId) return dispatch({ type: 'OPEN_PROFILE', id: r.profileId });
     if (r.companyId) return dispatch({ type: 'OPEN_COMPANY', id: r.companyId });
+    if (r.pageId) return dispatch({ type: 'OPEN_USER_PAGE', id: r.pageId });
     if (r.providerId) return dispatch({ type: 'PREVIEW_PROVIDER', id: r.providerId });
     if (r.go && navigate) navigate(r.go);
   };

@@ -36,6 +36,8 @@ import { loadPanic, panicConfig } from './src/panic';
 import { RideWatcher } from './src/rideRules';
 import DocsCenter from './src/components/DocsCenter';
 import { PublicOrgModal } from './src/components/PublicOrg';
+import UserPageModal from './src/components/UserPageModal';
+import PagesScreen from './src/screens/cliente/PagesScreen';
 import { VideoCallHost } from './src/components/LiveVideo';
 import TermoReaceite from './src/components/TermoReaceite';
 import AccountBlocked from './src/components/AccountBlocked';
@@ -53,7 +55,7 @@ import { stopSpeaking } from './src/voice';
 import { findNavigation, navReply } from './src/voiceNav';
 import { findMandadoAction } from './src/voiceMandados';
 import LotusCartao from './src/components/LotusCartao';
-import { findProfile, openReply } from './src/voiceIntents';
+import { openAction, findProfile, openReply } from './src/voiceIntents';
 import { stripWake } from './src/wakeMatch';
 import { speakSoft, prepareVoice } from './src/voice';
 import { loadModel } from './src/lm/lotusLM';
@@ -104,6 +106,7 @@ const TABS = {
     { key: 'socorro', label: 'Socorro', icon: 'medkit-outline', Comp: SosScreen, hidden: true },
     { key: 'artistas', label: 'Artistas', icon: 'musical-notes-outline', Comp: ArtistsScreen, hidden: true },
     { key: 'vagas', label: 'Empregos', icon: 'briefcase-outline', Comp: JobsScreen, hidden: true },
+    { key: 'paginas', label: 'Páginas', icon: 'albums-outline', Comp: PagesScreen, hidden: true },
     { key: 'desapego', label: 'Desapego', icon: 'pricetags-outline', Comp: DesapegoScreen, hidden: true },
     { key: 'tecnologia', label: 'Tecnologia', icon: 'hardware-chip-outline', Comp: TechScreen, hidden: true },
     { key: 'agro', label: 'Agro', icon: 'leaf-outline', Comp: AgroScreen, hidden: true },
@@ -134,12 +137,14 @@ const TABS = {
     { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
     { key: 'vagas', label: 'Empregos', icon: 'briefcase-outline', Comp: JobsScreen, hidden: true },
+    { key: 'paginas', label: 'Páginas', icon: 'albums-outline', Comp: PagesScreen, hidden: true },
   ],
   fornecedor: [
     { key: 'propostas', label: 'Propostas', icon: 'cube-outline', Comp: SupplierScreen },
     { key: 'inicio', label: 'Feed', icon: 'home-outline', Comp: FeedScreen },
     { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
+    { key: 'paginas', label: 'Páginas', icon: 'albums-outline', Comp: PagesScreen, hidden: true },
   ],
 };
 
@@ -475,6 +480,7 @@ function Shell() {
       <RideWatcher />
       <DocsCenter />
       <PublicOrgModal />
+      <UserPageModal />
       <VideoCallHost />
       <TermoReaceite />
       <LotusSOS />
@@ -512,7 +518,7 @@ function Shell() {
           const prof = text ? findProfile(stripWake(text), state) : null;
           if (prof && prof.open) {
             speakSoft(openReply(prof.open, prof.others));
-            dispatch({ type: prof.open.kind === 'company' ? 'OPEN_COMPANY' : 'OPEN_PROFILE', id: prof.open.id });
+            dispatch(openAction(prof.open));
             return closeBox();
           }
           // Ação pendente de confirmação: "sim" executa, "não" cancela; outra fala descarta a pergunta.

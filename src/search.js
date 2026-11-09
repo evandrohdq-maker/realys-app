@@ -6,6 +6,7 @@ import { listings, LISTING_KINDS, promos, lives, communityPosts, events, EVENT_G
 import { serviceTypes, isFoodStore } from './data';
 import { foodPromos, barSpots } from './foodData';
 import { members } from './people';
+import { signatureOf } from './userPages';
 import { socialLabel, socialSearchText } from './socialClasses';
 import { allJobs } from './store';
 import { sectorItems } from './techAgroData';
@@ -188,6 +189,17 @@ function buildIndex(state) {
       s.name, s.category, s.city, isFoodStore(s) ? 'food comida restaurante bar' : 'loja', s.shipsBrazil ? 'envia para todo o brasil entrega' : ''
     )
   );
+
+  // Páginas de usuários (assinadas ou anônimas) e os posts publicados nelas.
+  (state.userPages || []).forEach((pg) => {
+    add(
+      { id: 'pg-' + pg.id, section: 'Página', icon: '📄', title: pg.name, subtitle: signatureOf(pg), photo: pg.cover, pageId: pg.id, go: { tab: 'paginas', pageId: pg.id } },
+      pg.name, pg.about, pg.category, 'pagina paginas comunidade'
+    );
+    (pg.posts || []).filter((p) => !p.flagged).forEach((p) =>
+      add({ id: 'pgp-' + pg.id + p.id, section: 'Post de página', icon: '📝', title: p.text.slice(0, 60), subtitle: pg.name, photo: p.photo, pageId: pg.id }, p.text, pg.name, 'post pagina')
+    );
+  });
 
   // Food: promoções de restaurantes e bares/happy hour.
   foodPromos.forEach((fp) => {

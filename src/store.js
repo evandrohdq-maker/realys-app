@@ -21,6 +21,7 @@ import * as J from './jobsData';
 import { initialTestimonials, myInitialGallery } from './testimonialsData';
 import { visitFee, visitDiscount, providerStats, splitFee, SAMPLE_VISIT_REQUESTS, HIGHLIGHT_PLAN } from './serviceVisits';
 import { teleDoCarrinho, somarGasto } from './teleGratis';
+import { DEMO_PAGES, MAX_PAGES } from './userPages';
 import { sampleAgenda, DEFAULT_HOURS, parseWhen } from './agenda';
 
 const StoreContext = createContext(null);
@@ -187,6 +188,9 @@ const initialState = {
   nudgesDismissed: {}, // lembretes da Lotus dispensados
   intelPlan: false, // empresa assina o painel de inteligência
   protectionFees: 0, // taxas de proteção Realys recebidas nesta sessão (demonstração)
+  userPages: DEMO_PAGES, // páginas de usuários (as do próprio usuário têm ownerId 'me')
+  followingPages: {},
+  viewUserPage: null,
   teleGratisMes: null, // { mes: 'AAAA-MM', gasto } da primeira tele grátis paga pelo Realys
   // Notícias e Alertas (src/newsData.js)
   alertsDismissed: {}, // alertas que a pessoa fechou na faixa do topo
@@ -675,6 +679,54 @@ function baseReducer(state, a) {
       else delete friends[a.id];
       return { ...state, friends };
     }
+    // ---------- Páginas de usuários ----------
+    case 'OPEN_USER_PAGE':
+      return { ...state, viewUserPage: a.id };
+    case 'CLOSE_USER_PAGE':
+      return { ...state, viewUserPage: null };
+    case 'PAGE_CREATE': {
+      if (!state.user || (state.userPages || []).filter((p) => p.ownerId === 'me').length >= MAX_PAGES) return state;
+      const page = { id: newId('pg'), ownerId: 'me', ownerName: state.user.name, followers: 0, posts: [], createdAt: Date.now(), ...a.page };
+      return { ...state, userPages: [page, ...(state.userPages || [])], viewUserPage: page.id };
+    }
+    case 'PAGE_UPDATE':
+      return { ...state, userPages: state.userPages.map((p) => (p.id === a.id && p.ownerId === 'me' ? { ...p, ...a.patch } : p)) };
+    case 'PAGE_DELETE':
+      return { ...state, userPages: state.userPages.filter((p) => !(p.id === a.id && p.ownerId === 'me')), viewUserPage: state.viewUserPage === a.id ? null : state.viewUserPage };
+    case 'PAGE_FOLLOW': {
+      const followingPages = { ...(state.followingPages || {}) };
+      const on = !followingPages[a.id];
+      if (on) followingPages[a.id] = true;
+      else delete followingPages[a.id];
+      return { ...state, followingPages, userPages: state.userPages.map((p) => (p.id === a.id ? { ...p, followers: Math.max(0, p.followers + (on ? 1 : -1)) } : p)) };
+    }
+    // Post de página: passa pela mesma IA contra notícias falsas dos posts da Community.
+    case 'PAGE_POST': {
+      const pg = (state.userPages || []).find((p) => p.id === a.id && p.ownerId === 'me');
+      if (!pg) return state;
+      const check = checkText(a.post.text);
+      const target = pg.anon ? `Página anônima "${pg.name}"` : `Página "${pg.name}" de ${pg.ownerName}`;
+      if (check.verdict === 'falso') {
+        return {
+          ...state,
+          falseKnowledge: [{ id: newId('fk'), claim: claimOf(a.post.text), reason: check.reasons.join(', '), score: check.score, source: target, at: 'agora' }, ...state.falseKnowledge],
+          reports: [{ id: newId('rp'), kind: 'Fake news', target, detail: `Removido pela IA antes de publicar: "${claimOf(a.post.text)}"`, claim: claimOf(a.post.text), aiScore: check.score, status: 'removido', count: 1 }, ...state.reports],
+        };
+      }
+      const post = { id: newId('pp'), at: Date.now(), likes: 0, ...a.post, ...(check.verdict === 'suspeito' ? { flagged: true } : {}) };
+      return {
+        ...state,
+        userPages: state.userPages.map((p) => (p.id === pg.id ? { ...p, posts: [post, ...p.posts] } : p)),
+        reports: check.verdict === 'suspeito'
+          ? [{ id: newId('rp'), kind: 'Fake news', target, detail: `A IA achou suspeito (${check.reasons.join(', ')}): "${claimOf(a.post.text)}"`, claim: claimOf(a.post.text), aiScore: check.score, status: 'aberta', count: 1 }, ...state.reports]
+          : state.reports,
+      };
+    }
+    case 'PAGE_REPORT': {
+      const pg = (state.userPages || []).find((p) => p.id === a.id);
+      if (!pg) return state;
+      return { ...state, reports: [{ id: newId('rp'), kind: a.kind || 'Página', target: pg.anon ? `Página anônima "${pg.name}" (dono identificado pelo Realys)` : `Página "${pg.name}" de ${pg.ownerName}`, detail: a.detail || 'Denúncia de usuário', status: 'aberta', count: 1 }, ...state.reports] };
+    }
     case 'OPEN_PROFILE':
       return { ...state, viewProfile: a.id };
     case 'CLOSE_PROFILE':
@@ -729,7 +781,7 @@ function baseReducer(state, a) {
     case 'SET_PRIVACY':
       return { ...state, privacy: { ...state.privacy, ...a.privacy } };
     case 'LOAD_PROFILE':
-      return { ...state, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind };
+      return { ...state, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, userPages: a.data.myUserPages ? [...a.data.myUserPages, ...(state.userPages || []).filter((p) => p.ownerId !== 'me')] : state.userPages, followingPages: a.data.followingPages || state.followingPages, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind };
     case 'ADD_CREATION':
       return { ...state, creations: [a.item, ...state.creations] };
     case 'UPDATE_CREATION':
@@ -1690,8 +1742,8 @@ export function StoreProvider({ children }) {
   }, [profileKey]);
   useEffect(() => {
     if (!profileKey || profileLoaded.current !== profileKey) return;
-    AsyncStorage.setItem(profileKey, JSON.stringify({ myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, agendaRemind: state.agendaRemind })).catch(() => {});
-  }, [state.myProfile, state.privacy, state.creations, state.myPage, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
+    AsyncStorage.setItem(profileKey, JSON.stringify({ myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myUserPages: (state.userPages || []).filter((p) => p.ownerId === 'me'), followingPages: state.followingPages, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, agendaRemind: state.agendaRemind })).catch(() => {});
+  }, [state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
   // Cartão do SUS e agendamentos: dado de saúde, guardado no cofre criptografado do Android, por conta.
   const susKey = state.user ? `realys_sus_${String(state.user.id || state.user.cpf || state.user.cnpj || state.user.name).replace(/[^A-Za-z0-9._-]/g, '_')}` : null;
   const susLoaded = useRef(null);

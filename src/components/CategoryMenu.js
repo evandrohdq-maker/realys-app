@@ -239,6 +239,8 @@ export const CATEGORIES = [
     icon: 'people-outline',
     subs: [
       { label: 'Community', hint: 'Posts de pessoas reais', icon: 'chatbox-ellipses-outline', go: { tab: 'stories', seg: 'posts' } },
+      { label: 'Páginas', hint: 'Páginas de usuários, assinadas ou anônimas', icon: 'albums-outline', go: { tab: 'paginas' } },
+      { label: 'Minhas páginas', hint: 'Crie e publique na sua página', icon: 'add-circle-outline', go: { tab: 'paginas', seg: 'minhas' } },
       { label: 'Mensagens', hint: 'Conversas e chamadas de vídeo', icon: 'mail-outline', go: { tab: 'stories', seg: 'msgs' } },
       { label: 'Contatos', hint: 'Sua lista de contatos', icon: 'person-add-outline', go: { tab: 'stories', seg: 'contatos' } },
       { label: 'Lives', hint: 'Assista ou abra a sua', icon: 'radio-outline', go: { tab: 'home', top: 'lives' } },

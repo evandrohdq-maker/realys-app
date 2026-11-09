@@ -139,6 +139,8 @@ function build(state) {
   });
   // Posts em verificação (suspeitos) ficam de fora até a moderação decidir; fake news nem chega aqui.
   const posts = (state.communityPosts || baseCommunityPosts).filter((c) => !c.flagged && checkText(c.text).verdict === 'ok').map((c) => c.text);
+  // Posts das páginas de usuários entram também, com a mesma checagem de fatos.
+  (state.userPages || []).forEach((pg) => (pg.posts || []).forEach((p) => { if (!p.flagged && checkText(p.text).verdict === 'ok') posts.push(p.text); }));
   const falseInfo = state.falseKnowledge || [];
 
   return { facts, opinions, posts, falseInfo, builtAt: Date.now() };

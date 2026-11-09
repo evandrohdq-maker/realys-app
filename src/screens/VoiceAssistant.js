@@ -32,7 +32,7 @@ import { confirmCall } from '../phone';
 import { findNavigation, navReply } from '../voiceNav';
 import { understand } from '../lm/lotusLM';
 import { knowledgeAnswer } from '../lm/knowledge';
-import { isPartyQuery, hasPartyCue, partyReply, findProfile, pickOption, openReply, askReply, toResult } from '../voiceIntents';
+import { openAction, isPartyQuery, hasPartyCue, partyReply, findProfile, pickOption, openReply, askReply, toResult } from '../voiceIntents';
 
 // Sugestões que aparecem antes da primeira fala.
 const EXAMPLES = [
@@ -1170,7 +1170,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
       setPending(null);
       setPhase('idle');
       speakSoft(res.reply);
-      dispatch({ type: res.open.kind === 'company' ? 'OPEN_COMPANY' : 'OPEN_PROFILE', id: res.open.id });
+      dispatch(openAction(res.open));
       onClose();
       return;
     }
@@ -1583,6 +1583,9 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
                             onClose();
                           } else if (r.companyId) {
                             dispatch({ type: 'OPEN_COMPANY', id: r.companyId });
+                            onClose();
+                          } else if (r.pageId) {
+                            dispatch({ type: 'OPEN_USER_PAGE', id: r.pageId });
                             onClose();
                           } else if (r.go && onNavigate) onNavigate(r.go);
                         }}

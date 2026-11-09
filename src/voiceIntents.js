@@ -132,9 +132,13 @@ function nameScore(asked, name) {
 }
 
 // Devolve null (não é pedido de perfil), { open } (abrir já), { ask, options } (mais de um) ou { notFound }.
+// Tipo de ação para abrir o resultado (pessoa, empresa ou página de usuário).
+export const openAction = (o) => ({ type: o.kind === 'company' ? 'OPEN_COMPANY' : o.kind === 'page' ? 'OPEN_USER_PAGE' : 'OPEN_PROFILE', id: o.id });
+const PAGE_RE = /\bpaginas?\s+(?!d[aoe]s?\b)(.+)$/;
+
 export function findProfile(text, state) {
   const t = norm(text).replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
-  const m = t.match(PROFILE_RE);
+  const m = t.match(PROFILE_RE) || t.match(PAGE_RE);
   if (!m) return null;
   const asked = m[1].replace(TAIL, '').trim();
   // "página do Agro", "página da empresa": é navegação, não perfil.
@@ -145,6 +149,8 @@ export function findProfile(text, state) {
   const companies = [
     ...(state.stores || []).map((s) => ({ kind: 'company', id: s.id, name: s.name, sub: `${s.category} · ${s.city}`, photo: s.cover, friend: false, mutual: 0 })),
     ...artists.map((a) => ({ kind: 'company', id: a.id, name: a.name, sub: `${a.genre} · ${a.city}`, photo: a.cover, friend: false, mutual: 0 })),
+    // Páginas de usuários (assinadas ou anônimas): a Lotus abre pelo nome.
+    ...(state.userPages || []).map((p) => ({ kind: 'page', id: p.id, name: p.name, sub: `Página · ${p.anon ? 'anônima' : p.ownerName}`, photo: p.cover, friend: p.ownerId === 'me', mutual: 0 })),
   ];
   const scored = [...people, ...companies]
     .map((c) => ({ ...c, score: nameScore(asked, c.name) }))
@@ -172,17 +178,17 @@ export function pickOption(text, options) {
   return best && best.s > 0 && scored.filter((x) => x.s === best.s).length === 1 ? best.o : null;
 }
 
-const article = (o) => (o.kind === 'company' ? 'a página de' : 'o perfil de');
+const article = (o) => (o.kind === 'company' ? 'a página de' : o.kind === 'page' ? 'a página' : 'o perfil de');
 export const openReply = (o, others = []) =>
   `Abrindo ${article(o)} ${o.name}.` + (others.length ? ` Também tem ${others.map((x) => x.name).join(' e ')}; se for outra pessoa, é só pedir.` : '');
 export const askReply = (asked, options) =>
   `Encontrei ${options.length} com o nome ${asked.replace(/\b\w/g, (c) => c.toUpperCase())}: ${options.map((o) => o.name).join(', ')}. Qual delas você quer abrir?`;
 export const toResult = (o) => ({
   id: 'pf-' + o.kind + o.id,
-  section: o.kind === 'company' ? 'Empresa' : o.friend ? 'Pessoa · seu contato' : 'Pessoa',
-  icon: o.kind === 'company' ? '🏪' : '👤',
+  section: o.kind === 'page' ? 'Página' : o.kind === 'company' ? 'Empresa' : o.friend ? 'Pessoa · seu contato' : 'Pessoa',
+  icon: o.kind === 'page' ? '📄' : o.kind === 'company' ? '🏪' : '👤',
   title: o.name,
   subtitle: o.sub,
   photo: o.photo,
-  ...(o.kind === 'company' ? { companyId: o.id } : { profileId: o.id }),
+  ...(o.kind === 'company' ? { companyId: o.id } : o.kind === 'page' ? { pageId: o.id } : { profileId: o.id }),
 });

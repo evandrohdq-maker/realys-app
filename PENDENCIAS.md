@@ -186,3 +186,7 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
 - [x] Verificação facial de entregadores, motoboys e motoristas a cada 6 horas (BIOMETRIA_PERIODIC_HOURS).
 - [ ] Levar o orçamento da primeira tele grátis para o servidor (hoje é contado no app) e mostrar no painel do administrador.
 - [ ] Pix automático por API de banco (depósito e saque sem o administrador), quando tiver CNPJ e banco escolhido.
+
+## Páginas de usuários (nov/2026)
+- Feito no APK: aba Páginas (menu ⋮ → Comunidade e lives, Perfil → Minhas páginas), até 5 páginas por usuário, assinada (nome + selo verificado) ou anônima (dono verificado, nome oculto), posts com checagem de fatos, seguir/denunciar, busca e Lotus ("abre a página X", "criar página").
+- Pendente: sincronizar páginas e posts com o servidor (hoje ficam no perfil salvo no aparelho); moderação de denúncias no painel admin; dono de página anônima só revelado por ordem judicial.
