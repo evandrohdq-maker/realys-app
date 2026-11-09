@@ -94,7 +94,8 @@ export function loadConfig(overrides = {}) {
     fiscalIm: env.FISCAL_IM || '', // inscrição municipal em Passo Fundo
     fiscalMunicipio: env.FISCAL_MUNICIPIO || '4314100', // código IBGE de Passo Fundo
     fiscalRegime: env.FISCAL_REGIME || 'simples', // simples, presumido ou mei
-    fiscalAnexo: env.FISCAL_ANEXO || 'III',
+    fiscalAnexo: env.FISCAL_ANEXO || 'fatorR', // fatorR = Anexo III ou V pela folha (intermediação); ou fixo: III, V
+    fiscalFolha12m: num(env.FISCAL_FOLHA_12M, 0), // R$ de folha + pró-labore + encargos nos últimos 12 meses (fator R)
     fiscalIssPct: num(env.FISCAL_ISS_PCT, 5),
     fiscalCTribNac: env.FISCAL_CTRIBNAC || '100501', // item 10.05 da LC 116: intermediação
     fiscalCTribMun: env.FISCAL_CTRIBMUN || '',

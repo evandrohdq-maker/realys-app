@@ -14,6 +14,9 @@ import { gzipSync, gunzipSync } from 'node:zlib';
 import { el, txt, assinar } from './xml.js';
 
 export const NS_NFSE = 'http://www.sped.fazenda.gov.br/nfse';
+// Leiaute 1.01 (com os campos da reforma tributária): a produção restrita só aceita 1.01 desde 10/12/2025 e a
+// produção aceita 1.00 e 1.01 em paralelo. O grupo IBSCBS é opcional para quem está no Simples em 2026.
+export const LEIAUTE = '1.01';
 export const URLS = {
   1: 'https://sefin.nfse.gov.br/SefinNacional',
   2: 'https://sefin.producaorestrita.nfse.gov.br/SefinNacional',
@@ -39,7 +42,7 @@ export function idDps({ municipio, cnpj, serie, numero }) {
 //  emitente: { cnpj, im, municipio (IBGE), opSimpNac (1 não optante, 2 MEI, 3 ME/EPP), regEspTrib }
 //  nota:     { serie, numero, emitidaEm, competencia, valorCents, descricao, cTribNac, cTribMun, nbs,
 //              tomador: { doc, nome, email }, pTotTribSN, ibsCbs }
-export function montarDps({ ambiente, emitente, nota, verAplic = 'Realys-1.0' }) {
+export function montarDps({ ambiente, emitente, nota, verAplic = 'Realys-1.0', leiaute = LEIAUTE }) {
   const id = idDps({ municipio: emitente.municipio, cnpj: emitente.cnpj, serie: nota.serie, numero: nota.numero });
   const docToma = so(nota.tomador?.doc);
   const toma = docToma
@@ -55,7 +58,7 @@ export function montarDps({ ambiente, emitente, nota, verAplic = 'Realys-1.0' })
   const totTrib = nota.pTotTribSN != null
     ? el('totTrib', txt('pTotTribSN', Number(nota.pTotTribSN).toFixed(2)))
     : el('totTrib', txt('indTotTrib', 0));
-  const xml = el('DPS', { xmlns: NS_NFSE, versao: '1.00' },
+  const xml = el('DPS', { xmlns: NS_NFSE, versao: leiaute },
     el('infDPS', { Id: id },
       txt('tpAmb', ambiente),
       txt('dhEmi', dataHoraBrasilia(nota.emitidaEm)),
@@ -83,9 +86,9 @@ export function montarDps({ ambiente, emitente, nota, verAplic = 'Realys-1.0' })
 }
 
 // Pedido de cancelamento (evento e101101).
-export function montarCancelamento({ ambiente, cnpj, chave, motivo = 'Serviço cancelado a pedido do cliente', codMotivo = 1, emitidoEm = Date.now() }) {
+export function montarCancelamento({ ambiente, cnpj, chave, motivo = 'Serviço cancelado a pedido do cliente', codMotivo = 1, emitidoEm = Date.now(), leiaute = LEIAUTE }) {
   const id = `PRE${chave}101101001`;
-  const xml = el('pedRegEvento', { xmlns: NS_NFSE, versao: '1.00' },
+  const xml = el('pedRegEvento', { xmlns: NS_NFSE, versao: leiaute },
     el('infPedReg', { Id: id },
       txt('tpAmb', ambiente),
       txt('verAplic', 'Realys-1.0'),

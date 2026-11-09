@@ -159,3 +159,8 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] Ligar no servidor a taxa de proteção (R$ 0,99) e a taxa de visita, que hoje existem só no app,
       chamando `fiscal.registrar` como já é feito na comissão de pedido e nos presentes.
 - [ ] Telas no app: "Minhas notas fiscais", painel fiscal do administrador e aviso de teto do MEI.
+- [ ] **Conversa com o contador sobre 2027:** pela LC 214/2025 (arts. 22 e 23), plataformas digitais respondem
+      pela CBS/IBS das vendas intermediadas e precisam se inscrever no regime regular. Ver se o Simples ainda compensa.
+- [ ] Confirmar a alíquota de ISS de Passo Fundo para o item 10.05 (hoje o padrão é 5%).
+- [ ] Fator R: lançar todo mês a folha + pró-labore (FISCAL_FOLHA_12M). Sem folha, o Realys cai no Anexo V (15,5%).
+- [ ] Lucro Presumido: montar o grupo IBS/CBS da NFS-e (leiaute 1.01) antes de usar esse regime.

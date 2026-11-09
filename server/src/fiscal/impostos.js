@@ -23,7 +23,7 @@ export const ANEXOS = {
     [720000, 13.5, 17640, 32.5],
     [1800000, 16.0, 35640, 32.5],
     [3600000, 21.0, 125640, 33.5],
-    [4800000, 33.0, 648000, 0], // 6ª faixa: o ISS é pago fora do Simples
+    [4800000, 33.0, 648000, null], // 6ª faixa: acima do sublimite o ISS é pago fora do Simples
   ],
   V: [
     [180000, 15.5, 0, 14.0],
@@ -31,11 +31,15 @@ export const ANEXOS = {
     [720000, 19.5, 9900, 19.0],
     [1800000, 20.5, 17100, 21.0],
     [3600000, 23.0, 62100, 23.5],
-    [4800000, 30.5, 540000, 0],
+    [4800000, 30.5, 540000, null],
   ],
 };
 export const TETO_SIMPLES = 4800000; // R$ 4,8 milhões por ano
-export const TETO_MEI = 81000; // R$ 81 mil por ano (enquanto o aumento do teto não for aprovado)
+// Teto do MEI pela LC 238/2026 (21/10/2026): R$ 81 mil em 2026, R$ 110 mil em 2027 e R$ 140 mil a partir
+// de 2028 (este último condicionado à previsão orçamentária da renúncia de receita).
+export const TETOS_MEI = { 2026: 81000, 2027: 110000, 2028: 140000 };
+export const tetoMei = (ano = new Date().getFullYear()) => TETOS_MEI[Math.min(Math.max(ano, 2026), 2028)];
+export const TETO_MEI = tetoMei(2026);
 export const TOLERANCIA_MEI = 0.2; // até 20% acima: paga a diferença e sai do MEI no ano seguinte
 
 const r2 = (x) => Math.round(x * 100) / 100;
@@ -49,19 +53,36 @@ export function aliquotaSimples(rbt12Cents, anexo = 'III') {
   if (rbt12 > TETO_SIMPLES) return { foraDoSimples: true, faixa: null, efetiva: null, iss: null };
   const i = tabela.findIndex(([ate]) => rbt12 <= ate);
   const [, nominal, deduzir, partIss] = tabela[i];
+  const issForaDoSimples = partIss == null && (anexo === 'III' || anexo === 'V');
   // Na 1ª faixa (ou antes de ter faturamento) a efetiva é a própria nominal.
   const efetiva = rbt12 > 0 && deduzir > 0 ? ((rbt12 * nominal) / 100 - deduzir) / rbt12 * 100 : nominal;
   let iss = partIss == null ? null : (efetiva * partIss) / 100;
   // O ISS dentro do Simples não passa de 5%: o que sobra vai para os tributos federais.
   if (iss != null && iss > 5) iss = 5;
-  return { foraDoSimples: false, faixa: i + 1, nominal, efetiva: r2(efetiva), iss: iss == null ? null : r2(iss) };
+  return { foraDoSimples: false, faixa: i + 1, nominal, efetiva: r2(efetiva), iss: iss == null ? null : r2(iss), issForaDoSimples };
+}
+
+// Fator R (LC 123, art. 18, § 5º-J e § 5º-M): intermediação de negócios é Anexo V, mas vai para o Anexo III
+// quando a folha de salários dos últimos 12 meses (inclusive pró-labore e encargos) for 28% ou mais da receita.
+// Empresa sem receita ainda: com folha, conta como Anexo III; sem folha, Anexo V.
+export function fatorR({ folha12Cents = 0, rbt12Cents = 0 }) {
+  const r = rbt12Cents > 0 ? folha12Cents / rbt12Cents : folha12Cents > 0 ? 1 : 0;
+  return { fatorR: r2(r * 100) / 100, anexo: r >= 0.28 ? 'III' : 'V' };
+}
+// Resolve o anexo do .env: 'III', 'V', 'I' fixos, ou 'fatorR' (calcula pela folha).
+export function anexoEfetivo(anexo, { folha12Cents = 0, rbt12Cents = 0 } = {}) {
+  return anexo === 'fatorR' ? fatorR({ folha12Cents, rbt12Cents }).anexo : anexo;
 }
 
 // ---------- Lucro Presumido (serviços) ----------
 // Presunção de 32% sobre a receita de serviços para IRPJ e CSLL. PIS 0,65% e COFINS 3% (cumulativos).
 // IRPJ 15% + adicional de 10% sobre a base que passar de R$ 20 mil por mês. CSLL 9%.
-export function impostosPresumido(receitaMesCents, { issPct = 5, presuncao = 32 } = {}) {
-  const base = (receitaMesCents * presuncao) / 100;
+// LC 224/2025 (desde 2026): sobre a parte da receita do ano que passar de R$ 5 milhões, a presunção sobe 10%
+// (32% vira 35,2%). receitaAnoAntesCents = receita do ano até o mês anterior.
+export function impostosPresumido(receitaMesCents, { issPct = 5, presuncao = 32, receitaAnoAntesCents = 0 } = {}) {
+  const LIMITE = 5000000 * 100;
+  const excedente = Math.max(0, Math.min(receitaMesCents, receitaAnoAntesCents + receitaMesCents - LIMITE));
+  const base = ((receitaMesCents - excedente) * presuncao + excedente * presuncao * 1.1) / 100;
   const irpj = base * 0.15 + Math.max(0, base - 2000000) * 0.1;
   const csll = base * 0.09;
   const pis = receitaMesCents * 0.0065;
@@ -77,6 +98,7 @@ export function impostosPresumido(receitaMesCents, { issPct = 5, presuncao = 32 
 // ---------- Reforma tributária (CBS e IBS) ----------
 // 2026 é o ano de teste: CBS 0,9% e IBS 0,1% só destacados na nota (não pagos), e quem está no Simples
 // fica dispensado de destacar. A partir de 2027 a CBS passa a valer; o contador atualiza as alíquotas.
+// Regime regular (Lucro Presumido/Real) é OBRIGADO a destacar desde 01/2026; Simples está dispensado em 2026.
 export function ibsCbs(valorCents, { destacar = false, cbsPct = 0.9, ibsPct = 0.1 } = {}) {
   if (!destacar) return null;
   return { cbs: Math.round((valorCents * cbsPct) / 100), ibs: Math.round((valorCents * ibsPct) / 100), cbsPct, ibsPct };
@@ -99,7 +121,7 @@ export function impostoDaNota(valorCents, { regime = 'simples', anexo = 'III', r
 }
 
 // Resumo do mês: receita, impostos estimados, custos e quanto sobra (para não trabalhar no prejuízo).
-export function resumoMensal({ receitaCents, rbt12Cents, custosCents = 0, regime = 'simples', anexo = 'III', issPct = 5 }) {
+export function resumoMensal({ receitaCents, rbt12Cents, custosCents = 0, regime = 'simples', anexo = 'III', issPct = 5, receitaAnoAntesCents = 0 }) {
   let impostos;
   let aliquota;
   if (regime === 'simples') {
@@ -107,7 +129,7 @@ export function resumoMensal({ receitaCents, rbt12Cents, custosCents = 0, regime
     aliquota = a.efetiva;
     impostos = a.foraDoSimples ? null : Math.round((receitaCents * a.efetiva) / 100);
   } else {
-    const p = impostosPresumido(receitaCents, { issPct });
+    const p = impostosPresumido(receitaCents, { issPct, receitaAnoAntesCents });
     aliquota = p.efetiva;
     impostos = p.total;
   }
@@ -123,8 +145,8 @@ export function resumoMensal({ receitaCents, rbt12Cents, custosCents = 0, regime
 
 // ---------- MEI ----------
 // Situação do MEI pelo que ele recebeu no ano (vendas e serviços pelo Realys). Avisa antes de estourar o teto.
-export function situacaoMei(recebidoAnoCents, { mesesAtivos = 12 } = {}) {
-  const teto = Math.round((TETO_MEI * 100 * Math.min(12, Math.max(1, mesesAtivos))) / 12);
+export function situacaoMei(recebidoAnoCents, { mesesAtivos = 12, ano = new Date().getFullYear() } = {}) {
+  const teto = Math.round((tetoMei(ano) * 100 * Math.min(12, Math.max(1, mesesAtivos))) / 12);
   const pct = teto ? (recebidoAnoCents / teto) * 100 : 0;
   let nivel = 'ok';
   let aviso = null;

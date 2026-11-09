@@ -14,7 +14,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { newId, now, fail } from '../http.js';
 import { tx } from '../db.js';
-import { impostoDaNota, resumoMensal, situacaoMei, aliquotaSimples } from './impostos.js';
+import { impostoDaNota, resumoMensal, situacaoMei, aliquotaSimples, anexoEfetivo, fatorR } from './impostos.js';
 import { makeNfseNacional, linkConsulta } from './nfseNacional.js';
 import { makeNfeParceiro } from './nfeParceiro.js';
 import { infoCertificado } from './xml.js';
@@ -59,6 +59,8 @@ export function makeFiscal({ db, cfg, hub, clients = {} }) {
     if (!/^\d{14}$/.test(String(cfg.fiscalCnpj).replace(/\D/g, ''))) falta.push('FISCAL_CNPJ (CNPJ do Realys)');
     if (!/^\d{7}$/.test(String(cfg.fiscalMunicipio))) falta.push('FISCAL_MUNICIPIO (código IBGE da cidade da empresa)');
     if (!OP_SIMP_NAC[cfg.fiscalRegime]) falta.push('FISCAL_REGIME (simples, presumido ou mei)');
+    // Regime regular é obrigado a destacar CBS e IBS na nota desde 2026 (grupo IBSCBS do leiaute 1.01).
+    if (cfg.fiscalRegime === 'presumido') falta.push('Lucro Presumido exige o grupo IBS/CBS na NFS-e: falta montar esse grupo com o contador (cClassTrib e alíquotas)');
     if (!clients.nfse && (!certPem() || !keyPem())) falta.push('FISCAL_CERT_PEM e FISCAL_KEY_PEM (certificado digital A1, ver deploy/certificado-fiscal.sh)');
     return falta;
   }
@@ -108,6 +110,10 @@ export function makeFiscal({ db, cfg, hub, clients = {} }) {
     return v + Math.round(cfg.fiscalRbt12Inicial * 100);
   }
 
+  const folha = () => Math.round(cfg.fiscalFolha12m * 100);
+  const anexoDe = (comp) => anexoEfetivo(cfg.fiscalAnexo, { folha12Cents: folha(), rbt12Cents: rbt12(comp) });
+  const receitaAnoAntes = (comp) => db.prepare("SELECT COALESCE(SUM(valor),0) AS v FROM fiscal_receitas WHERE status != 'cancelada' AND competencia >= ? AND competencia < ?").get(comp.slice(0, 4) + '-01', comp).v;
+
   const proximoNumero = (serie) => {
     db.prepare('INSERT OR IGNORE INTO fiscal_numeracao (serie, ultimo) VALUES (?, 0)').run(serie);
     db.prepare('UPDATE fiscal_numeracao SET ultimo = ultimo + 1 WHERE serie = ?').run(serie);
@@ -137,7 +143,7 @@ export function makeFiscal({ db, cfg, hub, clients = {} }) {
       tx(db, () => {
         const valor = lista.reduce((s, r) => s + r.valor, 0);
         const comp = lista[0].competencia;
-        const imp = impostoDaNota(valor, { regime: cfg.fiscalRegime === 'mei' ? 'simples' : cfg.fiscalRegime, anexo: cfg.fiscalAnexo, rbt12Cents: rbt12(comp), issPct: cfg.fiscalIssPct, destacarIbsCbs: cfg.fiscalDestacarIbsCbs });
+        const imp = impostoDaNota(valor, { regime: cfg.fiscalRegime === 'mei' ? 'simples' : cfg.fiscalRegime, anexo: anexoDe(comp), rbt12Cents: rbt12(comp), issPct: cfg.fiscalIssPct, destacarIbsCbs: cfg.fiscalDestacarIbsCbs });
         const descricoes = [...new Set(lista.map((r) => r.descricao))];
         const descricao = lista.length === 1 ? descricoes[0] : `${descricoes.join('; ')} (${lista.length} operações em ${comp})`;
         const id = newId('nf');
@@ -242,7 +248,9 @@ export function makeFiscal({ db, cfg, hub, clients = {} }) {
     const receita = porOrigem.reduce((s, r) => s + r.valor, 0);
     const base = rbt12(competencia);
     const regime = cfg.fiscalRegime === 'mei' ? 'simples' : cfg.fiscalRegime;
-    const calc = resumoMensal({ receitaCents: receita, rbt12Cents: base, custosCents: Math.round(cfg.fiscalCustosMensais * 100), regime, anexo: cfg.fiscalAnexo, issPct: cfg.fiscalIssPct });
+    const anexo = anexoDe(competencia);
+    const calc = resumoMensal({ receitaCents: receita, rbt12Cents: base, custosCents: Math.round(cfg.fiscalCustosMensais * 100), regime, anexo, issPct: cfg.fiscalIssPct, receitaAnoAntesCents: receitaAnoAntes(competencia) });
+    const fr = fatorR({ folha12Cents: folha(), rbt12Cents: base });
     const notas = db.prepare('SELECT status, COUNT(*) AS qtd FROM fiscal_notas WHERE competencia = ? GROUP BY status').all(competencia);
     let certificado = null;
     try {
@@ -260,10 +268,14 @@ export function makeFiscal({ db, cfg, hub, clients = {} }) {
       const s = situacaoMei(base);
       if (s.aviso) avisos.push(s.aviso);
     }
-    if (regime === 'simples' && aliquotaSimples(base, cfg.fiscalAnexo).faixa >= 5) avisos.push('Faturamento perto do teto do Simples: hora de o contador avaliar o Lucro Presumido.');
+    if (regime === 'simples' && cfg.fiscalAnexo === 'fatorR' && anexo === 'V') {
+      const falta = Math.max(0, Math.ceil(base * 0.28) - folha());
+      avisos.push(`Fator R de ${Math.round(fr.fatorR * 100)}%: o Realys está no Anexo V (a partir de 15,5%). Com mais R$ ${(falta / 100).toFixed(2)} de folha ou pró-labore nos 12 meses, passa para o Anexo III (a partir de 6%). Veja com o contador.`);
+    }
+    if (regime === 'simples' && aliquotaSimples(base, anexo).faixa >= 5) avisos.push('Faturamento perto do teto do Simples: hora de o contador avaliar o Lucro Presumido.');
     if (certificado?.diasParaVencer != null && certificado.diasParaVencer < 30) avisos.push(`O certificado digital vence em ${certificado.diasParaVencer} dias: renove para as notas não pararem.`);
     return {
-      competencia, regime: cfg.fiscalRegime, anexo: cfg.fiscalAnexo, emissaoLigada: podeEmitir(), faltaConfigurar: pendenciasConfig(),
+      competencia, regime: cfg.fiscalRegime, anexo, fatorR: cfg.fiscalAnexo === 'fatorR' ? fr.fatorR : null, emissaoLigada: podeEmitir(), faltaConfigurar: pendenciasConfig(),
       receitaPorOrigem: porOrigem.map((r) => ({ origem: r.origem, qtd: r.qtd, valor: r.valor / 100 })),
       receita: receita / 100, rbt12: base / 100, aliquota: calc.aliquota,
       impostos: calc.impostos == null ? null : calc.impostos / 100, custos: calc.custos / 100,

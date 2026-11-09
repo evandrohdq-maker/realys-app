@@ -9,7 +9,7 @@ import { generateKeyPairSync } from 'node:crypto';
 import { loadConfig } from '../src/config.js';
 import { createApp } from '../src/app.js';
 import { tx } from '../src/db.js';
-import { aliquotaSimples, impostosPresumido, situacaoMei, resumoMensal } from '../src/fiscal/impostos.js';
+import { aliquotaSimples, impostosPresumido, situacaoMei, resumoMensal, fatorR, tetoMei } from '../src/fiscal/impostos.js';
 import { montarDps, idDps, NS_NFSE, ungz64 } from '../src/fiscal/nfseNacional.js';
 import { assinar, conferirAssinatura } from '../src/fiscal/xml.js';
 
@@ -26,6 +26,27 @@ test('Simples Nacional: alíquota efetiva do Anexo III', () => {
   assert.equal(a.iss, 2.59); // 32% da alíquota efetiva
   assert.equal(aliquotaSimples(3600000 * 100, 'III').iss, 5); // ISS limitado a 5%
   assert.equal(aliquotaSimples(5000000 * 100, 'III').foraDoSimples, true);
+  assert.equal(aliquotaSimples(4000000 * 100, 'III').issForaDoSimples, true); // acima do sublimite
+});
+
+test('Fator R: intermediação vai para o Anexo III com folha de 28% da receita', () => {
+  assert.equal(fatorR({ folha12Cents: 0, rbt12Cents: 100000 * 100 }).anexo, 'V');
+  assert.equal(fatorR({ folha12Cents: 28000 * 100, rbt12Cents: 100000 * 100 }).anexo, 'III');
+  assert.equal(fatorR({ folha12Cents: 27999 * 100, rbt12Cents: 100000 * 100 }).anexo, 'V');
+});
+
+test('Teto do MEI pela LC 238/2026', () => {
+  assert.equal(tetoMei(2026), 81000);
+  assert.equal(tetoMei(2027), 110000);
+  assert.equal(tetoMei(2030), 140000);
+  assert.equal(situacaoMei(90000 * 100, { ano: 2027 }).nivel, 'atencao');
+});
+
+test('Lucro Presumido: presunção maior acima de R$ 5 milhões no ano (LC 224/2025)', () => {
+  const normal = impostosPresumido(100000 * 100);
+  const acima = impostosPresumido(100000 * 100, { receitaAnoAntesCents: 5000000 * 100 });
+  assert.equal(acima.csll, Math.round(100000 * 100 * 0.352 * 0.09));
+  assert.ok(acima.total > normal.total);
 });
 
 test('Lucro Presumido: impostos de um mês de serviços', () => {
@@ -59,6 +80,7 @@ test('DPS: Id com 45 caracteres e assinatura digital que confere', () => {
   assert.match(xml, /<vServ>0\.99<\/vServ>/);
   assert.match(xml, /&amp; garantia &lt;teste&gt;/);
   assert.match(xml, /<CPF>12345678909<\/CPF>/);
+  assert.match(xml, /versao="1\.01"/);
   const assinado = assinar(xml, { tag: 'infDPS', id, nsDoElemento: NS_NFSE, keyPem, certPem });
   assert.ok(conferirAssinatura(assinado, { tag: 'infDPS', nsDoElemento: NS_NFSE, publicKeyPem: pubPem }));
   // Qualquer mudança no valor quebra a assinatura.
@@ -109,7 +131,7 @@ test('Taxa do Realys vira nota emitida e depois é cancelada no estorno', async 
   const n = db.prepare("SELECT * FROM fiscal_notas WHERE tipo = 'nfse'").get();
   assert.equal(n.status, 'emitida');
   assert.equal(n.numero, 1);
-  assert.equal(n.imposto_estimado, 6); // 6% de R$ 0,99, arredondado
+  assert.equal(n.imposto_estimado, 15); // sem folha: Anexo V, 15,5% de R$ 0,99
   assert.match(n.link, /consultapublica\?chave=/);
   assert.ok(recebidas[0].ok);
   assert.match(recebidas[0].xml, /<xNome>Ana Souza<\/xNome>/);
@@ -138,7 +160,9 @@ test('Resumo do administrador mostra receita, imposto e lucro do mês', () => {
   const s = app.fiscal.resumo();
   assert.equal(s.emissaoLigada, true);
   assert.ok(s.receita >= 100);
-  assert.equal(s.aliquota, 6);
+  assert.equal(s.anexo, 'V');
+  assert.equal(s.aliquota, 15.5);
+  assert.ok(s.avisos.some((a) => a.includes('Fator R')));
   assert.ok(s.receitaPorOrigem.some((o) => o.origem === 'plano'));
 });
 

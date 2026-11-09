@@ -32,7 +32,8 @@ Quando a empresa e o servidor estiverem prontos, siga os passos abaixo.
 | Item no .env | Padrão no código | O que conferir |
 | --- | --- | --- |
 | `FISCAL_REGIME` | simples | Simples Nacional, Lucro Presumido ou MEI |
-| `FISCAL_ANEXO` | III | Anexo do Simples da atividade (intermediação costuma ser Anexo III; alguns casos vão para o V pelo fator R) |
+| `FISCAL_ANEXO` | fatorR | Intermediação de negócios é Anexo V sujeita ao fator R: com folha + pró-labore de 28% ou mais da receita, vai para o Anexo III |
+| `FISCAL_FOLHA_12M` | 0 | Folha, pró-labore e encargos dos últimos 12 meses (o contador atualiza todo mês) |
 | `FISCAL_CTRIBNAC` | 100501 | Código de tributação nacional do serviço (item 10.05 da LC 116: intermediação) |
 | `FISCAL_CTRIBMUN` e `FISCAL_NBS` | vazio | Código municipal de Passo Fundo e código NBS, se a prefeitura exigir |
 | `FISCAL_ISS_PCT` | 5 | Alíquota de ISS de Passo Fundo para o serviço |
@@ -58,6 +59,24 @@ em nome da loja, e as taxas de presente e de live saem em nome de quem enviou o 
 | `GET /fiscal/calculadora?receitaMes=` | qualquer conta | Comparar MEI, Simples e Lucro Presumido |
 | `GET` e `PUT /companies/me/fiscal` | loja | Ligar a NF-e pelo Realys (exige NCM em todos os produtos) |
 | `PUT /products/:id/ncm` | loja | Informar o NCM de um produto |
+
+## Premissas conferidas em novembro de 2026
+
+| Premissa | Situação | Fonte |
+| --- | --- | --- |
+| Tabelas do Simples (Anexos I, III e V) e ISS limitado a 5% | Confere, sem mudança em 2026 | LC 123/2006 com a LC 155/2016 |
+| Intermediação de negócios no Simples | Corrigido: Anexo V com fator R (antes estava fixo no III) | LC 123, art. 18, § 5º-M |
+| Teto do MEI | Corrigido: R$ 81 mil em 2026, R$ 110 mil em 2027 e R$ 140 mil a partir de 2028 | LC 238/2026 |
+| Lucro Presumido | Corrigido: presunção de 35,2% sobre a receita acima de R$ 5 milhões no ano | LC 224/2025 |
+| CBS 0,9% e IBS 0,1% em 2026 | Confere: Simples dispensado; regime regular obrigado a destacar (por isso o Presumido fica bloqueado até montar o grupo IBS/CBS) | LC 214/2025, arts. 343, 346 e 348 |
+| Leiaute da NFS-e | Corrigido para 1.01 (a produção restrita só aceita 1.01 desde 12/2025) | Portal Nacional NFS-e |
+| Id da DPS com 45 caracteres e envio em `dpsXmlGZipB64` com mTLS | Confere | Manual da API do Sistema Nacional NFS-e |
+| Código de serviço 100501 (10.05.01) | Existe na lista nacional; o contador confirma se é o certo para o Realys | Lista nacional NFS-e |
+| ISS de Passo Fundo para o item 10.05 | **Não confirmado**: a cidade cobra de 2% a 5%; padrão de 5% até o contador confirmar | Legislação municipal |
+
+**Atenção para 2027:** pela reforma tributária (LC 214/2025, arts. 22 e 23), plataformas digitais como o
+Realys passam a responder pela CBS e pelo IBS das vendas feitas por elas e precisam se inscrever no regime
+regular desses tributos. Isso pode afetar a escolha do Simples. É a primeira conversa a ter com o contador.
 
 ## Antes de ir para produção
 
