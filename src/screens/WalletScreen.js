@@ -38,7 +38,7 @@ const fmtDate = (ts) => {
 };
 const toNumber = (t) => Number(String(t || '').replace(/[^\d,.]/g, '').replace(/\./g, '').replace(',', '.')) || 0;
 
-// Saque dos presentes recebidos: barra até 50.000 pontos, saque normal (75%) e antecipado (60%).
+// Saque dos presentes recebidos: barra até 50.000 pontos, saque normal (70%) e antecipado (63%).
 function GiftCashout() {
   const { state, dispatch } = useStore();
   const q = cashoutQuote(state);

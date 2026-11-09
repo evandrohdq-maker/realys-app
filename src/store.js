@@ -992,7 +992,7 @@ function baseReducer(state, a) {
       };
     }
     // Saque dos presentes recebidos: tudo o que juntou (créditos de presente + de live), a partir de
-    // 50.000 pontos (R$ 500). O Realys fica com 10%; o resto vai por Pix.
+    // 50.000 pontos (R$ 500). O criador fica com 70% do que os fãs pagaram (63% no antecipado); o resto vai por Pix.
     case 'GIFT_CASHOUT': {
       const q = cashoutQuote(state, !!a.early);
       if (!q.ok) return state;

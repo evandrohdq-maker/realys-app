@@ -56,15 +56,15 @@ export const LIVE_CONVERT_MIN = 10; // mínimo de créditos de live para convert
 
 // Saque do que a pessoa RECEBEU de presente (créditos de presente + créditos de live).
 // Cada R$ 1 recebido em créditos = 100 pontos de saque. Do valor dos presentes que o fã pagou:
-//   - saque normal, a partir de 50.000 pontos: o streamer fica com 75% (o Realys com 25%);
-//   - saque antecipado, a partir de 10.000 pontos: fica com 60% (perde mais 15%).
+//   - saque normal, a partir de 50.000 pontos: o streamer fica com 70% (o Realys com 30%; no TikTok o criador fica com ~50%);
+//   - saque antecipado, a partir de 10.000 pontos: fica com 63% (perde 10% do que receberia).
 // Os 10% do presente já saíram quando ele foi enviado; o resto da parte do Realys sai no saque.
 // Pontos que a PLATAFORMA dá (avaliar, assistir, comprar, mandar presente) nunca viram saque.
 export const CASHOUT_POINTS_PER_REAL = 100;
 export const CASHOUT_MIN_POINTS = 50000;
 export const CASHOUT_EARLY_MIN_POINTS = 10000;
-export const CASHOUT_KEEP_PCT = 75; // do valor dos presentes, no saque normal
-export const CASHOUT_EARLY_KEEP_PCT = 60; // no saque antecipado (75% - 15%)
+export const CASHOUT_KEEP_PCT = 70; // do valor dos presentes, no saque normal
+export const CASHOUT_EARLY_KEEP_PCT = 63; // no saque antecipado (70% menos 10% dele)
 export const receivedPool = (state) => +((state.giftCredits || 0) + (state.liveCredits || 0)).toFixed(2);
 export const cashoutPoints = (state) => Math.floor(receivedPool(state) * CASHOUT_POINTS_PER_REAL);
 export const cashoutQuote = (state, early = false) => {

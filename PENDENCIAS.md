@@ -164,3 +164,17 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] Confirmar a alíquota de ISS de Passo Fundo para o item 10.05 (hoje o padrão é 5%).
 - [ ] Fator R: lançar todo mês a folha + pró-labore (FISCAL_FOLHA_12M). Sem folha, o Realys cai no Anexo V (15,5%).
 - [ ] Lucro Presumido: montar o grupo IBS/CBS da NFS-e (leiaute 1.01) antes de usar esse regime.
+
+## Tabela de taxas (novembro de 2026, src/taxas.js)
+
+Regra: perto do mercado para ter margem, sempre abaixo para divulgar. Fontes consultadas: planos do iFood
+(Serasa, Saipos), taxa de serviço do iFood (Tecnoblog), comissões de marketplace 2026 (Mercado Livre e
+Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
+
+- [x] Food 11% (iFood 12% + 3,2%), Shop 10% (ML 10–14% + custo fixo), corridas 18% (Uber/99 20–35%),
+      visita 15%, ingresso 8% mín. R$ 1,99 (Sympla 10% mín. R$ 2,50), plano de empresa R$ 89 acima de
+      R$ 1.800 (iFood R$ 110–150), lives: criador 70% (TikTok ~50%), antecipado 63%. Proteção R$ 0,99 fixa.
+- [x] Termo de Adesão v15 com as novas taxas (app e servidor).
+- [ ] Ligar no servidor: ORDER_FEE_PCT=10 e FOOD_FEE_PCT=11 quando sair da fase de testes.
+- [ ] Tela "Por que o Realys é mais barato" usando `comparativo()` de src/taxas.js.
+- [ ] Rever a tabela a cada 6 meses (o mercado muda: Shopee e Mercado Livre mudaram em 2026).

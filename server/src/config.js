@@ -44,7 +44,8 @@ export function loadConfig(overrides = {}) {
     giftMin: num(env.GIFT_MIN, 5),
     giftMax: num(env.GIFT_MAX, 2000),
     liveConvertMin: num(env.LIVE_CONVERT_MIN, 10),
-    orderFeePct: num(env.ORDER_FEE_PCT, 0), // comissão do Realys sobre vendas (0 na fase de testes)
+    orderFeePct: num(env.ORDER_FEE_PCT, 0), // comissão do Realys sobre vendas no Shop (0 na fase de testes; tabela: 10%)
+    foodFeePct: num(env.FOOD_FEE_PCT, env.ORDER_FEE_PCT === undefined ? 0 : num(env.ORDER_FEE_PCT, 0)), // no Food (tabela: 11%)
     withdrawMin: num(env.WITHDRAW_MIN, 10),
     // Servidor de vídeo próprio (MediaMTX + coturn numa VPS, ver deploy/video/LEIA-ME.md).
     // Vazio = ainda não contratado: as lives ficam no modo demonstração.

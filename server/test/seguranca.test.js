@@ -20,7 +20,7 @@ before(async () => {
   await new Promise((r) => app.server.listen(0, '127.0.0.1', r));
   base = `http://127.0.0.1:${app.server.address().port}`;
   const mk = async (k, name, doc, username) => {
-    const s = await api('POST', '/auth/signup', { body: { kind: 'pessoa', name, doc, username, email: `${username}@realys.com`, password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v14' } });
+    const s = await api('POST', '/auth/signup', { body: { kind: 'pessoa', name, doc, username, email: `${username}@realys.com`, password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v15' } });
     T[k] = s.data.accessToken;
   };
   await mk('vitima', 'Carla Dias', '529.982.247-25', 'carladias');

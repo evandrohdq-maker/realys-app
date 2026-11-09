@@ -1,6 +1,6 @@
 // Termo de adesão do Realys. Aceito no primeiro acesso (cadastro). Quando o texto mudar, a versão muda,
 // e quem já aceitou é convidado a aceitar de novo.
-export const TERMO_ADESAO_VERSAO = '2026-11-adesao-v14';
+export const TERMO_ADESAO_VERSAO = '2026-11-adesao-v15';
 
 // Itens 1 a 13 tratam da conta e da biometria; 14 em diante, das regras de cada serviço, das taxas,
 // da Lotus e do conteúdo. Texto a ser revisado por advogado antes do lançamento oficial.
@@ -71,7 +71,7 @@ export const TERMO_ADESAO = {
     },
     {
       titulo: '16. Taxas do Realys',
-      texto: 'Todas as taxas são mostradas antes de você confirmar. (a) Pedidos de lojas: 10% sobre a venda, pagos pela loja; o cliente não paga a mais por isso. (b) Contratação de serviços: o prestador define a taxa de visita e o Realys fica com 10% dela; o valor final do serviço é combinado entre cliente e prestador. (c) Corridas e entregas: o Realys fica com 15% do valor da corrida. (d) Presentes: 10% do valor do presente. (e) Saque de presentes, conforme o item 21. (f) Boosts, anúncios e a assinatura Date+, pelo preço mostrado na tela. (g) Serviços prestados pelo governo (SUS, UPAs, UBSs, hospitais públicos, SAMU, Bombeiros, Defesa Civil e polícia) não têm nenhuma taxa do Realys. O Realys pode rever as taxas; a mudança vale só para o que for contratado depois do aviso.',
+      texto: 'Todas as taxas são mostradas antes de você confirmar. (a) Pedidos de lojas: 10% sobre a venda no Shop e 11% no Food, pagos pela loja, já com o pagamento online incluído; o cliente não paga a mais por isso. (b) Taxa de proteção: R$ 0,99 por pedido de produtos, paga pelo cliente, com o mesmo valor a qualquer hora. (c) Contratação de serviços: o prestador define a taxa de visita e o Realys fica com 15% dela; o valor final do serviço é combinado entre cliente e prestador. (d) Corridas e entregas: o Realys fica com 18% do valor da corrida. (e) Presentes: 10% do valor do presente. (f) Ingressos: 8% do valor de cada ingresso, no mínimo R$ 1,99, pagos pelo produtor, que pode repassar ao comprador. (g) Plano de empresa: R$ 89 por mês, só no mês em que a empresa vender mais de R$ 1.800 pelo Realys. (h) Saque de presentes, conforme o item 21. (i) Boosts, anúncios e a assinatura Date+, pelo preço mostrado na tela. (j) Serviços prestados pelo governo (SUS, UPAs, UBSs, hospitais públicos, SAMU, Bombeiros, Defesa Civil e polícia) não têm nenhuma taxa do Realys. O Realys pode rever as taxas; a mudança vale só para o que for contratado depois do aviso.',
     },
     {
       titulo: '17. Preços das corridas e faixa justa dos serviços',
@@ -91,7 +91,7 @@ export const TERMO_ADESAO = {
     },
     {
       titulo: '21. Presentes, lives e saque dos criadores',
-      texto: 'Nas lives e publicações, as pessoas podem enviar presentes pagos aos criadores. O Realys retém 10% de cada presente no envio. O que o criador recebe em presentes vira pontos de saque (R$ 1 = 100 pontos de saque), que são diferentes dos pontos de presente da plataforma. Saque normal: a partir de 50.000 pontos de saque, o criador recebe 75% do valor que os fãs pagaram nos presentes. Saque antecipado: a partir de 10.000 pontos de saque, o criador recebe 60% desse valor (15 pontos percentuais a menos, pela antecipação). O saque exige verificação facial e conta bancária ou chave Pix no nome do titular. Presentes ligados a fraude, estorno ou conteúdo proibido podem ser bloqueados e não entram no saque.',
+      texto: 'Nas lives e publicações, as pessoas podem enviar presentes pagos aos criadores. O Realys retém 10% de cada presente no envio. O que o criador recebe em presentes vira pontos de saque (R$ 1 = 100 pontos de saque), que são diferentes dos pontos de presente da plataforma. Saque normal: a partir de 50.000 pontos de saque, o criador recebe 70% do valor que os fãs pagaram nos presentes. Saque antecipado: a partir de 10.000 pontos de saque, o criador recebe 63% desse valor (10% a menos do que receberia, pela antecipação). O saque exige verificação facial e conta bancária ou chave Pix no nome do titular. Presentes ligados a fraude, estorno ou conteúdo proibido podem ser bloqueados e não entram no saque.',
     },
     {
       titulo: '22. Date (Encontros) e assinatura Date+',

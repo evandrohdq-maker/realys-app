@@ -169,7 +169,9 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
       for (const [companyId, g] of byCompany) {
         const id = newId('o');
         const total = g.lines.reduce((s, l) => s + l.p.price * l.qty, 0);
-        const fee = Math.round((total * cfg.orderFeePct) / 100);
+        // Food (todos os itens com classe de cardápio) tem comissão própria; o resto é Shop.
+        const isFood = g.lines.every((l) => l.p.classe);
+        const fee = Math.round((total * (isFood ? cfg.foodFeePct : cfg.orderFeePct)) / 100);
         const { fromGift, fromWallet } = wallet.pay(user.id, total, 'Compras', `Pedido em ${g.name}`, id);
         wallet.move(g.owner, 'saldo', total - fee, 'Vendas', `Venda para ${user.name} (pedido ${id})`, id);
         if (fee) wallet.move('realys', 'saldo', fee, 'Comissão', `Comissão do pedido ${id}`, id);

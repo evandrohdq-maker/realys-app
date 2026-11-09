@@ -20,8 +20,8 @@ export const TARIFFS = {
 };
 export const tariffOf = (serviceKey) => TARIFFS[serviceKey] || (/moto/.test(serviceKey || '') ? TARIFFS.motoboy : TARIFFS.motorista);
 
-// Parte do Realys nas corridas (o resto é do prestador).
-export const RIDE_FEE_PCT = 15;
+// Parte do Realys nas corridas (o resto é do prestador). Uber e 99 ficam com 20% a 35% (src/taxas.js).
+export const RIDE_FEE_PCT = 18;
 export const SURGE_MAX = 1.5;
 
 // Velocidade média na cidade: ~25 km/h normal, ~15 km/h no pico (anda e para).
