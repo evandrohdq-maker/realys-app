@@ -468,6 +468,67 @@ const MIGRATIONS = [
     updated_at INTEGER NOT NULL
   );
   `,
+  // 13: módulo fiscal (receitas do Realys, notas NFS-e e NF-e, configuração fiscal das lojas)
+  `
+  CREATE TABLE fiscal_receitas (
+    id TEXT PRIMARY KEY,
+    origem TEXT NOT NULL,           -- comissao_pedido, taxa_presente, taxa_live, taxa_protecao, taxa_visita, plano, anuncio, outro
+    ref TEXT,                       -- pedido, presente, chamado... que gerou a receita
+    tomador_id TEXT REFERENCES users(id),
+    valor INTEGER NOT NULL CHECK (valor > 0),
+    descricao TEXT NOT NULL,
+    competencia TEXT NOT NULL,      -- AAAA-MM
+    status TEXT NOT NULL,           -- pendente, agrupada, cancelada
+    nota_id TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE INDEX fiscal_receitas_status ON fiscal_receitas(status, competencia);
+  CREATE INDEX fiscal_receitas_ref ON fiscal_receitas(ref);
+
+  CREATE TABLE fiscal_notas (
+    id TEXT PRIMARY KEY,
+    tipo TEXT NOT NULL CHECK (tipo IN ('nfse','nfe')),
+    emitente TEXT NOT NULL,         -- 'realys' ou o id da loja (NF-e de produto)
+    tomador_id TEXT REFERENCES users(id),
+    ref TEXT,                       -- pedido (NF-e)
+    serie INTEGER,
+    numero INTEGER,
+    competencia TEXT NOT NULL,
+    valor INTEGER NOT NULL,
+    imposto_estimado INTEGER,
+    aliquota REAL,
+    descricao TEXT NOT NULL,
+    status TEXT NOT NULL,           -- fila, emitida, erro, cancelamento, cancelada
+    tentativas INTEGER NOT NULL DEFAULT 0,
+    erro TEXT,
+    chave TEXT,
+    id_dps TEXT,
+    xml TEXT,
+    link TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    emitida_em INTEGER,
+    UNIQUE (tipo, emitente, serie, numero)
+  );
+  CREATE INDEX fiscal_notas_status ON fiscal_notas(status);
+  CREATE INDEX fiscal_notas_tomador ON fiscal_notas(tomador_id, created_at DESC);
+
+  CREATE TABLE fiscal_numeracao (
+    serie INTEGER PRIMARY KEY,
+    ultimo INTEGER NOT NULL DEFAULT 0
+  );
+
+  CREATE TABLE fiscal_lojas (
+    company_id TEXT PRIMARY KEY REFERENCES companies(id),
+    emite_pelo_realys INTEGER NOT NULL DEFAULT 0,
+    crt INTEGER NOT NULL DEFAULT 1, -- 1 Simples Nacional, 2 Simples com excesso, 3 regime normal
+    uf TEXT NOT NULL DEFAULT 'RS',
+    ie TEXT,
+    updated_at INTEGER NOT NULL
+  );
+  ALTER TABLE products ADD COLUMN ncm TEXT;
+  `,
 ];
 
 export function openDb(file) {

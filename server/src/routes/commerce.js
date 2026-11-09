@@ -4,7 +4,7 @@ import { tx } from '../db.js';
 
 const ORDER_STATUS = ['Recebido', 'Preparando', 'A caminho', 'Entregue', 'Cancelado'];
 
-export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria }) {
+export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fiscal }) {
   const companyOf = (userId) => db.prepare('SELECT * FROM companies WHERE owner_id = ?').get(userId);
   const myCompany = (user) => {
     const c = companyOf(user.id);
@@ -176,6 +176,9 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria }) {
         const t = now();
         db.prepare('INSERT INTO orders (id, buyer_id, company_id, total, from_gift, from_wallet, fee, address, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)').run(id, user.id, companyId, total, fromGift, fromWallet, fee, address, 'Recebido', t, t);
         for (const l of g.lines) db.prepare('INSERT INTO order_items (order_id, product_id, name, price, qty) VALUES (?,?,?,?,?)').run(id, l.p.id, l.p.name, l.p.price, l.qty);
+        // Fiscal: a comissão é serviço do Realys para a loja (tomador = dono da loja); a NF-e do produto é da loja.
+        if (fee) fiscal.registrar({ origem: 'comissao_pedido', ref: id, tomadorId: g.owner, valorCents: fee, descricao: `Intermediação de venda no Realys (pedido ${id})` });
+        fiscal.filaNfeDoPedido(id);
         out.push({ id, owner: g.owner, company: g.name, total, fromGift, fromWallet });
       }
       return out;
@@ -211,6 +214,9 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria }) {
         wallet.move(o.buyer_id, 'presente', o.from_gift, 'Estorno', `Pedido ${o.id} cancelado por ${c.name}`, o.id);
         wallet.move(o.buyer_id, 'saldo', o.from_wallet, 'Estorno', `Pedido ${o.id} cancelado por ${c.name}`, o.id);
         for (const i of db.prepare('SELECT product_id, qty FROM order_items WHERE order_id = ?').all(o.id)) db.prepare('UPDATE products SET stock = stock + ? WHERE id = ?').run(i.qty, i.product_id);
+        fiscal.estornar(o.id, `Pedido ${o.id} cancelado por ${c.name}`);
+        // NF-e do produto ainda na fila: não sai mais. Já emitida: pede o cancelamento ao emissor.
+        db.prepare("UPDATE fiscal_notas SET status = CASE WHEN status = 'emitida' THEN 'cancelamento' ELSE 'cancelada' END, updated_at = ? WHERE tipo = 'nfe' AND ref = ? AND status IN ('fila','erro','emitida')").run(now(), o.id);
       }
       db.prepare('UPDATE orders SET status = ?, updated_at = ? WHERE id = ?').run(body.status, now(), o.id);
     });

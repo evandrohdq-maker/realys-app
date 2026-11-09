@@ -9,7 +9,7 @@ export const LIVE_GIFTS = { rosa: 100, coracao: 200, aplauso: 500, estrela: 1000
 const CATS = ['gamers', 'artistas', 'cursos', 'faculdades', 'tecnologia', 'noticias', 'podcasts', 'compras', 'noite', 'comunidade'];
 const HOSTS = ['usuario', 'empresa', 'artista', 'prestador', 'fornecedor'];
 
-export default function livesRoutes(r, { db, wallet, hub }) {
+export default function livesRoutes(r, { db, wallet, hub, fiscal }) {
   const view = (l) => ({ id: l.id, hostId: l.host_id, hostType: l.host_type, host: l.host_name, cat: l.cat, title: l.title, status: l.status, giftsTotal: toReais(l.gifts_total), startedAt: l.started_at, endedAt: l.ended_at, viewers: viewersOf(l.id) });
   const watching = new Map(); // liveId -> Map<userId, lastSeen>
   const viewersOf = (id) => {
@@ -78,6 +78,7 @@ export default function livesRoutes(r, { db, wallet, hub }) {
       wallet.move(user.id, 'saldo', -value, 'Presentes', `Live de ${l.host_name}: ${body.gift}${qty > 1 ? ` x${qty}` : ''}`, id);
       wallet.move(l.host_id, 'live', value - fee, 'Lives', `${user.name} enviou ${body.gift}${qty > 1 ? ` x${qty}` : ''} na live "${l.title}"`, id);
       if (fee) wallet.move('realys', 'saldo', fee, 'Taxa de presente', `Taxa do presente de live ${id}`, id);
+      if (fee) fiscal.registrar({ origem: 'taxa_live', ref: id, tomadorId: user.id, valorCents: fee });
       db.prepare('INSERT INTO live_gifts (id, live_id, from_id, host_id, gift, qty, value, fee, created_at) VALUES (?,?,?,?,?,?,?,?,?)').run(id, l.id, user.id, l.host_id, body.gift, qty, value, fee, now());
       db.prepare('UPDATE lives SET gifts_total = gifts_total + ? WHERE id = ?').run(value, l.id);
     });

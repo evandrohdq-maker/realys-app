@@ -145,3 +145,17 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
       se a equipe funcionar como empresa com empregados (pejotização). Confirmar as regras com um contador.
 - [ ] **Modo acessível**: letras maiores, alto contraste e modo simples para idosos em todo o app.
 - [ ] **Microcrédito e seguros para MEI**: só com parceiro autorizado (Banco Central / Susep).
+
+## Notas fiscais e impostos (código pronto, desligado)
+
+- [x] Módulo fiscal no servidor (server/src/fiscal, guia em server/fiscal-LEIA-ME.md): receitas do Realys,
+      NFS-e Nacional assinada com certificado A1, cancelamento, NF-e das lojas por emissor parceiro,
+      cálculo de impostos (Simples, Lucro Presumido, MEI, CBS/IBS), resumo de lucro e aviso de teto do MEI.
+- [ ] **Abrir o CNPJ em Passo Fundo** e tirar a inscrição municipal.
+- [ ] **Comprar o certificado digital A1** e converter com `server/deploy/certificado-fiscal.sh`.
+- [ ] **Contador conferir** regime, anexo, código do serviço, ISS de Passo Fundo e agrupamento das notas.
+- [ ] Testar na produção restrita da Receita (`FISCAL_AMBIENTE=2`) antes de ligar em produção.
+- [ ] Contratar o emissor parceiro de NF-e (Focus NFe ou parecido) para as lojas que quiserem.
+- [ ] Ligar no servidor a taxa de proteção (R$ 0,99) e a taxa de visita, que hoje existem só no app,
+      chamando `fiscal.registrar` como já é feito na comissão de pedido e nos presentes.
+- [ ] Telas no app: "Minhas notas fiscais", painel fiscal do administrador e aviso de teto do MEI.

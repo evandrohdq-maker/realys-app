@@ -2,6 +2,8 @@
 import credentialRoutes from './routes/credentials.js';
 import segurancaRoutes from './routes/seguranca.js';
 import documentosRoutes from './routes/documentos.js';
+import fiscalRoutes from './routes/fiscal.js';
+import { makeFiscal } from './fiscal/index.js';
 import { createServer } from 'node:http';
 import { join } from 'node:path';
 import { openDb } from './db.js';
@@ -60,7 +62,8 @@ export function createApp(cfg) {
   const cipher = makeCipher(parseKeys(cfg.biometricKeys));
   const matcher = cfg.matcher || makeMatcher(cfg);
   const biometria = makeBiometria({ db, cfg, matcher, cipher });
-  const deps = { db, cfg, wallet, hub, userById, publicUser, cipher, matcher, biometria };
+  const fiscal = makeFiscal({ db, cfg, hub, clients: cfg.fiscalClients || {} });
+  const deps = { db, cfg, wallet, hub, userById, publicUser, cipher, matcher, biometria, fiscal };
   // Tentativas de login por IP (proteção contra quem tenta adivinhar senha).
   const attempts = new Map();
   deps.limitLogin = (key) => {
@@ -71,7 +74,7 @@ export function createApp(cfg) {
     attempts.set(key, a);
   };
   deps.clearLogin = (key) => attempts.delete(key);
-  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes].forEach((r) => r(router, deps));
+  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes].forEach((r) => r(router, deps));
   router.get('/health', () => ({ ok: true, name: 'Realys', time: now() }), { auth: false });
 
   // Administrador inicial (ADMIN_PASSWORD no .env).
@@ -139,6 +142,7 @@ export function createApp(cfg) {
   const close = () =>
     new Promise((resolve) => {
       hub.closeAll();
+      fiscal.stop();
       server.close(() => {
         db.close();
         resolve();
@@ -146,5 +150,5 @@ export function createApp(cfg) {
       server.closeAllConnections?.();
     });
 
-  return { server, db, hub, wallet, close, maintenance, biometria };
+  return { server, db, hub, wallet, close, maintenance, biometria, fiscal };
 }

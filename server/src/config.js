@@ -87,6 +87,29 @@ export function loadConfig(overrides = {}) {
     maintenanceHours: num(env.MAINTENANCE_HOURS, 24),
     reviewMaxDays: num(env.BIOMETRIA_REVIEW_MAX_DAYS, 30),   // revisão parada além disso é recusada e as fotos apagadas
     auditKeepDays: num(env.AUDIT_KEEP_DAYS, 1825),           // trilha de auditoria: 5 anos
+    // Módulo fiscal (src/fiscal). Desligado até ter CNPJ, certificado digital A1 e o contador conferir.
+    fiscalAtivo: bool(env.FISCAL_ATIVO, false),
+    fiscalAmbiente: num(env.FISCAL_AMBIENTE, 2), // 2 = produção restrita (testes), 1 = produção
+    fiscalCnpj: env.FISCAL_CNPJ || '',
+    fiscalIm: env.FISCAL_IM || '', // inscrição municipal em Passo Fundo
+    fiscalMunicipio: env.FISCAL_MUNICIPIO || '4314100', // código IBGE de Passo Fundo
+    fiscalRegime: env.FISCAL_REGIME || 'simples', // simples, presumido ou mei
+    fiscalAnexo: env.FISCAL_ANEXO || 'III',
+    fiscalIssPct: num(env.FISCAL_ISS_PCT, 5),
+    fiscalCTribNac: env.FISCAL_CTRIBNAC || '100501', // item 10.05 da LC 116: intermediação
+    fiscalCTribMun: env.FISCAL_CTRIBMUN || '',
+    fiscalNbs: env.FISCAL_NBS || '',
+    fiscalSerie: num(env.FISCAL_SERIE, 1),
+    fiscalAgrupar: env.FISCAL_AGRUPAR || 'imediato', // imediato, diario ou mensal (uma nota por cliente)
+    fiscalCertPem: env.FISCAL_CERT_PEM ? resolve(ROOT, env.FISCAL_CERT_PEM) : '',
+    fiscalKeyPem: env.FISCAL_KEY_PEM ? resolve(ROOT, env.FISCAL_KEY_PEM) : '',
+    fiscalNfseUrl: env.FISCAL_NFSE_URL || '',
+    fiscalIntervaloMin: num(env.FISCAL_INTERVALO_MIN, 5),
+    fiscalCustosMensais: num(env.FISCAL_CUSTOS_MENSAIS, 0), // R$: servidor, biometria, contador... (para o resumo de lucro)
+    fiscalRbt12Inicial: num(env.FISCAL_RBT12_INICIAL, 0), // R$ faturados fora do Realys nos últimos 12 meses
+    fiscalDestacarIbsCbs: bool(env.FISCAL_DESTACAR_IBS_CBS, false),
+    nfeParceiroUrl: env.NFE_PARCEIRO_URL || '',
+    nfeParceiroToken: env.NFE_PARCEIRO_TOKEN || '',
     ...overrides,
   };
   if (!cfg.jwtSecret) throw new Error('Defina JWT_SECRET no arquivo .env (o script de instalação gera um).');
