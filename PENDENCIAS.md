@@ -61,7 +61,7 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [x] **Moderação de texto no servidor** (posts, depoimentos e mensagens): pronta (server/src/moderacaoTexto.js).
 - [ ] **Canal de denúncia às autoridades** (SaferNet / Polícia Federal) para conteúdo com menores, com
       preservação das provas, e responsável pela moderação definido na empresa.
-- [ ] **Advogado revisar o Termo de Adesão v13** e os Termos do Encontros v0.2 antes do lançamento oficial.
+- [ ] **Advogado revisar o Termo de Adesão v14** e os Termos do Encontros v0.2 antes do lançamento oficial.
 
 ## Date+
 

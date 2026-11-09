@@ -47,7 +47,7 @@ import { SoftAlertHost, installSoftAlert } from './src/components/SoftAlert';
 installSoftAlert();
 import { callNow } from './src/phone';
 import { getDevicePoint } from './src/geo';
-import { triggerDuress } from './src/duress';
+import { triggerDuress, triggerSilent } from './src/duress';
 import { syncAlert, syncAlertPlace } from './src/securitySync';
 import { stopSpeaking } from './src/voice';
 import { findNavigation, navReply } from './src/voiceNav';
@@ -203,6 +203,7 @@ function Shell() {
   // Frase de segurança (coação) na hora de confirmar: a Lotus mostra que deu certo, nada é cobrado,
   // e em silêncio vai o alerta com GPS e endereço para a segurança do Realys, e a ligação para o 190.
   const duressNow = (info) => triggerDuress(dispatch, stateRef.current, info);
+  const silentNow = (info) => triggerSilent(dispatch, stateRef.current, info);
   const [acaoPendente, setAcaoPendente] = useState(null); // mensagem da Lotus aguardando sim/não (só chat)
   const [cartaoLotus, setCartaoLotus] = useState(null); // cartão de confirmação com botões (finalização, dinheiro)
   const [menu, setMenu] = useState(false);
@@ -469,6 +470,7 @@ function Shell() {
         canOpen={canOpen}
         onPanic={panicNow}
         onDuress={duressNow}
+        onSilent={silentNow}
       />
       <RideWatcher />
       <DocsCenter />
@@ -491,6 +493,7 @@ function Shell() {
         }}
         onWakeHeard={setWakeLive}
         onPanic={panicNow}
+        onSilent={silentNow}
         onReject={() => {
           // "abrir Lotus" com a voz de outra pessoa: a caixa avisa e fecha sozinha.
           setWakeCapture(false);

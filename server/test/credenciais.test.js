@@ -20,7 +20,7 @@ before(async () => {
   app = createApp(loadConfig({ dataDir: dir, jwtSecret: 'x', adminPassword: 'admin12345', adminUsername: 'admin', mail: { ready: true, send: async (m) => (sent.push(m), { sent: true }) }, cfm: { ready: false, check: async () => ({ status: 'nao_configurado' }) }, conselhos: { ready: true, check: async ({ numero }) => (numero === '06/12345' ? { status: 'ativo', nome: 'Ana Paula Souza', situacao: 'Ativo' } : numero === '06/99999' ? { status: 'ativo', nome: 'Outra Pessoa' } : { status: 'nao_encontrado' }) } }));
   await new Promise((r) => app.server.listen(0, '127.0.0.1', r));
   base = `http://127.0.0.1:${app.server.address().port}`;
-  const s = await api('POST', '/auth/signup', { body: { kind: 'pessoa', name: 'Ana Paula Souza', doc: '529.982.247-25', username: 'anapaula', email: 'ana@realys.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v13' } });
+  const s = await api('POST', '/auth/signup', { body: { kind: 'pessoa', name: 'Ana Paula Souza', doc: '529.982.247-25', username: 'anapaula', email: 'ana@realys.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v14' } });
   token = s.data.accessToken;
   const a = await api('POST', '/auth/login', { body: { login: 'admin', password: 'admin12345' } });
   admin = a.data.accessToken;

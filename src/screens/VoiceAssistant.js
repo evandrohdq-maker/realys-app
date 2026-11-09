@@ -207,6 +207,15 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   // Regras de conduta: pedidos para trair, brigar, discriminar, mandar mensagem ou mexer em dinheiro sozinha.
   const refused = depth === 0 ? lotusRefusal(text) : null;
   if (refused) return { reply: refused };
+  // "Lotus, denúncia, preto" / "Lotus, socorro, preto" / "Lotus, emergência, preto": as 3 palavras juntas
+  // (com a resposta de segurança cadastrada) disparam o alerta EM SILÊNCIO, sem abrir tela nenhuma.
+  if (depth === 0 && !(pending && pending.secq)) {
+    const n1 = norm(stripWake(text));
+    const sq = secqOf();
+    const m3 = n1.match(/^(denuncia|denunciar|socorro|emergencia)\b[\s,.]*(.*)$/);
+    if (sq && m3 && m3[2] && answerKind(m3[2], sq) === 'seguranca')
+      return { silent: { kind: m3[1] === 'emergencia' ? 'emergencia' : 'perigo', tipo: m3[1] === 'emergencia' ? 'Emergência (silenciosa)' : m3[1] === 'socorro' ? 'Socorro (silencioso)' : 'Denúncia (silenciosa)' }, reply: 'Certo.' };
+  }
   // "Lotus, denúncia" (violência, pedido de socorro) e "Lotus, emergência" (saúde): sem aba, só pela voz.
   if (depth === 0 && !(pending && pending.secq)) {
     const n0 = norm(stripWake(text));
@@ -683,7 +692,7 @@ function FadeItem({ show, children }) {
   return <Animated.View style={{ opacity: o }}>{children}</Animated.View>;
 }
 
-export default function VoiceAssistant({ visible, onClose, initialCommand, wakeLive, handsFree, onNavigate, onVoiceNav, canOpen, onPanic, onDuress }) {
+export default function VoiceAssistant({ visible, onClose, initialCommand, wakeLive, handsFree, onNavigate, onVoiceNav, canOpen, onPanic, onDuress, onSilent }) {
   const { state, dispatch } = useStore();
   const [text, setText] = useState('');
   const [history, setHistory] = useState([]);
@@ -1121,6 +1130,15 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
       onClose();
       return;
     }
+    // Alerta silencioso (3 palavras): só "Certo.", fecha a caixa e avisa a segurança.
+    if (res.silent) {
+      setPending(null);
+      setPhase('idle');
+      speakSoft('Certo.');
+      if (onSilent) onSilent(res.silent);
+      onClose();
+      return;
+    }
     if (res.openSos) {
       setPending(null);
       setPhase('idle');
@@ -1295,6 +1313,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
       const alts = (e.results || []).map((a) => a && a.transcript).filter(Boolean);
       // Resposta da pergunta de segurança: atende na hora, sem conferir a voz (sob ameaça a voz muda).
       if (pendingRef.current && pendingRef.current.secq) return run(cmd, null, alts);
+      if (/^(lotus\s+)?(denuncia|denunciar|socorro|emergencia)\b/.test(norm(stripWake(cmd)))) return run(cmd, null, alts);
       const confirming = voiceConfirmOn() && confirmMoment(pendingRef.current) && CONFIRM_VOICE.test(norm(cmd));
       if (!gated() && !confirming) return run(cmd, null, alts);
       // Conversa por voz: só atende depois de conferir que é o titular.

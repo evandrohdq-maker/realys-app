@@ -11,6 +11,24 @@ import { stopSpeaking } from './voice';
 import { musicPlaying } from './musicGuard';
 import { voiceGateOn, recordingFor, verifyWake } from './voicePrint';
 import { isPanicAny } from './panic';
+import { findCall } from './wakeMatch';
+import { securityQuestion } from './voicePrint';
+import { answerKind } from './voicePhrases';
+
+// "Lotus" + socorro/denúncia/emergência + resposta de segurança → { kind, tipo } ou null.
+function silentOf(texts) {
+  const sq = securityQuestion();
+  if (!sq) return null;
+  for (const t of texts || []) {
+    const c = findCall(t);
+    if (!c) continue;
+    const n = String(c.rest || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z\s]/g, ' ').trim();
+    const m = n.match(/^(denuncia|denunciar|socorro|emergencia)\s+(.+)$/);
+    if (m && answerKind(m[2], sq) === 'seguranca')
+      return { kind: m[1] === 'emergencia' ? 'emergencia' : 'perigo', tipo: m[1] === 'emergencia' ? 'Emergência (silenciosa)' : m[1] === 'socorro' ? 'Socorro (silencioso)' : 'Denúncia (silenciosa)' };
+  }
+  return null;
+}
 
 // Com música de outro app tocando, o "abrir Lotus" fica desligado (o microfone do Android pausaria
 // a música). Confere de tempos em tempos e volta a ouvir sozinho quando a música para.
@@ -54,7 +72,7 @@ export function wakeWordSupported() {
 }
 
 // Componente invisível que escuta enquanto `enabled` for verdadeiro.
-export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, onReject, onPanic, onListening, onFatal, onMusic }) {
+export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, onReject, onPanic, onSilent, onListening, onFatal, onMusic }) {
   const on = useRef(false);
   const running = useRef(false);
   const woke = useRef(null); // { rest, timer }
@@ -198,6 +216,15 @@ export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, on
       stop();
       onListening && onListening(false);
       onPanic && onPanic();
+      if (on.current) scheduleRestart(1500);
+      return;
+    }
+    // "Lotus, socorro/denúncia/emergência + palavra de segurança": alerta silencioso, sem abrir a Lotus.
+    const sil = silentOf((event.results || []).map((a) => a && a.transcript));
+    if (sil) {
+      stop();
+      onListening && onListening(false);
+      onSilent && onSilent(sil);
       if (on.current) scheduleRestart(1500);
       return;
     }

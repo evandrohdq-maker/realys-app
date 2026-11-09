@@ -25,7 +25,7 @@ before(async () => {
   await new Promise((r) => app.server.listen(0, '127.0.0.1', r));
   base = `http://127.0.0.1:${app.server.address().port}`;
   const j = (m, p, b) => fetch(base + p, { method: m, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }).then((r) => r.json());
-  token = (await j('POST', '/auth/signup', { kind: 'pessoa', name: 'Bia Lima', doc: '529.982.247-25', username: 'bialima', email: 'bia@realys.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v13' })).accessToken;
+  token = (await j('POST', '/auth/signup', { kind: 'pessoa', name: 'Bia Lima', doc: '529.982.247-25', username: 'bialima', email: 'bia@realys.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v14' })).accessToken;
   admin = (await j('POST', '/auth/login', { login: 'admin', password: 'admin12345' })).accessToken;
 });
 after(async () => {
