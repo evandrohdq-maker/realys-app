@@ -72,13 +72,13 @@ test('entrar com usuário, CPF ou CNPJ; sessão do aparelho; sair', async () => 
   assert.equal((await ok('GET', '/me', { who: 'pizza' })).company.name, 'Pizzaria da Praça');
 });
 
-test('carteira e presentes: taxa de 5%, entra como crédito de presente, não saca', async () => {
+test('carteira e presentes: taxa de 10% sai do presente, entra como crédito de presente, não saca', async () => {
   await ok('POST', '/wallet/deposit', { who: 'ana', body: { amount: 100, method: 'pix' } });
   const g = await ok('POST', '/gifts', { who: 'ana', body: { toId: S.beto.id, amount: 20, occasion: 'Obrigado', message: 'Valeu!' } });
-  assert.equal(g.fee, 1);
-  assert.equal(g.wallet.balance, 79);
+  assert.equal(g.fee, 2);
+  assert.equal(g.wallet.balance, 80);
   const wb = await ok('GET', '/wallet', { who: 'beto' });
-  assert.equal(wb.giftCredits, 20);
+  assert.equal(wb.giftCredits, 18);
   assert.equal(wb.balance, 0);
   // Crédito de presente não pode ser sacado nem usado para presentear.
   app.db.prepare(`INSERT INTO biometria_checks (id, user_id, purpose, call_id, created_at) VALUES (?, ?, 'saque', NULL, ?)`).run(newCkId(), S.beto.id, Date.now());
@@ -95,8 +95,8 @@ test('loja e pedidos: preço do servidor, presente primeiro, estoque, cancelamen
 
   const o = await ok('POST', '/orders', { who: 'beto', body: { items: [{ productId: p.id, qty: 2 }], address: 'Rua A, 10' } });
   assert.equal(o.orders[0].total, 30);
-  assert.equal(o.orders[0].fromGift, 20);
-  assert.equal(o.orders[0].fromWallet, 10);
+  assert.equal(o.orders[0].fromGift, 18);
+  assert.equal(o.orders[0].fromWallet, 12);
   assert.equal((await ok('GET', '/wallet', { who: 'pizza' })).balance, 30);
   assert.equal((await api('POST', '/orders', { who: 'beto', body: { items: [{ productId: p.id, qty: 5 }] } })).status, 409); // sem estoque
 
@@ -105,7 +105,7 @@ test('loja e pedidos: preço do servidor, presente primeiro, estoque, cancelamen
   app.db.prepare(`INSERT INTO biometria_checks (id, user_id, purpose, call_id, created_at) VALUES (?, ?, 'venda', ?, ?)`).run(newCkId(), S.pizza.id, o.orders[0].id, Date.now());
   await ok('PATCH', `/orders/${o.orders[0].id}`, { who: 'pizza', body: { status: 'Cancelado' } });
   const wb = await ok('GET', '/wallet', { who: 'beto' });
-  assert.equal(wb.giftCredits, 20);
+  assert.equal(wb.giftCredits, 18);
   assert.equal(wb.balance, 50);
   assert.equal((await ok('GET', '/wallet', { who: 'pizza' })).balance, 0);
   assert.equal((await ok('GET', `/companies/${(await ok('GET', '/me', { who: 'pizza' })).company.id}`)).products[0].stock, 3);
@@ -124,15 +124,16 @@ test('lives: presente ao vivo vira crédito de live e depois moeda Realys', asyn
   assert.equal((await ok('GET', '/lives?cat=compras')).length, 1);
   const before = (await ok('GET', '/wallet', { who: 'ana' })).balance;
   const g = await ok('POST', `/lives/${live.id}/gifts`, { who: 'ana', body: { gift: 'coroa', qty: 1 } });
-  assert.equal(g.total, 52.5);
-  assert.equal((await ok('GET', '/wallet', { who: 'ana' })).balance, +(before - 52.5).toFixed(2));
+  assert.equal(g.total, 50);
+  assert.equal(g.net, 45);
+  assert.equal((await ok('GET', '/wallet', { who: 'ana' })).balance, +(before - 50).toFixed(2));
   assert.equal((await api('POST', `/lives/${live.id}/gifts`, { who: 'pizza', body: { gift: 'rosa' } })).status, 400); // própria live
   const w = await ok('GET', '/wallet', { who: 'pizza' });
-  assert.equal(w.liveCredits, 50);
+  assert.equal(w.liveCredits, 45);
   const c = await ok('POST', '/wallet/convert-live', { who: 'pizza', body: {} });
-  assert.equal(c.converted, 50);
+  assert.equal(c.converted, 45);
   assert.equal(c.wallet.liveCredits, 0);
-  assert.equal(c.wallet.balance, w.balance + 50);
+  assert.equal(c.wallet.balance, w.balance + 45);
   await ok('POST', `/lives/${live.id}/end`, { who: 'pizza' });
   assert.equal((await api('POST', `/lives/${live.id}/gifts`, { who: 'ana', body: { gift: 'rosa' } })).status, 404);
 });

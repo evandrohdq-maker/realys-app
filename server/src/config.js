@@ -39,8 +39,8 @@ export function loadConfig(overrides = {}) {
     // Desligado, o depósito fica pendente até o administrador confirmar.
     testDeposits: bool(env.TEST_DEPOSITS, true),
     // Regras de dinheiro (mesmas do app). Valores em reais.
-    giftFeePct: num(env.GIFT_FEE_PCT, 5), // TODO alinhar com o app: 10% descontado do presente (ver PENDENCIAS)
-    giftFeeMin: num(env.GIFT_FEE_MIN, 0.5),
+    giftFeePct: num(env.GIFT_FEE_PCT, 10), // 10%, descontado do presente (igual ao app)
+    giftFeeMin: num(env.GIFT_FEE_MIN, 0),
     giftMin: num(env.GIFT_MIN, 5),
     giftMax: num(env.GIFT_MAX, 2000),
     liveConvertMin: num(env.LIVE_CONVERT_MIN, 10),

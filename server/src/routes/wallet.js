@@ -59,13 +59,15 @@ export default function walletRoutes(r, { db, cfg, wallet, hub, userById, biomet
     const asCompany = !!body.asCompany;
     if (asCompany && !JSON.parse(user.roles).includes('empresa')) fail(403, 'Só contas de empresa presenteiam como empresa.');
     const company = asCompany ? db.prepare('SELECT name FROM companies WHERE owner_id = ?').get(user.id) : null;
-    const fee = wallet.giftFee(amount);
+    // Igual ao app: quem envia paga só o valor do presente; a taxa do Realys (10%) sai do presente.
+    // Gorjeta vai inteira para quem atendeu (sem taxa).
+    const fee = body.tip ? 0 : wallet.giftFee(amount);
     const id = newId('gf');
     const fromName = company ? company.name : user.name;
     tx(db, () => {
-      wallet.move(user.id, 'saldo', -(amount + fee), 'Presentes', `${body.tip ? 'Gorjeta' : 'Presente'} para ${to.name} (${brl(amount)} + taxa ${brl(fee)})`, id);
-      wallet.move(to.id, 'presente', amount, 'Presentes', `${body.tip ? 'Gorjeta' : 'Presente'} de ${fromName}`, id);
-      wallet.move('realys', 'saldo', fee, 'Taxa de presente', `Taxa do presente ${id}`, id);
+      wallet.move(user.id, 'saldo', -amount, 'Presentes', `${body.tip ? 'Gorjeta' : 'Presente'} para ${to.name} (${brl(amount)})`, id);
+      wallet.move(to.id, 'presente', amount - fee, 'Presentes', `${body.tip ? 'Gorjeta' : 'Presente'} de ${fromName}${fee ? ` (taxa do Realys ${brl(fee)})` : ''}`, id);
+      if (fee) wallet.move('realys', 'saldo', fee, 'Taxa de presente', `Taxa do presente ${id}`, id);
       db.prepare('INSERT INTO gifts (id, from_id, to_id, amount, fee, occasion, message, as_company, tip, created_at) VALUES (?,?,?,?,?,?,?,?,?,?)').run(
         id, user.id, to.id, amount, fee, String(body.occasion || '').slice(0, 40), String(body.message || '').slice(0, 140), asCompany ? 1 : 0, body.tip ? 1 : 0, now()
       );

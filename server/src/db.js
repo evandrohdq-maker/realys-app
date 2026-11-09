@@ -415,6 +415,45 @@ const MIGRATIONS = [
   );
   CREATE INDEX moderacao_log_user ON moderacao_log(user_id, created_at);
   `,
+  // 11: central de segurança (alertas e pedidos), plantão dos servidores públicos e casos acompanhados
+  `
+  CREATE TABLE alertas (
+    id TEXT PRIMARY KEY,
+    user_id TEXT REFERENCES users(id),
+    kind TEXT NOT NULL CHECK (kind IN ('chave','coacao','perigo','denuncia','emergencia')),
+    tipo TEXT,
+    texto TEXT,
+    onde TEXT,
+    anon INTEGER NOT NULL DEFAULT 0,
+    what TEXT,
+    protocolo TEXT NOT NULL,
+    lat REAL,
+    lon REAL,
+    endereco TEXT,
+    status TEXT NOT NULL DEFAULT 'aberto' CHECK (status IN ('aberto','em_acompanhamento','atendido','falso')),
+    avisado_id TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE INDEX alertas_status ON alertas(status, created_at);
+  CREATE TABLE plantao (
+    user_id TEXT PRIMARY KEY REFERENCES users(id),
+    credencial_id TEXT NOT NULL,
+    prof TEXT NOT NULL,
+    lat REAL NOT NULL,
+    lon REAL NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE TABLE casos_acomp (
+    alerta_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    credencial_id TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (alerta_id, user_id)
+  );
+  ALTER TABLE users ADD COLUMN bloqueio_motivo TEXT;
+  ALTER TABLE users ADD COLUMN saldo_retido INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export function openDb(file) {

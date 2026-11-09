@@ -74,14 +74,15 @@ export default function livesRoutes(r, { db, wallet, hub }) {
     const fee = wallet.giftFee(value);
     const id = newId('lg');
     tx(db, () => {
-      wallet.move(user.id, 'saldo', -(value + fee), 'Presentes', `Live de ${l.host_name}: ${body.gift}${qty > 1 ? ` x${qty}` : ''}`, id);
-      wallet.move(l.host_id, 'live', value, 'Lives', `${user.name} enviou ${body.gift}${qty > 1 ? ` x${qty}` : ''} na live "${l.title}"`, id);
-      wallet.move('realys', 'saldo', fee, 'Taxa de presente', `Taxa do presente de live ${id}`, id);
+      // Igual ao app: quem envia paga só o valor; os 10% do Realys saem do presente.
+      wallet.move(user.id, 'saldo', -value, 'Presentes', `Live de ${l.host_name}: ${body.gift}${qty > 1 ? ` x${qty}` : ''}`, id);
+      wallet.move(l.host_id, 'live', value - fee, 'Lives', `${user.name} enviou ${body.gift}${qty > 1 ? ` x${qty}` : ''} na live "${l.title}"`, id);
+      if (fee) wallet.move('realys', 'saldo', fee, 'Taxa de presente', `Taxa do presente de live ${id}`, id);
       db.prepare('INSERT INTO live_gifts (id, live_id, from_id, host_id, gift, qty, value, fee, created_at) VALUES (?,?,?,?,?,?,?,?,?)').run(id, l.id, user.id, l.host_id, body.gift, qty, value, fee, now());
       db.prepare('UPDATE lives SET gifts_total = gifts_total + ? WHERE id = ?').run(value, l.id);
     });
     hub.send(l.host_id, 'live_gift', { liveId: l.id, from: user.name, gift: body.gift, qty, value: toReais(value) });
-    return { id, value: toReais(value), fee: toReais(fee), total: toReais(value + fee), wallet: { balance: toReais(wallet.get(user.id).balance) } };
+    return { id, value: toReais(value), fee: toReais(fee), total: toReais(value), net: toReais(value - fee), wallet: { balance: toReais(wallet.get(user.id).balance) } };
   }, { status: 201 });
 
   // Últimos presentes de uma live (para mostrar nos comentários).
