@@ -1,0 +1,32 @@
+# Logo futurista do Re@lys (R dentro do @, preto com bordas douradas e estrela).
+# Uso: python3 arroba2.py pasta_saida   |   python3 arroba2.py icons NOME
+import base64, os, sys
+from playwright.sync_api import sync_playwright
+HERE = os.path.dirname(os.path.abspath(__file__))
+BASE = dict(style='3d', face='black', ring=330, gap=[0.22, 0.40], cut=0.10, stemX=405, top=330, base=700, bowlW=95, bowlR=100,
+            legFrom=70, legAngle=0.30, legLen=420, width=66, depth=20, cap='butt', join='miter', nodes=True, grid=True, spark=[790, 205, 52])
+OPTS = {
+  'F1_com_haste': dict(BASE, stem=True),
+  'F2_sem_haste': dict(BASE, stem=False, nodes=True),
+  'F3_neon': dict(BASE, stem=True, style='neon', width=46),
+  'G1_estrela_na_haste': dict(BASE, stem=False, nodes=False, spark=None, stemStar=dict(x=405, y=515, rx=58, ry=205)),
+  'G2_estrela_na_haste_e_topo': dict(BASE, stem=False, nodes=False, stemStar=dict(x=405, y=515, rx=58, ry=205)),
+  'H_fundo_dourado': dict(BASE, stem=False, nodes=False, goldBg=True, depth=16, stemStar=dict(x=405, y=515, rx=58, ry=205)),
+  'G3_estrela_no_pe': dict(BASE, stem=False, nodes=False, spark=None, stemStar=dict(x=405, y=640, rx=70, ry=110)),
+}
+out = sys.argv[1]
+with sync_playwright() as p:
+    b = p.chromium.launch(executable_path='/usr/bin/google-chrome', args=['--allow-file-access-from-files'])
+    pg = b.new_page(); pg.goto('file://' + os.path.join(HERE, 'arroba2.html'))
+    if out == 'icons':
+        o = OPTS[sys.argv[2]]; A = os.path.join(HERE, '..', '..', 'assets')
+        for name, extra in [('icon', {}), ('logo-header', {}), ('adaptive-icon', dict(noBg=True, grid=False, scale=0.7, spark=None))]:
+            d = pg.evaluate('o=>render(o)', {**o, **extra}).split(',')[1]
+            open(os.path.join(A, name + '.png'), 'wb').write(base64.b64decode(d)); print(name)
+        d = pg.evaluate("o=>{bg(o); return c.toDataURL('image/png')}", dict(grid=True, goldBg=o.get('goldBg', False))).split(',')[1]
+        open(os.path.join(A, 'adaptive-icon-bg.png'), 'wb').write(base64.b64decode(d)); print('adaptive-icon-bg')
+    else:
+        for name, o in OPTS.items():
+            d = pg.evaluate('o=>render(o)', o).split(',')[1]
+            open(os.path.join(out, name + '.png'), 'wb').write(base64.b64decode(d)); print(name)
+    b.close()

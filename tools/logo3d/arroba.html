@@ -1,0 +1,82 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#000}</style></head>
+<body><canvas id="c" width="1024" height="1024"></canvas>
+<script>
+// Logo "R dentro do @": o @ é o anel; dentro dele, só o traçado superior (circular) do R,
+// e a perna do R sai de dentro e atravessa a abertura do @.
+const c = document.getElementById('c'), x = c.getContext('2d');
+const S = 1024, C = 512;
+
+function bg(o) {
+  x.setTransform(1, 0, 0, 1, 0, 0);
+  x.clearRect(0, 0, S, S);
+  if (o.noBg) return;
+  const g = x.createRadialGradient(S * 0.42, S * 0.36, 40, C, C, S * 0.78);
+  g.addColorStop(0, '#2a2a2e'); g.addColorStop(0.55, '#0d0d0f'); g.addColorStop(1, '#000');
+  x.fillStyle = g; x.fillRect(0, 0, S, S);
+}
+
+// Desenha o símbolo inteiro como caminhos (traço grosso e arredondado).
+function shape(o, dx, dy) {
+  const R = o.ring, gap0 = o.gap[0] * Math.PI, gap1 = o.gap[1] * Math.PI;
+  const bx = C + o.bowl.dx + dx, by = C + o.bowl.dy + dy, br = o.bowl.r;
+  const paths = [];
+  // anel do @ (aberto embaixo à direita, por onde a perna sai)
+  paths.push((p) => { p.beginPath(); p.arc(C + dx, C + dy, R, gap1, gap0 + Math.PI * 2, false); });
+  // traçado superior do R: arco do lado esquerdo, passando por cima, até embaixo à direita
+  paths.push((p) => { p.beginPath(); p.arc(bx, by, br, o.bowl.from * Math.PI, o.bowl.to * Math.PI, false); });
+  // perna do R: nasce no fim do arco e sai pela abertura do @
+  paths.push((p) => {
+    const a = o.bowl.to * Math.PI;
+    const sx = bx + Math.cos(a) * br, sy = by + Math.sin(a) * br;
+    const la = o.leg.angle * Math.PI;
+    p.beginPath(); p.moveTo(sx, sy); p.lineTo(sx + Math.cos(la) * o.leg.len, sy + Math.sin(la) * o.leg.len);
+  });
+  return paths;
+}
+
+const gold = (k) => `rgb(${Math.round(150 * k + 40)},${Math.round(100 * k + 22)},${Math.round(10 * k)})`;
+
+function render(o) {
+  bg(o);
+  if (o.scale) x.setTransform(o.scale, 0, 0, o.scale, S * (1 - o.scale) / 2, S * (1 - o.scale) / 2);
+  x.lineCap = 'round'; x.lineJoin = 'round';
+  const W = o.width;
+  // sombra no chão
+  x.save(); x.shadowColor = 'rgba(0,0,0,.8)'; x.shadowBlur = 50; x.shadowOffsetX = 24; x.shadowOffsetY = 36;
+  x.strokeStyle = '#000'; x.lineWidth = W; shape(o, o.depth, o.depth * 1.3).forEach((f) => (f(x), x.stroke())); x.restore();
+  // volume (extrusão)
+  for (let i = o.depth; i > 0; i--) {
+    const k = 1 - i / o.depth;
+    x.strokeStyle = o.face === 'black' ? gold(0.35 + k * 0.5) : gold(0.3 + k * 0.45);
+    x.lineWidth = W; shape(o, i * 0.75, i).forEach((f) => (f(x), x.stroke()));
+  }
+  // frente
+  const fg = x.createLinearGradient(C - 360, C - 380, C + 300, C + 360);
+  if (o.face === 'black') {
+    fg.addColorStop(0, '#4a4a50'); fg.addColorStop(0.35, '#141416'); fg.addColorStop(0.7, '#060607'); fg.addColorStop(1, '#2b2b30');
+  } else {
+    fg.addColorStop(0, '#FFF6C8'); fg.addColorStop(0.2, '#F7D56A'); fg.addColorStop(0.45, '#C48A12');
+    fg.addColorStop(0.6, '#9A6608'); fg.addColorStop(0.8, '#F2C64C'); fg.addColorStop(1, '#B07A0C');
+  }
+  if (o.face === 'black') { // borda dourada em volta do traço preto
+    x.strokeStyle = '#D9A62A'; x.lineWidth = W; shape(o, 0, 0).forEach((f) => (f(x), x.stroke()));
+    x.strokeStyle = fg; x.lineWidth = W - 14; shape(o, 0, 0).forEach((f) => (f(x), x.stroke()));
+  } else {
+    x.strokeStyle = fg; x.lineWidth = W; shape(o, 0, 0).forEach((f) => (f(x), x.stroke()));
+  }
+  // brilho fino no alto do traço
+  x.strokeStyle = o.face === 'black' ? 'rgba(255,214,110,.75)' : 'rgba(255,252,230,.6)';
+  x.lineWidth = Math.max(3, W * 0.08); shape(o, -W * 0.18, -W * 0.22).forEach((f) => (f(x), x.stroke()));
+  if (o.spark) sparkle(...o.spark);
+  return c.toDataURL('image/png');
+}
+function sparkle(px, py, r) {
+  x.save(); x.translate(px, py);
+  const g = x.createRadialGradient(0, 0, 0, 0, 0, r * 1.6); g.addColorStop(0, 'rgba(255,245,200,.9)'); g.addColorStop(1, 'rgba(255,220,120,0)');
+  x.fillStyle = g; x.beginPath(); x.arc(0, 0, r * 1.6, 0, 7); x.fill();
+  x.fillStyle = '#FFFBE6'; x.beginPath();
+  x.moveTo(0, -r); x.bezierCurveTo(r * .1, -r * .25, r * .25, -r * .1, r, 0); x.bezierCurveTo(r * .25, r * .1, r * .1, r * .25, 0, r);
+  x.bezierCurveTo(-r * .1, r * .25, -r * .25, r * .1, -r, 0); x.bezierCurveTo(-r * .25, -r * .1, -r * .1, -r * .25, 0, -r); x.fill();
+  x.restore();
+}
+</script></body></html>

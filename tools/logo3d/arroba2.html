@@ -1,0 +1,120 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#000}</style></head>
+<body><canvas id="c" width="1024" height="1024"></canvas>
+<script>
+// Logo do Re@lys, versão futurista: um R bem legível (haste, barriga e perna) dentro do @.
+// A perna do R sai de dentro e atravessa a abertura do anel do @.
+const c = document.getElementById('c'), x = c.getContext('2d');
+const S = 1024, C = 512, PI = Math.PI;
+
+function bg(o) {
+  x.setTransform(1, 0, 0, 1, 0, 0);
+  x.clearRect(0, 0, S, S);
+  if (o.noBg) return;
+  const g = x.createRadialGradient(S * 0.45, S * 0.4, 30, C, C, S * 0.75);
+  if (o.goldBg) { // fundo dourado metálico
+    g.addColorStop(0, '#FFE9A8'); g.addColorStop(0.35, '#E9B83A'); g.addColorStop(0.75, '#B07A0C'); g.addColorStop(1, '#7A5000');
+  } else {
+    g.addColorStop(0, '#24232a'); g.addColorStop(0.6, '#0b0b0e'); g.addColorStop(1, '#000');
+  }
+  x.fillStyle = g; x.fillRect(0, 0, S, S);
+  if (o.grid) { // grade de circuito bem sutil
+    x.strokeStyle = o.goldBg ? 'rgba(90,60,0,0.08)' : 'rgba(226,182,73,0.06)'; x.lineWidth = 1;
+    for (let i = 0; i <= S; i += 48) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, S); x.stroke(); x.beginPath(); x.moveTo(0, i); x.lineTo(S, i); x.stroke(); }
+  }
+}
+
+// Partes do símbolo (cada uma é um traço).
+function parts(o, dx = 0, dy = 0) {
+  const R = o.ring, g0 = o.gap[0] * PI, g1 = o.gap[1] * PI;
+  const sx = o.stemX + dx, top = o.top + dy, base = o.base + dy, bw = o.bowlW, br = o.bowlR;
+  const midY = top + br * 2;
+  const P = [];
+  // anel do @ (em 2 segmentos, com um corte futurista no alto à esquerda)
+  const cut = o.cut ? o.cut * PI : 0;
+  if (o.cut) {
+    P.push({ f: (p) => { p.beginPath(); p.arc(C + dx, C + dy, R, g1, 1.2 * PI - cut / 2, false); }, ends: [ang(R, g1, dx, dy), ang(R, 1.2 * PI - cut / 2, dx, dy)] });
+    P.push({ f: (p) => { p.beginPath(); p.arc(C + dx, C + dy, R, 1.2 * PI + cut / 2, g0 + 2 * PI, false); }, ends: [ang(R, 1.2 * PI + cut / 2, dx, dy), ang(R, g0, dx, dy)] });
+  } else P.push({ f: (p) => { p.beginPath(); p.arc(C + dx, C + dy, R, g1, g0 + 2 * PI, false); }, ends: [] });
+  // haste do R
+  if (o.stem) P.push({ f: (p) => { p.beginPath(); p.moveTo(sx, base); p.lineTo(sx, top); }, ends: [[sx, base]] });
+  // barriga do R (formato de D): reta em cima, curva à direita, volta até a haste
+  P.push({ f: (p) => {
+    p.beginPath(); p.moveTo(sx, top); p.lineTo(sx + bw, top);
+    p.arc(sx + bw, top + br, br, -PI / 2, PI / 2, false); p.lineTo(sx, midY);
+  }, ends: o.stem ? [] : [[sx, top], [sx, midY]] });
+  // perna do R: nasce na barriga e sai pela abertura do @
+  const lx = sx + o.legFrom, la = o.legAngle * PI;
+  P.push({ f: (p) => { p.beginPath(); p.moveTo(lx, midY); p.lineTo(lx + Math.cos(la) * o.legLen, midY + Math.sin(la) * o.legLen); }, ends: [[lx + Math.cos(la) * o.legLen, midY + Math.sin(la) * o.legLen]] });
+  return P;
+}
+const ang = (R, a, dx, dy) => [C + dx + Math.cos(a) * R, C + dy + Math.sin(a) * R];
+const strokeAll = (P) => P.forEach((q) => (q.f(x), x.stroke()));
+const gold = (k) => `rgb(${Math.round(150 * k + 40)},${Math.round(100 * k + 22)},${Math.round(10 * k)})`;
+function metal(face) {
+  const g = x.createLinearGradient(C - 360, C - 380, C + 300, C + 360);
+  if (face === 'black') { g.addColorStop(0, '#4a4a52'); g.addColorStop(0.35, '#141418'); g.addColorStop(0.7, '#060608'); g.addColorStop(1, '#2b2b32'); }
+  else { g.addColorStop(0, '#FFF6C8'); g.addColorStop(0.2, '#F7D56A'); g.addColorStop(0.45, '#C48A12'); g.addColorStop(0.6, '#9A6608'); g.addColorStop(0.8, '#F2C64C'); g.addColorStop(1, '#B07A0C'); }
+  return g;
+}
+
+function render(o) {
+  bg(o);
+  if (o.scale) x.setTransform(o.scale, 0, 0, o.scale, S * (1 - o.scale) / 2, S * (1 - o.scale) / 2);
+  x.lineCap = o.cap || 'butt'; x.lineJoin = o.join || 'miter';
+  const W = o.width;
+  if (o.style === 'neon') {
+    // neon dourado: brilho largo + traço fino claro + nós nas pontas
+    const P = parts(o);
+    x.save(); x.shadowColor = 'rgba(255,190,60,0.9)'; x.shadowBlur = 40;
+    x.strokeStyle = 'rgba(226,170,50,0.55)'; x.lineWidth = W; strokeAll(P); x.restore();
+    x.strokeStyle = '#0b0b0e'; x.lineWidth = W - 16; strokeAll(P);
+    x.save(); x.shadowColor = '#FFC94A'; x.shadowBlur = 18; x.strokeStyle = '#FFE7A3'; x.lineWidth = 5; strokeAll(P); x.restore();
+    nodes(P, 13);
+  } else {
+    // 3D: sombra, volume, frente metálica (dourada ou preta com borda dourada) e brilho
+    x.save(); x.shadowColor = 'rgba(0,0,0,.85)'; x.shadowBlur = 50; x.shadowOffsetX = 22; x.shadowOffsetY = 34;
+    x.strokeStyle = '#000'; x.lineWidth = W; strokeAll(parts(o, o.depth, o.depth * 1.3)); x.restore();
+    for (let i = o.depth; i > 0; i--) { const k = 1 - i / o.depth; x.strokeStyle = gold(0.32 + k * 0.5); x.lineWidth = W; strokeAll(parts(o, i * 0.75, i)); }
+    const P = parts(o);
+    if (o.face === 'black') { x.strokeStyle = '#D9A62A'; x.lineWidth = W; strokeAll(P); x.strokeStyle = metal('black'); x.lineWidth = W - 14; strokeAll(P); }
+    else { x.strokeStyle = metal('gold'); x.lineWidth = W; strokeAll(P); }
+    // linha de luz no meio do traço (efeito futurista)
+    x.save(); x.shadowColor = '#FFD66B'; x.shadowBlur = 14;
+    x.strokeStyle = o.face === 'black' ? 'rgba(255,214,110,0.95)' : 'rgba(255,252,230,0.85)'; x.lineWidth = 4; strokeAll(P); x.restore();
+    if (o.nodes) nodes(P, 10);
+  }
+  if (o.spark) sparkle(...o.spark);
+  if (o.stemStar) tallStar(o.stemStar);
+  return c.toDataURL('image/png');
+}
+function nodes(P, r) {
+  P.forEach((q) => (q.ends || []).forEach(([px, py]) => {
+    x.save(); x.shadowColor = '#FFC94A'; x.shadowBlur = 20; x.fillStyle = '#FFF1C2';
+    x.beginPath(); x.arc(px, py, r, 0, 7); x.fill(); x.restore();
+  }));
+}
+// Estrela no lugar da haste do R: estrela de 4 pontas alongada (alta e fina), dourada e brilhante.
+function tallStar({ x: px, y: py, rx, ry, glow = 1 }) {
+  x.save(); x.translate(px, py);
+  const g = x.createRadialGradient(0, 0, 0, 0, 0, ry * 0.9); g.addColorStop(0, `rgba(255,225,140,${0.55 * glow})`); g.addColorStop(1, 'rgba(255,200,90,0)');
+  x.fillStyle = g; x.beginPath(); x.ellipse(0, 0, rx * 3, ry * 0.9, 0, 0, 7); x.fill();
+  const path = () => {
+    x.beginPath();
+    x.moveTo(0, -ry); x.quadraticCurveTo(rx * 0.18, -ry * 0.18, rx, 0); x.quadraticCurveTo(rx * 0.18, ry * 0.18, 0, ry);
+    x.quadraticCurveTo(-rx * 0.18, ry * 0.18, -rx, 0); x.quadraticCurveTo(-rx * 0.18, -ry * 0.18, 0, -ry); x.closePath();
+  };
+  const fg = x.createLinearGradient(0, -ry, 0, ry); fg.addColorStop(0, '#FFF8DC'); fg.addColorStop(0.45, '#F4CF5A'); fg.addColorStop(0.55, '#FFF3C4'); fg.addColorStop(1, '#C48A12');
+  x.shadowColor = '#FFC94A'; x.shadowBlur = 30; x.fillStyle = fg; path(); x.fill();
+  x.shadowBlur = 0; x.fillStyle = '#FFFDF2'; x.scale(0.35, 0.55); path(); x.fill();
+  x.restore();
+}
+function sparkle(px, py, r) {
+  x.save(); x.translate(px, py);
+  const g = x.createRadialGradient(0, 0, 0, 0, 0, r * 1.6); g.addColorStop(0, 'rgba(255,245,200,.9)'); g.addColorStop(1, 'rgba(255,220,120,0)');
+  x.fillStyle = g; x.beginPath(); x.arc(0, 0, r * 1.6, 0, 7); x.fill();
+  x.fillStyle = '#FFFBE6'; x.beginPath();
+  x.moveTo(0, -r); x.bezierCurveTo(r * .1, -r * .25, r * .25, -r * .1, r, 0); x.bezierCurveTo(r * .25, r * .1, r * .1, r * .25, 0, r);
+  x.bezierCurveTo(-r * .1, r * .25, -r * .25, r * .1, -r, 0); x.bezierCurveTo(-r * .25, -r * .1, -r * .1, -r * .25, 0, -r); x.fill();
+  x.restore();
+}
+</script></body></html>

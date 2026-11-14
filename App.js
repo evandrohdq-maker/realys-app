@@ -378,7 +378,7 @@ function Shell() {
     <BackProvider value={backStack}>
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        {/* Logo do Re@lys à esquerda (o R dourado; o ícone do app é o R preto e dourado em 3D). */}
+        {/* Logo do Re@lys à esquerda (o mesmo do ícone: R dentro do @ com estrela, fundo dourado). */}
         <View style={{ flexDirection: 'row', alignItems: 'center' }} accessibilityLabel="Re@lys, ID biométrico verificado">
           <Image source={require('./assets/logo-header.png')} style={styles.logoImg} />
           <Text style={styles.brand}>RE@LYS</Text>
