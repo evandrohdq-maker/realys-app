@@ -19,6 +19,7 @@ import { artists } from '../../../extraData';
 import { LiveStage, openRealLive, endRealLive } from '../../../components/LiveVideo';
 import { serverOn } from '../../../api';
 import { webrtcOk } from '../../../video';
+import { useArena, arenaVoiceRooms, arenaRoom, arenaServerOf, joinArenaVoice, leaveArenaVoice } from '../../../arena';
 
 const now = () => {
   const d = new Date();
@@ -254,7 +255,15 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
   const [realId, setRealId] = useState(null);
   // Fonte da live: câmera ou a tela do celular (lives de jogos).
   const [source, setSource] = useState('camera');
+  // Jogar com o time: sala de voz da Arena Gamer em que entro ao abrir a live (sem precisar de outro app).
+  const arena = useArena();
+  const [team, setTeam] = useState(null); // { sid, cid }
+  const [teamMic, setTeamMic] = useState(true);
+  const myName = (state.user && state.user.name) || 'Você';
+  const teamRooms = mine && !onAir ? arenaVoiceRooms(myName).slice(0, 6) : [];
+  const teamRoom = mine && onAir && team ? arenaRoom(arena.voice) : null;
   const close = () => {
+    if (mine && onAir && team) leaveArenaVoice(myName);
     if (mine && onAir) dispatch({ type: 'LIVE_END' });
     if (realId) endRealLive(realId);
     setRealId(null);
@@ -265,6 +274,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
     const liveTitle = title.trim() || (sb ? sb.label : catOf(cat).title);
     dispatch({ type: 'LIVE_START', live: { cat, sub: sb ? sb.key : null, hostType: me.type, hostId: me.id, host: me.name, title: liveTitle, viewers: 0, tag: sb ? sb.label : catOf(cat).label, photo: null, sponsored: false } });
     setOnAir(true);
+    if (team) joinArenaVoice(team.sid, team.cid, myName);
     // Com o servidor de vídeo contratado, abre a live de verdade e a câmera passa a transmitir.
     openRealLive({ title: liveTitle, cat, hostType: me.type, source })
       .then((id) => id && setRealId(id))
@@ -276,6 +286,8 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
     setOnAir(!mine);
     setRealId(null);
     setSource('camera');
+    setTeam(null);
+    setTeamMic(true);
     setViewers(live ? live.viewers : 0);
     setSecs(0);
     setComments([]);
@@ -383,10 +395,38 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
           </TouchableOpacity>
         </View>
 
+        {teamRoom ? (
+          <View style={styles.teamBar} accessibilityLabel={`Sala de voz ${teamRoom.room}, ${teamRoom.people.length} na sala`}>
+            <Ionicons name="volume-high" size={16} color="#fff" />
+            <View style={{ flex: 1, marginLeft: 8 }}>
+              <Text style={styles.teamTitle} numberOfLines={1}>{teamRoom.room} · {teamRoom.server}</Text>
+              <Text style={styles.teamSub} numberOfLines={1}>{teamRoom.people.length > 1 ? teamRoom.people.map((n) => (n === myName ? 'Você' : n.split(' ')[0])).join(', ') : 'Só você na sala por enquanto'}</Text>
+            </View>
+            <TouchableOpacity onPress={() => setTeamMic((v) => !v)} style={[styles.teamMic, !teamMic && { backgroundColor: '#E5484D' }]} hitSlop={8} accessibilityLabel={teamMic ? 'Desligar meu microfone na sala' : 'Ligar meu microfone na sala'}>
+              <Ionicons name={teamMic ? 'mic' : 'mic-off'} size={16} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
         {!mine && live ? (
           <View style={styles.hostRow}>
             <Text style={styles.hostName}>{live.host}</Text>
             <Text style={styles.liveTitle}>{live.title}</Text>
+            {live.cat === 'gamers' ? (
+              <TouchableOpacity
+                style={styles.serverBtn}
+                activeOpacity={0.85}
+                accessibilityLabel={`Entrar no servidor de ${live.host} na Arena Gamer`}
+                onPress={() => {
+                  const sv = arenaServerOf(live.host);
+                  onClose();
+                  setTimeout(() => dispatch({ type: 'NAV_REQUEST', go: { tab: 'arena', server: sv ? sv.id : undefined } }), 250);
+                }}
+              >
+                <Ionicons name="game-controller" size={14} color="#fff" />
+                <Text style={styles.serverBtnText}>Entrar no servidor do streamer</Text>
+              </TouchableOpacity>
+            ) : null}
             {live.hostType ? (
               <HostChip
                 live={live}
@@ -409,7 +449,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
               {LIVE_CATS.filter((c) => c.key !== 'noite').map((c) => {
                 const on = cat === c.key;
                 return (
-                  <TouchableOpacity key={c.key} style={[styles.typeChip, on && styles.typeChipOn]} onPress={() => { setCat(c.key); setSub(null); if (c.key === 'gamers') setSource('tela'); }}>
+                  <TouchableOpacity key={c.key} style={[styles.typeChip, on && styles.typeChipOn]} onPress={() => { setCat(c.key); setSub(null); if (c.key === 'gamers') { setSource('tela'); setHost(hosts.find((h) => h.type === 'gamer') || null); } }}>
                     <Ionicons name={c.icon} size={14} color={on ? colors.onPrimary : colors.primary} />
                     <Text style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>{c.label}</Text>
                   </TouchableOpacity>
@@ -444,6 +484,28 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                 O celular vai pedir para liberar a transmissão da tela. Depois é só abrir o jogo: quem assiste vê a sua tela e ouve você pelo microfone.
               </Text>
             ) : <View style={{ height: 6 }} />}
+            {cat === 'gamers' || source === 'tela' ? (
+              <View style={{ marginBottom: 10 }}>
+                <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 2 }}>Jogar com o time</Text>
+                <Text style={{ color: colors.muted, fontSize: 11, marginBottom: 6 }}>Entre numa sala de voz da Arena Gamer ao abrir a live e fale com o seu time sem sair do Re@lys.</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <TouchableOpacity style={[styles.typeChip, !team && styles.typeChipOn]} onPress={() => setTeam(null)} accessibilityLabel="Sem sala de voz">
+                    <Text style={{ color: !team ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700' }}>Sem sala</Text>
+                  </TouchableOpacity>
+                  {teamRooms.map((r) => {
+                    const on = team && team.sid === r.sid && team.cid === r.cid;
+                    return (
+                      <TouchableOpacity key={r.sid + r.cid} style={[styles.typeChip, on && styles.typeChipOn]} onPress={() => setTeam({ sid: r.sid, cid: r.cid })} accessibilityLabel={`Sala ${r.room} do servidor ${r.server}`}>
+                        <Ionicons name="volume-high-outline" size={14} color={on ? colors.onPrimary : colors.primary} />
+                        <Text style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>
+                          {r.room} · {r.server}{r.people.length ? ` (${r.people.length})` : ''}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            ) : null}
             <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Transmitir como</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 }}>
               {hosts.map((h) => {
@@ -640,6 +702,13 @@ const styles = StyleSheet.create({
   },
   iconBtnDark: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(3,5,10,0.6)', alignItems: 'center', justifyContent: 'center' },
   hostRow: { paddingHorizontal: 16, marginTop: 12 },
+  // Sala de voz do time (Arena Gamer) durante a minha live
+  teamBar: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', maxWidth: '88%', marginHorizontal: 16, marginTop: 12, backgroundColor: 'rgba(88,101,242,0.9)', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 8 },
+  teamTitle: { color: '#fff', fontWeight: '800', fontSize: 13 },
+  teamSub: { color: 'rgba(255,255,255,0.85)', fontSize: 11, marginTop: 1 },
+  teamMic: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.22)', alignItems: 'center', justifyContent: 'center', marginLeft: 10 },
+  serverBtn: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: 'rgba(88,101,242,0.9)', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 7, marginTop: 8 },
+  serverBtnText: { color: '#fff', fontWeight: '800', fontSize: 12, marginLeft: 6 },
   hostName: { color: '#fff', fontWeight: '700', fontSize: 16 },
   liveTitle: { color: '#E8EEF8', fontSize: 13, marginTop: 2, marginBottom: 8 },
   goLive: {

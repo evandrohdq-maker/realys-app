@@ -1,0 +1,136 @@
+// Arena Gamer: dados compartilhados (servidores, canais e a sala de voz em que estou).
+// Ficam aqui, fora da tela, para a Arena e as Lives usarem a mesma coisa: o streamer entra
+// na sala de voz do time ao abrir a live e a Arena mostra que ele está lá.
+// Guardado enquanto o app está aberto (sai da tela e volta, as mensagens continuam).
+import { useEffect, useState } from 'react';
+
+const now = Date.now();
+const m = (min) => now - min * 60000;
+
+// Servidores de exemplo (guardados enquanto o app está aberto).
+const SEED = [
+  {
+    id: 'sv-realys', name: 'Re@lys Gamers', emoji: '🎮', tint: '#B8860B',
+    members: [
+      { name: 'Diego Ramos', role: 'dono', status: 'online', game: 'EA FC 26' },
+      { name: 'Ana Souza', role: 'mod', status: 'online', game: 'Valorant' },
+      { name: 'Lucas Prado', role: 'membro', status: 'idle', game: null },
+      { name: 'Bia Lima', role: 'membro', status: 'online', game: 'Free Fire' },
+      { name: 'Rafa Gomes', role: 'membro', status: 'dnd', game: 'Minecraft' },
+    ],
+    channels: [
+      { id: 'c1', kind: 'text', name: 'geral', msgs: [
+        { who: 'Diego Ramos', text: 'Bem-vindos à Arena do Re@lys! Aqui só tem gente real, sem fake. 🎮', at: m(180) },
+        { who: 'Ana Souza', text: 'Regras no #regras. Respeito acima de tudo.', at: m(170) },
+        { who: 'Bia Lima', text: 'Alguém pra uma ranqueada de Free Fire hoje à noite?', at: m(12) },
+      ] },
+      { id: 'c2', kind: 'text', name: 'procurando-time', msgs: [
+        { who: 'Lucas Prado', text: 'Procuro duo pra Valorant, sou Ouro 2. Jogo à noite.', at: m(60) },
+        { who: 'Ana Souza', text: '@Lucas Prado bora, chama na voz às 21h', at: m(45) },
+      ] },
+      { id: 'c3', kind: 'text', name: 'clipes', msgs: [{ who: 'Rafa Gomes', text: 'Olha essa jogada que fiz ontem 😂 (clipe nas minhas lives)', at: m(300) }] },
+      { id: 'c4', kind: 'text', name: 'torneios', msgs: [{ who: 'Diego Ramos', text: '🏆 Torneio de EA FC sábado 15h. Inscrição pelo Re@lys, prêmio em moeda Re@lys.', at: m(600) }] },
+      { id: 'c5', kind: 'text', name: 'regras', msgs: [{ who: 'Ana Souza', text: '1. Respeito. 2. Sem golpe nem venda por fora: troca e venda só com a Garantia Re@lys. 3. Sem fake news. 4. Proibido para menores de 18.', at: m(2000) }] },
+      { id: 'v1', kind: 'voice', name: 'Squad', inVoice: ['Bia Lima', 'Diego Ramos'] },
+      { id: 'v2', kind: 'voice', name: 'Sala de espera', inVoice: [] },
+    ],
+  },
+  {
+    id: 'sv-ff', name: 'Free Fire BR', emoji: '🔥', tint: '#E8590C',
+    members: [
+      { name: 'Bia Lima', role: 'dono', status: 'online', game: 'Free Fire' },
+      { name: 'Kauã Silva', role: 'membro', status: 'online', game: 'Free Fire' },
+      { name: 'Duda Reis', role: 'membro', status: 'idle', game: null },
+    ],
+    channels: [
+      { id: 'c1', kind: 'text', name: 'geral', msgs: [{ who: 'Kauã Silva', text: 'Atualização nova chegou, alguém testou o mapa?', at: m(25) }] },
+      { id: 'c2', kind: 'text', name: 'x1-e-squad', msgs: [] },
+      { id: 'v1', kind: 'voice', name: 'Squad 4', inVoice: ['Kauã Silva'] },
+    ],
+  },
+  {
+    id: 'sv-mine', name: 'Construtores Minecraft', emoji: '⛏️', tint: '#2F9E44',
+    members: [
+      { name: 'Rafa Gomes', role: 'dono', status: 'dnd', game: 'Minecraft' },
+      { name: 'Teo Martins', role: 'mod', status: 'online', game: 'Minecraft' },
+    ],
+    channels: [
+      { id: 'c1', kind: 'text', name: 'geral', msgs: [{ who: 'Teo Martins', text: 'Servidor de sobrevivência aberto hoje até meia-noite.', at: m(90) }] },
+      { id: 'c2', kind: 'text', name: 'construções', msgs: [] },
+      { id: 'v1', kind: 'voice', name: 'Construindo', inVoice: [] },
+    ],
+  },
+  {
+    id: 'sv-fc', name: 'EA FC Brasil', emoji: '⚽', tint: '#1C7ED6',
+    members: [{ name: 'Diego Ramos', role: 'dono', status: 'online', game: 'EA FC 26' }],
+    channels: [
+      { id: 'c1', kind: 'text', name: 'geral', msgs: [] },
+      { id: 'c2', kind: 'text', name: 'ultimate-team', msgs: [] },
+      { id: 'v1', kind: 'voice', name: 'Partida', inVoice: [] },
+    ],
+  },
+];
+
+let servers = SEED;
+let voice = null; // { sid, cid }: sala de voz em que estou
+const subs = new Set();
+const emit = () => subs.forEach((fn) => fn());
+
+export const arenaServers = () => servers;
+export const arenaVoice = () => voice;
+export function setArenaServers(next) {
+  servers = typeof next === 'function' ? next(servers) : next;
+  emit();
+}
+export function setArenaVoice(v) {
+  voice = v;
+  emit();
+}
+
+// Para as telas: redesenha quando os servidores ou a sala de voz mudam.
+export function useArena() {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const fn = () => tick((n) => n + 1);
+    subs.add(fn);
+    return () => subs.delete(fn);
+  }, []);
+  return { servers, setServers: setArenaServers, voice, setVoice: setArenaVoice };
+}
+
+const dropMe = (list, me) => (list || []).filter((n) => n !== me);
+
+// Entra numa sala de voz (saindo de qualquer outra) e vira membro do servidor, se ainda não for.
+export function joinArenaVoice(sid, cid, me) {
+  servers = servers.map((s) => {
+    const mine = s.id === sid;
+    const channels = s.channels.map((c) => (c.kind !== 'voice' ? c : { ...c, inVoice: mine && c.id === cid ? [...dropMe(c.inVoice, me), me] : dropMe(c.inVoice, me) }));
+    const members = mine && !s.members.some((x) => x.name === me) ? [...s.members, { name: me, role: 'membro', status: 'online', game: null }] : s.members;
+    return { ...s, channels, members };
+  });
+  voice = { sid, cid };
+  emit();
+}
+export function leaveArenaVoice(me) {
+  servers = servers.map((s) => ({ ...s, channels: s.channels.map((c) => (c.kind === 'voice' ? { ...c, inVoice: dropMe(c.inVoice, me) } : c)) }));
+  voice = null;
+  emit();
+}
+
+// Salas de voz para escolher ao abrir a live: primeiro as dos servidores em que já estou.
+export function arenaVoiceRooms(me) {
+  const rooms = [];
+  servers.forEach((s) => {
+    const member = s.members.some((x) => x.name === me);
+    s.channels.filter((c) => c.kind === 'voice').forEach((c) => rooms.push({ sid: s.id, cid: c.id, server: s.name, emoji: s.emoji, room: c.name, people: dropMe(c.inVoice, me), member }));
+  });
+  return rooms.sort((x, y) => (y.member ? 1 : 0) - (x.member ? 1 : 0));
+}
+export function arenaRoom(v) {
+  if (!v) return null;
+  const s = servers.find((x) => x.id === v.sid);
+  const c = s && s.channels.find((x) => x.id === v.cid);
+  return c ? { server: s.name, emoji: s.emoji, room: c.name, people: c.inVoice || [] } : null;
+}
+// Servidor do streamer: aquele em que ele é dono ou membro (para o botão da live).
+export const arenaServerOf = (name) => servers.find((s) => s.members.some((x) => x.name === name && x.role === 'dono')) || servers.find((s) => s.members.some((x) => x.name === name)) || null;

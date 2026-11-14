@@ -13,7 +13,7 @@ export function useOpenHost() {
   const { dispatch } = useStore();
   return (l) => {
     if (!l || !l.hostId || l.hostId === 'me') return;
-    if (l.hostType === 'usuario') return dispatch({ type: 'OPEN_PROFILE', id: l.hostId });
+    if (l.hostType === 'usuario' || l.hostType === 'gamer') return dispatch({ type: 'OPEN_PROFILE', id: l.hostId });
     if (l.hostType === 'empresa' || l.hostType === 'artista') return dispatch({ type: 'OPEN_COMPANY', id: l.hostId });
     if (l.hostType === 'prestador') return dispatch({ type: 'OPEN_PROVIDER', id: l.hostId });
     if (l.hostType === 'fornecedor') {

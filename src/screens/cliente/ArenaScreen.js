@@ -14,79 +14,11 @@ import { useStore } from '../../store';
 import { colors } from '../../theme';
 import { moderateText } from '../../moderation';
 import { useBack } from '../../back';
+import { useArena } from '../../arena';
 
 const D = { bg: '#F7F5EF', rail: '#EDE8DA', card: '#FFFFFF', text: '#1B1B1F', muted: '#7A7468', gold: '#B8860B', online: '#2FB463', idle: '#E0A92B', dnd: '#E5484D' };
 const ROLE = { dono: { label: 'Dono', color: '#B8860B' }, mod: { label: 'Moderador', color: '#3B82F6' }, membro: { label: 'Membro', color: '#1B1B1F' } };
 
-const now = Date.now();
-const m = (min) => now - min * 60000;
-
-// Servidores de exemplo (guardados enquanto o app está aberto).
-const SEED = [
-  {
-    id: 'sv-realys', name: 'Re@lys Gamers', emoji: '🎮', tint: '#B8860B',
-    members: [
-      { name: 'Diego Ramos', role: 'dono', status: 'online', game: 'EA FC 26' },
-      { name: 'Ana Souza', role: 'mod', status: 'online', game: 'Valorant' },
-      { name: 'Lucas Prado', role: 'membro', status: 'idle', game: null },
-      { name: 'Bia Lima', role: 'membro', status: 'online', game: 'Free Fire' },
-      { name: 'Rafa Gomes', role: 'membro', status: 'dnd', game: 'Minecraft' },
-    ],
-    channels: [
-      { id: 'c1', kind: 'text', name: 'geral', msgs: [
-        { who: 'Diego Ramos', text: 'Bem-vindos à Arena do Re@lys! Aqui só tem gente real, sem fake. 🎮', at: m(180) },
-        { who: 'Ana Souza', text: 'Regras no #regras. Respeito acima de tudo.', at: m(170) },
-        { who: 'Bia Lima', text: 'Alguém pra uma ranqueada de Free Fire hoje à noite?', at: m(12) },
-      ] },
-      { id: 'c2', kind: 'text', name: 'procurando-time', msgs: [
-        { who: 'Lucas Prado', text: 'Procuro duo pra Valorant, sou Ouro 2. Jogo à noite.', at: m(60) },
-        { who: 'Ana Souza', text: '@Lucas Prado bora, chama na voz às 21h', at: m(45) },
-      ] },
-      { id: 'c3', kind: 'text', name: 'clipes', msgs: [{ who: 'Rafa Gomes', text: 'Olha essa jogada que fiz ontem 😂 (clipe nas minhas lives)', at: m(300) }] },
-      { id: 'c4', kind: 'text', name: 'torneios', msgs: [{ who: 'Diego Ramos', text: '🏆 Torneio de EA FC sábado 15h. Inscrição pelo Re@lys, prêmio em moeda Re@lys.', at: m(600) }] },
-      { id: 'c5', kind: 'text', name: 'regras', msgs: [{ who: 'Ana Souza', text: '1. Respeito. 2. Sem golpe nem venda por fora: troca e venda só com a Garantia Re@lys. 3. Sem fake news. 4. Proibido para menores de 18.', at: m(2000) }] },
-      { id: 'v1', kind: 'voice', name: 'Squad', inVoice: ['Bia Lima', 'Diego Ramos'] },
-      { id: 'v2', kind: 'voice', name: 'Sala de espera', inVoice: [] },
-    ],
-  },
-  {
-    id: 'sv-ff', name: 'Free Fire BR', emoji: '🔥', tint: '#E8590C',
-    members: [
-      { name: 'Bia Lima', role: 'dono', status: 'online', game: 'Free Fire' },
-      { name: 'Kauã Silva', role: 'membro', status: 'online', game: 'Free Fire' },
-      { name: 'Duda Reis', role: 'membro', status: 'idle', game: null },
-    ],
-    channels: [
-      { id: 'c1', kind: 'text', name: 'geral', msgs: [{ who: 'Kauã Silva', text: 'Atualização nova chegou, alguém testou o mapa?', at: m(25) }] },
-      { id: 'c2', kind: 'text', name: 'x1-e-squad', msgs: [] },
-      { id: 'v1', kind: 'voice', name: 'Squad 4', inVoice: ['Kauã Silva'] },
-    ],
-  },
-  {
-    id: 'sv-mine', name: 'Construtores Minecraft', emoji: '⛏️', tint: '#2F9E44',
-    members: [
-      { name: 'Rafa Gomes', role: 'dono', status: 'dnd', game: 'Minecraft' },
-      { name: 'Teo Martins', role: 'mod', status: 'online', game: 'Minecraft' },
-    ],
-    channels: [
-      { id: 'c1', kind: 'text', name: 'geral', msgs: [{ who: 'Teo Martins', text: 'Servidor de sobrevivência aberto hoje até meia-noite.', at: m(90) }] },
-      { id: 'c2', kind: 'text', name: 'construções', msgs: [] },
-      { id: 'v1', kind: 'voice', name: 'Construindo', inVoice: [] },
-    ],
-  },
-  {
-    id: 'sv-fc', name: 'EA FC Brasil', emoji: '⚽', tint: '#1C7ED6',
-    members: [{ name: 'Diego Ramos', role: 'dono', status: 'online', game: 'EA FC 26' }],
-    channels: [
-      { id: 'c1', kind: 'text', name: 'geral', msgs: [] },
-      { id: 'c2', kind: 'text', name: 'ultimate-team', msgs: [] },
-      { id: 'v1', kind: 'voice', name: 'Partida', inVoice: [] },
-    ],
-  },
-];
-
-// Fica guardado enquanto o app está aberto (sai da tela e volta, as mensagens continuam).
-let MEM = null;
 
 const hhmm = (t) => {
   const d = new Date(t);
@@ -119,13 +51,20 @@ function Avatar({ name, status, size = 36, speaking }) {
   );
 }
 
-export default function ArenaScreen() {
+export default function ArenaScreen({ explore }) {
   const { state } = useStore();
   const me = (state.user && state.user.name) || 'Você';
-  const [servers, setServers] = useState(() => MEM || SEED);
+  // Servidores e sala de voz ficam em src/arena.js (as Lives usam os mesmos).
+  const { servers, setServers, voice, setVoice } = useArena();
   const [sid, setSid] = useState(servers[0].id);
   const [cid, setCid] = useState(null); // canal de texto aberto
-  const [voice, setVoice] = useState(null); // { sid, cid } canal de voz conectado
+  // Veio de uma live ("Entrar no servidor do streamer"): abre direto naquele servidor.
+  useEffect(() => {
+    if (explore && explore.tab === 'arena' && explore.server && servers.some((x) => x.id === explore.server)) {
+      setSid(explore.server);
+      setCid(null);
+    }
+  }, [explore]);
   const [mic, setMic] = useState(true);
   const [deaf, setDeaf] = useState(false);
   const [members, setMembers] = useState(false);
@@ -134,9 +73,6 @@ export default function ArenaScreen() {
   const [draft, setDraft] = useState('');
   const [react, setReact] = useState(null); // mensagem para reagir
   const scroll = useRef(null);
-  useEffect(() => {
-    MEM = servers;
-  }, [servers]);
   useBack(!!cid, () => setCid(null));
 
   const sv = servers.find((s) => s.id === sid) || servers[0];

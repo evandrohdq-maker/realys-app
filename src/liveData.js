@@ -105,6 +105,7 @@ export const HOST_TYPES = {
   usuario: { label: 'Usuário', icon: 'person-outline', color: '#2F74D0' },
   empresa: { label: 'Empresa', icon: 'storefront-outline', color: '#A8790A' },
   artista: { label: 'Artista', icon: 'mic-outline', color: '#7B6CF6' },
+  gamer: { label: 'Gamer', icon: 'game-controller-outline', color: '#5865F2' },
   prestador: { label: 'Prestador', icon: 'construct-outline', color: '#1E9E63' },
   fornecedor: { label: 'Fornecedor', icon: 'cube-outline', color: '#C77D12' },
 };
@@ -120,6 +121,8 @@ export function hostOptions(state) {
   }
   if (roles.includes('prestador')) opts.push({ type: 'prestador', name: (state.myProvider && state.myProvider.name) || name, id: 'me' });
   if (roles.includes('fornecedor')) opts.push({ type: 'fornecedor', name: 'Distribuidora Real Alimentos', id: 's1' });
+  // Gamer: qualquer usuário pode transmitir jogos com o selo Gamer.
+  opts.push({ type: 'gamer', name, id: 'me' });
   opts.push({ type: 'artista', name: `${name} (Estúdio)`, id: 'me' });
   return opts;
 }
