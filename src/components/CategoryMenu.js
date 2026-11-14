@@ -162,6 +162,7 @@ export const CATEGORIES = [
     hint: 'Carros, vans, máquinas e equipamentos',
     icon: 'car-sport-outline',
     subs: [
+      { label: 'Veículos à venda', hint: 'Carros, picapes e motos', icon: 'car-outline', go: { tab: 'negocios', kind: 'veiculo-venda' } },
       { label: 'Carros e vans', hint: 'Por dia ou por semana', icon: 'car-sport-outline', go: { tab: 'home', top: 'anuncios', kind: 'carro-aluguel' } },
       { label: 'Máquinas e equipamentos', hint: 'Obra, terraplanagem, andaimes', icon: 'construct-outline', go: { tab: 'home', top: 'anuncios', kind: 'maquina-aluguel' } },
     ],

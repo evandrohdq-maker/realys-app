@@ -211,6 +211,9 @@ O app se ajusta sozinho ao celular de cada pessoa:
 - **Stream** (`src/screens/cliente/home/StreamTab.js`): **Rádios** (o mesmo diretório de `src/radio.js`) e **TV online** (`src/tv.js`): cada canal indexa a URL do próprio sinal (`.m3u8` ou `.mp4`). Os dois canais de exemplo usam sinais públicos de teste.
 - **Reels**: não tem mais botão na barra de baixo. Abre **puxando a página inicial para a direita** (como no Instagram) ou pela Lotus; **puxando para a esquerda abre o Perfil**. Para publicar, use o botão de publicação › **Reel** (vídeo da galeria, até 60 s); os Reels do usuário aparecem primeiro em "Para você".
 
+- **Negócios** (`src/screens/cliente/NegociosScreen.js`): aba da barra de baixo, no lugar do Date. Imóveis, veículos e máquinas, para comprar ou alugar, com conversa com o anunciante. Os atalhos antigos de Anúncios para esses tipos (menu ⋮, busca, Lotus) abrem direto nela; hotéis, festas e cursos continuam na página de Anúncios.
+- **Date**: saiu da barra de baixo. Abre pelo botão **Date** do Perfil (e pelo menu ⋮ e pela Lotus) e funciona igual.
+
 ## Atualização automática do APK
 
 Toda vez que o app abre, ele pergunta ao GitHub se existe uma versão nova em **Releases**. Se existir, aparece o aviso **"Nova versão disponível"** com o botão **Atualizar agora**: o próprio Realys baixa a versão nova para a pasta interna dele (não abre o navegador e não salva nada em Downloads), abre a tela **"Deseja atualizar este app?"** do Android e, com um toque em **Atualizar**, substitui o app instalado, sem criar um ícone novo e sem perder login e dados. O arquivo baixado é apagado sozinho na próxima abertura. Na primeira vez, o Android pede para **permitir que o Realys instale apps**: é só ativar uma vez. Também dá para verificar à mão em **Perfil → Verificar atualizações**.

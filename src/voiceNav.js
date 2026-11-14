@@ -35,6 +35,8 @@ export const NAV_TARGETS = [
 
   // Abas do topo do Início
   T('Eventos', { tab: 'home', top: 'eventos' }, ['eventos', 'evento', 'festas', 'baladas', 'balada']),
+  T('Negócios', { tab: 'negocios' }, ['negocios', 'negocio', 'aba negocios', 'imoveis e veiculos']),
+  T('Veículos à venda', { tab: 'negocios', kind: 'veiculo-venda' }, ['veiculos', 'veiculo', 'veiculos a venda', 'carros a venda', 'carro a venda', 'comprar carro', 'comprar um carro', 'motos a venda', 'comprar moto', 'comprar uma moto', 'automoveis', 'seminovos']),
   T('Promoções', { tab: 'home', top: 'promo' }, ['promocoes', 'promocao', 'ofertas', 'oferta']),
   T('Anúncios', { tab: 'home', top: 'anuncios' }, ['anuncios', 'anuncio', 'classificados']),
   T('Lives', { tab: 'home', top: 'lives' }, ['lives', 'live', 'laive', 'laives', 'ao vivo', 'transmissoes']),
@@ -70,7 +72,7 @@ export const NAV_TARGETS = [
   T('Hotéis', { tab: 'home', top: 'anuncios', kind: 'hotel' }, ['hoteis', 'hotel', 'pousadas', 'pousada', 'hotelaria', 'hospedagem']),
   T('Imóveis à venda', { tab: 'home', top: 'anuncios', kind: 'imovel-venda' }, ['imoveis', 'imovel', 'imobiliaria', 'imoveis a venda']),
   T('Imóveis para alugar', { tab: 'home', top: 'anuncios', kind: 'imovel-aluguel' }, ['aluguel de imoveis', 'imoveis para alugar', 'locacao de imoveis']),
-  T('Aluguel de carros', { tab: 'home', top: 'anuncios', kind: 'carro-aluguel' }, ['aluguel de carros', 'aluguel de carro', 'locadora']),
+  T('Aluguel de carros', { tab: 'home', top: 'anuncios', kind: 'carro-aluguel' }, ['aluguel de carros', 'aluguel de carro', 'alugar carro', 'alugar um carro', 'locadora']),
   T('Aluguel de máquinas', { tab: 'home', top: 'anuncios', kind: 'maquina-aluguel' }, ['aluguel de maquinas', 'aluguel de maquina', 'locacao de maquinas']),
   T('Cursos', { tab: 'servicos', seg: 'cursos' }, ['cursos', 'curso', 'cursos online', 'faculdade', 'faculdades', 'faculdade online']),
   T('Atendimento online', { tab: 'servicos', seg: 'online' }, ['atendimento online', 'atendimentos online', 'consulta online', 'consultas online', 'servicos online', 'aba online', 'chamada de video com profissional']),

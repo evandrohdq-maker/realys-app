@@ -193,6 +193,8 @@ export default function ProfileScreen({ navigate, explore }) {
       {/* Todo o resto fica guardado aqui, sem poluir o perfil. */}
       <Text style={styles.moreTitle}>Mais opções</Text>
       <View style={styles.moreBox}>
+        {/* Date saiu da barra de baixo: abre por aqui e segue funcionando igual. */}
+        <Item open={open} onToggle={toggle} icon="heart-outline" title="Date" sub="Encontros com pessoas verificadas que passam perto de você" onPress={() => navigate && navigate({ tab: 'encontros' })} />
         <Item open={open} onToggle={toggle} k="score" icon="ribbon-outline" title="Score Re@lys" sub="Sua reputação em todos os perfis">
           <ScoreCard />
           <GuaranteeInfo />

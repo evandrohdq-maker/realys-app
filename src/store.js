@@ -1835,6 +1835,8 @@ export function detectService(text) {
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
+  // Comprar, vender ou alugar veículo é assunto da aba Negócios, não pedido de motorista.
+  if (/(^|[^a-z])(comprar|compra|compro|vender|venda|vendo|alugar|alugo|financiar)([^a-z]|$)/.test(t) && /(^|[^a-z])(carro|carros|moto|motos|veiculo|veiculos|picape|caminhonete|automovel|automoveis)([^a-z]|$)/.test(t)) return null;
   // 1º frases específicas do catálogo ("limpeza de pele", "vidro do carro"), depois as palavras de
   // sempre, por fim palavras soltas do catálogo como palavra inteira ("tosa" não casa com "tosado").
   const cat = D.serviceTypes.filter((s) => s.exact);

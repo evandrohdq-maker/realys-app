@@ -505,6 +505,12 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   const party = isPartyQuery(t);
   if (party && hasPartyCue(t)) return partyReply(t);
 
+  // Comprar ou vender veículo ("quero comprar um carro", "vender minha moto"): abre Negócios › Veículos.
+  if (/\b(comprar|compra|compro|vender|venda|vendo|financiar)\b/.test(t) && /\b(carro|carros|moto|motos|veiculo|veiculos|picape|caminhonete|automovel|automoveis)\b/.test(t)) {
+    const deal = { go: { tab: 'negocios', kind: 'veiculo-venda' }, label: 'Veículos à venda' };
+    if (!canOpen || canOpen('negocios')) return { nav: deal, reply: navReply(deal) };
+  }
+
   // Navegação: "me leva pro Agro", "abre o Food", "volta pros Stories", "voltar".
   const nav = findNavigation(stripWake(text));
   // Nome de um produto ("tênis", "geladeira", "celular") sem pedir para abrir uma página:
