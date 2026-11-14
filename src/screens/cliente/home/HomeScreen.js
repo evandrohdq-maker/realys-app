@@ -348,7 +348,7 @@ function EventsTab({ group, setGroup, onContact }) {
   const withCta = (e) => (ticketOf(e) ? { ...e, cta: 'Estou no local · pedir' } : e);
   return (
     <Screen>
-      <ShopHero title="Eventos e festas" sub="Festas com desconto, listas VIP e promoções da noite" />
+      <ShopHero title="Eventos e festas" sub="O rolê de hoje: festa com desconto, lista VIP e promo da noite" />
       <CircleShortcuts items={EVENT_SHORTCUTS} value={group} onPress={setGroup} />
 
       {group === 'destaques' ? (

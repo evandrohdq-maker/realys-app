@@ -91,7 +91,7 @@ export default function JobsScreen({ explore }) {
 
   return (
     <Screen>
-      <Title sub="Vagas de empresas verificadas, perto de você">Empregos</Title>
+      <Title sub="Sua próxima vaga tá pertinho. Só empresa de verdade">Empregos</Title>
 
       {/* Currículo Re@lys */}
       <TouchableOpacity style={styles.resume} activeOpacity={0.9} onPress={() => setEditing(true)} accessibilityLabel="Editar meu currículo">

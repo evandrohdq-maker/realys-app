@@ -50,7 +50,7 @@ export const POINT_SHOP = [
   { id: 'bv1', target: 'produto', icon: '🛍️', title: 'Boost de produto 24 h', desc: 'Seu produto em destaque no Shop e nas buscas', hours: 24, points: 600, money: 9.9 },
   { id: 'bv2', target: 'produto', icon: '🚀', title: 'Boost de produto 7 dias', desc: 'Destaque contínuo na vitrine da categoria', hours: 168, points: 3000, money: 49.9 },
   { id: 'bc1', target: 'post', icon: '📣', title: 'Boost de publicação 24 h', desc: 'Sua publicação aparece para mais gente na Community', hours: 24, points: 200, money: 2.9 },
-  { id: 'bl1', target: 'live', icon: '🔴', title: 'Boost de live 30 min', desc: 'Sua live no "Em destaque" da classe', hours: 0.5, points: 300, money: 4.9 },
+  { id: 'bl1', target: 'live', icon: '🔴', title: 'Boost de live 30 min', desc: 'Sua live no "Em destaque" do assunto', hours: 0.5, points: 300, money: 4.9 },
   { id: 'ba1', target: 'anuncio', icon: '📺', title: 'Anúncio de 30 s · horário padrão', desc: 'Entre os clipes do Shop e do Food, horário comercial', hours: 24, points: 1000, money: 19.9 },
   { id: 'ba2', target: 'anuncio', icon: '🌟', title: 'Anúncio de 30 s · horário nobre', desc: 'Das 18h às 22h, quando mais gente está no app', hours: 24, points: 2500, money: 49.9 },
 ];

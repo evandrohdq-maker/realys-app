@@ -349,7 +349,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
         </>
       ) : null}
       {food && !q ? <SpotlightCarousel ads={FOOD_SPOTLIGHT} onOpen={openAd} /> : null}
-      {!q ? (food ? <ShopHero title="Food" sub={mode === 'reservas' ? 'Os melhores rolês perto de você, com mesa garantida' : 'O que você tá a fim, na sua porta'} /> : <ShopHero title="Loja Re@lys" sub="Lojas verificadas, patrocinadas e recomendadas primeiro" />) : null}
+      {!q ? (food ? <ShopHero title="Food" sub={mode === 'reservas' ? 'Os melhores rolês perto de você, com mesa garantida' : 'O que você tá a fim, na sua porta'} /> : <ShopHero title="Loja Re@lys" sub="Só loja de verdade. As melhores aparecem primeiro" />) : null}
       {food ? null : <CircleShortcuts items={CATEGORIES} value={cat} onPress={setCat} />}
       {food && !q ? <ClipStrip title="🎬 Reels da cozinha" clips={FOOD_CLIPS} food /> : null}
       {food && !q ? (
@@ -433,7 +433,7 @@ function MarketTab({ onOpenStore, onAdd, onPromos }) {
     <View>
       <SearchBar value={q} onChangeText={setQ} onSubmit={setQ} placeholder="Buscar arroz, café, leite…" voicePrompt="O que você quer do mercado?" style={{ marginBottom: 12 }} />
       {!term ? <SpotlightCarousel ads={MERCADO_SPOTLIGHT} onOpen={openAd} /> : null}
-      {!term ? <ShopHero title="Mercado" sub="Compras do dia e do mês, entregues por motoboy do Re@lys" icon="basket-outline" /> : null}
+      {!term ? <ShopHero title="Mercado" sub="Do pãozinho ao rancho do mês, direto na sua casa" icon="basket-outline" /> : null}
       <CircleShortcuts items={MERCADO_AISLES} value={aisle} onPress={setAisle} />
       {!term ? <ClipStrip title="🎬 Reels do mercado" clips={MERCADO_CLIPS} food /> : null}
       {!term ? (

@@ -84,26 +84,23 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
         explore={explore}
         top={
           <View>
-        {/* Botão de postagem: a foto do perfil (com o anel do último story) abre publicação, story ou depoimento. */}
-        <TouchableOpacity style={styles.postBar} onPress={() => setAdding(true)} activeOpacity={0.85} accessibilityLabel="Nova publicação">
-          <View style={[styles.meRing, { borderColor: lastStory ? colors.gold : colors.border, borderWidth: lastStory ? 2.5 : 1.5 }]}>
-            {myPhoto ? (
-              <Photo uri={myPhoto} style={styles.meImg} fallback="🙂" />
-            ) : (
-              <View style={[styles.meImg, { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }]}>
-                <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 18 }}>{userName.charAt(0).toUpperCase()}</Text>
-              </View>
-            )}
-            <View style={styles.mePlus}>
-              <Ionicons name="add" size={13} color="#fff" />
-            </View>
-          </View>
-          <Text style={styles.postBarText} numberOfLines={1}>Publicar algo, {userName.split(' ')[0]}?</Text>
-          <Ionicons name="images-outline" size={20} color={colors.primary} />
-        </TouchableOpacity>
-
         {/* Faixa de bolinhas */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={styles.strip}>
+          {/* Primeiro da faixa: a sua foto com o "+". Abre publicação, Reel, story ou depoimento. */}
+          <TouchableOpacity style={styles.item} onPress={() => setAdding(true)} activeOpacity={0.85} accessibilityLabel="Adicionar conteúdo">
+            <View style={[styles.ring, { borderColor: lastStory ? colors.gold : colors.border, borderWidth: lastStory ? 2.5 : 1.5 }]}>
+              {myPhoto ? (
+                <Photo uri={myPhoto} style={styles.avatar} fallback="🙂" />
+              ) : (
+                <View style={[styles.avatar, { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }]}>
+                  <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 22 }}>{userName.charAt(0).toUpperCase()}</Text>
+                </View>
+              )}
+              <View style={styles.mePlus}>
+                <Ionicons name="add" size={14} color="#fff" />
+              </View>
+            </View>
+          </TouchableOpacity>
           {[...fresh, ...old].map((g) => {
             const isSeen = !!seen[g.id];
             return (
@@ -192,10 +189,10 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
 function AddSheet({ visible, onClose, onPick }) {
   const insets = useSafeAreaInsets();
   const opts = [
-    ['post', 'Publicação', 'Texto e foto no feed da Comunidade', 'create-outline'],
-    ['reel', 'Reel', 'Vídeo curto em tela cheia, até 60 segundos', 'play-circle-outline'],
-    ['story', 'Story', 'Some em 24 h (ou fica nos seus destaques)', 'aperture-outline'],
-    ['dep', 'Depoimento', 'Escreva sobre um amigo para o perfil dele', 'chatbox-ellipses-outline'],
+    ['post', 'Publicação', 'Conta pra galera o que tá rolando', 'create-outline'],
+    ['reel', 'Reel', 'Vídeo curto em tela cheia: até 60 segundos pra brilhar', 'play-circle-outline'],
+    ['story', 'Story', 'Some em 24 h, ou fica nos seus destaques', 'aperture-outline'],
+    ['dep', 'Depoimento', 'Fala bem de um amigo: vai pro perfil dele', 'chatbox-ellipses-outline'],
   ];
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -412,7 +409,7 @@ const styles = StyleSheet.create({
   postBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 28, paddingVertical: 6, paddingLeft: 6, paddingRight: 16, ...soft },
   meRing: { width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center' },
   meImg: { width: 42, height: 42, borderRadius: 21 },
-  mePlus: { position: 'absolute', right: -2, bottom: -2, width: 20, height: 20, borderRadius: 10, backgroundColor: colors.accent, borderWidth: 2, borderColor: colors.card, alignItems: 'center', justifyContent: 'center' },
+  mePlus: { position: 'absolute', right: -2, bottom: -2, width: 22, height: 22, borderRadius: 11, backgroundColor: colors.text, borderWidth: 2, borderColor: colors.card, alignItems: 'center', justifyContent: 'center' },
   postBarText: { flex: 1, color: colors.muted, fontSize: 14, marginLeft: 10 },
   sub: { color: colors.muted, fontSize: 12, marginTop: 2 },
   newBtn: { flexDirection: 'row', alignItems: 'center', height: 38, paddingHorizontal: 14, borderRadius: 19, backgroundColor: colors.primary, marginLeft: 10 },

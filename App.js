@@ -404,12 +404,9 @@ function Shell() {
     <BackProvider value={backStack}>
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        {/* Logo do Re@lys à esquerda (o mesmo do ícone: R dentro do @ com estrela, fundo dourado). */}
-        <View style={{ flexDirection: 'row', alignItems: 'center' }} accessibilityLabel="Re@lys, ID biométrico verificado">
-          <Image source={require('./assets/logo-header.png')} style={styles.logoImg} />
-          <Text style={styles.brand}>RE@LYS</Text>
-          {/* Selo de ID verificado: só um check discreto ao lado da marca */}
-          <Ionicons name="checkmark-circle" size={14} color={colors.gold} style={{ marginLeft: 5 }} />
+        {/* Só a logo (o R dentro do @), sem fundo dourado e sem o nome escrito: a palavra Re@lys fica só na entrada do app. */}
+        <View style={{ flexDirection: 'row', alignItems: 'center' }} accessibilityLabel="Re@lys">
+          <Image source={require('./assets/logo-mark.png')} style={styles.logoImg} />
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {/* Carrinho discreto: só aparece quando há itens */}
@@ -694,7 +691,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   brand: { color: colors.text, fontSize: 16, fontWeight: '700', letterSpacing: 3 },
-  logoImg: { width: 28, height: 28, borderRadius: 8, marginRight: 8 },
+  logoImg: { width: 38, height: 38 },
   // Ícones do topo soltos, sem caixinha (visual clean).
   iconBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginLeft: 2 },
   iconBtnOn: { backgroundColor: colors.primaryLight },

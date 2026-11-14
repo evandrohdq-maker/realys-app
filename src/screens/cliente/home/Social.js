@@ -443,8 +443,8 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
         {mine && !onAir ? (
           <View style={styles.goLive}>
             <Text style={styles.goLiveTitle}>Abrir uma live</Text>
-            <Text style={{ color: colors.muted, marginBottom: 12 }}>Seus contatos e seguidores recebem o aviso na hora.</Text>
-            <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Classe</Text>
+            <Text style={{ color: colors.muted, marginBottom: 12 }}>Sua galera recebe o aviso na hora.</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Sobre o quê?</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
               {LIVE_CATS.filter((c) => c.key !== 'noite').map((c) => {
                 const on = cat === c.key;
@@ -456,7 +456,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                 );
               })}
             </ScrollView>
-            <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Subclasse</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Qual estilo?</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
               {catOf(cat).subs.map((x) => {
                 const on = sub === x.key;

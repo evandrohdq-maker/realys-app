@@ -30,7 +30,7 @@ export default function ArtistsScreen({ explore, navigate }) {
 
   return (
     <Screen>
-      <Title sub="Ouça, assista e apoie artistas reais">Artistas</Title>
+      <Title sub="Dá o play e apoia quem faz arte de verdade">Artistas</Title>
       <SearchBar value={q} onChangeText={(t) => { setQ(t); if (!t) setSearched(''); }} onSubmit={setSearched} placeholder="Buscar artista, música, estilo ou cidade" voicePrompt="Que artista ou música você procura?" />
       {searched && !list.length ? <GlobalResults query={searched} navigate={navigate} /> : null}
 

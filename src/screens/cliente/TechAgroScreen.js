@@ -148,7 +148,7 @@ export function TechScreen({ explore, navigate }) {
 
   return (
     <Screen>
-      <Title sub="Inteligência artificial, robótica, apps e cursos de empresas verificadas">Tecnologia</Title>
+      <Title sub="IA, robótica, apps e cursos: o futuro já chegou">Tecnologia</Title>
       <SearchBar value={q} onChangeText={(t) => { setQ(t); if (!t) setSearched(''); }} onSubmit={setSearched} placeholder="Buscar IA, robô, app, curso…" voicePrompt="O que você procura em tecnologia?" />
 
       <View style={styles.hero}>
@@ -191,7 +191,7 @@ export function AgroScreen({ explore, navigate }) {
 
   return (
     <Screen>
-      <Title sub="Insumos, máquinas, agrônomos e venda direta do produtor">Agro</Title>
+      <Title sub="Do insumo à venda direta do produtor: o agro é tech">Agro</Title>
       <SearchBar value={q} onChangeText={(t) => { setQ(t); if (!t) setSearched(''); }} onSubmit={setSearched} placeholder="Buscar semente, trator, agrônomo…" voicePrompt="O que você procura no agro?" />
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 12 }} contentContainerStyle={{ paddingHorizontal: 16 }}>

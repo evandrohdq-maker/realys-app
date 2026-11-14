@@ -51,7 +51,7 @@ export default function TransitScreen({ explore, navigate }) {
 
   return (
     <Screen>
-      <Title sub="Ônibus, metrô e viagens com o veículo acompanhado pelo GPS">Transporte público</Title>
+      <Title sub="Veja onde o seu ônibus está agora, ao vivo no mapa">Transporte público</Title>
       {/* Ligado às Notícias e Alertas: voos, estradas, metrô e ônibus afetados pelo clima. */}
       <TransportAlerts navigate={navigate} all compact />
 

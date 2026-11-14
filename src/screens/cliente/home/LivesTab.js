@@ -52,7 +52,7 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
         </View>
         <View style={{ flex: 1, marginLeft: 12 }}>
           <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>Abrir minha live</Text>
-          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Escolha a classe e a subclasse: quem segue recebe o aviso na hora</Text>
+          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Entra ao vivo agora: quem te segue recebe o aviso na hora</Text>
         </View>
         <Ionicons name="chevron-forward" size={18} color={colors.muted} />
       </TouchableOpacity>
@@ -153,7 +153,7 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
         <View style={styles.empty}>
           <Ionicons name="radio-outline" size={30} color={colors.muted} />
           <Text style={{ color: colors.muted, textAlign: 'center', marginTop: 6 }}>
-            Ninguém ao vivo {sub !== 'todas' && cat ? `em ${(subOf(cat.key, sub) || { label: 'esta subclasse' }).label}` : 'aqui'} agora.
+            Ninguém ao vivo {sub !== 'todas' && cat ? `em ${(subOf(cat.key, sub) || { label: 'este estilo' }).label}` : 'aqui'} agora.
           </Text>
           <TouchableOpacity style={styles.emptyBtn} onPress={onGoLive}>
             <Text style={{ color: '#fff', fontWeight: '800' }}>Abrir a primeira live</Text>
@@ -185,7 +185,7 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
 
       {!cat ? (
         <>
-          <SectionHead title="Explorar classes" />
+          <SectionHead title="Explore por assunto" />
           <View style={styles.grid}>
             {LIVE_CATS.map((c) => {
               const n = every.filter((l) => l.cat === c.key).length;

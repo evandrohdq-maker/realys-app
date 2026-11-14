@@ -34,7 +34,7 @@ export default function DesapegoScreen() {
 
   return (
     <Screen>
-      <Title sub="Usados entre pessoas verificadas, com a Garantia Re@lys">Desapego</Title>
+      <Title sub="Desapega e faz dinheiro: usados entre pessoas de verdade, com garantia">Desapego</Title>
       <TouchableOpacity style={st.sell} onPress={() => setForm(true)}>
         <Ionicons name="pricetag-outline" size={20} color="#fff" />
         <Text style={st.sellText}>Anunciar um desapego</Text>
