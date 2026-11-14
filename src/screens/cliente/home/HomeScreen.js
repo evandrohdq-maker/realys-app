@@ -57,8 +57,8 @@ export function TopTabs({ items, value, onChange }) {
         const on = t.key === value;
         return (
           <TouchableOpacity key={t.key} style={[styles.topTab, on && styles.topTabOn]} onPress={() => onChange(t.key)} accessibilityLabel={t.label}>
-            <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={19} color={on ? colors.primary : colors.muted} />
-            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.topTabText, on && { color: colors.primaryDark, fontWeight: '700' }]}>
+            <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={19} color={on ? colors.text : colors.menu} />
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.topTabText, on && { color: colors.text, fontWeight: '800' }]}>
               {t.label}
             </Text>
           </TouchableOpacity>
@@ -913,12 +913,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 2,
     borderRadius: 14,
   },
-  topTabOn: { backgroundColor: colors.primaryLight },
+  topTabOn: { backgroundColor: colors.gold },
   foodHint: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF1E6', borderRadius: 14, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(232,89,12,0.3)' },
   sectorHit: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 16, padding: 10, marginBottom: 8, ...soft },
   sectorIcon: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
   promoTeaser: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FF3B5C', borderRadius: 18, padding: 13, marginBottom: 16, borderWidth: 1, borderColor: '#FF7A45' },
-  topTabText: { color: colors.muted, fontSize: 10, fontWeight: '600', marginTop: 3 },
+  topTabText: { color: colors.menu, fontSize: 11, fontWeight: '700', marginTop: 3 },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, marginTop: 4 },
   sectionTitle: { color: colors.text, fontSize: 17, fontWeight: '700' },
   prodName: { color: colors.text, fontWeight: '700', fontSize: 13, marginTop: 8 },

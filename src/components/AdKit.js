@@ -31,7 +31,7 @@ export function SegTabs({ items, value, onChange }) {
         return (
           <TouchableOpacity key={t.key} style={[styles.segItem, on && styles.segOn]} onPress={() => onChange(t.key)} activeOpacity={0.7} accessibilityLabel={t.label}>
             <View>
-              <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={19} color={on ? colors.primary : colors.muted} />
+              <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={19} color={on ? colors.text : colors.menu} />
               {t.badge ? (
                 <View style={styles.segBadge}>
                   <Text style={styles.segBadgeText}>{t.badge}</Text>
@@ -494,9 +494,9 @@ export function PromoSector({ flash, coupons, combos, food, onOpenStore }) {
 const styles = StyleSheet.create({
   seg: { flexDirection: 'row', paddingTop: 2, paddingBottom: 8, marginBottom: 6 },
   segItem: { flex: 1, alignItems: 'center', paddingVertical: 7, paddingHorizontal: 2, marginHorizontal: 2, borderRadius: 14 },
-  segOn: { backgroundColor: colors.primaryLight },
-  segText: { color: colors.muted, fontSize: 11, fontWeight: '600', marginTop: 3 },
-  segTextOn: { color: colors.primaryDark, fontWeight: '700' },
+  segOn: { backgroundColor: colors.gold },
+  segText: { color: colors.menu, fontSize: 11.5, fontWeight: '700', marginTop: 3 },
+  segTextOn: { color: colors.text, fontWeight: '800' },
   segBadge: { position: 'absolute', top: -5, right: -12, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: '#FF3B5C', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   segBadgeText: { color: '#fff', fontSize: 9, fontWeight: '800' },
 

@@ -1,13 +1,15 @@
-// Tema claro do Re@lys: fundo marfim luminoso, dourado de glória e azul-céu.
+// Tema claro do Re@lys: fundo marfim luminoso, dourado brilhante combinando com preto.
+// Os fundos continuam claros; o preto fica nas letras e nos ícones, e o dourado nos destaques.
 export const colors = {
-  primary: '#A8790A', // dourado
+  primary: '#B8860B', // dourado (botões e letras douradas)
   primaryDark: '#7A5806',
   primaryLight: '#FBF1D6',
   onPrimary: '#FFFFFF',
   accent: '#2F74D0', // azul-céu
-  dark: '#1F2A44',
-  text: '#1F2A44',
-  muted: '#6E7891',
+  dark: '#14120E', // preto
+  text: '#14120E', // letras em preto
+  muted: '#5B564B', // letras secundárias (mais visíveis que o cinza-azulado de antes)
+  menu: '#3A362E', // letras e ícones dos menus quando não estão selecionados
   border: '#F0E9DA', // linha bem suave (visual clean)
   borderStrong: '#E6DAC0',
   bg: '#FBF8F1',
@@ -17,7 +19,7 @@ export const colors = {
   success: '#1E9E63',
   sponsored: '#6C5CE7',
   violet: '#7B6CF6',
-  gold: '#E2B649', // brilho dourado (anéis dos stories, destaques)
+  gold: '#F5C331', // dourado brilhante (item selecionado dos menus, anéis dos stories, destaques)
 };
 
 // Sombra leve e quente no lugar de bordas: deixa os cartões "flutuando" no fundo marfim.

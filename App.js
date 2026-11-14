@@ -473,9 +473,9 @@ function Shell() {
             }}>
               {/* Aba ativa: ícone dourado dentro de uma pílula clarinha */}
               <View style={[styles.tabIcon, on && styles.tabIconOn]}>
-                <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={21} color={on ? colors.primary : colors.muted} />
+                <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={21} color={on ? colors.text : colors.menu} />
               </View>
-              <Text numberOfLines={1} style={[styles.tabLabel, on && { color: colors.primaryDark, fontWeight: '700' }]}>{t.label}</Text>
+              <Text numberOfLines={1} style={[styles.tabLabel, on && { color: colors.text, fontWeight: '800' }]}>{t.label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -717,8 +717,8 @@ const styles = StyleSheet.create({
   },
   tab: { flex: 1, alignItems: 'center' },
   tabIcon: { width: 44, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  tabIconOn: { backgroundColor: colors.primaryLight },
-  tabLabel: { fontSize: 10, color: colors.muted, marginTop: 3 },
+  tabIconOn: { backgroundColor: colors.gold },
+  tabLabel: { fontSize: 10.5, fontWeight: '600', color: colors.menu, marginTop: 3 },
   // Ferramentas do administrador: pequenas, claras e meio transparentes, para não tapar o conteúdo.
   adminTools: { position: 'absolute', left: 10, alignItems: 'center', opacity: 0.85 },
   adminBtn: {

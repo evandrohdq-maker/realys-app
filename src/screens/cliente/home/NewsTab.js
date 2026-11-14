@@ -20,7 +20,9 @@ export default function NewsTab({ onWatch, navigate }) {
   const [cat, setCat] = useState('todas');
   const [open, setOpen] = useState(null);
   const [reporting, setReporting] = useState(false);
-  const showAlerts = cat === 'todas' || cat === 'alertas';
+  // Página discreta: em "Todas" os alertas aparecem só como uma faixa de uma linha cada; os cartões
+  // completos (o que fazer, ligar, transporte, "Estou seguro", relatos) ficam na aba Alertas.
+  const showAlerts = cat === 'alertas';
   const onlyTransport = cat === 'transporte';
   const list = NEWS.filter((n) => cat === 'todas' || n.cat === cat);
   const lives = allLives(state).filter((l) => l.cat === 'noticias');
@@ -28,7 +30,7 @@ export default function NewsTab({ onWatch, navigate }) {
   return (
     <Screen>
       <View style={styles.trust}>
-        <Ionicons name="shield-checkmark" size={16} color={colors.success} />
+        <Ionicons name="shield-checkmark" size={13} color={colors.success} />
         <Text style={styles.trustText}>Só canais verificados e fontes oficiais. Notícia falsa é derrubada pela IA Re@lys.</Text>
       </View>
 
@@ -45,6 +47,23 @@ export default function NewsTab({ onWatch, navigate }) {
           );
         })}
       </ScrollView>
+
+      {cat === 'todas' && ALERTS.length ? (
+        <View style={styles.quietAlerts}>
+          {ALERTS.map((a, i) => {
+            const L = ALERT_LEVELS[a.level];
+            return (
+              <TouchableOpacity key={a.id} style={[styles.quietAlert, i > 0 && styles.quietAlertLine]} onPress={() => setCat('alertas')} activeOpacity={0.8} accessibilityLabel={`${L.label}: ${a.type}. Ver alertas`}>
+                <View style={[styles.quietDot, { backgroundColor: L.color }]} />
+                <Text style={styles.quietAlertText} numberOfLines={1}>
+                  <Text style={{ fontWeight: '700', color: colors.text }}>{a.type}</Text> · {a.area}
+                </Text>
+                <Ionicons name="chevron-forward" size={14} color={colors.muted} />
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      ) : null}
 
       {showAlerts ? (
         <>
@@ -319,8 +338,13 @@ function Article({ n, onClose }) {
 }
 
 const styles = StyleSheet.create({
-  trust: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EEF7F1', borderRadius: 12, padding: 9, marginBottom: 10 },
-  trustText: { color: colors.success, fontSize: 12, fontWeight: '700', marginLeft: 6, flex: 1 },
+  quietAlerts: { backgroundColor: colors.card, borderRadius: 14, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 12, marginBottom: 14 },
+  quietAlert: { flexDirection: 'row', alignItems: 'center', paddingVertical: 9 },
+  quietAlertLine: { borderTopWidth: 1, borderTopColor: colors.border },
+  quietDot: { width: 7, height: 7, borderRadius: 4, marginRight: 8 },
+  quietAlertText: { flex: 1, color: colors.muted, fontSize: 12, marginRight: 6 },
+  trust: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  trustText: { color: colors.muted, fontSize: 11, marginLeft: 6, flex: 1 },
   chip: { flexDirection: 'row', alignItems: 'center', height: 36, paddingHorizontal: 12, borderRadius: 18, backgroundColor: colors.cardAlt, marginRight: 8 },
   chipOn: { backgroundColor: colors.primary },
   chipAlertOn: { backgroundColor: '#B42318' },
