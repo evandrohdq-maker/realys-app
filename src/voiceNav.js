@@ -37,8 +37,9 @@ export const NAV_TARGETS = [
 
   // Abas do topo do Início
   T('Eventos', { tab: 'home', top: 'eventos' }, ['eventos', 'evento', 'festas', 'baladas', 'balada']),
-  T('Negócios', { tab: 'negocios' }, ['negocios', 'negocio', 'aba negocios', 'imoveis e veiculos']),
-  T('Veículos à venda', { tab: 'negocios', kind: 'veiculo-venda' }, ['veiculos', 'veiculo', 'veiculos a venda', 'carros a venda', 'carro a venda', 'comprar carro', 'comprar um carro', 'motos a venda', 'comprar moto', 'comprar uma moto', 'automoveis', 'seminovos']),
+  T('Negócios', { tab: 'bens' }, ['negocios', 'negocio', 'aba negocios', 'imoveis e veiculos']),
+  T('Veículos à venda', { tab: 'bens', kind: 'veiculo-venda' }, ['veiculos', 'veiculo', 'veiculos a venda', 'carros a venda', 'carro a venda', 'comprar carro', 'comprar um carro', 'motos a venda', 'comprar moto', 'comprar uma moto', 'automoveis', 'seminovos']),
+  T('Anuncie no Re@lys', { tab: 'anuncie' }, ['anunciar', 'anuncie', 'quero anunciar', 'fazer propaganda', 'propaganda', 'publicidade', 'comprar anuncio', 'patrocinar']),
   T('Promoções', { tab: 'home', top: 'promo' }, ['promocoes', 'promocao', 'ofertas', 'oferta']),
   T('Anúncios', { tab: 'home', top: 'anuncios' }, ['anuncios', 'anuncio', 'classificados']),
   T('Lives', { tab: 'home', top: 'lives' }, ['lives', 'live', 'laive', 'laives', 'ao vivo', 'transmissoes']),
@@ -75,7 +76,7 @@ export const NAV_TARGETS = [
   T('Imóveis à venda', { tab: 'home', top: 'anuncios', kind: 'imovel-venda' }, ['imoveis', 'imovel', 'imobiliaria', 'imoveis a venda']),
   T('Imóveis para alugar', { tab: 'home', top: 'anuncios', kind: 'imovel-aluguel' }, ['aluguel de imoveis', 'imoveis para alugar', 'locacao de imoveis']),
   T('Aluguel de carros', { tab: 'home', top: 'anuncios', kind: 'carro-aluguel' }, ['aluguel de carros', 'aluguel de carro', 'alugar carro', 'alugar um carro', 'locadora']),
-  T('Máquinas à venda', { tab: 'negocios', kind: 'maquina-venda' }, ['maquinas a venda', 'maquina a venda', 'comprar maquina', 'comprar uma maquina', 'comprar trator', 'comprar um trator', 'tratores a venda']),
+  T('Máquinas à venda', { tab: 'bens', kind: 'maquina-venda' }, ['maquinas a venda', 'maquina a venda', 'comprar maquina', 'comprar uma maquina', 'comprar trator', 'comprar um trator', 'tratores a venda']),
   T('Aluguel de máquinas', { tab: 'home', top: 'anuncios', kind: 'maquina-aluguel' }, ['aluguel de maquinas', 'aluguel de maquina', 'locacao de maquinas']),
   T('Cursos', { tab: 'servicos', seg: 'cursos' }, ['cursos', 'curso', 'cursos online', 'faculdade', 'faculdades', 'faculdade online']),
   T('Atendimento online', { tab: 'servicos', seg: 'online' }, ['atendimento online', 'atendimentos online', 'consulta online', 'consultas online', 'servicos online', 'aba online', 'chamada de video com profissional']),
@@ -152,7 +153,7 @@ export const NAV_TARGETS = [
   T('Painel da empresa', { tab: 'painel' }, ['painel', 'dashboard', 'painel da empresa']),
   T('Estoque', { tab: 'estoque' }, ['estoque', 'meu estoque']),
   T('Caixa', { tab: 'caixa' }, ['caixa', 'fluxo de caixa', 'financeiro']),
-  T('Negócios', { tab: 'negocios' }, ['negocios', 'negociacoes', 'b2b']),
+  T('Negociações entre empresas', { tab: 'negocios' }, ['negociacoes', 'negociacao', 'b2b', 'negocios b2b', 'negocios entre empresas']),
   T('RH', { tab: 'rh' }, ['rh', 'recursos humanos', 'agaga', 'erre aga']),
   T('Página da empresa', { tab: 'pagina' }, ['pagina da empresa', 'pagina da minha empresa']),
   // Prestador, fornecedor e administrador

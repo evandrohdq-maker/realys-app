@@ -126,7 +126,7 @@ Destinos do app:
 - Painel da empresa → {"tab":"painel"} (fala: painel, dashboard, painel da empresa)
 - Estoque → {"tab":"estoque"} (fala: estoque, meu estoque)
 - Caixa → {"tab":"caixa"} (fala: caixa, fluxo de caixa, financeiro)
-- Negócios → {"tab":"negocios"} (fala: negocios, negociacoes, b2b)
+- Negociações entre empresas → {"tab":"negocios"} (fala: negociacoes, b2b, negocios entre empresas)\n- Negócios (imóveis, veículos e máquinas) → {"tab":"bens"} (fala: negocios, imoveis e veiculos)
 - RH → {"tab":"rh"} (fala: rh, recursos humanos, agaga, erre aga)
 - Página da empresa → {"tab":"pagina"} (fala: pagina da empresa, pagina da minha empresa)
 - Trabalhar → {"tab":"prestar"} (fala: trabalhar, ficar disponivel, corridas)

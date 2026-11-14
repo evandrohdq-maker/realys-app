@@ -43,6 +43,14 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
       webmotors.com.br/vender-carro). Não foi achado preço público de cobrança por contato.
 - [ ] **Taxa de sucesso nos aluguéis** fechados com contrato assinado no app (etapa seguinte).
 
+## Publicidade (Anuncie no Re@lys)
+
+- [ ] **Pôr a arte do anunciante no ar**: hoje a compra do story patrocinado, do patrocinado nas
+      buscas e do banner da vitrine fica registrada e debitada, mas o anúncio em si ainda não
+      aparece nesses espaços (precisa do envio da arte, da análise e do servidor).
+- [ ] **Valores**: definidos em 14/11/2026. Referência: iFood Anúncios com orçamento mínimo de
+      R$ 25 por dia (blog-parceiros.ifood.com.br). Rever depois do piloto com os números de uso.
+
 ## Players (rádio, TV e lives)
 
 - [ ] **Testar num celular**: arrastar os players (segurar e arrastar), a TV em picture-in-picture

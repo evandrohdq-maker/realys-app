@@ -19,6 +19,8 @@ export const TAXAS = {
   contatoImovel: { valor: 9.9, unidade: 'R$ por conversa liberada', quemPaga: 'proprietário do imóvel', mercado: 'ZAP Imóveis: plano de proprietário a partir de R$ 77,39 por mês, com ou sem interessado', argumento: 'anunciar é grátis; R$ 9,90 só quando aparece um interessado verificado' },
   anuncioRevenda: { valor: 99, unidade: 'R$ por mês, com as conversas liberadas', quemPaga: 'revenda de veículos ou máquinas', mercado: 'OLX: planos profissionais sem preço publicado; Viva Real para imobiliárias: R$ 400 a R$ 1.000 por mês', argumento: 'R$ 99 por mês com as conversas liberadas' },
   contatoVeiculo: { valor: 4.9, unidade: 'R$ por conversa liberada', quemPaga: 'particular (veículo ou máquina)', mercado: 'Webmotors: anúncio a partir de R$ 9,90, pago antes de aparecer interessado', argumento: 'anunciar é grátis; R$ 4,90 só quando aparece um interessado verificado' },
+  // Espaços de publicidade (preços por pacote em src/rewards.js › POINT_SHOP).
+  publicidade: { valor: 14.9, unidade: 'R$ por dia para aparecer em primeiro nas buscas (story R$ 9,90; banner da vitrine R$ 39,90)', quemPaga: 'anunciante', mercado: 'iFood Anúncios: orçamento mínimo de R$ 25 por dia, cobrado por clique', argumento: 'R$ 14,90 por dia, preço fechado, sem leilão e sem surpresa' },
   destaquePrestador: { valor: 49.9, unidade: 'R$ por mês', mercado: 'GetNinjas: pacotes a partir de R$ 149', argumento: 'destaque o mês inteiro por R$ 49,90' },
 };
 

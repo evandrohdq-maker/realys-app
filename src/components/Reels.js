@@ -101,7 +101,7 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
     if (reel.user) return;
     onClose && onClose();
     if (prov) return dispatch({ type: 'OPEN_PROVIDER', id: prov.id });
-    if (ad) return dispatch({ type: 'NAV_REQUEST', go: { tab: 'negocios', kind: ad.kind } });
+    if (ad) return dispatch({ type: 'NAV_REQUEST', go: { tab: 'bens', kind: ad.kind } });
     dispatch({ type: 'OPEN_COMPANY', id: reel.storeId });
   };
 

@@ -17,6 +17,7 @@ import HomeScreen from './src/screens/cliente/home/HomeScreen';
 import StoriesScreen from './src/screens/StoriesScreen';
 import EncontrosScreen from './src/screens/cliente/EncontrosScreen';
 import NegociosScreen, { NEGOCIOS_KINDS } from './src/screens/cliente/NegociosScreen';
+import AnuncieScreen from './src/screens/AnuncieScreen';
 import StoreScreen, { FoodScreen } from './src/screens/cliente/StoreScreen';
 import ServicesScreen from './src/screens/cliente/ServicesScreen';
 import OrdersScreen from './src/screens/cliente/OrdersScreen';
@@ -104,7 +105,8 @@ const TABS = {
     { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'home', label: 'Shop', icon: 'bag-handle-outline', Comp: HomeScreen },
     // Negócios (no lugar do Date): imóveis, veículos e máquinas, para comprar ou alugar.
-    { key: 'negocios', label: 'Negócios', icon: 'business-outline', Comp: NegociosScreen },
+    // A chave é 'bens' (e não 'negocios') porque 'negocios' já é a aba de negociações B2B do perfil Empresa.
+    { key: 'bens', label: 'Negócios', icon: 'business-outline', Comp: NegociosScreen },
     { key: 'food', label: 'Food', icon: 'restaurant-outline', Comp: FoodScreen },
     { key: 'servicos', label: 'Serviços', icon: 'construct-outline', Comp: ServicesScreen },
     { key: 'pedidos', label: 'Pedidos', icon: 'receipt-outline', Comp: OrdersScreen },
@@ -113,6 +115,8 @@ const TABS = {
     // Reels: sem botão na barra. Abre arrastando a página inicial para a direita (como no Instagram)
     // ou pela Lotus; para publicar, é a opção Reel do botão de publicação.
     { key: 'reels', label: 'Reels', icon: 'play-circle-outline', Comp: ReelsScreen, hidden: true },
+    // Anuncie no Re@lys: espaços de publicidade com preço fechado (menu ⋮ e Lotus).
+    { key: 'anuncie', label: 'Anuncie', icon: 'megaphone-outline', Comp: AnuncieScreen, hidden: true },
     // Date: sem botão na barra. Abre pelo coraçãozinho discreto do Perfil (e pelo menu ⋮ e pela Lotus).
     { key: 'encontros', label: 'Date', icon: 'heart-outline', Comp: EncontrosScreen, hidden: true },
     { key: 'transporte', label: 'Transporte', icon: 'bus-outline', Comp: TransitScreen, hidden: true },
@@ -364,7 +368,7 @@ function Shell() {
   const route = (go) => {
     if (!go || go.tab !== 'home') return go;
     // Imóveis, veículos e máquinas agora têm a aba Negócios.
-    if (go.top === 'anuncios' && NEGOCIOS_KINDS.includes(go.kind)) return { ...go, tab: 'negocios', top: undefined };
+    if (go.top === 'anuncios' && NEGOCIOS_KINDS.includes(go.kind)) return { ...go, tab: 'bens', top: undefined };
     return ['noticias', 'eventos', 'stream', 'promo', 'anuncios', 'lives', 'comunidade'].includes(go.top) ? { ...go, tab: 'stories' } : go;
   };
 

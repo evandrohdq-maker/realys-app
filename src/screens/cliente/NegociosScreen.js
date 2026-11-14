@@ -35,7 +35,7 @@ export default function NegociosScreen({ explore }) {
 
   // Veio do menu ⋮, da busca ou da Lotus (ex.: "imóveis para alugar").
   useEffect(() => {
-    if (!explore || explore.tab !== 'negocios') return;
+    if (!explore || explore.tab !== 'bens') return;
     const g = explore.kind ? groupOfKind(explore.kind) : NEGOCIOS_GROUPS.find((x) => x.key === explore.group);
     if (!g) return;
     setGroup(g.key);

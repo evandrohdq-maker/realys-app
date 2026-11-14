@@ -162,9 +162,9 @@ export const CATEGORIES = [
     hint: 'Carros, vans, máquinas e equipamentos',
     icon: 'car-sport-outline',
     subs: [
-      { label: 'Veículos à venda', hint: 'Carros, picapes e motos', icon: 'car-outline', go: { tab: 'negocios', kind: 'veiculo-venda' } },
+      { label: 'Veículos à venda', hint: 'Carros, picapes e motos', icon: 'car-outline', go: { tab: 'bens', kind: 'veiculo-venda' } },
       { label: 'Carros e vans', hint: 'Por dia ou por semana', icon: 'car-sport-outline', go: { tab: 'home', top: 'anuncios', kind: 'carro-aluguel' } },
-      { label: 'Máquinas à venda', hint: 'Tratores, escavadeiras e equipamentos', icon: 'hammer-outline', go: { tab: 'negocios', kind: 'maquina-venda' } },
+      { label: 'Máquinas à venda', hint: 'Tratores, escavadeiras e equipamentos', icon: 'hammer-outline', go: { tab: 'bens', kind: 'maquina-venda' } },
       { label: 'Máquinas e equipamentos', hint: 'Obra, terraplanagem, andaimes', icon: 'construct-outline', go: { tab: 'home', top: 'anuncios', kind: 'maquina-aluguel' } },
     ],
   },
@@ -278,6 +278,7 @@ export const CATEGORIES = [
     hint: 'Para CNPJ: estoque, caixa e negócios',
     icon: 'stats-chart-outline',
     subs: [
+      { label: 'Anuncie no Re@lys', hint: 'Banner, buscas, story e clipes com preço fechado', icon: 'megaphone-outline', go: { tab: 'anuncie' } },
       { label: 'Painel', hint: 'Vendas e alertas', icon: 'speedometer-outline', go: { tab: 'painel' } },
       { label: 'Estoque', hint: 'Produtos e entradas', icon: 'file-tray-stacked-outline', go: { tab: 'estoque' } },
       { label: 'Fluxo de caixa', hint: 'Entradas e saídas', icon: 'wallet-outline', go: { tab: 'caixa' } },
