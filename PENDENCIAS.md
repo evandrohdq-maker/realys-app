@@ -240,3 +240,8 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
 - [ ] Servidor: cobrar o plano da loja (mensal/anual) depois do mês grátis e travar o aceite de pedido sem plano.
       No app, a chegada do primeiro pedido é simulada por um botão no Painel da empresa.
 - [ ] Contas de demonstração (login sem cadastro) entram como verificadas.
+- [x] Páginas: a primeira página de cada conta é gratuita; da segunda em diante, R$ 14,90 por mês cada.
+- [x] Reels de prestador: botão "Chamar pelo Re@lys"; reels de anúncio mandam o "Tenho interesse" direto.
+      Pedidos ganhou a aba "Aguardando" (chamados, interesses e pedidos esperando retorno).
+- [x] Publicidade avulsa (story R$ 9,90; buscas R$ 14,90/dia ou R$ 79,90/semana; banner R$ 39,90/dia ou
+      R$ 199,90/semana) aparece na oferta do plano da loja.

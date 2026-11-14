@@ -17,6 +17,7 @@ import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Button, Badge, Empty, Photo } from '../../components/ui';
 import { providerTarget } from '../../components/GiftSheet';
 import { recentDone, TIP_DAYS } from '../../recentDone';
+import { listings } from '../../homeData';
 
 // Concluídos nos últimos 7 dias úteis: ainda dá para dar gorjeta e avaliar quem não avaliou na hora.
 function RecentDone() {
@@ -320,6 +321,12 @@ export default function OrdersScreen({ navigate, explore }) {
   const venueOrders = state.venueOrders || [];
   const cartCount = state.cart.reduce((n, c) => n + c.qty, 0);
   const [seg, setSeg] = useState(cartCount ? 'carrinho' : 'compras');
+  // Aguardando retorno: chamados e pedidos que o cliente fez e ainda esperam a resposta do outro lado.
+  const waiting = [
+    ...(state.visits || []).filter((v) => v.status === 'aguardando').map((v) => ({ id: v.id, at: v.at || 0, icon: 'construct-outline', title: `${v.serviceLabel} · ${v.provider.name}`, text: `Chamado enviado para ${v.when ? v.when.toLowerCase() : 'assim que possível'}. Aguardando ${v.provider.name.split(' ')[0]} aceitar.`, note: `Taxa de visita de ${brl(v.fee)} reservada. Se recusar, o valor volta na hora.` })),
+    ...Object.keys(state.negRequests || {}).filter((id) => state.negRequests[id] === 'aguardando').map((id) => { const l = listings.find((x) => x.id === id) || {}; return { id: 'neg' + id, at: 0, icon: 'pricetag-outline', title: l.title || 'Anúncio', text: `Interesse enviado. Aguardando ${l.who || 'o anunciante'} liberar a conversa.`, note: 'Você não paga nada por isso.' }; }),
+    ...(state.reverseRequests || []).filter((r) => r.status === 'aberto' && !r.offers.length).map((r) => ({ id: r.id, at: r.at || 0, icon: 'megaphone-outline', title: r.title || r.text || 'Pedido publicado', text: 'Pedido publicado. Aguardando as primeiras propostas.', note: 'As propostas chegam na aba Propostas.' })),
+  ];
   // Em andamento · Concluídos · Despesas (vale para Compras, Comida, Ingressos e Serviços).
   const [view, setView] = useState('andamento');
   useEffect(() => {
@@ -335,6 +342,7 @@ export default function OrdersScreen({ navigate, explore }) {
   const pick = (arr, done) => arr.filter((x) => (showDone ? done(x) : !done(x)));
   const SEGS = [
     { key: 'carrinho', label: 'Carrinho', icon: 'bag-handle-outline', badge: cartCount || null },
+    { key: 'aguardando', label: 'Aguardando', icon: 'hourglass-outline', badge: waiting.length || null },
     { key: 'compras', label: 'Compras', icon: 'cube-outline', badge: buys.filter((o) => !orderDone(o)).length || null },
     { key: 'comida', label: 'Comida', icon: 'restaurant-outline', badge: food.filter((o) => !orderDone(o)).length || null },
     { key: 'ingressos', label: 'Ingressos', icon: 'ticket-outline', badge: tickets.filter((t) => !t.used).length + venueOrders.filter((o) => !venueDone(o)).length || null },
@@ -388,6 +396,27 @@ export default function OrdersScreen({ navigate, explore }) {
         )
       ) : null}
 
+      {seg === 'aguardando' ? (
+        waiting.length ? (
+          waiting.map((w) => (
+            <Card key={w.id}>
+              <Row>
+                <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' }}>
+                  <Ionicons name={w.icon} size={18} color={colors.text} />
+                </View>
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={{ color: colors.text, fontWeight: '800' }}>{w.title}</Text>
+                  <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 12, marginTop: 2 }}>⏳ Aguardando retorno</Text>
+                </View>
+              </Row>
+              <Text style={{ color: colors.text, fontSize: 13, marginTop: 8 }}>{w.text}</Text>
+              <Text style={{ color: colors.muted, fontSize: 12, marginTop: 3 }}>{w.note}</Text>
+            </Card>
+          ))
+        ) : (
+          <Empty text="Nada esperando resposta. Quando você chamar um prestador ou mandar interesse num anúncio, ele aparece aqui até ter retorno." />
+        )
+      ) : null}
       {seg === 'propostas' ? <ReversePost kinds={['servico', 'produto']} /> : null}
       {seg === 'assinaturas' ? <Subscriptions /> : null}
       {seg === 'carrinho' ? <CartTab onPaid={(hasFood) => setSeg(hasFood ? 'comida' : 'compras')} /> : null}

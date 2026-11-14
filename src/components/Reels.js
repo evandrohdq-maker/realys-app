@@ -104,6 +104,20 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
     if (ad) return dispatch({ type: 'NAV_REQUEST', go: { tab: 'bens', kind: ad.kind } });
     dispatch({ type: 'OPEN_COMPANY', id: reel.storeId });
   };
+  // Botão do reel: prestador abre o chamado; anúncio manda o "tenho interesse" direto e o pedido
+  // fica em Pedidos › Aguardando até o anunciante responder.
+  const callOwner = () => {
+    if (prov) return openOwner();
+    if (!ad) return;
+    const semBio = state.user && state.user.verified === false;
+    const already = (state.negRequests || {})[ad.id];
+    dispatch({ type: 'NEG_REQUEST', listingId: ad.id });
+    if (semBio) return;
+    Alert.alert(already ? 'Pedido já enviado' : 'Pedido enviado ✅', `${ad.who} recebeu seu interesse. Acompanhe a resposta em Pedidos, na aba Aguardando.`, [
+      { text: 'Continuar vendo' },
+      { text: 'Ver em Pedidos', onPress: () => { onClose && onClose(); dispatch({ type: 'NAV_REQUEST', go: { tab: 'pedidos', seg: 'aguardando' } }); } },
+    ]);
+  };
 
   // Saiu da tela: volta a tocar do começo quando voltar.
   useEffect(() => {
@@ -247,9 +261,9 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
               <Text numberOfLines={1} style={{ color: colors.text, fontWeight: '700' }}>{prov ? (prov.functions || [])[0] || 'Prestador de serviço' : ad.title}</Text>
               <Text numberOfLines={1} style={{ color: colors.primary, fontWeight: '800', marginTop: 2 }}>{prov ? priceText(prov) : ad.price}</Text>
             </View>
-            <TouchableOpacity style={styles.buy} onPress={openOwner} accessibilityLabel={prov ? `Ver o perfil de ${prov.name}` : `Ver o anúncio de ${ad.who}`}>
-              <Ionicons name={prov ? 'person' : 'pricetag'} size={15} color="#fff" />
-              <Text style={{ color: '#fff', fontWeight: '800', marginLeft: 5, fontSize: 13 }}>{prov ? 'Ver perfil' : 'Tenho interesse'}</Text>
+            <TouchableOpacity style={styles.buy} onPress={callOwner} accessibilityLabel={prov ? `Chamar ${prov.name} pelo Re@lys` : `Tenho interesse no anúncio de ${ad.who}`}>
+              <Ionicons name={prov ? 'call' : 'pricetag'} size={15} color="#fff" />
+              <Text numberOfLines={1} style={{ color: '#fff', fontWeight: '800', marginLeft: 5, fontSize: 13 }}>{prov ? 'Chamar pelo Re@lys' : (state.negRequests || {})[ad.id] ? 'Aguardando' : 'Tenho interesse'}</Text>
             </TouchableOpacity>
           </View>
         ) : null}

@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
 import { colors, soft, brl } from '../../theme';
 import { Screen, Title, Card, Row, Input, Button, Photo } from '../../components/ui';
-import { PAGE_CATEGORIES, categoryOfPage, signatureOf, myPages, canCreatePage, MAX_PAGES, PAGE_RULES, pageNameProblem, slug, pagePrice } from '../../userPages';
+import { PAGE_CATEGORIES, categoryOfPage, signatureOf, myPages, canCreatePage, MAX_PAGES, PAGE_RULES, pageNameProblem, slug, pagePrice, nextIsWorkPage } from '../../userPages';
 
 const SEGS = [
   ['descobrir', 'Descobrir'],
@@ -39,17 +39,18 @@ function NewPage({ onDone }) {
   const [category, setCategory] = useState('comunidade');
   const [anon, setAnon] = useState(false);
   const price = pagePrice(state);
+  const workPage = nextIsWorkPage(state);
   const create = () => {
     const problem = pageNameProblem(name, anon, state);
     if (problem) return Alert.alert('Confira o nome', problem);
     if (!about.trim()) return Alert.alert('Conte do que é a página', 'Escreva uma frase sobre o assunto da página.');
     const go = () => {
-      dispatch({ type: 'PAGE_CREATE', page: { name: name.trim(), handle: slug(name), about: about.trim(), category, anon: price ? anon : false, cover: `https://picsum.photos/seed/realys-pg-${slug(name)}/800/400` } });
+      dispatch({ type: 'PAGE_CREATE', page: { name: name.trim(), handle: slug(name), about: about.trim(), category, anon: workPage ? false : anon, cover: `https://picsum.photos/seed/realys-pg-${slug(name)}/800/400` } });
       onDone();
     };
     // Prestador com o plano Destaque: a página de trabalhos já está incluída.
     if (!price) return go();
-    if (state.wallet < price) return Alert.alert('Saldo insuficiente', `Cada página custa ${brl(price)} por mês. Coloque saldo na carteira e tente de novo.`);
+    if (state.wallet < price) return Alert.alert('Saldo insuficiente', `A primeira página é gratuita; as próximas custam ${brl(price)} por mês cada. Coloque saldo na carteira e tente de novo.`);
     Alert.alert('Criar página', `${brl(price)} por mês, do seu saldo Re@lys. Você personaliza a página do seu jeito: capa, cores, letra e formato dos posts.`, [
       { text: 'Agora não', style: 'cancel' },
       {
@@ -91,8 +92,8 @@ function NewPage({ onDone }) {
           <Text key={r} style={st.rule}>• {r}</Text>
         ))}
       </View>
-      {!price ? <Text style={[st.small, { marginTop: 10 }]}>Incluída no seu plano Destaque Re@lys: é a sua página de trabalhos, ligada ao seu perfil profissional.</Text> : null}
-      <Button title={price ? `Criar página · ${brl(price)} por mês` : 'Criar minha página de trabalhos'} onPress={create} style={{ marginTop: 12 }} />
+      <Text style={[st.small, { marginTop: 10 }]}>{workPage ? 'Incluída no seu plano Destaque Re@lys: é a sua página de trabalhos, ligada ao seu perfil profissional.' : !price ? 'Sua primeira página é gratuita. Da segunda em diante, cada página custa R$ 14,90 por mês.' : 'Sua primeira página já é gratuita. Esta é cobrada por mês.'}</Text>
+      <Button title={price ? `Criar página · ${brl(price)} por mês` : workPage ? 'Criar minha página de trabalhos' : 'Criar minha página grátis'} onPress={create} style={{ marginTop: 12 }} />
       <Button title="Cancelar" variant="dark" small onPress={onDone} style={{ marginTop: 8 }} />
     </Card>
   );

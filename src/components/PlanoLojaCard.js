@@ -66,6 +66,10 @@ export default function PlanoLojaCard() {
         </>
       ) : null}
 
+      <Text style={{ color: colors.muted, fontSize: 12, lineHeight: 17, marginTop: 8 }}>
+        Quer aparecer mais? Publicidade avulsa, preço fechado: story R$ 9,90 · primeiro nas buscas R$ 14,90 por dia (R$ 79,90 a semana) · banner da vitrine R$ 39,90 por dia (R$ 199,90 a semana).
+      </Text>
+
       {plan ? (
         <Text style={{ color: colors.muted, fontSize: 13, lineHeight: 18, marginTop: 8 }}>
           Plano {plan.nome}: {brl(plan.valor)} {plan.periodo}. {status === 'gratis' ? `Mês grátis até ${dia(lojaPrimeiraCobranca(sp))}; a primeira cobrança vem nesse dia.` : `Em dia desde ${dia(lojaPrimeiraCobranca(sp))}.`} O Re@lys fica com {LOJA_COMISSAO_PCT}% de cada venda.

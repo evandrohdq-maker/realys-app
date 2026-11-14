@@ -127,14 +127,17 @@ export function pageStyle(pg) {
   return { ...st, layout, tone, family: font.family, accent };
 }
 
-// Criar página custa uma mensalidade (valor em src/taxas.js › paginaUsuario).
+// A primeira página de cada conta é gratuita. Da segunda em diante, cada página custa uma
+// mensalidade (valor em src/taxas.js › paginaUsuario).
 export const PAGE_PRICE = 14.9;
 
 // Prestador com o plano Destaque Re@lys (R$ 49,90 por mês) tem uma página de trabalhos incluída,
 // para apresentar o que faz e usar como referência com os clientes.
 export const includedPage = (state) => (state.userPages || []).find((p) => p.ownerId === 'me' && p.included) || null;
 export const hasIncludedPageRight = (state) => !!(state.myProvider && state.myProvider.sponsored);
-// Quanto custa criar uma página agora (0 = incluída no plano do prestador).
-export const pagePrice = (state) => (hasIncludedPageRight(state) && !includedPage(state) ? 0 : PAGE_PRICE);
+// A próxima página vira a página de trabalhos do prestador (ligada ao perfil profissional)?
+export const nextIsWorkPage = (state) => hasIncludedPageRight(state) && !includedPage(state);
+// Quanto custa criar uma página agora: 0 na primeira (ou na página de trabalhos do plano Destaque).
+export const pagePrice = (state) => (nextIsWorkPage(state) || !(state.userPages || []).some((p) => p.ownerId === 'me') ? 0 : PAGE_PRICE);
 // Página de trabalhos de um prestador (assinada), para mostrar no perfil dele.
 export const pageOfProvider = (state, providerId) => (state.userPages || []).find((p) => p.providerId === providerId && !p.anon) || null;

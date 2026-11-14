@@ -21,7 +21,7 @@ import * as J from './jobsData';
 import { initialTestimonials, myInitialGallery } from './testimonialsData';
 import { visitFee, visitDiscount, providerStats, splitFee, SAMPLE_VISIT_REQUESTS, HIGHLIGHT_PLAN } from './serviceVisits';
 import { teleDoCarrinho, somarGasto } from './teleGratis';
-import { DEMO_PAGES, MAX_PAGES, pagePrice, hasIncludedPageRight } from './userPages';
+import { DEMO_PAGES, MAX_PAGES, pagePrice, nextIsWorkPage } from './userPages';
 import { sampleAgenda, DEFAULT_HOURS, parseWhen } from './agenda';
 import { negPlano, custoLiberar } from './negocios';
 
@@ -370,7 +370,8 @@ const NEEDS_BIO = new Set([
 export const needsBio = (type) => NEEDS_BIO.has(type);
 
 function reducer(state, a) {
-  if (state.user && state.user.verified === false && NEEDS_BIO.has(a.type)) return { ...state, bioGate: Date.now() };
+  // (A primeira página é gratuita e faz parte do perfil social: essa a conta sem biometria pode criar.)
+  if (state.user && state.user.verified === false && NEEDS_BIO.has(a.type) && !(a.type === 'PAGE_CREATE' && pagePrice(state) === 0)) return { ...state, bioGate: Date.now() };
   const next = baseReducer(state, a);
   if (!next || next === state || next.wallet === state.wallet || next.walletTx !== state.walletTx || a.type === 'LOGOUT') return next;
   const diff = +(next.wallet - state.wallet).toFixed(2);
@@ -712,14 +713,14 @@ function baseReducer(state, a) {
       return { ...state, viewUserPage: null };
     case 'PAGE_CREATE': {
       if (!state.user || (state.userPages || []).filter((p) => p.ownerId === 'me').length >= MAX_PAGES) return state;
-      // Cada página custa uma mensalidade, cobrada do saldo na criação. O prestador com o plano
-      // Destaque tem uma página de trabalhos incluída (preço zero), ligada ao perfil profissional dele.
+      // A primeira página é gratuita; da segunda em diante cada uma custa uma mensalidade, cobrada do
+      // saldo na criação. O prestador com o plano Destaque tem a página de trabalhos incluída.
       const price = pagePrice(state);
       if (state.wallet < price) return state;
-      const included = price === 0 && hasIncludedPageRight(state);
+      const included = nextIsWorkPage(state);
       const page = {
         id: newId('pg'), ownerId: 'me', ownerName: state.user.name, followers: 0, posts: [], createdAt: Date.now(),
-        ...(included ? { included: true, providerId: state.myProvider.id } : { paidUntil: Date.now() + 30 * 86400000 }),
+        ...(included ? { included: true, providerId: state.myProvider.id } : price === 0 ? { free: true } : { paidUntil: Date.now() + 30 * 86400000 }),
         ...a.page,
         ...(included ? { anon: false } : {}),
       };
