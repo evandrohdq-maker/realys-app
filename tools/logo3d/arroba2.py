@@ -41,7 +41,7 @@ with sync_playwright() as p:
     pg = b.new_page(); pg.goto('file://' + os.path.join(HERE, 'arroba2.html'))
     if out == 'icons':
         o = OPTS[sys.argv[2]]; A = os.path.join(HERE, '..', '..', 'assets')
-        for name, extra in [('icon', {}), ('logo-header', {}), ('adaptive-icon', dict(noBg=True, grid=False, scale=0.7, spark=None))]:
+        for name, extra in [('icon', {}), ('logo-header', {}), ('adaptive-icon', dict(noBg=True, grid=False, scale=0.78, spark=None))]:
             d = pg.evaluate('o=>render(o)', {**o, **extra}).split(',')[1]
             open(os.path.join(A, name + '.png'), 'wb').write(base64.b64decode(d)); print(name)
         d = pg.evaluate("o=>{bg(o); return c.toDataURL('image/png')}", dict(grid=True, goldBg=o.get('goldBg', False))).split(',')[1]
