@@ -233,6 +233,16 @@ export const CATEGORIES = [
     ],
   },
   {
+    key: 'radios',
+    title: 'Rádios',
+    hint: 'Rádios ao vivo das empresas; indexe a URL da sua',
+    icon: 'radio-outline',
+    subs: [
+      { label: 'Ouvir rádios', hint: 'Diretório de rádios ao vivo', icon: 'headset-outline', go: { tab: 'radios' } },
+      { label: 'Indexar minha rádio', hint: 'Cole a URL do streaming', icon: 'link-outline', go: { tab: 'radios' } },
+    ],
+  },
+  {
     key: 'arena',
     title: 'Arena Gamer',
     hint: 'Servidores de jogos estilo Discord: canais de texto e de voz',

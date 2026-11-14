@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { OriginSeal, InstallSuggest } from './Engage';
 import { LiveNowBadge } from './LiveBits';
+import { RadioCard, useRadioOf } from './RadioKit';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, Animated, Easing, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -337,6 +338,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
 
   const b = businessOf(state, p.id);
   const close = () => dispatch({ type: 'CLOSE_COMPANY' });
+  const radio = useRadioOf(p.id);
   const following = !!state.following[p.id];
   const products = state.products.filter((x) => x.storeId === p.id);
   const showcase = showcaseOf(state, p.id);
@@ -447,6 +449,13 @@ export function BusinessPageModal({ p, media, MediaList }) {
 
             {p.bio ? <Text style={styles.bio}>{p.bio}</Text> : null}
             {p.hours ? <Text style={styles.hours}>🕒 {p.hours}</Text> : null}
+
+            {radio ? (
+              <>
+                <Text style={styles.heroH}>RÁDIO AO VIVO</Text>
+                <RadioCard radio={radio} dark />
+              </>
+            ) : null}
 
             <Text style={styles.heroH}>FICHA DA EMPRESA</Text>
             <CompanyFacts b={b} />

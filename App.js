@@ -78,6 +78,8 @@ import JobsScreen from './src/screens/cliente/JobsScreen';
 import DesapegoScreen from './src/screens/cliente/DesapegoScreen';
 import ReelsScreen from './src/screens/cliente/ReelsScreen';
 import ArenaScreen from './src/screens/cliente/ArenaScreen';
+import RadiosScreen from './src/screens/cliente/RadiosScreen';
+import { RadioHost, RadioMiniBar } from './src/components/RadioKit';
 import HRScreen from './src/screens/empresa/HRScreen';
 import { TechScreen, AgroScreen } from './src/screens/cliente/TechAgroScreen';
 import { ElectronicsScreen, FashionScreen, HomeGoodsScreen, AppliancesScreen, FurnitureScreen, VariousScreen, EXTRA_SECTOR_KEYS, SECTOR_SCREENS } from './src/screens/cliente/ShopSectorScreen';
@@ -113,6 +115,7 @@ const TABS = {
     { key: 'paginas', label: 'Páginas', icon: 'albums-outline', Comp: PagesScreen, hidden: true },
     { key: 'desapego', label: 'Desapego', icon: 'pricetags-outline', Comp: DesapegoScreen, hidden: true },
     { key: 'arena', label: 'Arena Gamer', icon: 'game-controller-outline', Comp: ArenaScreen, hidden: true },
+    { key: 'radios', label: 'Rádios', icon: 'radio-outline', Comp: RadiosScreen, hidden: true },
     { key: 'tecnologia', label: 'Tecnologia', icon: 'hardware-chip-outline', Comp: TechScreen, hidden: true },
     { key: 'agro', label: 'Agro', icon: 'leaf-outline', Comp: AgroScreen, hidden: true },
     { key: 'eletronicos', label: 'Eletrônicos', icon: 'phone-portrait-outline', Comp: ElectronicsScreen, hidden: true },
@@ -415,6 +418,8 @@ function Shell() {
         <Comp goTo={setTab} openVoice={() => setVoice(true)} explore={explore} openArea={openArea} navigate={pick} onTop={setCommTop} />
       </SwipePages>
 
+      {/* Rádio tocando: barrinha em qualquer tela (o player é um só no app). */}
+      <RadioMiniBar bottom={88 + insets.bottom} />
       <TouchableOpacity
         style={[styles.fab, { bottom: 84 + insets.bottom }]}
         onPress={() => setVoice(true)}
@@ -482,6 +487,7 @@ function Shell() {
         onDuress={duressNow}
         onSilent={silentNow}
       />
+      <RadioHost />
       <RideWatcher />
       <DocsCenter />
       <PublicOrgModal />

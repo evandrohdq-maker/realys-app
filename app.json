@@ -46,6 +46,12 @@
       "expo-status-bar",
       "expo-video",
       [
+        "expo-build-properties",
+        {
+          "android": { "usesCleartextTraffic": true }
+        }
+      ],
+      [
         "expo-speech-recognition",
         {
           "microphonePermission": "O Re@lys usa o microfone para ouvir quando você chama \"Re@lys\".",
