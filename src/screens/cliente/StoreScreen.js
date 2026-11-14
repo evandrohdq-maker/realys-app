@@ -280,7 +280,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
       {food && !q ? <SpotlightCarousel ads={FOOD_SPOTLIGHT} onOpen={openAd} /> : null}
       {!q ? (food ? <ShopHero title="Food" sub="Restaurantes, bares e cafés perto de você" /> : <ShopHero title="Loja Re@lys" sub="Lojas verificadas, patrocinadas e recomendadas primeiro" />) : null}
       <CircleShortcuts items={food ? FOOD_SHORTCUTS : CATEGORIES} value={cat} onPress={setCat} />
-      {food && !q ? <ClipStrip title="🎬 Clipes da cozinha" clips={FOOD_CLIPS} food /> : null}
+      {food && !q ? <ClipStrip title="🎬 Reels da cozinha" clips={FOOD_CLIPS} food /> : null}
       {food && !q ? (
         <TouchableOpacity style={styles.promoTeaser} activeOpacity={0.9} onPress={() => setSeg('promo')}>
           <Text style={{ fontSize: 18 }}>🔥</Text>
@@ -364,7 +364,7 @@ function MarketTab({ onOpenStore, onAdd, onPromos }) {
       {!term ? <SpotlightCarousel ads={MERCADO_SPOTLIGHT} onOpen={openAd} /> : null}
       {!term ? <ShopHero title="Mercado" sub="Compras do dia e do mês, entregues por motoboy do Re@lys" icon="basket-outline" /> : null}
       <CircleShortcuts items={MERCADO_AISLES} value={aisle} onPress={setAisle} />
-      {!term ? <ClipStrip title="🎬 Clipes do mercado" clips={MERCADO_CLIPS} food /> : null}
+      {!term ? <ClipStrip title="🎬 Reels do mercado" clips={MERCADO_CLIPS} food /> : null}
       {!term ? (
         <TouchableOpacity style={styles.promoTeaser} activeOpacity={0.9} onPress={onPromos}>
           <Text style={{ fontSize: 18 }}>🧺</Text>

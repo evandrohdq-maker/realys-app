@@ -24,10 +24,10 @@ export const SHOP_SPOTLIGHT = [
 ];
 
 export const SHOP_CLIPS = [
-  { id: 'clip-s1', storeId: 'e4', productId: 'p10', title: 'Fone Pro: 30 h de bateria', views: 12400, likes: 1830, photo: photo('realys-clip-fone', 400, 640) },
-  { id: 'clip-s2', storeId: 'e3', productId: 'p9', title: 'Tênis casual: conforto o dia todo', views: 8700, likes: 960, photo: photo('realys-clip-tenis', 400, 640) },
-  { id: 'clip-s3', storeId: 'e3', productId: 'p14', title: 'Jaqueta jeans: 3 jeitos de usar', views: 5300, likes: 712, photo: photo('realys-clip-jaqueta', 400, 640) },
-  { id: 'clip-s4', storeId: 'e4', productId: 'p11', title: 'Carrega 50% em 20 min', views: 4100, likes: 388, photo: photo('realys-clip-carregador', 400, 640) },
+  { id: 'clip-s1', storeId: 'e4', productId: 'p10', title: 'Fone Pro: 30 h de bateria', views: 12400, likes: 1830, photo: photo('realys-clip-fone', 400, 640), video: require('../assets/reels/clip-s1.mp4'), poster: require('../assets/reels/clip-s1.jpg') },
+  { id: 'clip-s2', storeId: 'e3', productId: 'p9', title: 'Tênis casual: conforto o dia todo', views: 8700, likes: 960, photo: photo('realys-clip-tenis', 400, 640), video: require('../assets/reels/clip-s2.mp4'), poster: require('../assets/reels/clip-s2.jpg') },
+  { id: 'clip-s3', storeId: 'e3', productId: 'p14', title: 'Jaqueta jeans: 3 jeitos de usar', views: 5300, likes: 712, photo: photo('realys-clip-jaqueta', 400, 640), video: require('../assets/reels/clip-s3.mp4'), poster: require('../assets/reels/clip-s3.jpg') },
+  { id: 'clip-s4', storeId: 'e4', productId: 'p11', title: 'Carrega 50% em 20 min', views: 4100, likes: 388, photo: photo('realys-clip-carregador', 400, 640), video: require('../assets/reels/clip-s4.mp4'), poster: require('../assets/reels/clip-s4.jpg') },
 ];
 
 // Produtos patrocinados que entram na grade de destaques.
@@ -65,10 +65,10 @@ export const FOOD_SPOTLIGHT = [
 ];
 
 export const FOOD_CLIPS = [
-  { id: 'clip-f1', storeId: 'e2', productId: 'p6', title: 'Saindo do forno a lenha 🔥', views: 21500, likes: 3400, photo: photo('realys-clip-pizza', 400, 640) },
-  { id: 'clip-f2', storeId: 'e5', productId: 'p12', title: 'O X-Burguer mais suculento', views: 15800, likes: 2210, photo: photo('realys-clip-burger', 400, 640) },
-  { id: 'clip-f3', storeId: 'e8', productId: 'p22', title: 'Bolo de pote montado na hora', views: 9900, likes: 1650, photo: photo('realys-clip-bolo', 400, 640) },
-  { id: 'clip-f4', storeId: 'e7', productId: 'p20', title: 'Combinado de 30 peças', views: 7600, likes: 1020, photo: photo('realys-clip-sushi', 400, 640) },
+  { id: 'clip-f1', storeId: 'e2', productId: 'p6', title: 'Saindo do forno a lenha 🔥', views: 21500, likes: 3400, photo: photo('realys-clip-pizza', 400, 640), video: require('../assets/reels/clip-f1.mp4'), poster: require('../assets/reels/clip-f1.jpg') },
+  { id: 'clip-f2', storeId: 'e5', productId: 'p12', title: 'O X-Burguer mais suculento', views: 15800, likes: 2210, photo: photo('realys-clip-burger', 400, 640), video: require('../assets/reels/clip-f2.mp4'), poster: require('../assets/reels/clip-f2.jpg') },
+  { id: 'clip-f3', storeId: 'e8', productId: 'p22', title: 'Bolo de pote montado na hora', views: 9900, likes: 1650, photo: photo('realys-clip-bolo', 400, 640), video: require('../assets/reels/clip-f3.mp4'), poster: require('../assets/reels/clip-f3.jpg') },
+  { id: 'clip-f4', storeId: 'e7', productId: 'p20', title: 'Combinado de 30 peças', views: 7600, likes: 1020, photo: photo('realys-clip-sushi', 400, 640), video: require('../assets/reels/clip-f4.mp4'), poster: require('../assets/reels/clip-f4.jpg') },
 ];
 
 export const FOOD_FLASH = [
@@ -109,8 +109,8 @@ export const MERCADO_SPOTLIGHT = [
   { id: 'ad-m2', storeId: 'e1', productId: 'p1', title: 'Compra do mês sem sair de casa', sub: 'Arroz, feijão, leite e mais · entrega no mesmo dia', cta: 'Montar carrinho', tint: '#2E8B57', photo: photo('realys-ad-mercado') },
 ];
 export const MERCADO_CLIPS = [
-  { id: 'clip-m1', storeId: 'e1', productId: 'p3', title: 'Do grão à xícara em 1 minuto', views: 5300, likes: 712, photo: photo('realys-clip-cafe', 400, 640) },
-  { id: 'clip-m2', storeId: 'e1', productId: 'p4', title: 'Leite fresquinho chegou hoje', views: 2900, likes: 301, photo: photo('realys-clip-leite', 400, 640) },
+  { id: 'clip-m1', storeId: 'e1', productId: 'p3', title: 'Do grão à xícara em 1 minuto', views: 5300, likes: 712, photo: photo('realys-clip-cafe', 400, 640), video: require('../assets/reels/clip-m1.mp4'), poster: require('../assets/reels/clip-m1.jpg') },
+  { id: 'clip-m2', storeId: 'e1', productId: 'p4', title: 'Leite fresquinho chegou hoje', views: 2900, likes: 301, photo: photo('realys-clip-leite', 400, 640), video: require('../assets/reels/clip-m2.mp4'), poster: require('../assets/reels/clip-m2.jpg') },
 ];
 export const MERCADO_FLASH = [
   { id: 'fl-m1', productId: 'p3', off: 20, hours: 6, sold: 0.81, limit: 'Últimas unidades' },

@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Animated, Easing, useWindowDimensions, Alert, Share } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Animated, Easing, useWindowDimensions, Alert, Share, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf } from '../store';
 import { colors, soft, brl } from '../theme';
 import { Photo, ProductThumb } from './ui';
+import { ReelsViewer } from './Reels';
 import { CLIP_POINTS, CLIP_MS, flashEndsAt, countdown, shortNum, comboOff } from '../adsData';
 
 // Peças de publicidade paga e do setor de Promoções, usadas no Shop e no Food.
@@ -130,10 +131,12 @@ export function SpotlightCarousel({ ads, onOpen }) {
 }
 
 // Clipes: vídeos curtos de produto. Assistiu até o fim, ganha pontos.
+// Com vídeo, abrem como Reels (tela cheia, arrastando para cima); sem vídeo, como stories.
 export function ClipStrip({ title, clips, food }) {
   const { state } = useStore();
   const [open, setOpen] = useState(null); // índice do clipe aberto
   if (!clips.length) return null;
+  const reels = clips.every((c) => c.video);
   return (
     <View style={{ marginBottom: 16 }}>
       <View style={styles.head}>
@@ -149,7 +152,7 @@ export function ClipStrip({ title, clips, food }) {
           const done = !!state.adRewards[c.id];
           return (
             <TouchableOpacity key={c.id} style={styles.clip} activeOpacity={0.9} onPress={() => setOpen(k)} accessibilityLabel={`Assistir clipe: ${c.title}`}>
-              <Photo uri={c.photo} style={StyleSheet.absoluteFill} fallback={s.logo || '🎬'} />
+              {c.poster ? <Image source={c.poster} style={StyleSheet.absoluteFill} resizeMode="cover" /> : <Photo uri={c.photo} style={StyleSheet.absoluteFill} fallback={s.logo || '🎬'} />}
               <View style={styles.clipShade} />
               <View style={styles.clipPlay}>
                 <Ionicons name="play" size={18} color="#fff" />
@@ -168,7 +171,11 @@ export function ClipStrip({ title, clips, food }) {
           );
         })}
       </ScrollView>
-      <ClipPlayer clips={clips} index={open} onIndex={setOpen} onClose={() => setOpen(null)} food={food} />
+      {reels ? (
+        <ReelsViewer reels={clips.map((c) => ({ ...c, kind: food ? 'food' : 'shop' }))} index={open} onClose={() => setOpen(null)} />
+      ) : (
+        <ClipPlayer clips={clips} index={open} onIndex={setOpen} onClose={() => setOpen(null)} food={food} />
+      )}
     </View>
   );
 }

@@ -9,9 +9,9 @@
     "prebuild": "expo prebuild --platform android --clean"
   },
   "dependencies": {
+    "@config-plugins/react-native-webrtc": "*",
     "@expo/vector-icons": "*",
     "@react-native-async-storage/async-storage": "*",
-    "@config-plugins/react-native-webrtc": "*",
     "@react-native-ml-kit/face-detection": "*",
     "expo": "~56.0.0",
     "expo-camera": "*",
@@ -30,6 +30,7 @@
     "expo-speech": "*",
     "expo-speech-recognition": "*",
     "expo-status-bar": "*",
+    "expo-video": "*",
     "react": "*",
     "react-native": "*",
     "react-native-safe-area-context": "*",

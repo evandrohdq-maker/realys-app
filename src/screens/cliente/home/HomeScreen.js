@@ -212,7 +212,7 @@ function ShopTab({ goTo, explore, navigate }) {
           {/* Patrocinados logo abaixo do "Você no comando". */}
           <SpotlightCarousel ads={SHOP_SPOTLIGHT} onOpen={openAd} />
           <LaunchStrip only={notFood} />
-          <ClipStrip title="🎬 Clipes das lojas" clips={SHOP_CLIPS} />
+          <ClipStrip title="🎬 Reels das lojas" clips={SHOP_CLIPS} />
           <TouchableOpacity style={styles.promoTeaser} activeOpacity={0.9} onPress={() => setSeg('promo')}>
             <Ionicons name="flash" size={20} color="#fff" />
             <View style={{ flex: 1, marginLeft: 10 }}>

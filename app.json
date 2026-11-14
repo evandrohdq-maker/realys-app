@@ -44,6 +44,7 @@
         }
       ],
       "expo-status-bar",
+      "expo-video",
       [
         "expo-speech-recognition",
         {

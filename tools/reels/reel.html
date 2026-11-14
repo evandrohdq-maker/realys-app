@@ -1,0 +1,79 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:P;src:url(file:///usr/share/fonts/truetype/google-fonts/Poppins-Bold.ttf)}
+@font-face{font-family:E;src:url(file:///usr/share/fonts/truetype/noto/NotoColorEmoji.ttf)}
+body{margin:0;background:#000}
+</style></head><body><canvas id="c" width="480" height="854"></canvas>
+<script>
+// Vídeos de demonstração dos Reels do Re@lys (verticais, 6 s): produto em destaque com luz,
+// brilho e preço. As lojas reais sobem os próprios vídeos quando o servidor estiver no ar.
+const c = document.getElementById('c'), x = c.getContext('2d');
+const W = 480, H = 854;
+const ease = (t) => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
+const back = (t) => { t = Math.min(1, Math.max(0, t)); const s = 1.7; return 1 + (s + 1) * Math.pow(t - 1, 3) + s * Math.pow(t - 1, 2); };
+function hex(h, k) { // clareia (k>0) ou escurece (k<0)
+  const n = parseInt(h.slice(1), 16); let r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+  const f = (v) => Math.round(k > 0 ? v + (255 - v) * k : v * (1 + k));
+  return `rgb(${f(r)},${f(g)},${f(b)})`;
+}
+function frame(o, t) {
+  // fundo: degradê da cor do produto até um tom profundo, com raios de luz girando
+  const g = x.createLinearGradient(0, 0, W * 0.3, H);
+  g.addColorStop(0, hex(o.c1, 0.15)); g.addColorStop(0.55, o.c1); g.addColorStop(1, hex(o.c2, -0.35));
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.save(); x.translate(W / 2, H * 0.45); x.rotate(t * 0.25);
+  for (let i = 0; i < 12; i++) {
+    x.rotate(Math.PI / 6);
+    x.fillStyle = 'rgba(255,255,255,0.07)';
+    x.beginPath(); x.moveTo(0, 0); x.lineTo(-40, -H); x.lineTo(40, -H); x.closePath(); x.fill();
+  }
+  x.restore();
+  const halo = x.createRadialGradient(W / 2, H * 0.45, 10, W / 2, H * 0.45, 260);
+  halo.addColorStop(0, 'rgba(255,255,255,0.55)'); halo.addColorStop(1, 'rgba(255,255,255,0)');
+  x.fillStyle = halo; x.fillRect(0, 0, W, H);
+  // produto: entra com zoom e fica flutuando
+  const s = back(t / 0.9) * (1 + 0.04 * Math.sin(t * 3));
+  const fy = H * 0.45 + Math.sin(t * 2.2) * 10;
+  x.save(); x.translate(W / 2, fy); x.rotate(Math.sin(t * 1.4) * 0.08); x.scale(s, s);
+  x.shadowColor = 'rgba(0,0,0,0.35)'; x.shadowBlur = 40; x.shadowOffsetY = 30;
+  x.font = '220px E'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(o.emoji, 0, 0);
+  x.restore();
+  // brilhos
+  for (let i = 0; i < 9; i++) {
+    const a = (Math.sin(t * 3 + i * 1.7) + 1) / 2, px = W / 2 + Math.cos(i * 2.3) * (150 + i * 9), py = H * 0.45 + Math.sin(i * 1.9) * 190;
+    x.globalAlpha = a * ease(t - 0.6); x.fillStyle = '#fff';
+    x.beginPath(); const r = 4 + (i % 3) * 3;
+    x.moveTo(px, py - r * 2); x.lineTo(px + r * 0.5, py - r * 0.5); x.lineTo(px + r * 2, py); x.lineTo(px + r * 0.5, py + r * 0.5);
+    x.lineTo(px, py + r * 2); x.lineTo(px - r * 0.5, py + r * 0.5); x.lineTo(px - r * 2, py); x.lineTo(px - r * 0.5, py - r * 0.5); x.fill();
+  }
+  x.globalAlpha = 1;
+  // chamada no alto (entra deslizando)
+  const k = ease((t - 0.5) / 0.6);
+  x.globalAlpha = k; x.fillStyle = '#fff'; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+  x.shadowColor = 'rgba(0,0,0,0.35)'; x.shadowBlur = 12;
+  x.font = '700 34px P';
+  const words = o.head.split(' '); const lines = []; let cur = '';
+  for (const w of words) { const tt = cur ? cur + ' ' + w : w; if (x.measureText(tt).width > W - 70) { lines.push(cur); cur = w; } else cur = tt; }
+  lines.push(cur);
+  lines.forEach((l, i) => x.fillText(l, W / 2, 140 + i * 42 + (1 - k) * 30));
+  x.shadowBlur = 0; x.globalAlpha = 1;
+  // preço (salta aos 2,2 s)
+  const pk = back((t - 2.2) / 0.5);
+  if (t > 2.2) {
+    x.save(); x.translate(W * 0.72, H * 0.62); x.rotate(-0.12); x.scale(pk, pk);
+    x.fillStyle = '#C9971C'; x.beginPath(); x.arc(0, 0, 70, 0, 7); x.fill();
+    x.strokeStyle = '#FFF3C4'; x.lineWidth = 4; x.beginPath(); x.arc(0, 0, 62, 0, 7); x.stroke();
+    x.fillStyle = '#fff'; x.textAlign = 'center'; x.font = '700 16px P'; x.fillText('POR', 0, -18);
+    x.font = '700 28px P'; x.fillText(o.price, 0, 16);
+    x.restore();
+  }
+  // selo do Re@lys (aos 3,6 s)
+  const bk = ease((t - 3.6) / 0.5);
+  x.globalAlpha = bk; x.fillStyle = 'rgba(0,0,0,0.45)';
+  const bw = 300; x.beginPath(); x.roundRect(W / 2 - bw / 2, H * 0.73, bw, 46, 23); x.fill();
+  x.fillStyle = '#FFE08A'; x.font = '700 18px P'; x.textAlign = 'center'; x.fillText(o.cta, W / 2, H * 0.73 + 30);
+  x.globalAlpha = 1;
+}
+async function ready() { await document.fonts.load('700 20px P'); await document.fonts.load('40px E', '🍕'); return true; }
+function shot(o, t) { frame(o, t); return c.toDataURL('image/jpeg', 0.92); }
+</script></body></html>

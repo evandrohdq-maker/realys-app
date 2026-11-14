@@ -76,6 +76,7 @@ import ArtistsScreen from './src/screens/cliente/ArtistsScreen';
 import PageScreen from './src/screens/empresa/PageScreen';
 import JobsScreen from './src/screens/cliente/JobsScreen';
 import DesapegoScreen from './src/screens/cliente/DesapegoScreen';
+import ReelsScreen from './src/screens/cliente/ReelsScreen';
 import HRScreen from './src/screens/empresa/HRScreen';
 import { TechScreen, AgroScreen } from './src/screens/cliente/TechAgroScreen';
 import { ElectronicsScreen, FashionScreen, HomeGoodsScreen, AppliancesScreen, FurnitureScreen, VariousScreen, EXTRA_SECTOR_KEYS, SECTOR_SCREENS } from './src/screens/cliente/ShopSectorScreen';
@@ -96,6 +97,8 @@ const TABS = {
     // Community vem primeiro: é a aba que abre quando o app inicia.
     { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'home', label: 'Shop', icon: 'bag-handle-outline', Comp: HomeScreen },
+    // Reels: vídeos curtos em tela cheia (lojas e comida), estilo Instagram.
+    { key: 'reels', label: 'Reels', icon: 'play-circle-outline', Comp: ReelsScreen },
     { key: 'encontros', label: 'Date', icon: 'heart-outline', Comp: EncontrosScreen },
     { key: 'food', label: 'Food', icon: 'restaurant-outline', Comp: FoodScreen },
     { key: 'servicos', label: 'Serviços', icon: 'construct-outline', Comp: ServicesScreen },
