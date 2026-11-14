@@ -216,8 +216,10 @@ const initialState = {
   // anúncios e os interessados neles.
   negRequests: {}, // { [listingId]: 'aguardando' | 'liberado' }
   negPlan: null, // { id, since }
+  storePlan: { pendingOrder: false, plan: null, since: null }, // plano da loja: só começa no primeiro pedido aceito
   negAds: [], // anúncios que eu publiquei
   negLeads: [], // { id, adId, name, at, unlocked, paid }
+  bioGate: null, // conta sem biometria tentou comprar ou contratar: abre a janela de fazer a biometria
   liveMini: null, // live minimizada numa janelinha flutuante (objeto da live)
   liveOpen: null, // live reaberta a partir da janelinha
   viewProvider: null, // perfil de prestador aberto por cima de qualquer tela
@@ -356,7 +358,19 @@ function giftPointsPatch(state, amount, desc) {
   };
 }
 
+// Conta sem biometria (modo social): estas ações são compra, contratação, anúncio ou carteira e
+// não são aceitas. Em vez de executar, o app abre a janela "falta só a biometria".
+const NEEDS_BIO = new Set([
+  'ADD_TO_CART', 'OPEN_CART', 'CHECKOUT', 'ADD_COMBO', 'COLLECT_COUPON', 'SECTOR_ORDER', 'BUY_TICKET', 'BUY_MEDIA', 'MEDIA_UPLOAD', 'MEDIA_PLAN',
+  'VENUE_RESERVE', 'VENUE_ORDER', 'REQUEST_RIDE', 'VISIT_REQUEST', 'REVERSE_POST', 'REVERSE_ACCEPT', 'GROUP_JOIN', 'SUB_START', 'SUS_BOOK', 'DOC_SIGN',
+  'NEG_REQUEST', 'NEG_PLAN', 'NEG_AD_CREATE', 'NEG_LEAD_UNLOCK', 'DESAPEGO_ADD', 'DESAPEGO_BUY', 'APPLY_JOB', 'PAGE_CREATE', 'REDEEM_POINTS', 'INTEL_PLAN',
+  'OPEN_GIFT', 'SEND_GIFT', 'SEND_LIVE_GIFT', 'CONVERT_LIVE_CREDITS', 'GIFT_CASHOUT', 'WALLET_DEPOSIT', 'WALLET_WITHDRAW', 'DATE_SUBSCRIBE', 'SET_HIGHLIGHT',
+  'SAVE_MY_PROVIDER', 'TOGGLE_AVAILABLE', 'SET_ROLE',
+]);
+export const needsBio = (type) => NEEDS_BIO.has(type);
+
 function reducer(state, a) {
+  if (state.user && state.user.verified === false && NEEDS_BIO.has(a.type)) return { ...state, bioGate: Date.now() };
   const next = baseReducer(state, a);
   if (!next || next === state || next.wallet === state.wallet || next.walletTx !== state.walletTx || a.type === 'LOGOUT') return next;
   const diff = +(next.wallet - state.wallet).toFixed(2);
@@ -897,6 +911,13 @@ function baseReducer(state, a) {
         walletTx: [{ id: newId('w'), ts: Date.now(), kind: 'gasto', cat: 'Anúncios', desc: `Plano ${plan.nome} (mensal)`, amount: plan.valor }, ...state.walletTx],
       };
     }
+    // ---------- Plano da loja ----------
+    // Chegou o primeiro pedido: para aceitar, a loja escolhe mensal ou anual.
+    case 'STORE_FIRST_ORDER':
+      return state.storePlan && state.storePlan.plan ? state : { ...state, storePlan: { pendingOrder: true, plan: null, since: null } };
+    // Contratou: aceita o pedido e começa o mês grátis (a cobrança vem 30 dias depois).
+    case 'STORE_PLAN':
+      return a.plan === 'mensal' || a.plan === 'anual' ? { ...state, storePlan: { pendingOrder: false, plan: a.plan, since: Date.now() } } : state;
     case 'NEG_PLAN_CANCEL':
       return { ...state, negPlan: null };
     case 'NEG_AD_CREATE':
@@ -916,6 +937,13 @@ function baseReducer(state, a) {
         walletTx: cost ? [{ id: newId('w'), ts: Date.now(), kind: 'gasto', cat: 'Anúncios', desc: `Conversa liberada: ${lead.name} (${ad.title})`, amount: cost }, ...state.walletTx] : state.walletTx,
       };
     }
+    // ---------- Biometria feita depois do cadastro ----------
+    case 'SET_VERIFIED':
+      return state.user ? { ...state, user: { ...state.user, verified: true }, bioGate: null } : state;
+    case 'BIO_GATE':
+      return { ...state, bioGate: Date.now() };
+    case 'BIO_GATE_CLOSE':
+      return { ...state, bioGate: null };
     case 'LIVE_MINIMIZE':
       return { ...state, liveMini: a.live, liveOpen: null, watchLive: null };
     case 'LIVE_REOPEN':

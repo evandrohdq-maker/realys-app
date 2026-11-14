@@ -340,3 +340,11 @@ Para trocar os exemplos (nomes de lojas, produtos, preços, fotos), edite **`src
 ## Servidor
 
 A pasta **`server/`** tem o servidor do Realys (contas, carteira, presentes, lojas, pedidos, social, chat, prestadores com GPS, lives e administrador), pronto para instalar numa VPS com um comando. Instruções em [`server/README.md`](server/README.md). O app se liga a ele pelo endereço em `app.json` › `extra` › `apiUrl` (vazio = modo demonstração) e pelo cliente `src/api.js`.
+
+## Conta sem biometria e plano da loja
+
+- **Modo social**: no cadastro dá para deixar a biometria para depois. A conta interage (Community, News,
+  Stream, Lives, Reels, páginas, perfil), mas não compra nem usa serviços até fazer a biometria pelo Perfil
+  (`src/components/BioGate.js`, lista `NEEDS_BIO` em `src/store.js`).
+- **Plano da loja** (`src/planoLoja.js`): R$ 49,90 por mês ou anual por 75% do valor; começa só quando a loja
+  aceita o primeiro pedido, com o primeiro mês grátis. Comissão de 10% sobre as vendas.

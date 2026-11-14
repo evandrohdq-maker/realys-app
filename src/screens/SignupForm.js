@@ -75,23 +75,26 @@ export default function SignupForm({ onDone, onGoLogin }) {
     return null;
   };
 
-  const submit = async () => {
+  // later = true: a pessoa escolheu deixar a biometria para depois (conta no modo social).
+  const submit = async (later) => {
     const err = problems();
     if (err) return Alert.alert('Confira o cadastro', err);
     setBusy(true);
     try {
-      const bio = await confirmBiometric('Confirme sua biometria para criar a conta Re@lys');
-      if (bio === 'falhou') return Alert.alert('Biometria não confirmada', 'A conta só é criada depois de confirmar que é você.');
+      const bio = later === true ? 'depois' : await confirmBiometric('Confirme sua biometria para criar a conta Re@lys');
+      if (bio === 'falhou') return Alert.alert('Biometria não confirmada', 'Não deu para confirmar que é você. Tente de novo ou crie a conta sem biometria por enquanto.');
       // Pessoa: o perfil social sai do questionário (Gamer, Artista, Estudante...).
       const social = empresa ? null : quiz.manual && quiz.social ? quiz.social : classifyProfile(`${quiz.about} ${quiz.work}`, quiz.hobbies);
-      const { account, error } = await createAccount({ kind, name, doc, username, email, phone, password, birth: empresa ? null : birth, social, about: empresa ? '' : quiz.about, work: empresa ? '' : quiz.work });
+      const { account, error } = await createAccount({ kind, name, doc, username, email, phone, password, birth: empresa ? null : birth, social, about: empresa ? '' : quiz.about, work: empresa ? '' : quiz.work, bio: bio === 'ok' });
       if (error) return Alert.alert('Não foi possível cadastrar', error);
       await saveAccepted(account.id); // versão e data do aceite do termo
       Alert.alert(
         'Conta criada!',
-        bio === 'sem'
-          ? `Bem-vindo ao Re@lys, ${account.name.split(' ')[0]}. Este celular não tem biometria cadastrada: cadastre a digital ou o rosto nas configurações para a verificação completa.`
-          : `Bem-vindo ao Re@lys, ${account.name.split(' ')[0]}. Sua identidade foi confirmada pela biometria.`,
+        bio === 'ok'
+          ? `Bem-vindo ao Re@lys, ${account.name.split(' ')[0]}. Sua identidade foi confirmada pela biometria.`
+          : bio === 'sem'
+          ? `Bem-vindo ao Re@lys, ${account.name.split(' ')[0]}. Este celular não tem digital nem rosto cadastrados, então sua conta começa no modo social: dá para interagir, mas não comprar nem usar serviços. Cadastre a biometria no aparelho e libere a conta pelo Perfil.`
+          : `Bem-vindo ao Re@lys, ${account.name.split(' ')[0]}. Sua conta começa no modo social: dá para interagir, mas não comprar nem usar serviços. Quando quiser liberar tudo, faça a biometria no Perfil.`,
         [{ text: 'Entrar', onPress: () => onDone(account, remember) }]
       );
     } finally {
@@ -326,9 +329,14 @@ export default function SignupForm({ onDone, onGoLogin }) {
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity style={[authStyles.btn, busy && { opacity: 0.6 }]} onPress={submit} disabled={busy} activeOpacity={0.85}>
+      <TouchableOpacity style={[authStyles.btn, busy && { opacity: 0.6 }]} onPress={() => submit(false)} disabled={busy} activeOpacity={0.85}>
         <Ionicons name="finger-print" size={20} color={colors.onPrimary} />
         <Text style={authStyles.btnText}>{busy ? 'Criando conta…' : 'Criar conta com biometria'}</Text>
+      </TouchableOpacity>
+      {/* Sem biometria agora: a conta nasce no modo social (não compra nem usa serviços). */}
+      <TouchableOpacity style={{ paddingVertical: 14, alignItems: 'center' }} onPress={() => submit(true)} disabled={busy} activeOpacity={0.7} accessibilityLabel="Criar a conta sem biometria por enquanto">
+        <Text style={{ color: colors.text, fontWeight: '700' }}>Fazer a biometria depois</Text>
+        <Text style={{ color: colors.muted, fontSize: 12, marginTop: 3, textAlign: 'center' }}>Você entra só no modo social: interage, mas não compra nem usa serviços até fazer a biometria.</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={authStyles.link} onPress={onGoLogin}>

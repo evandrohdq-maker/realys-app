@@ -1,0 +1,133 @@
+// Conta sem biometria: perfil só social.
+// O cadastro pede documento e biometria. Quem prefere deixar a biometria para depois entra e usa
+// a parte social (Community, News, Stream, Lives, Reels, páginas e o próprio perfil), mas não
+// compra, não contrata e não usa serviço nenhum até fazer a biometria.
+// Aqui ficam: a regra das telas liberadas, a tela de "falta a biometria", o aviso do Perfil e a
+// janela que aparece quando a pessoa tenta comprar ou contratar.
+import React, { useState } from 'react';
+import { View, StyleSheet, TouchableOpacity, Modal, Alert } from 'react-native';
+import { Text } from '../responsive';
+import { Ionicons } from '@expo/vector-icons';
+import { useStore } from '../store';
+import { colors, soft } from '../theme';
+import { confirmBiometric, markVerified } from '../accounts';
+
+// Telas que a conta sem biometria pode abrir. O SOS fica sempre liberado: emergência não espera.
+export const SOCIAL_TABS = ['stories', 'reels', 'perfil', 'paginas', 'radios', 'arena', 'socorro'];
+export const isVerified = (state) => !state.user || state.user.verified !== false;
+export const canOpenTab = (state, key) => isVerified(state) || SOCIAL_TABS.includes(key);
+
+// Faz a biometria agora e libera a conta. Devolve true se liberou.
+export function useVerify() {
+  const { state, dispatch } = useStore();
+  const [busy, setBusy] = useState(false);
+  const verify = async () => {
+    if (busy) return false;
+    setBusy(true);
+    try {
+      const res = await confirmBiometric('Confirme sua biometria para liberar compras e serviços no Re@lys');
+      if (res === 'ok') {
+        await markVerified(state.user).catch(() => {});
+        dispatch({ type: 'SET_VERIFIED' });
+        Alert.alert('Biometria registrada ✅', 'Sua conta está completa: compras, serviços e a carteira já estão liberados.');
+        return true;
+      }
+      if (res === 'sem') Alert.alert('Celular sem biometria', 'Este celular não tem digital nem rosto cadastrados. Cadastre nas configurações do aparelho e volte aqui para liberar a conta.');
+      else Alert.alert('Biometria não confirmada', 'Não deu para confirmar que é você. Tente de novo.');
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  };
+  return { verify, busy };
+}
+
+const POINTS = [
+  ['chatbubbles-outline', 'Liberado agora', 'Community, News, Stream, Lives, Reels, páginas e o seu perfil.'],
+  ['lock-closed-outline', 'Liberado com a biometria', 'Comprar, pedir comida, contratar serviços, anunciar, carteira e presentes.'],
+];
+
+function Body({ onLater }) {
+  const { verify, busy } = useVerify();
+  return (
+    <View style={st.card}>
+      <View style={st.icon}>
+        <Ionicons name="finger-print" size={30} color={colors.text} />
+      </View>
+      <Text style={st.title}>Falta só a biometria</Text>
+      <Text style={st.text}>Sua conta está no modo social. Para comprar e usar os serviços do Re@lys, a gente precisa confirmar que é você: é isso que mantém a plataforma só com gente de verdade.</Text>
+      {POINTS.map(([icon, t, d]) => (
+        <View key={t} style={st.row}>
+          <Ionicons name={icon} size={17} color={colors.menu} />
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={st.rowTitle}>{t}</Text>
+            <Text style={st.rowText}>{d}</Text>
+          </View>
+        </View>
+      ))}
+      <TouchableOpacity style={[st.btn, busy && { opacity: 0.6 }]} disabled={busy} onPress={async () => (await verify()) && onLater && onLater()} activeOpacity={0.85} accessibilityLabel="Fazer a biometria agora">
+        <Ionicons name="finger-print" size={18} color="#fff" />
+        <Text style={st.btnText}>{busy ? 'Confirmando…' : 'Fazer a biometria agora'}</Text>
+      </TouchableOpacity>
+      {onLater ? (
+        <TouchableOpacity onPress={onLater} style={{ paddingVertical: 12 }} accessibilityLabel="Agora não">
+          <Text style={{ color: colors.muted, fontWeight: '700', textAlign: 'center' }}>Agora não</Text>
+        </TouchableOpacity>
+      ) : null}
+    </View>
+  );
+}
+
+// Tela no lugar de uma aba bloqueada (Shop, Food, Serviços, Negócios…).
+export function LockedScreen() {
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.bg, justifyContent: 'center', padding: 18 }}>
+      <Body />
+    </View>
+  );
+}
+
+// Janela que aparece quando a conta sem biometria tenta comprar ou contratar.
+export function BioGateModal() {
+  const { state, dispatch } = useStore();
+  const open = !!state.bioGate && !isVerified(state);
+  const close = () => dispatch({ type: 'BIO_GATE_CLOSE' });
+  return (
+    <Modal visible={open} transparent animationType="fade" onRequestClose={close}>
+      <View style={st.scrim}>
+        <Body onLater={close} />
+      </View>
+    </Modal>
+  );
+}
+
+// Aviso discreto no topo do Perfil enquanto a conta está no modo social.
+export function UnverifiedBanner() {
+  const { state } = useStore();
+  const { verify, busy } = useVerify();
+  if (isVerified(state)) return null;
+  return (
+    <TouchableOpacity style={st.banner} onPress={verify} disabled={busy} activeOpacity={0.85} accessibilityLabel="Conta no modo social. Fazer a biometria para liberar compras e serviços">
+      <Ionicons name="finger-print" size={20} color={colors.text} />
+      <View style={{ flex: 1, marginLeft: 10 }}>
+        <Text style={{ color: colors.text, fontWeight: '800' }}>Conta no modo social</Text>
+        <Text style={{ color: colors.muted, fontSize: 12, marginTop: 1 }}>Faça a biometria para liberar compras, serviços e a carteira.</Text>
+      </View>
+      <Text style={{ color: colors.text, fontWeight: '800', fontSize: 12.5 }}>{busy ? '…' : 'Fazer'}</Text>
+    </TouchableOpacity>
+  );
+}
+
+const st = StyleSheet.create({
+  scrim: { flex: 1, backgroundColor: 'rgba(20,18,14,0.55)', justifyContent: 'center', padding: 18 },
+  card: { backgroundColor: colors.card, borderRadius: 22, padding: 18, ...soft },
+  icon: { width: 58, height: 58, borderRadius: 29, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center', alignSelf: 'center' },
+  title: { color: colors.text, fontWeight: '800', fontSize: 19, textAlign: 'center', marginTop: 10 },
+  text: { color: colors.muted, fontSize: 13.5, lineHeight: 19, textAlign: 'center', marginTop: 6, marginBottom: 8 },
+  row: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 7 },
+  rowTitle: { color: colors.text, fontWeight: '700', fontSize: 13.5 },
+  rowText: { color: colors.muted, fontSize: 12.5, marginTop: 1 },
+  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.text, borderRadius: 14, paddingVertical: 13, marginTop: 12 },
+  btnText: { color: '#fff', fontWeight: '800', marginLeft: 8, fontSize: 15 },
+  banner: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 16, borderWidth: 1, borderColor: colors.borderStrong, padding: 12, marginBottom: 10 },
+});

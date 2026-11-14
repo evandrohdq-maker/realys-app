@@ -8,6 +8,7 @@ import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Stat, BarChart, Section, ProductThumb, Badge } from '../../components/ui';
 import { ALL_ADS, shortNum } from '../../adsData';
 import { MY_COMPANY_ID } from '../../data';
+import PlanoLojaCard from '../../components/PlanoLojaCard';
 
 export default function DashboardScreen({ goTo }) {
   const { state, dispatch } = useStore();
@@ -35,6 +36,8 @@ export default function DashboardScreen({ goTo }) {
         <Stat label="Ticket médio" value={brl(avgTicket)} />
         <Stat label="Saldo do período" value={brl(entradas - saidas)} color={entradas - saidas >= 0 ? colors.success : colors.danger} />
       </Row>
+
+      <PlanoLojaCard />
 
       {/* Presentear clientes: créditos que o cliente usa só para comprar no Re@lys */}
       <TouchableOpacity activeOpacity={0.9} onPress={() => dispatch({ type: 'OPEN_GIFT', asCompany: true })} style={{ backgroundColor: '#FFFFFF', borderRadius: 18, padding: 14, marginBottom: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border }}>

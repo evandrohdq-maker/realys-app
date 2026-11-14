@@ -226,3 +226,17 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
 ## Páginas de usuários (nov/2026)
 - Feito no APK: aba Páginas (menu ⋮ → Comunidade e lives, Perfil → Minhas páginas), até 5 páginas por usuário, assinada (nome + selo verificado) ou anônima (dono verificado, nome oculto), posts com checagem de fatos, seguir/denunciar, busca e Lotus ("abre a página X", "criar página").
 - Pendente: sincronizar páginas e posts com o servidor (hoje ficam no perfil salvo no aparelho); moderação de denúncias no painel admin; dono de página anônima só revelado por ordem judicial.
+
+## Conta sem biometria (modo social) e plano da loja — novembro de 2026
+
+- [x] Cadastro pede documento e biometria. Quem escolhe "Fazer a biometria depois" (ou está num celular sem
+      digital/rosto) entra no modo social: usa Community, News, Stream, Lives, Reels, páginas e o perfil,
+      mas não compra, não contrata, não anuncia e não usa a carteira. Abas de compra e serviço mostram a
+      tela "Falta só a biometria"; qualquer ação de compra abre a mesma janela. O SOS continua liberado.
+- [x] Plano da loja: R$ 49,90 por mês ou anual por 75% do valor (R$ 449,10). Só é pedido quando a loja
+      aceita o primeiro pedido; primeiro mês grátis. Comissão única de 10% sobre as vendas (Shop e Food).
+      Termo de adesão na versão v16.
+- [ ] Servidor: recusar pedido, contratação e carteira de conta sem biometria aprovada (hoje a trava é só no app).
+- [ ] Servidor: cobrar o plano da loja (mensal/anual) depois do mês grátis e travar o aceite de pedido sem plano.
+      No app, a chegada do primeiro pedido é simulada por um botão no Painel da empresa.
+- [ ] Contas de demonstração (login sem cadastro) entram como verificadas.

@@ -1,7 +1,7 @@
 // Termo de adesão do Re@lys (texto igual ao do servidor: server/src/termos.js). Gerado a partir dele.
-export const TERMO_ADESAO_VERSAO = "2026-11-adesao-v15";
+export const TERMO_ADESAO_VERSAO = "2026-11-adesao-v16";
 export const TERMO_ADESAO = {
-  "versao": "2026-11-adesao-v15",
+  "versao": "2026-11-adesao-v16",
   "titulo": "Termo de Adesão ao aplicativo Re@lys",
   "atualizado": "8 de novembro de 2026",
   "itens": [
@@ -67,7 +67,7 @@ export const TERMO_ADESAO = {
     },
     {
       "titulo": "16. Taxas do Re@lys",
-      "texto": "Todas as taxas são mostradas antes de você confirmar. (a) Pedidos de lojas: 10% sobre a venda no Shop e 11% no Food, pagos pela loja, já com o pagamento online incluído; o cliente não paga a mais por isso. (b) Taxa de proteção: R$ 0,99 por pedido de produtos, paga pelo cliente, com o mesmo valor a qualquer hora. (c) Contratação de serviços: o prestador define a taxa de visita e o Re@lys fica com 15% dela; o valor final do serviço é combinado entre cliente e prestador. (d) Corridas e entregas: o Re@lys fica com 18% do valor da corrida. (e) Presentes: 10% do valor do presente. (f) Ingressos: 8% do valor de cada ingresso, no mínimo R$ 1,99, pagos pelo produtor, que pode repassar ao comprador. (g) Plano de empresa: R$ 89 por mês, só no mês em que a empresa vender mais de R$ 1.800 pelo Re@lys. (h) Saque de presentes, conforme o item 21. (i) Boosts, anúncios e a assinatura Date+, pelo preço mostrado na tela. (j) Serviços prestados pelo governo (SUS, UPAs, UBSs, hospitais públicos, SAMU, Bombeiros, Defesa Civil e polícia) não têm nenhuma taxa do Re@lys. O Re@lys pode rever as taxas; a mudança vale só para o que for contratado depois do aviso."
+      "texto": "Todas as taxas são mostradas antes de você confirmar. (a) Pedidos de lojas: 10% sobre o valor de cada venda, no Shop e no Food, pagos pela loja, já com o pagamento online incluído; o cliente não paga a mais por isso. (b) Taxa de proteção: R$ 0,99 por pedido de produtos, paga pelo cliente, com o mesmo valor a qualquer hora. (c) Contratação de serviços: o prestador define a taxa de visita e o Re@lys fica com 15% dela; o valor final do serviço é combinado entre cliente e prestador. (d) Corridas e entregas: o Re@lys fica com 18% do valor da corrida. (e) Presentes: 10% do valor do presente. (f) Ingressos: 8% do valor de cada ingresso, no mínimo R$ 1,99, pagos pelo produtor, que pode repassar ao comprador. (g) Plano da loja: R$ 49,90 por mês ou plano anual por 75% do valor de doze mensalidades (R$ 449,10); a contratação só é pedida quando a loja aceita o primeiro pedido pelo Re@lys, e o primeiro mês é gratuito. (h) Saque de presentes, conforme o item 21. (i) Boosts, anúncios e a assinatura Date+, pelo preço mostrado na tela. (j) Serviços prestados pelo governo (SUS, UPAs, UBSs, hospitais públicos, SAMU, Bombeiros, Defesa Civil e polícia) não têm nenhuma taxa do Re@lys. O Re@lys pode rever as taxas; a mudança vale só para o que for contratado depois do aviso."
     },
     {
       "titulo": "17. Preços das corridas e faixa justa dos serviços",

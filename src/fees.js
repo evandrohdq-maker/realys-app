@@ -1,6 +1,6 @@
 // Taxas do Re@lys e para onde vai cada uma (caixa). Mudou um percentual? Muda só aqui.
 //
-// - Pedidos: o Re@lys tira um percentual do vendedor sobre a venda (Shop 10%, Food 11%, com pagamento incluído).
+// - Pedidos: o Re@lys tira um percentual do vendedor sobre a venda (10% no Shop e no Food, com pagamento incluído).
 // - Contratação de serviços: o prestador define a taxa de visita e o Re@lys fica com 15% dela
 //   (REALYS_FEE_PCT em serviceVisits.js). O valor final do serviço é negociado entre cliente e prestador.
 // - Presentes: 10% de taxa (GIFT_FEE_PCT em gifts.js). Essa taxa é dividida em duas partes:

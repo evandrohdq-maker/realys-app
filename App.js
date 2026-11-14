@@ -84,6 +84,7 @@ import ArenaScreen from './src/screens/cliente/ArenaScreen';
 import RadiosScreen from './src/screens/cliente/RadiosScreen';
 import { RadioHost, RadioMiniBar } from './src/components/RadioKit';
 import { TvFloat, LiveFloat } from './src/components/FloatPlayers';
+import { BioGateModal, LockedScreen, canOpenTab, isVerified } from './src/components/BioGate';
 import HRScreen from './src/screens/empresa/HRScreen';
 import { TechScreen, AgroScreen } from './src/screens/cliente/TechAgroScreen';
 import { ElectronicsScreen, FashionScreen, HomeGoodsScreen, AppliancesScreen, FurnitureScreen, VariousScreen, EXTRA_SECTOR_KEYS, SECTOR_SCREENS } from './src/screens/cliente/ShopSectorScreen';
@@ -169,7 +170,9 @@ const TABS = {
 
 function Shell() {
   const { state, dispatch } = useStore();
-  const tabs = TABS[state.activeRole];
+  // Conta sem biometria usa só o perfil de usuário (modo social).
+  const verified = isVerified(state);
+  const tabs = TABS[verified ? state.activeRole : TABS.cliente ? 'cliente' : state.activeRole] || TABS[state.activeRole];
   const [tab, setTabRaw] = useState(tabs[0].key);
   // Caminho percorrido (para o botão voltar do celular): [{ role, tab }]
   const history = useRef([]);
@@ -326,7 +329,8 @@ function Shell() {
   }, [voice]);
 
   const current = tabs.find((t) => t.key === tab) || tabs[0];
-  const Comp = current.Comp;
+  // Aba de compra ou serviço numa conta sem biometria: mostra a tela "falta só a biometria".
+  const Comp = canOpenTab(state, current.key) ? current.Comp : LockedScreen;
   const nextRole = () => {
     const r = state.user.roles;
     switchRole(r[(r.indexOf(state.activeRole) + 1) % r.length]);
@@ -447,6 +451,7 @@ function Shell() {
       </SwipePages>
 
       {/* Rádio tocando: barrinha em qualquer tela (o player é um só no app). */}
+      <BioGateModal />
       <RadioMiniBar bottom={88 + insets.bottom} />
       {/* TV da aba Stream e live minimizada: janelinhas flutuantes (segure e arraste). */}
       <TvFloat bottom={150 + insets.bottom} />

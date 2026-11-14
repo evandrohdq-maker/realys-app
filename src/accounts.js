@@ -121,9 +121,9 @@ const saveAccounts = (list) => AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify
 // O usuário (objeto que entra no app) a partir da conta cadastrada.
 export function userFromAccount(acc) {
   if (acc.kind === 'empresa') {
-    return { id: acc.id, name: acc.name, username: acc.username, roles: ['empresa', 'fornecedor', 'cliente'], cnpj: formatCnpj(acc.doc) };
+    return { id: acc.id, name: acc.name, username: acc.username, verified: acc.bio !== false, roles: ['empresa', 'fornecedor', 'cliente'], cnpj: formatCnpj(acc.doc) };
   }
-  return { id: acc.id, name: acc.name, username: acc.username, roles: ['cliente', 'prestador'], cpf: formatCpf(acc.doc), cnpj: '12.345.678/0001-90', social: acc.social || null, about: acc.about || '', work: acc.work || '', birth: acc.birth || null };
+  return { id: acc.id, name: acc.name, username: acc.username, verified: acc.bio !== false, roles: ['cliente', 'prestador'], cpf: formatCpf(acc.doc), cnpj: '12.345.678/0001-90', social: acc.social || null, about: acc.about || '', work: acc.work || '', birth: acc.birth || null };
 }
 
 // Acha a conta pelo que a pessoa digitou: usuário, CPF ou CNPJ.
@@ -154,7 +154,9 @@ export function ageFromBirth(birth) {
   return age >= 0 && age < 130 ? age : null;
 }
 
-export async function createAccount({ kind, name, doc, username, email, phone, password, social = null, about = '', work = '', birth = null }) {
+// bio: a pessoa confirmou a biometria no cadastro? Sem ela a conta nasce no modo social
+// (só interage; não compra nem usa serviços) até fazer a biometria.
+export async function createAccount({ kind, name, doc, username, email, phone, password, social = null, about = '', work = '', birth = null, bio = true }) {
   if (kind !== 'empresa' && !(ageFromBirth(birth) >= 18)) return { error: 'O Re@lys é só para maiores de 18 anos.' };
   const list = await loadAccounts();
   const d = onlyDigits(doc);
@@ -178,6 +180,7 @@ export async function createAccount({ kind, name, doc, username, email, phone, p
     about: about.trim(),
     work: work.trim(),
     birth: kind === 'empresa' ? null : birth, // DD/MM/AAAA (na versão final, conferida no documento)
+    bio: !!bio,
     createdAt: new Date().toISOString(),
   };
   await saveAccounts([...list, account]);
@@ -239,6 +242,17 @@ export async function forgetUser(key) {
   const next = list.filter((s) => s.key !== key);
   await secureSet(SAVED_KEY, JSON.stringify(next));
   return next;
+}
+
+// Fez a biometria depois do cadastro: a conta (e a cópia salva neste aparelho) passa a ser completa.
+export async function markVerified(user) {
+  if (!user) return;
+  const list = await loadAccounts();
+  if (list.some((x) => x.id === user.id && x.bio === false)) await saveAccounts(list.map((x) => (x.id === user.id ? { ...x, bio: true } : x)));
+  const saved = await getSavedUsers();
+  if (saved.some((sv) => sv.user && sv.user.id === user.id && sv.user.verified === false)) {
+    await secureSet(SAVED_KEY, JSON.stringify(saved.map((sv) => (sv.user && sv.user.id === user.id ? { ...sv, user: { ...sv.user, verified: true } } : sv))));
+  }
 }
 
 // ---------- Biometria ----------

@@ -16,6 +16,7 @@ import { VERSION_LABEL } from '../updates';
 import { getSavedUsers, forgetUser } from '../accounts';
 import { ProfileSocial, ProfilePreviewModal } from '../components/SocialProfile';
 import { PeopleSearchModal } from '../components/People';
+import { UnverifiedBanner, isVerified } from '../components/BioGate';
 import WalletScreen from './WalletScreen';
 import BiometriaScreen from './BiometriaScreen';
 import DemoScreen from './DemoScreen';
@@ -113,12 +114,14 @@ export default function ProfileScreen({ navigate, explore }) {
   return (
     <Screen>
       {/* Cabeçalho: foto, nome verificado, @ e profissão, perfil social e bio. */}
+      {/* Conta sem biometria: aviso para completar o cadastro */}
+      <UnverifiedBanner />
       {/* Capa de fundo: a foto que a pessoa escolheu ou um tom suave. Tocar abre o editor. */}
       <TouchableOpacity activeOpacity={0.9} onPress={() => setEditing(true)} style={[styles.banner, { backgroundColor: coverTone(prof.coverTone).color }]} accessibilityLabel="Trocar a capa de fundo">
         {prof.cover ? <Photo uri={prof.cover} style={styles.bannerImg} /> : null}
         <View style={styles.verifiedPill}>
           <Ionicons name="shield-checkmark" size={13} color="#FFFFFF" />
-          <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 11, marginLeft: 4 }}>Identidade verificada</Text>
+          <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 11, marginLeft: 4 }}>{isVerified(state) ? 'Identidade verificada' : 'Perfil social · sem biometria'}</Text>
         </View>
         <View style={styles.coverEdit}>
           <Ionicons name="image-outline" size={13} color="#FFFFFF" />
@@ -225,7 +228,7 @@ export default function ProfileScreen({ navigate, explore }) {
         <Item open={open} onToggle={toggle} k="privacidade" icon="lock-closed-outline" title="Quem vê meu perfil" sub={`Social: ${audienceLabel(priv.social).toLowerCase()} · Portfólio: ${audienceLabel(priv.portfolio).toLowerCase()}`}>
           <PrivacyPanel />
         </Item>
-        {u.roles.length > 1 ? (
+        {u.roles.length > 1 && isVerified(state) ? (
           <Item open={open} onToggle={toggle} k="perfis" icon="swap-horizontal-outline" title="Usar o app como" sub={ROLE_LABELS[state.activeRole]}>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
               {u.roles.map((r) => (

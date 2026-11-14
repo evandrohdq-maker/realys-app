@@ -5,14 +5,15 @@
 
 export const TAXAS = {
   protecao: { valor: 0.99, unidade: 'R$ por pedido', quemPaga: 'cliente', mercado: 'iFood: R$ 0,99 de dia e até R$ 1,99 à noite', argumento: 'R$ 0,99 a qualquer hora, sem taxa noturna' },
-  food: { pct: 11, quemPaga: 'restaurante', mercado: 'iFood Básico: 12% + 3,2% de pagamento online + R$ 110 de mensalidade', argumento: '11% com pagamento incluído e sem mensalidade obrigatória' },
+  food: { pct: 10, quemPaga: 'restaurante', mercado: 'iFood Básico: 12% + 3,2% de pagamento online + R$ 110 de mensalidade', argumento: '10% com pagamento incluído, e o plano só começa depois do primeiro pedido' },
   shop: { pct: 10, quemPaga: 'loja', mercado: 'Mercado Livre Clássico: 10% a 14% + custo fixo; Shopee: até 20% + R$ 4 por item', argumento: '10% sem taxa fixa por item' },
   corrida: { pct: 18, quemPaga: 'motorista e motoboy', mercado: 'Uber: 20% a 35%; 99: 20% a 30%', argumento: 'o motorista fica com 82% da corrida' },
   visita: { pct: 15, quemPaga: 'prestador', mercado: 'GetNinjas cobra pacotes de moedas por contato, mesmo sem fechar o serviço', argumento: 'só paga quando a visita acontece, e o valor do serviço é todo seu' },
   ingresso: { pct: 8, minimo: 1.99, quemPaga: 'produtor (pode repassar ao comprador)', mercado: 'Sympla: 10%, mínimo de R$ 2,50', argumento: '8%, mínimo de R$ 1,99' },
   presente: { pct: 10, quemPaga: 'descontado do presente', mercado: 'Pix entre pessoas é grátis, mas não tem garantia nem pontos', argumento: '10% com pontos de volta' },
   live: { criador: 70, criadorAntecipado: 63, quemPaga: 'descontado no saque', mercado: 'TikTok: o criador fica com cerca de 50%', argumento: 'o criador fica com 70% do que os fãs enviam' },
-  planoEmpresa: { valor: 89, unidade: 'R$ por mês, só para quem vende mais de R$ 1.800 no mês', mercado: 'iFood: R$ 110 a R$ 150 por mês acima de R$ 1.800', argumento: 'R$ 89, e quem vende pouco não paga' },
+  // Plano da loja: só começa quando a loja aceita o primeiro pedido; primeiro mês grátis; anual por 75% do valor de 12 meses.
+  planoEmpresa: { valor: 49.9, anualPct: 75, gratisDias: 30, unidade: 'R$ por mês (ou anual por 75% do valor), só depois do primeiro pedido aceito, com o primeiro mês grátis', mercado: 'iFood: R$ 110 a R$ 150 por mês acima de R$ 1.800', argumento: 'R$ 49,90, primeiro mês grátis, e só começa quando a loja aceita o primeiro pedido' },
   // Negócios (imóveis, veículos e máquinas): o cliente nunca paga; o anunciante paga plano mensal
   // (imobiliária, revenda) ou só quando libera a conversa com um interessado (proprietário, particular).
   anuncioImobiliaria: { valor: 149, valor40: 349, unidade: 'R$ por mês até 10 anúncios (R$ 349 até 40), com as conversas liberadas', quemPaga: 'imobiliária', mercado: 'ZAP Imóveis: 10 anúncios a partir de R$ 499,90 por mês', argumento: 'R$ 149 por mês até 10 anúncios, com as conversas liberadas' },
