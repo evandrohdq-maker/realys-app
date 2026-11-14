@@ -22,13 +22,16 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
   const { state, dispatch } = useStore();
   const openHost = useOpenHost();
   const f = filter === 'aulas' ? 'cursos' : filter;
-  const [sub, setSub] = useState('todas');
+  const [subRaw, setSub] = useState('todas');
   useEffect(() => setSub('todas'), [f]);
 
   const every = allLives(state);
   // Lives no ar de verdade (servidor do Re@lys), quando houver servidor.
   const real = useRealLives(true);
   const cat = f === 'todas' ? null : catOf(f);
+  // Trocou de classe com uma subclasse marcada: a subclasse antiga não existe na classe nova.
+  // Antes o app fechava (procurava o nome de uma subclasse que não existe); agora volta para "Tudo".
+  const sub = cat && (cat.subs || []).some((x) => x.key === subRaw) ? subRaw : 'todas';
   const inCat = cat ? every.filter((l) => l.cat === cat.key) : every;
   const list = inCat.filter((l) => sub === 'todas' || l.sub === sub).sort(rank);
   const hero = list[0];
@@ -135,7 +138,7 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
         <View style={styles.empty}>
           <Ionicons name="radio-outline" size={30} color={colors.muted} />
           <Text style={{ color: colors.muted, textAlign: 'center', marginTop: 6 }}>
-            Ninguém ao vivo {sub !== 'todas' && cat ? `em ${subOf(cat.key, sub).label}` : 'aqui'} agora.
+            Ninguém ao vivo {sub !== 'todas' && cat ? `em ${(subOf(cat.key, sub) || { label: 'esta subclasse' }).label}` : 'aqui'} agora.
           </Text>
           <TouchableOpacity style={styles.emptyBtn} onPress={onGoLive}>
             <Text style={{ color: '#fff', fontWeight: '800' }}>Abrir a primeira live</Text>
