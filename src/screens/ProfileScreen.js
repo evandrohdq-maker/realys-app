@@ -130,9 +130,13 @@ export default function ProfileScreen({ navigate, explore }) {
             )}
           </View>
         </TouchableOpacity>
-        {/* SOS: pequeno, com brilho vermelho. As informações abrem na tela de Socorro. */}
-        <TouchableOpacity onPress={() => navigate && navigate({ tab: 'socorro', seg: 'emergencia' })} accessibilityLabel="SOS, socorro e emergência" activeOpacity={0.8} style={styles.sos}>
-          <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 11, letterSpacing: 0.5 }}>SOS</Text>
+        {/* SOS e Date: dois botõezinhos discretos nos cantos, abaixo da capa.
+            SOS abre a tela de Socorro; Date abre os encontros (saiu da barra de baixo). */}
+        <TouchableOpacity onPress={() => navigate && navigate({ tab: 'encontros' })} accessibilityLabel="Date, encontros" activeOpacity={0.7} hitSlop={10} style={[styles.quiet, { left: 6 }]}>
+          <Ionicons name="heart-outline" size={14} color={colors.muted} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigate && navigate({ tab: 'socorro', seg: 'emergencia' })} accessibilityLabel="SOS, socorro e emergência" activeOpacity={0.7} hitSlop={10} style={[styles.quiet, { right: 6 }]}>
+          <Text style={styles.quietSos}>SOS</Text>
         </TouchableOpacity>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
           <Text style={styles.name}>{u.name}</Text>
@@ -193,8 +197,6 @@ export default function ProfileScreen({ navigate, explore }) {
       {/* Todo o resto fica guardado aqui, sem poluir o perfil. */}
       <Text style={styles.moreTitle}>Mais opções</Text>
       <View style={styles.moreBox}>
-        {/* Date saiu da barra de baixo: abre por aqui e segue funcionando igual. */}
-        <Item open={open} onToggle={toggle} icon="heart-outline" title="Date" sub="Encontros com pessoas verificadas que passam perto de você" onPress={() => navigate && navigate({ tab: 'encontros' })} />
         <Item open={open} onToggle={toggle} k="score" icon="ribbon-outline" title="Score Re@lys" sub="Sua reputação em todos os perfis">
           <ScoreCard />
           <GuaranteeInfo />
@@ -370,7 +372,8 @@ const styles = StyleSheet.create({
   head: { alignItems: 'center', paddingBottom: 6 },
   avatarRing: { padding: 4, borderRadius: 60, backgroundColor: '#FFFFFF', borderWidth: 3, borderColor: colors.primary, shadowColor: colors.primary, shadowOpacity: 0.45, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 8 },
   avatar: { width: 104, height: 104, borderRadius: 52 },
-  sos: { position: 'absolute', right: 4, top: 8, width: 42, height: 42, borderRadius: 21, backgroundColor: colors.danger, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#FFC9C7', shadowColor: '#FF1E1E', shadowOpacity: 0.9, shadowRadius: 10, shadowOffset: { width: 0, height: 0 }, elevation: 10 },
+  quiet: { position: 'absolute', top: 10, width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  quietSos: { color: colors.danger, fontWeight: '800', fontSize: 8.5, letterSpacing: 0.3 },
   name: { color: colors.text, fontWeight: '800', fontSize: 23 },
   handle: { color: colors.muted, fontSize: 13, marginTop: 2 },
   bio: { color: colors.text, fontSize: 14, lineHeight: 20, marginTop: 10, textAlign: 'center', paddingHorizontal: 10 },

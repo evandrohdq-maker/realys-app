@@ -212,7 +212,7 @@ O app se ajusta sozinho ao celular de cada pessoa:
 - **Reels**: não tem mais botão na barra de baixo. Abre **puxando a página inicial para a direita** (como no Instagram) ou pela Lotus; **puxando para a esquerda abre o Perfil**. Para publicar, use o botão de publicação › **Reel** (vídeo da galeria, até 60 s); os Reels do usuário aparecem primeiro em "Para você".
 
 - **Negócios** (`src/screens/cliente/NegociosScreen.js`): aba da barra de baixo, no lugar do Date. Imóveis, veículos e máquinas, para comprar ou alugar, com conversa com o anunciante. Os atalhos antigos de Anúncios para esses tipos (menu ⋮, busca, Lotus) abrem direto nela; hotéis, festas e cursos continuam na página de Anúncios.
-- **Date**: saiu da barra de baixo. Abre pelo botão **Date** do Perfil (e pelo menu ⋮ e pela Lotus) e funciona igual.
+- **Date**: saiu da barra de baixo. Abre por um coraçãozinho discreto no canto do Perfil, do lado oposto ao **SOS** (que também ficou pequeno e discreto), e pelo menu ⋮ e pela Lotus. Funciona igual.
 
 ## Atualização automática do APK
 

@@ -112,7 +112,7 @@ const TABS = {
     // Reels: sem botão na barra. Abre arrastando a página inicial para a direita (como no Instagram)
     // ou pela Lotus; para publicar, é a opção Reel do botão de publicação.
     { key: 'reels', label: 'Reels', icon: 'play-circle-outline', Comp: ReelsScreen, hidden: true },
-    // Date: sem botão na barra. Abre pelo botão Date do Perfil (e pelo menu ⋮ e pela Lotus).
+    // Date: sem botão na barra. Abre pelo coraçãozinho discreto do Perfil (e pelo menu ⋮ e pela Lotus).
     { key: 'encontros', label: 'Date', icon: 'heart-outline', Comp: EncontrosScreen, hidden: true },
     { key: 'transporte', label: 'Transporte', icon: 'bus-outline', Comp: TransitScreen, hidden: true },
     { key: 'socorro', label: 'Socorro', icon: 'medkit-outline', Comp: SosScreen, hidden: true },
