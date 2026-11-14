@@ -11,7 +11,10 @@ OPTS = {
   'F3_neon': dict(BASE, stem=True, style='neon', width=46),
   'G1_estrela_na_haste': dict(BASE, stem=False, nodes=False, spark=None, stemStar=dict(x=405, y=515, rx=58, ry=205)),
   'G2_estrela_na_haste_e_topo': dict(BASE, stem=False, nodes=False, stemStar=dict(x=405, y=515, rx=58, ry=205)),
-  'H_fundo_dourado': dict(BASE, stem=False, nodes=False, goldBg=True, depth=16, stemStar=dict(x=405, y=515, rx=58, ry=205)),
+  'H_fundo_dourado': dict(BASE, stem=False, nodes=False, goldBg=True, depth=16, stemStar=dict(x=405, y=567, rx=50, ry=265)),
+  'J_suave': dict(BASE, stem=False, nodes=False, goldBg=True, grid=False, cut=0, cap='round', join='round', halo=True,
+                  width=62, depth=12, gap=[0.24, 0.40], spark=[770, 230, 44], stemStar=dict(x=405, y=567, rx=62, ry=266, matchStrokes=True)),
+  'I_haste_no_anel': dict(BASE, stem=True, stemToRing=True, nodes=False, goldBg=True, depth=16),
   'G3_estrela_no_pe': dict(BASE, stem=False, nodes=False, spark=None, stemStar=dict(x=405, y=640, rx=70, ry=110)),
 }
 out = sys.argv[1]

@@ -36,7 +36,7 @@ function parts(o, dx = 0, dy = 0) {
     P.push({ f: (p) => { p.beginPath(); p.arc(C + dx, C + dy, R, 1.2 * PI + cut / 2, g0 + 2 * PI, false); }, ends: [ang(R, 1.2 * PI + cut / 2, dx, dy), ang(R, g0, dx, dy)] });
   } else P.push({ f: (p) => { p.beginPath(); p.arc(C + dx, C + dy, R, g1, g0 + 2 * PI, false); }, ends: [] });
   // haste do R
-  if (o.stem) P.push({ f: (p) => { p.beginPath(); p.moveTo(sx, base); p.lineTo(sx, top); }, ends: [[sx, base]] });
+  if (o.stem) P.push({ f: (p) => { p.beginPath(); p.moveTo(sx, o.stemToRing ? C + dy + Math.sqrt(R * R - (sx - dx - C) ** 2) : base); p.lineTo(sx, top); }, ends: o.stemToRing ? [] : [[sx, base]] });
   // barriga do R (formato de D): reta em cima, curva à direita, volta até a haste
   P.push({ f: (p) => {
     p.beginPath(); p.moveTo(sx, top); p.lineTo(sx + bw, top);
@@ -62,6 +62,11 @@ function render(o) {
   if (o.scale) x.setTransform(o.scale, 0, 0, o.scale, S * (1 - o.scale) / 2, S * (1 - o.scale) / 2);
   x.lineCap = o.cap || 'butt'; x.lineJoin = o.join || 'miter';
   const W = o.width;
+  if (o.halo) {
+    const h = x.createRadialGradient(C - 20, C - 10, 40, C, C, 440);
+    h.addColorStop(0, 'rgba(255,248,215,0.55)'); h.addColorStop(0.6, 'rgba(255,230,160,0.18)'); h.addColorStop(1, 'rgba(255,230,160,0)');
+    x.fillStyle = h; x.beginPath(); x.arc(C, C, 460, 0, 7); x.fill();
+  }
   if (o.style === 'neon') {
     // neon dourado: brilho largo + traço fino claro + nós nas pontas
     const P = parts(o);
@@ -103,9 +108,19 @@ function tallStar({ x: px, y: py, rx, ry, glow = 1 }) {
     x.moveTo(0, -ry); x.quadraticCurveTo(rx * 0.18, -ry * 0.18, rx, 0); x.quadraticCurveTo(rx * 0.18, ry * 0.18, 0, ry);
     x.quadraticCurveTo(-rx * 0.18, ry * 0.18, -rx, 0); x.quadraticCurveTo(-rx * 0.18, -ry * 0.18, 0, -ry); x.closePath();
   };
-  const fg = x.createLinearGradient(0, -ry, 0, ry); fg.addColorStop(0, '#FFF8DC'); fg.addColorStop(0.45, '#F4CF5A'); fg.addColorStop(0.55, '#FFF3C4'); fg.addColorStop(1, '#C48A12');
-  x.shadowColor = '#FFC94A'; x.shadowBlur = 30; x.fillStyle = fg; path(); x.fill();
-  x.shadowBlur = 0; x.fillStyle = '#FFFDF2'; x.scale(0.35, 0.55); path(); x.fill();
+  if (arguments[0].matchStrokes) {
+    // mesma "pele" dos traços: corpo preto, borda dourada e luz no meio, para parecer uma peça só
+    x.save(); x.shadowColor = 'rgba(0,0,0,.55)'; x.shadowBlur = 24; x.shadowOffsetX = 10; x.shadowOffsetY = 14;
+    x.fillStyle = '#D9A62A'; path(); x.fill(); x.restore();
+    const body = x.createLinearGradient(-rx, -ry, rx, ry); body.addColorStop(0, '#4a4a52'); body.addColorStop(0.4, '#121216'); body.addColorStop(1, '#2b2b32');
+    x.save(); x.scale(0.8, 0.94); x.fillStyle = body; path(); x.fill(); x.restore();
+    x.save(); x.shadowColor = '#FFD66B'; x.shadowBlur = 18; x.fillStyle = '#FFE9A8'; x.scale(0.22, 0.8); path(); x.fill(); x.restore();
+    x.fillStyle = '#FFFDF2'; x.scale(0.12, 0.35); path(); x.fill();
+  } else {
+    const fg = x.createLinearGradient(0, -ry, 0, ry); fg.addColorStop(0, '#FFF8DC'); fg.addColorStop(0.45, '#F4CF5A'); fg.addColorStop(0.55, '#FFF3C4'); fg.addColorStop(1, '#C48A12');
+    x.shadowColor = '#FFC94A'; x.shadowBlur = 30; x.fillStyle = fg; path(); x.fill();
+    x.shadowBlur = 0; x.fillStyle = '#FFFDF2'; x.scale(0.35, 0.55); path(); x.fill();
+  }
   x.restore();
 }
 function sparkle(px, py, r) {
