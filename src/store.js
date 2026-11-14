@@ -21,7 +21,7 @@ import * as J from './jobsData';
 import { initialTestimonials, myInitialGallery } from './testimonialsData';
 import { visitFee, visitDiscount, providerStats, splitFee, SAMPLE_VISIT_REQUESTS, HIGHLIGHT_PLAN } from './serviceVisits';
 import { teleDoCarrinho, somarGasto } from './teleGratis';
-import { DEMO_PAGES, MAX_PAGES } from './userPages';
+import { DEMO_PAGES, MAX_PAGES, pagePrice, hasIncludedPageRight } from './userPages';
 import { sampleAgenda, DEFAULT_HOURS, parseWhen } from './agenda';
 import { negPlano, custoLiberar } from './negocios';
 
@@ -698,8 +698,24 @@ function baseReducer(state, a) {
       return { ...state, viewUserPage: null };
     case 'PAGE_CREATE': {
       if (!state.user || (state.userPages || []).filter((p) => p.ownerId === 'me').length >= MAX_PAGES) return state;
-      const page = { id: newId('pg'), ownerId: 'me', ownerName: state.user.name, followers: 0, posts: [], createdAt: Date.now(), ...a.page };
-      return { ...state, userPages: [page, ...(state.userPages || [])], viewUserPage: page.id };
+      // Cada página custa uma mensalidade, cobrada do saldo na criação. O prestador com o plano
+      // Destaque tem uma página de trabalhos incluída (preço zero), ligada ao perfil profissional dele.
+      const price = pagePrice(state);
+      if (state.wallet < price) return state;
+      const included = price === 0 && hasIncludedPageRight(state);
+      const page = {
+        id: newId('pg'), ownerId: 'me', ownerName: state.user.name, followers: 0, posts: [], createdAt: Date.now(),
+        ...(included ? { included: true, providerId: state.myProvider.id } : { paidUntil: Date.now() + 30 * 86400000 }),
+        ...a.page,
+        ...(included ? { anon: false } : {}),
+      };
+      return {
+        ...state,
+        userPages: [page, ...(state.userPages || [])],
+        viewUserPage: page.id,
+        wallet: +(state.wallet - price).toFixed(2),
+        walletTx: price ? [{ id: newId('w'), ts: Date.now(), kind: 'gasto', cat: 'Páginas', desc: `Página "${page.name}" (mensal)`, amount: price }, ...state.walletTx] : state.walletTx,
+      };
     }
     case 'PAGE_UPDATE':
       return { ...state, userPages: state.userPages.map((p) => (p.id === a.id && p.ownerId === 'me' ? { ...p, ...a.patch } : p)) };
@@ -734,6 +750,16 @@ function baseReducer(state, a) {
           : state.reports,
       };
     }
+    // Editar e apagar post da própria página (o texto editado passa de novo pela IA).
+    case 'PAGE_POST_EDIT': {
+      const pg = (state.userPages || []).find((p) => p.id === a.id && p.ownerId === 'me');
+      if (!pg) return state;
+      const text = a.patch.text !== undefined ? a.patch.text : undefined;
+      if (text !== undefined && checkText(`${a.patch.title || ''} ${text}`).verdict === 'falso') return state;
+      return { ...state, userPages: state.userPages.map((p) => (p.id === pg.id ? { ...p, posts: p.posts.map((x) => (x.id === a.postId ? { ...x, ...a.patch, editedAt: Date.now() } : x)) } : p)) };
+    }
+    case 'PAGE_POST_DELETE':
+      return { ...state, userPages: state.userPages.map((p) => (p.id === a.id && p.ownerId === 'me' ? { ...p, posts: p.posts.filter((x) => x.id !== a.postId) } : p)) };
     case 'PAGE_REPORT': {
       const pg = (state.userPages || []).find((p) => p.id === a.id);
       if (!pg) return state;

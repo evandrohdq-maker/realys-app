@@ -5,9 +5,9 @@ import { View, StyleSheet, TouchableOpacity, Alert, Switch } from 'react-native'
 import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
-import { colors, soft } from '../../theme';
+import { colors, soft, brl } from '../../theme';
 import { Screen, Title, Card, Row, Input, Button, Photo } from '../../components/ui';
-import { PAGE_CATEGORIES, categoryOfPage, signatureOf, myPages, canCreatePage, MAX_PAGES, PAGE_RULES, pageNameProblem, slug } from '../../userPages';
+import { PAGE_CATEGORIES, categoryOfPage, signatureOf, myPages, canCreatePage, MAX_PAGES, PAGE_RULES, pageNameProblem, slug, pagePrice } from '../../userPages';
 
 const SEGS = [
   ['descobrir', 'Descobrir'],
@@ -38,12 +38,28 @@ function NewPage({ onDone }) {
   const [about, setAbout] = useState('');
   const [category, setCategory] = useState('comunidade');
   const [anon, setAnon] = useState(false);
+  const price = pagePrice(state);
   const create = () => {
     const problem = pageNameProblem(name, anon, state);
     if (problem) return Alert.alert('Confira o nome', problem);
     if (!about.trim()) return Alert.alert('Conte do que é a página', 'Escreva uma frase sobre o assunto da página.');
-    dispatch({ type: 'PAGE_CREATE', page: { name: name.trim(), handle: slug(name), about: about.trim(), category, anon, cover: `https://picsum.photos/seed/realys-pg-${slug(name)}/800/400` } });
-    onDone();
+    const go = () => {
+      dispatch({ type: 'PAGE_CREATE', page: { name: name.trim(), handle: slug(name), about: about.trim(), category, anon: price ? anon : false, cover: `https://picsum.photos/seed/realys-pg-${slug(name)}/800/400` } });
+      onDone();
+    };
+    // Prestador com o plano Destaque: a página de trabalhos já está incluída.
+    if (!price) return go();
+    if (state.wallet < price) return Alert.alert('Saldo insuficiente', `Cada página custa ${brl(price)} por mês. Coloque saldo na carteira e tente de novo.`);
+    Alert.alert('Criar página', `${brl(price)} por mês, do seu saldo Re@lys. Você personaliza a página do seu jeito: capa, cores, letra e formato dos posts.`, [
+      { text: 'Agora não', style: 'cancel' },
+      {
+        text: `Criar por ${brl(price)}`,
+        onPress: () => {
+          dispatch({ type: 'PAGE_CREATE', page: { name: name.trim(), handle: slug(name), about: about.trim(), category, anon, cover: `https://picsum.photos/seed/realys-pg-${slug(name)}/800/400` } });
+          onDone();
+        },
+      },
+    ]);
   };
   return (
     <Card>
@@ -75,7 +91,8 @@ function NewPage({ onDone }) {
           <Text key={r} style={st.rule}>• {r}</Text>
         ))}
       </View>
-      <Button title="Criar página" onPress={create} style={{ marginTop: 12 }} />
+      {!price ? <Text style={[st.small, { marginTop: 10 }]}>Incluída no seu plano Destaque Re@lys: é a sua página de trabalhos, ligada ao seu perfil profissional.</Text> : null}
+      <Button title={price ? `Criar página · ${brl(price)} por mês` : 'Criar minha página de trabalhos'} onPress={create} style={{ marginTop: 12 }} />
       <Button title="Cancelar" variant="dark" small onPress={onDone} style={{ marginTop: 8 }} />
     </Card>
   );
@@ -92,6 +109,7 @@ export default function PagesScreen({ explore }) {
     if (!explore) return;
     if (explore.pageId) dispatch({ type: 'OPEN_USER_PAGE', id: explore.pageId });
     if (explore.seg) setSeg(explore.seg);
+    if (explore.criar) setCreating(true); // veio do painel do prestador: já abre o formulário
     if (explore.create) {
       setSeg('minhas');
       setCreating(true);

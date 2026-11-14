@@ -1,6 +1,6 @@
 // Parte social do perfil: depoimentos (estilo Orkut), galeria de fotos, galeria de vídeos e destaques de stories.
 // Usado no perfil dos outros membros, no "Meu perfil" e no feed abaixo dos stories.
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, Share, Image, KeyboardAvoidingView, Platform, useWindowDimensions } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,9 +14,13 @@ import { analyzeTestimonial, galleryOf } from '../testimonialsData';
 import { STORY_SAMPLE_PHOTOS } from '../homeData';
 import { StoryViewer } from '../screens/cliente/home/Stories';
 import { privacyOf, creationsOf } from '../studioData';
-import { canSee, LockedPanel, CreationsGrid } from './ProfileStudio';
+import { canSee, LockedPanel, CreationsGrid, coverTone } from './ProfileStudio';
 
 const first = (name) => String(name || '').split(' ')[0];
+
+// "Ver como os outros veem": dentro da prévia, o meu perfil aparece como aparece para um visitante
+// ('todos' = qualquer pessoa; 'amigos' = um amigo). Fora da prévia o valor é null.
+const ViewAs = React.createContext(null);
 
 // Quem é a pessoa do id ('me' = o próprio usuário).
 export function usePerson() {
@@ -295,7 +299,8 @@ export function TestimonialComposer({ visible, onClose, toId }) {
 export function TestimonialFeed() {
   const { state } = useStore();
   const [writing, setWriting] = useState(false);
-  const list = state.testimonials.filter((t) => t.status === 'aprovado');
+  const hideMine = (state.privacy || {}).testimonials === false; // escondi os meus depoimentos do perfil
+  const list = state.testimonials.filter((t) => t.status === 'aprovado' && !(hideMine && t.to === 'me'));
   const pendingMine = state.testimonials.filter((t) => t.to === 'me' && t.status === 'pendente').length;
   return (
     <View style={{ paddingHorizontal: 16 }}>
@@ -331,16 +336,37 @@ function TestimonialsTab({ ownerId }) {
   const person = usePerson();
   const owner = person(ownerId);
   const [writing, setWriting] = useState(false);
-  const mine = ownerId === 'me';
+  const viewAs = useContext(ViewAs);
+  const own = ownerId === 'me';
+  const mine = own && !viewAs; // dono mexendo no próprio perfil (na prévia, vê como visitante)
+  const shown = (state.privacy || {}).testimonials !== false; // depoimentos aparecem para os outros?
   const approved = state.testimonials.filter((t) => t.to === ownerId && t.status === 'aprovado');
   const pending = mine ? state.testimonials.filter((t) => t.to === 'me' && t.status === 'pendente') : [];
-  const sentWaiting = !mine ? state.testimonials.filter((t) => t.from === 'me' && t.to === ownerId && t.status === 'pendente') : [];
+  const sentWaiting = !own ? state.testimonials.filter((t) => t.from === 'me' && t.to === ownerId && t.status === 'pendente') : [];
   const isFriend = state.friends[ownerId] === 'amigo';
 
   return (
     <View>
       {mine ? (
         <>
+          {/* Mostrar ou esconder os depoimentos no perfil */}
+          <TouchableOpacity
+            style={styles.showRow}
+            activeOpacity={0.85}
+            onPress={() => dispatch({ type: 'SET_PRIVACY', privacy: { testimonials: !shown } })}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: shown }}
+            accessibilityLabel="Mostrar depoimentos no meu perfil"
+          >
+            <Ionicons name={shown ? 'eye-outline' : 'eye-off-outline'} size={18} color={shown ? colors.primary : colors.muted} />
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={{ color: colors.text, fontWeight: '700' }}>{shown ? 'Depoimentos aparecendo no perfil' : 'Depoimentos escondidos'}</Text>
+              <Text style={{ color: colors.muted, fontSize: 12, marginTop: 1 }}>{shown ? 'Quem visita o seu perfil vê os que você aceitou.' : 'Só você vê. Os amigos ainda podem escrever e você aprova quando quiser.'}</Text>
+            </View>
+            <View style={[styles.switch, shown && styles.switchOn]}>
+              <View style={[styles.knob, shown && styles.knobOn]} />
+            </View>
+          </TouchableOpacity>
           <Text style={styles.sub}>Para aprovar {pending.length ? `(${pending.length})` : ''}</Text>
           {pending.length ? (
             pending.map((t) => {
@@ -383,9 +409,9 @@ function TestimonialsTab({ ownerId }) {
           ) : (
             <Text style={styles.hint}>Nenhum depoimento esperando. Quando alguém escrever para você, ele chega aqui para você analisar.</Text>
           )}
-          <Text style={[styles.sub, { marginTop: 14 }]}>Expostos no seu perfil ({approved.length})</Text>
+          <Text style={[styles.sub, { marginTop: 14 }]}>{shown ? 'Expostos no seu perfil' : 'Aceitos (escondidos do perfil)'} ({approved.length})</Text>
         </>
-      ) : (
+      ) : own ? null : (
         <>
           {isFriend ? (
             <TouchableOpacity style={[styles.primaryBtn, { marginTop: 0, marginBottom: 12 }]} onPress={() => setWriting(true)}>
@@ -408,7 +434,7 @@ function TestimonialsTab({ ownerId }) {
       ) : (
         <Empty text={mine ? 'Os depoimentos que você aceitar aparecem aqui, para todos verem.' : `${first(owner.name)} ainda não tem depoimentos expostos.`} />
       )}
-      {!mine ? <TestimonialComposer visible={writing} onClose={() => setWriting(false)} toId={ownerId} /> : null}
+      {!own ? <TestimonialComposer visible={writing} onClose={() => setWriting(false)} toId={ownerId} /> : null}
     </View>
   );
 }
@@ -418,8 +444,10 @@ function TestimonialsTab({ ownerId }) {
 export function HighlightsRow({ ownerId }) {
   const { state, dispatch } = useStore();
   const person = usePerson();
-  const mine = ownerId === 'me';
-  const highlights = mine ? state.myGallery.highlights : galleryOf(ownerId).highlights;
+  const viewAs = useContext(ViewAs);
+  const own = ownerId === 'me';
+  const mine = own && !viewAs;
+  const highlights = own ? state.myGallery.highlights : galleryOf(ownerId).highlights;
   const [view, setView] = useState(null);
   const [creating, setCreating] = useState(false);
   const owner = person(ownerId);
@@ -586,8 +614,10 @@ function MediaGallery({ ownerId, kind }) {
   const { state, dispatch } = useStore();
   const { width } = useWindowDimensions();
   const [boxW, setBoxW] = useState(0);
-  const mine = ownerId === 'me';
-  const items = mine ? state.myGallery[kind] : galleryOf(ownerId)[kind];
+  const viewAs = useContext(ViewAs);
+  const own = ownerId === 'me';
+  const mine = own && !viewAs;
+  const items = own ? state.myGallery[kind] : galleryOf(ownerId)[kind];
   const [viewing, setViewing] = useState(null);
   const tile = Math.floor(((boxW || width - 32) - 8) / 3);
 
@@ -712,18 +742,82 @@ function MediaViewer({ items, index, kind, onClose }) {
 // ───────────────────────── Abas do perfil ─────────────────────────
 
 // Destaques + abas: (Posts) · Fotos · Vídeos · Depoimentos.
-export function ProfileSocial({ ownerId, postsSlot, postsCount, ownerName }) {
+// Prévia: como o meu perfil aparece para os outros. O botão de cima troca entre "qualquer pessoa"
+// e "um amigo", porque a privacidade pode mostrar coisas diferentes para cada um.
+export function ProfilePreviewModal({ visible, onClose }) {
+  const insets = useSafeAreaInsets();
   const { state } = useStore();
-  const mine = ownerId === 'me';
-  const g = mine ? state.myGallery : galleryOf(ownerId);
+  const [as, setAs] = useState('todos');
+  useEffect(() => {
+    if (visible) setAs('todos');
+  }, [visible]);
+  const u = state.user || { name: 'Você' };
+  const prof = state.myProfile || {};
+  const priv = state.privacy || {};
+  return (
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: colors.bg }}>
+        <View style={[styles.pvHead, { paddingTop: insets.top + 10 }]}>
+          <TouchableOpacity onPress={onClose} style={styles.pvClose} accessibilityLabel="Fechar a prévia">
+            <Ionicons name="close" size={20} color={colors.text} />
+          </TouchableOpacity>
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>Seu perfil visto por</Text>
+            <View style={{ flexDirection: 'row', marginTop: 6 }}>
+              {[['todos', 'Qualquer pessoa'], ['amigos', 'Um amigo']].map(([k, label]) => (
+                <TouchableOpacity key={k} onPress={() => setAs(k)} style={[styles.pvPill, as === k && styles.pvPillOn]} accessibilityLabel={`Ver como ${label}`}>
+                  <Text style={{ color: as === k ? '#fff' : colors.text, fontWeight: '700', fontSize: 12.5 }}>{label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 30 + insets.bottom }}>
+          <View style={{ height: 96, borderRadius: 18, overflow: 'hidden', backgroundColor: coverTone(prof.coverTone).color, marginBottom: -40 }}>
+            {prof.cover ? <Photo uri={prof.cover} style={{ width: '100%', height: '100%' }} /> : null}
+          </View>
+          <View style={{ alignItems: 'center', marginBottom: 14 }}>
+            {prof.photo ? (
+              <Photo uri={prof.photo} style={styles.pvAvatar} fallback="🙂" />
+            ) : (
+              <View style={[styles.pvAvatar, { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }]}>
+                <Text style={{ color: colors.onPrimary, fontSize: 30, fontWeight: '800' }}>{String(u.name || 'V').charAt(0).toUpperCase()}</Text>
+              </View>
+            )}
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+              <Text style={{ color: colors.text, fontWeight: '800', fontSize: 19 }}>{u.name}</Text>
+              <Ionicons name="checkmark-circle" size={17} color={colors.primary} style={{ marginLeft: 5 }} />
+            </View>
+            {prof.handle || prof.profession ? <Text style={{ color: colors.muted, fontSize: 13, marginTop: 2 }}>{[prof.handle ? '@' + prof.handle : '', prof.profession].filter(Boolean).join(' · ')}</Text> : null}
+            {prof.bio && priv.exposed !== false ? <Text style={{ color: colors.text, textAlign: 'center', marginTop: 8 }}>{prof.bio}</Text> : null}
+          </View>
+          <ViewAs.Provider value={as}>
+            <ProfileSocial ownerId="me" ownerName={u.name} />
+          </ViewAs.Provider>
+          <Text style={{ color: colors.muted, fontSize: 11.5, textAlign: 'center', marginTop: 16 }}>Isto é só uma prévia. Para mudar o que aparece, use "Quem vê o meu perfil" e o botão de mostrar depoimentos.</Text>
+        </ScrollView>
+      </View>
+    </Modal>
+  );
+}
+
+export function ProfileSocial({ ownerId, postsSlot, postsCount, ownerName, focus }) {
+  const { state } = useStore();
+  const viewAs = useContext(ViewAs);
+  const own = ownerId === 'me';
+  const mine = own && !viewAs;
+  const g = own ? state.myGallery : galleryOf(ownerId);
   const nTest = state.testimonials.filter((t) => t.to === ownerId && t.status === 'aprovado').length;
   const nPending = mine ? state.testimonials.filter((t) => t.to === 'me' && t.status === 'pendente').length : 0;
   // Privacidade: o dono escolhe quem vê a vida social e o portfólio (todos, só amigos, só ele).
-  const priv = mine ? { exposed: true, social: 'todos', portfolio: 'todos' } : privacyOf(ownerId);
-  const isFriend = state.friends[ownerId] === 'amigo';
+  // Na prévia ("ver como os outros veem") vale a privacidade que eu mesmo configurei.
+  const priv = mine ? { exposed: true, social: 'todos', portfolio: 'todos' } : own ? { exposed: true, social: 'todos', portfolio: 'todos', ...(state.privacy || {}) } : privacyOf(ownerId);
+  const isFriend = own ? viewAs === 'amigos' : state.friends[ownerId] === 'amigo';
+  // Depoimentos: o dono pode esconder do perfil (ele mesmo continua vendo e aprovando).
+  const showDep = mine || priv.testimonials !== false;
   const showSocial = canSee(priv.social, isFriend, priv.exposed);
   const showPortfolio = canSee(priv.portfolio, isFriend, priv.exposed);
-  const created = mine ? state.creations : creationsOf(ownerId);
+  const created = own ? state.creations : creationsOf(ownerId);
   const socialCreations = created.filter((c) => c.dest && c.dest.social);
   const portfolio = created.filter((c) => c.dest && c.dest.portfolio);
   const tabs = [
@@ -733,12 +827,16 @@ export function ProfileSocial({ ownerId, postsSlot, postsCount, ownerName }) {
           { key: 'photos', label: 'Fotos', icon: 'images-outline', n: g.photos.length },
           { key: 'videos', label: 'Vídeos', icon: 'videocam-outline', n: g.videos.length },
           ...(socialCreations.length || mine ? [{ key: 'criacoes', label: 'Criações', icon: 'sparkles-outline', n: socialCreations.length }] : []),
-          { key: 'dep', label: 'Depoimentos', icon: 'chatbox-ellipses-outline', n: nTest, alert: nPending },
+          ...(showDep ? [{ key: 'dep', label: 'Depoimentos', icon: 'chatbox-ellipses-outline', n: nTest, alert: nPending }] : []),
         ]
       : []),
     ...(showPortfolio && (portfolio.length || mine) ? [{ key: 'portfolio', label: 'Portfólio', icon: 'briefcase-outline', n: portfolio.length }] : []),
   ];
   const [tab, setTab] = useState(tabs.length ? tabs[0].key : 'photos');
+  // focus = { tab, n }: os números do topo do perfil (Fotos, Depoimentos) abrem a aba certa.
+  useEffect(() => {
+    if (focus && focus.tab) setTab(focus.tab);
+  }, [focus && focus.n]);
   if (!tabs.length) return <LockedPanel name={ownerName} audience={priv.social} exposed={priv.exposed} />;
   const current = tabs.some((t) => t.key === tab) ? tab : tabs[0].key;
 
@@ -775,6 +873,16 @@ export function ProfileSocial({ ownerId, postsSlot, postsCount, ownerName }) {
 }
 
 const styles = StyleSheet.create({
+  showRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: colors.border },
+  switch: { width: 42, height: 24, borderRadius: 12, backgroundColor: colors.borderStrong, padding: 2, marginLeft: 8 },
+  switchOn: { backgroundColor: colors.primary },
+  knob: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#fff' },
+  knobOn: { marginLeft: 18 },
+  pvHead: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 14, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
+  pvClose: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cardAlt },
+  pvPill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14, backgroundColor: colors.cardAlt, marginRight: 6 },
+  pvPillOn: { backgroundColor: colors.text },
+  pvAvatar: { width: 92, height: 92, borderRadius: 46, borderWidth: 3, borderColor: '#FFFFFF' },
   section: { color: colors.text, fontSize: 17, fontWeight: '700' },
   sub: { color: colors.text, fontWeight: '700', fontSize: 15, marginBottom: 8 },
   hint: { color: colors.muted, fontSize: 12, marginBottom: 10, lineHeight: 17 },
@@ -833,7 +941,7 @@ const styles = StyleSheet.create({
   viewerClose: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
 
   tab: { flexDirection: 'row', alignItems: 'center', height: 36, paddingHorizontal: 12, borderRadius: 18, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, marginRight: 8 },
-  tabOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  tabOn: { backgroundColor: colors.text, borderColor: colors.text },
   tabTxt: { color: colors.text, fontWeight: '700', fontSize: 13, marginLeft: 5 },
   dot: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: colors.danger, alignItems: 'center', justifyContent: 'center', marginLeft: 6, paddingHorizontal: 4 },
 });

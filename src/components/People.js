@@ -6,6 +6,7 @@ import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
+import { pagesOfOwner } from '../userPages';
 import { colors, soft } from '../theme';
 import { Photo, Empty } from './ui';
 import { members, memberById, postsOf, searchMembers } from '../people';
@@ -147,6 +148,23 @@ export function UserProfileModal() {
               <Ionicons name="gift-outline" size={18} color={colors.primary} />
             </TouchableOpacity>
           </View>
+
+          {/* Páginas assinadas por esta pessoa (as anônimas não aparecem aqui: o dono fica em sigilo). */}
+          {pagesOfOwner(state, m.id).length ? (
+            <View style={{ marginTop: 14 }}>
+              <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15, marginBottom: 6 }}>Páginas de {m.name.split(' ')[0]}</Text>
+              {pagesOfOwner(state, m.id).map((pg) => (
+                <TouchableOpacity key={pg.id} style={styles.pageRow} activeOpacity={0.85} onPress={() => dispatch({ type: 'OPEN_USER_PAGE', id: pg.id })} accessibilityLabel={`Abrir a página ${pg.name}`}>
+                  <Photo uri={pg.cover} style={styles.pageThumb} fallback="📄" />
+                  <View style={{ flex: 1, marginLeft: 10 }}>
+                    <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>{pg.name}</Text>
+                    <Text style={{ color: colors.muted, fontSize: 12, marginTop: 1 }} numberOfLines={1}>{pg.followers.toLocaleString('pt-BR')} seguidores · {pg.posts.length} posts</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : null}
 
           <ProfileSocial
             key={m.id}
@@ -329,6 +347,8 @@ export function PersonRow({ m, onOpen }) {
 }
 
 const styles = StyleSheet.create({
+  pageRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, padding: 8, marginBottom: 8, borderWidth: 1, borderColor: colors.border },
+  pageThumb: { width: 54, height: 40, borderRadius: 8 },
   classChip: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 999, paddingVertical: 7, paddingHorizontal: 12, marginRight: 8, backgroundColor: colors.card },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 12, paddingVertical: 11, paddingHorizontal: 14, borderWidth: 1.5 },
   btnSm: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 10 },

@@ -4,6 +4,7 @@ import { View, Switch, ScrollView, Alert, TouchableOpacity } from 'react-native'
 import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, priceText, serviceType } from '../../store';
+import { includedPage } from '../../userPages';
 import { serviceTypes } from '../../data';
 import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Button, Stat, Section, Empty, Badge, Input, Chip } from '../../components/ui';
@@ -448,6 +449,7 @@ function VisitPanel() {
   const { state, dispatch } = useStore();
   const me = state.myProvider;
   const st = providerStats(me);
+  const workPage = includedPage(state); // página de trabalhos incluída no plano Destaque
   const rank = rankPosition(state.providers, me);
   const fee = visitFee(me);
   const split = splitFee(fee);
@@ -541,6 +543,18 @@ function VisitPanel() {
             Apareça no topo das buscas da sua categoria, com selo e perfil completo. Você aparece como "Patrocinado", separado de quem está no topo
             por mérito.
           </Text>
+          <Text style={{ color: colors.muted, fontSize: 13, marginTop: 6, lineHeight: 18 }}>
+            Inclui uma página de trabalhos do seu jeito (capa, cores, posts com foto), para mostrar o que você faz e usar como referência com os clientes.
+          </Text>
+          {st.sponsored ? (
+            <Button
+              small
+              variant="dark"
+              title={workPage ? 'Abrir minha página de trabalhos' : 'Criar minha página de trabalhos'}
+              style={{ marginTop: 10 }}
+              onPress={() => (workPage ? dispatch({ type: 'OPEN_USER_PAGE', id: workPage.id }) : dispatch({ type: 'NAV_REQUEST', go: { tab: 'paginas', seg: 'minhas', criar: true } }))}
+            />
+          ) : null}
           <Button
             small
             variant={st.sponsored ? 'outline' : 'primary'}

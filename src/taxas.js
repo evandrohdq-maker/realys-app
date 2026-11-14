@@ -21,6 +21,8 @@ export const TAXAS = {
   contatoVeiculo: { valor: 4.9, unidade: 'R$ por conversa liberada', quemPaga: 'particular (veículo ou máquina)', mercado: 'Webmotors: anúncio a partir de R$ 9,90, pago antes de aparecer interessado', argumento: 'anunciar é grátis; R$ 4,90 só quando aparece um interessado verificado' },
   // Espaços de publicidade (preços por pacote em src/rewards.js › POINT_SHOP).
   publicidade: { valor: 14.9, unidade: 'R$ por dia para aparecer em primeiro nas buscas (story R$ 9,90; banner da vitrine R$ 39,90)', quemPaga: 'anunciante', mercado: 'iFood Anúncios: orçamento mínimo de R$ 25 por dia, cobrado por clique', argumento: 'R$ 14,90 por dia, preço fechado, sem leilão e sem surpresa' },
+  // Páginas de usuário (estilo blog): mensalidade por página (src/userPages.js › PAGE_PRICE).
+  paginaUsuario: { valor: 14.9, unidade: 'R$ por mês por página', quemPaga: 'usuário dono da página', mercado: 'construtores de site e blog cobram mensalidade por site, sem público incluído', argumento: 'R$ 14,90 por mês com página personalizável e o público verificado do Re@lys' },
   destaquePrestador: { valor: 49.9, unidade: 'R$ por mês', mercado: 'GetNinjas: pacotes a partir de R$ 149', argumento: 'destaque o mês inteiro por R$ 49,90' },
 };
 

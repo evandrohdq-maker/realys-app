@@ -14,11 +14,12 @@ import { Screen, Title, Card, Row, Button, Badge } from '../components/ui';
 import UpdateChecker from '../components/UpdateChecker';
 import { VERSION_LABEL } from '../updates';
 import { getSavedUsers, forgetUser } from '../accounts';
-import { ProfileSocial } from '../components/SocialProfile';
+import { ProfileSocial, ProfilePreviewModal } from '../components/SocialProfile';
+import { PeopleSearchModal } from '../components/People';
 import WalletScreen from './WalletScreen';
 import BiometriaScreen from './BiometriaScreen';
 import DemoScreen from './DemoScreen';
-import { ProfileEditor, PrivacyPanel, StudioPanel, FutureIcon, audienceLabel } from '../components/ProfileStudio';
+import { ProfileEditor, PrivacyPanel, StudioPanel, FutureIcon, audienceLabel, coverTone } from '../components/ProfileStudio';
 import { Photo } from '../components/ui';
 import { myPages, MAX_PAGES } from '../userPages';
 import Credentials from '../components/Credentials';
@@ -33,7 +34,7 @@ function Item({ k, icon, title, sub, onPress, children, danger, open, onToggle }
     <View style={styles.item}>
       <TouchableOpacity style={styles.itemRow} onPress={onPress || (() => onToggle(k))} activeOpacity={0.8} accessibilityLabel={title}>
         <View style={[styles.itemIcon, danger && { backgroundColor: '#FDECEC' }]}>
-          <Ionicons name={icon} size={19} color={danger ? colors.danger : colors.primary} />
+          <Ionicons name={icon} size={19} color={danger ? colors.danger : colors.menu} />
         </View>
         <View style={{ flex: 1, marginLeft: 12 }}>
           <Text style={[styles.itemTitle, danger && { color: colors.danger }]}>{title}</Text>
@@ -52,6 +53,9 @@ export default function ProfileScreen({ navigate, explore }) {
   const [checking, setChecking] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [previewing, setPreviewing] = useState(false); // ver o perfil como os outros veem
+  const [friendsOpen, setFriendsOpen] = useState(false);
+  const [focus, setFocus] = useState(null); // aba aberta pelos números do topo
   const [bioOpen, setBioOpen] = useState(false);
   const [demoOpen, setDemoOpen] = useState(false);
   const [quizOpen, setQuizOpen] = useState(false);
@@ -109,23 +113,25 @@ export default function ProfileScreen({ navigate, explore }) {
   return (
     <Screen>
       {/* Cabeçalho: foto, nome verificado, @ e profissão, perfil social e bio. */}
-      <View style={styles.banner}>
-        <View style={[styles.bannerGlow, { left: -40, top: -60 }]} />
-        <View style={[styles.bannerGlow, { right: -30, top: 10, width: 140, height: 140 }]} />
-        <Text style={styles.bannerText}>Pessoas reais. Negócios reais.</Text>
+      {/* Capa de fundo: a foto que a pessoa escolheu ou um tom suave. Tocar abre o editor. */}
+      <TouchableOpacity activeOpacity={0.9} onPress={() => setEditing(true)} style={[styles.banner, { backgroundColor: coverTone(prof.coverTone).color }]} accessibilityLabel="Trocar a capa de fundo">
+        {prof.cover ? <Photo uri={prof.cover} style={styles.bannerImg} /> : null}
         <View style={styles.verifiedPill}>
           <Ionicons name="shield-checkmark" size={13} color="#FFFFFF" />
           <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 11, marginLeft: 4 }}>Identidade verificada</Text>
         </View>
-      </View>
+        <View style={styles.coverEdit}>
+          <Ionicons name="image-outline" size={13} color="#FFFFFF" />
+        </View>
+      </TouchableOpacity>
       <View style={styles.head}>
         <TouchableOpacity onPress={() => setEditing(true)} activeOpacity={0.85} accessibilityLabel="Trocar foto e editar perfil" style={{ marginTop: -58 }}>
           <View style={styles.avatarRing}>
             {prof.photo ? (
               <Photo uri={prof.photo} style={styles.avatar} />
             ) : (
-              <View style={[styles.avatar, { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }]}>
-                <Text style={{ color: colors.onPrimary, fontSize: 34, fontWeight: '800' }}>{u.name[0]}</Text>
+              <View style={[styles.avatar, { backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' }]}>
+                <Text style={{ color: colors.text, fontSize: 34, fontWeight: '800' }}>{u.name[0]}</Text>
               </View>
             )}
           </View>
@@ -140,7 +146,7 @@ export default function ProfileScreen({ navigate, explore }) {
         </TouchableOpacity>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
           <Text style={styles.name}>{u.name}</Text>
-          <Ionicons name="checkmark-circle" size={18} color={colors.primary} style={{ marginLeft: 5 }} accessibilityLabel="Identidade verificada por biometria" />
+          <Ionicons name="checkmark-circle" size={18} color={colors.accent} style={{ marginLeft: 5 }} accessibilityLabel="Identidade verificada por biometria" />
         </View>
         {prof.handle || prof.profession ? (
           <Text style={styles.handle} numberOfLines={1}>{[prof.handle ? '@' + prof.handle : '', prof.profession].filter(Boolean).join(' · ')}</Text>
@@ -149,8 +155,8 @@ export default function ProfileScreen({ navigate, explore }) {
           <SocialBadge social={prof.social} style={{ marginTop: 8, alignSelf: 'center' }} onPress={() => setQuizOpen(true)} />
         ) : (
           <TouchableOpacity onPress={() => setQuizOpen(true)} style={styles.quizCta} activeOpacity={0.85}>
-            <Ionicons name="planet-outline" size={16} color={colors.primary} />
-            <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 6, fontSize: 13 }}>Descubra seu perfil social</Text>
+            <Ionicons name="planet-outline" size={16} color={colors.text} />
+            <Text style={{ color: colors.text, fontWeight: '700', marginLeft: 6, fontSize: 13 }}>Descubra seu perfil social</Text>
           </TouchableOpacity>
         )}
         {prof.bio ? <Text style={styles.bio}>{prof.bio}</Text> : null}
@@ -161,10 +167,16 @@ export default function ProfileScreen({ navigate, explore }) {
             [((state.myGallery && state.myGallery.photos) || []).length + ((state.myGallery && state.myGallery.videos) || []).length, 'Fotos e vídeos'],
             [(state.testimonials || []).filter((t) => t.to === 'me' && t.status === 'aprovado').length, 'Depoimentos'],
           ].map(([n, label]) => (
-            <View key={label} style={styles.stat}>
+            <TouchableOpacity
+              key={label}
+              style={styles.stat}
+              activeOpacity={0.7}
+              accessibilityLabel={`${n} ${label}`}
+              onPress={() => (label === 'Amigos' ? setFriendsOpen(true) : setFocus({ tab: label === 'Depoimentos' ? 'dep' : 'photos', n: Date.now() }))}
+            >
               <Text style={styles.statN}>{n}</Text>
               <Text style={styles.statL}>{label}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
         <View style={{ flexDirection: 'row', marginTop: 14, alignSelf: 'stretch' }}>
@@ -173,8 +185,13 @@ export default function ProfileScreen({ navigate, explore }) {
             <Text style={{ color: colors.onPrimary, fontWeight: '800', marginLeft: 6 }}>Editar perfil</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => dispatch({ type: 'SET_PRIVACY', privacy: { exposed: !priv.exposed } })} style={[styles.privPill, !priv.exposed && { borderColor: colors.accent }]} accessibilityLabel={priv.exposed ? 'Deixar perfil invisível' : 'Expor meu perfil'}>
-            <Ionicons name={priv.exposed ? 'eye' : 'eye-off'} size={15} color={priv.exposed ? colors.primary : colors.accent} />
-            <Text style={{ color: priv.exposed ? colors.primaryDark : colors.accent, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>{priv.exposed ? 'Exposto' : 'Invisível'}</Text>
+            <Ionicons name={priv.exposed ? 'eye' : 'eye-off'} size={15} color={priv.exposed ? colors.text : colors.accent} />
+            <Text style={{ color: priv.exposed ? colors.text : colors.accent, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>{priv.exposed ? 'Exposto' : 'Invisível'}</Text>
+          </TouchableOpacity>
+          {/* Ver como o perfil aparece para os outros */}
+          <TouchableOpacity onPress={() => setPreviewing(true)} style={[styles.privPill, { marginLeft: 8 }]} accessibilityLabel="Ver como o meu perfil aparece para os outros">
+            <Ionicons name="scan-outline" size={15} color={colors.text} />
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>Prévia</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -182,17 +199,17 @@ export default function ProfileScreen({ navigate, explore }) {
       {/* Carteira: o saldo só aparece aqui no Perfil. */}
       <TouchableOpacity onPress={() => setWalletOpen(true)} activeOpacity={0.88} style={styles.wallet} accessibilityLabel="Abrir minha carteira">
         <View style={styles.walletIcon}>
-          <Ionicons name="wallet" size={20} color={colors.primary} />
+          <Ionicons name="wallet" size={20} color={colors.text} />
         </View>
         <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, fontWeight: '600' }}>Carteira Re@lys</Text>
-          <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 20 }}>{brl(state.wallet)}</Text>
+          <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '600' }}>Carteira Re@lys</Text>
+          <Text style={{ color: colors.text, fontWeight: '800', fontSize: 20 }}>{brl(state.wallet)}</Text>
         </View>
-        <Ionicons name="chevron-forward" size={18} color="#FFFFFF" />
+        <Ionicons name="chevron-forward" size={18} color={colors.muted} />
       </TouchableOpacity>
 
       {/* O que os amigos veem: destaques, fotos, vídeos e depoimentos aceitos. */}
-      <ProfileSocial ownerId="me" />
+      <ProfileSocial ownerId="me" focus={focus} />
 
       {/* Todo o resto fica guardado aqui, sem poluir o perfil. */}
       <Text style={styles.moreTitle}>Mais opções</Text>
@@ -346,6 +363,8 @@ export default function ProfileScreen({ navigate, explore }) {
       {checking ? <UpdateChecker manual onDone={() => setChecking(false)} /> : null}
       <WalletScreen visible={walletOpen} onClose={() => setWalletOpen(false)} />
       <ProfileEditor visible={editing} onClose={() => setEditing(false)} />
+      <ProfilePreviewModal visible={previewing} onClose={() => setPreviewing(false)} />
+      <PeopleSearchModal visible={friendsOpen} onClose={() => setFriendsOpen(false)} navigate={navigate} />
       <BiometriaScreen visible={bioOpen} onClose={() => setBioOpen(false)} />
       <DemoScreen visible={demoOpen} onClose={() => setDemoOpen(false)} />
       <ProfileQuizModal
@@ -365,20 +384,22 @@ export default function ProfileScreen({ navigate, explore }) {
 }
 
 const styles = StyleSheet.create({
-  banner: { height: 120, borderRadius: 22, backgroundColor: colors.primary, overflow: 'hidden', justifyContent: 'flex-start', padding: 14, marginTop: 4 },
+  banner: { height: 120, borderRadius: 22, overflow: 'hidden', marginTop: 4 },
+  bannerImg: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
+  coverEdit: { position: 'absolute', left: 12, top: 12, width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(20,18,14,0.45)', alignItems: 'center', justifyContent: 'center' },
   bannerGlow: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(255,240,190,0.25)' },
   bannerText: { color: 'rgba(255,255,255,0.92)', fontWeight: '800', fontSize: 13, letterSpacing: 0.3 },
-  verifiedPill: { position: 'absolute', right: 12, top: 12, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4 },
+  verifiedPill: { position: 'absolute', right: 12, top: 12, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(20,18,14,0.5)', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4 },
   head: { alignItems: 'center', paddingBottom: 6 },
-  avatarRing: { padding: 4, borderRadius: 60, backgroundColor: '#FFFFFF', borderWidth: 3, borderColor: colors.primary, shadowColor: colors.primary, shadowOpacity: 0.45, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 8 },
+  avatarRing: { padding: 4, borderRadius: 60, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.border, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
   avatar: { width: 104, height: 104, borderRadius: 52 },
   quiet: { position: 'absolute', top: 10, width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
   quietSos: { color: colors.danger, fontWeight: '800', fontSize: 8.5, letterSpacing: 0.3 },
   name: { color: colors.text, fontWeight: '800', fontSize: 23 },
   handle: { color: colors.muted, fontSize: 13, marginTop: 2 },
   bio: { color: colors.text, fontSize: 14, lineHeight: 20, marginTop: 10, textAlign: 'center', paddingHorizontal: 10 },
-  quizCta: { flexDirection: 'row', alignItems: 'center', marginTop: 8, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.primary, backgroundColor: colors.primaryLight },
-  editBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 40, borderRadius: 20, backgroundColor: colors.primary, marginRight: 8 },
+  quizCta: { flexDirection: 'row', alignItems: 'center', marginTop: 8, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderStrong, backgroundColor: colors.primaryLight },
+  editBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 40, borderRadius: 20, backgroundColor: colors.text, marginRight: 8 },
   stats: { flexDirection: 'row', alignSelf: 'stretch', marginTop: 14, backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: colors.border, paddingVertical: 10 },
   stat: { flex: 1, alignItems: 'center' },
   statN: { color: colors.text, fontWeight: '800', fontSize: 19 },
@@ -387,27 +408,24 @@ const styles = StyleSheet.create({
   moreBox: { backgroundColor: '#FFFFFF', borderRadius: 18, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
   item: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   itemRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12 },
-  itemIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  itemIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
   itemTitle: { color: colors.text, fontWeight: '700', fontSize: 15 },
   itemSub: { color: colors.muted, fontSize: 12, marginTop: 1 },
   itemBody: { paddingHorizontal: 14, paddingBottom: 14 },
   roleChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18, borderWidth: 1, borderColor: colors.border, marginRight: 8, marginBottom: 8, backgroundColor: '#FFFFFF' },
   roleChipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  privPill: { flexDirection: 'row', alignItems: 'center', minHeight: 38, paddingHorizontal: 12, borderRadius: 19, borderWidth: 1, borderColor: 'rgba(168,121,10,0.4)', backgroundColor: colors.primaryLight },
+  privPill: { flexDirection: 'row', alignItems: 'center', minHeight: 38, paddingHorizontal: 12, borderRadius: 19, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card },
   wallet: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.card,
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
     padding: 12,
     marginTop: 12,
     marginBottom: 14,
-    shadowColor: colors.primary,
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 5,
   },
-  walletIcon: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
+  walletIcon: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
   walletBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, paddingHorizontal: 10, height: 30 },
 });

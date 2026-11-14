@@ -143,6 +143,17 @@ async function pickImage() {
   return res.assets[0].uri;
 }
 
+// Capa de fundo do perfil: uma foto da galeria ou um tom suave.
+export const COVER_TONES = [
+  { key: 'areia', label: 'Areia', color: '#ECE7DD' },
+  { key: 'ceu', label: 'Céu', color: '#DDE7EC' },
+  { key: 'salvia', label: 'Sálvia', color: '#E1EADB' },
+  { key: 'rose', label: 'Rosé', color: '#EFDFE2' },
+  { key: 'lavanda', label: 'Lavanda', color: '#E5DFEE' },
+  { key: 'grafite', label: 'Grafite', color: '#2B2925' },
+];
+export const coverTone = (key) => COVER_TONES.find((t) => t.key === key) || COVER_TONES[0];
+
 export function ProfileEditor({ visible, onClose }) {
   const { state, dispatch } = useStore();
   const insets = useSafeAreaInsets();
@@ -185,6 +196,36 @@ export function ProfileEditor({ visible, onClose }) {
             </View>
             <Text style={{ color: colors.primary, fontWeight: '700', marginTop: 8 }}>Trocar foto</Text>
           </TouchableOpacity>
+
+          {/* Capa de fundo: foto da galeria ou um tom suave */}
+          <Text style={styles.label}>Capa de fundo</Text>
+          <View style={{ height: 84, borderRadius: 14, overflow: 'hidden', backgroundColor: coverTone(f.coverTone).color, marginBottom: 8 }}>
+            {f.cover ? <Photo uri={f.cover} style={{ width: '100%', height: '100%' }} /> : null}
+          </View>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
+            {COVER_TONES.map((t) => {
+              const on = !f.cover && coverTone(f.coverTone).key === t.key;
+              return (
+                <TouchableOpacity
+                  key={t.key}
+                  onPress={() => setF({ ...f, cover: null, coverTone: t.key })}
+                  accessibilityLabel={`Capa em tom ${t.label}`}
+                  style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: t.color, marginRight: 8, marginBottom: 8, borderWidth: on ? 2.5 : 1, borderColor: on ? colors.text : colors.borderStrong }}
+                />
+              );
+            })}
+            <TouchableOpacity
+              onPress={async () => {
+                const uri = await pickImage();
+                if (uri) setF({ ...f, cover: uri });
+              }}
+              style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, height: 34, borderRadius: 17, borderWidth: 1, borderColor: colors.borderStrong, marginBottom: 8 }}
+              accessibilityLabel="Escolher uma foto para a capa"
+            >
+              <Ionicons name="image-outline" size={15} color={colors.text} />
+              <Text style={{ color: colors.text, fontWeight: '700', fontSize: 12.5, marginLeft: 6 }}>{f.cover ? 'Trocar foto' : 'Usar uma foto'}</Text>
+            </TouchableOpacity>
+          </View>
 
           <Text style={styles.label}>Nome</Text>
           <View style={[styles.input, { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt }]}>

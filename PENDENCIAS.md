@@ -43,6 +43,14 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
       webmotors.com.br/vender-carro). Não foi achado preço público de cobrança por contato.
 - [ ] **Taxa de sucesso nos aluguéis** fechados com contrato assinado no app (etapa seguinte).
 
+## Perfis e páginas
+
+- [ ] **Mensalidade da página**: R$ 14,90 é cobrado na criação; a cobrança todo mês depende do servidor.
+- [ ] **Vitrine de cada classe profissional**: o prestador já tem a página de trabalhos (plano
+      Destaque). Falta dar o mesmo espaço de exposição para rádios, TVs online, imobiliárias e
+      revendas de veículos, e destacar os perfis por classe de trabalhador.
+- [ ] **Páginas de quem já tinha página**: as criadas antes da mensalidade continuam no ar sem cobrança.
+
 ## Publicidade (Anuncie no Re@lys)
 
 - [ ] **Pôr a arte do anunciante no ar**: hoje a compra do story patrocinado, do patrocinado nas

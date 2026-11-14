@@ -70,6 +70,8 @@ export const DEMO_PAGES = [
 export const signatureOf = (pg) => (pg.anon ? 'Página anônima · dono verificado pelo Re@lys' : `Assinada por ${pg.ownerName} · verificado`);
 
 export const myPages = (state) => (state.userPages || []).filter((p) => p.ownerId === 'me');
+// Páginas assinadas de uma pessoa (as anônimas ficam de fora: o dono não é revelado).
+export const pagesOfOwner = (state, ownerId) => (state.userPages || []).filter((p) => p.ownerId === ownerId && !p.anon);
 export const pageById = (state, id) => (state.userPages || []).find((p) => p.id === id) || null;
 export const canCreatePage = (state) => !!state.user && myPages(state).length < MAX_PAGES;
 
@@ -88,7 +90,51 @@ export function pageNameProblem(name, anon, state) {
 
 export const PAGE_RULES = [
   'A página é sua e fica ligada à sua conta verificada por biometria.',
+  'Cada página custa R$ 14,90 por mês, do seu saldo Re@lys.',
   'Anônima: seu nome não aparece, mas o Re@lys sabe quem é e só revela por ordem judicial.',
   'Página anônima não pode se passar por pessoa, empresa ou órgão real, nem vender produtos.',
   'Todo post passa pela IA contra notícias falsas; fake news não é publicada e pode bloquear a página.',
 ];
+
+// ---------- Aparência da página (edição estilo blog) ----------
+// O dono escolhe cor de destaque, fundo, letra e formato dos posts. Fica em pg.style.
+export const PAGE_ACCENTS = ['#14120E', '#B8860B', '#2F74D0', '#1E9E63', '#D9534F', '#7B6CF6', '#E8590C', '#C2185B'];
+export const PAGE_BACKGROUNDS = [
+  { key: 'claro', label: 'Claro', bg: '#FBF8F1', card: '#FFFFFF', text: '#14120E', muted: '#5B564B', line: '#F0E9DA' },
+  { key: 'papel', label: 'Papel', bg: '#F1E8D8', card: '#FAF4E8', text: '#2B2620', muted: '#6B6255', line: '#E2D6BF' },
+  { key: 'neve', label: 'Neve', bg: '#FFFFFF', card: '#F6F6F4', text: '#14120E', muted: '#5B564B', line: '#ECECE8' },
+  { key: 'escuro', label: 'Escuro', bg: '#15130F', card: '#221F1A', text: '#F5F1E8', muted: '#B5AE9F', line: '#322E27' },
+];
+export const PAGE_FONTS = [
+  { key: 'moderna', label: 'Moderna', family: undefined },
+  { key: 'classica', label: 'Clássica', family: 'serif' },
+  { key: 'maquina', label: 'Máquina', family: 'monospace' },
+];
+export const PAGE_LAYOUTS = [
+  { key: 'cartoes', label: 'Cartões', hint: 'Cada post num cartão' },
+  { key: 'blog', label: 'Blog', hint: 'Texto corrido, um post depois do outro' },
+  { key: 'revista', label: 'Revista', hint: 'Foto grande em cima, título em destaque' },
+];
+export const PAGE_STYLE_DEFAULT = { accent: '#14120E', bg: 'claro', font: 'moderna', layout: 'cartoes' };
+// Estilo pronto para usar na tela (com os padrões preenchidos).
+export function pageStyle(pg) {
+  const st = { ...PAGE_STYLE_DEFAULT, ...((pg && pg.style) || {}) };
+  const tone = PAGE_BACKGROUNDS.find((b) => b.key === st.bg) || PAGE_BACKGROUNDS[0];
+  const font = PAGE_FONTS.find((f) => f.key === st.font) || PAGE_FONTS[0];
+  const layout = PAGE_LAYOUTS.some((l) => l.key === st.layout) ? st.layout : 'cartoes';
+  // Destaque escuro some no fundo escuro: nesse caso usa a cor do texto.
+  const accent = tone.key === 'escuro' && st.accent === '#14120E' ? tone.text : st.accent;
+  return { ...st, layout, tone, family: font.family, accent };
+}
+
+// Criar página custa uma mensalidade (valor em src/taxas.js › paginaUsuario).
+export const PAGE_PRICE = 14.9;
+
+// Prestador com o plano Destaque Re@lys (R$ 49,90 por mês) tem uma página de trabalhos incluída,
+// para apresentar o que faz e usar como referência com os clientes.
+export const includedPage = (state) => (state.userPages || []).find((p) => p.ownerId === 'me' && p.included) || null;
+export const hasIncludedPageRight = (state) => !!(state.myProvider && state.myProvider.sponsored);
+// Quanto custa criar uma página agora (0 = incluída no plano do prestador).
+export const pagePrice = (state) => (hasIncludedPageRight(state) && !includedPage(state) ? 0 : PAGE_PRICE);
+// Página de trabalhos de um prestador (assinada), para mostrar no perfil dele.
+export const pageOfProvider = (state, providerId) => (state.userPages || []).find((p) => p.providerId === providerId && !p.anon) || null;

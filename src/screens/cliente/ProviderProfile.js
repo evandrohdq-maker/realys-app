@@ -8,6 +8,7 @@ import { colors, soft } from '../../theme';
 import { serviceType, priceText, useStore } from '../../store';
 import { providerTarget } from '../../components/GiftSheet';
 import { Photo } from '../../components/ui';
+import { pageOfProvider } from '../../userPages';
 import { reviewsCount, jobsDone, kmText, ratingText, sampleReviews, etaMin } from '../../providerInfo';
 import { brl } from '../../theme';
 import { teamOf, teamMembers, TEAM_RULES } from '../../teams';
@@ -31,6 +32,7 @@ export default function ProviderProfile({ provider: p, visible, onClose, onHire,
   const team = teamOf(p);
   const byVisit = isVisitService(p.service);
   const st = providerStats(p);
+  const workPage = pageOfProvider(state, p.id);
   const rank = rankPosition(state.providers, p);
 
   return (
@@ -117,6 +119,17 @@ export default function ProviderProfile({ provider: p, visible, onClose, onHire,
               </View>
             ) : null}
 
+            {/* Página de trabalhos do prestador (incluída no plano Destaque) */}
+            {workPage ? (
+              <TouchableOpacity style={styles.workPage} activeOpacity={0.85} onPress={() => dispatch({ type: 'OPEN_USER_PAGE', id: workPage.id })} accessibilityLabel={`Abrir a página de trabalhos de ${p.name}`}>
+                <Ionicons name="albums-outline" size={18} color={colors.text} />
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={{ color: colors.text, fontWeight: '800' }} numberOfLines={1}>{workPage.name}</Text>
+                  <Text style={{ color: colors.muted, fontSize: 12, marginTop: 1 }}>Página de trabalhos: veja o que já foi feito</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+              </TouchableOpacity>
+            ) : null}
             <View style={styles.tabs}>
               {TABS.map(([k, label]) => {
                 const on = k === tab;
@@ -276,6 +289,7 @@ const styles = StyleSheet.create({
     padding: 12,
     ...soft,
   },
+  workPage: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: colors.border },
   tabs: {
     flexDirection: 'row',
     marginTop: 16,
