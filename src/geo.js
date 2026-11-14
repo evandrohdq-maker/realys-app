@@ -1,5 +1,6 @@
 // Distância e área para alertas por localização. Usa o GPS do celular (mesmo jeito do tempo).
 import * as Location from 'expo-location';
+import { withSystemDialog } from './systemDialog';
 
 const R = 6371; // raio da Terra em km
 
@@ -22,7 +23,7 @@ export function inZone(point, zone) {
 // Posição atual do celular, ou null se não tiver permissão ou GPS.
 export async function getDevicePoint() {
   try {
-    const perm = await Location.requestForegroundPermissionsAsync();
+    const perm = await withSystemDialog(() => Location.requestForegroundPermissionsAsync());
     if (perm.status !== 'granted') return null;
     let pos = await Location.getLastKnownPositionAsync({ maxAge: 30 * 60 * 1000 });
     if (!pos) pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low });

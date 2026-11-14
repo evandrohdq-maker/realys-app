@@ -2,6 +2,7 @@
 // e a temperatura no cantinho. Usa o Open-Meteo (gratuito, sem chave).
 // Fica guardado por 20 minutos para não gastar bateria nem internet.
 import * as Location from 'expo-location';
+import { withSystemDialog } from './systemDialog';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const KEY = 'realys.weather';
@@ -18,7 +19,7 @@ export function kindOf(code) {
 }
 
 async function fetchNow() {
-  const perm = await Location.requestForegroundPermissionsAsync();
+  const perm = await withSystemDialog(() => Location.requestForegroundPermissionsAsync());
   if (perm.status !== 'granted') return null;
   let pos = await Location.getLastKnownPositionAsync({ maxAge: 30 * 60 * 1000 });
   if (!pos) pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low });

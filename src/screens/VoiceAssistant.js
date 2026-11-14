@@ -33,6 +33,8 @@ import { findNavigation, navReply } from '../voiceNav';
 import { understand } from '../lm/lotusLM';
 import { knowledgeAnswer } from '../lm/knowledge';
 import { openAction, isPartyQuery, hasPartyCue, partyReply, findProfile, pickOption, openReply, askReply, toResult } from '../voiceIntents';
+import { withSystemDialog, systemDialogOpen } from '../systemDialog';
+import { onDeviceOptions, noteVoiceError, isNetError, worksOffline } from '../offlineVoice';
 
 // Sugestões que aparecem antes da primeira fala.
 const EXAMPLES = [
@@ -798,6 +800,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
         // Volume do microfone: é assim que ela percebe a voz da pessoa por cima da dela.
         volumeChangeEventOptions: { enabled: true, intervalMillis: 100 },
         ...(voiceGateOn() ? recordingFor('barge') : {}),
+        ...onDeviceOptions(),
         // Em Androids mais antigos o "continuous" não existe e o microfone desliga sozinho depois de
         // cada frase que ouve (inclusive a voz da própria Lotus). Aqui ele aguenta mais tempo ligado.
         androidIntentOptions: {
@@ -1000,7 +1003,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
   useEffect(() => {
     if (!visible) return;
     const sub = AppState.addEventListener('change', (s) => {
-      if (s !== 'active') closeRef.current();
+      // Janela de permissão (microfone, GPS) por cima do app não é minimizar: a caixa continua aberta.
+      if (s !== 'active' && !systemDialogOpen()) closeRef.current();
     });
     return () => sub.remove();
   }, [visible]);
@@ -1187,14 +1191,14 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     if (Platform.OS !== 'android') return;
     setPhase('listening');
     try {
-      const result = await IntentLauncher.startActivityAsync('android.speech.action.RECOGNIZE_SPEECH', {
+      const result = await withSystemDialog(() => IntentLauncher.startActivityAsync('android.speech.action.RECOGNIZE_SPEECH', {
         extra: {
           'android.speech.extra.LANGUAGE_MODEL': 'free_form',
           'android.speech.extra.LANGUAGE': 'pt-BR',
           'android.speech.extra.PROMPT': 'Fale com a Lotus',
           'android.speech.extra.MAX_RESULTS': 3,
         },
-      });
+      }));
       const said = result && result.extra && result.extra['android.speech.extra.RESULTS'];
       if (said && said.length) return run(bestHeard(said.map((s) => ({ transcript: s }))), null, said);
       setPhase('idle');
@@ -1215,6 +1219,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
         contextualStrings: HINTS,
         volumeChangeEventOptions: { enabled: true, intervalMillis: 90 },
         ...(voiceGateOn() ? recordingFor('cmd') : {}),
+        // Sem internet: ouve pelo próprio celular (se ele tiver a voz em português no aparelho).
+        ...onDeviceOptions(),
       });
     } catch (e) {
       session.current.active = false;
@@ -1239,7 +1245,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     try {
       const p = await ExpoSpeechRecognitionModule.getPermissionsAsync();
       if (!p || !p.granted) {
-        const r = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+        const r = await withSystemDialog(() => ExpoSpeechRecognitionModule.requestPermissionsAsync());
         if (!r || !r.granted) {
           setHistory((h) => [{ at: Date.now(), q: '🎙️', reply: 'O Realys precisa da permissão do microfone para ouvir você. Você também pode digitar abaixo.' }, ...h]);
           return;
@@ -1363,6 +1369,12 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     const s = session.current;
     if (!s.active) return;
     const code = e && e.error;
+    // Sem internet: tenta de novo uma vez pelo reconhecimento do próprio celular.
+    if (noteVoiceError(code) && !s.netRetried) {
+      s.netRetried = true;
+      setTimeout(() => s.active && startRecognizer(), 140);
+      return;
+    }
     // O "abrir Lotus" ainda estava soltando o microfone: tenta de novo uma vez.
     if (!s.started && !s.retried && (code === 'aborted' || code === 'busy' || code === 'client' || code === 'recognizer-busy')) {
       s.retried = true;
@@ -1374,6 +1386,18 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     setPhase(restPhase());
     if (code === 'not-allowed' || code === 'service-not-allowed') {
       setHistory((h) => [{ at: Date.now(), q: '🎙️', reply: 'O Realys precisa da permissão do microfone para ouvir você.' }, ...h]);
+    } else if (isNetError(code)) {
+      setPartial('');
+      setHistory((h) => [
+        {
+          at: Date.now(),
+          q: '🎙️',
+          reply: worksOffline()
+            ? 'Estou sem internet e não consegui te ouvir. Tente falar de novo ou digite abaixo.'
+            : 'Estou sem internet, e este celular só entende a voz com internet. Digite seu pedido abaixo. Para falar comigo sem internet, baixe o pacote de voz em português para uso offline nas configurações de voz do celular.',
+        },
+        ...h,
+      ]);
     } else if (code === 'no-speech' || code === 'speech-timeout') {
       setPartial('');
     }
