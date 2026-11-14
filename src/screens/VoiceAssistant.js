@@ -788,6 +788,9 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     counts.current = now;
     if (prev && visible && (now.cart > prev.cart || now.rides > prev.rides || now.buys > prev.buys)) setFly((n) => n + 1);
   }, [state.cart, state.rides, state.nfeSeq, visible]);
+  // A caixa está aberta? (para a escuta do "Lotus" não religar depois de fechar)
+  const openRef = useRef(false);
+  openRef.current = !!visible;
   const pausedRef = useRef(null);
   pausedRef.current = paused;
   const restPhase = () => (pausedRef.current ? 'paused' : 'idle');
@@ -950,6 +953,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
         // Guarda o que ela falou: o que vier igual a isso depois do "Lotus" é eco da voz dela.
         if (!b.ducked) b.spoken = herAll;
         pauseTalk(); // não apaga o assunto (pending): "Lotus… tem mais barato?" segue nos mesmos motoristas
+        // Chamou "Lotus": ela larga o que estava falando (não volta para a fala antiga) e ouve o próximo pedido.
+        setPaused(null);
         setPhase('listening');
       } else if (b.ducked) {
         // Já parou de falar: o que vier de novo (depois do que já estava no microfone) é a pessoa.
@@ -964,8 +969,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
         b.heard = true;
         b.rest = fresh;
       } else {
-        // Ainda falando: várias palavras que não são dela = a pessoa está falando por cima.
-        if (cur && foreignCount(said, herAll) >= 3) duck();
+        // Ainda falando e ninguém disse "Lotus": ela continua (só o "Lotus" interrompe).
         return;
       }
     }
@@ -1037,9 +1041,16 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
       onDone: () => {
         // Mãos livres: se a Lotus fez uma pergunta ("quer que eu chame?"), já abre o microfone para a resposta.
         // (um respiro depois da fala dela, para o microfone não pegar o finalzinho da própria voz)
-        if (ended() && handsFree && res.pending) setTimeout(listen, 400);
-        // Terminou e não ficou esperando resposta: a música (Spotify etc.) volta a tocar.
-        else if (id === speechId.current && !(handsFree && res.pending)) giveMusicBack(700);
+        const fin = ended();
+        if (fin && handsFree && res.pending) setTimeout(listen, 400);
+        else {
+          // Terminou e não ficou esperando resposta: a música (Spotify etc.) volta a tocar.
+          if (id === speechId.current) giveMusicBack(700);
+          // Mãos livres com a caixa aberta: continua atenta ao "Lotus" para o próximo pedido.
+          if (fin && handsFree) setTimeout(() => {
+            if (openRef.current && id === speechId.current && !talking.current && !session.current.active && !bargeIn.current.on) startBargeIn('');
+          }, 500);
+        }
       },
       onStopped: ended,
       onError: ended,
@@ -1282,8 +1293,10 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
         b.ema = b.ema == null ? v : b.ema * 0.8 + v * 0.2;
         return;
       }
+      // Antes ela parava sozinha quando o microfone ficava mais alto (e o eco da própria voz fazia
+      // ela pausar depois de poucos segundos). Agora só para quando alguém fala "Lotus".
       if (v >= VOL_MIN && v > b.ema + VOL_JUMP) {
-        if (++b.loud >= VOL_HITS) duck();
+        b.loud += 1;
       } else {
         b.loud = 0;
         b.ema = b.ema * 0.95 + v * 0.05;
