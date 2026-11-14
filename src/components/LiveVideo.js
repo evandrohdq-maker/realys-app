@@ -293,6 +293,6 @@ const st = StyleSheet.create({
   round: { width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center' },
   callName: { color: '#fff', fontSize: 22, fontWeight: '800' },
   callStatus: { color: 'rgba(255,255,255,0.8)', marginTop: 4 },
-  self: { position: 'absolute', right: 16, width: 110, height: 160, borderRadius: 16, overflow: 'hidden', backgroundColor: '#1F2A44' },
+  self: { position: 'absolute', right: 16, width: 110, height: 160, borderRadius: 16, overflow: 'hidden', backgroundColor: '#14120E' },
   bar: { position: 'absolute', left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-evenly' },
 });

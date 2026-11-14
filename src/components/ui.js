@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, ScrollView, Image, PixelRatio } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { colors, soft } from '../theme';
 
@@ -141,6 +141,19 @@ export function ProductThumb({ product, size = 64 }) {
 }
 
 // Foto da internet com fundo de reserva caso esteja sem conexão.
+// Fotos de exemplo (picsum) vêm em 600x400 mesmo quando aparecem como miniatura de 50 pontos.
+// Pede a imagem no tamanho em que ela é mostrada: baixa mais rápido e gasta menos memória.
+function fitPhoto(uri, style) {
+  const m = /^(https:\/\/picsum\.photos\/seed\/[^/]+)\/(\d+)\/(\d+)$/.exec(String(uri));
+  if (!m) return uri;
+  const f = StyleSheet.flatten(style) || {};
+  if (typeof f.width !== 'number' || typeof f.height !== 'number') return uri;
+  const k = Math.min(3, PixelRatio.get() || 2);
+  const w = Math.round(f.width * k);
+  const h = Math.round(f.height * k);
+  return w >= Number(m[2]) || h >= Number(m[3]) ? uri : `${m[1]}/${w}/${h}`;
+}
+
 export function Photo({ uri, style, fallback = '🖼️' }) {
   const [failed, setFailed] = useState(false);
   if (failed || !uri)
@@ -149,7 +162,7 @@ export function Photo({ uri, style, fallback = '🖼️' }) {
         <Text style={{ color: colors.text, fontSize: 34 }}>{fallback}</Text>
       </View>
     );
-  return <Image source={{ uri }} style={[style, { backgroundColor: colors.cardAlt }]} onError={() => setFailed(true)} />;
+  return <Image source={{ uri: fitPhoto(uri, style) }} style={[style, { backgroundColor: colors.cardAlt }]} onError={() => setFailed(true)} />;
 }
 
 export function Chip({ label, active, onPress }) {

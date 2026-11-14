@@ -109,9 +109,9 @@ export function splitFee(fee) {
 export const VISIT_STATUS = {
   aguardando: { label: 'Aguardando o prestador', color: '#2F74D0', icon: 'time-outline' },
   aceita: { label: 'Visita aceita', color: '#1E9E63', icon: 'checkmark-circle-outline' },
-  recusada: { label: 'Recusado · taxa devolvida', color: '#6E7891', icon: 'close-circle-outline' },
+  recusada: { label: 'Recusado · taxa devolvida', color: '#5B564B', icon: 'close-circle-outline' },
   faltou: { label: 'Prestador não veio · taxa devolvida', color: '#D9534F', icon: 'alert-circle-outline' },
-  confirmada: { label: 'Visita feita · combine o valor', color: '#A8790A', icon: 'people-outline' },
+  confirmada: { label: 'Visita feita · combine o valor', color: '#B8860B', icon: 'people-outline' },
   concluida: { label: 'Serviço concluído', color: '#1E9E63', icon: 'ribbon-outline' },
   reembolsada: { label: 'Garantia Re@lys · taxa devolvida', color: '#1E9E63', icon: 'shield-checkmark-outline' },
 };

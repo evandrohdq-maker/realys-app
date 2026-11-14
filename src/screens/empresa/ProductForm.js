@@ -13,7 +13,7 @@ import { classifyFood, FOOD_CLASSES, MODOS, rotuloClasse, subclasseByKey } from 
 // O Re@lys descobre sozinho onde o produto aparece no Shop (setor › subgrupo) pelo nome e pela
 // descrição; a loja só troca se ele errar. O Re@lys só vende produtos NOVOS (sem uso).
 const MAX_PHOTOS = 6;
-const GOLD = '#E2B649';
+const GOLD = '#F5C331';
 
 async function pickPhotos(limit) {
   const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -124,8 +124,8 @@ export default function ProductForm({ onSave, onCancel, food = false, categoria 
         ))}
         {photos.length < MAX_PHOTOS ? (
           <TouchableOpacity style={[styles.ph, styles.phAdd]} onPress={addPhotos} accessibilityLabel="Adicionar fotos do produto">
-            <Ionicons name="add" size={26} color="#A8790A" />
-            <Text style={{ color: '#A8790A', fontSize: 9, fontWeight: '800' }}>FOTO</Text>
+            <Ionicons name="add" size={26} color="#B8860B" />
+            <Text style={{ color: '#B8860B', fontSize: 9, fontWeight: '800' }}>FOTO</Text>
           </TouchableOpacity>
         ) : null}
       </ScrollView>
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   auto: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFBEF', borderWidth: 1.5, borderColor: GOLD, borderRadius: 14, padding: 10 },
   autoLabel: { color: colors.text, fontWeight: '800', fontSize: 14 },
   why: { color: colors.muted, fontSize: 11, marginTop: 2 },
-  chg: { color: '#A8790A', fontWeight: '800', fontSize: 12 },
+  chg: { color: '#B8860B', fontWeight: '800', fontSize: 12 },
   chooser: { backgroundColor: colors.card, borderRadius: 14, padding: 10, marginTop: 6, ...soft },
   secTitle: { color: colors.text, fontWeight: '800', fontSize: 12, marginBottom: 4 },
   pill: { borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 5, marginRight: 5, marginBottom: 5, backgroundColor: colors.card },

@@ -54,7 +54,7 @@ export function CircleShortcuts({ items, value, onPress }) {
 // Vitrine do Shop: botão escuro e dourado ("Você no comando · Categorias"). Tocar abre uma tela por
 // cima com todos os setores para escolher o tipo de produto (em vez da grade ocupando a página).
 const NIGHT = '#0B1124';
-const GOLD = '#E2B649';
+const GOLD = '#F5C331';
 export function CategoryPicker({ items, onPick, news }) {
   const [open, setOpen] = useState(false);
   const insets = useSafeAreaInsets();

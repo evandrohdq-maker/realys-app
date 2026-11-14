@@ -19,7 +19,7 @@ export const LIVE_CATS = [
     subs: [S('gospel', 'Gospel'), S('sertanejo', 'Sertanejo'), S('pagode', 'Pagode e samba'), S('funk', 'Funk'), S('rap', 'Rap e hip hop'), S('rock', 'Rock'), S('mpb', 'MPB'), S('eletronica', 'Eletrônica e DJs'), S('forro', 'Forró e piseiro'), S('pop', 'Pop'), S('instrumental', 'Instrumental'), S('pedidos', 'Pedidos dos fãs'), S('ensaios', 'Ensaios e bastidores')],
   },
   {
-    key: 'compras', label: 'Compras ao vivo', icon: 'bag-handle-outline', tint: '#A8790A', title: 'Compras ao vivo', hint: 'Lojas, restaurantes e fornecedores mostrando produtos',
+    key: 'compras', label: 'Compras ao vivo', icon: 'bag-handle-outline', tint: '#B8860B', title: 'Compras ao vivo', hint: 'Lojas, restaurantes e fornecedores mostrando produtos',
     subs: [S('lancamentos', 'Lançamentos das lojas'), S('moda', 'Moda'), S('eletronicos', 'Eletrônicos'), S('beleza', 'Beleza'), S('casa', 'Casa e decoração'), S('restaurantes', 'Restaurantes e delivery'), S('mercado', 'Mercado'), S('imoveis', 'Imóveis'), S('veiculos', 'Veículos'), S('atacado', 'Atacado e fornecedores')],
   },
   {
@@ -40,7 +40,7 @@ export const LIVE_CATS = [
     subs: [S('enem', 'Enem e vestibular'), S('concursos', 'Concursos'), S('idiomas', 'Idiomas'), S('profissionalizantes', 'Profissionalizantes'), S('oficinas', 'Oficinas práticas'), S('financas', 'Finanças pessoais'), S('musica', 'Aulas de música'), S('informatica', 'Informática')],
   },
   {
-    key: 'faculdades', label: 'Faculdades', icon: 'library-outline', tint: '#1F2A44', title: 'Faculdades ao vivo', hint: 'Aulas abertas e eventos de faculdades',
+    key: 'faculdades', label: 'Faculdades', icon: 'library-outline', tint: '#14120E', title: 'Faculdades ao vivo', hint: 'Aulas abertas e eventos de faculdades',
     subs: [S('aulas', 'Aulas abertas'), S('palestras', 'Palestras'), S('vestibular', 'Vestibular e bolsas'), S('pos', 'Pós e MBA'), S('eventos', 'Eventos acadêmicos')],
   },
   {
@@ -53,7 +53,7 @@ export const LIVE_CATS = [
     subs: [S('leiloes', 'Leilões de gado'), S('pecuaria', 'Pecuária'), S('cafe', 'Café'), S('hortifruti', 'Hortifrúti'), S('graos', 'Soja e milho'), S('maquinas', 'Máquinas e tecnologia no campo'), S('cotacoes', 'Cotações e clima')],
   },
   {
-    key: 'negocios', label: 'Negócios', icon: 'briefcase-outline', tint: '#A8790A', title: 'Negócios ao vivo', hint: 'Empreender, vender mais e fechar parcerias',
+    key: 'negocios', label: 'Negócios', icon: 'briefcase-outline', tint: '#B8860B', title: 'Negócios ao vivo', hint: 'Empreender, vender mais e fechar parcerias',
     subs: [S('rodadas', 'Rodadas de negócios'), S('mei', 'MEI e pequenos negócios'), S('marketing', 'Marketing e vendas'), S('financas', 'Finanças da empresa'), S('franquias', 'Franquias'), S('lideranca', 'Liderança e RH')],
   },
   {
@@ -74,11 +74,11 @@ export const LIVE_CATS = [
     subs: [S('standup', 'Stand-up'), S('react', 'React e comentários'), S('desafios', 'Desafios'), S('papo', 'Bate-papo descontraído')],
   },
   {
-    key: 'podcasts', label: 'Podcasts', icon: 'headset-outline', tint: '#1F2A44', title: 'Podcasts ao vivo', hint: 'Conversas e entrevistas',
+    key: 'podcasts', label: 'Podcasts', icon: 'headset-outline', tint: '#14120E', title: 'Podcasts ao vivo', hint: 'Conversas e entrevistas',
     subs: [S('entrevistas', 'Entrevistas'), S('negocios', 'Negócios'), S('fe', 'Fé e família'), S('esportes', 'Esportes'), S('cotidiano', 'Vida e cotidiano')],
   },
   {
-    key: 'noticias', label: 'Noticiários', icon: 'newspaper-outline', tint: '#1F2A44', title: 'Noticiários ao vivo', hint: 'Só canais de notícia verificados',
+    key: 'noticias', label: 'Noticiários', icon: 'newspaper-outline', tint: '#14120E', title: 'Noticiários ao vivo', hint: 'Só canais de notícia verificados',
     subs: [S('jornal', 'Jornal do dia'), S('cidade', 'Sua cidade'), S('economia', 'Economia'), S('agro', 'Agro'), S('esportes', 'Esportes'), S('politica', 'Política')],
   },
   {
@@ -86,7 +86,7 @@ export const LIVE_CATS = [
     subs: [S('festas', 'Festas e baladas'), S('shows', 'Shows das casas'), S('esquenta', 'Esquenta'), S('bares', 'Bares com música ao vivo'), S('eventos', 'Eventos e feiras')],
   },
   {
-    key: 'comunidade', label: 'Comunidade', icon: 'people-outline', tint: '#A8790A', title: 'Comunidade ao vivo', hint: 'Bate-papo de quem está no Re@lys',
+    key: 'comunidade', label: 'Comunidade', icon: 'people-outline', tint: '#B8860B', title: 'Comunidade ao vivo', hint: 'Bate-papo de quem está no Re@lys',
     subs: [S('papo', 'Bate-papo'), S('dicas', 'Dicas'), S('bairro', 'Meu bairro'), S('pets', 'Pets'), S('viagens', 'Viagens e passeios')],
   },
 ];
@@ -103,7 +103,7 @@ export const missionId = (cat, d = new Date()) => `live-${cat}-${d.getFullYear()
 
 export const HOST_TYPES = {
   usuario: { label: 'Usuário', icon: 'person-outline', color: '#2F74D0' },
-  empresa: { label: 'Empresa', icon: 'storefront-outline', color: '#A8790A' },
+  empresa: { label: 'Empresa', icon: 'storefront-outline', color: '#B8860B' },
   artista: { label: 'Artista', icon: 'mic-outline', color: '#7B6CF6' },
   gamer: { label: 'Gamer', icon: 'game-controller-outline', color: '#5865F2' },
   prestador: { label: 'Prestador', icon: 'construct-outline', color: '#1E9E63' },

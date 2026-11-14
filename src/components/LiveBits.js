@@ -48,5 +48,5 @@ const styles = StyleSheet.create({
   dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#E5484D' },
   badgeTitle: { color: '#D9534F', fontSize: 10, fontWeight: '800', letterSpacing: 0.8 },
   badgeText: { color: colors.text, fontWeight: '700', marginTop: 1 },
-  watch: { color: '#0B1124', backgroundColor: '#E2B649', fontWeight: '800', fontSize: 12, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, overflow: 'hidden', marginLeft: 8 },
+  watch: { color: '#0B1124', backgroundColor: '#F5C331', fontWeight: '800', fontSize: 12, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, overflow: 'hidden', marginLeft: 8 },
 });

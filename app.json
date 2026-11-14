@@ -2,7 +2,7 @@
   "expo": {
     "name": "Re@lys",
     "slug": "realys",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "backgroundColor": "#FBF8F1",
@@ -52,7 +52,8 @@
         "expo-build-properties",
         {
           "android": {
-            "usesCleartextTraffic": true
+            "usesCleartextTraffic": true,
+            "buildArchs": ["armeabi-v7a", "arm64-v8a"]
           }
         }
       ],

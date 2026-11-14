@@ -14,7 +14,7 @@ import { Photo } from './ui';
 // 'entregador' | 'prestador'), from (de onde sai), to (para onde vai), etaMin, trackId, onArrived.
 
 const NIGHT = '#0B1124';
-const GOLD = '#E2B649';
+const GOLD = '#F5C331';
 const KIND = {
   motoboy: { icon: 'bicycle', label: 'Motoboy', verb: 'está levando o seu pedido' },
   entregador: { icon: 'cube', label: 'Entregador', verb: 'está levando a sua compra' },

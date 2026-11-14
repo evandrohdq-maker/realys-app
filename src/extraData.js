@@ -74,7 +74,7 @@ export const emergencyNumbers = [
   { key: 'samu', label: 'SAMU', number: '192', hint: 'Emergência médica e ambulância', icon: 'medkit', color: '#D9534F', words: ['samu', 'ambulancia', 'infarto', 'desmaio', 'emergencia medica'] },
   { key: 'bombeiros', label: 'Bombeiros', number: '193', hint: 'Incêndio, resgate e acidentes', icon: 'flame', color: '#E8711C', words: ['bombeiro', 'bombeiros', 'incendio', 'fogo', 'resgate'] },
   { key: 'policia', label: 'Polícia Militar', number: '190', hint: 'Crime, violência e perigo', icon: 'shield', color: '#2F74D0', words: ['policia', 'assalto', 'roubo'] },
-  { key: 'prf', label: 'Polícia Rodoviária', number: '191', hint: 'Acidentes em rodovias federais', icon: 'car', color: '#1F2A44', words: ['rodovia', 'estrada', 'prf'] },
+  { key: 'prf', label: 'Polícia Rodoviária', number: '191', hint: 'Acidentes em rodovias federais', icon: 'car', color: '#14120E', words: ['rodovia', 'estrada', 'prf'] },
   { key: 'defesa', label: 'Defesa Civil', number: '199', hint: 'Enchente, deslizamento, desastres', icon: 'warning', color: '#C77D12', words: ['defesa civil', 'enchente', 'alagamento', 'deslizamento'] },
   { key: 'mulher', label: 'Central da Mulher', number: '180', hint: 'Atendimento à mulher', icon: 'female', color: '#7B6CF6', words: ['violencia contra mulher'] },
   { key: 'cvv', label: 'CVV', number: '188', hint: 'Apoio emocional, 24 horas', icon: 'heart', color: '#1E9E63', words: ['cvv', 'apoio emocional'] },

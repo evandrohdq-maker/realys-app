@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
   modoBtn: { flex: 1, borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingVertical: 8, alignItems: 'center', marginRight: 6, backgroundColor: colors.card },
   modoBtnOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   modoTxt: { color: colors.text, fontWeight: '700', fontSize: 12 },
-  promoTeaser: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E2B649', borderRadius: 16, padding: 12, marginBottom: 16 },
+  promoTeaser: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5C331', borderRadius: 16, padding: 12, marginBottom: 16 },
   pageBtn: { borderWidth: 1, borderColor: colors.primary, borderRadius: 12, padding: 10, marginBottom: 10, backgroundColor: colors.primaryLight },
   h1: { fontSize: 22, fontWeight: '700', color: colors.text, marginBottom: 6 },
   back: { color: colors.primary, fontWeight: '700', marginBottom: 10, fontSize: 15 },

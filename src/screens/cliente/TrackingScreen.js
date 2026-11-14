@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   steps: { flexDirection: 'row', marginHorizontal: -3, marginBottom: 14 },
   stepBar: { height: 4, borderRadius: 2, backgroundColor: '#F5EFE2' },
   stepBarOn: { backgroundColor: colors.primary },
-  stepText: { color: '#6E7891', fontSize: 11, marginTop: 6 },
+  stepText: { color: '#5B564B', fontSize: 11, marginTop: 6 },
   provider: {
     flexDirection: 'row',
     alignItems: 'center',

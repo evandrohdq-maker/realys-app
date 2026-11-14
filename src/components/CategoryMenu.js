@@ -291,14 +291,14 @@ const ROLE_ICON = { cliente: 'person-outline', empresa: 'storefront-outline', pr
 
 // Cor de cada classe no menu (o ícone ganha um fundo da mesma cor, bem clarinho).
 const TINT = {
-  servicos: '#A8790A',
+  servicos: '#B8860B',
   restaurantes: '#E4572E',
   lojas: '#6C5CE7',
   transporte: '#2F74D0',
   socorro: '#D9534F',
   tecnologia: '#0E8BC9',
   agro: '#1E9E63',
-  empresa: '#1F2A44',
+  empresa: '#14120E',
   empregos: '#7B6CF6',
   eventos: '#D9468F',
   social: '#2F74D0',
@@ -317,11 +317,11 @@ const tintOf = (key) => TINT[key] || '#6C5CE7';
 const MEGA = [
   { key: 'compras', title: 'Compras', hint: 'Lojas, todos os setores e desapego', icon: 'bag-handle', tint: '#6C5CE7', keys: ['lojas', ...SHOP_SECTOR_KEYS, 'desapego'] },
   { key: 'comida', title: 'Comida', hint: 'Restaurantes, bares, delivery e mercado', icon: 'restaurant', tint: '#E4572E', keys: ['restaurantes'] },
-  { key: 'servicos', title: 'Serviços e aluguéis', hint: 'Profissionais, imóveis, veículos e transporte', icon: 'construct', tint: '#A8790A', keys: ['servicos', 'imoveis', 'locacao', 'transporte'] },
+  { key: 'servicos', title: 'Serviços e aluguéis', hint: 'Profissionais, imóveis, veículos e transporte', icon: 'construct', tint: '#B8860B', keys: ['servicos', 'imoveis', 'locacao', 'transporte'] },
   { key: 'lazer', title: 'Lazer e diversão', hint: 'Festas, lives, gamers, rádios e artistas', icon: 'sparkles', tint: '#D9468F', keys: ['eventos', 'social', 'arena', 'radios', 'artistas'] },
   { key: 'trabalho', title: 'Trabalho e estudo', hint: 'Vagas, cursos, tecnologia e agro', icon: 'school', tint: '#0D9488', keys: ['empregos', 'aulas', 'tecnologia', 'agro'] },
   { key: 'saude', title: 'Saúde e segurança', hint: 'SOS, hospitais, SAMU e especialistas', icon: 'medkit', tint: '#D9534F', keys: ['socorro'] },
-  { key: 'empresa', title: 'Minha empresa', hint: 'Estoque, caixa, vendas, RH e negociações', icon: 'business', tint: '#1F2A44', keys: ['empresa'] },
+  { key: 'empresa', title: 'Minha empresa', hint: 'Estoque, caixa, vendas, RH e negociações', icon: 'business', tint: '#14120E', keys: ['empresa'] },
 ];
 const megaWithRest = () => {
   const used = new Set(MEGA.flatMap((m) => m.keys));

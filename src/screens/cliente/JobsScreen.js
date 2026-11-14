@@ -15,7 +15,7 @@ import { JOB_AREAS, salaryText, matchScore, APP_STEPS, AVAILABILITY, SKILL_SUGGE
 
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 const km = (d) => (d >= 10 ? `${Math.round(d)} km` : `${d.toFixed(1).replace('.', ',')} km`);
-const matchColor = (m) => (m >= 85 ? '#1E9E63' : m >= 70 ? '#A8790A' : '#6E7891');
+const matchColor = (m) => (m >= 85 ? '#1E9E63' : m >= 70 ? '#B8860B' : '#5B564B');
 
 const QUICK = [
   { key: 'perto', label: 'Até 5 km', icon: 'location-outline' },

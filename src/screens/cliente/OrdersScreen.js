@@ -515,7 +515,7 @@ export default function OrdersScreen({ navigate, explore }) {
 }
 
 const styles = StyleSheet.create({
-  trackBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#E2B649', borderRadius: 12, paddingVertical: 10, marginTop: 10 },
+  trackBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5C331', borderRadius: 12, paddingVertical: 10, marginTop: 10 },
   trackText: { color: '#0B1124', fontWeight: '800', marginLeft: 6 },
   trackLive: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#16A34A', marginLeft: 8 },
   qBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
@@ -538,6 +538,6 @@ const styles = StyleSheet.create({
   h2: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: 4, marginBottom: 8 },
   courier: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, borderRadius: 14, padding: 10, marginTop: 10 },
   courierPhoto: { width: 44, height: 44, borderRadius: 22 },
-  tipBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E2B649', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 7, borderWidth: 1, borderColor: '#E2B649', marginLeft: 8 },
+  tipBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5C331', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 7, borderWidth: 1, borderColor: '#F5C331', marginLeft: 8 },
   tipText: { color: '#0B1124', fontWeight: '800', fontSize: 12, marginLeft: 4 },
 });

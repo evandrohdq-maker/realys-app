@@ -30,7 +30,7 @@ export function WaitCountdown({ ride, style }) {
   }, [ride && ride.arrivedAt, ride && ride.boardedAt, ride && ride.done]);
   if (!isWaiting(ride)) return null;
   const left = waitLeftMs(ride, now);
-  return <Text style={[{ fontWeight: '800', fontSize: 22, color: left < 120000 ? '#C0392B' : '#A8790A' }, style]}>{mmss(left)}</Text>;
+  return <Text style={[{ fontWeight: '800', fontSize: 22, color: left < 120000 ? '#C0392B' : '#B8860B' }, style]}>{mmss(left)}</Text>;
 }
 
 // Fica de olho nas corridas (um só para o app inteiro): avisa o passageiro e encerra em 10 minutos.

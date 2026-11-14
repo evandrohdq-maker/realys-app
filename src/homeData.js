@@ -276,7 +276,7 @@ export const stories = [
 ];
 
 // Cores de fundo para quem publica um story só com texto.
-export const STORY_BACKGROUNDS = ['#A8790A', '#2F74D0', '#6C5CE7', '#1E9E63', '#D9534F', '#1F2A44'];
+export const STORY_BACKGROUNDS = ['#B8860B', '#2F74D0', '#6C5CE7', '#1E9E63', '#D9534F', '#14120E'];
 // Fotos de exemplo para o story (na versão real vem da câmera ou da galeria).
 export const STORY_SAMPLE_PHOTOS = [storyPhoto('realys-st-meu1'), storyPhoto('realys-st-meu2'), storyPhoto('realys-st-meu3')];
 

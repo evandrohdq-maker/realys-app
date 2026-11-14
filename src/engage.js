@@ -31,8 +31,8 @@ export function installFor(name) {
 // ───────────── 2. Score Re@lys ─────────────
 export const SCORE_TIERS = [
   { min: 850, key: 'diamante', label: 'Diamante', color: '#2F74D0', icon: 'diamond' },
-  { min: 700, key: 'ouro', label: 'Ouro', color: '#A8790A', icon: 'medal' },
-  { min: 500, key: 'prata', label: 'Prata', color: '#6E7891', icon: 'ribbon' },
+  { min: 700, key: 'ouro', label: 'Ouro', color: '#B8860B', icon: 'medal' },
+  { min: 500, key: 'prata', label: 'Prata', color: '#5B564B', icon: 'ribbon' },
   { min: 0, key: 'bronze', label: 'Bronze', color: '#B0703A', icon: 'shield-half' },
 ];
 export const tierOf = (score) => SCORE_TIERS.find((t) => score >= t.min);

@@ -22,12 +22,12 @@ export const ORIGIN = {
 
 // Situação de cada compromisso (cor e texto).
 export const STATUS = {
-  agendado: { label: 'Agendado', color: '#A8790A' },
+  agendado: { label: 'Agendado', color: '#B8860B' },
   confirmado: { label: 'Confirmado', color: '#2F74D0' },
   andamento: { label: 'Em andamento', color: '#6C5CE7' },
   feito: { label: 'Concluído', color: '#1E9E63' },
   cancelado: { label: 'Cancelado', color: '#D9534F' },
-  bloqueio: { label: 'Bloqueado', color: '#6E7891' },
+  bloqueio: { label: 'Bloqueado', color: '#5B564B' },
 };
 
 export const DURATIONS = [

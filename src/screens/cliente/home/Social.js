@@ -361,7 +361,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
       <View style={{ flex: 1, backgroundColor: '#03050A' }}>
         {live ? <Photo uri={live.photo ? live.photo.replace('800/500', '800/1400') : null} style={StyleSheet.absoluteFill} fallback="🎥" /> : null}
         {mine ? (
-          <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', backgroundColor: '#1F2A44' }]}>
+          <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', backgroundColor: '#14120E' }]}>
             <Ionicons name="videocam-outline" size={64} color="rgba(168,121,10,0.35)" />
             <Text style={{ color: colors.muted, marginTop: 8 }}>Prévia da sua câmera</Text>
           </View>
@@ -562,7 +562,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
             ) : null}
             {comments.map((c, i) => (
               <View key={i} style={[styles.comment, c.gift && styles.giftComment]}>
-                <Text style={{ color: c.gift ? '#E2B649' : colors.primary, fontWeight: '700', fontSize: 13 }}>{c.who} </Text>
+                <Text style={{ color: c.gift ? '#F5C331' : colors.primary, fontWeight: '700', fontSize: 13 }}>{c.who} </Text>
                 {c.g ? <View style={{ marginRight: 4 }}><GiftIcon gift={c.g} size={15} /></View> : null}
                 <Text style={{ color: "#FFFFFF", fontSize: 13, flexShrink: 1, fontWeight: c.gift ? '800' : '400' }}>{c.what}</Text>
               </View>
@@ -618,8 +618,8 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                 </TouchableOpacity>
               ) : (
                 <>
-                  <TouchableOpacity style={[styles.heart, tray && { backgroundColor: '#E2B649' }]} onPress={() => setTray(!tray)} accessibilityLabel="Enviar presente">
-                    <Ionicons name="gift" size={21} color={tray ? '#0B1124' : '#E2B649'} />
+                  <TouchableOpacity style={[styles.heart, tray && { backgroundColor: '#F5C331' }]} onPress={() => setTray(!tray)} accessibilityLabel="Enviar presente">
+                    <Ionicons name="gift" size={21} color={tray ? '#0B1124' : '#F5C331'} />
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.heart} onPress={() => setLiked(liked + 1)} accessibilityLabel="Curtir">
                     <Ionicons name="heart" size={22} color="#FF5A7A" />
@@ -745,19 +745,19 @@ const styles = StyleSheet.create({
   },
   typeChipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   goLiveBtn: { minHeight: 52, borderRadius: 16, backgroundColor: '#FF3B5C', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  earned: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E2B649', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4, marginLeft: 8 },
+  earned: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5C331', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4, marginLeft: 8 },
   earnedText: { color: '#0B1124', fontWeight: '800', fontSize: 12, marginLeft: 4 },
   giftComment: { backgroundColor: 'rgba(226,182,73,0.22)', borderWidth: 1, borderColor: 'rgba(226,182,73,0.6)' },
   tray: { backgroundColor: 'rgba(11,17,36,0.94)', borderRadius: 20, padding: 12, marginTop: 8, borderWidth: 1, borderColor: 'rgba(226,182,73,0.5)' },
   trayTitle: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
-  trayBalance: { color: '#E2B649', fontWeight: '700', fontSize: 12 },
+  trayBalance: { color: '#F5C331', fontWeight: '700', fontSize: 12 },
   giftItem: { width: 76, alignItems: 'center', paddingVertical: 8, borderRadius: 16, marginRight: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
-  giftItemOn: { borderColor: '#E2B649', backgroundColor: 'rgba(226,182,73,0.18)' },
+  giftItemOn: { borderColor: '#F5C331', backgroundColor: 'rgba(226,182,73,0.18)' },
   giftName: { color: '#FFFFFF', fontSize: 11, fontWeight: '700', marginTop: 2 },
-  giftValue: { color: '#E2B649', fontSize: 11, fontWeight: '800' },
+  giftValue: { color: '#F5C331', fontSize: 11, fontWeight: '800' },
   qty: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)', marginRight: 6 },
-  qtyOn: { backgroundColor: '#E2B649', borderColor: '#E2B649' },
-  giftSend: { backgroundColor: '#E2B649', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10 },
+  qtyOn: { backgroundColor: '#F5C331', borderColor: '#F5C331' },
+  giftSend: { backgroundColor: '#F5C331', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10 },
   giftSendText: { color: '#0B1124', fontWeight: '800', fontSize: 13 },
   trayNote: { color: 'rgba(255,255,255,0.6)', fontSize: 10, marginTop: 8, lineHeight: 14 },
   burst: { position: 'absolute', alignSelf: 'center', top: '30%', alignItems: 'center' },

@@ -108,7 +108,7 @@ export function SpotlightCarousel({ ads, onOpen }) {
             <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(11,17,36,0.28)' }]} />
             <View style={styles.spotShade} />
             <View style={styles.spotTag}>
-              <Ionicons name="sparkles" size={11} color="#E2B649" />
+              <Ionicons name="sparkles" size={11} color="#F5C331" />
               <Text style={styles.spotTagText}>PATROCINADO</Text>
             </View>
             <View style={styles.spotBody}>
@@ -239,7 +239,7 @@ function ClipPlayer({ clips, index, onIndex, onClose, food }) {
           <TouchableOpacity style={styles.playerStore} onPress={() => { onClose(); dispatch({ type: 'OPEN_COMPANY', id: c.storeId }); }}>
             <Text style={{ fontSize: 18 }}>{s.logo}</Text>
             <View style={{ marginLeft: 8 }}>
-              <Text style={{ color: '#fff', fontWeight: '800' }}>{s.name} <Ionicons name="shield-checkmark" size={12} color="#E2B649" /></Text>
+              <Text style={{ color: '#fff', fontWeight: '800' }}>{s.name} <Ionicons name="shield-checkmark" size={12} color="#F5C331" /></Text>
               <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: 11 }}>Patrocinado · CNPJ verificado</Text>
             </View>
           </TouchableOpacity>
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
   spot: { height: 190, borderRadius: 22, overflow: 'hidden', backgroundColor: colors.dark },
   spotShade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 120, backgroundColor: 'rgba(11,17,36,0.55)' },
   spotTag: { position: 'absolute', top: 12, left: 12, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(11,17,36,0.7)', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(226,182,73,0.6)' },
-  spotTagText: { color: '#E2B649', fontSize: 10, fontWeight: '800', letterSpacing: 0.8, marginLeft: 4 },
+  spotTagText: { color: '#F5C331', fontSize: 10, fontWeight: '800', letterSpacing: 0.8, marginLeft: 4 },
   spotBody: { position: 'absolute', left: 14, right: 14, bottom: 12 },
   spotTitle: { color: '#fff', fontSize: 19, fontWeight: '800', letterSpacing: -0.3 },
   spotSub: { color: 'rgba(255,255,255,0.88)', fontSize: 12, marginTop: 2 },
@@ -522,10 +522,10 @@ const styles = StyleSheet.create({
   clip: { width: 124, height: 210, borderRadius: 18, overflow: 'hidden', marginRight: 10, backgroundColor: colors.dark },
   clipShade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 100, backgroundColor: 'rgba(3,5,10,0.55)' },
   clipPlay: { position: 'absolute', top: 70, alignSelf: 'center', width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.28)', borderWidth: 1.5, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' },
-  clipPts: { position: 'absolute', top: 8, right: 8, backgroundColor: '#E2B649', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 },
+  clipPts: { position: 'absolute', top: 8, right: 8, backgroundColor: '#F5C331', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 },
   clipPtsText: { color: '#0B1124', fontSize: 10, fontWeight: '800' },
   clipBody: { position: 'absolute', left: 8, right: 8, bottom: 8 },
-  clipStore: { color: '#E2B649', fontSize: 10, fontWeight: '800' },
+  clipStore: { color: '#F5C331', fontSize: 10, fontWeight: '800' },
   clipTitle: { color: '#fff', fontSize: 12, fontWeight: '700', marginTop: 2 },
   clipViews: { color: 'rgba(255,255,255,0.85)', fontSize: 10, marginTop: 3 },
 
@@ -540,7 +540,7 @@ const styles = StyleSheet.create({
   side: { position: 'absolute', right: 10, bottom: 190, alignItems: 'center' },
   sideBtn: { alignItems: 'center', marginTop: 18 },
   sideText: { color: '#fff', fontSize: 11, fontWeight: '700', marginTop: 2 },
-  earned: { position: 'absolute', top: 110, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', backgroundColor: '#E2B649', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 8 },
+  earned: { position: 'absolute', top: 110, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5C331', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 8 },
   earnedText: { color: '#0B1124', fontWeight: '800', marginLeft: 6 },
   playerBottom: { position: 'absolute', left: 12, right: 12, bottom: 34 },
   playerTitle: { color: '#fff', fontSize: 18, fontWeight: '800', marginBottom: 10, marginRight: 50 },
@@ -548,10 +548,10 @@ const styles = StyleSheet.create({
   buy: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, minHeight: 38, paddingHorizontal: 12, borderRadius: 12 },
 
   flashHero: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0B1124', borderRadius: 18, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
-  flashIcon: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#E2B649', alignItems: 'center', justifyContent: 'center' },
+  flashIcon: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#F5C331', alignItems: 'center', justifyContent: 'center' },
   flashHeroTitle: { color: '#fff', fontWeight: '800', fontSize: 16 },
   flashHeroSub: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 1 },
-  flashClock: { color: '#E2B649', fontWeight: '800', fontSize: 18, fontVariant: ['tabular-nums'] },
+  flashClock: { color: '#F5C331', fontWeight: '800', fontSize: 18, fontVariant: ['tabular-nums'] },
   chip: { flexDirection: 'row', alignItems: 'center', height: 36, paddingHorizontal: 12, borderRadius: 18, backgroundColor: colors.cardAlt, marginRight: 8 },
   chipOn: { backgroundColor: colors.primary },
   chipText: { color: colors.text, fontWeight: '700', fontSize: 12, marginLeft: 6 },

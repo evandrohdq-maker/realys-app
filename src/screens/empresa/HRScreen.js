@@ -21,7 +21,7 @@ const STAGES = [
 ];
 const DAYS = ['Hoje', 'Amanhã', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
 const HOURS = ['9h', '10h', '11h', '14h', '15h', '16h', '17h'];
-const matchColor = (m) => (m >= 85 ? '#1E9E63' : m >= 70 ? '#A8790A' : '#6E7891');
+const matchColor = (m) => (m >= 85 ? '#1E9E63' : m >= 70 ? '#B8860B' : '#5B564B');
 
 export default function HRScreen() {
   const { state, dispatch } = useStore();
@@ -97,7 +97,7 @@ export default function HRScreen() {
         {[
           [open.length, 'Vagas abertas', colors.primary],
           [newOnes, 'Novos', '#2F74D0'],
-          [interviews, 'Entrevistas', '#A8790A'],
+          [interviews, 'Entrevistas', '#B8860B'],
           [hired, 'Contratados', colors.success],
         ].map(([n, l, c]) => (
           <View key={l} style={styles.stat}>

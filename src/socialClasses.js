@@ -297,7 +297,7 @@ export const CLASSES = [
     id: 'empreendedor',
     label: 'Negócios e carreira',
     icon: 'briefcase',
-    color: '#A8790A',
+    color: '#B8860B',
     words: ['empreendedor', 'empreendedora', 'empreendo', 'meu negócio', 'minha loja', 'dono', 'dona', 'empresário', 'empresária', 'vendo', 'vendas', 'cnpj', 'mei', 'carreira'],
     subs: [
       { id: 'mei', label: 'MEI e autônomo', words: ['mei', 'autônomo', 'autônoma', 'por conta própria', 'freelancer', 'freela'] },
@@ -352,7 +352,7 @@ export const CLASSES = [
   },
 ];
 
-export const DEFAULT_CLASS = { id: 'membro', label: 'Membro Re@lys', icon: 'person-circle', color: '#A8790A', subs: [] };
+export const DEFAULT_CLASS = { id: 'membro', label: 'Membro Re@lys', icon: 'person-circle', color: '#B8860B', subs: [] };
 
 // Perguntas rápidas do questionário (opcionais). Cada resposta soma palavras à descrição.
 export const QUIZ_HOBBIES = [

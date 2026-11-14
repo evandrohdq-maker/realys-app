@@ -174,9 +174,9 @@ export const myJobs = [
 export const CANDIDATE_STATUS = {
   convidado: { label: 'Convidado pela empresa', color: '#7B6CF6' },
   novo: { label: 'Novo', color: '#2F74D0' },
-  entrevista: { label: 'Entrevista marcada', color: '#A8790A' },
+  entrevista: { label: 'Entrevista marcada', color: '#B8860B' },
   contratado: { label: 'Contratado', color: '#1E9E63' },
-  recusado: { label: 'Não selecionado', color: '#6E7891' },
+  recusado: { label: 'Não selecionado', color: '#5B564B' },
 };
 
 export const salaryText = (j) => {

@@ -297,17 +297,28 @@ function Shell() {
     return () => sub.remove();
   }, []);
 
-  // A voz da Lotus já fica escolhida desde a abertura do app (resposta sem atraso),
-  // e o modelo de linguagem carrega logo depois que a tela aparece.
+  // A voz da Lotus já fica escolhida desde a abertura do app (resposta sem atraso).
+  // O modelo de linguagem (190 mil palavras) é pesado para montar: em vez de travar a primeira
+  // tela logo na abertura, ele carrega quando a Lotus é aberta (enquanto a pessoa ainda fala)
+  // ou, se ninguém abrir, depois de uns segundos com o app parado.
   useEffect(() => {
     prepareVoice();
     const t = setTimeout(() => {
       try {
         loadModel();
       } catch (e) {}
-    }, 1200);
+    }, 8000);
     return () => clearTimeout(t);
   }, []);
+  useEffect(() => {
+    if (!voice) return;
+    const t = setTimeout(() => {
+      try {
+        loadModel();
+      } catch (e) {}
+    }, 250);
+    return () => clearTimeout(t);
+  }, [voice]);
 
   const current = tabs.find((t) => t.key === tab) || tabs[0];
   const Comp = current.Comp;

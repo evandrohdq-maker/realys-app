@@ -206,12 +206,12 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
         {reel.user ? (
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={styles.store}>{reel.user}</Text>
-            <Ionicons name="shield-checkmark" size={13} color="#E2B649" style={{ marginLeft: 5 }} />
+            <Ionicons name="shield-checkmark" size={13} color="#F5C331" style={{ marginLeft: 5 }} />
           </View>
         ) : (
           <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => { onClose && onClose(); dispatch({ type: 'OPEN_COMPANY', id: reel.storeId }); }}>
             <Text style={styles.store}>{s.name}</Text>
-            <Ionicons name="shield-checkmark" size={13} color="#E2B649" style={{ marginLeft: 5 }} />
+            <Ionicons name="shield-checkmark" size={13} color="#F5C331" style={{ marginLeft: 5 }} />
           </TouchableOpacity>
         )}
         <Text style={styles.sponsor}>{reel.user ? 'Pessoa verificada por biometria' : 'Patrocinado · CNPJ verificado'}</Text>
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
   pauseIcon: { position: 'absolute', top: '45%', alignSelf: 'center', width: 90, height: 90, borderRadius: 45, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' },
   bigHeart: { position: 'absolute', top: '38%', alignSelf: 'center' },
   side: { position: 'absolute', right: 10, alignItems: 'center' },
-  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#fff', borderWidth: 2, borderColor: '#E2B649', alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
+  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#fff', borderWidth: 2, borderColor: '#F5C331', alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
   sideBtn: { alignItems: 'center', marginBottom: 18 },
   sideText: { color: '#fff', fontSize: 12, fontWeight: '700', marginTop: 2 },
   bottom: { position: 'absolute', left: 14, right: 74, bottom: 22 },
