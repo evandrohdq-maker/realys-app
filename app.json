@@ -26,7 +26,10 @@
         "REQUEST_INSTALL_PACKAGES",
         "android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION",
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
+        "ACCESS_FINE_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_MEDIA_PROJECTION",
+        "POST_NOTIFICATIONS"
       ]
     },
     "plugins": [
@@ -48,7 +51,9 @@
       [
         "expo-build-properties",
         {
-          "android": { "usesCleartextTraffic": true }
+          "android": {
+            "usesCleartextTraffic": true
+          }
         }
       ],
       [

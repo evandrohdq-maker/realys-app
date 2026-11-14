@@ -251,6 +251,8 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
   const type = cat === 'cursos' || cat === 'faculdades' ? 'aula' : cat === 'compras' ? 'venda' : 'papo';
   // Live de verdade (servidor de vídeo contratado): id da live no servidor.
   const [realId, setRealId] = useState(null);
+  // Fonte da live: câmera ou a tela do celular (lives de jogos).
+  const [source, setSource] = useState('camera');
   const close = () => {
     if (mine && onAir) dispatch({ type: 'LIVE_END' });
     if (realId) endRealLive(realId);
@@ -263,7 +265,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
     dispatch({ type: 'LIVE_START', live: { cat, sub: sb ? sb.key : null, hostType: me.type, hostId: me.id, host: me.name, title: liveTitle, viewers: 0, tag: sb ? sb.label : catOf(cat).label, photo: null, sponsored: false } });
     setOnAir(true);
     // Com o servidor de vídeo contratado, abre a live de verdade e a câmera passa a transmitir.
-    openRealLive({ title: liveTitle, cat, hostType: me.type })
+    openRealLive({ title: liveTitle, cat, hostType: me.type, source })
       .then((id) => id && setRealId(id))
       .catch((e) => Alert.alert('Live', (e && e.message) || 'Não foi possível abrir a live no servidor.'));
   };
@@ -272,6 +274,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
     if (!visible) return;
     setOnAir(!mine);
     setRealId(null);
+    setSource('camera');
     setViewers(live ? live.viewers : 0);
     setSecs(0);
     setComments([]);
@@ -351,7 +354,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
           </View>
         ) : null}
         {/* Vídeo de verdade: minha câmera transmitindo, ou a live que estou assistindo. */}
-        <LiveStage liveId={mine ? realId : live && live.real ? live.id : null} mine={mine} onAir={onAir} onError={(m) => Alert.alert('Vídeo da live', m)} />
+        <LiveStage liveId={mine ? realId : live && live.real ? live.id : null} mine={mine} onAir={onAir} screen={mine && source === 'tela'} viewScreen={!mine && live && live.source === 'tela'} onError={(m) => Alert.alert('Vídeo da live', m)} />
         <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(3,5,10,0.25)' }]} pointerEvents="none" />
 
         <View style={[styles.liveTop, { paddingTop: insets.top + 12 }]}>
@@ -405,7 +408,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
               {LIVE_CATS.filter((c) => c.key !== 'noite').map((c) => {
                 const on = cat === c.key;
                 return (
-                  <TouchableOpacity key={c.key} style={[styles.typeChip, on && styles.typeChipOn]} onPress={() => { setCat(c.key); setSub(null); }}>
+                  <TouchableOpacity key={c.key} style={[styles.typeChip, on && styles.typeChipOn]} onPress={() => { setCat(c.key); setSub(null); if (c.key === 'gamers') setSource('tela'); }}>
                     <Ionicons name={c.icon} size={14} color={on ? colors.onPrimary : colors.primary} />
                     <Text style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>{c.label}</Text>
                   </TouchableOpacity>
@@ -423,6 +426,23 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                 );
               })}
             </ScrollView>
+            <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>O que transmitir</Text>
+            <View style={{ flexDirection: 'row', marginBottom: 4 }}>
+              {[['camera', 'Câmera', 'videocam-outline'], ['tela', 'Tela do celular (jogos)', 'phone-portrait-outline']].map(([k, label, icon]) => {
+                const on = source === k;
+                return (
+                  <TouchableOpacity key={k} style={[styles.typeChip, on && styles.typeChipOn]} onPress={() => setSource(k)} accessibilityLabel={`Transmitir ${label}`}>
+                    <Ionicons name={icon} size={14} color={on ? colors.onPrimary : colors.primary} />
+                    <Text style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>{label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            {source === 'tela' ? (
+              <Text style={{ color: colors.muted, fontSize: 11, marginBottom: 10 }}>
+                O celular vai pedir para liberar a transmissão da tela. Depois é só abrir o jogo: quem assiste vê a sua tela e ouve você pelo microfone.
+              </Text>
+            ) : <View style={{ height: 6 }} />}
             <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Transmitir como</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 }}>
               {hosts.map((h) => {

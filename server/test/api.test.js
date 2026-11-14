@@ -118,9 +118,18 @@ test('loja e pedidos: preço do servidor, presente primeiro, estoque, cancelamen
   await ok('POST', '/ratings', { who: 'beto', body: { targetKind: 'order', targetId: o2.orders[0].id, stars: 5, comment: 'Quentinha!' } });
 });
 
+test('lives: live de jogo transmite a tela do celular', async () => {
+  const live = await ok('POST', '/lives', { who: 'ana', body: { cat: 'gamers', title: 'Free Fire ranqueada', source: 'tela' } });
+  assert.equal(live.source, 'tela');
+  assert.equal((await ok('GET', `/lives/${live.id}`, { who: 'ana' })).source, 'tela');
+  const other = await ok('POST', '/lives', { who: 'ana', body: { cat: 'gamers', title: 'Teste', source: 'qualquer' } });
+  assert.equal(other.source, 'camera');
+});
+
 test('lives: presente ao vivo vira crédito de live e depois moeda Realys', async () => {
   const live = await ok('POST', '/lives', { who: 'pizza', body: { hostType: 'empresa', cat: 'compras', title: 'Pizza na pedra' } });
   assert.equal(live.host, 'Pizzaria da Praça');
+  assert.equal(live.source, 'camera');
   assert.equal((await ok('GET', '/lives?cat=compras')).length, 1);
   const before = (await ok('GET', '/wallet', { who: 'ana' })).balance;
   const g = await ok('POST', `/lives/${live.id}/gifts`, { who: 'ana', body: { gift: 'coroa', qty: 1 } });

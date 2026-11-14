@@ -43,6 +43,26 @@ export async function openCamera({ front = true, quality = '720p', audioOnly = f
   });
 }
 
+// Tela do celular + microfone (lives de jogos). O Android pede a permissão "Iniciar gravação ou
+// transmissão?" e mostra o aviso fixo na barra de notificações enquanto a tela está sendo transmitida.
+// O som do jogo não é capturado direto: vai pelo microfone (a voz do streamer e o que sai do alto-falante).
+export const screenOk = () => !!(RTC && RTC.mediaDevices && RTC.mediaDevices.getDisplayMedia);
+export async function openScreen() {
+  if (!screenOk()) throw new Error('Este celular não permite transmitir a tela.');
+  let screen;
+  try {
+    screen = await RTC.mediaDevices.getDisplayMedia({ video: true });
+  } catch (e) {
+    throw new Error('Você não liberou a transmissão da tela.');
+  }
+  let mic = null;
+  try {
+    mic = await RTC.mediaDevices.getUserMedia({ audio: true, video: false });
+  } catch (e) {}
+  const tracks = [...screen.getVideoTracks(), ...(mic ? mic.getAudioTracks() : [])];
+  return new RTC.MediaStream(tracks);
+}
+
 // Espera o celular juntar os caminhos de rede (no máximo 2,5 s) antes de mandar a oferta.
 const gathered = (pc) =>
   new Promise((resolve) => {
@@ -87,9 +107,9 @@ const closeAll = (pc, stream, resource, token) => {
 };
 
 // Streamer: abre a câmera e transmite na live (que já foi aberta com POST /lives).
-export async function startBroadcast(liveId, { front = true } = {}) {
+export async function startBroadcast(liveId, { front = true, screen = false } = {}) {
   const s = await api('POST', `/lives/${liveId}/stream`);
-  const stream = await openCamera({ front, quality: s.quality });
+  const stream = screen ? await openScreen() : await openCamera({ front, quality: s.quality });
   const pc = new RTC.RTCPeerConnection({ iceServers: s.iceServers });
   stream.getTracks().forEach((t) => pc.addTrack(t, stream));
   let resource = null;

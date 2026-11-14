@@ -12,26 +12,36 @@ import { useStore } from '../store';
 import { colors } from '../theme';
 import { isDateSubscriber } from '../datePlans';
 import { usePrivateScreen } from '../privacyGuard';
-import { RTCView, videoStatus, startBroadcast, watchLive, startCall, declineCall, onCallEvents, webrtcOk } from '../video';
+import { RTCView, videoStatus, startBroadcast, watchLive, startCall, declineCall, onCallEvents, webrtcOk, openScreen } from '../video';
 
 // Fundo de vídeo da live: transmite (mine) ou assiste. onError avisa a tela (ex.: sem permissão).
-export function LiveStage({ liveId, mine, onAir, onError }) {
+// screen: live de jogo, transmite a TELA do celular em vez da câmera.
+export function LiveStage({ liveId, mine, onAir, onError, screen, viewScreen }) {
   const [stream, setStream] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [screenOn, setScreenOn] = useState(false);
   const flip = useRef(null);
   useEffect(() => {
-    if (!liveId || !onAir || !RTCView) return;
+    if (!onAir || !RTCView) return;
+    // Sem servidor (demonstração): a tela de jogo é capturada no celular, mas não sai dele.
+    if (!liveId && !(mine && screen)) return;
     let alive = true;
     let session = null;
     setLoading(true);
     (async () => {
       try {
-        const st = await videoStatus();
+        const st = liveId ? await videoStatus() : { on: false };
+        if (mine && screen && !st.on) {
+          const s = await openScreen();
+          session = { stop: () => s.getTracks().forEach((t) => t.stop()) };
+          if (alive) setScreenOn(true);
+          return;
+        }
         if (!st.on) return;
         if (mine) {
-          session = await startBroadcast(liveId);
+          session = await startBroadcast(liveId, { screen });
           flip.current = session.flip;
-          if (alive) setStream(session.stream);
+          if (alive) (screen ? setScreenOn(true) : setStream(session.stream));
         } else {
           session = await watchLive(liveId, (s) => alive && setStream(s));
         }
@@ -45,19 +55,36 @@ export function LiveStage({ liveId, mine, onAir, onError }) {
       alive = false;
       session && session.stop();
       setStream(null);
+      setScreenOn(false);
     };
-  }, [liveId, mine, onAir]);
+  }, [liveId, mine, onAir, screen]);
+  // Quem transmite a tela não vê a própria tela aqui (seria um espelho infinito): vê um aviso.
+  if (mine && screen && (screenOn || loading)) {
+    return (
+      <View style={[StyleSheet.absoluteFill, st.screenBox]}>
+        {loading && !screenOn ? <ActivityIndicator color="#fff" /> : <Ionicons name="phone-portrait-outline" size={46} color="#FFD66B" />}
+        <Text style={st.screenTitle}>{screenOn ? 'Sua tela está ao vivo' : 'Ligando a transmissão da tela…'}</Text>
+        {screenOn ? (
+          <Text style={st.screenText}>
+            Pode abrir o jogo: a live continua. Seus seguidores veem a tela do seu celular e ouvem você pelo microfone.
+            {liveId ? '' : '\n\n(Demonstração: com o servidor de vídeo contratado, a tela chega para quem assiste.)'}
+            {'\n\n'}Volte ao Re@lys para ler os comentários e ver os presentes.
+          </Text>
+        ) : null}
+      </View>
+    );
+  }
   if (!RTCView || (!stream && !loading)) return null;
   return (
     <View style={StyleSheet.absoluteFill}>
-      {stream ? <RTCView streamURL={stream.toURL()} style={StyleSheet.absoluteFill} objectFit="cover" mirror={!!mine} /> : null}
+      {stream ? <RTCView streamURL={stream.toURL()} style={[StyleSheet.absoluteFill, viewScreen && { backgroundColor: '#000' }]} objectFit={viewScreen ? 'contain' : 'cover'} mirror={!!mine && !screen} /> : null}
       {loading && !stream ? (
         <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}>
           <ActivityIndicator color="#fff" />
           <Text style={{ color: '#fff', marginTop: 8 }}>{mine ? 'Ligando a transmissão…' : 'Conectando à live…'}</Text>
         </View>
       ) : null}
-      {mine && stream ? (
+      {mine && stream && !screen ? (
         <TouchableOpacity onPress={() => flip.current && flip.current()} style={st.flip} accessibilityLabel="Virar câmera">
           <Ionicons name="camera-reverse" size={22} color="#fff" />
         </TouchableOpacity>
@@ -87,11 +114,11 @@ export function useRealLives(active = true) {
 }
 
 // Abre a live no servidor (para transmitir de verdade). Devolve o id ou null (modo demonstração).
-export async function openRealLive({ title, cat, hostType }) {
+export async function openRealLive({ title, cat, hostType, source }) {
   if (!serverOn() || !webrtcOk()) return null;
   const st = await videoStatus(true);
   if (!st.on) return null;
-  const l = await api('POST', '/lives', { title, cat, hostType });
+  const l = await api('POST', '/lives', { title, cat, hostType, source });
   return l.id;
 }
 export const endRealLive = (id) => id && api('POST', `/lives/${id}/end`).catch(() => {});
@@ -250,6 +277,9 @@ const Btn = ({ icon, on, onPress }) => (
 );
 
 const st = StyleSheet.create({
+  screenBox: { backgroundColor: '#0B1124', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
+  screenTitle: { color: '#fff', fontWeight: '800', fontSize: 18, marginTop: 12, textAlign: 'center' },
+  screenText: { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginTop: 8, textAlign: 'center', lineHeight: 20 },
   flip: { position: 'absolute', right: 16, top: 120, width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' },
   invite: { position: 'absolute', left: 12, right: 12, backgroundColor: '#fff', borderRadius: 18, padding: 14, elevation: 8, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
   inviteTitle: { color: colors.text, fontWeight: '800' },

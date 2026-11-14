@@ -31,6 +31,16 @@ class RealysUpdaterModule : Module() {
       InstallResultReceiver.listener = { status, message ->
         sendEvent("onInstallStatus", mapOf("status" to status, "message" to (message ?: "")))
       }
+      // Lives de jogos: transmitir a TELA do celular. O Android exige um serviço em primeiro plano
+      // (com aviso na barra de notificações) enquanto a tela é capturada. O react-native-webrtc já
+      // traz esse serviço, mas ele vem desligado: aqui ele é ligado (sem depender da versão da biblioteca).
+      try {
+        val cls = Class.forName("com.oney.WebRTCModule.WebRTCModuleOptions")
+        val options = cls.getMethod("getInstance").invoke(null)
+        cls.getField("enableMediaProjectionService").setBoolean(options, true)
+      } catch (e: Throwable) {
+        // biblioteca de vídeo ausente ou diferente: a live de tela fica indisponível, o resto segue normal
+      }
     }
     OnDestroy { InstallResultReceiver.listener = null }
 

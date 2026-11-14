@@ -529,6 +529,10 @@ const MIGRATIONS = [
   );
   ALTER TABLE products ADD COLUMN ncm TEXT;
   `,
+  // 14: lives de jogos de celular: a live transmite a câmera ou a tela do celular
+  `
+  ALTER TABLE lives ADD COLUMN source TEXT NOT NULL DEFAULT 'camera';
+  `,
 ];
 
 export function openDb(file) {

@@ -10,7 +10,7 @@ const CATS = ['gamers', 'artistas', 'cursos', 'faculdades', 'tecnologia', 'notic
 const HOSTS = ['usuario', 'empresa', 'artista', 'prestador', 'fornecedor'];
 
 export default function livesRoutes(r, { db, wallet, hub, fiscal }) {
-  const view = (l) => ({ id: l.id, hostId: l.host_id, hostType: l.host_type, host: l.host_name, cat: l.cat, title: l.title, status: l.status, giftsTotal: toReais(l.gifts_total), startedAt: l.started_at, endedAt: l.ended_at, viewers: viewersOf(l.id) });
+  const view = (l) => ({ id: l.id, hostId: l.host_id, hostType: l.host_type, host: l.host_name, cat: l.cat, title: l.title, source: l.source || 'camera', status: l.status, giftsTotal: toReais(l.gifts_total), startedAt: l.started_at, endedAt: l.ended_at, viewers: viewersOf(l.id) });
   const watching = new Map(); // liveId -> Map<userId, lastSeen>
   const viewersOf = (id) => {
     const m = watching.get(id);
@@ -37,8 +37,10 @@ export default function livesRoutes(r, { db, wallet, hub, fiscal }) {
     db.prepare(`UPDATE lives SET status = 'encerrada', ended_at = ? WHERE host_id = ? AND status = 'ao_vivo'`).run(now(), user.id);
     const company = hostType === 'empresa' ? db.prepare('SELECT name FROM companies WHERE owner_id = ?').get(user.id) : null;
     const id = newId('lv');
-    db.prepare('INSERT INTO lives (id, host_id, host_type, host_name, cat, title, status, started_at) VALUES (?,?,?,?,?,?,?,?)').run(
-      id, user.id, hostType, company ? company.name : user.name, cat, str(body.title, 'o título', { max: 120 }), 'ao_vivo', now()
+    // Fonte do vídeo: câmera ou tela do celular (jogos).
+    const source = body.source === 'tela' ? 'tela' : 'camera';
+    db.prepare('INSERT INTO lives (id, host_id, host_type, host_name, cat, title, source, status, started_at) VALUES (?,?,?,?,?,?,?,?,?)').run(
+      id, user.id, hostType, company ? company.name : user.name, cat, str(body.title, 'o título', { max: 120 }), source, 'ao_vivo', now()
     );
     return view(db.prepare('SELECT * FROM lives WHERE id = ?').get(id));
   }, { status: 201 });
