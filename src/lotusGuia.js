@@ -57,7 +57,7 @@ Destinos do app:
 - Pedir propostas → {"tab":"pedidos","seg":"propostas"} (fala: pedir propostas, pedido ao contrario, quero propostas, receber orcamentos)
 - Score Re@lys → {"tab":"perfil"} (fala: score, meu score, score realys, minha reputacao)
 - Compra coletiva → {"tab":"negocios"} (fala: compra coletiva, compras coletivas, comprar junto)
-- Notícias → {"tab":"stories","top":"noticias"} (fala: noticias, noticia, jornal, ultimas noticias)
+- News → {"tab":"stories","top":"noticias"} (fala: news, noticias, noticia, jornal, ultimas noticias)
 - Alertas → {"tab":"stories","top":"noticias"} (fala: alertas, alerta, defesa civil, alerta de chuva)
 - Atrasos de voos e trânsito → {"tab":"transporte"} (fala: voos atrasados, atraso de voo, meu voo, aeroporto)
 - Hotéis → {"tab":"home","top":"anuncios","kind":"hotel"} (fala: hoteis, hotel, pousadas, pousada)

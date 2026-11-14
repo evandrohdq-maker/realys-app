@@ -216,6 +216,11 @@ O app se ajusta sozinho ao celular de cada pessoa:
 
 - **Arena Gamer nas Lives** (`src/arena.js` guarda os servidores e a sala de voz, usados pela Arena e pelas Lives): cartão "Arena Gamer" na aba Lives; ao abrir uma live de jogo, **Jogar com o time** escolhe uma sala de voz da Arena e o streamer entra nela junto com a live (barra da sala com microfone durante a transmissão); quem assiste uma live de Gamers tem o botão **Entrar no servidor do streamer**. Em **Transmitir como** entrou a opção **Gamer**. Na demonstração a sala de voz é simulada, como o resto da Arena: voz de verdade precisa do servidor.
 
+- **Food: Delivery e Reservas** (`src/foodClasses.js`, `FOOD_MODES`): as duas classes do Food. Saíram os botões redondos Restaurantes/Bares/Doces e cafés, que viraram subclasses (pílulas "Tudo · Restaurantes · Bares · Doces e cafés"); os tipos de prato continuam no seletor. **Delivery** mostra o que pode ser entregue (modo `entrega` do produto); **Reservas** mostra os lugares com mesa (`reserva: true` na loja, bares, ou quem tem item só no local, como rodízio) e o botão **Reservar mesa** na página da loja.
+- **News**: a aba Notícias passou a se chamar News. Em "Destaques" os alertas aparecem numa faixa discreta; os cartões completos ficam na aba Alertas.
+- **Tom dos textos**: linguagem moderna e direta nas explicações (ex.: "Bateu a fome? Pede aí"). Textos novos devem seguir esse tom.
+- **Leveza**: o APK sai só com as arquiteturas de celular (`buildArchs` no `app.json`), o modelo da Lotus carrega ao abrir a Lotus e as fotos de exemplo vêm no tamanho em que aparecem.
+
 ## Atualização automática do APK
 
 Toda vez que o app abre, ele pergunta ao GitHub se existe uma versão nova em **Releases**. Se existir, aparece o aviso **"Nova versão disponível"** com o botão **Atualizar agora**: o próprio Realys baixa a versão nova para a pasta interna dele (não abre o navegador e não salva nada em Downloads), abre a tela **"Deseja atualizar este app?"** do Android e, com um toque em **Atualizar**, substitui o app instalado, sem criar um ícone novo e sem perder login e dados. O arquivo baixado é apagado sozinho na próxima abertura. Na primeira vez, o Android pede para **permitir que o Realys instale apps**: é só ativar uma vez. Também dá para verificar à mão em **Perfil → Verificar atualizações**.

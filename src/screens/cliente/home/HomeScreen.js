@@ -39,7 +39,7 @@ export default function HomeScreen({ goTo, explore, navigate }) {
 // (aberto pelo botão Community do rodapé), não aparece como botão no topo.
 export const COMMUNITY_TOP = [
   { key: 'comunidade', label: 'Comunidade', icon: 'people-circle-outline' },
-  { key: 'noticias', label: 'Notícias', icon: 'newspaper-outline' },
+  { key: 'noticias', label: 'News', icon: 'newspaper-outline' },
   { key: 'eventos', label: 'Eventos', icon: 'sparkles-outline' },
   // Stream: rádios e TV online (entrou no lugar dos botões Promoções e Anúncios).
   { key: 'stream', label: 'Stream', icon: 'tv-outline' },

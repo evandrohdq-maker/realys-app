@@ -24,6 +24,7 @@ export const stores = [
     id: 'e2',
     name: 'Pizzaria da Praça',
     category: 'Alimentação',
+    reserva: true, // tem salão: aceita reserva de mesa
     teleGratis: true,
     teleGratisMin: 40,
     city: 'São Paulo - SP',
@@ -86,6 +87,7 @@ export const stores = [
     id: 'e7',
     name: 'Sushi Kento',
     category: 'Alimentação',
+    reserva: true, // rodízio no salão: aceita reserva de mesa
     city: 'São Paulo - SP',
     rating: 4.7,
     recommended: true,
@@ -98,6 +100,7 @@ export const stores = [
     id: 'e8',
     name: 'Doce Encanto Café',
     category: 'Doces e cafés',
+    reserva: true, // tem salão: aceita reserva de mesa
     city: 'São Paulo - SP',
     rating: 4.9,
     recommended: false,

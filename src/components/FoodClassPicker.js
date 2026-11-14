@@ -12,7 +12,7 @@ import { colors, soft } from '../theme';
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 // selected: { classe, subclasse } ou null (Tudo). counts: Map com 'classe' e 'classe:subclasse' → nº de lojas.
-export default function FoodClassPicker({ selected, counts, onPick }) {
+export default function FoodClassPicker({ selected, counts, onPick, title = 'O que vai ser hoje?', hint = 'Toca aqui e escolhe o que você tá a fim' }) {
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
   const [cls, setCls] = useState(null);
@@ -37,16 +37,16 @@ export default function FoodClassPicker({ selected, counts, onPick }) {
 
   return (
     <>
-      <TouchableOpacity style={styles.bar} onPress={() => setOpen(true)} activeOpacity={0.9} accessibilityLabel="Escolher classe de comida">
+      <TouchableOpacity style={styles.bar} onPress={() => setOpen(true)} activeOpacity={0.9} accessibilityLabel="Escolher o que você quer comer">
         <View style={styles.barIcon}>
           <Ionicons name={selClasse ? selClasse.icon : 'restaurant-outline'} size={20} color={colors.primary} />
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={styles.barTitle} numberOfLines={1}>
-            {selClasse ? (selSub ? `${selClasse.label} › ${selSub.label}` : selClasse.label) : 'Todas as classes'}
+            {selClasse ? (selSub ? `${selClasse.label} › ${selSub.label}` : selClasse.label) : title}
           </Text>
           <Text style={styles.barSub} numberOfLines={1}>
-            {selected ? `${n(selSub ? `${selected.classe}:${selected.subclasse}` : selected.classe)} lojas com este item` : 'Escolha a classe ou a subclasse do que você quer'}
+            {selected ? `${n(selSub ? `${selected.classe}:${selected.subclasse}` : selected.classe)} ${n(selSub ? `${selected.classe}:${selected.subclasse}` : selected.classe) === 1 ? 'lugar tem' : 'lugares têm'} isso agora` : hint}
           </Text>
         </View>
         <Ionicons name="ellipsis-vertical" size={20} color={colors.primary} style={{ paddingHorizontal: 6 }} />
@@ -87,18 +87,18 @@ export default function FoodClassPicker({ selected, counts, onPick }) {
                     <SubRow key={`${c.key}:${s.key}`} icon={c.icon} label={s.label} meta={c.label} count={n(`${c.key}:${s.key}`)} on={selected && selected.subclasse === s.key} onPress={() => pick({ classe: c.key, subclasse: s.key })} />
                   ))
                 ) : (
-                  <Text style={styles.empty}>Nenhuma classe com esse nome.</Text>
+                  <Text style={styles.empty}>Não achei nada com esse nome. Tenta outra palavra.</Text>
                 )
               ) : current ? (
                 <>
-                  <SubRow icon={current.icon} label={`Tudo de ${current.label.toLowerCase()}`} meta="Todas as subclasses" count={n(current.key)} on={selected && selected.classe === current.key && !selected.subclasse} onPress={() => pick({ classe: current.key, subclasse: null })} />
+                  <SubRow icon={current.icon} label={`Tudo de ${current.label.toLowerCase()}`} meta="Ver tudo" count={n(current.key)} on={selected && selected.classe === current.key && !selected.subclasse} onPress={() => pick({ classe: current.key, subclasse: null })} />
                   {current.subs.map((s) => (
                     <SubRow key={s.key} icon={current.icon} label={s.label} meta={current.label} count={n(`${current.key}:${s.key}`)} on={selected && selected.subclasse === s.key} onPress={() => pick({ classe: current.key, subclasse: s.key })} />
                   ))}
                 </>
               ) : (
                 <View style={styles.grid}>
-                  <TouchableOpacity style={styles.item} onPress={() => pick(null)} activeOpacity={0.8} accessibilityLabel="Todas as classes">
+                  <TouchableOpacity style={styles.item} onPress={() => pick(null)} activeOpacity={0.8} accessibilityLabel="Ver tudo">
                     <View style={[styles.circle, !selected && styles.circleOn]}>
                       <Ionicons name="grid-outline" size={22} color={colors.primary} />
                     </View>

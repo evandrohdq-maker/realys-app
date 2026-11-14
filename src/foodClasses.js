@@ -152,3 +152,38 @@ export const rotuloClasse = (classe, subclasse) => {
   const s = subclasseByKey(classe, subclasse);
   return c && s ? `${c.label} › ${s.label}` : null;
 };
+
+// ---------- As duas classes do Food: Delivery e Reservas ----------
+// Delivery: o que chega em casa. Reservas: lugares para ir, com mesa garantida.
+// O que antes eram botões (Restaurantes, Bares, Doces e cafés) e os tipos de prato
+// (Pizzaria, Lanches, Bar…) viraram subclasses dentro delas.
+export const FOOD_MODES = [
+  { key: 'delivery', label: 'Delivery', icon: 'bicycle-outline', hint: 'Chega na sua casa', color: '#E8590C' },
+  { key: 'reservas', label: 'Reservas', icon: 'calendar-outline', hint: 'Garanta a sua mesa', color: '#7A5806' },
+];
+export const FOOD_TIPOS = [
+  { key: 'todos', label: 'Tudo' },
+  { key: 'restaurantes', label: 'Restaurantes', cats: ['Alimentação'] },
+  { key: 'bares', label: 'Bares', cats: ['Bares'] },
+  { key: 'doces', label: 'Doces e cafés', cats: ['Doces e cafés'] },
+];
+
+// Modos de um produto: os que a loja marcou no cadastro ou os calculados pelo nome.
+export const productModos = (p, categoria) =>
+  p.modos || (classifyFood(p.name, p.description || p.desc || '', categoria) || {}).modos || MODOS.map((m) => m.key);
+
+// A loja entrega? Sim, se não desligou a entrega e tem pelo menos um item que pode ser entregue.
+export const storeDelivers = (loja, prods) => !!loja && loja.delivery !== false && prods.some((p) => productModos(p, loja.category).includes('entrega'));
+// A loja aceita reserva de mesa? Sim, se marcou que aceita; ou, sem marcar nada, se é bar ou tem
+// item que só existe no local (rodízio, buffet, "consumo no local").
+export const storeReserves = (loja, prods) =>
+  !!loja && (loja.reserva === true || (loja.reserva !== false && (loja.category === 'Bares' || prods.some((p) => productModos(p, loja.category).join() === 'retirada'))));
+
+// O produto aparece nesta classe? (mode vazio = tudo)
+export function productInMode(mode, p, loja, prodsDaLoja) {
+  if (!mode) return true;
+  const modos = productModos(p, loja.category);
+  if (mode === 'delivery') return loja.delivery !== false && modos.includes('entrega');
+  return storeReserves(loja, prodsDaLoja) && modos.includes('retirada');
+}
+export const storeInMode = (mode, loja, prods) => (!mode ? true : mode === 'delivery' ? storeDelivers(loja, prods) : storeReserves(loja, prods));

@@ -20,6 +20,8 @@ export const NAV_TARGETS = [
   // Setor de Promoções dentro do Shop e do Food (ofertas relâmpago, cupons e combos).
   T('Promoções do Shop', { tab: 'home', seg: 'promo' }, ['promocoes do shop', 'promocao do shop', 'ofertas do shop', 'ofertas relampago', 'oferta relampago', 'cupons', 'cupom', 'cupons de desconto', 'combos', 'leve mais pague menos']),
   T('Promoções do Food', { tab: 'food', cat: 'Todos', q: '', seg: 'promo' }, ['promocoes do food', 'promocao do food', 'ofertas do food', 'promocoes de comida', 'ofertas de comida', 'promocoes de restaurante', 'promocoes dos restaurantes', 'promocoes de restaurantes', 'cupons de comida', 'combos de comida']),
+  T('Delivery', { tab: 'food', cat: 'Todos', q: '', mode: 'delivery' }, ['delivery', 'deliveri', 'tele entrega', 'teleentrega', 'pedir comida', 'entrega de comida', 'comida em casa']),
+  T('Reservas', { tab: 'food', cat: 'Todos', q: '', mode: 'reservas' }, ['reservas', 'reserva', 'reservar mesa', 'reservar uma mesa', 'reserva de mesa', 'mesa em restaurante']),
   T('Serviços', { tab: 'servicos' }, ['servicos', 'servico', 'prestadores', 'prestador de servico', 'prestadores de servico']),
   T('Pedidos', { tab: 'pedidos' }, ['pedidos', 'pedido', 'meus pedidos', 'minhas compras', 'compras', 'entregas']),
   T('Perfil', { tab: 'perfil' }, ['perfil', 'meu perfil', 'minha conta', 'conta', 'configuracoes', 'ajustes']),
@@ -66,7 +68,7 @@ export const NAV_TARGETS = [
   T('Score Re@lys', { tab: 'perfil' }, ['score', 'meu score', 'score realys', 'minha reputacao']),
   T('Reels', { tab: 'reels' }, ['reels', 'reel', 'videos curtos', 'ver videos', 'videos das lojas']),
   T('Compra coletiva', { tab: 'negocios' }, ['compra coletiva', 'compras coletivas', 'comprar junto']),
-  T('Notícias', { tab: 'stories', top: 'noticias' }, ['noticias', 'noticia', 'jornal', 'ultimas noticias', 'o que esta acontecendo']),
+  T('News', { tab: 'stories', top: 'noticias' }, ['news', 'nius', 'nils', 'noticias', 'noticia', 'jornal', 'ultimas noticias', 'o que esta acontecendo']),
   T('Alertas', { tab: 'stories', top: 'noticias' }, ['alertas', 'alerta', 'defesa civil', 'alerta de chuva', 'catastrofe', 'enchente', 'deslizamento', 'alagamento']),
   T('Atrasos de voos e trânsito', { tab: 'transporte' }, ['voos atrasados', 'atraso de voo', 'meu voo', 'aeroporto', 'estrada interditada', 'transito', 'rodovia']),
   T('Hotéis', { tab: 'home', top: 'anuncios', kind: 'hotel' }, ['hoteis', 'hotel', 'pousadas', 'pousada', 'hotelaria', 'hospedagem']),

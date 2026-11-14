@@ -94,7 +94,7 @@ export default function NewsTab({ onWatch, navigate }) {
         </>
       ) : null}
 
-      {list.length ? <Text style={styles.h}>{cat === 'todas' ? 'Notícias' : NEWS_CATS.find((c) => c.key === cat).label}</Text> : null}
+      {list.length ? <Text style={styles.h}>{cat === 'todas' ? 'News' : NEWS_CATS.find((c) => c.key === cat).label}</Text> : null}
       {list.map((n, i) =>
         i === 0 ? (
           <TouchableOpacity key={n.id} style={styles.big} onPress={() => setOpen(n)} activeOpacity={0.9}>

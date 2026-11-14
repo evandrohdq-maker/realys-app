@@ -2,6 +2,7 @@ import { askPix } from '../../components/PixPay';
 import React, { useState, useMemo, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Text } from '../../responsive';
+import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf, cartTotal } from '../../store';
 import { colors, brl, soft } from '../../theme';
 import { SearchBar, GlobalResults } from '../../components/Search';
@@ -9,9 +10,9 @@ import { Screen, Photo, Badge, Row, Button, Input, ProductThumb, Chip, Card, Sec
 import { LaunchStrip } from '../../components/Launches';
 import { useBack } from '../../back';
 import { isFoodStore } from '../../data';
-import { FOOD_FILTERS } from '../../foodData';
 import { GROCERY_GROUPS, GROCERY_SECTIONS, sectionOf } from '../../grocerySections';
-import { classifyFood, FOOD_CLASSES, MODOS, classeByKey } from '../../foodClasses';
+import { classifyFood, FOOD_CLASSES, MODOS, classeByKey, FOOD_MODES, FOOD_TIPOS, productInMode, storeInMode, storeReserves } from '../../foodClasses';
+import { freeTable } from '../../venueData';
 import FoodClassPicker from '../../components/FoodClassPicker';
 import { FoodHighlights } from './FoodHighlights';
 import { ShopHero, CircleShortcuts, ShopHead, ShopProductCard as ProductCard, ShopGrid, StoreRow } from '../../components/ShopKit';
@@ -41,9 +42,12 @@ const CATEGORIES = [
   { key: 'Roupas', label: 'Roupas', ion: 'shirt-outline', color: '#C2255C' },
   { key: 'Eletrônicos', label: 'Eletrônicos', ion: 'phone-portrait-outline', color: colors.accent },
 ];
-// Atalhos redondos do Food.
-const FOOD_COLORS = { todos: colors.primary, restaurantes: '#E8590C', bares: '#B7791F', doces: '#A0522D' };
-const FOOD_SHORTCUTS = FOOD_FILTERS.map((f) => ({ key: f.key, label: f.key === 'doces' ? 'Doces e cafés' : f.label, ion: f.icon, color: FOOD_COLORS[f.key] }));
+// Food: duas classes (Delivery e Reservas). Restaurantes, Bares e Doces e cafés viraram subclasses
+// (as pílulas logo abaixo) e os tipos de prato continuam no seletor "O que vai ser hoje?".
+const FOOD_COPY = {
+  delivery: { title: 'Bateu a fome? Pede aí', hint: 'Pizza, sushi, burger, doce… escolhe e chega na sua porta', list: 'Entregam pra você', empty: 'Ninguém entregando isso agora. Tenta outra opção.' },
+  reservas: { title: 'Bora sair hoje?', hint: 'Rodízio, chope, café… escolhe o rolê e garante a mesa', list: 'Garanta a sua mesa', empty: 'Nenhum lugar com reserva pra isso agora. Tenta outra opção.' },
+};
 
 // Aba Food do cliente: a mesma loja, mas só com comida e bebida (restaurantes, bares, doces e cafés),
 // com promoções de restaurantes e a interação com bares em destaque.
@@ -62,12 +66,18 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
   const [seg, setSeg] = useState('cardapio');
   // Filtro de classe/subclasse do Food: { classe, subclasse } ou null (Tudo).
   const [foodCls, setFoodCls] = useState(null);
+  // Classe do Food: 'delivery' ou 'reservas'.
+  const [mode, setMode] = useState('delivery');
 
   // Veio do menu ⋮ (ex.: Restaurantes → Pizzaria)
   useEffect(() => {
     if (!explore) return;
     if (explore.cat) setCat(food ? foodFilterOf(explore.cat) : explore.cat);
     if (explore.q !== undefined) setQ(explore.q);
+    if (food && explore.mode) {
+      setMode(explore.mode === 'reservas' ? 'reservas' : 'delivery');
+      setFoodCls(null);
+    }
     if (food) setSeg(explore.cat === 'Mercado' ? 'mercado' : explore.seg || 'cardapio');
   }, [explore]);
   const [openStore, setOpenStore] = useState(null);
@@ -91,9 +101,13 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
   // Lojas de comida por classe e por subclasse (para o seletor e para filtrar a lista).
   const foodIndex = useMemo(() => {
     const lojas = new Map();
+    const porLoja = new Map();
+    for (const p of state.products) porLoja.set(p.storeId, [...(porLoja.get(p.storeId) || []), p]);
     for (const p of state.products) {
       const loja = state.stores.find((x) => x.id === p.storeId);
       if (!isFoodStore(loja)) continue;
+      // Só conta o que existe na classe aberta (Delivery ou Reservas).
+      if (food && !productInMode(mode, p, loja, porLoja.get(loja.id) || [])) continue;
       const cls = p.classe ? { classe: p.classe, subclasse: p.subclasse } : classifyFood(p.name, p.description || p.desc || '', loja.category);
       if (!cls || !cls.classe) continue;
       for (const k of [cls.classe, `${cls.classe}:${cls.subclasse}`]) {
@@ -102,18 +116,18 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
       }
     }
     const counts = new Map([...lojas].map(([k, set]) => [k, set.size]));
-    return { counts, lojas };
-  }, [state.products, state.stores]);
+    return { counts, lojas, porLoja };
+  }, [state.products, state.stores, mode, food]);
   const chaveFood = foodCls ? (foodCls.subclasse ? `${foodCls.classe}:${foodCls.subclasse}` : foodCls.classe) : null;
 
   // Ordem da busca: patrocinadas primeiro, depois recomendadas, depois por nota.
   const rankedStores = useMemo(() => {
     const term = q.trim().toLowerCase();
-    const foodCats = food ? (FOOD_FILTERS.find((f) => f.key === cat) || {}).cats : null;
+    const foodCats = food ? (FOOD_TIPOS.find((f) => f.key === cat) || {}).cats : null;
     return state.stores
       .filter((s) =>
         food
-          ? isFoodStore(s) && (!foodCats || foodCats.includes(s.category)) && (term || !isMarket(s)) && (!chaveFood || (foodIndex.lojas.get(chaveFood) || new Set()).has(s.id))
+          ? isFoodStore(s) && (!foodCats || foodCats.includes(s.category)) && (term || !isMarket(s)) && (term || storeInMode(mode, s, foodIndex.porLoja.get(s.id) || [])) && (!chaveFood || (foodIndex.lojas.get(chaveFood) || new Set()).has(s.id))
           : !isFoodStore(s) && (cat === 'Todos' || s.category === cat)
       )
       .filter(
@@ -123,7 +137,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
           state.products.some((p) => p.storeId === s.id && p.name.toLowerCase().includes(term))
       )
       .sort((a, b) => b.sponsored - a.sponsored || b.recommended - a.recommended || b.rating - a.rating);
-  }, [state.stores, state.products, q, cat, food, chaveFood, foodIndex]);
+  }, [state.stores, state.products, q, cat, food, chaveFood, foodIndex, mode]);
 
   // Na aba Food só entram produtos de restaurantes, bares e cafés.
   // No Shop/Loja, nada de comida.
@@ -227,6 +241,23 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
           <Badge label="CNPJ verificado" />
           {s.shipsBrazil ? <View style={{ marginLeft: 6 }}><Badge label="Envia para todo o Brasil" color={colors.accent} /></View> : null}
         </Row>
+        {food && isFoodStore(s) && storeReserves(s, items) ? (
+          <TouchableOpacity
+            style={styles.reserveBtn}
+            activeOpacity={0.85}
+            accessibilityLabel={`Reservar mesa no ${s.name}`}
+            onPress={() => {
+              const had = (state.reservations || {})['loja-' + s.id];
+              if (had) return Alert.alert('Sua mesa já tá garantida 🪑', `Mesa ${had} no ${s.name}. É só chegar.`);
+              const table = freeTable();
+              dispatch({ type: 'VENUE_RESERVE', venueId: 'loja-' + s.id, table });
+              Alert.alert('Mesa garantida 🪑', `Mesa ${table} no ${s.name}. É só chegar e curtir.`);
+            }}
+          >
+            <Ionicons name="calendar" size={17} color={colors.text} />
+            <Text style={styles.reserveText}>{(state.reservations || {})['loja-' + s.id] ? `Mesa ${(state.reservations || {})['loja-' + s.id]} reservada` : 'Reservar mesa'}</Text>
+          </TouchableOpacity>
+        ) : null}
         {isFoodStore(s) ? (
           <CardapioFood items={items} store={s} onAdd={add} filtro={foodCls} />
         ) : (
@@ -277,10 +308,49 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
         style={{ marginBottom: 0 }}
       />
       <View style={{ height: 12 }} />
-      {food ? <FoodClassPicker selected={foodCls} counts={foodIndex.counts} onPick={setFoodCls} /> : null}
+      {food ? (
+        <>
+          {/* As duas classes do Food */}
+          <View style={styles.modes}>
+            {FOOD_MODES.map((m) => {
+              const on = mode === m.key;
+              return (
+                <TouchableOpacity
+                  key={m.key}
+                  style={[styles.mode, on && styles.modeOn]}
+                  activeOpacity={0.85}
+                  accessibilityLabel={`${m.label}: ${m.hint}`}
+                  onPress={() => {
+                    setMode(m.key);
+                    setFoodCls(null);
+                  }}
+                >
+                  <Ionicons name={on ? m.icon.replace('-outline', '') : m.icon} size={22} color={colors.text} />
+                  <View style={{ flex: 1, marginLeft: 8 }}>
+                    <Text style={styles.modeTitle} numberOfLines={1}>{m.label}</Text>
+                    <Text style={styles.modeHint} numberOfLines={1}>{m.hint}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          {/* Subclasses: o tipo de lugar */}
+          <View style={styles.tipos}>
+            {FOOD_TIPOS.map((t) => {
+              const on = cat === t.key;
+              return (
+                <TouchableOpacity key={t.key} style={[styles.tipo, on && styles.tipoOn]} onPress={() => setCat(t.key)} activeOpacity={0.85} accessibilityLabel={t.label}>
+                  <Text style={[styles.tipoText, on && styles.tipoTextOn]}>{t.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <FoodClassPicker selected={foodCls} counts={foodIndex.counts} onPick={setFoodCls} title={FOOD_COPY[mode].title} hint={FOOD_COPY[mode].hint} />
+        </>
+      ) : null}
       {food && !q ? <SpotlightCarousel ads={FOOD_SPOTLIGHT} onOpen={openAd} /> : null}
-      {!q ? (food ? <ShopHero title="Food" sub="Restaurantes, bares e cafés perto de você" /> : <ShopHero title="Loja Re@lys" sub="Lojas verificadas, patrocinadas e recomendadas primeiro" />) : null}
-      <CircleShortcuts items={food ? FOOD_SHORTCUTS : CATEGORIES} value={cat} onPress={setCat} />
+      {!q ? (food ? <ShopHero title="Food" sub={mode === 'reservas' ? 'Os melhores rolês perto de você, com mesa garantida' : 'O que você tá a fim, na sua porta'} /> : <ShopHero title="Loja Re@lys" sub="Lojas verificadas, patrocinadas e recomendadas primeiro" />) : null}
+      {food ? null : <CircleShortcuts items={CATEGORIES} value={cat} onPress={setCat} />}
       {food && !q ? <ClipStrip title="🎬 Reels da cozinha" clips={FOOD_CLIPS} food /> : null}
       {food && !q ? (
         <TouchableOpacity style={styles.promoTeaser} activeOpacity={0.9} onPress={() => setSeg('promo')}>
@@ -323,11 +393,11 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
         </>
       ) : null}
 
-      <ShopHead title={food ? (foodCls ? 'Lojas com este item' : 'Restaurantes, bares e cafés') : 'Lojas em destaque'} />
+      <ShopHead title={food ? (foodCls ? (mode === 'reservas' ? 'Onde tem, com mesa pra você' : 'Quem entrega isso') : FOOD_COPY[mode].list) : 'Lojas em destaque'} />
       {rankedStores.map((s) => (
         <StoreRow key={s.id} s={s} onPress={() => setOpenStore(s.id)} />
       ))}
-      {!rankedStores.length ? <Empty text="Nada encontrado." /> : null}
+      {!rankedStores.length ? <Empty text={food && !q ? FOOD_COPY[mode].empty : 'Nada encontrado.'} /> : null}
       <View style={{ height: 10 }} />
 
       {cartCount ? <CartBar count={cartCount} total={total} onPress={() => dispatch({ type: 'OPEN_CART' })} /> : null}
@@ -484,6 +554,19 @@ const styles = StyleSheet.create({
   modoBtnOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   modoTxt: { color: colors.text, fontWeight: '700', fontSize: 12 },
   promoTeaser: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5C331', borderRadius: 16, padding: 12, marginBottom: 16 },
+  // Food: as duas classes (Delivery e Reservas) e as subclasses de lugar
+  modes: { flexDirection: 'row', marginBottom: 10 },
+  mode: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 18, borderWidth: 1.5, borderColor: colors.borderStrong, paddingVertical: 12, paddingHorizontal: 12, marginHorizontal: 3 },
+  modeOn: { backgroundColor: colors.gold, borderColor: colors.gold },
+  modeTitle: { color: colors.text, fontWeight: '800', fontSize: 15 },
+  modeHint: { color: colors.menu, fontSize: 11, marginTop: 1 },
+  tipos: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 6 },
+  tipo: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 16, backgroundColor: colors.cardAlt, marginRight: 6, marginBottom: 6 },
+  tipoOn: { backgroundColor: colors.text },
+  tipoText: { color: colors.menu, fontWeight: '700', fontSize: 12.5 },
+  tipoTextOn: { color: '#FFFFFF' },
+  reserveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 14, paddingVertical: 11, paddingHorizontal: 12, marginBottom: 10 },
+  reserveText: { color: colors.text, fontWeight: '800', marginLeft: 8 },
   pageBtn: { borderWidth: 1, borderColor: colors.primary, borderRadius: 12, padding: 10, marginBottom: 10, backgroundColor: colors.primaryLight },
   h1: { fontSize: 22, fontWeight: '700', color: colors.text, marginBottom: 6 },
   back: { color: colors.primary, fontWeight: '700', marginBottom: 10, fontSize: 15 },
