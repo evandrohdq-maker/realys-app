@@ -58,7 +58,7 @@ export default function GiftSheet() {
     if (total > state.wallet) return Alert.alert('Saldo insuficiente', `O presente custa ${brl(total)}. Deposite saldo na carteira. (Créditos de presente não servem para presentear.)`);
     dispatch({ type: 'SEND_GIFT', to, amount: value, occasion: occasion || occasions[0], message: message.trim(), asCompany });
     close();
-    Alert.alert('Presente enviado 🎁', `${to.name.split(' ')[0]} já recebeu ${brl(net)} em créditos de presente para usar em compras no Realys. Não precisa aceitar: já está na conta.`);
+    Alert.alert('Presente enviado 🎁', `${to.name.split(' ')[0]} já recebeu ${brl(net)} em créditos de presente para usar em compras no Re@lys. Não precisa aceitar: já está na conta.`);
   };
 
   // Para quem: pessoas e prestadores (cliente) ou clientes (empresa).
@@ -78,7 +78,7 @@ export default function GiftSheet() {
             </View>
             <View style={{ flex: 1, marginLeft: 10 }}>
               <Text style={styles.title}>{to && to.tip ? 'Dar gorjeta' : asCompany ? 'Presentear cliente' : 'Presentear'}</Text>
-              <Text style={styles.sub}>{asCompany ? `Em nome de ${company ? company.name : 'sua empresa'}` : 'Em créditos Realys, direto na conta de quem recebe'}</Text>
+              <Text style={styles.sub}>{asCompany ? `Em nome de ${company ? company.name : 'sua empresa'}` : 'Em créditos Re@lys, direto na conta de quem recebe'}</Text>
             </View>
             <TouchableOpacity onPress={close} style={styles.closeBtn} accessibilityLabel="Fechar">
               <Ionicons name="close" size={20} color={colors.text} />
@@ -149,16 +149,16 @@ export default function GiftSheet() {
             {/* Resumo */}
             <View style={styles.summary}>
               <Row label="Sai da sua carteira" value={brl(total)} strong />
-              <Row label={`Taxa do Realys (${GIFT_FEE_PCT}%, sai do presente)`} value={`− ${brl(fee)}`} />
+              <Row label={`Taxa do Re@lys (${GIFT_FEE_PCT}%, sai do presente)`} value={`− ${brl(fee)}`} />
               <View style={styles.sumLine} />
               <Row label="Quem recebe ganha" value={brl(net)} strong />
               {value > 0 ? (
                 <Text style={[styles.note, { color: colors.primary, fontWeight: '700' }]}>
-                  🏆 Você ganha +{giftPoints(value, state.gifts.filter((g) => g.dir === 'enviado').length).total} pontos Realys (para boosts e anúncios)
+                  🏆 Você ganha +{giftPoints(value, state.gifts.filter((g) => g.dir === 'enviado').length).total} pontos Re@lys (para boosts e anúncios)
                 </Text>
               ) : null}
               <Text style={styles.note}>
-                <Ionicons name="information-circle-outline" size={12} color={colors.muted} /> Chega na hora, sem precisar aceitar. Quem recebe usa os créditos só dentro do Realys (compras, Food, Shop e serviços): eles não podem ser sacados.
+                <Ionicons name="information-circle-outline" size={12} color={colors.muted} /> Chega na hora, sem precisar aceitar. Quem recebe usa os créditos só dentro do Re@lys (compras, Food, Shop e serviços): eles não podem ser sacados.
               </Text>
             </View>
 

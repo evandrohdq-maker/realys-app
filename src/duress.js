@@ -1,4 +1,4 @@
-// Resposta de segurança (coação): alerta silencioso com GPS e endereço para a segurança do Realys e
+// Resposta de segurança (coação): alerta silencioso com GPS e endereço para a segurança do Re@lys e
 // ligação para o 190. Usado pela Lotus (compras e contratações) e pela assinatura de contratos.
 import { getDevicePoint, addressOf } from './geo';
 import { callNow } from './phone';
@@ -36,7 +36,7 @@ export function triggerDuress(dispatch, state, info) {
 }
 
 // "Lotus, socorro/denúncia/emergência + palavra de segurança": alerta em silêncio, sem tela nenhuma.
-// Socorro e denúncia: segurança do Realys + 190. Emergência: segurança + SAMU 192.
+// Socorro e denúncia: segurança do Re@lys + 190. Emergência: segurança + SAMU 192.
 export function triggerSilent(dispatch, state, { kind, tipo }) {
   const cfg = panicConfig() || {};
   const id = 'sos' + Date.now();

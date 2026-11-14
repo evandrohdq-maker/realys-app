@@ -1,7 +1,7 @@
-// Cálculo de impostos do Realys e das empresas da plataforma.
+// Cálculo de impostos do Re@lys e das empresas da plataforma.
 //
 // IMPORTANTE: são as regras gerais da lei (LC 123/2006 para o Simples, regras do Lucro Presumido e a
-// reforma tributária da LC 214/2025). Antes de ligar a emissão de notas, o contador do Realys confere o
+// reforma tributária da LC 214/2025). Antes de ligar a emissão de notas, o contador do Re@lys confere o
 // regime, o anexo, o código do serviço e a alíquota de ISS de Passo Fundo e ajusta o .env (FISCAL_*).
 // Todos os valores aqui são em CENTAVOS (inteiros) e as alíquotas em porcentagem (ex.: 6 = 6%).
 
@@ -104,7 +104,7 @@ export function ibsCbs(valorCents, { destacar = false, cbsPct = 0.9, ibsPct = 0.
   return { cbs: Math.round((valorCents * cbsPct) / 100), ibs: Math.round((valorCents * ibsPct) / 100), cbsPct, ibsPct };
 }
 
-// Imposto estimado de UMA nota do Realys (serviço de intermediação).
+// Imposto estimado de UMA nota do Re@lys (serviço de intermediação).
 export function impostoDaNota(valorCents, { regime = 'simples', anexo = 'III', rbt12Cents = 0, issPct = 5, destacarIbsCbs = false } = {}) {
   if (regime === 'simples') {
     const a = aliquotaSimples(rbt12Cents, anexo);
@@ -138,13 +138,13 @@ export function resumoMensal({ receitaCents, rbt12Cents, custosCents = 0, regime
     receita: receitaCents, impostos, aliquota, custos: custosCents, lucro,
     margem: lucro == null || !receitaCents ? null : r2((lucro / receitaCents) * 100),
     prejuizo: lucro != null && lucro < 0,
-    // Taxa mínima para empatar: quanto o Realys precisa faturar para cobrir custos e impostos.
+    // Taxa mínima para empatar: quanto o Re@lys precisa faturar para cobrir custos e impostos.
     receitaParaEmpatar: aliquota == null || aliquota >= 100 ? null : Math.ceil(custosCents / (1 - aliquota / 100)),
   };
 }
 
 // ---------- MEI ----------
-// Situação do MEI pelo que ele recebeu no ano (vendas e serviços pelo Realys). Avisa antes de estourar o teto.
+// Situação do MEI pelo que ele recebeu no ano (vendas e serviços pelo Re@lys). Avisa antes de estourar o teto.
 export function situacaoMei(recebidoAnoCents, { mesesAtivos = 12, ano = new Date().getFullYear() } = {}) {
   const teto = Math.round((tetoMei(ano) * 100 * Math.min(12, Math.max(1, mesesAtivos))) / 12);
   const pct = teto ? (recebidoAnoCents / teto) * 100 : 0;

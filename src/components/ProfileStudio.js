@@ -66,7 +66,7 @@ export function FutureIcon({ name, size = 46, color = colors.primary, glow = col
 
 // ---------- Quem pode ver ----------
 export const AUDIENCES = [
-  { key: 'todos', label: 'Todos', icon: 'planet', hint: 'Qualquer pessoa do Realys' },
+  { key: 'todos', label: 'Todos', icon: 'planet', hint: 'Qualquer pessoa do Re@lys' },
   { key: 'amigos', label: 'Só amigos', icon: 'people-circle', hint: 'Só quem é seu amigo' },
   { key: 'eu', label: 'Só eu', icon: 'lock-closed', hint: 'Fica guardado, ninguém vê' },
 ];
@@ -107,7 +107,7 @@ export function PrivacyPanel() {
         <View style={{ flex: 1, marginHorizontal: 12 }}>
           <Text style={styles.h3}>{p.exposed ? 'Perfil exposto' : 'Modo invisível'}</Text>
           <Text style={styles.small}>
-            {p.exposed ? 'As pessoas encontram e veem seu perfil, conforme as escolhas abaixo.' : 'Ninguém vê seu perfil agora. Você continua usando tudo no Realys normalmente.'}
+            {p.exposed ? 'As pessoas encontram e veem seu perfil, conforme as escolhas abaixo.' : 'Ninguém vê seu perfil agora. Você continua usando tudo no Re@lys normalmente.'}
           </Text>
         </View>
         <Switch
@@ -134,7 +134,7 @@ export function PrivacyPanel() {
 async function pickImage() {
   const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!perm.granted) {
-    Alert.alert('Permissão necessária', 'Autorize o Realys a ver suas fotos para escolher a foto do perfil.');
+    Alert.alert('Permissão necessária', 'Autorize o Re@lys a ver suas fotos para escolher a foto do perfil.');
     return null;
   }
   const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.8 });
@@ -190,7 +190,7 @@ export function ProfileEditor({ visible, onClose }) {
             <Text style={{ flex: 1, color: colors.text, fontSize: 15 }}>{state.user.name}</Text>
             <Ionicons name="shield-checkmark" size={16} color={colors.primary} />
           </View>
-          <Text style={styles.small}>O nome vem do documento e da biometria, por isso não muda aqui. É o que garante que no Realys só tem gente real.</Text>
+          <Text style={styles.small}>O nome vem do documento e da biometria, por isso não muda aqui. É o que garante que no Re@lys só tem gente real.</Text>
 
           <Text style={styles.label}>Usuário</Text>
           <View style={[styles.input, { flexDirection: 'row', alignItems: 'center' }]}>
@@ -255,7 +255,7 @@ function CreationComposer({ visible, kind, onClose }) {
       return setMedia({ uri: null, name: `${base}.mp3` });
     }
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) return Alert.alert('Permissão necessária', 'Autorize o Realys a ver suas fotos e vídeos.');
+    if (!perm.granted) return Alert.alert('Permissão necessária', 'Autorize o Re@lys a ver suas fotos e vídeos.');
     const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: kind === 'video' ? ['videos'] : ['images'], quality: 0.85 });
     if (res.canceled || !res.assets || !res.assets.length) return;
     const a = res.assets[0];

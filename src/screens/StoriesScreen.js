@@ -151,7 +151,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
           // A IA verificadora confere antes de publicar (ver src/lm/factCheck.js).
           const check = checkText(post.text);
           if (check.verdict === 'falso')
-            Alert.alert('Publicação não feita', `A IA do Realys verificou este conteúdo como informação falsa (${check.reasons.join(', ')}). Ele não foi publicado.`);
+            Alert.alert('Publicação não feita', `A IA do Re@lys verificou este conteúdo como informação falsa (${check.reasons.join(', ')}). Ele não foi publicado.`);
           else if (check.verdict === 'suspeito')
             Alert.alert('Publicado em verificação', 'A IA achou alguns sinais de informação falsa. O post aparece com o aviso "em verificação" até a moderação conferir.');
         }}
@@ -213,7 +213,7 @@ function PostComposer({ visible, onClose, onPublish }) {
   const pick = async () => {
     try {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted) return Alert.alert('Permissão necessária', 'Autorize o Realys a ver suas fotos para anexar na publicação.');
+      if (!perm.granted) return Alert.alert('Permissão necessária', 'Autorize o Re@lys a ver suas fotos para anexar na publicação.');
       const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
       if (!res.canceled && res.assets && res.assets[0]) setImage(res.assets[0].uri);
     } catch (e) {

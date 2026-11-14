@@ -1,4 +1,4 @@
-// Busca geral do Realys: procura em TODO o conteúdo do app (anúncios, hotéis, imóveis,
+// Busca geral do Re@lys: procura em TODO o conteúdo do app (anúncios, hotéis, imóveis,
 // eventos, cursos, lojas, produtos, promoções, prestadores, lives, pessoas e posts).
 // Usada pelo assistente de voz quando o pedido não é um comando específico.
 // Na versão real isso vira uma busca no servidor, com os cadastros reais.
@@ -339,7 +339,7 @@ function buildIndex(state) {
   return items;
 }
 
-// Assuntos do Realys. Quando o pedido fala de um assunto ("preciso de um hotel"), a busca fica
+// Assuntos do Re@lys. Quando o pedido fala de um assunto ("preciso de um hotel"), a busca fica
 // SÓ dentro dele: as outras palavras ("em Santos", "com piscina", "barato") filtram e ordenam,
 // mas nunca puxam coisas de fora (clínica, caixa de som, móveis...).
 // A ordem importa: o primeiro assunto que bater ganha.
@@ -432,7 +432,7 @@ const priceNum = (it) => {
 // Com assunto: só itens do assunto, filtrados pelas outras palavras.
 // Sem assunto: ganha quem bate com mais palavras; patrocinados primeiro no empate.
 // O reconhecimento de voz às vezes escreve errado as palavras-chave ("otel", "rotel", "hotéu",
-// "pousda", "ospital"). Antes de buscar, troca pela palavra do Realys mais parecida.
+// "pousda", "ospital"). Antes de buscar, troca pela palavra do Re@lys mais parecida.
 const KEYWORDS = ['hotel', 'hoteis', 'pousada', 'hostel', 'hospedagem', 'hospital', 'clinica', 'medico', 'dentista', 'pediatra', 'curso', 'faculdade', 'onibus', 'metro', 'passagem', 'apartamento', 'kitnet', 'imovel', 'aluguel', 'pizza', 'pizzaria', 'hamburguer', 'sushi', 'festa', 'balada', 'show', 'trator', 'eletricista', 'encanador', 'mecanico', 'diarista', 'emprego', 'vaga', 'artista', 'musica'];
 function editDistance(a, b) {
   const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
@@ -529,15 +529,15 @@ export function contentReply(results, what, meta = {}) {
   };
   const c = meta.category;
   if (c) {
-    if (!results.length) return `Ainda não tem ${c.label} cadastrados no Realys. Assim que alguém anunciar, eu te aviso.`;
+    if (!results.length) return `Ainda não tem ${c.label} cadastrados no Re@lys. Assim que alguém anunciar, eu te aviso.`;
     const top = results.slice(0, 3).map(line);
     const n = results.length;
     const head = meta.missing
-      ? `Não encontrei ${c.one} com "${meta.missing}", mas tem ${n} ${c.label} no Realys. `
+      ? `Não encontrei ${c.one} com "${meta.missing}", mas tem ${n} ${c.label} no Re@lys. `
       : `Encontrei ${n} ${n > 1 ? c.label : c.one}${meta.extra ? `${/ para /.test(c.one) || n > 1 ? ' com' : ' para'} "${meta.extra}"` : ''}${meta.cheap ? ', do mais barato para o mais caro' : meta.near ? ', do mais perto para o mais longe' : ''}. `;
     return head + `${top.join('; ')}.` + (n > 3 ? ` E mais ${n - 3} na lista.` : '') + ' Toque em um para ver e reservar.';
   }
-  if (!results.length) return `Não encontrei nada sobre "${what}" no Realys. Tente outra palavra.`;
+  if (!results.length) return `Não encontrei nada sobre "${what}" no Re@lys. Tente outra palavra.`;
   const top = results.slice(0, 3).map(line);
   const n = results.length;
   return (

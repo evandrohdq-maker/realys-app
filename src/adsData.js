@@ -3,7 +3,7 @@ import { GROCERY_SECTIONS } from './grocerySections';
 //
 // Formatos de anúncio pago, do mais caro ao mais barato:
 // - Vitrine (spotlight): banner grande no topo, passa sozinho. Mede visualizações e toques.
-// - Clipes: vídeo curto do produto. Quem assiste até o fim ganha pontos Realys
+// - Clipes: vídeo curto do produto. Quem assiste até o fim ganha pontos Re@lys
 //   (é o que faz o cliente QUERER ver o anúncio, em vez de pular).
 // - Produto patrocinado: entra no meio da grade "Destaques para você" com o selo.
 //
@@ -18,7 +18,7 @@ export const CLIP_MS = 7000;
 
 // ---------- SHOP ----------
 export const SHOP_SPOTLIGHT = [
-  { id: 'ad-s1', storeId: 'e4', productId: 'p13', title: 'Smartwatch Fit 2', sub: 'Pré-venda com frete grátis só no Realys', cta: 'Garantir o meu', tint: '#2F74D0', photo: photo('realys-ad-watch') },
+  { id: 'ad-s1', storeId: 'e4', productId: 'p13', title: 'Smartwatch Fit 2', sub: 'Pré-venda com frete grátis só no Re@lys', cta: 'Garantir o meu', tint: '#2F74D0', photo: photo('realys-ad-watch') },
   { id: 'ad-s2', storeId: 'e3', productId: 'p14', title: 'Coleção Verão Moda Brasil', sub: 'Jaquetas e camisetas a partir de R$ 69,90', cta: 'Ver coleção', tint: '#C2255C', photo: photo('realys-ad-moda') },
   { id: 'ad-s3', storeId: 'e4', productId: 'p11', title: 'Carregador Turbo 30W', sub: 'Do zero a 50% em 20 minutos · Tech Center', cta: 'Comprar agora', tint: '#1F2A44', photo: photo('realys-ad-carregador') },
 ];

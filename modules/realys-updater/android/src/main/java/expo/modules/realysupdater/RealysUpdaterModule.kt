@@ -14,10 +14,10 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.io.File
 
-// Atualização do próprio Realys pelo instalador de pacotes do Android (PackageInstaller).
-// No Android 12+ o app pede "sem ação do usuário": como é o próprio Realys se atualizando,
+// Atualização do próprio Re@lys pelo instalador de pacotes do Android (PackageInstaller).
+// No Android 12+ o app pede "sem ação do usuário": como é o próprio Re@lys se atualizando,
 // com a mesma assinatura, o Android instala por cima sem perguntar.
-// Única exigência do Android: a chave "Instalar apps desconhecidos" do Realys ligada uma vez.
+// Única exigência do Android: a chave "Instalar apps desconhecidos" do Re@lys ligada uma vez.
 // Se o Android ainda assim exigir confirmação, abre a tela normal dele (nunca trava).
 class RealysUpdaterModule : Module() {
   private val context: Context
@@ -55,12 +55,12 @@ class RealysUpdaterModule : Module() {
     // true no Android 12 ou mais novo: dá para atualizar sem a tela de confirmação.
     Function("supportsSilentUpdate") { Build.VERSION.SDK_INT >= Build.VERSION_CODES.S }
 
-    // A chave "Instalar apps desconhecidos" do Realys está ligada?
+    // A chave "Instalar apps desconhecidos" do Re@lys está ligada?
     Function("canRequestInstalls") {
       Build.VERSION.SDK_INT < Build.VERSION_CODES.O || context.packageManager.canRequestPackageInstalls()
     }
 
-    // Abre direto a chave "Instalar apps desconhecidos" do Realys nas configurações.
+    // Abre direto a chave "Instalar apps desconhecidos" do Re@lys nas configurações.
     Function("openInstallPermission") {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + context.packageName))

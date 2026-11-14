@@ -282,7 +282,7 @@ export default function VoiceEnroll({ visible, onClose, onDone, userName }) {
 
         {step === 'sem_suporte' ? (
           <View style={st.body}>
-            <Text style={st.p}>Este celular usa uma versão do Android anterior à 13, que não entrega o áudio para o Realys. A Lotus funciona normalmente, mas sem reconhecer só a sua voz.</Text>
+            <Text style={st.p}>Este celular usa uma versão do Android anterior à 13, que não entrega o áudio para o Re@lys. A Lotus funciona normalmente, mas sem reconhecer só a sua voz.</Text>
             <TouchableOpacity style={st.btn} onPress={() => onDone && onDone(false)}>
               <Text style={st.btnText}>Ativar o "abrir Lotus" assim mesmo</Text>
             </TouchableOpacity>
@@ -295,7 +295,7 @@ export default function VoiceEnroll({ visible, onClose, onDone, userName }) {
             <Text style={st.p}>• Leva menos de um minuto.{'\n'}• Fica só neste celular, criptografado. Não vai para o servidor.{'\n'}• Não guardamos a gravação: só uma assinatura em números, que não vira voz de novo.{'\n'}• Com o uso, ela aprende mais um pouco a sua voz.{'\n'}• Você apaga quando quiser, no Perfil.</Text>
             <TouchableOpacity style={st.check} onPress={() => setAgree((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: agree }}>
               <Ionicons name={agree ? 'checkbox' : 'square-outline'} size={22} color={colors.primary} />
-              <Text style={[st.p, { flex: 1, marginLeft: 8, marginBottom: 0 }]}>Autorizo o Realys a criar e guardar neste celular a assinatura da minha voz (dado biométrico, LGPD), só para a Lotus me reconhecer.</Text>
+              <Text style={[st.p, { flex: 1, marginLeft: 8, marginBottom: 0 }]}>Autorizo o Re@lys a criar e guardar neste celular a assinatura da minha voz (dado biométrico, LGPD), só para a Lotus me reconhecer.</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[st.btn, !agree && { opacity: 0.4 }]} disabled={!agree} onPress={() => setStep('gravar')}>
               <Text style={st.btnText}>Começar</Text>

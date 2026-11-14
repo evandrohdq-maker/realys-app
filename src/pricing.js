@@ -1,4 +1,4 @@
-// Preço justo no Realys: corridas (motorista e motoboy) e faixas de referência de visitas,
+// Preço justo no Re@lys: corridas (motorista e motoboy) e faixas de referência de visitas,
 // consultas e atendimentos por vídeo. Mudou um valor? Muda só aqui.
 //
 // CORRIDAS: tarifa base + quilômetro + minuto (o minuto paga o tempo parado no trânsito).
@@ -10,7 +10,7 @@
 // - Carro: tarifas publicadas do UberX/99Pop (R$ 2 + R$ 1,40/km + R$ 0,26/min, mínimo R$ 7, valores
 //   antigos que os apps pararam de divulgar), corrigidas pela inflação e pelos reajustes de combustível.
 // - Motoboy: os apps pagam R$ 6,50 por entrega + R$ 1,50/km; a categoria pede R$ 10 + R$ 2,50/km.
-//   O Realys fica no meio: justo para o motoboy e acessível para o cliente.
+//   O Re@lys fica no meio: justo para o motoboy e acessível para o cliente.
 
 const r2 = (n) => Math.round(n * 100) / 100;
 
@@ -20,7 +20,7 @@ export const TARIFFS = {
 };
 export const tariffOf = (serviceKey) => TARIFFS[serviceKey] || (/moto/.test(serviceKey || '') ? TARIFFS.motoboy : TARIFFS.motorista);
 
-// Parte do Realys nas corridas (o resto é do prestador). Uber e 99 ficam com 20% a 35% (src/taxas.js).
+// Parte do Re@lys nas corridas (o resto é do prestador). Uber e 99 ficam com 20% a 35% (src/taxas.js).
 export const RIDE_FEE_PCT = 18;
 export const SURGE_MAX = 1.5;
 
@@ -70,7 +70,7 @@ export function fareQuote(serviceKey, km, { at = new Date(), demand = 0, rain = 
 // Texto curto do valor dinâmico para mostrar ao cliente.
 export const surgeText = (q) => (q && q.mult > 1 ? `${q.reasons.map((r) => `${r.label} +${r.pct}%`).join(' · ')} (teto ${String(SURGE_MAX).replace('.', ',')}x)` : '');
 
-// Ganho do motorista: corrida menos taxa do Realys e combustível.
+// Ganho do motorista: corrida menos taxa do Re@lys e combustível.
 export function driverEarnings(q, { kmPerLiter = 11, fuelPrice = 6.2, deadheadKm = 2 } = {}) {
   const fuel = r2(((q.km + deadheadKm) / kmPerLiter) * fuelPrice);
   const net = r2(q.driverGets - fuel);

@@ -48,7 +48,7 @@ const INTRO = {
     icon: 'home-outline',
     title: 'Visita técnica no seu endereço',
     text: 'O profissional vai até você, avalia o problema e passa o orçamento na hora.',
-    steps: ['Você paga só a taxa de visita. Ela fica retida no Realys.', 'O profissional aceita e vai até o local.', 'Recebe o orçamento e decide. O valor do serviço vocês combinam direto.'],
+    steps: ['Você paga só a taxa de visita. Ela fica retida no Re@lys.', 'O profissional aceita e vai até o local.', 'Recebe o orçamento e decide. O valor do serviço vocês combinam direto.'],
   },
   aulas: {
     icon: 'school-outline',
@@ -59,14 +59,14 @@ const INTRO = {
   cursos: {
     icon: 'library-outline',
     title: 'Cursos e faculdades online',
-    text: 'Cursos com certificado, graduação e pós. Tudo pago e acompanhado pelo Realys.',
-    steps: ['Escolha o curso.', 'Inscreva-se pelo Realys com a sua carteira.', 'Assista pelo app e participe das aulas ao vivo nas Lives.'],
+    text: 'Cursos com certificado, graduação e pós. Tudo pago e acompanhado pelo Re@lys.',
+    steps: ['Escolha o curso.', 'Inscreva-se pelo Re@lys com a sua carteira.', 'Assista pelo app e participe das aulas ao vivo nas Lives.'],
   },
   online: {
     icon: 'videocam-outline',
     title: 'Atendimento online por vídeo',
     text: 'Psicólogo, nutricionista, advogado, contador, professores e mais, sem sair de casa.',
-    steps: ['Escolha o profissional. O registro no conselho é verificado.', 'Escolha o horário livre e confirme.', 'Na hora marcada, entre na chamada de vídeo aqui no Realys.', 'O pagamento só é repassado depois do atendimento.'],
+    steps: ['Escolha o profissional. O registro no conselho é verificado.', 'Escolha o horário livre e confirme.', 'Na hora marcada, entre na chamada de vídeo aqui no Re@lys.', 'O pagamento só é repassado depois do atendimento.'],
   },
 };
 
@@ -129,7 +129,7 @@ export function OnlineTab({ appts, setAppts, focus }) {
     const when = slot[p.id] || (p.slots || [])[0];
     if (!when) return;
     // Como a Lotus: mostra tudo e pergunta antes de marcar.
-    Alert.alert('Agendar atendimento online?', `${p.name}\n${serviceType(p.service).label} · ${when}\n${priceText(p)}\n\nO valor fica reservado na sua carteira Realys e só é repassado depois do atendimento.`, [
+    Alert.alert('Agendar atendimento online?', `${p.name}\n${serviceType(p.service).label} · ${when}\n${priceText(p)}\n\nO valor fica reservado na sua carteira Re@lys e só é repassado depois do atendimento.`, [
       { text: 'Agora não', style: 'cancel' },
       {
         text: 'Agendar',
@@ -155,7 +155,7 @@ export function OnlineTab({ appts, setAppts, focus }) {
               </View>
               <TouchableOpacity
                 style={styles.joinBtn}
-                onPress={() => Alert.alert('Chamada de vídeo', `A chamada com ${a.p.name.split(' ')[0]} abre aqui no Realys no horário marcado (${a.when}).`)}
+                onPress={() => Alert.alert('Chamada de vídeo', `A chamada com ${a.p.name.split(' ')[0]} abre aqui no Re@lys no horário marcado (${a.when}).`)}
                 accessibilityLabel={`Entrar na chamada com ${a.p.name}`}
               >
                 <Ionicons name="videocam" size={15} color={colors.onPrimary} />

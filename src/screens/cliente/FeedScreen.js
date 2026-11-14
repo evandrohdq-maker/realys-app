@@ -97,7 +97,7 @@ export default function FeedScreen({ goTo }) {
       <View style={styles.trust}>
         <Text style={{ fontWeight: '700', color: colors.primaryDark }}>🛡️ Feed protegido</Text>
         <Text style={{ color: colors.text, fontSize: 13, marginTop: 4 }}>
-          Todos os perfis são verificados por biometria. A IA do Realys confere as notícias com fontes reais e quem
+          Todos os perfis são verificados por biometria. A IA do Re@lys confere as notícias com fontes reais e quem
           espalhar fake news comprovada é bloqueado.
         </Text>
       </View>

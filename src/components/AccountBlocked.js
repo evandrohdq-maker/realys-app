@@ -31,7 +31,7 @@ export default function AccountBlocked() {
         <Text style={st.p}>
           A segurança confirmou que o alerta de emergência enviado por esta conta foi falso. Como está no Termo de Adesão, a conta foi bloqueada e o saldo{b.wallet ? ` (${brl(b.wallet)})` : ''} ficou retido.
         </Text>
-        <Text style={st.p}>Se você acredita que houve um engano, fale com o suporte do Realys para pedir a revisão do caso.</Text>
+        <Text style={st.p}>Se você acredita que houve um engano, fale com o suporte do Re@lys para pedir a revisão do caso.</Text>
       </View>
     </Modal>
   );

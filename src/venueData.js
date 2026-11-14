@@ -1,5 +1,5 @@
 // Comanda no estabelecimento: no evento em que comprou ingresso (ou no bar em que fez check-in),
-// o cliente pede bebidas e comidas pelo app, paga pelo Realys, e o caixa recebe o aviso
+// o cliente pede bebidas e comidas pelo app, paga pelo Re@lys, e o caixa recebe o aviso
 // "Mesa 12 · Fulano pediu 2 chopes". Quem reservou mesa já fica nela.
 // Cardápios de exemplo por tipo de lugar.
 

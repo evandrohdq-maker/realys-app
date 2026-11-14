@@ -1,4 +1,4 @@
-name: Gerar APK do Realys
+name: Gerar APK do Re@lys
 
 # Roda sozinho a cada envio para a branch main, ou manualmente pela aba "Actions".
 on:
@@ -78,9 +78,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: demo-${{ github.run_number }}
-          name: Realys demo ${{ github.run_number }}
+          name: Re@lys demo ${{ github.run_number }}
           body: |
-            APK de demonstração do Realys (versão ${{ github.run_number }}).
+            APK de demonstração do Re@lys (versão ${{ github.run_number }}).
             Quem já tem o app instalado recebe o aviso de atualização ao abrir.
             Novidade: ${{ github.event.head_commit.message }}
           files: realys-demo.apk

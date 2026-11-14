@@ -36,7 +36,7 @@ export default function AdminMarket() {
 
   return (
     <Screen>
-      <Title sub="Levantamento que a Lotus faz sozinha com tudo que é publicado no Realys">Mercado</Title>
+      <Title sub="Levantamento que a Lotus faz sozinha com tudo que é publicado no Re@lys">Mercado</Title>
 
       <View style={styles.hero}>
         <View style={styles.glowGold} />
@@ -172,7 +172,7 @@ export default function AdminMarket() {
         </Card>
       ))}
 
-      <Head icon="pricetags-outline" title="Política de bônus do Clube Realys" sub="Calibrada com o Clube iFood, cartões fidelidade de restaurantes e cashback de mercado." />
+      <Head icon="pricetags-outline" title="Política de bônus do Clube Re@lys" sub="Calibrada com o Clube iFood, cartões fidelidade de restaurantes e cashback de mercado." />
       {LOYALTY_RULES.map((r) => (
         <Card key={r.title}>
           <Row style={{ alignItems: 'flex-start' }}>

@@ -3,7 +3,7 @@
 //  2ª a pergunta de segurança que ele escolheu no cadastro ("Qual a sua cor preferida?"):
 //     - resposta de liberação  ("branco") → a compra/contratação é feita;
 //     - resposta de segurança  ("preto")  → a Lotus finge que deu certo (nada é cobrado nem chamado) e,
-//       em silêncio, manda o alerta com GPS e endereço para a segurança do Realys e liga para o 190.
+//       em silêncio, manda o alerta com GPS e endereço para a segurança do Re@lys e liga para o 190.
 //     - qualquer outra resposta → não confirma nada.
 // Para quem está do lado, as duas respostas soam iguais: uma resposta curta a uma pergunta comum.
 // Pergunta e respostas ficam só no celular, no cofre criptografado, junto com a voz.

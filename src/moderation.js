@@ -1,4 +1,4 @@
-// Moderação de conteúdo do Realys (texto). Roda no celular antes de publicar ou enviar, e o servidor
+// Moderação de conteúdo do Re@lys (texto). Roda no celular antes de publicar ou enviar, e o servidor
 // deve repetir a mesma checagem quando os posts e mensagens passarem por ele.
 //
 // Regras (estão no Termo de Adesão):
@@ -43,9 +43,9 @@ export function moderateText(text, where = 'publico') {
   const t = norm(text);
   if (!t) return { ok: true };
   if (MINOR.test(t) && SEXUAL.test(t))
-    return { ok: false, kind: 'menor', why: 'Conteúdo sexual envolvendo criança ou adolescente é crime e não é permitido no Realys. A tentativa fica registrada.' };
+    return { ok: false, kind: 'menor', why: 'Conteúdo sexual envolvendo criança ou adolescente é crime e não é permitido no Re@lys. A tentativa fica registrada.' };
   if (HATE.some((r) => r.test(t)))
-    return { ok: false, kind: 'odio', why: 'Racismo, discriminação e discurso de ódio não são permitidos no Realys (racismo e injúria racial são crimes). Reescreva a mensagem com respeito.' };
+    return { ok: false, kind: 'odio', why: 'Racismo, discriminação e discurso de ódio não são permitidos no Re@lys (racismo e injúria racial são crimes). Reescreva a mensagem com respeito.' };
   if (where === 'publico' && /\b(nudes?|pelad[ao]s?|foto sem roupa|pornografi\w*|porno|putaria)\b/.test(t))
     return { ok: false, kind: 'nudez', why: 'Conteúdo sexual e nudez não são permitidos em publicações, comentários e lives. Biquíni e sunga pode.' };
   return { ok: true };

@@ -73,12 +73,12 @@ export function OriginSeal({ productId, storeName }) {
   const o = ORIGINS[productId];
   if (!o) return null;
   const sup = suppliers.find((s) => s.id === o.supplierId);
-  const steps = [o.from, sup ? `🚚 ${sup.name}` : null, `🏪 ${storeName || 'Loja Realys'}`, '🙋 Você'].filter(Boolean);
+  const steps = [o.from, sup ? `🚚 ${sup.name}` : null, `🏪 ${storeName || 'Loja Re@lys'}`, '🙋 Você'].filter(Boolean);
   return (
     <View style={styles.origin}>
       <Row style={{ alignItems: 'center', marginBottom: 6 }}>
         <Ionicons name="git-commit-outline" size={16} color={colors.success} />
-        <Text style={styles.originTitle}>Selo de origem Realys</Text>
+        <Text style={styles.originTitle}>Selo de origem Re@lys</Text>
       </Row>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
         {steps.map((st, i) => (
@@ -89,12 +89,12 @@ export function OriginSeal({ productId, storeName }) {
         ))}
       </View>
       {o.note ? <Text style={styles.originNote}>{o.note}</Text> : null}
-      <Text style={styles.originNote}>Toda a cadeia tem CNPJ ou ID biométrico verificado no Realys.</Text>
+      <Text style={styles.originNote}>Toda a cadeia tem CNPJ ou ID biométrico verificado no Re@lys.</Text>
     </View>
   );
 }
 
-// ───────────── 2. Score Realys ─────────────
+// ───────────── 2. Score Re@lys ─────────────
 const ROLE_SCORE = { cliente: 'usuario', prestador: 'prestador', empresa: 'empresa', fornecedor: 'fornecedor', admin: 'usuario' };
 export function ScoreCard({ role }) {
   const { state } = useStore();
@@ -103,13 +103,13 @@ export function ScoreCard({ role }) {
   const sc = scoreOf(state, r);
   const pct = Math.min(1, sc.score / 1000);
   return (
-    <TouchableOpacity activeOpacity={0.9} onPress={() => setOpen(!open)} style={[styles.card, { borderColor: sc.tier.color + '55' }]} accessibilityLabel={`Score Realys ${sc.score}, nível ${sc.tier.label}`}>
+    <TouchableOpacity activeOpacity={0.9} onPress={() => setOpen(!open)} style={[styles.card, { borderColor: sc.tier.color + '55' }]} accessibilityLabel={`Score Re@lys ${sc.score}, nível ${sc.tier.label}`}>
       <Row style={{ alignItems: 'center' }}>
         <View style={[styles.scoreRing, { borderColor: sc.tier.color }]}>
           <Text style={[styles.scoreNum, { color: sc.tier.color }]}>{sc.score}</Text>
         </View>
         <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={styles.headTitle}>Score Realys</Text>
+          <Text style={styles.headTitle}>Score Re@lys</Text>
           <Row style={{ alignItems: 'center', marginTop: 2 }}>
             <Ionicons name={sc.tier.icon} size={14} color={sc.tier.color} />
             <Text style={{ color: sc.tier.color, fontWeight: '800', marginLeft: 4 }}>{sc.tier.label}</Text>
@@ -124,7 +124,7 @@ export function ScoreCard({ role }) {
       {sc.next ? <Text style={styles.headSub}>Faltam {sc.next.min - sc.score} pontos para {sc.next.label}: {SCORE_BENEFITS[r][sc.next.key].toLowerCase()}</Text> : null}
       {open ? (
         <View style={{ marginTop: 8 }}>
-          <Text style={styles.small}>Uma reputação só, que vale em todo o Realys: como usuário, prestador, empresa e fornecedor.</Text>
+          <Text style={styles.small}>Uma reputação só, que vale em todo o Re@lys: como usuário, prestador, empresa e fornecedor.</Text>
           {sc.factors.map((f) => (
             <Row key={f.label} style={{ justifyContent: 'space-between', marginTop: 6 }}>
               <Text style={[styles.small, { flex: 1, color: colors.text }]}>{f.label}</Text>

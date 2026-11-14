@@ -1,4 +1,4 @@
-// Catálogo de profissões do Realys, em classes e subclasses (como os setores do Shop).
+// Catálogo de profissões do Re@lys, em classes e subclasses (como os setores do Shop).
 // Usado na escolha de profissional (aba Serviços, tela por cima), no cadastro do prestador e pela
 // Lotus. As profissões que já existiam (eletricista, motorista, psicólogo…) continuam com a mesma
 // chave; as novas entram em serviceTypes (src/data.js) e aparecem como "em breve" até ter prestador.

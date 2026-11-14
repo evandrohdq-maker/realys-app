@@ -7,7 +7,7 @@ import { colors, brl } from '../theme';
 
 // Compra sem saldo suficiente: em vez de "saldo insuficiente", abre uma janela com QR Code Pix.
 // Duas opções: pagar o valor inteiro no Pix, ou usar o saldo que já tem na plataforma e pagar só o
-// restante no Pix. O Pix vira saldo Realys (fica salvo na plataforma) e a compra segue na hora.
+// restante no Pix. O Pix vira saldo Re@lys (fica salvo na plataforma) e a compra segue na hora.
 // Uso: askPix({ amount, available, label, onPaid }) em qualquer tela; o <PixPayHost /> fica no App.
 let listener = null;
 export function askPix(req) {
@@ -15,7 +15,7 @@ export function askPix(req) {
 }
 
 // QR de demonstração: desenho no formato de QR Code (na versão final o QR Pix é gerado pelo banco
-// parceiro, com o valor e a chave do Realys).
+// parceiro, com o valor e a chave do Re@lys).
 const N = 29;
 function qrMatrix(seed) {
   let h = 2166136261;
@@ -127,7 +127,7 @@ export function PixPayHost() {
                 <View style={{ flex: 1, marginLeft: 10 }}>
                   <Text style={styles.optTitle}>Usar meu saldo + Pix</Text>
                   <Text style={styles.optSub}>
-                    {brl(avail)} do saldo Realys + <Text style={{ fontWeight: '800', color: colors.text }}>{brl(total - avail)}</Text> no Pix
+                    {brl(avail)} do saldo Re@lys + <Text style={{ fontWeight: '800', color: colors.text }}>{brl(total - avail)}</Text> no Pix
                   </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={18} color={colors.muted} />
@@ -151,7 +151,7 @@ export function PixPayHost() {
                 </View>
                 <Text style={styles.value}>{brl(pixValue)}</Text>
                 <Text style={[styles.optSub, { textAlign: 'center' }]}>
-                  {mode === 'saldo' ? `+ ${brl(avail)} do seu saldo Realys` : 'Valor inteiro no Pix'} · o Pix vira saldo Realys e paga a compra na hora
+                  {mode === 'saldo' ? `+ ${brl(avail)} do seu saldo Re@lys` : 'Valor inteiro no Pix'} · o Pix vira saldo Re@lys e paga a compra na hora
                 </Text>
               </View>
               <Text style={styles.copyLabel}>Pix copia e cola</Text>

@@ -1,8 +1,8 @@
-// Perfis de serviço público no Realys: Corpo de Bombeiros, Defesa Civil, SAMU, hospital público,
+// Perfis de serviço público no Re@lys: Corpo de Bombeiros, Defesa Civil, SAMU, hospital público,
 // UPA e posto de saúde (UBS). Cada um com funções, horário, números (emergência, 0800, contato),
 // equipe de plantão e disponível, GPS das equipes na rua e um painel para publicar reuniões, equipes,
 // eventos, salvamentos e progressos. As unidades de saúde do SUS publicam horários e o cidadão agenda
-// pelo Realys, com o Cartão Nacional de Saúde (CNS) que ele guardou no próprio perfil.
+// pelo Re@lys, com o Cartão Nacional de Saúde (CNS) que ele guardou no próprio perfil.
 //
 // Hoje (demonstração) os dados ficam no app. Com o governo como parceiro, cada órgão entra com conta
 // verificada e os agendamentos passam a sair dos sistemas oficiais (ver PENDENCIAS.md).
@@ -158,7 +158,7 @@ export const PUBLIC_ORGS = [
     tollFree: '156 (Central da Prefeitura)',
     contact: '(11) 0000-0156 (demo)',
     address: 'Praça da Matriz, 50 · Centro',
-    hours: 'Seg a sex, 8h às 17h · Agendamento pelo Realys',
+    hours: 'Seg a sex, 8h às 17h · Agendamento pelo Re@lys',
     functions: ['Segunda via de IPTU e taxas', 'Certidões negativas', 'Alvará de funcionamento e MEI', 'Emissão de RG e CPF (com agendamento)', 'Carteira de trabalho digital e seguro-desemprego', 'Ouvidoria e reclamações da cidade'],
     staff: { onDuty: 22, available: 9, teamsOut: 0 },
     gps: false,

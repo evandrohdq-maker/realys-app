@@ -1,5 +1,5 @@
 import { catalogTypes } from './professionsData';
-// Dados de demonstração do Realys. Tudo aqui é fictício, para apresentação.
+// Dados de demonstração do Re@lys. Tudo aqui é fictício, para apresentação.
 // Fotos vêm do picsum.photos (precisam de internet no celular).
 
 const photo = (seed, w = 600, h = 400) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
@@ -189,7 +189,7 @@ export const posts = [
     verified: true,
     sponsored: true,
     image: photo('realys-post-pizza', 800, 800),
-    text: 'Terça da Pizza! Peça pelo Realys e ganhe refrigerante 2L. 🍕',
+    text: 'Terça da Pizza! Peça pelo Re@lys e ganhe refrigerante 2L. 🍕',
     productId: 'p6',
     likes: 1284,
     comments: 96,
@@ -256,7 +256,7 @@ const baseServiceTypes = [
   { key: 'decoracao', label: 'Decoração de festa', icon: '🎈', ion: 'balloon-outline', group: 'Festas e eventos', words: ['decoracao', 'decorar', 'baloes', 'balao'] },
   { key: 'professor', label: 'Professor particular', icon: '📚', ion: 'school-outline', group: 'Aulas', words: ['professor', 'aula particular', 'reforco', 'aula de', 'explicador'] },
   { key: 'personal', label: 'Personal trainer', icon: '🏋️', ion: 'barbell-outline', group: 'Aulas', words: ['personal', 'treino', 'academia', 'treinador'] },
-  // Atendimento online (chamada de vídeo pelo Realys): não tem visita nem GPS.
+  // Atendimento online (chamada de vídeo pelo Re@lys): não tem visita nem GPS.
   { key: 'psicologo', label: 'Psicólogo', icon: '🧠', ion: 'heart-circle-outline', group: 'Saúde e bem-estar', mode: 'online', words: ['psicologo', 'psicologa', 'terapia', 'terapeuta', 'ansiedade', 'depressao', 'saude mental'] },
   { key: 'nutricionista', label: 'Nutricionista', icon: '🥗', ion: 'nutrition-outline', group: 'Saúde e bem-estar', mode: 'online', words: ['nutricionista', 'nutri', 'dieta', 'reeducacao alimentar', 'plano alimentar'] },
   { key: 'advogado', label: 'Advogado', icon: '⚖️', ion: 'briefcase-outline', group: 'Jurídico e finanças', mode: 'online', words: ['advogado', 'advogada', 'juridico', 'processo', 'contrato', 'direito do consumidor', 'trabalhista'] },
@@ -305,7 +305,7 @@ export const providers = [
   { id: 'v42', online: true, slots: ['Amanhã 9h', 'Amanhã 14h'], name: 'Nutri Beatriz Costa · CRN', service: 'nutricionista', rating: 4.9, distanceKm: 3.3, vehicle: null, plate: null, functions: ['Reeducação alimentar', 'Nutrição esportiva', 'Plano alimentar no app'], price: 120, priceUnit: 'consulta', photo: photo('realys-beatriz', 200, 200) },
   { id: 'v43', online: true, slots: ['Hoje 17h', 'Amanhã 11h'], name: 'Dr. Felipe Andrade · OAB', service: 'advogado', rating: 4.8, distanceKm: 5.6, vehicle: null, plate: null, functions: ['Direito do consumidor', 'Trabalhista', 'Contratos e aluguel'], price: 200, priceUnit: 'consulta (40 min)', photo: photo('realys-felipe', 200, 200) },
   { id: 'v44', online: true, slots: ['Amanhã 9h', 'Amanhã 15h', 'Sexta 10h'], name: 'Renata Lima · Contadora CRC', service: 'contador', rating: 4.9, distanceKm: 2.7, vehicle: null, plate: null, functions: ['Abertura de MEI e empresa', 'Imposto de renda', 'Folha e impostos do mês'], price: 100, priceUnit: 'consulta', photo: photo('realys-renata', 200, 200) },
-  { id: 'v45', online: true, slots: ['Hoje 20h', 'Sábado 10h'], name: 'Marcos Vieira · Mentor de negócios', service: 'consultor', rating: 4.7, distanceKm: 6.0, vehicle: null, plate: null, functions: ['Plano de negócios', 'Vendas no Realys', 'Carreira e currículo'], price: 180, priceUnit: 'sessão (1h)', photo: photo('realys-marcosv', 200, 200) },
+  { id: 'v45', online: true, slots: ['Hoje 20h', 'Sábado 10h'], name: 'Marcos Vieira · Mentor de negócios', service: 'consultor', rating: 4.7, distanceKm: 6.0, vehicle: null, plate: null, functions: ['Plano de negócios', 'Vendas no Re@lys', 'Carreira e currículo'], price: 180, priceUnit: 'sessão (1h)', photo: photo('realys-marcosv', 200, 200) },
   // Catálogo novo de profissões (classes e subclasses) — alguns prestadores de exemplo.
   { id: 'v50', name: 'Sérgio Ramos', service: 'motorista', rating: 4.8, distanceKm: 1.7, vehicle: 'Chevrolet Spin cinza', plate: 'SPN6K40', functions: ['Corridas na cidade', 'Família com crianças', 'Aceita pet'], car: { year: 2020, seats: 6, cadeirinha: true, elevacao: true, pet: true, portaMalas: true, ar: true }, price: 9, priceUnit: 'corrida + R$ 2,70/km', photo: photo('realys-sergio', 200, 200) },
   { id: 'v51', name: 'Adriana Lopes', service: 'motorista', rating: 4.9, distanceKm: 3.0, vehicle: 'Renault Kwid E-Tech branco', plate: 'ELE3T77', functions: ['Corridas na cidade', 'Motorista mulher'], car: { year: 2024, seats: 4, ar: true, mulher: true, eletrico: true }, price: 8, priceUnit: 'corrida + R$ 2,50/km', photo: photo('realys-adriana', 200, 200) },
@@ -352,7 +352,7 @@ export const supplierItems = [
 export const initialOffers = [
   { id: 'of1', itemId: 'si4', companyId: 'e1', qty: 48, discount: 10, note: 'Lote novo, torra da semana. Frete grátis acima de 48 un.', validUntil: 'sexta', status: 'pendente', counter: null, createdAt: 'Hoje 10:30' },
   { id: 'of2', itemId: 'si6', companyId: 'e2', qty: 20, discount: 8, note: 'Muçarela para pizzaria, entrega em 24 h.', validUntil: 'domingo', status: 'aceita', counter: null, createdAt: 'Ontem 14:05' },
-  { id: 'of3', itemId: 'si3', companyId: 'e1', qty: 40, discount: 5, note: 'Preço especial para quem é cliente Realys.', validUntil: 'amanhã', status: 'contraproposta', counter: 9, createdAt: 'Ontem 09:20' },
+  { id: 'of3', itemId: 'si3', companyId: 'e1', qty: 40, discount: 5, note: 'Preço especial para quem é cliente Re@lys.', validUntil: 'amanhã', status: 'contraproposta', counter: 9, createdAt: 'Ontem 09:20' },
 ];
 
 export const salesByDay = [
@@ -366,18 +366,18 @@ export const salesByDay = [
 ];
 
 export const finance = [
-  { id: 'm1', date: '03/11', desc: 'Vendas no app Realys', type: 'entrada', value: 1290.4 },
+  { id: 'm1', date: '03/11', desc: 'Vendas no app Re@lys', type: 'entrada', value: 1290.4 },
   { id: 'm2', date: '03/11', desc: 'Vendas no balcão', type: 'entrada', value: 640.0 },
   { id: 'm3', date: '02/11', desc: 'Fornecedor - Distribuidora Real', type: 'saida', value: 980.0 },
   { id: 'm4', date: '01/11', desc: 'Aluguel da loja', type: 'saida', value: 2500.0 },
-  { id: 'm5', date: '01/11', desc: 'Vídeo patrocinado no Realys', type: 'saida', value: 49.9 },
-  { id: 'm6', date: '31/10', desc: 'Vendas no app Realys', type: 'entrada', value: 2650.2 },
+  { id: 'm5', date: '01/11', desc: 'Vídeo patrocinado no Re@lys', type: 'saida', value: 49.9 },
+  { id: 'm6', date: '31/10', desc: 'Vendas no app Re@lys', type: 'entrada', value: 2650.2 },
 ];
 
 export const upcomingBills = [
   { id: 'b1', due: '10/11', desc: 'Energia elétrica', value: 420.0 },
   { id: 'b2', due: '15/11', desc: 'Salários (2 funcionários)', value: 3600.0 },
-  { id: 'b3', due: '20/11', desc: 'Plano mensal Realys Empresas', value: 89.9 },
+  { id: 'b3', due: '20/11', desc: 'Plano mensal Re@lys Empresas', value: 89.9 },
 ];
 
 export const initialProposals = [
@@ -399,7 +399,7 @@ export const rideRequests = [
 
 // ---------- Administração (demonstração) ----------
 // Na versão real, o login de administrador fica no servidor, com senha criptografada e verificação em duas etapas.
-export const ADMIN_LOGIN = { user: 'admin', password: 'Realys@2026' };
+export const ADMIN_LOGIN = { user: 'admin', password: 'Re@lys@2026' };
 
 export const platformStats = {
   users: 12840,
@@ -414,7 +414,7 @@ export const platformStats = {
 
 export const reports = [
   { id: 'rp1', kind: 'Fake news', target: 'Perfil "Notícias Já"', claim: 'A gasolina vai a R$ 15 amanhã', detail: 'Post diz que a gasolina vai a R$ 15 amanhã. A IA não achou nenhuma reportagem que confirme.', aiScore: 94, status: 'aberta', count: 37 },
-  { id: 'rp2', kind: 'Golpe', target: 'Loja "iPhone Barato SP"', detail: 'Anuncia iPhone por R$ 900 e pede pagamento fora do Realys.', aiScore: 98, status: 'aberta', count: 12 },
+  { id: 'rp2', kind: 'Golpe', target: 'Loja "iPhone Barato SP"', detail: 'Anuncia iPhone por R$ 900 e pede pagamento fora do Re@lys.', aiScore: 98, status: 'aberta', count: 12 },
   { id: 'rp3', kind: 'Prestador', target: 'Rafael Costa (motoboy)', detail: 'Cliente relata atraso de 40 minutos na entrega.', aiScore: 20, status: 'aberta', count: 1 },
   { id: 'rp4', kind: 'Conteúdo ofensivo', target: 'Comentário em post da Moda Brasil', detail: 'Ofensa a outro usuário.', aiScore: 81, status: 'aberta', count: 4 },
 ];

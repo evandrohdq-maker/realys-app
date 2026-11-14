@@ -81,7 +81,7 @@ function SectorScreen({ sectorKey, explore, navigate }) {
       groups: [p.group],
       icon: p.emoji || '📦',
       title: p.name,
-      who: (storeOf(state, p.storeId) || {}).name || 'Loja Realys',
+      who: (storeOf(state, p.storeId) || {}).name || 'Loja Re@lys',
       detail: p.desc || '',
       price: p.price,
       unit: 'unidade',

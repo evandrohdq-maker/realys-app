@@ -1,21 +1,21 @@
-// Pontos Realys: o cliente ganha pontos a cada avaliação e troca por créditos promocionais
+// Pontos Re@lys: o cliente ganha pontos a cada avaliação e troca por créditos promocionais
 // fechados em parceria com as empresas, restaurantes, fornecedores e prestadores do app.
 //
 // - Cada nota dada (loja, restaurante, motoboy, prestador): +10 pontos.
 // - Com comentário de pelo menos 15 letras: +5 pontos a mais.
 // - Também ganha assistindo lives e clipes (com limite por dia) e comprando.
-// - Os pontos são trocados só por serviços do Realys: boosts e anúncios (POINT_SHOP abaixo).
+// - Os pontos são trocados só por serviços do Re@lys: boosts e anúncios (POINT_SHOP abaixo).
 
 export const POINTS_PER_RATING = 10;
 export const POINTS_COMMENT_BONUS = 5;
 
 // ───────── Equivalência dos pontos (a plataforma nunca empata) ─────────
-// 1 ponto vale R$ 0,01 em serviços do Realys (100 pontos = R$ 1). Boosts e anúncios custam em
+// 1 ponto vale R$ 0,01 em serviços do Re@lys (100 pontos = R$ 1). Boosts e anúncios custam em
 // pontos exatamente o que custam em reais. Mas quem gasta ganha de volta só EARN_PCT% do valor
 // em pontos (5%): gastou R$ 79,60 em presentes, ganha 398 pontos (R$ 3,98 em boosts e anúncios);
 // a cada 1.000 pontos, R$ 10 para anúncios. Um anúncio de 30 s (1.990 pontos) pede uns R$ 400 gastos.
 export const POINT_VALUE = 0.01;
-export const EARN_PCT = 5; // metade da taxa do presente (10%): o Realys sempre fica com margem
+export const EARN_PCT = 5; // metade da taxa do presente (10%): o Re@lys sempre fica com margem
 export const pointsFromSpend = (amount) => Math.max(0, Math.floor((amount * EARN_PCT) / 100 / POINT_VALUE));
 export const pointsToReais = (pts) => +(pts * POINT_VALUE).toFixed(2);
 
@@ -32,7 +32,7 @@ export function giftPoints(amount, sentBefore) {
 export const pointsFor = (items) =>
   items.filter((it) => it.stars > 0).reduce((n, it) => n + POINTS_PER_RATING + ((it.text || '').trim().length >= 15 ? POINTS_COMMENT_BONUS : 0), 0);
 
-// Pontos Realys valem SÓ em serviços da própria plataforma (boosts e anúncios), para não sair
+// Pontos Re@lys valem SÓ em serviços da própria plataforma (boosts e anúncios), para não sair
 // dinheiro do caixa: não viram saldo, não sacam, não transferem e não pagam produtos, serviços
 // de terceiros, taxas ou presentes. Quem quiser, paga o mesmo boost em dinheiro (R$, do saldo).
 // O boost pago tem prioridade; o boost com pontos entra no espaço que sobra (não tira venda).
@@ -95,7 +95,7 @@ export function promoDiscount(state, lines) {
         off += v;
       }
     });
-  // Cupom do Clube Realys (vale em qualquer parceiro): um por pedido, depois dos créditos de loja.
+  // Cupom do Clube Re@lys (vale em qualquer parceiro): um por pedido, depois dos créditos de loja.
   const rest = Object.values(left).reduce((a, b) => a + b, 0);
   const cupom = (state.promoCredits || []).find((pc) => pc.kind === 'cupom' && !pc.used);
   if (cupom && rest >= (cupom.minOrder || 0)) {

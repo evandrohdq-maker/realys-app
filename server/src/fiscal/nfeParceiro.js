@@ -1,7 +1,7 @@
 // Nota de PRODUTO (NF-e modelo 55) das lojas, por uma empresa emissora parceira.
 //
-// Cada loja emite a própria nota, no CNPJ dela e com o certificado dela. Em vez de o Realys guardar o
-// certificado de cada loja, a loja se cadastra uma vez no emissor parceiro e o Realys só pede a emissão
+// Cada loja emite a própria nota, no CNPJ dela e com o certificado dela. Em vez de o Re@lys guardar o
+// certificado de cada loja, a loja se cadastra uma vez no emissor parceiro e o Re@lys só pede a emissão
 // pela API, com os dados do pedido. Implementado no formato da API v2 da Focus NFe (focusnfe.com.br);
 // outro parceiro com API parecida entra trocando só este arquivo.
 //
@@ -41,7 +41,7 @@ function chamar({ base, token, method, path, body }) {
   });
 }
 
-// Monta a NF-e de venda ao consumidor a partir do pedido do Realys.
+// Monta a NF-e de venda ao consumidor a partir do pedido do Re@lys.
 // loja: { cnpj, uf, crt (1 Simples, 3 normal) }, pedido: { id, criadoEm, itens:[{nome, qtd, precoCents, ncm, cfop, unidade}],
 //        cliente: { doc, nome, email, endereco }, freteCents }
 export function montarNfe({ loja, pedido }) {

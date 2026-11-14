@@ -45,7 +45,7 @@ export function useBuy(navigate) {
     const avail = state.wallet + state.giftCredits;
     // Sem saldo suficiente: janela do Pix (valor inteiro ou saldo + restante); o Pix vira saldo e a compra sai.
     if (it.price > avail) return askPix({ amount: it.price, available: avail, label: it.title, onPaid: order });
-    Alert.alert(it.cta, `${it.title}\n${it.who}\n\n${priceText(it)} com saldo Realys (pagamento protegido).`, [
+    Alert.alert(it.cta, `${it.title}\n${it.who}\n\n${priceText(it)} com saldo Re@lys (pagamento protegido).`, [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Confirmar',

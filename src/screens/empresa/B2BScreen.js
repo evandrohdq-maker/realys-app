@@ -39,7 +39,7 @@ export default function B2BScreen() {
 
   return (
     <Screen>
-      <Title sub="Compre no atacado e negocie descontos com empresas verificadas">Negócios Realys</Title>
+      <Title sub="Compre no atacado e negocie descontos com empresas verificadas">Negócios Re@lys</Title>
       <GroupBuys />
       <ReversePost kinds={['b2b']} title="Peça propostas a fornecedores" />
       {/* Fornecedores ao vivo: feira, degustação e preços de atacado */}

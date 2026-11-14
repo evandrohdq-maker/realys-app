@@ -28,7 +28,7 @@ export const SECTORS = [
   { key: 'institucional', label: 'Institucional', icon: 'people-circle-outline', segments: ['Órgão público', 'ONG e projeto social', 'Igreja e instituição religiosa', 'Associação', 'Sindicato', 'Clube'] },
 ];
 
-// Papel na cadeia: o que a empresa faz no comércio entre empresas do Realys.
+// Papel na cadeia: o que a empresa faz no comércio entre empresas do Re@lys.
 // Uma empresa pode ter mais de um (ex.: fabrica e também vende direto ao usuário).
 export const ROLES = [
   { key: 'fabricante', label: 'Fabricante', icon: 'cog-outline', hint: 'Compra matéria-prima, produz e anuncia' },
@@ -60,7 +60,7 @@ export const GALLERY_TYPES = [
 ];
 const g = (id, type, seed, caption) => ({ id, type, photo: pic(seed, 600, 600), caption });
 
-// Depoimento de quem comprou: who = membro do Realys (src/people.js), product = o que comprou.
+// Depoimento de quem comprou: who = membro do Re@lys (src/people.js), product = o que comprou.
 const r = (id, who, stars, product, time, text, shown = true) => ({ id, who, stars, product, time, text, shown, verified: true });
 
 const BUSINESS = {
@@ -80,9 +80,9 @@ const BUSINESS = {
     showcase: ['p16', 'p3', 'p1'],
     reviews: [
       r('rv1', 'u1', 5, 'Café Especial Torra Média', 'há 2 dias', 'Chegou em 40 minutos, bem embalado e com nota fiscal no app. O café especial é maravilhoso!'),
-      r('rv2', 'u4', 5, 'Compra do mês', 'semana passada', 'Preço justo de verdade. Faço a compra do mês aqui pelo Realys e economizo o tempo da fila.'),
+      r('rv2', 'u4', 5, 'Compra do mês', 'semana passada', 'Preço justo de verdade. Faço a compra do mês aqui pelo Re@lys e economizo o tempo da fila.'),
       r('rv3', 'u3', 4, 'Hortifrúti', 'há 2 semanas', 'Frutas fresquinhas e o entregador super educado. Só queria mais opções de orgânicos.'),
-      r('rv4', 'u2', 5, 'Leite e pães', 'há 3 semanas', 'Atendimento de bairro com tecnologia de loja grande. Pago com saldo Realys e pronto.', false),
+      r('rv4', 'u2', 5, 'Leite e pães', 'há 3 semanas', 'Atendimento de bairro com tecnologia de loja grande. Pago com saldo Re@lys e pronto.', false),
     ],
     ads: [
       { id: 'ad1', title: 'Quarta do hortifrúti: até 30% off', length: '0:30', views: 18400, cover: pic('realys-ad-horti') },
@@ -245,7 +245,7 @@ const BUSINESS = {
     roles: ['fabricante', 'fornecedor', 'varejista'],
     tagline: 'Café especial do pé até a sua xícara',
     sectors: { agro: ['Café', 'Agroindústria', 'Agricultura de precisão'], industria: ['Alimentos e bebidas', 'Exportação'] },
-    serves: 'Vende para cafeterias e mercados do Realys e envia para todo o Brasil',
+    serves: 'Vende para cafeterias e mercados do Re@lys e envia para todo o Brasil',
     modes: ['online', 'brasil'],
     since: 1988,
     reviews: [r('rv100', 'u8', 5, 'Café especial em grãos', 'há 1 semana', 'Aroma incrível. Dá para ver no app de qual talhão veio o café.')],

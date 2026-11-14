@@ -28,7 +28,7 @@ export default function TermoReaceite() {
     <Modal visible animationType="slide" onRequestClose={() => {}}>
       <View style={[st.wrap, { paddingTop: insets.top + 12 }]}>
         <Text style={st.title}>Atualizamos o Termo de Adesão</Text>
-        <Text style={st.sub}>Leia a nova versão ({T.atualizado}). Para continuar usando o Realys, é preciso aceitar.</Text>
+        <Text style={st.sub}>Leia a nova versão ({T.atualizado}). Para continuar usando o Re@lys, é preciso aceitar.</Text>
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 20 }}>
           {T.itens.map((it) => (
             <View key={it.titulo} style={{ marginBottom: 14 }}>

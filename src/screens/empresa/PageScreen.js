@@ -42,7 +42,7 @@ function Head({ icon, title, sub }) {
 
 // Área empresarial › Página: monta a página pública da empresa: apresentação, onde atua e os
 // segmentos de cada área, onde atende, vitrine, depoimentos expostos, vídeos de propaganda e,
-// opcionalmente, músicas, vídeos e obras (o arquivo fica no servidor do Realys, e esse espaço é pago).
+// opcionalmente, músicas, vídeos e obras (o arquivo fica no servidor do Re@lys, e esse espaço é pago).
 export default function PageScreen() {
   const { state, dispatch } = useStore();
   const me = profileById(state, MY_COMPANY_ID);
@@ -113,7 +113,7 @@ export default function PageScreen() {
     let uri = null;
     try {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted) return Alert.alert('Permissão necessária', 'Autorize o Realys a ver suas fotos para montar a galeria da empresa.');
+      if (!perm.granted) return Alert.alert('Permissão necessária', 'Autorize o Re@lys a ver suas fotos para montar a galeria da empresa.');
       const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
       if (res.canceled || !res.assets || !res.assets[0]) return;
       uri = res.assets[0].uri;
@@ -147,7 +147,7 @@ export default function PageScreen() {
   const uploadAd = () => {
     if (!adTitle.trim()) return Alert.alert('Falta o título', 'Dê um nome para a propaganda.');
     if (!adFile) return Alert.alert('Falta o vídeo', 'Escolha o arquivo .mp4 da propaganda.');
-    if (adFee > state.wallet) return Alert.alert('Saldo insuficiente', 'Adicione saldo Realys para pagar o servidor.');
+    if (adFee > state.wallet) return Alert.alert('Saldo insuficiente', 'Adicione saldo Re@lys para pagar o servidor.');
     const go = () => {
       dispatch({
         type: 'AD_UPLOAD',
@@ -159,7 +159,7 @@ export default function PageScreen() {
       Alert.alert('Propaganda publicada ✅', 'O vídeo já aparece na guia Propagandas da sua página.');
     };
     if (!adFee) return go();
-    Alert.alert('Pagar o servidor', `Guardar "${adFile.name}" (${adFile.size} MB) custa ${brl(adFee)}. Pagar com saldo Realys?`, [
+    Alert.alert('Pagar o servidor', `Guardar "${adFile.name}" (${adFile.size} MB) custa ${brl(adFee)}. Pagar com saldo Re@lys?`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Pagar e publicar', onPress: go },
     ]);
@@ -180,7 +180,7 @@ export default function PageScreen() {
   const upload = () => {
     if (!title.trim()) return Alert.alert('Falta o título', 'Dê um nome para a faixa, vídeo ou obra.');
     if (!file) return Alert.alert('Falta o arquivo', `Escolha o arquivo ${plan.ext}.`);
-    if (fee > state.wallet) return Alert.alert('Saldo insuficiente', 'Adicione saldo Realys para pagar o servidor.');
+    if (fee > state.wallet) return Alert.alert('Saldo insuficiente', 'Adicione saldo Re@lys para pagar o servidor.');
     const value = Number(String(price).replace(',', '.')) || 0;
     const go = () => {
       dispatch({
@@ -204,14 +204,14 @@ export default function PageScreen() {
       Alert.alert('Publicado ✅', 'Seu conteúdo já aparece na sua página para todos os clientes.');
     };
     if (!fee) return go();
-    Alert.alert('Pagar o servidor', `Guardar "${file.name}" (${file.size} MB) custa ${brl(fee)}. Pagar com saldo Realys?`, [
+    Alert.alert('Pagar o servidor', `Guardar "${file.name}" (${file.size} MB) custa ${brl(fee)}. Pagar com saldo Re@lys?`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Pagar e publicar', onPress: go },
     ]);
   };
 
   const subscribe = () => {
-    if (STORAGE_PLAN.price > state.wallet) return Alert.alert('Saldo insuficiente', 'Adicione saldo Realys para assinar.');
+    if (STORAGE_PLAN.price > state.wallet) return Alert.alert('Saldo insuficiente', 'Adicione saldo Re@lys para assinar.');
     Alert.alert(STORAGE_PLAN.label, `${brl(STORAGE_PLAN.price)} ${STORAGE_PLAN.detail}. Assinar?`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Assinar', onPress: () => dispatch({ type: 'MEDIA_PLAN', price: STORAGE_PLAN.price }) },
@@ -314,7 +314,7 @@ export default function PageScreen() {
         </View>
       </Card>
 
-      <Head icon="git-network-outline" title="Papel na cadeia" sub="O que a sua empresa faz nos negócios do Realys. Define quem pode enviar propostas para você." />
+      <Head icon="git-network-outline" title="Papel na cadeia" sub="O que a sua empresa faz nos negócios do Re@lys. Define quem pode enviar propostas para você." />
       <Card>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
           {ROLES.map((ro) => (
@@ -416,7 +416,7 @@ export default function PageScreen() {
         );
       })}
 
-      <Head icon="videocam-outline" title="Vídeos de propaganda" sub="Aparecem na guia Propagandas da sua página. O vídeo fica guardado no servidor do Realys." />
+      <Head icon="videocam-outline" title="Vídeos de propaganda" sub="Aparecem na guia Propagandas da sua página. O vídeo fica guardado no servidor do Re@lys." />
       <Card>
         <Input value={adTitle} onChangeText={setAdTitle} placeholder="Título da propaganda" />
         <TouchableOpacity style={styles.file} onPress={pickAd}>
@@ -443,7 +443,7 @@ export default function PageScreen() {
       ))}
 
       <TouchableOpacity onPress={() => setShowMedia(!showMedia)} activeOpacity={0.8}>
-        <Head icon="musical-notes-outline" title={`Música, vídeo e obra (opcional) ${showMedia ? '▲' : '▼'}`} sub="Para artistas e empresas que vendem conteúdo: o arquivo fica no servidor do Realys e aparece na guia Músicas." />
+        <Head icon="musical-notes-outline" title={`Música, vídeo e obra (opcional) ${showMedia ? '▲' : '▼'}`} sub="Para artistas e empresas que vendem conteúdo: o arquivo fica no servidor do Re@lys e aparece na guia Músicas." />
       </TouchableOpacity>
 
       {showMedia ? (

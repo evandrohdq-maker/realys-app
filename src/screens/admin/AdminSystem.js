@@ -37,10 +37,10 @@ export const SYSTEM_MAP = [
       { key: 'c-ads', name: 'Início › Anúncios', desc: 'Imóveis, aluguel de carros e máquinas, hotéis, festas e noite, cursos e faculdades online', status: 'demo', role: 'cliente', tab: 'home', top: 'anuncios', why: 'Criar anúncio de verdade precisa de servidor' },
       { key: 'c-com', name: 'Stories › Comunidade', desc: 'Stories no topo e feed único de posts e depoimentos (curtir, comentar, compartilhar), mensagens, contatos, live e chamada de vídeo', status: 'simulado', role: 'cliente', tab: 'stories', why: 'Mensagens não saem do celular; vídeo é só visual' },
       { key: 'c-lives', name: 'Início › Lives', desc: 'Assistir e abrir live, inclusive aulas ao vivo', status: 'simulado', role: 'cliente', tab: 'home', top: 'lives', why: 'Precisa de servidor de vídeo e da câmera' },
-      { key: 'c-food', name: 'Food', desc: 'Só comida e bebida: promoções de restaurantes, bares e happy hour (check-in, "vou hoje", reserva), novidades do cardápio, posts da galera, cardápios, carrinho e pagamento com saldo Realys', status: 'demo', role: 'cliente', tab: 'food', why: 'Restaurantes e bares são de exemplo; pagamento real e moeda Realys ainda não existem' },
-      { key: 'c-loja', name: 'Loja (todas as lojas)', desc: 'Busca, carrinho e pagamento com saldo Realys; abre pelo Shop do Início ("Ver loja") e pela busca', status: 'demo', role: 'cliente', tab: 'loja', why: 'Pagamento real e moeda Realys ainda não existem' },
+      { key: 'c-food', name: 'Food', desc: 'Só comida e bebida: promoções de restaurantes, bares e happy hour (check-in, "vou hoje", reserva), novidades do cardápio, posts da galera, cardápios, carrinho e pagamento com saldo Re@lys', status: 'demo', role: 'cliente', tab: 'food', why: 'Restaurantes e bares são de exemplo; pagamento real e moeda Re@lys ainda não existem' },
+      { key: 'c-loja', name: 'Loja (todas as lojas)', desc: 'Busca, carrinho e pagamento com saldo Re@lys; abre pelo Shop do Início ("Ver loja") e pela busca', status: 'demo', role: 'cliente', tab: 'loja', why: 'Pagamento real e moeda Re@lys ainda não existem' },
       { key: 'c-serv', name: 'Serviços', desc: 'Casa, veículos, festas e eventos (DJ, fotógrafo, buffet, decoração), aulas e hotelaria: mapa, contratar, orçamento, perfil e GPS', status: 'simulado', role: 'cliente', tab: 'servicos', why: 'Mapa e GPS são ilustrativos, sem localização real' },
-      { key: 'c-transp', name: 'Transporte público', desc: 'Ônibus e metrô da cidade, linhas intermunicipais e interestaduais; ônibus acompanhado pelo GPS, passagem paga com saldo Realys', status: 'simulado', role: 'cliente', tab: 'transporte', why: 'Posição dos ônibus e horários precisam do GPS das frotas e de um servidor' },
+      { key: 'c-transp', name: 'Transporte público', desc: 'Ônibus e metrô da cidade, linhas intermunicipais e interestaduais; ônibus acompanhado pelo GPS, passagem paga com saldo Re@lys', status: 'simulado', role: 'cliente', tab: 'transporte', why: 'Posição dos ônibus e horários precisam do GPS das frotas e de um servidor' },
       { key: 'c-sos', name: 'Socorro e saúde (SOS)', desc: 'Botão SOS na aba Perfil; SAMU 192, Bombeiros 193, Polícia 190 e outros ligam de verdade pelo celular (com permissão); hospitais próximos, especialistas médicos e ambulâncias', status: 'demo', role: 'cliente', tab: 'socorro', why: 'Hospitais, médicos e ambulâncias são de exemplo (não ligam); localização real precisa do GPS' },
       { key: 'c-art', name: 'Artistas', desc: 'Músicas MP3, vídeos e obras; páginas dos artistas; prévia, compra e download', status: 'simulado', role: 'cliente', tab: 'artistas', why: 'Tocar o áudio e o vídeo de verdade precisa dos arquivos no servidor' },
       { key: 'c-pag', name: 'Páginas das empresas', desc: 'Perfil público de cada empresa e artista: apresentação, produtos, conteúdos, vídeos e músicas, seguir e mensagem (abre pela Loja ou tocando no nome em um post)', status: 'demo', role: 'cliente', tab: 'loja' },
@@ -87,7 +87,7 @@ export const SYSTEM_MAP = [
 export const NEXT_STEPS = [
   'Servidor na nuvem com banco de dados e login real',
   'Biometria facial ligada a documento e consulta de CNPJ',
-  'Pagamentos reais e moeda Realys (validação jurídica)',
+  'Pagamentos reais e moeda Re@lys (validação jurídica)',
   'Mapa e GPS em tempo real',
   'Mensagens, chamada de vídeo e lives de verdade',
   'IA verificadora de fake news',
@@ -155,7 +155,7 @@ export function AdminSystem({ openArea }) {
   const share = () => {
     if (!state.notes.length) return Alert.alert('Sem anotações', 'Anote nas telas usando o botão de lápis.');
     const text =
-      `Realys · anotações do administrador (${VERSION_LABEL})\n\n` +
+      `Re@lys · anotações do administrador (${VERSION_LABEL})\n\n` +
       state.notes
         .map((n) => `${n.done ? '[feito]' : '[ ]'} ${n.where} (${fmtDate(n.at)})\n   ${n.text}`)
         .join('\n\n');
@@ -164,7 +164,7 @@ export function AdminSystem({ openArea }) {
 
   return (
     <Screen>
-      <Title sub="Todas as telas do Realys, a situação de cada uma e as suas anotações">Mapa do sistema</Title>
+      <Title sub="Todas as telas do Re@lys, a situação de cada uma e as suas anotações">Mapa do sistema</Title>
 
       <View style={styles.statusRow}>
         {Object.entries(STATUS).map(([k, s]) => {

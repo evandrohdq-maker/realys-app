@@ -1,4 +1,4 @@
-// Desapego: itens usados entre pessoas. Taxa do Realys igual à dos pedidos (10%), descontada do vendedor
+// Desapego: itens usados entre pessoas. Taxa do Re@lys igual à dos pedidos (10%), descontada do vendedor
 // só quando o comprador confirma que recebeu.
 import { ORDER_FEE_PCT } from './fees';
 

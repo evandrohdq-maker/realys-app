@@ -18,7 +18,7 @@ export default function InventoryScreen() {
   const food = isFoodStore(minhaLoja);
   const totalValue = products.reduce((s, p) => s + p.cost * p.stock, 0);
 
-  // Produto novo publicado: vai para a página da loja e para o Shop, no setor que o Realys classificou.
+  // Produto novo publicado: vai para a página da loja e para o Shop, no setor que o Re@lys classificou.
   const save = (product) => {
     dispatch({ type: 'ADD_PRODUCT', product });
     setAdding(false);

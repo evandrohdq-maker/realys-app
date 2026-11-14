@@ -250,7 +250,7 @@ function ClipPlayer({ clips, index, onIndex, onClose, food }) {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.sideBtn}
-            onPress={() => Share.share({ message: `${c.title} · ${s.name} no Realys\nRealys · Pessoas reais. Negócios reais.` }).catch(() => {})}
+            onPress={() => Share.share({ message: `${c.title} · ${s.name} no Re@lys\nRe@lys · Pessoas reais. Negócios reais.` }).catch(() => {})}
             accessibilityLabel="Compartilhar"
           >
             <Ionicons name="share-social-outline" size={26} color="#fff" />
@@ -261,7 +261,7 @@ function ClipPlayer({ clips, index, onIndex, onClose, food }) {
         {earned ? (
           <View style={styles.earned}>
             <Ionicons name="star" size={16} color="#0B1124" />
-            <Text style={styles.earnedText}>+{CLIP_POINTS} pontos Realys por assistir!</Text>
+            <Text style={styles.earnedText}>+{CLIP_POINTS} pontos Re@lys por assistir!</Text>
           </View>
         ) : null}
 

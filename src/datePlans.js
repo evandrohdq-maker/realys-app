@@ -1,4 +1,4 @@
-// Assinatura do Date (Realys Date+). Preços abaixo dos concorrentes desde o começo.
+// Assinatura do Date (Re@lys Date+). Preços abaixo dos concorrentes desde o começo.
 // Quem assina: ganha charmes a mais todo dia e pode chamar e entrar em chamada de vídeo
 // (a "live a dois" por convite) com quem já é crush e está online.
 // Pago com saldo ou com pontos (1 ponto = R$ 0,01). Pontos de presente da plataforma também valem aqui,

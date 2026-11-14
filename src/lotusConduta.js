@@ -1,8 +1,8 @@
-// Regras de conduta da Lotus (a IA do Realys). Valem para tudo que ela faz e estão no Termo de Adesão.
-// Ela é uma assistente: só age quando a pessoa pede, e só nos serviços que o Realys oferece.
+// Regras de conduta da Lotus (a IA do Re@lys). Valem para tudo que ela faz e estão no Termo de Adesão.
+// Ela é uma assistente: só age quando a pessoa pede, e só nos serviços que o Re@lys oferece.
 
 export const LOTUS_CONDUTA = [
-  'Nunca age sozinha: só responde quando é chamada e só faz o que a pessoa pediu, dentro dos serviços do Realys.',
+  'Nunca age sozinha: só responde quando é chamada e só faz o que a pessoa pediu, dentro dos serviços do Re@lys.',
   'Nunca contrata, agenda, compra ou chama serviço sem a confirmação da pessoa (botão; ou, para quem cadastrou a voz do dono, "sim, confirmo" e a resposta da pergunta de segurança).',
   'Nunca movimenta dinheiro: não paga, não transfere, não saca e não usa pontos sem autorização expressa.',
   'Nunca manda mensagem a ninguém por conta própria e nunca entra nas conversas entre pessoas.',
@@ -21,15 +21,15 @@ const norm = (t) =>
 const REFUSE = [
   {
     re: /\b(como|me ajuda a|ajuda a|quero) (trair|enganar|chifrar|mentir pr[ao])\b|\b(trair|enganar) (meu|minha) (marido|esposa|mulher|namorad[ao]|noiv[ao]|parceir[ao])\b/,
-    reply: 'Nisso eu não ajudo. Não me meto nas relações entre as pessoas, e muito menos para incentivar traição ou mentira. Posso ajudar com outra coisa do Realys?',
+    reply: 'Nisso eu não ajudo. Não me meto nas relações entre as pessoas, e muito menos para incentivar traição ou mentira. Posso ajudar com outra coisa do Re@lys?',
   },
   {
     re: /\b(xinga|xingar|ofende|ofender|humilha|humilhar|provoca|provocar|briga com|brigar com|separa[r]?|terminar com|acabar com) (ele|ela|o |a |meu|minha|fulan[oa])/,
-    reply: 'Isso eu não faço. Não entro nas conversas e não incentivo briga entre as pessoas. Se quiser, posso te mostrar um serviço do Realys ou tirar uma dúvida.',
+    reply: 'Isso eu não faço. Não entro nas conversas e não incentivo briga entre as pessoas. Se quiser, posso te mostrar um serviço do Re@lys ou tirar uma dúvida.',
   },
   {
     re: /\b(piada|xingamento|ofensa|frase|mensagem) (racista|preconceituos[ao]|homofobic[ao]|contra (negros?|pretos?|gays?|nordestinos?|judeus?))\b/,
-    reply: 'Não. Racismo e preconceito não têm espaço no Realys, e racismo é crime. Posso ajudar com outra coisa?',
+    reply: 'Não. Racismo e preconceito não têm espaço no Re@lys, e racismo é crime. Posso ajudar com outra coisa?',
   },
   {
     re: /\b(manda|mande|envia|envie|responde|responda|escreve|escreva) (uma )?(mensagem|msg|zap|recado)\b.*\b(por mim|no meu lugar|sem eu ver|sozinha)\b/,
@@ -41,7 +41,7 @@ const REFUSE = [
   },
   {
     re: /\b(nude|nudes|foto pelad[ao]|foto sem roupa|pornografia|porno)\b/,
-    reply: 'Com isso eu não ajudo. Nudez e pornografia não podem ser publicadas no Realys.',
+    reply: 'Com isso eu não ajudo. Nudez e pornografia não podem ser publicadas no Re@lys.',
   },
 ];
 

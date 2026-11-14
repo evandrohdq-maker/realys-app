@@ -14,13 +14,13 @@ import { providerTarget } from './GiftSheet';
 const NIGHT = '#0B1124';
 const TYPE_LABEL = { loja: 'Loja', food: 'Restaurante', motoboy: 'Entrega', motorista: 'Motorista', prestador: 'Prestador' };
 
-// Avisa os bônus do Clube Realys que acabaram de sair (selos completos, 20 pedidos, nível novo).
+// Avisa os bônus do Clube Re@lys que acabaram de sair (selos completos, 20 pedidos, nível novo).
 export function LoyaltyNotifier() {
   const { state, dispatch } = useStore();
   const notes = state.loyaltyNotes || [];
   useEffect(() => {
     if (!notes.length) return;
-    Alert.alert('Clube Realys 🎉', notes.join('\n\n') + '\n\nO desconto é aplicado sozinho no carrinho.');
+    Alert.alert('Clube Re@lys 🎉', notes.join('\n\n') + '\n\nO desconto é aplicado sozinho no carrinho.');
     dispatch({ type: 'CLEAR_LOYALTY_NOTES' });
   }, [notes.length]);
   return null;
@@ -58,7 +58,7 @@ export default function RateSheet() {
     const earned = pointsFor(targets.map((t) => val(t.key)));
     const tipTo = targets.find((t) => (t.type === 'motoboy' || t.type === 'motorista' || t.type === 'prestador') && val(t.key).stars >= 4);
     const prov = tipTo && state.providers.find((p) => p.id === tipTo.id);
-    Alert.alert('Obrigado pela avaliação ⭐', `Você ganhou ${earned} pontos Realys. Troque por créditos com os parceiros em Carteira › Pontos.`, [
+    Alert.alert('Obrigado pela avaliação ⭐', `Você ganhou ${earned} pontos Re@lys. Troque por créditos com os parceiros em Carteira › Pontos.`, [
       ...(prov ? [{ text: `Dar gorjeta para ${prov.name.split(' ')[0]}`, onPress: () => dispatch({ type: 'OPEN_GIFT', to: { ...providerTarget(prov), tip: true, orderId: order ? order.id : call.id } }) }] : []),
       { text: 'OK' },
     ]);
@@ -136,7 +136,7 @@ export default function RateSheet() {
             <View style={styles.points}>
               <Ionicons name="trophy-outline" size={16} color={colors.primary} />
               <Text style={styles.pointsText}>
-                Ganhe {POINTS_PER_RATING} pontos por nota e +{POINTS_COMMENT_BONUS} com comentário. Os pontos viram créditos com os parceiros do Realys.
+                Ganhe {POINTS_PER_RATING} pontos por nota e +{POINTS_COMMENT_BONUS} com comentário. Os pontos viram créditos com os parceiros do Re@lys.
               </Text>
             </View>
             <TouchableOpacity style={[styles.sendBtn, !any && { opacity: 0.5 }]} onPress={send}>

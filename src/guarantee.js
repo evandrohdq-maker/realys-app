@@ -1,14 +1,14 @@
-// Garantia Realys: se der problema numa compra ou num serviço pago pelo Realys, o dinheiro volta.
+// Garantia Re@lys: se der problema numa compra ou num serviço pago pelo Re@lys, o dinheiro volta.
 //
 // Como funciona:
-// 1. Todo pagamento fica retido no Realys até o cliente confirmar a entrega ou a visita.
+// 1. Todo pagamento fica retido no Re@lys até o cliente confirmar a entrega ou a visita.
 // 2. Depois de confirmado, o valor daquela venda fica mais GUARANTEE_DAYS dias na reserva de
-//    garantia do vendedor (é dinheiro do vendedor, não do caixa do Realys).
-// 3. Nesse tempo, o cliente abre um caso: o Realys olha o chat, o GPS da entrega, o QR Code e as fotos.
+//    garantia do vendedor (é dinheiro do vendedor, não do caixa do Re@lys).
+// 3. Nesse tempo, o cliente abre um caso: o Re@lys olha o chat, o GPS da entrega, o QR Code e as fotos.
 // 4. Resolvido a favor do cliente: o valor volta para a carteira. O vendedor perde pontos no Score;
 //    quem age de má-fé de novo é banido, e com a biometria não consegue criar outra conta.
 // 5. Quem abre caso falso também perde Score.
-// Só vale o que foi pago DENTRO do Realys. Valores combinados e pagos por fora não têm garantia.
+// Só vale o que foi pago DENTRO do Re@lys. Valores combinados e pagos por fora não têm garantia.
 
 export const GUARANTEE_DAYS = 7;
 export const GUARANTEE_ANSWER_HOURS = 48;
@@ -31,10 +31,10 @@ export const GUARANTEE_REASONS = {
 export const GUARANTEE_RULES = [
   'Seu pagamento fica retido e só é liberado quando você confirma que recebeu.',
   `Depois de confirmar, você ainda tem ${GUARANTEE_DAYS} dias para abrir um caso.`,
-  `O Realys responde em até ${GUARANTEE_ANSWER_HOURS} horas, olhando o chat, o GPS, o QR Code da entrega e as fotos.`,
+  `O Re@lys responde em até ${GUARANTEE_ANSWER_HOURS} horas, olhando o chat, o GPS, o QR Code da entrega e as fotos.`,
   'Deu razão a você: o dinheiro volta para a sua carteira.',
   'Quem age de má-fé é banido, e com a biometria não volta com outra conta.',
-  'Vale só o que você pagou pelo Realys. Não pague por fora.',
+  'Vale só o que você pagou pelo Re@lys. Não pague por fora.',
 ];
 
 const DAY = 864e5;
@@ -50,15 +50,15 @@ export function visitCovered(v) {
 }
 export const daysLeft = (ts) => Math.max(0, Math.ceil((ts + GUARANTEE_DAYS * DAY - Date.now()) / DAY));
 
-// ───────── Taxa de proteção Realys ─────────
+// ───────── Taxa de proteção Re@lys ─────────
 // R$ 0,99 fixo por pedido de produtos (Shop e Food), mostrado desde o primeiro item no carrinho.
-// Paga a Garantia Realys, a biometria de todos e a segurança contra golpes. Valor fixo, sem
+// Paga a Garantia Re@lys, a biometria de todos e a segurança contra golpes. Valor fixo, sem
 // variar por horário (taxa dinâmica por horário é ideia para o futuro, ainda não usada).
-// Quem tem Score Realys Diamante (850+) não paga.
+// Quem tem Score Re@lys Diamante (850+) não paga.
 import { scoreOf } from './engage';
 export const PROTECTION_FEE = 0.99;
 export const PROTECTION_FREE_SCORE = 850;
-export const PROTECTION_TEXT = 'Paga a Garantia Realys (seu dinheiro volta se der problema), a verificação por biometria de todo mundo e a segurança contra golpes. Valor fixo de R$ 0,99 por pedido. Quem tem Score Realys Diamante não paga.';
+export const PROTECTION_TEXT = 'Paga a Garantia Re@lys (seu dinheiro volta se der problema), a verificação por biometria de todo mundo e a segurança contra golpes. Valor fixo de R$ 0,99 por pedido. Quem tem Score Re@lys Diamante não paga.';
 export function protectionFee(state) {
   return scoreOf(state, 'usuario').score >= PROTECTION_FREE_SCORE ? 0 : PROTECTION_FEE;
 }

@@ -34,7 +34,7 @@ export default function mediaRoutes(r, { db, cfg, hub }) {
     if (res.decisao === 'bloquear') {
       rmSync(file, { force: true });
       db.prepare('INSERT INTO moderacao_log (id, user_id, kind, ref, nudez, decisao, created_at) VALUES (?,?,?,?,?,?,?)').run(newId('ml'), user.id, TYPES[mime] === 'video' ? 'video' : 'foto', null, res.nudez == null ? null : res.nudez, 'bloquear', now());
-      fail(422, 'Essa imagem não pode ser publicada: nudez e partes íntimas à mostra não são permitidas no Realys. Biquíni, maiô e sunga podem.', 'nudez');
+      fail(422, 'Essa imagem não pode ser publicada: nudez e partes íntimas à mostra não são permitidas no Re@lys. Biquíni, maiô e sunga podem.', 'nudez');
     }
     const moderacao = res.decisao === 'revisar' ? 'revisao' : 'liberado';
     if (res.decisao !== 'liberar' || res.nudez != null) {

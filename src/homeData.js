@@ -85,8 +85,8 @@ export const events = [
   { id: 'e4', group: 'festa-promo', days: [5], start: 22, end: 4, km: 900, title: 'Compre 1, leve 2 ingressos', detail: 'Baile Sertanejo com banda ao vivo', when: 'Sex · 22h', price: 'R$ 70', from: 'R$ 140', deal: '2 por 1', cta: 'Garantir ingresso', place: 'Goiânia - GO', who: 'Rancho Sertanejo', sponsored: false, photo: photo('realys-ev-sertanejo') },
   // Anúncios de promoções
   { id: 'e5', group: 'promo-anuncio', title: 'Happy hour em dobro', detail: 'Chopp e drinks em dobro de seg a qui, 17h às 20h', when: 'Seg a Qui', price: 'Em dobro', deal: 'Happy hour', cta: 'Ver promoção', place: 'Centro, Curitiba - PR', who: 'Bar do Alemão', sponsored: true, photo: photo('realys-ev-happy') },
-  { id: 'e6', group: 'promo-anuncio', title: 'Rodízio pela metade às terças', detail: 'Pizza e massa à vontade · válido pelo Realys', when: 'Toda terça', price: 'R$ 39,90', from: 'R$ 79,90', deal: '-50%', cta: 'Reservar mesa', place: 'Moema, São Paulo - SP', who: 'Cantina Bella Nonna', sponsored: false, photo: photo('realys-ev-rodizio') },
-  { id: 'e7', group: 'promo-anuncio', title: 'Combo balada: 4 drinks por R$ 50', detail: 'Pagando com saldo Realys na entrada', when: 'Fins de semana', price: 'R$ 50', from: 'R$ 88', deal: 'Combo', cta: 'Ver promoção', place: 'Lapa, Rio de Janeiro - RJ', who: 'Quintal do Samba', sponsored: false, photo: photo('realys-ev-combo') },
+  { id: 'e6', group: 'promo-anuncio', title: 'Rodízio pela metade às terças', detail: 'Pizza e massa à vontade · válido pelo Re@lys', when: 'Toda terça', price: 'R$ 39,90', from: 'R$ 79,90', deal: '-50%', cta: 'Reservar mesa', place: 'Moema, São Paulo - SP', who: 'Cantina Bella Nonna', sponsored: false, photo: photo('realys-ev-rodizio') },
+  { id: 'e7', group: 'promo-anuncio', title: 'Combo balada: 4 drinks por R$ 50', detail: 'Pagando com saldo Re@lys na entrada', when: 'Fins de semana', price: 'R$ 50', from: 'R$ 88', deal: 'Combo', cta: 'Ver promoção', place: 'Lapa, Rio de Janeiro - RJ', who: 'Quintal do Samba', sponsored: false, photo: photo('realys-ev-combo') },
   { id: 'e8', group: 'promo-anuncio', title: 'Pacote festa infantil com 20% off', detail: 'Salão + buffet + decoração para 60 crianças', when: 'Datas em dezembro', price: 'R$ 3.200', from: 'R$ 4.000', deal: '-20%', cta: 'Pedir orçamento', place: 'Guarulhos - SP', who: 'Espaço Celebrar', sponsored: false, photo: photo('realys-ev-infantil') },
   // Outros eventos
   { id: 'e9', group: 'shows', days: [5], start: 23, end: 6, km: 4.8, title: 'Sexta Eletrônica · Club Neon', detail: 'Casa noturna · DJs convidados', when: 'Sex · 23h', price: 'R$ 60', cta: 'Comprar ingresso', place: 'Vila Olímpia, São Paulo - SP', who: 'Club Neon', sponsored: false, photo: photo('realys-balada') },
@@ -102,7 +102,7 @@ export const events = [
 
 // Comunidade: posts de clientes (pessoas reais, verificadas).
 export const communityPosts = [
-  { id: 'c1', author: 'Ana Paula', text: 'Alguém indica um bom eletricista na zona sul? Contratei o Pedro pelo Realys e foi rápido demais! ⚡', image: null, likes: 48, comments: 12, time: 'há 12 min' },
+  { id: 'c1', author: 'Ana Paula', text: 'Alguém indica um bom eletricista na zona sul? Contratei o Pedro pelo Re@lys e foi rápido demais! ⚡', image: null, likes: 48, comments: 12, time: 'há 12 min' },
   { id: 'c2', author: 'Diego Santos', text: 'Primeira compra no Mercadinho Bom Preço pelo app. Chegou em 30 minutos 👏', image: photo('realys-com-mercado', 800, 600), likes: 131, comments: 24, time: 'há 40 min' },
   { id: 'c3', author: 'Lívia Martins', text: 'Procurando apartamento para alugar perto do metrô. Vi uns ótimos em Anúncios!', image: null, likes: 22, comments: 9, time: 'há 1 h' },
   { id: 'c4', author: 'Rogério Teixeira', text: 'Domingo de pizza com a família 🍕 Valeu, Pizzaria da Praça!', image: photo('realys-com-pizza', 800, 600), likes: 210, comments: 31, time: 'há 3 h' },
@@ -130,7 +130,7 @@ export const conversations = [
     id: 'm2', contactId: 'u5', unread: 0,
     messages: [
       { from: 'me', text: 'Boa noite, vocês entregam no Jardim Paulista?', time: 'ontem' },
-      { from: 'them', text: 'Entregamos sim! Em até 40 minutos pelo Realys.', time: 'ontem' },
+      { from: 'them', text: 'Entregamos sim! Em até 40 minutos pelo Re@lys.', time: 'ontem' },
     ],
   },
   {
@@ -153,7 +153,7 @@ export const lives = [
   { id: 'v7', sub: 'treino', cat: 'saude', hostType: 'prestador', hostId: 'v22', title: 'Treino funcional em casa (30 min)', host: 'Thais Personal', viewers: 230, sponsored: false, photo: photo('realys-live-treino', 800, 500), tag: 'Aula ao vivo', aula: true },
   { id: 'v8', sub: 'esquenta', cat: 'noite', hostType: 'empresa', hostId: null, title: 'Esquenta de sexta direto do Club Neon', host: 'Club Neon', viewers: 640, sponsored: false, photo: photo('realys-live-balada', 800, 500), tag: 'Noite e eventos' },
   // Gamers
-  { id: 'v9', sub: 'futebol', gifts: 120, likes: 8000, cat: 'gamers', hostType: 'empresa', hostId: 'e4', title: 'Torneio Realys de futebol virtual: a grande final', host: 'Tech Center', viewers: 5420, sponsored: true, photo: photo('realys-live-torneio', 800, 500), tag: 'Campeonato' },
+  { id: 'v9', sub: 'futebol', gifts: 120, likes: 8000, cat: 'gamers', hostType: 'empresa', hostId: 'e4', title: 'Torneio Re@lys de futebol virtual: a grande final', host: 'Tech Center', viewers: 5420, sponsored: true, photo: photo('realys-live-torneio', 800, 500), tag: 'Campeonato' },
   { id: 'v10', sub: 'battle', gifts: 55, cat: 'gamers', hostType: 'usuario', hostId: 'u2', title: 'Ranqueada valendo vaga no campeonato', host: 'Diego Santos', viewers: 2310, sponsored: false, photo: photo('realys-live-ranked', 800, 500), tag: 'Gameplay' },
   // Artistas
   { id: 'v11', sub: 'gospel', gifts: 70, cat: 'artistas', hostType: 'artista', hostId: 'a1', title: 'Ensaio aberto: louvor ao vivo', host: 'Banda Louvor Vivo', viewers: 3100, sponsored: false, photo: photo('realys-live-louvor', 800, 500), tag: 'Show ao vivo' },
@@ -165,7 +165,7 @@ export const lives = [
   { id: 'v15', sub: 'ia', cat: 'tecnologia', hostType: 'empresa', hostId: null, title: 'IA para pequenos negócios: na prática', host: 'NeuralBR Soluções', viewers: 760, sponsored: true, photo: photo('realys-live-ia', 800, 500), tag: 'Tecnologia' },
   { id: 'v16', sub: 'pc', gifts: 12, cat: 'tecnologia', hostType: 'empresa', hostId: 'e4', title: 'Montando um PC gamer do zero', host: 'Tech Center', viewers: 1450, sponsored: false, photo: photo('realys-live-pc', 800, 500), tag: 'Tecnologia' },
   // Noticiários (só canais verificados; a IA verificadora acompanha)
-  { id: 'v17', sub: 'jornal', cat: 'noticias', hostType: 'empresa', hostId: null, title: 'Jornal da manhã: as notícias do dia', host: 'Realys Notícias', viewers: 4200, sponsored: false, photo: photo('realys-live-jornal', 800, 500), tag: 'Noticiário', verifiedNews: true },
+  { id: 'v17', sub: 'jornal', cat: 'noticias', hostType: 'empresa', hostId: null, title: 'Jornal da manhã: as notícias do dia', host: 'Re@lys Notícias', viewers: 4200, sponsored: false, photo: photo('realys-live-jornal', 800, 500), tag: 'Noticiário', verifiedNews: true },
   { id: 'v18', sub: 'agro', cat: 'noticias', hostType: 'empresa', hostId: null, title: 'Boletim do agro: cotações e clima', host: 'Canal Campo Hoje', viewers: 610, sponsored: false, photo: photo('realys-live-agro', 800, 500), tag: 'Noticiário', verifiedNews: true },
   // Podcasts
   { id: 'v19', sub: 'negocios', cat: 'podcasts', hostType: 'empresa', hostId: 'e1', title: 'Podcast Negócio de Bairro #42', host: 'Mercadinho Bom Preço', viewers: 380, sponsored: false, photo: photo('realys-live-podcast1', 800, 500), tag: 'Podcast' },
@@ -192,7 +192,7 @@ export const lives = [
   { id: 'v34', sub: 'cafe', cat: 'agro', hostType: 'fornecedor', hostId: 's2', title: 'Colheita do café: do pé à xícara', host: 'Atacadão do Café', viewers: 290, sponsored: false, photo: photo('realys-live-colheita', 800, 500), tag: 'Café' },
   // Negócios
   { id: 'v35', sub: 'rodadas', cat: 'negocios', hostType: 'fornecedor', hostId: 's1', title: 'Rodada de negócios: fornecedores x mercados', host: 'Distribuidora Real Alimentos', viewers: 410, sponsored: false, photo: photo('realys-live-rodada', 800, 500), tag: 'Rodada de negócios' },
-  { id: 'v36', sub: 'mei', cat: 'negocios', hostType: 'usuario', hostId: null, title: 'MEI: como vender mais pelo Realys', host: 'Carla Empreende', viewers: 560, sponsored: false, photo: photo('realys-live-mei', 800, 500), tag: 'MEI' },
+  { id: 'v36', sub: 'mei', cat: 'negocios', hostType: 'usuario', hostId: null, title: 'MEI: como vender mais pelo Re@lys', host: 'Carla Empreende', viewers: 560, sponsored: false, photo: photo('realys-live-mei', 800, 500), tag: 'MEI' },
   // Culinária
   { id: 'v37', sub: 'churrasco', cat: 'culinaria', hostType: 'usuario', hostId: null, title: 'Costela fogo de chão ao vivo', host: 'Churrasqueiro Beto', viewers: 1090, sponsored: false, gifts: 25, photo: photo('realys-live-costela', 800, 500), tag: 'Churrasco' },
   { id: 'v38', sub: 'confeitaria', cat: 'culinaria', hostType: 'empresa', hostId: 'e8', title: 'Bolo de pote passo a passo', host: 'Doce Encanto Café', viewers: 470, sponsored: false, photo: photo('realys-live-bolo', 800, 500), tag: 'Confeitaria' },
@@ -208,7 +208,7 @@ export const lives = [
 
 // Agenda de lives (para lembrar). O aviso chega quando a live começa.
 export const upcomingLives = [
-  { id: 'up1', cat: 'gamers', sub: 'campeonatos', title: 'Copa Realys de Battle Royale: rodada 2', host: 'Tech Center', hostType: 'empresa', hostId: 'e4', when: 'Hoje · 20h', photo: photo('realys-up-copa', 400, 250), prize: 'Prêmio de R$ 2.000 em créditos' },
+  { id: 'up1', cat: 'gamers', sub: 'campeonatos', title: 'Copa Re@lys de Battle Royale: rodada 2', host: 'Tech Center', hostType: 'empresa', hostId: 'e4', when: 'Hoje · 20h', photo: photo('realys-up-copa', 400, 250), prize: 'Prêmio de R$ 2.000 em créditos' },
   { id: 'up2', cat: 'gamers', sub: 'lancamentos', title: 'Primeiras horas do lançamento do mês', host: 'Diego Santos', hostType: 'usuario', hostId: 'u2', when: 'Amanhã · 19h', photo: photo('realys-up-lanc', 400, 250) },
   { id: 'up3', cat: 'artistas', sub: 'sertanejo', title: 'Live sertaneja: voz e violão', host: 'Duda Viola', hostType: 'artista', hostId: 'a2', when: 'Sáb · 21h', photo: photo('realys-up-sert', 400, 250) },
   { id: 'up4', cat: 'compras', sub: 'lancamentos', title: 'Lançamento: novo smartphone 5G com cupom', host: 'TechMais Celulares', hostType: 'empresa', hostId: null, when: 'Hoje · 18h', photo: photo('realys-up-cel', 400, 250), prize: 'Cupom só para quem assistir' },
@@ -223,7 +223,7 @@ export const liveComments = [
   'Que top! 🔥', 'Tem cupom?', 'Professor, pode repetir?', 'Entendi agora! 🙌', 'Chegou agora, o que perdi?', 'Quero esse!', 'Entrega em Campinas?', 'Muito bom 👏', 'Qual o preço?', 'Já comprei pelo app!',
 ];
 
-// Stories do Início: o dia a dia, o lazer e as novidades de quem está no Realys.
+// Stories do Início: o dia a dia, o lazer e as novidades de quem está no Re@lys.
 // Somem em 24 h na versão real. contactId liga o story à conversa (para responder).
 const storyPhoto = (seed) => photo(seed, 720, 1280);
 export const stories = [
@@ -231,7 +231,7 @@ export const stories = [
     id: 's1', contactId: 'u1', name: 'Ana Paula', avatar: photo('realys-u-ana', 200, 200),
     items: [
       { id: 's1a', image: storyPhoto('realys-st-praia'), caption: 'Fim de tarde na praia 🌅', time: 'há 20 min' },
-      { id: 's1b', image: storyPhoto('realys-st-acai'), caption: 'Açaí pedido pelo Realys, chegou geladinho 😋', time: 'há 15 min' },
+      { id: 's1b', image: storyPhoto('realys-st-acai'), caption: 'Açaí pedido pelo Re@lys, chegou geladinho 😋', time: 'há 15 min' },
     ],
   },
   {
@@ -245,7 +245,7 @@ export const stories = [
   {
     id: 's3', contactId: 'u5', name: 'Pizzaria da Praça', avatar: photo('realys-u-pizza', 200, 200), business: true, sponsored: true,
     cta: 'Pedir agora', ctaTo: { top: 'promo' },
-    items: [{ id: 's3a', image: storyPhoto('realys-st-pizza'), caption: 'Hoje: pizza grande com 20% off só pelo Realys 🍕', time: 'patrocinado' }],
+    items: [{ id: 's3a', image: storyPhoto('realys-st-pizza'), caption: 'Hoje: pizza grande com 20% off só pelo Re@lys 🍕', time: 'patrocinado' }],
   },
   {
     id: 's4', contactId: 'u3', name: 'Lívia Martins', avatar: photo('realys-u-livia', 200, 200),

@@ -44,14 +44,14 @@ export function loadConfig(overrides = {}) {
     giftMin: num(env.GIFT_MIN, 5),
     giftMax: num(env.GIFT_MAX, 2000),
     liveConvertMin: num(env.LIVE_CONVERT_MIN, 10),
-    orderFeePct: num(env.ORDER_FEE_PCT, 0), // comissão do Realys sobre vendas no Shop (0 na fase de testes; tabela: 10%)
+    orderFeePct: num(env.ORDER_FEE_PCT, 0), // comissão do Re@lys sobre vendas no Shop (0 na fase de testes; tabela: 10%)
     foodFeePct: num(env.FOOD_FEE_PCT, env.ORDER_FEE_PCT === undefined ? 0 : num(env.ORDER_FEE_PCT, 0)), // no Food (tabela: 11%)
     withdrawMin: num(env.WITHDRAW_MIN, 10),
     // Servidor de vídeo próprio (MediaMTX + coturn numa VPS, ver deploy/video/LEIA-ME.md).
     // Vazio = ainda não contratado: as lives ficam no modo demonstração.
     // E-mail (código do e-mail institucional). Serviço Resend: RESEND_API_KEY e EMAIL_FROM.
     resendKey: env.RESEND_API_KEY || '',
-    emailFrom: env.EMAIL_FROM || 'Realys <nao-responda@realys.com.br>',
+    emailFrom: env.EMAIL_FROM || 'Re@lys <nao-responda@realys.com.br>',
     // Consulta de médicos do CFM (contratada à parte). Sem chave, a conferência fica manual.
     cfmWsUrl: env.CFM_WS_URL || '',
     cfmWsKey: env.CFM_WS_KEY || '',
@@ -108,7 +108,7 @@ export function loadConfig(overrides = {}) {
     fiscalNfseUrl: env.FISCAL_NFSE_URL || '',
     fiscalIntervaloMin: num(env.FISCAL_INTERVALO_MIN, 5),
     fiscalCustosMensais: num(env.FISCAL_CUSTOS_MENSAIS, 0), // R$: servidor, biometria, contador... (para o resumo de lucro)
-    fiscalRbt12Inicial: num(env.FISCAL_RBT12_INICIAL, 0), // R$ faturados fora do Realys nos últimos 12 meses
+    fiscalRbt12Inicial: num(env.FISCAL_RBT12_INICIAL, 0), // R$ faturados fora do Re@lys nos últimos 12 meses
     fiscalDestacarIbsCbs: bool(env.FISCAL_DESTACAR_IBS_CBS, false),
     nfeParceiroUrl: env.NFE_PARCEIRO_URL || '',
     nfeParceiroToken: env.NFE_PARCEIRO_TOKEN || '',

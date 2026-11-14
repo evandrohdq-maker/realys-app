@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 
-// O Android avisa o app novo logo depois de substituir o antigo. Reabre o Realys,
+// O Android avisa o app novo logo depois de substituir o antigo. Reabre o Re@lys,
 // para a pessoa não precisar procurar o ícone. Se o sistema não deixar, ela abre pelo ícone.
 class UpdatedReceiver : BroadcastReceiver() {
   override fun onReceive(context: Context, intent: Intent) {

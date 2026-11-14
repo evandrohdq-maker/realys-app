@@ -1,5 +1,5 @@
 // Comanda pelo app: o cliente que está no evento (com ingresso) ou no bar (com check-in) pede
-// bebidas e comidas, paga pelo Realys e o caixa recebe "Mesa 12 · Fulano pediu…".
+// bebidas e comidas, paga pelo Re@lys e o caixa recebe "Mesa 12 · Fulano pediu…".
 // Quem reservou mesa já está nela; quem não reservou pode dizer a mesa ou retirar no balcão.
 // Abre com dispatch({ type: 'OPEN_VENUE' }). Na demonstração dá para ver o painel do caixa.
 import { askPix } from './PixPay';
@@ -45,7 +45,7 @@ export default function VenueSheet() {
       setTab('pedidos');
       Alert.alert('Pedido enviado ✅', v.table ? `O caixa de ${v.name} foi avisado: mesa ${v.table}. É só aguardar na mesa.` : `O caixa de ${v.name} foi avisado. Retire no balcão quando ficar pronto.`);
     };
-    Alert.alert('Confirmar pedido', `${items.map((it) => `${it.qty}× ${it.name}`).join('\n')}\n\nTotal ${brl(total)} pelo Realys${v.table ? ` · mesa ${v.table}` : ' · retirar no balcão'}`, [
+    Alert.alert('Confirmar pedido', `${items.map((it) => `${it.qty}× ${it.name}`).join('\n')}\n\nTotal ${brl(total)} pelo Re@lys${v.table ? ` · mesa ${v.table}` : ' · retirar no balcão'}`, [
       { text: 'Voltar', style: 'cancel' },
       {
         text: 'Pedir e pagar',
@@ -173,7 +173,7 @@ export default function VenueSheet() {
                         <Ionicons name="notifications" size={16} color={colors.primary} />
                         <View style={{ flex: 1, marginLeft: 8 }}>
                           <Text style={{ color: colors.text, fontWeight: '700' }}>{f.text}</Text>
-                          <Text style={{ color: colors.muted, fontSize: 11 }}>{brl(f.total)} · pago pelo Realys · {o.status}</Text>
+                          <Text style={{ color: colors.muted, fontSize: 11 }}>{brl(f.total)} · pago pelo Re@lys · {o.status}</Text>
                         </View>
                         {next ? (
                           <TouchableOpacity onPress={() => dispatch({ type: 'VENUE_ORDER_STATUS', id: o.id, status: next })} style={styles.feedBtn}>

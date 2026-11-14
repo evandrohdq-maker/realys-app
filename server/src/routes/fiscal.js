@@ -30,7 +30,7 @@ export default function fiscalRoutes(r, { db, fiscal }) {
     db.prepare("UPDATE fiscal_notas SET status = 'fila', tentativas = 0, erro = NULL, updated_at = ? WHERE id = ?").run(Date.now(), n.id);
     return { ok: true };
   }, A);
-  // Receita recebida fora da carteira (ex.: plano pago por Pix direto ao Realys).
+  // Receita recebida fora da carteira (ex.: plano pago por Pix direto ao Re@lys).
   r.post('/admin/fiscal/receitas', ({ body }) => {
     const origem = validarOrigem(body.origem);
     const valor = money(body.valor, 'o valor');
@@ -65,7 +65,7 @@ export default function fiscalRoutes(r, { db, fiscal }) {
     return out;
   });
 
-  // ----- Loja: configuração fiscal (emitir a NF-e de produto pelo Realys) -----
+  // ----- Loja: configuração fiscal (emitir a NF-e de produto pelo Re@lys) -----
   const minhaLoja = (user) => {
     const c = db.prepare('SELECT * FROM companies WHERE owner_id = ?').get(user.id);
     if (!c) fail(403, 'Só contas de empresa (CNPJ) têm configuração fiscal.');
@@ -85,7 +85,7 @@ export default function fiscalRoutes(r, { db, fiscal }) {
     const liga = !!body.emitePeloRealys;
     if (liga) {
       const semNcm = db.prepare("SELECT COUNT(*) AS c FROM products WHERE company_id = ? AND active = 1 AND (ncm IS NULL OR ncm = '')").get(c.id).c;
-      if (semNcm) fail(409, `Antes de ligar a nota pelo Realys, informe o NCM de ${semNcm} produto(s). O contador da loja sabe o código de cada um.`, 'sem_ncm');
+      if (semNcm) fail(409, `Antes de ligar a nota pelo Re@lys, informe o NCM de ${semNcm} produto(s). O contador da loja sabe o código de cada um.`, 'sem_ncm');
     }
     db.prepare(`INSERT INTO fiscal_lojas (company_id, emite_pelo_realys, crt, uf, ie, updated_at) VALUES (?,?,?,?,?,?)
       ON CONFLICT(company_id) DO UPDATE SET emite_pelo_realys = excluded.emite_pelo_realys, crt = excluded.crt, uf = excluded.uf, ie = excluded.ie, updated_at = excluded.updated_at`)
@@ -102,7 +102,7 @@ export default function fiscalRoutes(r, { db, fiscal }) {
     return { ok: true, ncm };
   });
 
-  // Imposto estimado de uma nota do Realys (para o painel e para conferência do contador).
+  // Imposto estimado de uma nota do Re@lys (para o painel e para conferência do contador).
   r.get('/admin/fiscal/simular', ({ query }) => {
     const v = toCents(query.valor ?? 1);
     return impostoDaNota(v, { regime: query.regime || 'simples', anexo: query.anexo || 'III', rbt12Cents: toCents(query.rbt12 ?? 0), issPct: query.issPct ? Number(query.issPct) : 5 });

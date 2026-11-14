@@ -29,7 +29,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
   const [kind, setKind] = useState('pessoa'); // pessoa | empresa
   const [name, setName] = useState('');
   const [doc, setDoc] = useState('');
-  const [birth, setBirth] = useState(''); // DD/MM/AAAA: o Realys é só para maiores de 18
+  const [birth, setBirth] = useState(''); // DD/MM/AAAA: o Re@lys é só para maiores de 18
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -61,7 +61,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
     if (!empresa) {
       const age = ageFromBirth(birth);
       if (age == null) return 'Digite sua data de nascimento (dia/mês/ano).';
-      if (age < 18) return 'O Realys é só para maiores de 18 anos.';
+      if (age < 18) return 'O Re@lys é só para maiores de 18 anos.';
     }
     const u = usernameProblem(username);
     if (u) return u;
@@ -79,7 +79,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
     if (err) return Alert.alert('Confira o cadastro', err);
     setBusy(true);
     try {
-      const bio = await confirmBiometric('Confirme sua biometria para criar a conta Realys');
+      const bio = await confirmBiometric('Confirme sua biometria para criar a conta Re@lys');
       if (bio === 'falhou') return Alert.alert('Biometria não confirmada', 'A conta só é criada depois de confirmar que é você.');
       // Pessoa: o perfil social sai do questionário (Gamer, Artista, Estudante...).
       const social = empresa ? null : quiz.manual && quiz.social ? quiz.social : classifyProfile(`${quiz.about} ${quiz.work}`, quiz.hobbies);
@@ -89,8 +89,8 @@ export default function SignupForm({ onDone, onGoLogin }) {
       Alert.alert(
         'Conta criada!',
         bio === 'sem'
-          ? `Bem-vindo ao Realys, ${account.name.split(' ')[0]}. Este celular não tem biometria cadastrada: cadastre a digital ou o rosto nas configurações para a verificação completa.`
-          : `Bem-vindo ao Realys, ${account.name.split(' ')[0]}. Sua identidade foi confirmada pela biometria.`,
+          ? `Bem-vindo ao Re@lys, ${account.name.split(' ')[0]}. Este celular não tem biometria cadastrada: cadastre a digital ou o rosto nas configurações para a verificação completa.`
+          : `Bem-vindo ao Re@lys, ${account.name.split(' ')[0]}. Sua identidade foi confirmada pela biometria.`,
         [{ text: 'Entrar', onPress: () => onDone(account, remember) }]
       );
     } finally {
@@ -135,7 +135,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
         children: (
           <TextInput
             style={authStyles.input}
-            placeholder={empresa ? 'Como a empresa aparece no Realys' : 'Seu nome e sobrenome'}
+            placeholder={empresa ? 'Como a empresa aparece no Re@lys' : 'Seu nome e sobrenome'}
             placeholderTextColor={colors.muted}
             value={name}
             onChangeText={setName}
@@ -176,8 +176,8 @@ export default function SignupForm({ onDone, onGoLogin }) {
               birth.length === 10 && ageFromBirth(birth) == null
                 ? 'Data inválida.'
                 : birth.length === 10 && ageFromBirth(birth) < 18
-                ? 'O Realys é só para maiores de 18 anos.'
-                : 'O Realys é só para maiores de 18 anos.',
+                ? 'O Re@lys é só para maiores de 18 anos.'
+                : 'O Re@lys é só para maiores de 18 anos.',
             children: (
               <TextInput
                 style={authStyles.input}
@@ -308,7 +308,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
       <TouchableOpacity style={authStyles.check} onPress={() => setTerms(!terms)} activeOpacity={0.8}>
         <Ionicons name={terms ? 'checkbox' : 'square-outline'} size={22} color={terms ? colors.primary : colors.muted} />
         <View style={{ flex: 1, marginLeft: 8 }}>
-          <Text style={authStyles.checkText}>Li e aceito o Termo de Adesão ao Realys</Text>
+          <Text style={authStyles.checkText}>Li e aceito o Termo de Adesão ao Re@lys</Text>
           <Text style={authStyles.checkSub}>Uma pessoa, uma conta. Inclui as regras de reconhecimento facial e de documentos.</Text>
           <TouchableOpacity onPress={() => setTermoOpen(true)} hitSlop={8} accessibilityLabel="Ler o termo de adesão">
             <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 12, marginTop: 4 }}>Ler o termo completo ›</Text>

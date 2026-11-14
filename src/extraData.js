@@ -12,7 +12,7 @@ export const TRANSIT_SCOPES = [
   { key: 'interestadual', label: 'Entre estados', icon: 'map-outline', hint: 'Viagens interestaduais' },
 ];
 
-// Empresas de transporte cadastradas no Realys (com CNPJ e frota com GPS).
+// Empresas de transporte cadastradas no Re@lys (com CNPJ e frota com GPS).
 export const transitCompanies = [
   { id: 't1', name: 'SPTrans Urbano (demo)', scope: 'municipal', logo: '🚌', rating: 4.3 },
   { id: 't2', name: 'Metrô Linha Verde (demo)', scope: 'municipal', logo: '🚇', rating: 4.6 },
@@ -148,7 +148,7 @@ export const artMedia = [
   { id: 'am10', ownerId: 'a4', kind: 'video', title: 'Pintando ao vivo no ateliê', length: '18:20', plays: 5600, price: 0, cover: photo('realys-clipe3', 600, 340) },
 ];
 
-// Quanto custa guardar o arquivo no servidor do Realys (o artista ou a empresa paga).
+// Quanto custa guardar o arquivo no servidor do Re@lys (o artista ou a empresa paga).
 export const UPLOAD_PLANS = {
   musica: { label: 'Faixa MP3', fee: 2.9, limit: 'até 20 MB por faixa', icon: 'musical-note-outline', ext: '.mp3', sizeMb: [4, 12] },
   video: { label: 'Vídeo', fee: 9.9, limit: 'até 1 GB por vídeo', icon: 'videocam-outline', ext: '.mp4', sizeMb: [80, 600] },

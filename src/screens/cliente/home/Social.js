@@ -31,7 +31,7 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
   const insets = useSafeAreaInsets();
   const { state, dispatch } = useStore();
   const [text, setText] = useState('');
-  const [peek, setPeek] = useState(false); // prévia de quem não tem perfil no Realys
+  const [peek, setPeek] = useState(false); // prévia de quem não tem perfil no Re@lys
   const scroll = useRef(null);
   if (!contact) return null;
 
@@ -74,7 +74,7 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
           {hideVoice ? null : (
             <TouchableOpacity
               style={styles.iconBtn}
-              onPress={() => Alert.alert('Chamada de voz', `Ligando para ${contact.name} pela Realys.`)}
+              onPress={() => Alert.alert('Chamada de voz', `Ligando para ${contact.name} pela Re@lys.`)}
               accessibilityLabel="Chamada de voz"
             >
               <Ionicons name="call-outline" size={19} color={colors.primary} />
@@ -105,14 +105,14 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
           ))}
         </ScrollView>
 
-        {/* Prévia de quem não tem perfil aberto no Realys (ex.: anunciante): adicionar aos contatos. */}
+        {/* Prévia de quem não tem perfil aberto no Re@lys (ex.: anunciante): adicionar aos contatos. */}
         <Modal visible={peek} transparent animationType="fade" onRequestClose={() => setPeek(false)}>
           <TouchableOpacity style={styles.peekBack} activeOpacity={1} onPress={() => setPeek(false)}>
             <View style={styles.peekCard}>
               <Photo uri={contact.photo} style={styles.peekAvatar} fallback="🙂" />
               <Text style={styles.peekName}>{contact.name}</Text>
               {contact.status ? <Text style={styles.headStatus}>{contact.status}</Text> : null}
-              <Text style={styles.peekNote}>Essa pessoa ainda não tem um perfil público no Realys.</Text>
+              <Text style={styles.peekNote}>Essa pessoa ainda não tem um perfil público no Re@lys.</Text>
               <TouchableOpacity
                 style={[styles.peekBtn, friendSt && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.primary }]}
                 onPress={() => dispatch({ type: 'FRIEND', id: contact.id, status: friendSt ? null : 'enviado' })}
@@ -282,7 +282,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
     setBurst(null);
   }, [visible]);
 
-  // Missão do dia: 3 minutos assistindo lives da classe dão pontos Realys (uma vez por dia e por classe).
+  // Missão do dia: 3 minutos assistindo lives da classe dão pontos Re@lys (uma vez por dia e por classe).
   useEffect(() => {
     if (mine || !live || secs !== LIVE_MISSION_SECS) return;
     dispatch({ type: 'AD_REWARD', id: missionId(live.cat), points: LIVE_MISSION_POINTS, desc: `lives de ${catOf(live.cat).label}` });
@@ -515,7 +515,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                   </TouchableOpacity>
                 </View>
                 <Text style={styles.trayNote}>
-                  Quem transmite recebe {brl(cost.net)} em créditos de live (a taxa de {brl(cost.fee)} do Realys sai do presente). Você ganha +{giftPoints(cost.value, state.gifts.filter((x) => x.dir === 'enviado').length).total} pontos Realys., que viram moeda Realys.
+                  Quem transmite recebe {brl(cost.net)} em créditos de live (a taxa de {brl(cost.fee)} do Re@lys sai do presente). Você ganha +{giftPoints(cost.value, state.gifts.filter((x) => x.dir === 'enviado').length).total} pontos Re@lys., que viram moeda Re@lys.
                 </Text>
               </View>
             ) : null}

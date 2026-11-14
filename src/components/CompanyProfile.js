@@ -61,8 +61,8 @@ export function MediaList({ items, showOwner }) {
     setPlaying(playing === m.id ? null : m.id);
   };
   const buy = (m) => {
-    if (m.price > state.wallet) return Alert.alert('Saldo insuficiente', 'Adicione saldo Realys para comprar.');
-    Alert.alert(m.kind === 'obra' ? 'Comprar obra' : 'Comprar faixa', `${m.title} por ${brl(m.price)} com saldo Realys?`, [
+    if (m.price > state.wallet) return Alert.alert('Saldo insuficiente', 'Adicione saldo Re@lys para comprar.');
+    Alert.alert(m.kind === 'obra' ? 'Comprar obra' : 'Comprar faixa', `${m.title} por ${brl(m.price)} com saldo Re@lys?`, [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Comprar',
@@ -189,7 +189,7 @@ export function CompanyProfileModal() {
               <Ionicons name={following ? 'checkmark' : 'add'} size={16} color={following ? colors.primary : '#FFFFFF'} />
               <Text style={[styles.btnText, following && { color: colors.primary }]}>{following ? 'Seguindo' : 'Seguir'}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.btn, styles.btnOff, { marginLeft: 8 }]} onPress={() => Alert.alert('Mensagem', `Conversa com ${p.name} aberta no chat do Realys.`)}>
+            <TouchableOpacity style={[styles.btn, styles.btnOff, { marginLeft: 8 }]} onPress={() => Alert.alert('Mensagem', `Conversa com ${p.name} aberta no chat do Re@lys.`)}>
               <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary} />
               <Text style={[styles.btnText, { color: colors.primary }]}>Mensagem</Text>
             </TouchableOpacity>

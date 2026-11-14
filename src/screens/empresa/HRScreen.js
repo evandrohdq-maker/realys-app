@@ -28,7 +28,7 @@ export default function HRScreen() {
         title: form.title.trim(),
         salary,
         shift: form.shift.trim(),
-        desc: form.desc.trim() || 'Vaga anunciada pelo Realys.',
+        desc: form.desc.trim() || 'Vaga anunciada pelo Re@lys.',
         reqs: form.reqs.split(',').map((r) => r.trim()).filter(Boolean),
         area: form.area,
         type: form.type,
@@ -40,7 +40,7 @@ export default function HRScreen() {
 
   const setStatus = (job, cand, status) => {
     dispatch({ type: 'CANDIDATE_STATUS', jobId: job.id, candId: cand.id, status });
-    if (status === 'entrevista') Alert.alert('Entrevista', `Convite enviado para ${cand.name.split(' ')[0]} pelas mensagens do Realys.`);
+    if (status === 'entrevista') Alert.alert('Entrevista', `Convite enviado para ${cand.name.split(' ')[0]} pelas mensagens do Re@lys.`);
     if (status === 'contratado') Alert.alert('Contratação 🎉', `${cand.name} foi contratado(a). Na versão real, o cadastro segue para o eSocial e a folha.`);
   };
 

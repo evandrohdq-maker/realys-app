@@ -1,4 +1,4 @@
-// Avisos no estilo do Realys, no app inteiro (no lugar da caixa cinza do Android).
+// Avisos no estilo do Re@lys, no app inteiro (no lugar da caixa cinza do Android).
 // - Aviso simples (sem escolha, como "No carrinho"): um cartão suave que aparece em cima e some
 //   sozinho em poucos segundos. Tocar nele fecha na hora.
 // - Pergunta com escolha ("Apagar?", "Ligar agora?"): caixa clara com os botões no padrão do app

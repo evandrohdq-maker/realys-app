@@ -59,14 +59,14 @@ export default function walletRoutes(r, { db, cfg, wallet, hub, userById, biomet
     const asCompany = !!body.asCompany;
     if (asCompany && !JSON.parse(user.roles).includes('empresa')) fail(403, 'Só contas de empresa presenteiam como empresa.');
     const company = asCompany ? db.prepare('SELECT name FROM companies WHERE owner_id = ?').get(user.id) : null;
-    // Igual ao app: quem envia paga só o valor do presente; a taxa do Realys (10%) sai do presente.
+    // Igual ao app: quem envia paga só o valor do presente; a taxa do Re@lys (10%) sai do presente.
     // Gorjeta vai inteira para quem atendeu (sem taxa).
     const fee = body.tip ? 0 : wallet.giftFee(amount);
     const id = newId('gf');
     const fromName = company ? company.name : user.name;
     tx(db, () => {
       wallet.move(user.id, 'saldo', -amount, 'Presentes', `${body.tip ? 'Gorjeta' : 'Presente'} para ${to.name} (${brl(amount)})`, id);
-      wallet.move(to.id, 'presente', amount - fee, 'Presentes', `${body.tip ? 'Gorjeta' : 'Presente'} de ${fromName}${fee ? ` (taxa do Realys ${brl(fee)})` : ''}`, id);
+      wallet.move(to.id, 'presente', amount - fee, 'Presentes', `${body.tip ? 'Gorjeta' : 'Presente'} de ${fromName}${fee ? ` (taxa do Re@lys ${brl(fee)})` : ''}`, id);
       if (fee) wallet.move('realys', 'saldo', fee, 'Taxa de presente', `Taxa do presente ${id}`, id);
       if (fee) fiscal.registrar({ origem: 'taxa_presente', ref: id, tomadorId: user.id, valorCents: fee });
       db.prepare('INSERT INTO gifts (id, from_id, to_id, amount, fee, occasion, message, as_company, tip, created_at) VALUES (?,?,?,?,?,?,?,?,?,?)').run(
@@ -87,14 +87,14 @@ export default function walletRoutes(r, { db, cfg, wallet, hub, userById, biomet
     }))
   );
 
-  // Créditos de live → moeda Realys (1 crédito = 1 RLS).
+  // Créditos de live → moeda Re@lys (1 crédito = 1 RLS).
   r.post('/wallet/convert-live', ({ user, body }) => {
     const w = wallet.get(user.id);
     const amount = body.amount ? money(body.amount, 'conversão', { min: cfg.liveConvertMin }) : w.live_credits;
     if (amount < cfg.liveConvertMin * 100) fail(400, `Junte pelo menos ${cfg.liveConvertMin} créditos de live para converter.`);
     const id = newId('cv');
     tx(db, () => {
-      wallet.move(user.id, 'live', -amount, 'Lives', 'Convertido em moeda Realys', id);
+      wallet.move(user.id, 'live', -amount, 'Lives', 'Convertido em moeda Re@lys', id);
       wallet.move(user.id, 'saldo', amount, 'Lives', `Créditos de live convertidos (${(amount / 100).toFixed(2).replace('.', ',')} RLS)`, id);
     });
     return { converted: toReais(amount), wallet: view(user.id) };

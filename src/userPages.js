@@ -3,11 +3,11 @@
 //
 // Cada página escolhe como aparece:
 //  - Assinada: mostra "Assinada por <nome> ✓ verificado" e leva ao perfil do dono.
-//  - Anônima: o nome do dono não aparece para ninguém, mas a página mostra "Dono verificado pelo Realys".
-//    O Realys sabe quem é: a identidade só é revelada por ordem judicial. Por isso página anônima
+//  - Anônima: o nome do dono não aparece para ninguém, mas a página mostra "Dono verificado pelo Re@lys".
+//    O Re@lys sabe quem é: a identidade só é revelada por ordem judicial. Por isso página anônima
 //    continua sujeita à IA contra notícias falsas, às denúncias e ao bloqueio, como tudo no app.
 // Regras das anônimas: não pode se passar por pessoa, empresa ou órgão real, nem vender (vendas são
-// assinadas, para a Garantia Realys funcionar).
+// assinadas, para a Garantia Re@lys funcionar).
 const photo = (seed, w = 800, h = 400) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
 
 export const MAX_PAGES = 5; // páginas por usuário
@@ -67,7 +67,7 @@ export const DEMO_PAGES = [
 ];
 
 // Como a página assina: o dono verificado (assinada) ou "dono verificado" sem nome (anônima).
-export const signatureOf = (pg) => (pg.anon ? 'Página anônima · dono verificado pelo Realys' : `Assinada por ${pg.ownerName} · verificado`);
+export const signatureOf = (pg) => (pg.anon ? 'Página anônima · dono verificado pelo Re@lys' : `Assinada por ${pg.ownerName} · verificado`);
 
 export const myPages = (state) => (state.userPages || []).filter((p) => p.ownerId === 'me');
 export const pageById = (state, id) => (state.userPages || []).find((p) => p.id === id) || null;
@@ -88,7 +88,7 @@ export function pageNameProblem(name, anon, state) {
 
 export const PAGE_RULES = [
   'A página é sua e fica ligada à sua conta verificada por biometria.',
-  'Anônima: seu nome não aparece, mas o Realys sabe quem é e só revela por ordem judicial.',
+  'Anônima: seu nome não aparece, mas o Re@lys sabe quem é e só revela por ordem judicial.',
   'Página anônima não pode se passar por pessoa, empresa ou órgão real, nem vender produtos.',
   'Todo post passa pela IA contra notícias falsas; fake news não é publicada e pode bloquear a página.',
 ];

@@ -1,4 +1,4 @@
-// Central de segurança do Realys: tudo que hoje fica só no celular passa a chegar aqui, em tempo real.
+// Central de segurança do Re@lys: tudo que hoje fica só no celular passa a chegar aqui, em tempo real.
 //   - chave do motorista ("Lotus" + frase secreta), resposta de segurança (coação), Lotus Denúncia
 //     ("estou em perigo" e denúncias) e Lotus Emergência;
 //   - a central (administradores) recebe na hora pelo WebSocket, marca "atendido" ou "chamada falsa";

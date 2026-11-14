@@ -1,4 +1,4 @@
-// Cadastro biométrico do Realys: consentimento -> envio (rosto + documento) -> análise -> decisão.
+// Cadastro biométrico do Re@lys: consentimento -> envio (rosto + documento) -> análise -> decisão.
 // Regras de segurança:
 // - O vetor do rosto é guardado CIFRADO. As fotos são apagadas assim que a decisão é tomada.
 // - Só entra como "aprovado" quando a prova de vida passa, o rosto do documento bate com o do envio

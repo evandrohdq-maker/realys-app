@@ -1,4 +1,4 @@
-// IA verificadora do Realys (dentro do celular, sem servidor): confere posts e depoimentos antes de
+// IA verificadora do Re@lys (dentro do celular, sem servidor): confere posts e depoimentos antes de
 // entrarem na plataforma e no conhecimento da Lotus.
 //
 //   falso     -> não é publicado, sai da plataforma e do conhecimento da Lotus. A afirmação fica

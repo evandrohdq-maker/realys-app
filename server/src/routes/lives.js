@@ -74,7 +74,7 @@ export default function livesRoutes(r, { db, wallet, hub, fiscal }) {
     const fee = wallet.giftFee(value);
     const id = newId('lg');
     tx(db, () => {
-      // Igual ao app: quem envia paga só o valor; os 10% do Realys saem do presente.
+      // Igual ao app: quem envia paga só o valor; os 10% do Re@lys saem do presente.
       wallet.move(user.id, 'saldo', -value, 'Presentes', `Live de ${l.host_name}: ${body.gift}${qty > 1 ? ` x${qty}` : ''}`, id);
       wallet.move(l.host_id, 'live', value - fee, 'Lives', `${user.name} enviou ${body.gift}${qty > 1 ? ` x${qty}` : ''} na live "${l.title}"`, id);
       if (fee) wallet.move('realys', 'saldo', fee, 'Taxa de presente', `Taxa do presente de live ${id}`, id);

@@ -1,4 +1,4 @@
-// Carteira Realys: saldo, depositar, sacar, extrato (depósitos, gastos, recebidos e saques)
+// Carteira Re@lys: saldo, depositar, sacar, extrato (depósitos, gastos, recebidos e saques)
 // e o balanço do mês com gastos por categoria e um limite de gastos definido pelo usuário.
 // Vale para qualquer conta: o usuário que consome e o prestador que recebe pelos serviços.
 import React, { useMemo, useState } from 'react';
@@ -140,7 +140,7 @@ export default function WalletScreen({ visible, onClose }) {
           <View style={styles.balanceCard}>
             <Text style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '600' }}>Saldo disponível</Text>
             <Text style={styles.balance}>{brl(state.wallet)}</Text>
-            <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>Moeda Realys · 1 RLS = R$ 1,00 na demonstração</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>Moeda Re@lys · 1 RLS = R$ 1,00 na demonstração</Text>
             <View style={{ flexDirection: 'row', marginTop: 14 }}>
               <BigBtn icon="add-circle-outline" label="Depositar" onPress={() => setAction('deposito')} />
               <BigBtn icon="arrow-up-circle-outline" label="Sacar" onPress={() => setAction('saque')} style={{ marginLeft: 8 }} />
@@ -148,7 +148,7 @@ export default function WalletScreen({ visible, onClose }) {
             </View>
           </View>
 
-          {/* Créditos de presente: não sacam, só compram no Realys */}
+          {/* Créditos de presente: não sacam, só compram no Re@lys */}
           <View style={styles.giftCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Ionicons name="gift" size={22} color={colors.primary} />
@@ -158,7 +158,7 @@ export default function WalletScreen({ visible, onClose }) {
               </View>
             </View>
             <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6, lineHeight: 16 }}>
-              Para usar dentro do Realys: lojas, Food, Shop, Tecnologia, Agro e contratação de serviços. São usados primeiro, antes do saldo. Para sacar, junte {CASHOUT_MIN_POINTS.toLocaleString('pt-BR')} pontos em presentes recebidos (abaixo).
+              Para usar dentro do Re@lys: lojas, Food, Shop, Tecnologia, Agro e contratação de serviços. São usados primeiro, antes do saldo. Para sacar, junte {CASHOUT_MIN_POINTS.toLocaleString('pt-BR')} pontos em presentes recebidos (abaixo).
             </Text>
             <GiftCashout />
             {state.gifts.slice(0, 6).map((g) => (
@@ -179,11 +179,11 @@ export default function WalletScreen({ visible, onClose }) {
               </View>
             ))}
             <Text style={{ color: colors.muted, fontSize: 10, marginTop: 8 }}>
-              Presentear sai do seu saldo, com taxa de {GIFT_FEE_PCT}% do Realys. Quem recebe não precisa aceitar: entra na hora.
+              Presentear sai do seu saldo, com taxa de {GIFT_FEE_PCT}% do Re@lys. Quem recebe não precisa aceitar: entra na hora.
             </Text>
           </View>
 
-          {/* Créditos de live: presentes recebidos nas minhas lives, que viram moeda Realys */}
+          {/* Créditos de live: presentes recebidos nas minhas lives, que viram moeda Re@lys */}
           <View style={styles.liveCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <View style={styles.liveIcon}>
@@ -198,7 +198,7 @@ export default function WalletScreen({ visible, onClose }) {
                 onPress={() => {
                   if (state.liveCredits < LIVE_CONVERT_MIN) return Alert.alert('Ainda não dá', `Junte pelo menos ${LIVE_CONVERT_MIN} créditos de live para converter.`);
                   const v = state.liveCredits;
-                  Alert.alert('Converter em moeda Realys', `${brl(v)} em créditos de live viram ${v.toFixed(2).replace('.', ',')} RLS em créditos de presente, para usar no Realys. Para sacar, use o saque de presentes recebidos. Confirmar?`, [
+                  Alert.alert('Converter em moeda Re@lys', `${brl(v)} em créditos de live viram ${v.toFixed(2).replace('.', ',')} RLS em créditos de presente, para usar no Re@lys. Para sacar, use o saque de presentes recebidos. Confirmar?`, [
                     { text: 'Cancelar', style: 'cancel' },
                     { text: 'Converter', onPress: () => dispatch({ type: 'CONVERT_LIVE_CREDITS', amount: v }) },
                   ]);
@@ -209,7 +209,7 @@ export default function WalletScreen({ visible, onClose }) {
               </TouchableOpacity>
             </View>
             <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6, lineHeight: 16 }}>
-              Presentes que você ganha quando transmite ao vivo. Converta em moeda Realys (1 crédito = 1 RLS) para usar dentro do app. Eles também contam para o saque de presentes recebidos.
+              Presentes que você ganha quando transmite ao vivo. Converta em moeda Re@lys (1 crédito = 1 RLS) para usar dentro do app. Eles também contam para o saque de presentes recebidos.
             </Text>
             {state.liveGifts.slice(0, 5).map((g) => {
               const lg = liveGiftOf(g.gift);
@@ -226,7 +226,7 @@ export default function WalletScreen({ visible, onClose }) {
             })}
           </View>
 
-          {/* Clube Realys: nível, bônus a cada 20 pedidos e selos por loja */}
+          {/* Clube Re@lys: nível, bônus a cada 20 pedidos e selos por loja */}
           {(() => {
             const ly = state.loyalty || initialLoyalty;
             const lvl = levelOf(ly.orders);
@@ -238,7 +238,7 @@ export default function WalletScreen({ visible, onClose }) {
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <Text style={{ fontSize: 26 }}>{lvl.icon}</Text>
                   <View style={{ flex: 1, marginLeft: 10 }}>
-                    <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '700' }}>Clube Realys · nível {lvl.label}</Text>
+                    <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '700' }}>Clube Re@lys · nível {lvl.label}</Text>
                     <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{ly.orders} pedidos entregues</Text>
                   </View>
                 </View>
@@ -266,17 +266,17 @@ export default function WalletScreen({ visible, onClose }) {
             );
           })()}
 
-          {/* Pontos Realys: ganha avaliando, comprando e assistindo; troca só por boosts e anúncios */}
+          {/* Pontos Re@lys: ganha avaliando, comprando e assistindo; troca só por boosts e anúncios */}
           <View style={styles.pointsCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Ionicons name="trophy" size={22} color={colors.primary} />
               <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '700' }}>Pontos Realys</Text>
+                <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '700' }}>Pontos Re@lys</Text>
                 <Text style={{ color: colors.text, fontSize: 24, fontWeight: '800' }}>{state.points.toLocaleString('pt-BR')} pontos</Text>
               </View>
             </View>
             <Text style={{ color: colors.muted, fontSize: 11, marginTop: 4, lineHeight: 16 }}>
-              Ganhe {POINTS_PER_RATING} pontos a cada avaliação (+{POINTS_COMMENT_BONUS} com comentário), comprando, mandando presentes e assistindo lives e clipes (até {POINT_RULES.watchDailyCap} por dia). A cada 1.000 pontos, você tem R$ 10 para anúncios e boosts do Realys. Pontos não viram saldo, não são sacados e vencem em {POINT_RULES.validityMonths} meses.
+              Ganhe {POINTS_PER_RATING} pontos a cada avaliação (+{POINTS_COMMENT_BONUS} com comentário), comprando, mandando presentes e assistindo lives e clipes (até {POINT_RULES.watchDailyCap} por dia). A cada 1.000 pontos, você tem R$ 10 para anúncios e boosts do Re@lys. Pontos não viram saldo, não são sacados e vencem em {POINT_RULES.validityMonths} meses.
             </Text>
             {(state.promoCredits || []).filter((pc) => !pc.used).length ? (
               <>

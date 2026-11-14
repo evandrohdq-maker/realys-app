@@ -90,7 +90,7 @@ export function UserProfileModal() {
   const close = () => dispatch({ type: 'CLOSE_PROFILE' });
   const friendsCount = m.friends + (st === 'amigo' ? 1 : 0);
 
-  const contact = { id: m.id, name: m.name, status: st === 'amigo' ? 'amigo no Realys' : 'pessoa verificada', photo: m.photo };
+  const contact = { id: m.id, name: m.name, status: st === 'amigo' ? 'amigo no Re@lys' : 'pessoa verificada', photo: m.photo };
   const conv = state.conversations.find((c) => c.contactId === m.id);
   const openChat = () => {
     if (!conv) dispatch({ type: 'UPDATE_CONVS', fn: (cs) => [{ id: 'm' + Date.now(), contactId: m.id, unread: 0, messages: [], extra: contact }, ...cs] });
@@ -125,7 +125,7 @@ export function UserProfileModal() {
           </View>
 
           <LiveNowBadge hostType="usuario" hostId={m.id} />
-          {st === 'recebido' ? <Text style={styles.ask}>{m.name.split(' ')[0]} quer ser seu amigo no Realys.</Text> : null}
+          {st === 'recebido' ? <Text style={styles.ask}>{m.name.split(' ')[0]} quer ser seu amigo no Re@lys.</Text> : null}
           {/* Pedido recebido: Aceitar/Recusar numa linha só deles, para não ficar por cima da Mensagem. */}
           {st === 'recebido' ? (
             <View style={{ marginTop: 12 }}>
@@ -181,7 +181,7 @@ export function UserProfileModal() {
         messages={(state.conversations.find((c) => c.contactId === m.id) || {}).messages || []}
         onClose={() => setChat(null)}
         onSend={(msg) => dispatch({ type: 'UPDATE_CONVS', fn: (cs) => cs.map((c) => (c.contactId === m.id ? { ...c, messages: [...c.messages, msg] } : c)) })}
-        onVideo={() => Alert.alert('Chamada de vídeo', `Ligando para ${m.name} pela Realys.`)}
+        onVideo={() => Alert.alert('Chamada de vídeo', `Ligando para ${m.name} pela Re@lys.`)}
       />
     </Modal>
   );
@@ -196,7 +196,7 @@ function Stat({ n, label }) {
   );
 }
 
-// Busca de pessoas na rede Realys, por nome ou @usuário.
+// Busca de pessoas na rede Re@lys, por nome ou @usuário.
 export function PeopleSearchModal({ visible, onClose, navigate }) {
   const { state, dispatch } = useStore();
   const insets = useSafeAreaInsets();
@@ -272,7 +272,7 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
             ) : (
               <>
                 <Empty text={`Ninguém encontrado com "${q.trim()}". Confira o nome ou peça o @usuário da pessoa.`} />
-                {searched ? <GlobalResults query={searched} navigate={navigate ? (go) => { onClose(); navigate(go); } : null} title="Achei em outras partes do Realys" hideEmpty /> : null}
+                {searched ? <GlobalResults query={searched} navigate={navigate ? (go) => { onClose(); navigate(go); } : null} title="Achei em outras partes do Re@lys" hideEmpty /> : null}
               </>
             )
           ) : (
@@ -299,7 +299,7 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
               {suggestions.map((m) => (
                 <PersonRow key={m.id} m={m} onOpen={() => open(m)} />
               ))}
-              <Text style={styles.tip}>Dica: peça para a pessoa te passar o nome ou o @usuário dela no Realys e digite aqui.</Text>
+              <Text style={styles.tip}>Dica: peça para a pessoa te passar o nome ou o @usuário dela no Re@lys e digite aqui.</Text>
             </>
           )}
         </ScrollView>

@@ -3,7 +3,7 @@
 //
 // Como funciona o depoimento:
 // 1. Alguém escreve um depoimento para o perfil de um amigo.
-// 2. A Realys analisa o texto (ofensas, golpes, links, dados pessoais) antes de entregar.
+// 2. A Re@lys analisa o texto (ofensas, golpes, links, dados pessoais) antes de entregar.
 // 3. O dono do perfil recebe em "Depoimentos para aprovar" e decide: Aceitar ou Recusar.
 // 4. Só os aceitos ficam expostos no perfil e aparecem no feed, abaixo dos stories,
 //    para as pessoas curtirem, comentarem e compartilharem.
@@ -27,7 +27,7 @@ export const initialTestimonials = [
   },
   {
     id: 't3', from: 'u3', to: 'u8', status: 'aprovado', time: 'há 3 h', likes: 76, shares: 9,
-    text: 'Fernanda é a professora mais paciente que já conheci. Em três meses de aula ao vivo aqui no Realys eu perdi o medo de falar inglês. Thank you, teacher! ✈️',
+    text: 'Fernanda é a professora mais paciente que já conheci. Em três meses de aula ao vivo aqui no Re@lys eu perdi o medo de falar inglês. Thank you, teacher! ✈️',
     comments: [],
   },
   {
@@ -63,7 +63,7 @@ export const initialTestimonials = [
 ];
 
 // Análise automática antes de entregar ao dono do perfil.
-// Na versão real é a IA da Realys; aqui, regras simples para a demonstração.
+// Na versão real é a IA da Re@lys; aqui, regras simples para a demonstração.
 const BLOCKED = ['idiota', 'burro', 'otario', 'otário', 'lixo', 'vagabund', 'golpe', 'piranha', 'merda', 'porra', 'caralho', 'fdp'];
 const SCAM = ['pix', 'deposita', 'transfere', 'whatsapp', 'ganhe dinheiro', 'renda extra', 'clique no link'];
 
@@ -74,7 +74,7 @@ export function analyzeTestimonial(text) {
   if (t.length > 600) return { ok: false, reason: 'O depoimento pode ter no máximo 600 letras.' };
   if (/https?:\/\/|www\.|\.com\b|\.com\.br\b/.test(low)) return { ok: false, reason: 'Depoimentos não podem ter links. Isso protege a rede contra golpes.' };
   if (/\d{4,}[\s.-]?\d{4,}/.test(low) || /\d{3}\.?\d{3}\.?\d{3}-?\d{2}/.test(low)) return { ok: false, reason: 'Não coloque telefone, CPF ou outros números pessoais no depoimento.' };
-  if (BLOCKED.some((w) => low.includes(w))) return { ok: false, reason: 'A Realys encontrou palavras ofensivas. Reescreva com respeito, por favor.' };
+  if (BLOCKED.some((w) => low.includes(w))) return { ok: false, reason: 'A Re@lys encontrou palavras ofensivas. Reescreva com respeito, por favor.' };
   if (SCAM.some((w) => low.includes(w))) return { ok: false, reason: 'Parece pedido de dinheiro ou propaganda. Depoimento é para falar da pessoa.' };
   return { ok: true };
 }

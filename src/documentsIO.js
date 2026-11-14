@@ -12,10 +12,10 @@ import { contentOf, docHtml, docTitle } from './documents';
 // Código do documento: muda se qualquer letra do conteúdo mudar.
 export const hashOf = (doc) => Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, contentOf(doc));
 
-// Assinar no Realys: confirma com a digital/rosto do celular.
+// Assinar no Re@lys: confirma com a digital/rosto do celular.
 export async function signWithBiometric(label) {
   const r = await confirmBiometric(`Assinar: ${label}`);
-  // Celular sem digital/rosto cadastrado: vale a biometria facial do cadastro do Realys (já verificada).
+  // Celular sem digital/rosto cadastrado: vale a biometria facial do cadastro do Re@lys (já verificada).
   return r === 'ok' || r === 'sem';
 }
 

@@ -1,13 +1,13 @@
-// Módulo fiscal do Realys.
+// Módulo fiscal do Re@lys.
 //
-// 1. Toda taxa que o Realys cobra (comissão, taxa de presente, proteção, visita, planos) vira uma RECEITA
+// 1. Toda taxa que o Re@lys cobra (comissão, taxa de presente, proteção, visita, planos) vira uma RECEITA
 //    (fiscal_receitas), gravada junto com o movimento do dinheiro, na mesma transação.
 // 2. A cada FISCAL_INTERVALO_MIN minutos, as receitas viram NOTAS (fiscal_notas): uma por receita, por dia
 //    ou por mês por cliente (FISCAL_AGRUPAR), com o imposto estimado.
 // 3. As notas são assinadas e enviadas ao Sistema Nacional NFS-e. Erro de instabilidade tenta de novo
 //    sozinho (até 5 vezes); erro de dado fica para o administrador corrigir e reenviar.
 // 4. Pedido cancelado: a receita some se a nota ainda não saiu; se já saiu, a nota é cancelada.
-// 5. Lojas que ligarem "emitir pelo Realys" têm a NF-e de produto emitida pelo emissor parceiro.
+// 5. Lojas que ligarem "emitir pelo Re@lys" têm a NF-e de produto emitida pelo emissor parceiro.
 //
 // Com FISCAL_ATIVO=false (padrão) as receitas são registradas e o resumo funciona, mas nenhuma nota é
 // enviada. Assim o histórico já fica pronto para quando o CNPJ e o certificado estiverem em mãos.
@@ -21,10 +21,10 @@ import { infoCertificado } from './xml.js';
 
 const MAX_TENTATIVAS = 5;
 const ORIGENS = {
-  comissao_pedido: 'Intermediação de venda no Realys',
+  comissao_pedido: 'Intermediação de venda no Re@lys',
   taxa_presente: 'Serviço de envio de presente digital',
   taxa_live: 'Serviço de presente em transmissão ao vivo',
-  taxa_protecao: 'Taxa de proteção Realys (garantia do pedido)',
+  taxa_protecao: 'Taxa de proteção Re@lys (garantia do pedido)',
   taxa_visita: 'Intermediação de serviço (taxa de visita)',
   plano: 'Plano de divulgação para empresas',
   anuncio: 'Anúncio e destaque na plataforma',
@@ -56,7 +56,7 @@ export function makeFiscal({ db, cfg, hub, clients = {} }) {
   function pendenciasConfig() {
     const falta = [];
     if (!cfg.fiscalAtivo) falta.push('FISCAL_ATIVO=true (ligar só depois do contador conferir)');
-    if (!/^\d{14}$/.test(String(cfg.fiscalCnpj).replace(/\D/g, ''))) falta.push('FISCAL_CNPJ (CNPJ do Realys)');
+    if (!/^\d{14}$/.test(String(cfg.fiscalCnpj).replace(/\D/g, ''))) falta.push('FISCAL_CNPJ (CNPJ do Re@lys)');
     if (!/^\d{7}$/.test(String(cfg.fiscalMunicipio))) falta.push('FISCAL_MUNICIPIO (código IBGE da cidade da empresa)');
     if (!OP_SIMP_NAC[cfg.fiscalRegime]) falta.push('FISCAL_REGIME (simples, presumido ou mei)');
     // Regime regular é obrigado a destacar CBS e IBS na nota desde 2026 (grupo IBSCBS do leiaute 1.01).
@@ -270,7 +270,7 @@ export function makeFiscal({ db, cfg, hub, clients = {} }) {
     }
     if (regime === 'simples' && cfg.fiscalAnexo === 'fatorR' && anexo === 'V') {
       const falta = Math.max(0, Math.ceil(base * 0.28) - folha());
-      avisos.push(`Fator R de ${Math.round(fr.fatorR * 100)}%: o Realys está no Anexo V (a partir de 15,5%). Com mais R$ ${(falta / 100).toFixed(2)} de folha ou pró-labore nos 12 meses, passa para o Anexo III (a partir de 6%). Veja com o contador.`);
+      avisos.push(`Fator R de ${Math.round(fr.fatorR * 100)}%: o Re@lys está no Anexo V (a partir de 15,5%). Com mais R$ ${(falta / 100).toFixed(2)} de folha ou pró-labore nos 12 meses, passa para o Anexo III (a partir de 6%). Veja com o contador.`);
     }
     if (regime === 'simples' && aliquotaSimples(base, anexo).faixa >= 5) avisos.push('Faturamento perto do teto do Simples: hora de o contador avaliar o Lucro Presumido.');
     if (certificado?.diasParaVencer != null && certificado.diasParaVencer < 30) avisos.push(`O certificado digital vence em ${certificado.diasParaVencer} dias: renove para as notas não pararem.`);
@@ -285,7 +285,7 @@ export function makeFiscal({ db, cfg, hub, clients = {} }) {
     };
   }
 
-  // Situação de MEI de uma pessoa (prestador ou loja MEI): quanto recebeu no ano pelo Realys.
+  // Situação de MEI de uma pessoa (prestador ou loja MEI): quanto recebeu no ano pelo Re@lys.
   function meiDe(userId, ano = new Date().getFullYear()) {
     const ini = new Date(`${ano}-01-01T03:00:00Z`).getTime();
     const v = db.prepare("SELECT COALESCE(SUM(amount),0) AS v FROM ledger WHERE user_id = ? AND bucket = 'saldo' AND amount > 0 AND cat IN ('Vendas','Serviços') AND created_at >= ?").get(userId, ini).v;

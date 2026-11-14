@@ -1,4 +1,4 @@
-// Contas do Realys guardadas NO CELULAR (versão de demonstração, sem servidor).
+// Contas do Re@lys guardadas NO CELULAR (versão de demonstração, sem servidor).
 //
 // - Cadastro: as contas criadas em "Cadastre-se" ficam no aparelho, com a senha
 //   guardada só como "impressão digital" (hash SHA-256 com sal), nunca a senha em si.
@@ -141,7 +141,7 @@ export async function checkPassword(acc, password) {
 }
 
 // Cria a conta. Devolve { account } ou { error }.
-// O Realys é só para maiores de 18 anos. Idade a partir de "DD/MM/AAAA" (null se a data for inválida).
+// O Re@lys é só para maiores de 18 anos. Idade a partir de "DD/MM/AAAA" (null se a data for inválida).
 export function ageFromBirth(birth) {
   const m = String(birth || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (!m) return null;
@@ -155,7 +155,7 @@ export function ageFromBirth(birth) {
 }
 
 export async function createAccount({ kind, name, doc, username, email, phone, password, social = null, about = '', work = '', birth = null }) {
-  if (kind !== 'empresa' && !(ageFromBirth(birth) >= 18)) return { error: 'O Realys é só para maiores de 18 anos.' };
+  if (kind !== 'empresa' && !(ageFromBirth(birth) >= 18)) return { error: 'O Re@lys é só para maiores de 18 anos.' };
   const list = await loadAccounts();
   const d = onlyDigits(doc);
   const u = cleanUsername(username);
@@ -244,7 +244,7 @@ export async function forgetUser(key) {
 // ---------- Biometria ----------
 
 // 'ok' = confirmou · 'sem' = aparelho sem digital/rosto cadastrado · 'falhou' = cancelou ou não reconheceu
-export async function confirmBiometric(message = 'Confirme que é você para entrar no Realys') {
+export async function confirmBiometric(message = 'Confirme que é você para entrar no Re@lys') {
   try {
     const hasHw = await LocalAuthentication.hasHardwareAsync();
     const enrolled = await LocalAuthentication.isEnrolledAsync();

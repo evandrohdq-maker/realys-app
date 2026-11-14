@@ -40,7 +40,7 @@ function detect(value) {
 // CNPJ → empresa e fornecedor (e também cliente); CPF ou usuário → cliente e prestador.
 function demoUser(value, info) {
   if (info.kind === 'cnpj') return { name: 'Minha Empresa', roles: ['empresa', 'fornecedor', 'cliente'], cnpj: info.doc };
-  if (info.kind === 'cpf') return { name: 'Usuário Realys', roles: ['cliente', 'prestador'], cpf: info.doc, cnpj: '12.345.678/0001-90' };
+  if (info.kind === 'cpf') return { name: 'Usuário Re@lys', roles: ['cliente', 'prestador'], cpf: info.doc, cnpj: '12.345.678/0001-90' };
   const name = value.trim().replace(/^@/, '');
   return { name: name.charAt(0).toUpperCase() + name.slice(1), roles: ['cliente', 'prestador'], cnpj: '12.345.678/0001-90' };
 }
@@ -204,7 +204,7 @@ export default function LoginScreen() {
           <SignupForm onDone={onSignedUp} onGoLogin={() => setMode('entrar')} />
         ) : !showForm && saved.length ? (
           <View style={styles.panel}>
-            <Text style={styles.label}>Quem vai usar o Realys?</Text>
+            <Text style={styles.label}>Quem vai usar o Re@lys?</Text>
             <Text style={styles.sub}>Contas salvas neste aparelho. Toque e confirme com a biometria.</Text>
             {saved.map((s) => {
               const icon = KIND_ICON[s.user.roles[0]] || 'person-outline';

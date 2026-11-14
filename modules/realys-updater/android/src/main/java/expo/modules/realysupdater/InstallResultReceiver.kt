@@ -7,7 +7,7 @@ import android.content.pm.PackageInstaller
 import android.os.Build
 
 // Resultado da instalação. Se o Android pedir confirmação (Android antigo ou primeira vez),
-// abre a tela dele. Sucesso no próprio app: o Android fecha o Realys e o UpdatedReceiver reabre.
+// abre a tela dele. Sucesso no próprio app: o Android fecha o Re@lys e o UpdatedReceiver reabre.
 class InstallResultReceiver : BroadcastReceiver() {
   companion object {
     var listener: ((String, String?) -> Unit)? = null

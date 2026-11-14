@@ -1,4 +1,4 @@
-// Tema claro do Realys: fundo marfim luminoso, dourado de glória e azul-céu.
+// Tema claro do Re@lys: fundo marfim luminoso, dourado de glória e azul-céu.
 export const colors = {
   primary: '#A8790A', // dourado
   primaryDark: '#7A5806',

@@ -1,15 +1,15 @@
-// Vídeo do Realys: lives pelo servidor de vídeo próprio e chamadas de vídeo direto entre celulares.
+// Vídeo do Re@lys: lives pelo servidor de vídeo próprio e chamadas de vídeo direto entre celulares.
 //
 // LIVES (muitas pessoas assistindo)
 //   O streamer manda UM vídeo para o servidor de vídeo (MediaMTX, na VPS de vídeo) e o servidor
-//   distribui para quem assiste. Só usuários do Realys logados assistem: cada pessoa recebe um passe
-//   assinado (token) que vale só para aquela live e por pouco tempo. O MediaMTX pergunta ao Realys,
+//   distribui para quem assiste. Só usuários do Re@lys logados assistem: cada pessoa recebe um passe
+//   assinado (token) que vale só para aquela live e por pouco tempo. O MediaMTX pergunta ao Re@lys,
 //   em POST /video/auth, se cada passe é válido antes de deixar transmitir ou assistir.
 //   - POST /lives/:id/stream  → quem transmite pega o endereço de envio (WHIP) e o passe.
 //   - GET  /lives/:id/watch   → quem assiste pega o endereço (WHEP, e HLS para o futuro) e o passe.
 //
 // CHAMADAS (1 para 1: consulta online, chamada entre amigos, atendimento de prestador)
-//   O vídeo vai direto de um celular para o outro (WebRTC), sem passar pelo servidor. O Realys só
+//   O vídeo vai direto de um celular para o outro (WebRTC), sem passar pelo servidor. O Re@lys só
 //   apresenta um celular ao outro (sinalização) e, quando a rede não deixa a ligação direta, entrega
 //   um retransmissor (TURN, no mesmo servidor de vídeo) com senha que expira.
 //   - GET /video-calls/ice, POST /video-calls, POST /video-calls/:id/answer, /signal, /end
@@ -90,7 +90,7 @@ export default function videoRoutes(r, { db, cfg, hub, publicUser, userById }) {
   const off = () => fail(503, 'O servidor de vídeo ainda não foi contratado. As lives seguem no modo demonstração.', 'video_off');
   const base = () => cfg.videoUrl.replace(/\/$/, '');
 
-  // Servidores para a ligação direta: STUN público e o TURN do Realys (senha temporária, padrão do coturn).
+  // Servidores para a ligação direta: STUN público e o TURN do Re@lys (senha temporária, padrão do coturn).
   const iceFor = (userId) => {
     const ice = [{ urls: ['stun:stun.l.google.com:19302'] }];
     if (cfg.turnUrl && cfg.turnSecret) {

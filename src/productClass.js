@@ -1,5 +1,5 @@
 // Classificação automática dos produtos que as lojas cadastram: pelo nome (e pela descrição) o
-// Realys descobre o setor e o subgrupo do Shop (ex.: "Tênis Casual Unissex" → Vestuário › Calçados).
+// Re@lys descobre o setor e o subgrupo do Shop (ex.: "Tênis Casual Unissex" → Vestuário › Calçados).
 // Funciona dentro do celular, com o mesmo modelo de linguagem da Lotus: primeiro procura palavras
 // conhecidas; se não achar, compara o sentido das palavras com exemplos de cada subgrupo.
 import { sentenceVector } from './lm/lotusLM';

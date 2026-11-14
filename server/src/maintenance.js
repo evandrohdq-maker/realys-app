@@ -1,4 +1,4 @@
-// Manutenção do Realys: backup do banco, checagem de integridade, retenção (apagar o que venceu),
+// Manutenção do Re@lys: backup do banco, checagem de integridade, retenção (apagar o que venceu),
 // troca de chave de criptografia, limpeza de arquivos soltos e saúde do serviço de IA.
 // Roda sozinha todo dia (MAINTENANCE_HOURS) e também pode ser disparada pelo administrador.
 import { mkdirSync, readdirSync, statSync, unlinkSync, existsSync, copyFileSync } from 'node:fs';

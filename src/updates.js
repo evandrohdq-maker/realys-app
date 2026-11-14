@@ -1,11 +1,11 @@
 // Atualização do APK por dentro do próprio app.
 // Com o módulo nativo RealysUpdater (Android 12+), a atualização é automática: o app baixa,
 // se instala por cima sozinho (sem a tela "Deseja atualizar?"), apaga o arquivo e reabre.
-// O Android só exige, uma única vez, a chave "Instalar apps desconhecidos" do Realys ligada.
+// O Android só exige, uma única vez, a chave "Instalar apps desconhecidos" do Re@lys ligada.
 // Sem o módulo (ou Android antigo), cai no instalador normal do Android, como antes.
 // Cada APK sabe o número da própria versão (src/build.json, gravado pelo GitHub na hora de gerar).
 // Ao abrir, o app pergunta ao GitHub qual é a versão mais nova publicada em Releases.
-// Se for maior, o próprio Realys baixa o APK para a pasta interna dele (não vai para Downloads),
+// Se for maior, o próprio Re@lys baixa o APK para a pasta interna dele (não vai para Downloads),
 // abre o instalador do Android por cima do app atual (mesmo pacote e mesma assinatura = atualização,
 // não um app novo) e depois apaga o arquivo. Nada fica sobrando no celular.
 import { Platform } from 'react-native';
@@ -21,7 +21,7 @@ try {
   Native = null;
 }
 
-// O celular aceita atualizar o Realys sozinho, sem perguntar? (Android 12+ com o módulo)
+// O celular aceita atualizar o Re@lys sozinho, sem perguntar? (Android 12+ com o módulo)
 export const supportsAutoUpdate = () => {
   try {
     return Platform.OS === 'android' && !!Native && Native.supportsSilentUpdate();
@@ -29,7 +29,7 @@ export const supportsAutoUpdate = () => {
     return false;
   }
 };
-// A chave "Instalar apps desconhecidos" do Realys já foi ligada?
+// A chave "Instalar apps desconhecidos" do Re@lys já foi ligada?
 export const hasInstallPermission = () => {
   try {
     return !Native || Native.canRequestInstalls();
@@ -114,13 +114,13 @@ export async function installUpdate(url, onStage) {
     }
   }
   // VIEW + tipo de pacote abre o instalador do sistema. O flag 1 (FLAG_GRANT_READ_URI_PERMISSION)
-  // deixa o instalador ler o arquivo, que continua privado do Realys.
+  // deixa o instalador ler o arquivo, que continua privado do Re@lys.
   await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
     data: file.contentUri,
     type: 'application/vnd.android.package-archive',
     flags: 1,
   });
   // Não apaga aqui: o instalador ainda pode estar lendo o arquivo.
-  // Ele fica na pasta privada do Realys (invisível para a pessoa) e é apagado na próxima abertura.
+  // Ele fica na pasta privada do Re@lys (invisível para a pessoa) e é apagado na próxima abertura.
   return 'intent';
 }

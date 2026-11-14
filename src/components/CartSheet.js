@@ -45,7 +45,7 @@ export default function CartSheet({ onOrders }) {
   const finish = () => {
     dispatch({ type: 'CHECKOUT' });
     close();
-    Alert.alert('Pedido confirmado! ✅', 'Pagamento protegido: o valor fica retido pelo Realys e só é liberado para a loja quando você confirmar a entrega.', [
+    Alert.alert('Pedido confirmado! ✅', 'Pagamento protegido: o valor fica retido pelo Re@lys e só é liberado para a loja quando você confirmar a entrega.', [
       { text: 'Ver pedidos', onPress: () => onOrders && onOrders() },
       { text: 'OK' },
     ]);
@@ -115,9 +115,9 @@ export default function CartSheet({ onOrders }) {
               <InstallSuggest names={lines.map((l) => l.p.name)} onGo={close} />
 
               <View style={styles.sum}>
-                {/* Taxa de proteção Realys: aparece desde o primeiro item, com a explicação ao tocar. */}
-                <TouchableOpacity onPress={() => Alert.alert('Taxa de proteção Realys', PROTECTION_TEXT)} style={styles.sumRow} accessibilityLabel="O que é a taxa de proteção Realys">
-                  <Text style={styles.sumLabel}>🛡️ Taxa de proteção Realys <Text style={{ color: colors.primary, fontWeight: '700' }}>ⓘ</Text></Text>
+                {/* Taxa de proteção Re@lys: aparece desde o primeiro item, com a explicação ao tocar. */}
+                <TouchableOpacity onPress={() => Alert.alert('Taxa de proteção Re@lys', PROTECTION_TEXT)} style={styles.sumRow} accessibilityLabel="O que é a taxa de proteção Re@lys">
+                  <Text style={styles.sumLabel}>🛡️ Taxa de proteção Re@lys <Text style={{ color: colors.primary, fontWeight: '700' }}>ⓘ</Text></Text>
                   <Text style={styles.sumValue}>{protection ? brl(protection) : 'Grátis (Score Diamante)'}</Text>
                 </TouchableOpacity>
                 {tele ? (
@@ -139,7 +139,7 @@ export default function CartSheet({ onOrders }) {
                   </View>
                 ) : null}
                 <View style={styles.sumRow}>
-                  <Text style={styles.sumLabel}>Do saldo Realys ({brl(state.wallet)})</Text>
+                  <Text style={styles.sumLabel}>Do saldo Re@lys ({brl(state.wallet)})</Text>
                   <Text style={styles.sumValue}>{brl(fromWallet)}</Text>
                 </View>
                 <View style={[styles.sumRow, { marginTop: 4 }]}>
@@ -150,10 +150,10 @@ export default function CartSheet({ onOrders }) {
 
               <TouchableOpacity style={styles.payBtn} onPress={pay}>
                 <Ionicons name="shield-checkmark-outline" size={17} color={NIGHT} />
-                <Text style={styles.payText}>Pagar com saldo Realys</Text>
+                <Text style={styles.payText}>Pagar com saldo Re@lys</Text>
               </TouchableOpacity>
               <Text style={[styles.sub, { textAlign: 'center', marginTop: 6 }]}>Pagamento protegido · NF-e emitida automaticamente</Text>
-              <GuaranteeSeal text="Garantia Realys: deu problema, seu dinheiro volta" style={{ alignSelf: 'center', marginTop: 6 }} />
+              <GuaranteeSeal text="Garantia Re@lys: deu problema, seu dinheiro volta" style={{ alignSelf: 'center', marginTop: 6 }} />
             </>
           )}
         </View>

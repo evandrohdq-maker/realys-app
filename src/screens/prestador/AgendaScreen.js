@@ -1,5 +1,5 @@
 // Agenda do prestador: próximos trabalhos, calendário do mês, trabalhos já feitos e horário de trabalho.
-// Regras e datas em src/agenda.js. As visitas aceitas pelo Realys entram sozinhas.
+// Regras e datas em src/agenda.js. As visitas aceitas pelo Re@lys entram sozinhas.
 import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Linking, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -576,7 +576,7 @@ function JobSheet({ item, now, onClose, onEdit }) {
     onClose();
   };
   const cancel = () =>
-    Alert.alert(block ? 'Liberar este horário?' : 'Cancelar este trabalho?', block ? 'O horário volta a ficar livre para clientes.' : 'O cliente é avisado pelo Realys.', [
+    Alert.alert(block ? 'Liberar este horário?' : 'Cancelar este trabalho?', block ? 'O horário volta a ficar livre para clientes.' : 'O cliente é avisado pelo Re@lys.', [
       { text: 'Voltar', style: 'cancel' },
       {
         text: block ? 'Liberar' : 'Cancelar trabalho',
@@ -615,7 +615,7 @@ function JobSheet({ item, now, onClose, onEdit }) {
           <Info icon="calendar-outline" text={`${dayLabel(item.start, now)} · ${hhmm(item.start)} às ${hhmm(endOf(item))} (${durText(item.dur)})`} />
           {item.address ? <Info icon="location-outline" text={item.address} /> : null}
           {!block ? <Info icon="cash-outline" text={item.value ? brl(item.value) : 'Valor a combinar'} sub={item.valueNote} /> : null}
-          <Info icon={(ORIGIN[item.origin] || ORIGIN.realys).icon} text={(ORIGIN[item.origin] || ORIGIN.realys).label} sub={item.origin === 'particular' ? 'Marcado por você. Fora do pagamento protegido do Realys.' : null} />
+          <Info icon={(ORIGIN[item.origin] || ORIGIN.realys).icon} text={(ORIGIN[item.origin] || ORIGIN.realys).label} sub={item.origin === 'particular' ? 'Marcado por você. Fora do pagamento protegido do Re@lys.' : null} />
           {item.note ? <Info icon="document-text-outline" text={item.note} /> : null}
           {item.stars ? <Info icon="star-outline" text={`Cliente avaliou: ${'★'.repeat(item.stars)}${'☆'.repeat(5 - item.stars)}`} sub={item.review ? `"${item.review}"` : null} /> : null}
           {item.clientStars ? <Info icon="person-circle-outline" text={`Você avaliou o cliente: ${'★'.repeat(item.clientStars)}`} /> : null}

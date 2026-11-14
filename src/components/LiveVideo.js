@@ -1,6 +1,6 @@
 // Vídeo de verdade nas lives e nas chamadas (quando o servidor de vídeo estiver contratado).
 // - LiveStage: fundo da tela da live. Quem transmite vê a própria câmera e envia; quem assiste recebe.
-// - useRealLives: lives que estão no ar de verdade (servidor do Realys), para a aba Lives.
+// - useRealLives: lives que estão no ar de verdade (servidor do Re@lys), para a aba Lives.
 // - VideoCallHost: toca quando alguém liga, atende/recusa e mostra a chamada (montado uma vez no App).
 // Sem servidor contratado, nada disso aparece e o app segue no modo demonstração.
 import React, { useEffect, useRef, useState } from 'react';
@@ -194,8 +194,8 @@ export function VideoCallHost() {
         <View style={st.ringBack}>
           <View style={st.ringCard}>
             <Ionicons name={ringing.kind === 'audio' ? 'call' : 'videocam'} size={34} color={colors.primary} />
-            <Text style={st.ringName}>{ringing.from.name || 'Alguém do Realys'}</Text>
-            <Text style={st.ringSub}>{ringing.kind === 'audio' ? 'Chamada de voz' : 'Chamada de vídeo'} pelo Realys</Text>
+            <Text style={st.ringName}>{ringing.from.name || 'Alguém do Re@lys'}</Text>
+            <Text style={st.ringSub}>{ringing.kind === 'audio' ? 'Chamada de voz' : 'Chamada de vídeo'} pelo Re@lys</Text>
             <View style={{ flexDirection: 'row', marginTop: 18 }}>
               <TouchableOpacity style={[st.round, { backgroundColor: '#FF5A5F' }]} onPress={() => (declineCall(ringing.id), setRinging(null))} accessibilityLabel="Recusar">
                 <Ionicons name="call" size={24} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />

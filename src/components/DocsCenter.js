@@ -210,7 +210,7 @@ function NewPrescription({ draft, onDone }) {
           <Ionicons name="lock-closed-outline" size={22} color="#B4532A" />
           <Text style={[st.p, { flex: 1, marginLeft: 8, marginBottom: 0 }]}>{check.reason}</Text>
         </View>
-        <Text style={st.p}>No Realys, só receitam profissionais verificados cuja profissão permite: médicos (CRM), dentistas (CRO) e veterinários (CRMV). Curso técnico não receita.</Text>
+        <Text style={st.p}>No Re@lys, só receitam profissionais verificados cuja profissão permite: médicos (CRM), dentistas (CRO) e veterinários (CRMV). Curso técnico não receita.</Text>
         <Text style={st.h}>Demonstração</Text>
         {specialists.slice(0, 3).map((s) => (
           <TouchableOpacity key={s.id} style={st.card} onPress={() => setDemo({ ...s, service: /^CRO/.test(s.reg) ? 'dentista' : 'medico' })}>
@@ -402,7 +402,7 @@ function DocView({ doc }) {
           </Text>
           {p.signedAt ? (
             <Text style={[st.small, { color: '#1E7D4F' }]}>
-              ✔ Assinado {p.method === 'govbr' ? 'pelo gov.br' : p.method === 'icp' ? 'com certificado ICP-Brasil' : 'no Realys (biometria)'} em {new Date(p.signedAt).toLocaleString('pt-BR')}
+              ✔ Assinado {p.method === 'govbr' ? 'pelo gov.br' : p.method === 'icp' ? 'com certificado ICP-Brasil' : 'no Re@lys (biometria)'} em {new Date(p.signedAt).toLocaleString('pt-BR')}
             </Text>
           ) : p.me ? (
             <View>
@@ -417,7 +417,7 @@ function DocView({ doc }) {
               ) : (
                 <>
                   <Row2>
-                    <SmallBtn label="Assinar no Realys" icon="finger-print" main busy={busy === 'sign' + i} onPress={() => signHere(i)} />
+                    <SmallBtn label="Assinar no Re@lys" icon="finger-print" main busy={busy === 'sign' + i} onPress={() => signHere(i)} />
                     <SmallBtn label="Assinar pelo gov.br" busy={busy === 'gov' + i} onPress={() => govbr(i)} />
                   </Row2>
                   <TouchableOpacity onPress={() => attach(i)}>
@@ -428,7 +428,7 @@ function DocView({ doc }) {
             </View>
           ) : (
             <View>
-              <Text style={st.small}>Aguardando. Envie para {p.name.split(' ')[0]} assinar pelo Realys.</Text>
+              <Text style={st.small}>Aguardando. Envie para {p.name.split(' ')[0]} assinar pelo Re@lys.</Text>
               <Row2>
                 <SmallBtn label="Enviar para assinar" busy={busy === 'send' + i} onPress={() => run('send' + i, () => sharePdf(doc, p.role))} />
                 <SmallBtn label="Demonstração: assinar" busy={busy === 'demo' + i} onPress={() => dispatch({ type: 'DOC_SIGN', id: doc.id, index: i, method: 'realys' })} />

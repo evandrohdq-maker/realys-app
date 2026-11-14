@@ -41,7 +41,7 @@ export default function DemoScreen({ visible, onClose }) {
     <Modal visible={!!visible} animationType="slide" onRequestClose={onClose}>
       <View style={styles.wrap}>
         <View style={styles.top}>
-          <Text style={styles.title}>Demonstração do Realys</Text>
+          <Text style={styles.title}>Demonstração do Re@lys</Text>
           <TouchableOpacity onPress={onClose} hitSlop={10} accessibilityLabel="Fechar demonstração"><Ionicons name="close" size={24} color={colors.text} /></TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 40 }}>

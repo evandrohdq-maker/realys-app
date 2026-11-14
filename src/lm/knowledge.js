@@ -1,4 +1,4 @@
-// Conhecimento da Lotus: ela se abastece sozinha com o que empresas e clientes PUBLICAM no Realys
+// Conhecimento da Lotus: ela se abastece sozinha com o que empresas e clientes PUBLICAM no Re@lys
 // (produtos e preços, lançamentos, promoções, serviços dos prestadores, anúncios, vagas,
 // depoimentos expostos e posts públicos) e faz análises de preço e de mercado.
 //
@@ -322,10 +322,10 @@ export function priceAnswer(state, text) {
   const pick = wantsPricey ? st.priciest : st.cheapest;
   let reply;
   if (st.n === 1) {
-    reply = `Pelo que foi publicado no Realys, encontrei uma oferta de ${topic}: ${pick.title}${by(pick)}, por ${fmt(pick.price)}${per(st.unit)}.`;
+    reply = `Pelo que foi publicado no Re@lys, encontrei uma oferta de ${topic}: ${pick.title}${by(pick)}, por ${fmt(pick.price)}${per(st.unit)}.`;
   } else {
     reply =
-      `Pelo que foi publicado no Realys, ${topic} sai em média ${fmt(st.avg)}${per(st.unit)}, de ${fmt(st.min)} a ${fmt(st.max)}, em ${st.n} ofertas. ` +
+      `Pelo que foi publicado no Re@lys, ${topic} sai em média ${fmt(st.avg)}${per(st.unit)}, de ${fmt(st.min)} a ${fmt(st.max)}, em ${st.n} ofertas. ` +
       `${wantsPricey ? 'A mais cara' : 'A mais em conta'} é ${pick.title}${by(pick)}, por ${fmt(pick.price)}.`;
   }
   const v = valueOf(text);
@@ -357,7 +357,7 @@ export function opinionAnswer(state, text) {
   const quote = top.text.split(/[.!?]/)[0].trim();
   const low = o.reviews.filter((r) => r.stars <= 3).length;
   const reply =
-    `${o.name} tem nota ${String(o.rating).replace('.', ',')} em ${o.count} ${o.count === 1 ? 'depoimento' : 'depoimentos'} de quem comprou pelo Realys. ` +
+    `${o.name} tem nota ${String(o.rating).replace('.', ',')} em ${o.count} ${o.count === 1 ? 'depoimento' : 'depoimentos'} de quem comprou pelo Re@lys. ` +
     `${who.split(' ')[0]} contou: "${quote}".` +
     (low ? ` ${low === 1 ? 'Um cliente deu' : `${low} clientes deram`} nota mais baixa, então vale ler os depoimentos.` : '');
   return {
@@ -376,7 +376,7 @@ export function truthAnswer(state, text) {
     return {
       knowledge: true,
       falseInfo: true,
-      reply: `Não é verdade. "${f.claim}" foi verificado pela IA do Realys como informação falsa e retirado da plataforma${f.reason ? ` (${f.reason})` : ''}. Desconfie de mensagens assim e não repasse.`,
+      reply: `Não é verdade. "${f.claim}" foi verificado pela IA do Re@lys como informação falsa e retirado da plataforma${f.reason ? ` (${f.reason})` : ''}. Desconfie de mensagens assim e não repasse.`,
     };
   if (!ASK_TRUTH.test(t)) return null;
   const c = checkText(text);
@@ -384,7 +384,7 @@ export function truthAnswer(state, text) {
     return {
       knowledge: true,
       falseInfo: true,
-      reply: `Isso tem cara de informação falsa: ${c.reasons.join(', ')}. Não encontrei nada no Realys que confirme. Confira em fontes oficiais antes de acreditar ou repassar.`,
+      reply: `Isso tem cara de informação falsa: ${c.reasons.join(', ')}. Não encontrei nada no Re@lys que confirme. Confira em fontes oficiais antes de acreditar ou repassar.`,
     };
   return null;
 }

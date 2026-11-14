@@ -103,7 +103,7 @@ export function DatePlansModal({ visible, onClose, reason }) {
 
           <Text style={st.h}>Compare com os outros apps (por mês)</Text>
           <View style={st.cmpRow}>
-            <Text style={[st.cmpName, { color: ROSE, fontWeight: '800' }]}>Realys Date+</Text>
+            <Text style={[st.cmpName, { color: ROSE, fontWeight: '800' }]}>Re@lys Date+</Text>
             <Text style={[st.cmpVal, { color: ROSE, fontWeight: '800' }]}>{brl(14.9)}</Text>
           </View>
           {DATE_COMPETITORS.map((c) => (

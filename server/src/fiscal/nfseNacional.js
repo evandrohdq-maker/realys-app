@@ -1,5 +1,5 @@
 // NFS-e de padrão nacional (Emissor Nacional da Receita Federal, LC 214/2025).
-// O Realys monta a DPS (Declaração de Prestação de Serviço), assina com o certificado digital A1 da empresa
+// O Re@lys monta a DPS (Declaração de Prestação de Serviço), assina com o certificado digital A1 da empresa
 // e envia para a API do Sistema Nacional NFS-e com o mesmo certificado (conexão mTLS). A resposta traz a
 // chave de acesso da nota. Cancelamento = evento e101101.
 //
@@ -42,7 +42,7 @@ export function idDps({ municipio, cnpj, serie, numero }) {
 //  emitente: { cnpj, im, municipio (IBGE), opSimpNac (1 não optante, 2 MEI, 3 ME/EPP), regEspTrib }
 //  nota:     { serie, numero, emitidaEm, competencia, valorCents, descricao, cTribNac, cTribMun, nbs,
 //              tomador: { doc, nome, email }, pTotTribSN, ibsCbs }
-export function montarDps({ ambiente, emitente, nota, verAplic = 'Realys-1.0', leiaute = LEIAUTE }) {
+export function montarDps({ ambiente, emitente, nota, verAplic = 'Re@lys-1.0', leiaute = LEIAUTE }) {
   const id = idDps({ municipio: emitente.municipio, cnpj: emitente.cnpj, serie: nota.serie, numero: nota.numero });
   const docToma = so(nota.tomador?.doc);
   const toma = docToma
@@ -91,7 +91,7 @@ export function montarCancelamento({ ambiente, cnpj, chave, motivo = 'Serviço c
   const xml = el('pedRegEvento', { xmlns: NS_NFSE, versao: leiaute },
     el('infPedReg', { Id: id },
       txt('tpAmb', ambiente),
-      txt('verAplic', 'Realys-1.0'),
+      txt('verAplic', 'Re@lys-1.0'),
       txt('dhEvento', dataHoraBrasilia(emitidoEm)),
       txt('CNPJAutor', so(cnpj)),
       txt('chNFSe', chave),

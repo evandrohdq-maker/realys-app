@@ -75,7 +75,7 @@ export function ProfileQuiz({ value, onChange }) {
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={styles.qTitle}>Seu perfil social</Text>
-          <Text style={styles.qSub}>Responda rapidinho. O Realys entende quem você é e cria seu selo.</Text>
+          <Text style={styles.qSub}>Responda rapidinho. O Re@lys entende quem você é e cria seu selo.</Text>
         </View>
       </View>
 
@@ -119,7 +119,7 @@ export function ProfileQuiz({ value, onChange }) {
           <Ionicons name={c.icon} size={26} color={c.color} />
         </View>
         <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={styles.resultKicker}>{empty ? 'SEU PERFIL APARECE AQUI' : v.manual ? 'VOCÊ ESCOLHEU' : 'O REALYS ENTENDEU QUE VOCÊ É'}</Text>
+          <Text style={styles.resultKicker}>{empty ? 'SEU PERFIL APARECE AQUI' : v.manual ? 'VOCÊ ESCOLHEU' : 'O RE@LYS ENTENDEU QUE VOCÊ É'}</Text>
           <Text style={[styles.resultTitle, { color: c.color }]}>{c.label}</Text>
           {s ? <Text style={styles.resultSub}>Subclasse: {s.label}</Text> : null}
           {(social.extra || []).length ? (

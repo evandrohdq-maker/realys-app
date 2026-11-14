@@ -1,7 +1,7 @@
 // Carteira profissional: quem quiser se apresentar como advogado, médico, policial etc. cadastra a
-// carteira da profissão (OAB, CRM, carteira policial...). A equipe do Realys confere antes de aprovar.
-// Servidor público: é opcional, não presta serviço PARA o Realys e, se atender alguém pela plataforma,
-// atende de graça (sem taxa do Realys). Pode ligar "receber casos": a plataforma passa casos (denúncias,
+// carteira da profissão (OAB, CRM, carteira policial...). A equipe do Re@lys confere antes de aprovar.
+// Servidor público: é opcional, não presta serviço PARA o Re@lys e, se atender alguém pela plataforma,
+// atende de graça (sem taxa do Re@lys). Pode ligar "receber casos": a plataforma passa casos (denúncias,
 // pedidos de socorro, emergências) para ele analisar e decidir se quer seguir. Até haver convênio com o
 // governo, isso fica à disposição como um canal entre ele e o cliente.
 

@@ -178,8 +178,8 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
         const t = now();
         db.prepare('INSERT INTO orders (id, buyer_id, company_id, total, from_gift, from_wallet, fee, address, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)').run(id, user.id, companyId, total, fromGift, fromWallet, fee, address, 'Recebido', t, t);
         for (const l of g.lines) db.prepare('INSERT INTO order_items (order_id, product_id, name, price, qty) VALUES (?,?,?,?,?)').run(id, l.p.id, l.p.name, l.p.price, l.qty);
-        // Fiscal: a comissão é serviço do Realys para a loja (tomador = dono da loja); a NF-e do produto é da loja.
-        if (fee) fiscal.registrar({ origem: 'comissao_pedido', ref: id, tomadorId: g.owner, valorCents: fee, descricao: `Intermediação de venda no Realys (pedido ${id})` });
+        // Fiscal: a comissão é serviço do Re@lys para a loja (tomador = dono da loja); a NF-e do produto é da loja.
+        if (fee) fiscal.registrar({ origem: 'comissao_pedido', ref: id, tomadorId: g.owner, valorCents: fee, descricao: `Intermediação de venda no Re@lys (pedido ${id})` });
         fiscal.filaNfeDoPedido(id);
         out.push({ id, owner: g.owner, company: g.name, total, fromGift, fromWallet });
       }

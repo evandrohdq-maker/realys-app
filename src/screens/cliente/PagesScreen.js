@@ -64,7 +64,7 @@ function NewPage({ onDone }) {
         <View style={{ flex: 1, marginRight: 10 }}>
           <Text style={st.toggleTitle}>{anon ? 'Página anônima' : 'Assinada com meu nome verificado'}</Text>
           <Text style={st.small}>
-            {anon ? 'Seu nome não aparece. A página mostra "dono verificado pelo Realys".' : `Aparece "Assinada por ${state.user ? state.user.name : 'você'} · verificado".`}
+            {anon ? 'Seu nome não aparece. A página mostra "dono verificado pelo Re@lys".' : `Aparece "Assinada por ${state.user ? state.user.name : 'você'} · verificado".`}
           </Text>
         </View>
         <Switch value={anon} onValueChange={setAnon} trackColor={{ true: colors.gold, false: colors.border }} thumbColor="#fff" accessibilityLabel="Publicar como anônimo" />

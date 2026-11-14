@@ -51,7 +51,7 @@ const EXAMPLES = [
 ];
 
 // Palavras que ajudam o reconhecimento de voz a acertar os nomes do app.
-const HINTS = ['Lotus', 'Realys', 'Community', 'Stories', 'Food', 'Date', 'Shop', 'Agro', 'Lives', 'Tecnologia', 'Pedidos', 'Perfil', 'Serviços'];
+const HINTS = ['Lotus', 'Re@lys', 'Community', 'Stories', 'Food', 'Date', 'Shop', 'Agro', 'Lives', 'Tecnologia', 'Pedidos', 'Perfil', 'Serviços'];
 
 const norm = (s) =>
   s
@@ -190,7 +190,7 @@ function duressReply(state, dispatch, pending) {
     reply = `${doneLine('compra', true)} ${brl(pending.total)}, com pagamento protegido. Acompanhe em Pedidos.`;
     what = `Compra de ${brl(pending.total)} (simulada, nada foi cobrado)`;
   } else if (pending.type === 'convertLive') {
-    reply = `${doneLine('operacao', true)} ${brl(state.liveCredits)} em créditos de live viraram moeda Realys no seu saldo.`;
+    reply = `${doneLine('operacao', true)} ${brl(state.liveCredits)} em créditos de live viraram moeda Re@lys no seu saldo.`;
     what = 'Conversão de créditos (simulada)';
   } else if (pending.type === 'service') {
     const call = buildServiceCall(state, pending.address || '', pending.serviceKey, pending.providerId);
@@ -439,7 +439,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
     if (conv) {
       if (state.liveCredits < 10) return { reply: 'Você precisa de pelo menos 10 créditos de live para converter.' };
       dispatch({ type: 'CONVERT_LIVE_CREDITS', amount: state.liveCredits });
-      return { reply: `${doneLine('operacao')} ${brl(state.liveCredits)} em créditos de live viraram moeda Realys no seu saldo.` };
+      return { reply: `${doneLine('operacao')} ${brl(state.liveCredits)} em créditos de live viraram moeda Re@lys no seu saldo.` };
     }
   }
   if (pending && NO.test(t)) return { reply: 'Tudo bem. Se precisar, é só chamar.' };
@@ -495,7 +495,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   if (prof) {
     if (prof.open) return { open: prof.open, reply: openReply(prof.open, prof.others) };
     if (prof.ask) return { reply: askReply(prof.ask, prof.options), results: prof.options.map(toResult), pending: { type: 'profile', options: prof.options } };
-    return { reply: `Não encontrei ninguém chamado ${prof.notFound} no Realys. Confira o nome ou procure pela lupa no topo do app.` };
+    return { reply: `Não encontrei ninguém chamado ${prof.notFound} no Re@lys. Confira o nome ou procure pela lupa no topo do app.` };
   }
 
   // Festas: "festa mais próxima", "tem balada aberta agora?" → abertas ou que abrem logo, pela distância.
@@ -532,7 +532,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
     // para escolher o horário (nunca agenda sozinha).
     const type = serviceType(serviceKey);
     const list = state.providers.filter((p) => p.service === serviceKey).sort((a, b) => b.rating - a.rating);
-    if (!list.length) return { reply: `Ainda não tem ${type.label.toLowerCase()} atendendo online no Realys.` };
+    if (!list.length) return { reply: `Ainda não tem ${type.label.toLowerCase()} atendendo online no Re@lys.` };
     const f = list[0];
     let reply = `Encontrei ${list.length === 1 ? 'um' : list.length} ${type.label.toLowerCase()}${list.length === 1 ? '' : 's'} com atendimento online, por chamada de vídeo. ${f.name}, nota ${String(f.rating).replace('.', ',')}, cobra ${priceText(f)}`;
     reply += f.slots && f.slots[0] ? ` e tem horário ${f.slots[0].toLowerCase()}.` : '.';
@@ -573,10 +573,10 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   // "Quanto ganhei nas lives?", "converte meus créditos de live".
   if (/\blives?\b/.test(t) && /(credito|ganhei|presente|recebi|converte|converter|moeda)/.test(t)) {
     const c = state.liveCredits || 0;
-    if (c < 10) return { reply: `Você tem ${brl(c)} em créditos de live. Com 10 ou mais dá para converter em moeda Realys.` };
-    return { reply: `Você tem ${brl(c)} em créditos de live, dos presentes que ganhou transmitindo. Quer que eu converta em moeda Realys agora?`, pending: { type: 'convertLive' } };
+    if (c < 10) return { reply: `Você tem ${brl(c)} em créditos de live. Com 10 ou mais dá para converter em moeda Re@lys.` };
+    return { reply: `Você tem ${brl(c)} em créditos de live, dos presentes que ganhou transmitindo. Quer que eu converta em moeda Re@lys agora?`, pending: { type: 'convertLive' } };
   }
-  if (/(saldo|dinheiro|carteira)/.test(t)) return { reply: `Seu saldo Realys é de ${brl(state.wallet)}.` };
+  if (/(saldo|dinheiro|carteira)/.test(t)) return { reply: `Seu saldo Re@lys é de ${brl(state.wallet)}.` };
 
   // Busca geral em todo o conteúdo do app: anúncios, hotéis, imóveis, eventos, cursos,
   // lojas, produtos, promoções, prestadores, lives, pessoas e posts.
@@ -1241,7 +1241,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
       if (!p || !p.granted) {
         const r = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
         if (!r || !r.granted) {
-          setHistory((h) => [{ at: Date.now(), q: '🎙️', reply: 'O Realys precisa da permissão do microfone para ouvir você. Você também pode digitar abaixo.' }, ...h]);
+          setHistory((h) => [{ at: Date.now(), q: '🎙️', reply: 'O Re@lys precisa da permissão do microfone para ouvir você. Você também pode digitar abaixo.' }, ...h]);
           return;
         }
       }
@@ -1373,7 +1373,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     level.setValue(0);
     setPhase(restPhase());
     if (code === 'not-allowed' || code === 'service-not-allowed') {
-      setHistory((h) => [{ at: Date.now(), q: '🎙️', reply: 'O Realys precisa da permissão do microfone para ouvir você.' }, ...h]);
+      setHistory((h) => [{ at: Date.now(), q: '🎙️', reply: 'O Re@lys precisa da permissão do microfone para ouvir você.' }, ...h]);
     } else if (code === 'no-speech' || code === 'speech-timeout') {
       setPartial('');
     }
@@ -1447,7 +1447,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
           <View style={styles.head}>
             <View>
               <Text style={styles.brand}>LOTUS</Text>
-              <Text style={styles.brandSub}>assistente do Realys</Text>
+              <Text style={styles.brandSub}>assistente do Re@lys</Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               {weather ? (
@@ -1533,7 +1533,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
                     ) : h.knowledge ? (
                       <View style={[styles.sense, { backgroundColor: 'rgba(226,182,73,0.16)' }]}>
                         <Ionicons name="library-outline" size={11} color={colors.gold} />
-                        <Text style={[styles.senseTxt, { color: colors.gold }]}>Pelo que foi publicado no Realys</Text>
+                        <Text style={[styles.senseTxt, { color: colors.gold }]}>Pelo que foi publicado no Re@lys</Text>
                       </View>
                     ) : null}
                     {h.understood ? (

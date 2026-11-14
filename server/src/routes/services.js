@@ -119,7 +119,7 @@ export default function servicesRoutes(r, { db, wallet, hub, userById, biometria
     return call;
   });
 
-  // Pagar o serviço pelo Realys: sai do cliente (presentes primeiro) e entra no saldo do prestador.
+  // Pagar o serviço pelo Re@lys: sai do cliente (presentes primeiro) e entra no saldo do prestador.
   r.post('/calls/:id/pay', ({ params, body, user }) => {
     const c = db.prepare('SELECT * FROM service_calls WHERE id = ? AND client_id = ?').get(params.id, user.id);
     if (!c) fail(404, 'Chamado não encontrado.');

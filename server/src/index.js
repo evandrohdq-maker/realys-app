@@ -1,11 +1,11 @@
-// Liga o servidor do Realys:  npm start
+// Liga o servidor do Re@lys:  npm start
 import { loadConfig } from './config.js';
 import { createApp } from './app.js';
 
 const cfg = loadConfig();
 const app = createApp(cfg);
 app.server.listen(cfg.port, cfg.host, () => {
-  console.log(`Realys no ar em http://${cfg.host}:${cfg.port}  (dados em ${cfg.dataDir})`);
+  console.log(`Re@lys no ar em http://${cfg.host}:${cfg.port}  (dados em ${cfg.dataDir})`);
   if (cfg.testDeposits) console.log('Fase de testes: depósitos entram na hora, sem Pix de verdade (TEST_DEPOSITS=true).');
   if (cfg.production && !cfg.biometricKeys) console.log('Aviso: BIOMETRIA_KEYS não configurada. Cadastros biométricos ficam parados até configurar.');
   if (cfg.production && !cfg.biometricServiceUrl) console.log('Aviso: BIOMETRIA_SERVICE_URL não configurada. Todo cadastro biométrico vai para revisão manual.');
@@ -16,7 +16,7 @@ app.server.listen(cfg.port, cfg.host, () => {
 });
 
 const stop = async () => {
-  console.log('Desligando o Realys...');
+  console.log('Desligando o Re@lys...');
   await app.close();
   process.exit(0);
 };

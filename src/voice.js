@@ -67,8 +67,11 @@ export const splitSentences = (text) => {
 // Texto para a VOZ da Lotus: sem símbolos (/, ·, ★, emojis), sem notas e sem detalhes entre
 // parênteses, com unidades por extenso (km -> quilômetros, R$ -> reais). E mais curto: fala as
 // duas primeiras frases e a pergunta final (o detalhe completo continua escrito na tela).
+// A marca se escreve "Re@lys", mas a Lotus fala "Realys" (nunca "re arroba lys").
+const sayName = (t) => String(t || '').replace(/re@lys/gi, 'Realys');
+
 export function forSpeech(text) {
-  let t = String(text || '');
+  let t = sayName(text);
   t = t.replace(/\([^)]*\)/g, '');
   t = t.replace(/,?\s*nota\s*\d+(?:[.,]\d+)?/gi, '');
   t = t.replace(/★\s*\d+(?:[.,]\d+)?/g, '');
@@ -109,7 +112,7 @@ export async function speakParts(parts, from = 0, { onPart, onDone, onStopped, o
   if (!list.length) return finished();
   list.forEach((p, k) => {
     const i = from + k;
-    Speech.speak(p, {
+    Speech.speak(sayName(p), {
       language: 'pt-BR',
       ...SOFT,
       ...(voice ? { voice } : {}),

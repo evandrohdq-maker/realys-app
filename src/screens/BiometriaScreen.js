@@ -1,4 +1,4 @@
-// Cadastro biométrico do Realys, em tela cheia (aberta pelo Perfil).
+// Cadastro biométrico do Re@lys, em tela cheia (aberta pelo Perfil).
 // Fluxo: termo -> scan do rosto (câmera centralizada) -> foto do documento e seus dados -> análise no servidor.
 // A decisão é sempre do servidor: o app só captura, envia e mostra o resultado.
 import React, { useEffect, useState } from 'react';

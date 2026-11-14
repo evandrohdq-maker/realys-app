@@ -22,7 +22,7 @@ export default function adminRoutes(r, { db, wallet, hub, publicUser }) {
       openReports: count(`SELECT COUNT(*) AS n FROM reports WHERE status = 'aberta'`),
       pendingDeposits: count(`SELECT COUNT(*) AS n FROM deposits WHERE status = 'pendente'`),
       pendingWithdrawals: count(`SELECT COUNT(*) AS n FROM withdrawals WHERE status = 'pendente'`),
-      revenue: toReais(realys.balance), // taxas que ficaram para o Realys
+      revenue: toReais(realys.balance), // taxas que ficaram para o Re@lys
       moneyInPlatform: toReais(db.prepare(`SELECT COALESCE(SUM(balance + gift_credits + live_credits), 0) AS n FROM wallets WHERE user_id != 'realys'`).get().n),
       online: hub.clients.size,
     };

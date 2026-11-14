@@ -84,7 +84,7 @@ export default function SupplierScreen() {
                   </View>
                 ) : null}
                 {o.status === 'aceita' ? (
-                  <Text style={{ fontSize: 12, color: colors.success, marginTop: 4 }}>✓ Negócio fechado. Pagamento retido pelo Realys até a entrega.</Text>
+                  <Text style={{ fontSize: 12, color: colors.success, marginTop: 4 }}>✓ Negócio fechado. Pagamento retido pelo Re@lys até a entrega.</Text>
                 ) : null}
               </Card>
             );
@@ -294,7 +294,7 @@ function MyProducts({ items }) {
     <View>
       <Card style={{ backgroundColor: colors.primaryLight, borderColor: 'rgba(226,182,73,0.6)' }}>
         <Text style={{ color: colors.primaryDark, fontSize: 13 }}>
-          <Ionicons name="star" size={13} color={colors.gold} /> Produtos em destaque aparecem primeiro no catálogo atacado de todas as empresas do Realys.
+          <Ionicons name="star" size={13} color={colors.gold} /> Produtos em destaque aparecem primeiro no catálogo atacado de todas as empresas do Re@lys.
         </Text>
       </Card>
 

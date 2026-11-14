@@ -179,19 +179,19 @@ export default function TrackingScreen({ call, visible, onClose, onOpenProfile }
                 onClose();
               }}
             >
-              <Text style={styles.mainText}>Concluir e pagar pelo Realys</Text>
+              <Text style={styles.mainText}>Concluir e pagar pelo Re@lys</Text>
             </TouchableOpacity>
           ) : null}
 
           <View style={{ flexDirection: 'row' }}>
             <TouchableOpacity
               style={[styles.action, { backgroundColor: colors.primary, borderColor: colors.primary }]}
-              onPress={() => Alert.alert(`Ligando para ${first}`, 'A ligação passa pela Realys: o seu número fica protegido.')}
+              onPress={() => Alert.alert(`Ligando para ${first}`, 'A ligação passa pela Re@lys: o seu número fica protegido.')}
             >
               <Ionicons name="call" size={16} color={colors.onPrimary} />
               <Text style={[styles.actionText, { color: colors.onPrimary }]}>Ligar</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.action} onPress={() => Alert.alert('Mensagem', `Conversa com ${first} aberta no chat do Realys.`)}>
+            <TouchableOpacity style={styles.action} onPress={() => Alert.alert('Mensagem', `Conversa com ${first} aberta no chat do Re@lys.`)}>
               <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.text} />
               <Text style={styles.actionText}>Mensagem</Text>
             </TouchableOpacity>

@@ -1,6 +1,6 @@
-// Engajamento entre os lados do Realys (cliente, prestador, empresa, fornecedor).
+// Engajamento entre os lados do Re@lys (cliente, prestador, empresa, fornecedor).
 // 1. Produto + serviço: comprou algo que precisa instalar → prestador verificado perto.
-// 2. Score Realys: uma reputação só, que vale em todos os lados e libera benefícios.
+// 2. Score Re@lys: uma reputação só, que vale em todos os lados e libera benefícios.
 // 3. Pedido ao contrário: a pessoa posta o que precisa e recebe propostas.
 // 4. Compra coletiva: pequenos comerciantes juntam pedidos para ter preço de atacado.
 // 5. Demanda escondida: o que procuraram perto e não acharam (para prestador e empresa).
@@ -28,7 +28,7 @@ export function installFor(name) {
   return INSTALL_RULES.find((r) => r.words.some((w) => n.includes(norm(w)))) || null;
 }
 
-// ───────────── 2. Score Realys ─────────────
+// ───────────── 2. Score Re@lys ─────────────
 export const SCORE_TIERS = [
   { min: 850, key: 'diamante', label: 'Diamante', color: '#2F74D0', icon: 'diamond' },
   { min: 700, key: 'ouro', label: 'Ouro', color: '#A8790A', icon: 'medal' },
@@ -37,9 +37,9 @@ export const SCORE_TIERS = [
 ];
 export const tierOf = (score) => SCORE_TIERS.find((t) => score >= t.min);
 // O que cada nível libera, por perfil. Os benefícios de prazo/parcelar são pagos pelo vendedor
-// ou pelo fornecedor que oferecer (o Realys só garante a reputação).
+// ou pelo fornecedor que oferecer (o Re@lys só garante a reputação).
 export const SCORE_BENEFITS = {
-  usuario: { bronze: 'Compras à vista e Pix', prata: 'Parcelar em até 2x no saldo Realys', ouro: 'Parcelar em até 3x e "Pague depois" de 7 dias', diamante: 'Parcelar em até 6x e "Pague depois" de 15 dias' },
+  usuario: { bronze: 'Compras à vista e Pix', prata: 'Parcelar em até 2x no saldo Re@lys', ouro: 'Parcelar em até 3x e "Pague depois" de 7 dias', diamante: 'Parcelar em até 6x e "Pague depois" de 15 dias' },
   prestador: { bronze: 'Aparece nas buscas normais', prata: 'Selo "Confiável" no perfil', ouro: 'Selo Ouro e +5% de posição nas indicações', diamante: 'Selo Diamante, +10% de posição e saque em 1 dia' },
   empresa: { bronze: 'Compras de fornecedor à vista', prata: 'Prazo de 15 dias com fornecedores', ouro: 'Prazo de 30 dias com fornecedores', diamante: 'Prazo de 45 dias e entrada nas compras coletivas sem sinal' },
   fornecedor: { bronze: 'Propostas normais', prata: 'Selo "Entrega garantida"', ouro: 'Propostas em destaque para empresas', diamante: 'Topo do catálogo atacado' },
@@ -184,14 +184,14 @@ export const ORIGINS = {
   p2: { from: '🫘 Produtor em Unaí - MG', supplierId: 's1' },
   p3: { from: '☕ Fazenda Boa Vista, Sul de Minas', supplierId: 's2', note: 'Torrado em Franca - SP' },
   p5: { from: '🌾 Moinho em Ponta Grossa - PR', supplierId: 's1' },
-  p6: { from: '🧀 Muçarela de laticínio em Minas', supplierId: 's1', note: 'Farinha e queijo do fornecedor Realys' },
+  p6: { from: '🧀 Muçarela de laticínio em Minas', supplierId: 's1', note: 'Farinha e queijo do fornecedor Re@lys' },
   p7: { from: '🍅 Tomates de Holambra - SP', supplierId: 's1' },
   p16: { from: '☕ Fazenda Boa Vista, Sul de Minas', supplierId: 's2', note: 'Torra média, lote da semana' },
   p23: { from: '☕ Fazenda Boa Vista, Sul de Minas', supplierId: 's2' },
 };
 
 // ───────────── 9. Painel de inteligência ─────────────
-export const INTEL_PLAN = { name: 'Inteligência Realys', price: 39.9 };
+export const INTEL_PLAN = { name: 'Inteligência Re@lys', price: 39.9 };
 export const INTEL = {
   area: 'Vila Mariana e região (3 km)',
   topSearches: [

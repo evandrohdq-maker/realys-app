@@ -3,7 +3,7 @@
 //  2. o rosto da foto da carteira bate com o rosto do cadastro biométrico (a foto é descartada);
 //  3. médico: consulta automática no CFM, quando o webservice estiver contratado;
 //  4. servidor público: código enviado ao e-mail institucional (.gov.br, .jus.br, .mp.br, .leg.br, .mil.br).
-// A equipe do Realys aprova ou recusa no painel, vendo o resultado de cada conferência.
+// A equipe do Re@lys aprova ou recusa no painel, vendo o resultado de cada conferência.
 import { createHash, randomInt } from 'node:crypto';
 import { fail, newId, now, str } from '../http.js';
 import { makeMail } from '../mail.js';
@@ -91,7 +91,7 @@ export default function credentialRoutes(r, { db, cfg, userById, biometria }) {
     if (!isGovEmail(email)) fail(400, 'Use o seu e-mail institucional do órgão (terminado em .gov.br, .jus.br, .mp.br, .leg.br ou .mil.br).', 'email_inst');
     const code = String(randomInt(0, 1000000)).padStart(6, '0');
     db.prepare('UPDATE credenciais SET email_inst = ?, email_hash = ?, email_exp = ?, email_tentativas = 0, email_ok = 0, updated_at = ? WHERE id = ?').run(email, hashCode(c.id, code), now() + 15 * 60000, now(), c.id);
-    const r2 = await mail.send({ to: email, subject: 'Realys: código de confirmação', text: `Seu código para confirmar o e-mail institucional no Realys é ${code}. Ele vale por 15 minutos. Se não foi você, ignore este e-mail.` });
+    const r2 = await mail.send({ to: email, subject: 'Re@lys: código de confirmação', text: `Seu código para confirmar o e-mail institucional no Re@lys é ${code}. Ele vale por 15 minutos. Se não foi você, ignore este e-mail.` });
     // Fase de testes sem e-mail configurado: o código volta na resposta (nunca em produção).
     return { enviado: !!r2.sent, ...(!r2.sent && !cfg.production ? { codigoTeste: code } : {}) };
   });

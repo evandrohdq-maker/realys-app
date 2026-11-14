@@ -72,11 +72,11 @@ const statusText = (o, food) =>
     Preparando: food ? 'Aceito · preparando' : 'Aceito · separando o pedido',
     'A caminho': food ? 'Com o motoboy · a caminho' : 'Com o entregador · a caminho',
     Entregue: 'Entregue',
-    Reembolsado: 'Reembolsado pela Garantia Realys',
+    Reembolsado: 'Reembolsado pela Garantia Re@lys',
   }[o.status] || o.status);
 
-// Motoboy cadastrado no Realys que o restaurante chamou para a entrega. O cliente pode dar gorjeta
-// em créditos de presente (sai do saldo só o valor; a taxa do Realys sai de dentro da gorjeta).
+// Motoboy cadastrado no Re@lys que o restaurante chamou para a entrega. O cliente pode dar gorjeta
+// em créditos de presente (sai do saldo só o valor; a taxa do Re@lys sai de dentro da gorjeta).
 function CourierCard({ order: o }) {
   const { state, dispatch } = useStore();
   const p = (state.providers || []).find((x) => x.id === o.courierId) || (state.providers || []).find((x) => x.name === o.courier);
@@ -87,7 +87,7 @@ function CourierCard({ order: o }) {
       <View style={{ flex: 1, marginLeft: 10 }}>
         <Text style={{ color: colors.text, fontWeight: '700' }}>🛵 {o.courier}{p ? ` · ★ ${String(p.rating).replace('.', ',')}` : ''}</Text>
         <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={2}>
-          {p ? `${p.vehicle} · ${p.plate}` : 'Motoboy do Realys'}
+          {p ? `${p.vehicle} · ${p.plate}` : 'Motoboy do Re@lys'}
           {o.requestedBy ? ` · chamado por ${o.requestedBy}` : ''}
         </Text>
         <Text style={{ color: colors.muted, fontSize: 11, marginTop: 2 }}>{o.status === 'Entregue' ? 'Entrega concluída' : o.status === 'A caminho' ? 'A caminho com o seu pedido · GPS ligado' : o.status === 'Preparando' ? 'Indo buscar o pedido no restaurante' : 'Aguardando o restaurante aceitar o pedido'}</Text>
@@ -170,7 +170,7 @@ function CartTab({ onPaid }) {
   const finish = () => {
     dispatch({ type: 'CHECKOUT' });
     onPaid(hasFood);
-    Alert.alert('Pedido confirmado! ✅', 'Pagamento protegido: o valor fica retido pelo Realys e só é liberado para a loja quando você confirmar a entrega.');
+    Alert.alert('Pedido confirmado! ✅', 'Pagamento protegido: o valor fica retido pelo Re@lys e só é liberado para a loja quando você confirmar a entrega.');
   };
   return (
     <View>
@@ -200,10 +200,10 @@ function CartTab({ onPaid }) {
         </Card>
       ))}
       <Card>
-        {/* Taxa de proteção Realys: aparece desde o primeiro item, com a explicação ao tocar. */}
-        <TouchableOpacity onPress={() => Alert.alert('Taxa de proteção Realys', PROTECTION_TEXT)} accessibilityLabel="O que é a taxa de proteção Realys">
+        {/* Taxa de proteção Re@lys: aparece desde o primeiro item, com a explicação ao tocar. */}
+        <TouchableOpacity onPress={() => Alert.alert('Taxa de proteção Re@lys', PROTECTION_TEXT)} accessibilityLabel="O que é a taxa de proteção Re@lys">
           <Row style={styles.sumRow}>
-            <Text style={styles.sumLabel}>🛡️ Taxa de proteção Realys <Text style={{ color: colors.primary, fontWeight: '700' }}>ⓘ</Text></Text>
+            <Text style={styles.sumLabel}>🛡️ Taxa de proteção Re@lys <Text style={{ color: colors.primary, fontWeight: '700' }}>ⓘ</Text></Text>
             <Text style={styles.sumValue}>{protection ? brl(protection) : 'Grátis (Score Diamante)'}</Text>
           </Row>
         </TouchableOpacity>
@@ -220,21 +220,21 @@ function CartTab({ onPaid }) {
           </Row>
         ) : null}
         <Row style={styles.sumRow}>
-          <Text style={styles.sumLabel}>Do saldo Realys ({brl(state.wallet)})</Text>
+          <Text style={styles.sumLabel}>Do saldo Re@lys ({brl(state.wallet)})</Text>
           <Text style={styles.sumValue}>{brl(total - fromGift)}</Text>
         </Row>
         <Row style={[styles.sumRow, { marginTop: 4 }]}>
           <Text style={[styles.sumLabel, { color: colors.text, fontWeight: '800' }]}>Total</Text>
           <Text style={[styles.sumValue, { color: colors.primary, fontSize: 18 }]}>{brl(total)}</Text>
         </Row>
-        <Button title="Pagar com saldo Realys" onPress={pay} style={{ marginTop: 10 }} />
+        <Button title="Pagar com saldo Re@lys" onPress={pay} style={{ marginTop: 10 }} />
         <Text style={{ color: colors.muted, fontSize: 11, textAlign: 'center', marginTop: 6 }}>Pagamento protegido · NF-e emitida automaticamente</Text>
       </Card>
     </View>
   );
 }
 
-// Ingresso de evento ou passagem comprada no Realys.
+// Ingresso de evento ou passagem comprada no Re@lys.
 function TicketOrder({ t }) {
   const { dispatch } = useStore();
   const ev = t.kind === 'evento' || !!t.eventId;
@@ -273,7 +273,7 @@ function VenueOrder({ o }) {
   );
 }
 
-// Despesas: tudo o que saiu do bolso no Realys, por setor, com o total.
+// Despesas: tudo o que saiu do bolso no Re@lys, por setor, com o total.
 function Expenses({ rows }) {
   const total = rows.reduce((n, r) => n + r.value, 0);
   const bySector = {};
@@ -282,7 +282,7 @@ function Expenses({ rows }) {
   return (
     <View>
       <Card>
-        <Text style={{ color: colors.muted, fontSize: 12 }}>Total gasto no Realys</Text>
+        <Text style={{ color: colors.muted, fontSize: 12 }}>Total gasto no Re@lys</Text>
         <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 24, marginBottom: 6 }}>{brl(total)}</Text>
         {Object.keys(bySector).map((k) => (
           <Row key={k} style={styles.sumRow}>
@@ -355,7 +355,7 @@ export default function OrdersScreen({ navigate, explore }) {
   const statusSeg = ['compras', 'comida', 'ingressos', 'servicos'].includes(seg);
   // Acompanhar ao vivo: { order } para entregas, { ride } para motorista e prestadores.
   const [track, setTrack] = useState(null);
-  const courierOf = (o) => (state.providers || []).find((x) => x.id === o.courierId) || (state.providers || []).find((x) => x.name === o.courier) || { name: o.courier || 'Entregador Realys' };
+  const courierOf = (o) => (state.providers || []).find((x) => x.id === o.courierId) || (state.providers || []).find((x) => x.name === o.courier) || { name: o.courier || 'Entregador Re@lys' };
   return (
     <Screen>
       <Title sub="Pagamento só é liberado para a loja ou o prestador quando você confirma a entrega">Meus pedidos</Title>
@@ -472,7 +472,7 @@ export default function OrdersScreen({ navigate, explore }) {
                 />
               ) : null}
             </Row>
-            {/* Garantia Realys: deu problema, abre um caso e o dinheiro volta. */}
+            {/* Garantia Re@lys: deu problema, abre um caso e o dinheiro volta. */}
             {orderCovered(o) || (state.disputes || []).some((d) => d.refId === o.id) ? (
               <GuaranteeButton kind="pedido" refId={o.id} title={`Pedido ${o.store}`} amount={o.total} deliveredAt={o.status === 'Entregue' ? o.deliveredAt : null} />
             ) : null}

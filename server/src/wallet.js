@@ -1,6 +1,6 @@
 // Carteira: três "bolsos" por pessoa, todos em centavos.
-//  - saldo:   moeda Realys (RLS). Entra por depósito, vendas, serviços e conversão de lives. Pode sacar.
-//  - presente: créditos de presente. Só servem para comprar no Realys; usados primeiro nas compras.
+//  - saldo:   moeda Re@lys (RLS). Entra por depósito, vendas, serviços e conversão de lives. Pode sacar.
+//  - presente: créditos de presente. Só servem para comprar no Re@lys; usados primeiro nas compras.
 //  - live:     créditos de live (presentes recebidos transmitindo). Viram saldo quando a pessoa converte.
 // Toda mudança fica no extrato (ledger). Use sempre dentro de tx() para não deixar nada pela metade.
 import { newId, now, fail } from './http.js';
@@ -27,7 +27,7 @@ export function makeWallet(db, cfg) {
     );
   };
 
-  // Taxa do Realys sobre presentes: 5%, mínimo R$ 0,50.
+  // Taxa do Re@lys sobre presentes: 5%, mínimo R$ 0,50.
   const giftFee = (cents) => (cents > 0 ? Math.max(Math.round(cfg.giftFeeMin * 100), Math.round((cents * cfg.giftFeePct) / 100)) : 0);
 
   // Paga uma compra: créditos de presente primeiro, depois o saldo. Devolve quanto saiu de cada.

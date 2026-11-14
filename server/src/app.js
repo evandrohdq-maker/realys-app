@@ -75,7 +75,7 @@ export function createApp(cfg) {
   };
   deps.clearLogin = (key) => attempts.delete(key);
   [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes].forEach((r) => r(router, deps));
-  router.get('/health', () => ({ ok: true, name: 'Realys', time: now() }), { auth: false });
+  router.get('/health', () => ({ ok: true, name: 'Re@lys', time: now() }), { auth: false });
 
   // Administrador inicial (ADMIN_PASSWORD no .env).
   if (cfg.adminPassword && !db.prepare('SELECT 1 FROM users WHERE username = ?').get(cfg.adminUsername)) {

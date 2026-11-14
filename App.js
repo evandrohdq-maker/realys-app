@@ -45,7 +45,7 @@ import LotusSOS from './src/components/LotusSOS';
 import SecurityEvents from './src/components/SecurityEvents';
 import { SoftAlertHost, installSoftAlert } from './src/components/SoftAlert';
 
-// Avisos no estilo do Realys no app inteiro (no lugar da caixa cinza do Android).
+// Avisos no estilo do Re@lys no app inteiro (no lugar da caixa cinza do Android).
 installSoftAlert();
 import { callNow } from './src/phone';
 import { getDevicePoint } from './src/geo';
@@ -206,7 +206,7 @@ function Shell() {
     if (cfg.call190 !== false) setTimeout(() => callNow('190'), 1200);
   };
   // Frase de segurança (coação) na hora de confirmar: a Lotus mostra que deu certo, nada é cobrado,
-  // e em silêncio vai o alerta com GPS e endereço para a segurança do Realys, e a ligação para o 190.
+  // e em silêncio vai o alerta com GPS e endereço para a segurança do Re@lys, e a ligação para o 190.
   const duressNow = (info) => triggerDuress(dispatch, stateRef.current, info);
   const silentNow = (info) => triggerSilent(dispatch, stateRef.current, info);
   const [acaoPendente, setAcaoPendente] = useState(null); // mensagem da Lotus aguardando sim/não (só chat)
@@ -277,7 +277,7 @@ function Shell() {
       const now = Date.now();
       if (now - lastBack.current < 2000) return false; // segundo toque: sai do app
       lastBack.current = now;
-      if (Platform.OS === 'android') ToastAndroid.show('Toque em voltar de novo para sair do Realys', ToastAndroid.SHORT);
+      if (Platform.OS === 'android') ToastAndroid.show('Toque em voltar de novo para sair do Re@lys', ToastAndroid.SHORT);
       return true;
     });
     return () => sub.remove();
@@ -370,8 +370,8 @@ function Shell() {
     <BackProvider value={backStack}>
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        {/* Logo do Realys à esquerda (o R dourado, mesmo ícone do app). */}
-        <View style={{ flexDirection: 'row', alignItems: 'center' }} accessibilityLabel="Realys, ID biométrico verificado">
+        {/* Logo do Re@lys à esquerda (o R dourado, mesmo ícone do app). */}
+        <View style={{ flexDirection: 'row', alignItems: 'center' }} accessibilityLabel="Re@lys, ID biométrico verificado">
           <Image source={require('./assets/icon.png')} style={styles.logoImg} />
           <Text style={styles.brand}>REALYS</Text>
           {/* Selo de ID verificado: só um check discreto ao lado da marca */}
@@ -380,7 +380,7 @@ function Shell() {
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {/* Carrinho discreto: só aparece quando há itens */}
           <CartIcon style={styles.iconBtn} />
-          <TouchableOpacity onPress={() => setSearching(true)} style={styles.iconBtn} accessibilityLabel="Buscar pessoas na rede Realys">
+          <TouchableOpacity onPress={() => setSearching(true)} style={styles.iconBtn} accessibilityLabel="Buscar pessoas na rede Re@lys">
             <Ionicons name="search-outline" size={21} color={colors.text} />
           </TouchableOpacity>
           <TouchableOpacity
@@ -589,8 +589,8 @@ function Shell() {
             dispatch({ type: 'CLOSE_PROVIDER' });
             pick({ tab: 'servicos', service: p.service });
           }}
-          onQuote={(p) => Alert.alert('Orçamento pedido', `${p.name} recebeu seu pedido. A proposta chega no chat do Realys.`)}
-          onMessage={(p) => Alert.alert('Mensagem', `Conversa com ${p.name.split(' ')[0]} aberta no chat do Realys.`)}
+          onQuote={(p) => Alert.alert('Orçamento pedido', `${p.name} recebeu seu pedido. A proposta chega no chat do Re@lys.`)}
+          onMessage={(p) => Alert.alert('Mensagem', `Conversa com ${p.name.split(' ')[0]} aberta no chat do Re@lys.`)}
         />
       ) : null}
       {/* Prévia do prestador tocado na pesquisa: só para analisar, sem mensagem nem chamar */}
@@ -641,7 +641,7 @@ export default function App() {
       <StoreProvider>
         <Root />
       </StoreProvider>
-      {/* Avisos do Realys: em qualquer tela, inclusive na entrada (login). */}
+      {/* Avisos do Re@lys: em qualquer tela, inclusive na entrada (login). */}
       <SoftAlertHost />
     </SafeAreaProvider>
   );

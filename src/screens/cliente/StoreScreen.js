@@ -144,7 +144,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
     setShowCart(false);
     Alert.alert(
       'Pedido confirmado! ✅',
-      'Pagamento protegido: o valor fica retido pelo Realys e só é liberado para a loja quando você confirmar a entrega.',
+      'Pagamento protegido: o valor fica retido pelo Re@lys e só é liberado para a loja quando você confirmar a entrega.',
       [{ text: 'Ver pedidos', onPress: () => goTo('pedidos') }, { text: 'OK' }]
     );
   };
@@ -179,7 +179,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
         })}
         <Card>
           <Row style={{ justifyContent: 'space-between' }}>
-            <Text style={{ color: colors.muted }}>Seu saldo Realys</Text>
+            <Text style={{ color: colors.muted }}>Seu saldo Re@lys</Text>
             <Text style={{ color: colors.text, fontWeight: '700' }}>{brl(state.wallet)}</Text>
           </Row>
           {state.giftCredits > 0 ? (
@@ -193,7 +193,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
             <Text style={{ fontWeight: '700', fontSize: 16, color: colors.primary }}>{brl(total)}</Text>
           </Row>
         </Card>
-        <Button title="Pagar com saldo Realys" onPress={checkout} disabled={!state.cart.length} />
+        <Button title="Pagar com saldo Re@lys" onPress={checkout} disabled={!state.cart.length} />
       </Screen>
     );
   }
@@ -278,7 +278,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
       <View style={{ height: 12 }} />
       {food ? <FoodClassPicker selected={foodCls} counts={foodIndex.counts} onPick={setFoodCls} /> : null}
       {food && !q ? <SpotlightCarousel ads={FOOD_SPOTLIGHT} onOpen={openAd} /> : null}
-      {!q ? (food ? <ShopHero title="Food" sub="Restaurantes, bares e cafés perto de você" /> : <ShopHero title="Loja Realys" sub="Lojas verificadas, patrocinadas e recomendadas primeiro" />) : null}
+      {!q ? (food ? <ShopHero title="Food" sub="Restaurantes, bares e cafés perto de você" /> : <ShopHero title="Loja Re@lys" sub="Lojas verificadas, patrocinadas e recomendadas primeiro" />) : null}
       <CircleShortcuts items={food ? FOOD_SHORTCUTS : CATEGORIES} value={cat} onPress={setCat} />
       {food && !q ? <ClipStrip title="🎬 Clipes da cozinha" clips={FOOD_CLIPS} food /> : null}
       {food && !q ? (
@@ -304,7 +304,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
       ) : null}
 
       {searched && !matchedProducts.length && !rankedStores.length ? (
-        <GlobalResults query={searched} navigate={navigate} title={food ? 'Não achei no Food, mas achei no Realys' : 'Não está na loja, mas achei no Realys'} />
+        <GlobalResults query={searched} navigate={navigate} title={food ? 'Não achei no Food, mas achei no Re@lys' : 'Não está na loja, mas achei no Re@lys'} />
       ) : null}
 
       {food && !q ? <FoodHighlights filter={cat} onOpenStore={setOpenStore} onAdd={add} /> : null}
@@ -362,7 +362,7 @@ function MarketTab({ onOpenStore, onAdd, onPromos }) {
     <View>
       <SearchBar value={q} onChangeText={setQ} onSubmit={setQ} placeholder="Buscar arroz, café, leite…" voicePrompt="O que você quer do mercado?" style={{ marginBottom: 12 }} />
       {!term ? <SpotlightCarousel ads={MERCADO_SPOTLIGHT} onOpen={openAd} /> : null}
-      {!term ? <ShopHero title="Mercado" sub="Compras do dia e do mês, entregues por motoboy do Realys" icon="basket-outline" /> : null}
+      {!term ? <ShopHero title="Mercado" sub="Compras do dia e do mês, entregues por motoboy do Re@lys" icon="basket-outline" /> : null}
       <CircleShortcuts items={MERCADO_AISLES} value={aisle} onPress={setAisle} />
       {!term ? <ClipStrip title="🎬 Clipes do mercado" clips={MERCADO_CLIPS} food /> : null}
       {!term ? (

@@ -35,14 +35,14 @@ export default function DashboardScreen({ goTo }) {
         <Stat label="Saldo do período" value={brl(entradas - saidas)} color={entradas - saidas >= 0 ? colors.success : colors.danger} />
       </Row>
 
-      {/* Presentear clientes: créditos que o cliente usa só para comprar no Realys */}
+      {/* Presentear clientes: créditos que o cliente usa só para comprar no Re@lys */}
       <TouchableOpacity activeOpacity={0.9} onPress={() => dispatch({ type: 'OPEN_GIFT', asCompany: true })} style={{ backgroundColor: '#FFFFFF', borderRadius: 18, padding: 14, marginBottom: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border }}>
         <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' }}>
           <Ionicons name="gift" size={22} color={colors.primary} />
         </View>
         <View style={{ flex: 1, marginLeft: 12 }}>
           <Text style={{ color: colors.text, fontWeight: '800' }}>Presentear clientes</Text>
-          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Mande créditos para um cliente fiel. Ele usa só em compras no Realys.</Text>
+          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Mande créditos para um cliente fiel. Ele usa só em compras no Re@lys.</Text>
         </View>
         <Ionicons name="chevron-forward" size={18} color={colors.primary} />
       </TouchableOpacity>
@@ -53,7 +53,7 @@ export default function DashboardScreen({ goTo }) {
       </Card>
 
       <Card style={{ backgroundColor: '#FFF4DC', borderColor: '#E9CF95' }}>
-        <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>🤖 Lotus · assistente do Realys</Text>
+        <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>🤖 Lotus · assistente do Re@lys</Text>
         {low.map((p) => (
           <Text key={p.id} style={{ color: colors.text, marginBottom: 4 }}>
             • Seu estoque de <Text style={{ fontWeight: '700' }}>{p.name}</Text> está baixo ({p.stock} un.). Veja ofertas de
@@ -137,7 +137,7 @@ function AdsPerformance() {
         </Card>
       ))}
       <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
-        Clientes ganham pontos Realys ao assistir seus clipes até o fim: mais atenção no seu produto.
+        Clientes ganham pontos Re@lys ao assistir seus clipes até o fim: mais atenção no seu produto.
       </Text>
     </Section>
   );

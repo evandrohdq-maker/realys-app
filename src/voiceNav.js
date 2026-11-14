@@ -61,7 +61,7 @@ export const NAV_TARGETS = [
   T('Meus ingressos', { tab: 'pedidos', seg: 'ingressos' }, ['meus ingressos', 'ingressos comprados', 'meu ingresso', 'minhas passagens', 'minha passagem']),
   T('Minhas assinaturas', { tab: 'pedidos', seg: 'assinaturas' }, ['assinaturas', 'minhas assinaturas', 'assinar gas', 'assinatura de agua', 'assinar diarista', 'marmita da semana']),
   T('Pedir propostas', { tab: 'pedidos', seg: 'propostas' }, ['pedir propostas', 'pedido ao contrario', 'quero propostas', 'receber orcamentos', 'pedir orcamento']),
-  T('Score Realys', { tab: 'perfil' }, ['score', 'meu score', 'score realys', 'minha reputacao']),
+  T('Score Re@lys', { tab: 'perfil' }, ['score', 'meu score', 'score realys', 'minha reputacao']),
   T('Compra coletiva', { tab: 'negocios' }, ['compra coletiva', 'compras coletivas', 'comprar junto']),
   T('Notícias', { tab: 'stories', top: 'noticias' }, ['noticias', 'noticia', 'jornal', 'ultimas noticias', 'o que esta acontecendo']),
   T('Alertas', { tab: 'stories', top: 'noticias' }, ['alertas', 'alerta', 'defesa civil', 'alerta de chuva', 'catastrofe', 'enchente', 'deslizamento', 'alagamento']),

@@ -1,5 +1,5 @@
 // Perfil › Carteira profissional: cadastrar a carteira da profissão e, depois de aprovada, escolher se
-// quer receber casos da plataforma (servidor público atende de graça, sem taxa do Realys).
+// quer receber casos da plataforma (servidor público atende de graça, sem taxa do Re@lys).
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Switch, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -129,7 +129,7 @@ export default function Credentials() {
     setNomeCarteira('');
     Alert.alert(
       ct ? ct[0] : 'Carteira enviada',
-      `${ct ? ct[1] + '\n\n' : ''}${p.gov ? 'Confirme também o seu e-mail institucional logo abaixo. ' : ''}A equipe do Realys faz a conferência final e avisa você.`
+      `${ct ? ct[1] + '\n\n' : ''}${p.gov ? 'Confirme também o seu e-mail institucional logo abaixo. ' : ''}A equipe do Re@lys faz a conferência final e avisa você.`
     );
   };
 
@@ -160,7 +160,7 @@ export default function Credentials() {
               <Text style={[st.itemSub, { color: CONSELHO_TEXT[c.conselho][2], fontWeight: '700' }]}>{CONSELHO_TEXT[c.conselho][0]}</Text>
             ) : null}
             {c.nomeConfere === false ? <Text style={[st.itemSub, { color: colors.danger }]}>O nome da carteira não bate com o nome da conta.</Text> : null}
-            {c.gov ? <Text style={st.itemSub}>Servidor público: se atender pelo Realys, atende de graça (sem taxa do Realys).</Text> : null}
+            {c.gov ? <Text style={st.itemSub}>Servidor público: se atender pelo Re@lys, atende de graça (sem taxa do Re@lys).</Text> : null}
             {c.gov && !c.emailOk && c.status !== 'recusado' ? (
               <View style={{ marginTop: 8 }}>
                 <Text style={[st.itemSub, { color: colors.text, fontWeight: '700' }]}>Confirmar e-mail institucional</Text>
@@ -182,7 +182,7 @@ export default function Credentials() {
             ) : null}
             {c.gov && c.emailOk ? <Text style={[st.itemSub, { color: '#1E9E63', fontWeight: '700' }]}>✔ E-mail institucional confirmado: {c.emailInst}</Text> : null}
             <View style={st.switchRow}>
-              <Text style={st.switchText}>Sigilo: não mostrar a profissão no meu perfil público (os atendimentos ficam registrados só dentro do Realys)</Text>
+              <Text style={st.switchText}>Sigilo: não mostrar a profissão no meu perfil público (os atendimentos ficam registrados só dentro do Re@lys)</Text>
               <Switch
                 value={!!c.discreto}
                 onValueChange={(v) => {
@@ -255,7 +255,7 @@ export default function Credentials() {
               </View>
               {!p.gov ? (
                 <View style={st.switchRow}>
-                  <Text style={st.switchText}>Trabalho para o governo (atendo de graça pelo Realys)</Text>
+                  <Text style={st.switchText}>Trabalho para o governo (atendo de graça pelo Re@lys)</Text>
                   <Switch value={gov} onValueChange={setGov} />
                 </View>
               ) : null}

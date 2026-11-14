@@ -225,7 +225,7 @@ export const CATEGORIES = [
   {
     key: 'desapego',
     title: 'Desapego',
-    hint: 'Usados entre pessoas verificadas, com a Garantia Realys',
+    hint: 'Usados entre pessoas verificadas, com a Garantia Re@lys',
     icon: 'pricetags-outline',
     subs: [
       { label: 'Ver desapegos', hint: 'Perto de você', icon: 'search-outline', go: { tab: 'desapego' } },
@@ -244,7 +244,7 @@ export const CATEGORIES = [
       { label: 'Mensagens', hint: 'Conversas e chamadas de vídeo', icon: 'mail-outline', go: { tab: 'stories', seg: 'msgs' } },
       { label: 'Contatos', hint: 'Sua lista de contatos', icon: 'person-add-outline', go: { tab: 'stories', seg: 'contatos' } },
       { label: 'Lives', hint: 'Assista ou abra a sua', icon: 'radio-outline', go: { tab: 'home', top: 'lives' } },
-      { label: 'Stories', hint: 'Stories e a comunidade de quem está no Realys', icon: 'people-circle-outline', go: { tab: 'stories' } },
+      { label: 'Stories', hint: 'Stories e a comunidade de quem está no Re@lys', icon: 'people-circle-outline', go: { tab: 'stories' } },
       { label: 'Date', hint: 'Relacionamentos com quem passa perto', icon: 'heart-outline', go: { tab: 'encontros' } },
     ],
   },
@@ -360,7 +360,7 @@ export default function CategoryMenu({ visible, onClose, onPick, roles = [], act
             <>
               <View style={styles.head}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.title}>Explorar Realys</Text>
+                  <Text style={styles.title}>Explorar Re@lys</Text>
                   <Text style={styles.hint}>Tudo do app em um lugar</Text>
                 </View>
                 <TouchableOpacity onPress={onClose} style={styles.iconBtn} accessibilityLabel="Fechar">

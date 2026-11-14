@@ -38,7 +38,7 @@ export function Stars({ value, size = 13, color = colors.gold }) {
 export function reviewer(state, rv) {
   if (rv.who === 'me') return { name: (state.user && state.user.name) || 'Você', photo: state.myProfile && state.myProfile.photo };
   const m = memberById(rv.who);
-  return m ? { name: m.name, photo: m.photo } : { name: 'Cliente Realys', photo: null };
+  return m ? { name: m.name, photo: m.photo } : { name: 'Cliente Re@lys', photo: null };
 }
 
 // Logo com anel em órbita, no mesmo estilo da Lotus.
@@ -439,7 +439,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
                 <Ionicons name={following ? 'checkmark' : 'add'} size={16} color={following ? colors.primary : NIGHT} />
                 <Text style={[styles.ctaText, following && { color: colors.primary }]}>{following ? 'Seguindo a empresa' : 'Seguir empresa'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.glassBtn, { flex: 1, marginLeft: 8 }]} onPress={() => Alert.alert('Atendimento', `Atendimento de ${p.name} aberto no chat do Realys.${b.contact ? `\n\n${b.contact}` : ''}`)}>
+              <TouchableOpacity style={[styles.glassBtn, { flex: 1, marginLeft: 8 }]} onPress={() => Alert.alert('Atendimento', `Atendimento de ${p.name} aberto no chat do Re@lys.${b.contact ? `\n\n${b.contact}` : ''}`)}>
                 <Ionicons name="headset-outline" size={16} color={colors.text} />
                 <Text style={styles.glassBtnText}>Atendimento</Text>
               </TouchableOpacity>
@@ -549,7 +549,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
                     <Text style={styles.ctaText}>Escrever depoimento</Text>
                   </TouchableOpacity>
                 ) : (
-                  <Text style={[styles.sub, { textAlign: 'center', marginBottom: 12 }]}>Só quem comprou aqui pelo Realys pode escrever depoimento.</Text>
+                  <Text style={[styles.sub, { textAlign: 'center', marginBottom: 12 }]}>Só quem comprou aqui pelo Re@lys pode escrever depoimento.</Text>
                 )
               ) : null}
               {writing ? <WriteReview company={p} onClose={() => setWriting(false)} /> : null}

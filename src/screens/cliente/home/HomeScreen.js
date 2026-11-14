@@ -331,7 +331,7 @@ function EventsTab({ group, setGroup, onContact }) {
     };
     // Sem saldo: escolhe ingresso ou ingresso + mesa e paga no Pix (valor inteiro ou saldo + restante).
     const pay = (withTable) => (price > state.wallet ? askPix({ amount: price, available: state.wallet, label: `Ingresso · ${e.title}`, onPaid: () => buy(withTable) }) : buy(withTable));
-    Alert.alert(e.cta, `${e.title}\n${e.who} · ${e.when}\n${price ? brl(price) : 'Grátis'} pelo Realys`, [
+    Alert.alert(e.cta, `${e.title}\n${e.who} · ${e.when}\n${price ? brl(price) : 'Grátis'} pelo Re@lys`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Só ingresso', onPress: () => pay(false) },
       { text: 'Ingresso + mesa', onPress: () => pay(true) },
@@ -368,7 +368,7 @@ function EventsTab({ group, setGroup, onContact }) {
 
       <TouchableOpacity
         style={[styles.announce, { marginTop: 4 }]}
-        onPress={() => Alert.alert('Divulgar no Realys', 'Casas noturnas, bares, restaurantes e organizadores podem anunciar festas e promoções para pessoas verificadas por biometria. Patrocinados aparecem primeiro.')}
+        onPress={() => Alert.alert('Divulgar no Re@lys', 'Casas noturnas, bares, restaurantes e organizadores podem anunciar festas e promoções para pessoas verificadas por biometria. Patrocinados aparecem primeiro.')}
       >
         <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
         <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>Divulgar festa ou promoção</Text>
@@ -458,7 +458,7 @@ function PromoTab() {
         <Ionicons name="flash" size={22} color={colors.onPrimary} />
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 16 }}>Ofertas relâmpago</Text>
-          <Text style={{ color: colors.onPrimary, fontSize: 12 }}>Preços exclusivos para quem compra pelo Realys</Text>
+          <Text style={{ color: colors.onPrimary, fontSize: 12 }}>Preços exclusivos para quem compra pelo Re@lys</Text>
         </View>
       </View>
       {items.map(({ p, off, until }) => {
@@ -513,7 +513,7 @@ function AdsTab({ kind, setKind, onContact }) {
 
       <TouchableOpacity
         style={styles.announce}
-        onPress={() => Alert.alert('Anunciar no Realys', 'Imóveis, veículos, máquinas e produtos. Pessoas verificadas por biometria veem o seu anúncio.')}
+        onPress={() => Alert.alert('Anunciar no Re@lys', 'Imóveis, veículos, máquinas e produtos. Pessoas verificadas por biometria veem o seu anúncio.')}
       >
         <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
         <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>Criar anúncio</Text>
@@ -625,7 +625,7 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
   const requests = members.filter((m) => state.friends[m.id] === 'recebido');
   const friends = members
     .filter((m) => state.friends[m.id] === 'amigo')
-    .map((m) => ({ ...(contacts.find((c) => c.id === m.id) || { status: 'amigo no Realys' }), id: m.id, name: m.name, photo: m.photo }));
+    .map((m) => ({ ...(contacts.find((c) => c.id === m.id) || { status: 'amigo no Re@lys' }), id: m.id, name: m.name, photo: m.photo }));
   const people = [...friends, ...contacts.filter((c) => c.business)];
   const posts = state.communityPosts;
   const [liked, setLiked] = useState({});
@@ -638,7 +638,7 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
   const pendingMine = state.testimonials.filter((t) => t.to === 'me' && t.status === 'pendente').length;
   const sharePost = async (p) => {
     try {
-      const r = await Share.share({ message: `${p.author} no Realys:\n\n${p.text}\n\nRealys · Pessoas reais. Negócios reais.` });
+      const r = await Share.share({ message: `${p.author} no Re@lys:\n\n${p.text}\n\nRe@lys · Pessoas reais. Negócios reais.` });
       if (!r || r.action !== Share.dismissedAction) setShared((x) => ({ ...x, [p.id]: (x[p.id] || 0) + 1 }));
     } catch (e) {}
   };
@@ -728,7 +728,7 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
                 {it.p.flagged ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF4DC', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 5, marginTop: 10 }}>
                     <Ionicons name="alert-circle-outline" size={14} color="#C77D12" />
-                    <Text style={{ color: '#8A5A0B', fontSize: 12, fontWeight: '700', marginLeft: 5, flex: 1 }}>Em verificação: a IA do Realys achou sinais de informação falsa</Text>
+                    <Text style={{ color: '#8A5A0B', fontSize: 12, fontWeight: '700', marginLeft: 5, flex: 1 }}>Em verificação: a IA do Re@lys achou sinais de informação falsa</Text>
                   </View>
                 ) : null}
                 <Text style={{ color: colors.text, marginTop: 10, lineHeight: 20 }}>{it.p.text}</Text>
@@ -839,10 +839,10 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
           <Text style={styles.contactsTitle}>Amigos e contatos ({people.length})</Text>
           <TouchableOpacity
             style={styles.announce}
-            onPress={() => Alert.alert('Convidar amigos', 'Mande o convite: quem entra no Realys passa pela verificação por biometria.')}
+            onPress={() => Alert.alert('Convidar amigos', 'Mande o convite: quem entra no Re@lys passa pela verificação por biometria.')}
           >
             <Ionicons name="person-add-outline" size={18} color={colors.primary} />
-            <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>Convidar para o Realys</Text>
+            <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>Convidar para o Re@lys</Text>
           </TouchableOpacity>
           {people.map((ct) => (
             <View key={ct.id} style={styles.convRow}>

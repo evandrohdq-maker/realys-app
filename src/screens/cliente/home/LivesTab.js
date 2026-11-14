@@ -26,7 +26,7 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
   useEffect(() => setSub('todas'), [f]);
 
   const every = allLives(state);
-  // Lives no ar de verdade (servidor do Realys), quando houver servidor.
+  // Lives no ar de verdade (servidor do Re@lys), quando houver servidor.
   const real = useRealLives(true);
   const cat = f === 'todas' ? null : catOf(f);
   const inCat = cat ? every.filter((l) => l.cat === cat.key) : every;
@@ -55,7 +55,7 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
 
       {real.length ? (
         <View style={{ marginBottom: 12 }}>
-          <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15, marginBottom: 6 }}>🔴 Ao vivo agora no Realys</Text>
+          <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15, marginBottom: 6 }}>🔴 Ao vivo agora no Re@lys</Text>
           {real.map((l) => (
             <TouchableOpacity key={l.id} onPress={() => onWatch(l)} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 12, marginBottom: 8 }}>
               <Ionicons name="radio" size={20} color="#FF3B5C" />
@@ -224,7 +224,7 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
   );
 }
 
-// Missão do dia da classe: assistir 3 minutos dá pontos Realys.
+// Missão do dia da classe: assistir 3 minutos dá pontos Re@lys.
 function Mission({ cat, done }) {
   return (
     <View style={[styles.mission, done && { borderColor: colors.success + '55', backgroundColor: colors.success + '0D' }]}>
@@ -232,7 +232,7 @@ function Mission({ cat, done }) {
       <View style={{ flex: 1, marginLeft: 10 }}>
         <Text style={styles.missionTitle}>{done ? 'Missão do dia concluída' : 'Missão do dia'}</Text>
         <Text style={styles.missionText}>
-          {done ? `Você ganhou ${LIVE_MISSION_POINTS} pontos Realys. Volte amanhã!` : `Assista ${LIVE_MISSION_SECS / 60} min de lives de ${cat.label} e ganhe ${LIVE_MISSION_POINTS} pontos Realys`}
+          {done ? `Você ganhou ${LIVE_MISSION_POINTS} pontos Re@lys. Volte amanhã!` : `Assista ${LIVE_MISSION_SECS / 60} min de lives de ${cat.label} e ganhe ${LIVE_MISSION_POINTS} pontos Re@lys`}
         </Text>
       </View>
       <Text style={[styles.missionPts, done && { color: colors.success }]}>+{LIVE_MISSION_POINTS}</Text>

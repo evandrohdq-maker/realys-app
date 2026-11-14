@@ -23,7 +23,7 @@ export function usePerson() {
   return (id) => {
     if (id === 'me') return { id: 'me', name: state.user ? state.user.name : 'Você', photo: (state.myProfile && state.myProfile.photo) || null, me: true };
     const m = memberById(id);
-    return m ? { ...m } : { id, name: 'Membro Realys', photo: null };
+    return m ? { ...m } : { id, name: 'Membro Re@lys', photo: null };
   };
 }
 
@@ -65,7 +65,7 @@ export function TestimonialCard({ t, hideTarget, ownerTools }) {
   };
   const share = async () => {
     try {
-      const r = await Share.share({ message: `Depoimento de ${from.name} para ${to.name} no Realys:\n\n“${t.text}”\n\nRealys · Pessoas reais. Negócios reais.` });
+      const r = await Share.share({ message: `Depoimento de ${from.name} para ${to.name} no Re@lys:\n\n“${t.text}”\n\nRe@lys · Pessoas reais. Negócios reais.` });
       if (!r || r.action !== Share.dismissedAction) dispatch({ type: 'T_SHARE', id: t.id });
     } catch (e) {}
   };
@@ -213,7 +213,7 @@ export function TestimonialComposer({ visible, onClose, toId }) {
               </View>
               <Text style={[styles.modalTitle, { marginTop: 16, textAlign: 'center' }]}>Depoimento enviado para {first(sent.name)}!</Text>
               <Text style={{ color: colors.muted, textAlign: 'center', marginTop: 8, lineHeight: 20 }}>
-                A Realys já analisou o texto. Agora {first(sent.name)} decide se aceita. Só depois de aprovado ele aparece no perfil e no feed de depoimentos.
+                A Re@lys já analisou o texto. Agora {first(sent.name)} decide se aceita. Só depois de aprovado ele aparece no perfil e no feed de depoimentos.
               </Text>
               <TouchableOpacity style={[styles.primaryBtn, { marginTop: 22, alignSelf: 'stretch' }]} onPress={onClose}>
                 <Text style={styles.primaryTxt}>Concluir</Text>
@@ -274,7 +274,7 @@ export function TestimonialComposer({ visible, onClose, toId }) {
               <View style={styles.info}>
                 <Ionicons name="shield-checkmark-outline" size={18} color={colors.primary} />
                 <Text style={{ color: colors.text, fontSize: 12, marginLeft: 8, flex: 1, lineHeight: 18 }}>
-                  Antes de entregar, a Realys analisa o depoimento (ofensas, golpes, links e dados pessoais). Depois, o dono do perfil escolhe se aceita ou recusa. Só os aceitos ficam expostos.
+                  Antes de entregar, a Re@lys analisa o depoimento (ofensas, golpes, links e dados pessoais). Depois, o dono do perfil escolhe se aceita ou recusa. Só os aceitos ficam expostos.
                 </Text>
               </View>
 
@@ -357,7 +357,7 @@ function TestimonialsTab({ ownerId }) {
                     <Text style={styles.quoteText}>{t.text}</Text>
                   </View>
                   <Text style={{ color: colors.muted, fontSize: 11, marginTop: 8 }}>
-                    <Ionicons name="shield-checkmark" size={11} color={colors.success} /> Analisado pela Realys: sem ofensas, links ou golpes.
+                    <Ionicons name="shield-checkmark" size={11} color={colors.success} /> Analisado pela Re@lys: sem ofensas, links ou golpes.
                   </Text>
                   <View style={{ flexDirection: 'row', marginTop: 10 }}>
                     <TouchableOpacity style={[styles.primaryBtn, { flex: 1, marginTop: 0 }]} onPress={() => dispatch({ type: 'T_RESPOND', id: t.id, status: 'aprovado' })}>
@@ -563,7 +563,7 @@ function HighlightComposer({ visible, onClose }) {
 async function pickFromPhone(kind) {
   const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!perm.granted) {
-    Alert.alert('Permissão necessária', 'Autorize o Realys a ver suas fotos e vídeos para escolher o que vai para o perfil.');
+    Alert.alert('Permissão necessária', 'Autorize o Re@lys a ver suas fotos e vídeos para escolher o que vai para o perfil.');
     return [];
   }
   const res = await ImagePicker.launchImageLibraryAsync({
@@ -606,7 +606,7 @@ function MediaGallery({ ownerId, kind }) {
   };
   const remove = (it) =>
     mine &&
-    Alert.alert(kind === 'videos' ? 'Remover vídeo?' : 'Remover foto?', 'Sai da sua galeria no Realys (continua no seu celular).', [
+    Alert.alert(kind === 'videos' ? 'Remover vídeo?' : 'Remover foto?', 'Sai da sua galeria no Re@lys (continua no seu celular).', [
       { text: 'Manter', style: 'cancel' },
       { text: 'Remover', style: 'destructive', onPress: () => dispatch({ type: 'GALLERY_REMOVE', kind, id: it.id }) },
     ]);

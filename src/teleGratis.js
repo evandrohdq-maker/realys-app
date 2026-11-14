@@ -1,9 +1,9 @@
-// Tele grátis no Food, com travas para o Realys nunca entrar no prejuízo.
+// Tele grátis no Food, com travas para o Re@lys nunca entrar no prejuízo.
 //
 // Quem paga a tele (o motoboy SEMPRE recebe o valor cheio, em dinheiro):
 //  1. Restaurante que liga "Tele grátis" na página dele: ele paga a tele dos pedidos acima do mínimo que
-//     escolheu e ganha o selo "Tele grátis" com destaque no Food. Custo zero para o Realys.
-//  2. Primeira tele do usuário: o Realys paga, como custo de marketing (traz o cliente já comprando).
+//     escolheu e ganha o selo "Tele grátis" com destaque no Food. Custo zero para o Re@lys.
+//  2. Primeira tele do usuário: o Re@lys paga, como custo de marketing (traz o cliente já comprando).
 //     Travas: só no primeiro pedido de comida da pessoa, pedido mínimo e orçamento máximo por mês;
 //     acabou o orçamento, a promoção pausa sozinha até o mês seguinte. A biometria garante uma conta por
 //     rosto, então ninguém cria contas falsas para ganhar a tele de novo.
@@ -16,7 +16,7 @@ export const LOJA_MINIMO_PADRAO = 40;
 
 const mesAtual = (ts = Date.now()) => new Date(ts - 3 * 3600 * 1000).toISOString().slice(0, 7);
 
-// Quanto o Realys já gastou com a primeira tele grátis neste mês.
+// Quanto o Re@lys já gastou com a primeira tele grátis neste mês.
 export const gastoDoMes = (state) => (state.teleGratisMes && state.teleGratisMes.mes === mesAtual() ? state.teleGratisMes.gasto : 0);
 export const orcamentoRestante = (state) => Math.max(0, PRIMEIRA_TELE.orcamentoMes - gastoDoMes(state));
 
@@ -30,7 +30,7 @@ export function teleDoCarrinho(state, foodStores, subtotal) {
   const loja = foodStores.find((s) => s.teleGratis && subtotal >= (s.teleGratisMin || LOJA_MINIMO_PADRAO));
   if (loja) return { tele, cliente: 0, pagaLoja: tele, pagaRealys: 0, motivo: 'loja', texto: `Tele grátis por conta de ${loja.name}` };
   if (!jaPediuComida(state) && subtotal >= PRIMEIRA_TELE.minimoPedido && orcamentoRestante(state) >= tele) {
-    return { tele, cliente: 0, pagaLoja: 0, pagaRealys: tele, motivo: 'primeira', texto: 'Primeira tele grátis: presente do Realys' };
+    return { tele, cliente: 0, pagaLoja: 0, pagaRealys: tele, motivo: 'primeira', texto: 'Primeira tele grátis: presente do Re@lys' };
   }
   const aviso = foodStores.find((s) => s.teleGratis);
   return {

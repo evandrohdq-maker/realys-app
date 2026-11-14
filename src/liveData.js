@@ -1,11 +1,11 @@
-// Lives do Realys por assunto e por quem transmite.
+// Lives do Re@lys por assunto e por quem transmite.
 // Qualquer perfil abre live: usuário, empresa, artista, prestador de serviço e fornecedor.
 // A live aparece na aba Lives (no assunto certo) e no perfil de quem está transmitindo,
 // e tocar em quem transmite abre o perfil dele.
 
 // Classes das lives, cada uma com as suas subclasses. A ordem é a do destaque na tela
 // (o que mais engaja vem primeiro). "shop" liga a classe aos produtos da loja (ex.: Gamers → Games).
-// O Realys é só para maiores de 18: nenhuma classe é de conteúdo infantil.
+// O Re@lys é só para maiores de 18: nenhuma classe é de conteúdo infantil.
 const S = (key, label) => ({ key, label });
 export const LIVE_CATS = [
   {
@@ -86,7 +86,7 @@ export const LIVE_CATS = [
     subs: [S('festas', 'Festas e baladas'), S('shows', 'Shows das casas'), S('esquenta', 'Esquenta'), S('bares', 'Bares com música ao vivo'), S('eventos', 'Eventos e feiras')],
   },
   {
-    key: 'comunidade', label: 'Comunidade', icon: 'people-outline', tint: '#A8790A', title: 'Comunidade ao vivo', hint: 'Bate-papo de quem está no Realys',
+    key: 'comunidade', label: 'Comunidade', icon: 'people-outline', tint: '#A8790A', title: 'Comunidade ao vivo', hint: 'Bate-papo de quem está no Re@lys',
     subs: [S('papo', 'Bate-papo'), S('dicas', 'Dicas'), S('bairro', 'Meu bairro'), S('pets', 'Pets'), S('viagens', 'Viagens e passeios')],
   },
 ];
@@ -96,7 +96,7 @@ export const subOf = (cat, sub) => (catOf(cat).subs || []).find((s) => s.key ===
 // Engajamento: quem assiste, quem manda presente e quem curte conta para o "Em alta".
 export const liveScore = (l) => (l.viewers || 0) + (l.gifts || 0) * 40 + (l.likes || 0) * 0.5;
 
-// Missão do dia: assistir lives de uma classe por 3 minutos dá pontos Realys (uma vez por dia e por classe).
+// Missão do dia: assistir lives de uma classe por 3 minutos dá pontos Re@lys (uma vez por dia e por classe).
 export const LIVE_MISSION_SECS = 180;
 export const LIVE_MISSION_POINTS = 10;
 export const missionId = (cat, d = new Date()) => `live-${cat}-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;

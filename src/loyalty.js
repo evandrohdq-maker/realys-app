@@ -1,4 +1,4 @@
-// Clube Realys: política de fidelidade, bônus e descontos.
+// Clube Re@lys: política de fidelidade, bônus e descontos.
 //
 // Referências de mercado usadas para calibrar (consultadas em nov/2026):
 // - Clube iFood: cupons de 25% com teto de R$ 10, ou R$ 10 em pedidos acima de R$ 60.
@@ -7,12 +7,12 @@
 // - Cashback (Méliuz e parecidos): de 3% a 10% nas lojas, média perto de 5%, pago pela loja parceira.
 // - Regra de ouro: o brinde por pedido tem que custar menos que a margem que o pedido deixa.
 //
-// Como o Realys aplica:
+// Como o Re@lys aplica:
 // 1. Selo por loja: cada pedido entregue numa loja ou restaurante parceiro vale 1 selo. Com 10 selos,
 //    o cliente ganha crédito de 10% do que gastou nesses 10 pedidos (teto R$ 30), para usar na
 //    MESMA loja. Quem paga é a loja (é a fidelidade dela). Validade: 12 meses.
-// 2. Bônus Realys a cada 20 pedidos (em qualquer empresa): cupom de 15% (teto R$ 25, pedido mínimo
-//    R$ 30) no próximo pedido em QUALQUER parceiro, ou na mesma. Quem paga é o Realys, com a taxa
+// 2. Bônus Re@lys a cada 20 pedidos (em qualquer empresa): cupom de 15% (teto R$ 25, pedido mínimo
+//    R$ 30) no próximo pedido em QUALQUER parceiro, ou na mesma. Quem paga é o Re@lys, com a taxa
 //    dos pedidos. Validade: 90 dias, 1 uso.
 // 3. Pontos por compra: 1 ponto a cada R$ 10 gastos (100 pontos = R$ 10 em parceiros, ≈ 1% de volta),
 //    somados aos pontos de avaliação. O nível aumenta os pontos.
@@ -24,7 +24,7 @@ export const STAMP_BACK_PCT = 10;
 export const STAMP_CAP = 30;
 export const ORDERS_FOR_BONUS = 20;
 export const BONUS = { pct: 15, cap: 25, minOrder: 30, days: 90 };
-// Pontos por compra: 25% da taxa do Realys sobre o pedido (10%) = 2,5% da compra,
+// Pontos por compra: 25% da taxa do Re@lys sobre o pedido (10%) = 2,5% da compra,
 // ou seja, 2,5 pontos por real (100 pontos = R$ 1 em boosts e anúncios).
 export const POINTS_PER_REAL_BUY = 2.5;
 
@@ -42,8 +42,8 @@ export const initialLoyalty = { orders: 17, spent: 812.4, stamps: { e2: { count:
 
 export const LOYALTY_RULES = [
   { icon: 'ribbon-outline', title: `Selo por loja: ${STAMPS_FOR_REWARD} pedidos = ${STAMP_BACK_PCT}% de volta`, text: `Cada pedido entregue vale 1 selo naquela loja. Com ${STAMPS_FOR_REWARD} selos o cliente ganha ${STAMP_BACK_PCT}% do que gastou nesses pedidos (até R$ ${STAMP_CAP}) para usar na mesma loja. Pago pela loja · validade 12 meses. Igual ao "compre 10, ganhe 1" das pizzarias.` },
-  { icon: 'gift-outline', title: `A cada ${ORDERS_FOR_BONUS} pedidos: ${BONUS.pct}% no próximo`, text: `Em qualquer empresa do Realys. Cupom de ${BONUS.pct}% (até R$ ${BONUS.cap}, pedido mínimo de R$ ${BONUS.minOrder}) para o próximo pedido em qualquer parceiro. Pago pelo Realys · ${BONUS.days} dias · 1 uso. Na linha do Clube iFood (25% até R$ 10).` },
-  { icon: 'trophy-outline', title: `Pontos: ${POINTS_PER_REAL_BUY} por real + avaliações`, text: 'A cada 1.000 pontos, R$ 10 para anúncios e boosts do Realys. Pontos não viram dinheiro. Nível Prata, Ouro e Diamante dá 10%, 25% e 50% a mais de pontos.' },
+  { icon: 'gift-outline', title: `A cada ${ORDERS_FOR_BONUS} pedidos: ${BONUS.pct}% no próximo`, text: `Em qualquer empresa do Re@lys. Cupom de ${BONUS.pct}% (até R$ ${BONUS.cap}, pedido mínimo de R$ ${BONUS.minOrder}) para o próximo pedido em qualquer parceiro. Pago pelo Re@lys · ${BONUS.days} dias · 1 uso. Na linha do Clube iFood (25% até R$ 10).` },
+  { icon: 'trophy-outline', title: `Pontos: ${POINTS_PER_REAL_BUY} por real + avaliações`, text: 'A cada 1.000 pontos, R$ 10 para anúncios e boosts do Re@lys. Pontos não viram dinheiro. Nível Prata, Ouro e Diamante dá 10%, 25% e 50% a mais de pontos.' },
   { icon: 'calculator-outline', title: 'Teto de ~3% do gasto do cliente', text: 'Selos (~1% para quem completa) + bônus de 20 pedidos (≤ R$ 25 a cada 20, ≈ 2,5% num ticket de R$ 50) + pontos (~1%) ficam perto de 3%. O brinde de cada pedido tem que custar menos que a margem que ele deixa.' },
 ];
 

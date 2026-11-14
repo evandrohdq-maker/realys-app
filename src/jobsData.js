@@ -1,4 +1,4 @@
-// RH do Realys: vagas de emprego e candidatos (exemplos fictícios).
+// RH do Re@lys: vagas de emprego e candidatos (exemplos fictícios).
 // Empresas com CNPJ anunciam vagas; clientes com identidade verificada se candidatam com um toque.
 const face = (seed) => `https://picsum.photos/seed/${seed}/200/200`;
 
@@ -46,7 +46,7 @@ export const jobs = [
     shift: 'Comercial (escala 6x1)',
     city: 'Consolação, São Paulo - SP',
     distanceKm: 2.4,
-    desc: 'Atender clientes na loja e pelo chat do Realys, organizar a vitrine e as lives de venda.',
+    desc: 'Atender clientes na loja e pelo chat do Re@lys, organizar a vitrine e as lives de venda.',
     reqs: ['Ensino médio completo', 'Gostar de atender pessoas'],
     sponsored: false,
     posted: 'Ontem',
@@ -100,7 +100,7 @@ export const jobs = [
     shift: 'Diurno',
     city: 'Campinas - SP',
     distanceKm: 92,
-    desc: 'Entregas para mercados e restaurantes da região, com rota acompanhada pelo GPS do Realys.',
+    desc: 'Entregas para mercados e restaurantes da região, com rota acompanhada pelo GPS do Re@lys.',
     reqs: ['CNH categoria D', 'Curso de direção defensiva'],
     sponsored: true,
     posted: 'Há 3 dias',
@@ -155,7 +155,7 @@ export const myJobs = [
     salary: 1700,
     benefits: 'Vale-transporte',
     shift: 'Tarde (14h às 22h) · dezembro e janeiro',
-    desc: 'Reforço para o fim de ano: caixa, pagamento por Pix e saldo Realys, embalagem.',
+    desc: 'Reforço para o fim de ano: caixa, pagamento por Pix e saldo Re@lys, embalagem.',
     reqs: ['Ensino médio completo'],
     status: 'aberta',
     posted: 'Hoje',

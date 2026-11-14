@@ -1,13 +1,13 @@
 // Módulo de Serviços: taxa de visita, ranking dos prestadores e plano de destaque.
 //
 // Como funciona (demonstração):
-// 1. O cliente pede uma visita e paga a TAXA DE VISITA pelo Realys. O valor fica retido.
+// 1. O cliente pede uma visita e paga a TAXA DE VISITA pelo Re@lys. O valor fica retido.
 // 2. O prestador aceita ou recusa. Recusou: a taxa volta na hora e o pedido não recebe avaliação.
-// 3. Aceitou: a conversa segue pelo chat do Realys e o telefone é liberado (a taxa já foi paga).
+// 3. Aceitou: a conversa segue pelo chat do Re@lys e o telefone é liberado (a taxa já foi paga).
 // 4. O cliente confirma que a visita aconteceu. Só então a taxa é dividida:
-//    REALYS_FEE_PCT % (15%) fica com o Realys e o resto vai para o prestador.
+//    REALYS_FEE_PCT % (15%) fica com o Re@lys e o resto vai para o prestador.
 //    Se o prestador não foi, a taxa volta para o cliente e ele perde posição no ranking.
-// 5. O valor final do serviço é negociado entre cliente e prestador (o Realys não define nem cobra).
+// 5. O valor final do serviço é negociado entre cliente e prestador (o Re@lys não define nem cobra).
 //    O prestador pode abater a taxa de visita no fechamento do serviço, como desconto: é acordo entre eles.
 // 6. Serviço concluído: o cliente avalia o prestador e o prestador avalia o cliente.
 //
@@ -17,11 +17,11 @@
 import { priceRef } from './pricing';
 import { serviceTypes } from './data';
 
-// Porcentagem do Realys sobre a taxa de visita. O valor da visita é o prestador quem define;
-// o Realys só lucra os 15% da visita e nunca define o valor final do serviço (ver src/taxas.js).
+// Porcentagem do Re@lys sobre a taxa de visita. O valor da visita é o prestador quem define;
+// o Re@lys só lucra os 15% da visita e nunca define o valor final do serviço (ver src/taxas.js).
 export const REALYS_FEE_PCT = 15;
 // Plano de destaque do prestador (mensal).
-export const HIGHLIGHT_PLAN = { name: 'Destaque Realys', price: 49.9 };
+export const HIGHLIGHT_PLAN = { name: 'Destaque Re@lys', price: 49.9 };
 // Só competem prestadores dentro deste raio do cliente.
 export const RANK_RADIUS_KM = 20;
 // Dias que contam para o ranking e dias de impulso do prestador novo.
@@ -113,7 +113,7 @@ export const VISIT_STATUS = {
   faltou: { label: 'Prestador não veio · taxa devolvida', color: '#D9534F', icon: 'alert-circle-outline' },
   confirmada: { label: 'Visita feita · combine o valor', color: '#A8790A', icon: 'people-outline' },
   concluida: { label: 'Serviço concluído', color: '#1E9E63', icon: 'ribbon-outline' },
-  reembolsada: { label: 'Garantia Realys · taxa devolvida', color: '#1E9E63', icon: 'shield-checkmark-outline' },
+  reembolsada: { label: 'Garantia Re@lys · taxa devolvida', color: '#1E9E63', icon: 'shield-checkmark-outline' },
 };
 
 // Pedidos de visita que chegam para quem usa o perfil Prestador (exemplos).

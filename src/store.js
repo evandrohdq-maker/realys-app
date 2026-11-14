@@ -33,7 +33,7 @@ const today = () => {
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
 };
 
-// Extrato da carteira Realys: depósitos, gastos, valores recebidos (serviços prestados) e saques.
+// Extrato da carteira Re@lys: depósitos, gastos, valores recebidos (serviços prestados) e saques.
 // O saldo inicial da demonstração (R$ 750) é a soma deste histórico.
 const daysAgo = (n, h = 12) => {
   const d = new Date();
@@ -50,15 +50,15 @@ const initialWalletTx = [
   { id: 'w6', ts: daysAgo(9, 11), kind: 'deposito', cat: 'Depósito', desc: 'Depósito por cartão', amount: 300 },
   { id: 'w7', ts: daysAgo(6, 19), kind: 'gasto', cat: 'Compras', desc: 'Mercadinho Bom Preço', amount: 96.4 },
   { id: 'w8', ts: daysAgo(4, 14), kind: 'recebido', cat: 'Serviço prestado', desc: 'Troca de chuveiro para Ana Paula', amount: 120 },
-  { id: 'w9', ts: daysAgo(2, 21), kind: 'gasto', cat: 'Transporte', desc: 'Corrida de carro pelo Realys', amount: 23.7 },
+  { id: 'w9', ts: daysAgo(2, 21), kind: 'gasto', cat: 'Transporte', desc: 'Corrida de carro pelo Re@lys', amount: 23.7 },
   { id: 'w10', ts: daysAgo(1, 13), kind: 'recebido', cat: 'Transferência', desc: 'Recebido de Rogério Teixeira', amount: 87.4 },
 ];
 
 // Que tipo de gasto cada ação do app gera no extrato (quando mexe no saldo).
 const WALLET_CAT = {
-  CHECKOUT: ['Compras', () => 'Compra nas lojas do Realys'],
+  CHECKOUT: ['Compras', () => 'Compra nas lojas do Re@lys'],
   BUY_MEDIA: ['Artistas', () => 'Compra de música ou obra'],
-  MEDIA_UPLOAD: ['Servidor', (a) => `Servidor Realys - ${(a.item && a.item.file) || 'arquivo'}`],
+  MEDIA_UPLOAD: ['Servidor', (a) => `Servidor Re@lys - ${(a.item && a.item.file) || 'arquivo'}`],
   MEDIA_PLAN: ['Servidor', () => 'Plano Artista Pro'],
   VENUE_ORDER: ['Food', (a) => `Pedido na mesa: ${a.items.map((it) => `${it.qty} ${it.name}`).join(', ')}`],
   BUY_TICKET: ['Eventos e passagens', (a) => (a.ticket && (a.ticket.title || a.ticket.name)) || 'Ingresso ou passagem'],
@@ -82,21 +82,21 @@ const initialState = {
   publicPosts: [],
   publicEdits: {},
   publicSlots: [],
-  // SUS do cidadão: Cartão Nacional de Saúde no próprio perfil e consultas agendadas pelo Realys.
+  // SUS do cidadão: Cartão Nacional de Saúde no próprio perfil e consultas agendadas pelo Re@lys.
   sus: null, // { cns, name, birth, unit }
   videoCall: null, // chamada de vídeo de saída: { to, name, kind, at } (src/components/LiveVideo.js)
   susBookings: [],
   docsOpen: null, // { mode: 'lista' | 'contrato' | 'receita', draft? } — tela de contratos e receitas
   activeRole: null,
-  wallet: 750, // saldo em moeda Realys (1 RLS = R$ 1,00 na demonstração)
+  wallet: 750, // saldo em moeda Re@lys (1 RLS = R$ 1,00 na demonstração)
   walletTx: initialWalletTx, // extrato da carteira
   // Créditos de presente: chegam sem precisar aceitar, não podem ser sacados e só servem para
-  // comprar produtos no Realys (ver src/gifts.js). gifts = presentes recebidos, enviados e usados.
+  // comprar produtos no Re@lys (ver src/gifts.js). gifts = presentes recebidos, enviados e usados.
   giftCredits: initialGiftCredits,
   gifts: initialGifts,
   giftOpen: null, // janela de presentear aberta: { to?, asCompany? }
-  giftFees: 0, // taxas de presente que ficaram para o Realys nesta sessão
-  // Presentes nas lives: créditos que ganhei transmitindo (viram moeda Realys quando eu converto).
+  giftFees: 0, // taxas de presente que ficaram para o Re@lys nesta sessão
+  // Presentes nas lives: créditos que ganhei transmitindo (viram moeda Re@lys quando eu converto).
   liveCredits: initialLiveCredits,
   liveGifts: initialLiveGifts, // presentes recebidos nas minhas lives
   spendLimit: 400, // limite de gastos do mês, definido pelo próprio usuário
@@ -154,7 +154,7 @@ const initialState = {
     album: [], // [{ id, uri }]; a primeira é a principal
     age: null, // na versão final vem da verificação do documento
     noKids: false, // confirmou que nenhuma foto do álbum mostra crianças
-    showSocial: false, // mostrar o perfil da Realys para os crushes
+    showSocial: false, // mostrar o perfil da Re@lys para os crushes
   },
   orders: D.initialOrders,
   rideRequests: D.rideRequests,
@@ -187,18 +187,18 @@ const initialState = {
   subscriptions: [], // assinaturas: { id, planId, next, status }
   nudgesDismissed: {}, // lembretes da Lotus dispensados
   intelPlan: false, // empresa assina o painel de inteligência
-  protectionFees: 0, // taxas de proteção Realys recebidas nesta sessão (demonstração)
+  protectionFees: 0, // taxas de proteção Re@lys recebidas nesta sessão (demonstração)
   userPages: DEMO_PAGES, // páginas de usuários (as do próprio usuário têm ownerId 'me')
   followingPages: {},
   viewUserPage: null,
-  teleGratisMes: null, // { mes: 'AAAA-MM', gasto } da primeira tele grátis paga pelo Realys
+  teleGratisMes: null, // { mes: 'AAAA-MM', gasto } da primeira tele grátis paga pelo Re@lys
   // Notícias e Alertas (src/newsData.js)
   alertsDismissed: {}, // alertas que a pessoa fechou na faixa do topo
   safeAt: null, // quando marcou "Estou seguro" (os contatos são avisados)
   newsReports: [], // relatos que a pessoa mandou: vão para a moderação antes de aparecer
-  disputes: [], // casos da Garantia Realys: { id, kind, refId, title, reason, text, amount, status, outcome, at }
+  disputes: [], // casos da Garantia Re@lys: { id, kind, refId, title, reason, text, amount, status, outcome, at }
   boosts: [], // boosts e anúncios comprados com pontos ou saldo: { id, offerId, target, title, start, until, paidWith, status }
-  loyalty: initialLoyalty, // Clube Realys: pedidos entregues, selos por loja (ver src/loyalty.js)
+  loyalty: initialLoyalty, // Clube Re@lys: pedidos entregues, selos por loja (ver src/loyalty.js)
   loyaltyNotes: [], // avisos de bônus que acabaram de sair
   // Comanda no estabelecimento (src/venueData.js): onde o cliente está, a mesa, os pedidos
   // e os avisos que chegam no caixa do lugar.
@@ -298,7 +298,7 @@ function closeOffer(state, offer, discount) {
   return { ...next, offers: state.offers.map((o) => (o.id === offer.id ? { ...o, status: 'aceita', discount } : o)) };
 }
 
-// Toda conta (empresa, prestador, fornecedor) também é Usuário: pode consumir dentro do Realys.
+// Toda conta (empresa, prestador, fornecedor) também é Usuário: pode consumir dentro do Re@lys.
 // Perfil de Empresa (e de Fornecedor) só para contas com CNPJ: conta de CPF nunca recebe esses acessos.
 const withUserRole = (user) => {
   let roles = (user && user.roles) || [];
@@ -314,7 +314,7 @@ function withMyProvider(state, me) {
   return { ...state, myProvider: me, providers: state.available ? [...others, me] : others };
 }
 
-// Food chama um motoboy já cadastrado no Realys: o mais perto que faz entregas.
+// Food chama um motoboy já cadastrado no Re@lys: o mais perto que faz entregas.
 function pickCourier(state) {
   const list = (state.providers || []).filter((p) => p.service === 'motoboy').sort((a, b) => a.distanceKm - b.distanceKm);
   return list[0] || null;
@@ -348,7 +348,7 @@ function reducer(state, a) {
   const next = baseReducer(state, a);
   if (!next || next === state || next.wallet === state.wallet || next.walletTx !== state.walletTx || a.type === 'LOGOUT') return next;
   const diff = +(next.wallet - state.wallet).toFixed(2);
-  const [cat, desc] = WALLET_CAT[a.type] || [diff > 0 ? 'Entrada' : 'Outros gastos', () => (diff > 0 ? 'Entrada na carteira' : 'Pagamento no Realys')];
+  const [cat, desc] = WALLET_CAT[a.type] || [diff > 0 ? 'Entrada' : 'Outros gastos', () => (diff > 0 ? 'Entrada na carteira' : 'Pagamento no Re@lys')];
   const tx = { id: newId('w'), ts: Date.now(), kind: diff > 0 ? 'recebido' : 'gasto', cat, desc: desc(a), amount: Math.abs(diff) };
   return { ...next, walletTx: [tx, ...next.walletTx] };
 }
@@ -438,9 +438,9 @@ function baseReducer(state, a) {
       const total = lines.reduce((s, l) => s + l.product.price * l.qty, 0);
       // Créditos promocionais dos parceiros: descontam sozinhos nas compras daquela loja.
       const { off: promoOff, used: promoUsed } = promoDiscount(state, lines);
-      // Taxa de proteção Realys (R$ 0,99, isenta para Score Diamante): vai para o Realys.
+      // Taxa de proteção Re@lys (R$ 0,99, isenta para Score Diamante): vai para o Re@lys.
       const protection = lines.length ? protectionFee(state) : 0;
-      // Tele do Food: o cliente paga, ou é grátis pelo restaurante ou pela primeira tele do Realys.
+      // Tele do Food: o cliente paga, ou é grátis pelo restaurante ou pela primeira tele do Re@lys.
       const foodStoreObjs = [...new Set(lines.map((l) => state.stores.find((s) => s.id === l.product.storeId)).filter((s) => D.isFoodStore(s)))];
       const foodSubtotal = lines.filter((l) => foodStoreObjs.some((s) => s.id === l.product.storeId)).reduce((s, l) => s + l.product.price * l.qty, 0);
       const tele = teleDoCarrinho(state, foodStoreObjs, foodSubtotal);
@@ -496,7 +496,7 @@ function baseReducer(state, a) {
           ? [{ id: newId('r'), client: foodStores.join(', '), service: 'Entrega de comida (Food)', from: foodStores.join(', '), to: 'Endereço do cliente', price: tele ? tele.tele : +(courier.price + 1.5 * 2).toFixed(2), teleGratis: tele && tele.cliente === 0 ? tele.motivo : undefined, distanceKm: 2 }, ...state.rideRequests]
           : state.rideRequests,
         finance: mineTotal
-          ? [{ id: newId('m'), date: today(), desc: `Venda no app Realys · NF-e ${nfe}`, type: 'entrada', value: +mineTotal.toFixed(2) }, ...state.finance]
+          ? [{ id: newId('m'), date: today(), desc: `Venda no app Re@lys · NF-e ${nfe}`, type: 'entrada', value: +mineTotal.toFixed(2) }, ...state.finance]
           : state.finance,
         salesByDay,
       };
@@ -504,7 +504,7 @@ function baseReducer(state, a) {
     case 'ADVANCE_ORDER': {
       const flow = ['Pagamento protegido', 'Preparando', 'A caminho', 'Entregue'];
       const cur = state.orders.find((x) => x.id === a.id);
-      // Entregou: conta para o Clube Realys (selos, bônus de 20 pedidos e pontos por compra).
+      // Entregou: conta para o Clube Re@lys (selos, bônus de 20 pedidos e pontos por compra).
       const club = cur && cur.status === 'A caminho' ? onDelivered(state, cur) : null;
       return {
         ...state,
@@ -725,7 +725,7 @@ function baseReducer(state, a) {
     case 'PAGE_REPORT': {
       const pg = (state.userPages || []).find((p) => p.id === a.id);
       if (!pg) return state;
-      return { ...state, reports: [{ id: newId('rp'), kind: a.kind || 'Página', target: pg.anon ? `Página anônima "${pg.name}" (dono identificado pelo Realys)` : `Página "${pg.name}" de ${pg.ownerName}`, detail: a.detail || 'Denúncia de usuário', status: 'aberta', count: 1 }, ...state.reports] };
+      return { ...state, reports: [{ id: newId('rp'), kind: a.kind || 'Página', target: pg.anon ? `Página anônima "${pg.name}" (dono identificado pelo Re@lys)` : `Página "${pg.name}" de ${pg.ownerName}`, detail: a.detail || 'Denúncia de usuário', status: 'aberta', count: 1 }, ...state.reports] };
     }
     case 'OPEN_PROFILE':
       return { ...state, viewProfile: a.id };
@@ -754,7 +754,7 @@ function baseReducer(state, a) {
         wallet: +(state.wallet - a.fee).toFixed(2),
         myBusiness: { ...mine, newAds: [a.ad, ...(mine.newAds || [])] },
         finance: a.fee
-          ? [{ id: newId('m'), date: today(), desc: `Servidor Realys - propaganda ${a.ad.file}`, type: 'saida', value: a.fee }, ...state.finance]
+          ? [{ id: newId('m'), date: today(), desc: `Servidor Re@lys - propaganda ${a.ad.file}`, type: 'saida', value: a.fee }, ...state.finance]
           : state.finance,
       };
     }
@@ -773,7 +773,7 @@ function baseReducer(state, a) {
         wallet: +(state.wallet - a.fee).toFixed(2),
         myMedia: [a.item, ...state.myMedia],
         finance: a.fee
-          ? [{ id: newId('m'), date: today(), desc: `Servidor Realys - ${a.item.file}`, type: 'saida', value: a.fee }, ...state.finance]
+          ? [{ id: newId('m'), date: today(), desc: `Servidor Re@lys - ${a.item.file}`, type: 'saida', value: a.fee }, ...state.finance]
           : state.finance,
       };
     case 'SET_MY_PROFILE':
@@ -816,7 +816,7 @@ function baseReducer(state, a) {
       return { ...state, venueOpen: true };
     case 'CLOSE_VENUE':
       return { ...state, venueOpen: false };
-    // Pedido na mesa: paga pelo Realys (créditos de presente primeiro) e avisa o caixa do lugar.
+    // Pedido na mesa: paga pelo Re@lys (créditos de presente primeiro) e avisa o caixa do lugar.
     case 'VENUE_ORDER': {
       const v = state.venue;
       const total = +a.items.reduce((x, it) => x + it.price * it.qty, 0).toFixed(2);
@@ -985,8 +985,8 @@ function baseReducer(state, a) {
       return { ...state, giftOpen: { to: a.to || null, asCompany: !!a.asCompany } };
     case 'CLOSE_GIFT':
       return { ...state, giftOpen: null };
-    // Presente: sai do saldo de quem dá só o valor; a taxa do Realys sai de dentro do presente e entra na hora para quem recebe,
-    // como crédito de presente (não precisa aceitar, não dá para sacar, só compra no Realys).
+    // Presente: sai do saldo de quem dá só o valor; a taxa do Re@lys sai de dentro do presente e entra na hora para quem recebe,
+    // como crédito de presente (não precisa aceitar, não dá para sacar, só compra no Re@lys).
     case 'SEND_GIFT': {
       const amount = +Number(a.amount).toFixed(2);
       const fee = giftFee(amount);
@@ -1034,7 +1034,7 @@ function baseReducer(state, a) {
     case 'RECEIVE_LIVE_GIFT': {
       const g = liveGiftOf(a.gift);
       const qty = Math.max(1, Math.floor(a.qty || 1));
-      // Chega o valor do presente menos a taxa do Realys.
+      // Chega o valor do presente menos a taxa do Re@lys.
       const value = giftNet(+(g.value * qty).toFixed(2));
       return {
         ...state,
@@ -1042,11 +1042,11 @@ function baseReducer(state, a) {
         liveGifts: [{ id: newId('lg'), from: a.from, gift: g.key, qty, value, live: (state.myLive && state.myLive.title) || 'Minha live', at: Date.now() }, ...state.liveGifts].slice(0, 60),
       };
     }
-    // Converter créditos de live em moeda Realys: 1 crédito = 1 RLS, direto no saldo da carteira.
+    // Converter créditos de live em moeda Re@lys: 1 crédito = 1 RLS, direto no saldo da carteira.
     case 'CONVERT_LIVE_CREDITS': {
       const v = +Math.min(state.liveCredits, Number(a.amount || state.liveCredits)).toFixed(2);
       if (!(v >= LIVE_CONVERT_MIN)) return state;
-      // Viram créditos de presente (moeda Realys para usar dentro do app). Sacar dinheiro só pelo
+      // Viram créditos de presente (moeda Re@lys para usar dentro do app). Sacar dinheiro só pelo
       // saque de presentes recebidos (50.000 pontos, 10% de taxa): ver GIFT_CASHOUT.
       return {
         ...state,
@@ -1102,7 +1102,7 @@ function baseReducer(state, a) {
         rides: [{ ...req, status: 'Em andamento', acceptedAt: Date.now() }, ...state.rides],
       };
     }
-    // Serviço terminado (cliente confirmou e pagou pelo Realys): abre a avaliação do prestador.
+    // Serviço terminado (cliente confirmou e pagou pelo Re@lys): abre a avaliação do prestador.
     case 'FINISH_CALL':
       return {
         ...state,
@@ -1163,12 +1163,12 @@ function baseReducer(state, a) {
       return { ...state, safeAt: Date.now() };
     case 'NEWS_REPORT':
       return { ...state, newsReports: [{ id: newId('rp'), area: a.area, text: a.text, status: 'em moderação', at: Date.now() }, ...state.newsReports] };
-    // ---------- Garantia Realys (src/guarantee.js) ----------
+    // ---------- Garantia Re@lys (src/guarantee.js) ----------
     case 'DISPUTE_OPEN': {
       if (state.disputes.some((d) => d.refId === a.refId && d.status === 'em análise')) return state;
       return { ...state, disputes: [{ id: newId('gr'), kind: a.kind, refId: a.refId, title: a.title, reason: a.reason, text: a.text || '', amount: a.amount, giftPart: a.giftPart || 0, status: 'em análise', at: Date.now() }, ...state.disputes] };
     }
-    // Decisão do Realys. Demonstração: a favor do cliente, o valor pago pelo Realys volta para a carteira.
+    // Decisão do Re@lys. Demonstração: a favor do cliente, o valor pago pelo Re@lys volta para a carteira.
     case 'DISPUTE_RESOLVE': {
       const d = state.disputes.find((x) => x.id === a.id);
       if (!d || d.status !== 'em análise') return state;
@@ -1182,7 +1182,7 @@ function baseReducer(state, a) {
               // O que veio de créditos de presente volta como crédito de presente (não vira saque).
               wallet: +(state.wallet + d.amount - (d.giftPart || 0)).toFixed(2),
               giftCredits: +(state.giftCredits + (d.giftPart || 0)).toFixed(2),
-              walletTx: [{ id: newId('w'), ts: now, kind: 'deposito', cat: 'Garantia Realys', desc: `Reembolso: ${d.title}`, amount: d.amount }, ...state.walletTx],
+              walletTx: [{ id: newId('w'), ts: now, kind: 'deposito', cat: 'Garantia Re@lys', desc: `Reembolso: ${d.title}`, amount: d.amount }, ...state.walletTx],
               orders: d.kind === 'pedido' ? state.orders.map((o) => (o.id === d.refId ? { ...o, status: 'Reembolsado' } : o)) : state.orders,
               visits: d.kind === 'visita' ? state.visits.map((v) => (v.id === d.refId ? { ...v, status: 'reembolsada' } : v)) : state.visits,
             }
@@ -1280,7 +1280,7 @@ function baseReducer(state, a) {
             : [{ id: newId('pc'), offerId: a.combo.id, kind: 'loja', partnerId: a.combo.storeId, partner: a.partner, icon: '🧺', title: `Combo ${a.combo.title}`, value: a.off, used: false }, ...state.promoCredits],
       };
     }
-    // Troca de pontos (ou pagamento em R$ do saldo) por boost ou anúncio: só serviços do Realys.
+    // Troca de pontos (ou pagamento em R$ do saldo) por boost ou anúncio: só serviços do Re@lys.
     case 'REDEEM_POINTS': {
       const offer = pointOffer(a.offerId);
       if (!offer) return state;
@@ -1406,7 +1406,7 @@ function baseReducer(state, a) {
     }
     case 'CENTRAL_SET':
       return { ...state, centralAlerts: (state.centralAlerts || []).map((x) => (x.id === a.id ? { ...x, status: a.status } : x)) };
-    // Desapego (src/desapego.js): pagamento retido na Garantia Realys até o comprador confirmar.
+    // Desapego (src/desapego.js): pagamento retido na Garantia Re@lys até o comprador confirmar.
     case 'DESAPEGO_ADD':
       return { ...state, desapego: [{ ...a.item, id: newId('dz'), seller: state.user ? state.user.name : 'Você', status: 'disponivel', at: Date.now() }, ...(state.desapego || [])] };
     case 'DESAPEGO_REMOVE':
@@ -1418,7 +1418,7 @@ function baseReducer(state, a) {
       return {
         ...state,
         wallet: +(state.wallet - it.price).toFixed(2),
-        walletTx: [{ id: newId('w'), ts: now, kind: 'gasto', cat: 'Desapego', desc: `${it.title} (retido na Garantia Realys)`, amount: it.price }, ...state.walletTx],
+        walletTx: [{ id: newId('w'), ts: now, kind: 'gasto', cat: 'Desapego', desc: `${it.title} (retido na Garantia Re@lys)`, amount: it.price }, ...state.walletTx],
         desapego: state.desapego.map((x) => (x.id === a.id ? { ...x, status: 'reservado', buyer: state.user ? state.user.name : 'Você', boughtAt: now } : x)),
       };
     }
@@ -1462,7 +1462,7 @@ function baseReducer(state, a) {
       return { ...state, sus: a.sus || null, susBookings: a.bookings || [] };
     case 'SUS_SAVE':
       return { ...state, sus: a.sus };
-    // Agendou pelo Realys: confere o cartão do SUS e reserva o horário.
+    // Agendou pelo Re@lys: confere o cartão do SUS e reserva o horário.
     case 'SUS_BOOK': {
       if (!state.sus || !state.sus.cns) return state;
       if ((state.susBookings || []).some((b) => b.slotId === a.slot.id && b.status === 'agendado')) return state;
@@ -1481,7 +1481,7 @@ function baseReducer(state, a) {
       const exists = (state.documents || []).some((d) => d.id === a.doc.id);
       return { ...state, documents: exists ? state.documents.map((d) => (d.id === a.doc.id ? a.doc : d)) : [a.doc, ...(state.documents || [])] };
     }
-    // Uma parte assinou (no Realys com biometria, ou pelo gov.br com o PDF assinado anexado).
+    // Uma parte assinou (no Re@lys com biometria, ou pelo gov.br com o PDF assinado anexado).
     case 'DOC_SIGN':
       return {
         ...state,
@@ -1502,7 +1502,7 @@ function baseReducer(state, a) {
       const p = a.provider;
       const fee = visitFee(p);
       if (state.wallet + state.giftCredits < fee) return state;
-      // Créditos de presente pagam primeiro (o valor já está no caixa do Realys).
+      // Créditos de presente pagam primeiro (o valor já está no caixa do Re@lys).
       const fromGift = +Math.min(state.giftCredits, fee).toFixed(2);
       const visit = {
         id: newId('vs'),
@@ -1540,7 +1540,7 @@ function baseReducer(state, a) {
         providers: state.providers.map((p) => (p.id === v.providerId ? { ...p, noShows: providerStats(p).noShows + 1 } : p)),
       };
     }
-    // Cliente confirma que a visita aconteceu: a taxa é dividida entre o Realys e o prestador.
+    // Cliente confirma que a visita aconteceu: a taxa é dividida entre o Re@lys e o prestador.
     case 'VISIT_CONFIRM': {
       const v = state.visits.find((x) => x.id === a.id);
       if (!v || v.status !== 'aceita') return state;
@@ -1626,7 +1626,7 @@ function baseReducer(state, a) {
         name: state.user ? state.user.name : 'Você',
         photo: null,
         city: 'Identidade verificada',
-        exp: a.note || 'Candidatura pelo app Realys',
+        exp: a.note || 'Candidatura pelo app Re@lys',
         status: 'novo',
       };
       return {
@@ -1818,7 +1818,7 @@ export function buildServiceCall(state, address, serviceKey = 'motorista', provi
   const type = serviceType(serviceKey);
   const transport = type.group === 'Transporte';
   const eta = Math.max(3, Math.round(provider.distanceKm * (transport ? 4 : 6)));
-  // Corrida: tarifa do Realys (base + km + minuto), com o pico e a procura do momento.
+  // Corrida: tarifa do Re@lys (base + km + minuto), com o pico e a procura do momento.
   // Sem destino informado, estima um trajeto de 5 km (o valor final segue o trajeto feito).
   const tripKm = 5;
   const waiting = (state.rideRequests || []).length;
@@ -1851,7 +1851,7 @@ export function callReply(call) {
 }
 
 // "R$ 80,00 por hora", "R$ 35,00 por m²"...
-// Motorista e motoboy seguem a tarifa do Realys (igual para todos): justo e sem disputa de preço.
+// Motorista e motoboy seguem a tarifa do Re@lys (igual para todos): justo e sem disputa de preço.
 export const priceText = (p) => {
   const t = p && TARIFFS[p.service];
   if (t) return `corrida a partir de ${brl(t.minimo)}, mais ${brl(t.km)} por km`;

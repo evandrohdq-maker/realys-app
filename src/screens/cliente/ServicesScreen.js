@@ -268,8 +268,8 @@ export default function ServicesScreen({ explore, navigate }) {
     setProfile(null);
     setTracking(c);
   };
-  const quote = (p) => Alert.alert('Orçamento pedido', `${p.name} recebeu seu pedido. A proposta chega no chat do Realys.`);
-  const message = (p) => Alert.alert('Mensagem', `Conversa com ${first(p.name)} aberta no chat do Realys.`);
+  const quote = (p) => Alert.alert('Orçamento pedido', `${p.name} recebeu seu pedido. A proposta chega no chat do Re@lys.`);
+  const message = (p) => Alert.alert('Mensagem', `Conversa com ${first(p.name)} aberta no chat do Re@lys.`);
 
   // Cartão de um prestador na lista (também usado no bloco Patrocinado).
   const renderCard = (p, isSponsored, featured) => {
@@ -280,7 +280,7 @@ export default function ServicesScreen({ explore, navigate }) {
     if (isSponsored) badges.push(['Patrocinado', colors.sponsored]);
     else if (sort === 'rank' && meritPos[p.id]) badges.push([`#${meritPos[p.id]} por mérito`, colors.primary]);
     if (teamOf(p)) badges.push([`Equipe ${teamOf(p).name}`, colors.gold]);
-    if (isNewProvider(p)) badges.push(['Novo no Realys', colors.violet]);
+    if (isNewProvider(p)) badges.push(['Novo no Re@lys', colors.violet]);
     if (nearestP && p.id === nearestP.id) badges.push(['Mais perto', colors.accent]);
     if (p.id === bestId && sort !== 'rank') badges.push(['Melhor nota', colors.accent]);
     if (p.id === cheapestId && byDist.length > 1) badges.push(['Menor preço', colors.success]);
@@ -402,7 +402,7 @@ export default function ServicesScreen({ explore, navigate }) {
               Mostrando {serviceType(found).label.toLowerCase()} perto de você ↓
             </Text>
           ) : null}
-          <GlobalResults query={searched} navigate={navigate} max={found ? 4 : 8} title={found ? 'Também no Realys' : 'Resultados da pesquisa'} hideEmpty={!!found} />
+          <GlobalResults query={searched} navigate={navigate} max={found ? 4 : 8} title={found ? 'Também no Re@lys' : 'Resultados da pesquisa'} hideEmpty={!!found} />
           {/* Não achou? Pedido ao contrário: os prestadores mandam propostas. */}
           <TouchableOpacity style={styles.askOffers} onPress={() => navigate && navigate({ tab: 'pedidos', seg: 'propostas' })} activeOpacity={0.85}>
             <Ionicons name="megaphone-outline" size={18} color={colors.primary} />
@@ -425,7 +425,7 @@ export default function ServicesScreen({ explore, navigate }) {
                 <Text style={styles.activeTitle}>
                   Avalie {first(toRate.provider.name)} · {toRate.serviceLabel}
                 </Text>
-                <Text style={styles.activeSub}>Serviço concluído. Sua nota vale pontos Realys.</Text>
+                <Text style={styles.activeSub}>Serviço concluído. Sua nota vale pontos Re@lys.</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.muted} />
             </TouchableOpacity>
@@ -482,7 +482,7 @@ export default function ServicesScreen({ explore, navigate }) {
             <>
               <Text style={styles.otherHint}>
                 {passenger
-                  ? 'Você paga pelo Realys e acompanha a corrida. A pessoa recebe o nome do motorista, a placa e o código de embarque por mensagem.'
+                  ? 'Você paga pelo Re@lys e acompanha a corrida. A pessoa recebe o nome do motorista, a placa e o código de embarque por mensagem.'
                   : 'O motoboy busca no endereço indicado e entrega onde você pedir. Você acompanha tudo pelo GPS.'}
               </Text>
               <TextInput placeholder={passenger ? 'Nome de quem vai (ex.: Ana, minha esposa)' : 'Quem entrega / recebe (nome)'} placeholderTextColor={colors.muted} value={other.name} onChangeText={setO('name')} style={styles.otherInput} />
@@ -618,10 +618,10 @@ export default function ServicesScreen({ explore, navigate }) {
           </Row>
           {howOpen ? (
             <View style={{ marginTop: 8 }}>
-              <HowStep n="1" text="Você paga só a taxa de visita. Ela fica retida no Realys." />
+              <HowStep n="1" text="Você paga só a taxa de visita. Ela fica retida no Re@lys." />
               <HowStep n="2" text="O prestador aceita ou recusa. Recusou, o valor volta na hora." />
               <HowStep n="3" text="Depois da visita, você confirma. Se ele não vier, o valor volta." />
-              <HowStep n="4" text="O preço do serviço vocês combinam direto, sem taxa do Realys." />
+              <HowStep n="4" text="O preço do serviço vocês combinam direto, sem taxa do Re@lys." />
             </View>
           ) : null}
         </TouchableOpacity>

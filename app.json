@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Realys",
+    "name": "Re@lys",
     "slug": "realys",
     "version": "0.6.0",
     "orientation": "portrait",
@@ -33,36 +33,36 @@
       [
         "@config-plugins/react-native-webrtc",
         {
-          "cameraPermission": "O Realys usa a câmera para as suas lives e chamadas de vídeo.",
-          "microphonePermission": "O Realys usa o microfone nas suas lives e chamadas de vídeo."
+          "cameraPermission": "O Re@lys usa a câmera para as suas lives e chamadas de vídeo.",
+          "microphonePermission": "O Re@lys usa o microfone nas suas lives e chamadas de vídeo."
         }
       ],
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "O Realys usa sua biometria para confirmar que você é uma pessoa real."
+          "faceIDPermission": "O Re@lys usa sua biometria para confirmar que você é uma pessoa real."
         }
       ],
       "expo-status-bar",
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "O Realys usa o microfone para ouvir quando você chama \"Realys\".",
-          "speechRecognitionPermission": "O Realys reconhece sua voz para atender seus pedidos."
+          "microphonePermission": "O Re@lys usa o microfone para ouvir quando você chama \"Re@lys\".",
+          "speechRecognitionPermission": "O Re@lys reconhece sua voz para atender seus pedidos."
         }
       ],
       "expo-secure-store",
       [
         "expo-image-picker",
         {
-          "photosPermission": "O Realys acessa suas fotos e vídeos para você montar a galeria do seu perfil.",
-          "cameraPermission": "O Realys usa a câmera para fotos do seu perfil."
+          "photosPermission": "O Re@lys acessa suas fotos e vídeos para você montar a galeria do seu perfil.",
+          "cameraPermission": "O Re@lys usa a câmera para fotos do seu perfil."
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "O Realys usa sua localização para mostrar o tempo e a temperatura onde você está e os prestadores mais próximos."
+          "locationWhenInUsePermission": "O Re@lys usa sua localização para mostrar o tempo e a temperatura onde você está e os prestadores mais próximos."
         }
       ]
     ],

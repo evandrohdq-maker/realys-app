@@ -1,5 +1,5 @@
-// Vídeo do Realys no celular (WebRTC):
-//   - Live: o streamer envia UM vídeo para o servidor de vídeo do Realys (WHIP) e quem assiste recebe
+// Vídeo do Re@lys no celular (WebRTC):
+//   - Live: o streamer envia UM vídeo para o servidor de vídeo do Re@lys (WHIP) e quem assiste recebe
 //     de lá (WHEP). Só usuário logado assiste: o servidor do app dá um passe para cada pessoa.
 //   - Chamada 1 para 1 (consulta online, amigos, prestador): o vídeo vai direto de um celular para o
 //     outro; o servidor do app só faz a apresentação (sinalização) e dá o retransmissor (TURN) se precisar.

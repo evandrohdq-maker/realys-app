@@ -34,11 +34,11 @@ export default function UserPageModal() {
     const v = checkText(t).verdict;
     dispatch({ type: 'PAGE_POST', id: pg.id, post: { text: t } });
     setText('');
-    if (v === 'falso') Alert.alert('Post não publicado', 'A verificação do Realys identificou informação falsa. Confira a fonte antes de publicar.');
-    else if (v === 'suspeito') Alert.alert('Post em verificação', 'Ele aparece para você e fica visível para todos depois que o Realys conferir.');
+    if (v === 'falso') Alert.alert('Post não publicado', 'A verificação do Re@lys identificou informação falsa. Confira a fonte antes de publicar.');
+    else if (v === 'suspeito') Alert.alert('Post em verificação', 'Ele aparece para você e fica visível para todos depois que o Re@lys conferir.');
   };
   const report = () =>
-    Alert.alert('Denunciar página', pg.anon ? 'A página é anônima, mas o dono é verificado: o Realys analisa e pode bloquear.' : 'O Realys vai analisar a página.', [
+    Alert.alert('Denunciar página', pg.anon ? 'A página é anônima, mas o dono é verificado: o Re@lys analisa e pode bloquear.' : 'O Re@lys vai analisar a página.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Notícia falsa', onPress: () => dispatch({ type: 'PAGE_REPORT', id: pg.id, kind: 'Fake news', detail: 'Usuário denunciou notícia falsa' }) },
       { text: 'Golpe ou se passando por alguém', onPress: () => dispatch({ type: 'PAGE_REPORT', id: pg.id, kind: 'Golpe', detail: 'Usuário denunciou golpe ou falsidade' }) },
@@ -65,7 +65,7 @@ export default function UserPageModal() {
             {pg.anon ? (
               <View style={st.sealAnon}>
                 <Ionicons name="eye-off-outline" size={15} color={colors.muted} />
-                <Text style={st.sealAnonText}>Página anônima · dono verificado pelo Realys</Text>
+                <Text style={st.sealAnonText}>Página anônima · dono verificado pelo Re@lys</Text>
               </View>
             ) : (
               <TouchableOpacity
@@ -104,7 +104,7 @@ export default function UserPageModal() {
             <Text style={[st.boxTitle, { marginTop: 18 }]}>Posts</Text>
             {posts.map((p) => (
               <View key={p.id} style={st.post}>
-                {p.flagged ? <Text style={st.flag}>Em verificação: só você vê até o Realys conferir.</Text> : null}
+                {p.flagged ? <Text style={st.flag}>Em verificação: só você vê até o Re@lys conferir.</Text> : null}
                 <Text style={st.postText}>{p.text}</Text>
                 {p.photo ? <Photo uri={p.photo} style={st.postPhoto} fallback="🖼️" /> : null}
                 <Text style={st.small}>{when(p.at)} · {p.likes} curtidas</Text>

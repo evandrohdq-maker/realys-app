@@ -33,11 +33,11 @@ export default function SosScreen({ explore }) {
   const allow = async () => {
     const ok = await askCallPermission();
     setCanCall(ok);
-    if (!ok) Alert.alert('Sem permissão', 'Tudo bem: quando você tocar em ligar, o Realys abre o discador com o número pronto.');
+    if (!ok) Alert.alert('Sem permissão', 'Tudo bem: quando você tocar em ligar, o Re@lys abre o discador com o número pronto.');
   };
 
   const shareLocation = () =>
-    Share.share({ message: `🚨 Preciso de ajuda. Minha localização agora (GPS Realys): ${MY_SPOT}` }).catch(() => {});
+    Share.share({ message: `🚨 Preciso de ajuda. Minha localização agora (GPS Re@lys): ${MY_SPOT}` }).catch(() => {});
 
   const docs = specialists.filter((d) => spec === 'Todos' || d.specialty === spec).sort((a, b) => a.distanceKm - b.distanceKm);
 
@@ -49,7 +49,7 @@ export default function SosScreen({ explore }) {
         <Card style={styles.permCard}>
           <Row>
             <Ionicons name="call" size={20} color={colors.danger} />
-            <Text style={styles.permTitle}>Ligar direto pelo Realys</Text>
+            <Text style={styles.permTitle}>Ligar direto pelo Re@lys</Text>
           </Row>
           <Text style={styles.permText}>
             Permita ligações para pedir socorro com um toque. A ligação sai do seu próprio celular.
@@ -61,7 +61,7 @@ export default function SosScreen({ explore }) {
       ) : (
         <View style={styles.okPill}>
           <Ionicons name="checkmark-circle" size={14} color={colors.success} />
-          <Text style={styles.okText}>Ligações liberadas: o Realys liga direto</Text>
+          <Text style={styles.okText}>Ligações liberadas: o Re@lys liga direto</Text>
         </View>
       )}
 
@@ -195,7 +195,7 @@ export default function SosScreen({ explore }) {
                   onPress={() => Alert.alert('Consulta pedida', `${d.name} recebeu seu pedido para ${d.next}. A confirmação chega nos seus Pedidos.`)}
                 />
                 {d.tele ? (
-                  <Action icon="videocam" label="Teleconsulta" color={colors.accent} onPress={() => Alert.alert('Teleconsulta', `Chamada de vídeo com ${d.name} pelo Realys (demonstração).`)} />
+                  <Action icon="videocam" label="Teleconsulta" color={colors.accent} onPress={() => Alert.alert('Teleconsulta', `Chamada de vídeo com ${d.name} pelo Re@lys (demonstração).`)} />
                 ) : null}
                 <Action icon="call" label="Ligar" color={colors.danger} onPress={() => demoCall(d.name, '(11) 0000-0200')} />
               </Row>

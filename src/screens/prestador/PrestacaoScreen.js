@@ -89,7 +89,7 @@ function CadastroPanel() {
   const st = statusCadastro(cad);
   const enviar = () => {
     setEnviado(true);
-    Alert.alert('Cadastro pronto para análise', 'A aprovação final depende do servidor do Realys, que ainda não está ligado. Aqui fica como pronto.');
+    Alert.alert('Cadastro pronto para análise', 'A aprovação final depende do servidor do Re@lys, que ainda não está ligado. Aqui fica como pronto.');
   };
   return (
     <View>

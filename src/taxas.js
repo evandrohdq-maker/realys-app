@@ -1,4 +1,4 @@
-// Tabela única das taxas do Realys, com a referência do mercado usada para definir cada uma.
+// Tabela única das taxas do Re@lys, com a referência do mercado usada para definir cada uma.
 // Regra: ficar perto do mercado para ter margem, mas sempre abaixo, para usar isso na divulgação.
 // Pesquisa de novembro de 2026 (fontes em PENDENCIAS.md). Ao mudar uma taxa aqui, mude também o
 // Termo de Adesão (src/termoAdesao.js, item 16) e suba a versão do termo.
@@ -16,6 +16,6 @@ export const TAXAS = {
   destaquePrestador: { valor: 49.9, unidade: 'R$ por mês', mercado: 'GetNinjas: pacotes a partir de R$ 149', argumento: 'destaque o mês inteiro por R$ 49,90' },
 };
 
-// Frase curta de cada taxa, para telas de "Por que o Realys é mais barato" e para a divulgação.
+// Frase curta de cada taxa, para telas de "Por que o Re@lys é mais barato" e para a divulgação.
 export const comparativo = () =>
   Object.entries(TAXAS).map(([chave, t]) => ({ chave, realys: t.argumento, mercado: t.mercado }));

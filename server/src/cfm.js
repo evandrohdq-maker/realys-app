@@ -1,4 +1,4 @@
-// Consulta de médicos do CFM (webservice contratado pelo Realys; ver PENDENCIAS.md).
+// Consulta de médicos do CFM (webservice contratado pelo Re@lys; ver PENDENCIAS.md).
 // O formato da chamada vem no manual que o CFM envia junto com a chave de acesso. Enquanto a
 // chave não existe, a conferência do CRM fica com a equipe (consulta pública no portal do CFM).
 export function makeCfm(cfg) {

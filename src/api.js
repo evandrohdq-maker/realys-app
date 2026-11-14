@@ -1,4 +1,4 @@
-// Ligação do app com o servidor do Realys (pasta server/ do repositório).
+// Ligação do app com o servidor do Re@lys (pasta server/ do repositório).
 //
 // Enquanto o endereço do servidor não estiver configurado, o app continua no modo demonstração
 // (tudo no celular). Para ligar: em app.json › expo › extra › apiUrl, coloque o endereço da VPS,
@@ -38,7 +38,7 @@ async function raw(method, path, body, headers = {}) {
       body: body === undefined ? undefined : body instanceof ArrayBuffer ? body : JSON.stringify(body),
     });
   } catch (e) {
-    throw new ApiError(0, 'Sem conexão com o Realys. Confira sua internet.');
+    throw new ApiError(0, 'Sem conexão com o Re@lys. Confira sua internet.');
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new ApiError(res.status, data.error || 'Algo deu errado. Tente de novo.', data.code);

@@ -1,8 +1,8 @@
-// Chave de segurança do motorista (e de qualquer prestador): com o Realys aberto, ele diz "Lotus" e a
+// Chave de segurança do motorista (e de qualquer prestador): com o Re@lys aberto, ele diz "Lotus" e a
 // frase secreta que ele mesmo escolheu. A Lotus NÃO abre, não mostra nada na tela e responde só um
 // "Certo" (para quem está no carro não perceber). Em silêncio, ela:
 //   1. registra o alerta com a localização do GPS e os dados da corrida (passageiro, placa, endereço)
-//      no painel de segurança do Realys (administrador);
+//      no painel de segurança do Re@lys (administrador);
 //   2. liga para a Polícia Militar (190; no Rio Grande do Sul, a Brigada Militar), se ele deixou ligado.
 //
 // A frase deve parecer um pedido comum ("Lotus, toca a playlist da viagem"), nunca "socorro".

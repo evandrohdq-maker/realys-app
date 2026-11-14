@@ -55,7 +55,7 @@ export default function ProfileScreen({ navigate, explore }) {
     if (explore && explore.tab === 'perfil' && explore.biometria) setBioOpen(true);
   }, [explore]);
 
-  // Sai da conta e volta para a tela "Quem vai usar o Realys?".
+  // Sai da conta e volta para a tela "Quem vai usar o Re@lys?".
   const switchUser = () =>
     Alert.alert('Trocar usuário', `Sair da conta de ${u.name} para outra pessoa entrar?`, [
       { text: 'Cancelar', style: 'cancel' },
@@ -67,7 +67,7 @@ export default function ProfileScreen({ navigate, explore }) {
     const saved = await getSavedUsers();
     const mine = saved.find((s) => (u.id && s.user.id === u.id) || (s.user.name === u.name && s.user.cpf === u.cpf && s.user.cnpj === u.cnpj));
     if (!mine) return dispatch({ type: 'LOGOUT' });
-    Alert.alert('Sair do Realys', 'Sua conta está salva neste aparelho. Quer manter para entrar só com a biometria da próxima vez?', [
+    Alert.alert('Sair do Re@lys', 'Sua conta está salva neste aparelho. Quer manter para entrar só com a biometria da próxima vez?', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Remover e sair',
@@ -174,7 +174,7 @@ export default function ProfileScreen({ navigate, explore }) {
             <Ionicons name="wallet" size={22} color={colors.primary} />
           </View>
           <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, fontWeight: '600' }}>Carteira Realys</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, fontWeight: '600' }}>Carteira Re@lys</Text>
             <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 22 }}>{brl(state.wallet)}</Text>
           </View>
           <View style={styles.walletBtn}>
@@ -184,7 +184,7 @@ export default function ProfileScreen({ navigate, explore }) {
         </TouchableOpacity>
         <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6 }}>Depósitos, gastos, recebidos, saques e o balanço do mês.</Text>
       </Card>
-      {/* Score Realys: uma reputação só, que vale em todos os perfis. */}
+      {/* Score Re@lys: uma reputação só, que vale em todos os perfis. */}
       <ScoreCard />
       <GuaranteeInfo />
 
@@ -193,7 +193,7 @@ export default function ProfileScreen({ navigate, explore }) {
         <Row>
           <FutureIcon name="rocket" size={40} spin />
           <View style={{ flex: 1, marginLeft: 10 }}>
-            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>Estúdio Realys</Text>
+            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>Estúdio Re@lys</Text>
             <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
               Crie seu portfólio e publique músicas, vídeos e artes. Você escolhe se cada criação vai para o Social, o Portfólio{u.roles.includes('empresa') ? ' ou a parte Empresarial' : ''}.
             </Text>
@@ -209,7 +209,7 @@ export default function ProfileScreen({ navigate, explore }) {
             <Ionicons name="albums-outline" size={28} color={colors.primary} />
             <View style={{ flex: 1, marginLeft: 10 }}>
               <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>Minhas páginas · {myPages(state).length}/{MAX_PAGES}</Text>
-              <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Crie páginas assinadas com seu nome ou anônimas. O dono é sempre você, verificado pelo Realys.</Text>
+              <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Crie páginas assinadas com seu nome ou anônimas. O dono é sempre você, verificado pelo Re@lys.</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={colors.muted} />
           </Row>
@@ -263,7 +263,7 @@ export default function ProfileScreen({ navigate, explore }) {
           <View style={{ flex: 1, paddingRight: 10 }}>
             <Text style={{ fontWeight: '700', color: colors.text, fontSize: 15 }}>Acionar falando "abrir Lotus"</Text>
             <Text style={{ color: colors.muted, fontSize: 12, marginTop: 4 }}>
-              Com o app aberto, diga "abrir Lotus, preciso de um eletricista" e a Lotus, assistente do Realys, atende com voz suave, sem tocar na tela e sem "Ok Google".
+              Com o app aberto, diga "abrir Lotus, preciso de um eletricista" e a Lotus, assistente do Re@lys, atende com voz suave, sem tocar na tela e sem "Ok Google".
             </Text>
           </View>
           <Switch
@@ -271,10 +271,10 @@ export default function ProfileScreen({ navigate, explore }) {
             onValueChange={async (on) => {
               if (!on) return dispatch({ type: 'SET_HANDSFREE', on: false });
               if (!wakeWordSupported()) {
-                return Alert.alert('Não disponível', 'Este celular não tem reconhecimento de voz disponível para o Realys.');
+                return Alert.alert('Não disponível', 'Este celular não tem reconhecimento de voz disponível para o Re@lys.');
               }
               const ok = await askMicPermission();
-              if (!ok) return Alert.alert('Microfone bloqueado', 'Permita o microfone para o Realys nas configurações do celular.');
+              if (!ok) return Alert.alert('Microfone bloqueado', 'Permita o microfone para o Re@lys nas configurações do celular.');
               // Primeira vez: a Lotus aprende a voz do titular antes de ligar.
               if (!voicePrintOf() && voicePrintSupported()) return openEnroll();
               dispatch({ type: 'SET_HANDSFREE', on: true });
@@ -284,7 +284,7 @@ export default function ProfileScreen({ navigate, explore }) {
           />
         </Row>
         <Text style={{ color: colors.muted, fontSize: 11, marginTop: 8 }}>
-          Funciona com o Realys aberto e a tela ligada. Com o celular bloqueado será a próxima etapa.
+          Funciona com o Re@lys aberto e a tela ligada. Com o celular bloqueado será a próxima etapa.
         </Text>
         {/* Voz do titular: só a voz do dono da conta abre a Lotus falando "abrir Lotus". */}
         <View style={{ borderTopWidth: 1, borderTopColor: 'rgba(168,121,10,0.2)', marginTop: 12, paddingTop: 12 }}>
@@ -413,7 +413,7 @@ export default function ProfileScreen({ navigate, explore }) {
         }}
       />
       <Text style={{ textAlign: 'center', color: colors.muted, fontSize: 11, marginTop: 14 }}>
-        Realys · {VERSION_LABEL} · demonstração
+        Re@lys · {VERSION_LABEL} · demonstração
       </Text>
     </Screen>
   );

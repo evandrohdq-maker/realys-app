@@ -1,6 +1,6 @@
 // Selo de Equipe: prestadores que trabalham juntos, cada um com o próprio MEI (ou CNPJ).
 // O selo só mostra ao cliente que eles atuam em conjunto. Cada membro continua com o próprio perfil,
-// a própria agenda e a própria carteira: o Realys paga cada um separado e nunca junta o dinheiro
+// a própria agenda e a própria carteira: o Re@lys paga cada um separado e nunca junta o dinheiro
 // da equipe numa conta só (cada MEI emite a sua nota e respeita o próprio teto de faturamento).
 // Quem lidera a equipe não é patrão dos outros: não há subordinação nem salário entre os membros.
 import { providers } from './data';

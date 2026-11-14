@@ -1,4 +1,4 @@
-// Conferência de documentos: cada contrato ou receita assinado pelo Realys ganha um código curto e um
+// Conferência de documentos: cada contrato ou receita assinado pelo Re@lys ganha um código curto e um
 // QR Code no PDF. Quem recebe o papel abre /v/<código> e vê se o documento confere com o registrado
 // (pela impressão digital do conteúdo, o hash), quem são as partes e quando cada uma assinou.
 // Assinatura sob coação: a página mostra "em análise" (nunca "coação", para não pôr ninguém em risco)
@@ -40,10 +40,10 @@ export default function documentosRoutes(r, { db }) {
   // Página pública do QR Code.
   r.get('/v/:codigo', ({ params, res }) => {
     const d = db.prepare('SELECT * FROM documentos WHERE codigo = ?').get(String(params.codigo).toUpperCase());
-    const page = (title, color, inner) => `<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Realys · conferência</title><body style="font-family:system-ui,sans-serif;max-width:560px;margin:24px auto;padding:0 16px;color:#1b1b1f"><h1 style="font-size:20px">Realys · conferência de documento</h1><p style="font-size:18px;font-weight:700;color:${color}">${title}</p>${inner}<p style="color:#777;font-size:12px;margin-top:28px">A conferência mostra o que foi registrado no Realys. Receitas de medicamentos controlados e contratos que exigem cartório também precisam de assinatura ICP-Brasil.</p></body></html>`;
+    const page = (title, color, inner) => `<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Re@lys · conferência</title><body style="font-family:system-ui,sans-serif;max-width:560px;margin:24px auto;padding:0 16px;color:#1b1b1f"><h1 style="font-size:20px">Re@lys · conferência de documento</h1><p style="font-size:18px;font-weight:700;color:${color}">${title}</p>${inner}<p style="color:#777;font-size:12px;margin-top:28px">A conferência mostra o que foi registrado no Re@lys. Receitas de medicamentos controlados e contratos que exigem cartório também precisam de assinatura ICP-Brasil.</p></body></html>`;
     let html;
     if (!d) html = page('Código não encontrado', '#C0392B', '<p>Confira o código impresso no documento.</p>');
-    else if (d.coacao) html = page('Documento em análise', '#C77D12', `<p>${esc(d.titulo)}</p><p>Este documento está em análise e ainda não tem validade. Procure o suporte do Realys.</p>`);
+    else if (d.coacao) html = page('Documento em análise', '#C77D12', `<p>${esc(d.titulo)}</p><p>Este documento está em análise e ainda não tem validade. Procure o suporte do Re@lys.</p>`);
     else {
       const partes = JSON.parse(d.partes);
       const todas = partes.length && partes.every((p) => p.assinadoEm);

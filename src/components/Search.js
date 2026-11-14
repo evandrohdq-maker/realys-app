@@ -1,4 +1,4 @@
-// Barra de pesquisa padrão do Realys: digitar + OK (ou a lupa) pesquisa, e o microfone pesquisa por voz.
+// Barra de pesquisa padrão do Re@lys: digitar + OK (ou a lupa) pesquisa, e o microfone pesquisa por voz.
 // Usada em todas as buscas do app (serviços, loja, pessoas, artistas, transporte…).
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Keyboard, Alert } from 'react-native';
@@ -70,8 +70,8 @@ export function SearchBar({ value, onChangeText, onSubmit, placeholder = 'Pesqui
   );
 }
 
-// Resultados da pesquisa em TODO o conteúdo do Realys (mesma busca do assistente de voz).
-export function GlobalResults({ query, navigate, title = 'Encontrado no Realys', max = 8, hideEmpty }) {
+// Resultados da pesquisa em TODO o conteúdo do Re@lys (mesma busca do assistente de voz).
+export function GlobalResults({ query, navigate, title = 'Encontrado no Re@lys', max = 8, hideEmpty }) {
   const { state, dispatch } = useStore();
   if (!query || !query.trim()) return null;
   const { results } = searchAll(state, query, max);

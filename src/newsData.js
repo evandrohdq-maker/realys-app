@@ -1,4 +1,4 @@
-// Notícias e Alertas do portal Realys.
+// Notícias e Alertas do portal Re@lys.
 //
 // Regras contra fake news:
 // - Notícia só de canal verificado (CNPJ de veículo de imprensa + biometria do responsável) ou de
@@ -64,13 +64,13 @@ export const ALERTS = [
 export const NEWS = [
   { id: 'n1', cat: 'alertas', source: 'Defesa Civil', official: true, time: 'há 20 min', title: 'Defesa Civil abre 6 abrigos na Zona Sul por causa da chuva', summary: 'Escolas municipais recebem quem precisar sair de casa. Leve documentos e remédios.', photo: photo('realys-news-abrigo'), reads: 18200 },
   { id: 'n2', cat: 'clima', source: 'Canal Clima Agora', time: 'há 1 h', title: 'Frente fria chega no fim de semana e derruba a temperatura em 10 °C', summary: 'Depois da chuva forte, o frio deve durar até terça no Sul e no Sudeste.', photo: photo('realys-news-frio'), reads: 9400 },
-  { id: 'n3', cat: 'cidade', source: 'Realys Notícias', time: 'há 2 h', title: 'Prefeitura libera faixa exclusiva de ônibus na Avenida Central', summary: 'A mudança vale a partir de segunda e promete reduzir o tempo de viagem em 15 minutos.', photo: photo('realys-news-onibus'), reads: 5100 },
-  { id: 'n4', cat: 'economia', source: 'Realys Notícias', time: 'há 3 h', title: 'Pequenos negócios puxam a criação de empregos no mês', summary: 'Comércio e serviços lideram as contratações; MEIs crescem 8% no ano.', photo: photo('realys-news-emprego'), reads: 7300 },
+  { id: 'n3', cat: 'cidade', source: 'Re@lys Notícias', time: 'há 2 h', title: 'Prefeitura libera faixa exclusiva de ônibus na Avenida Central', summary: 'A mudança vale a partir de segunda e promete reduzir o tempo de viagem em 15 minutos.', photo: photo('realys-news-onibus'), reads: 5100 },
+  { id: 'n4', cat: 'economia', source: 'Re@lys Notícias', time: 'há 3 h', title: 'Pequenos negócios puxam a criação de empregos no mês', summary: 'Comércio e serviços lideram as contratações; MEIs crescem 8% no ano.', photo: photo('realys-news-emprego'), reads: 7300 },
   { id: 'n5', cat: 'agro', source: 'Canal Campo Hoje', time: 'há 3 h', title: 'Café sobe pela terceira semana com chuva irregular nas lavouras', summary: 'Produtores do Sul de Minas relatam atraso na florada.', photo: photo('realys-news-cafe'), reads: 4200 },
   { id: 'n6', cat: 'tecnologia', source: 'Tech Brasil', time: 'há 4 h', title: 'IA no celular: apps já funcionam sem internet para tarefas do dia a dia', summary: 'Modelos menores rodam direto no aparelho e protegem a privacidade.', photo: photo('realys-news-ia'), reads: 6100 },
-  { id: 'n7', cat: 'brasil', source: 'Realys Notícias', time: 'há 5 h', title: 'Campanha nacional de vacinação começa na segunda em todo o país', summary: 'Postos abrem também no sábado. Leve documento com foto e cartão de vacina.', photo: photo('realys-news-vacina'), reads: 11800 },
-  { id: 'n8', cat: 'saude', source: 'Realys Notícias', time: 'há 6 h', title: 'Calor e chuva aumentam casos de dengue: veja como se proteger', summary: 'Água parada em vasos e calhas é o principal criadouro do mosquito.', photo: photo('realys-news-dengue'), reads: 8800 },
-  { id: 'n9', cat: 'esportes', source: 'Esporte Total', time: 'há 7 h', title: 'Copa da Várzea tem final marcada para domingo com transmissão no Realys', summary: 'Unidos e Vila Nova decidem o título às 10h.', photo: photo('realys-news-varzea'), reads: 3900 },
+  { id: 'n7', cat: 'brasil', source: 'Re@lys Notícias', time: 'há 5 h', title: 'Campanha nacional de vacinação começa na segunda em todo o país', summary: 'Postos abrem também no sábado. Leve documento com foto e cartão de vacina.', photo: photo('realys-news-vacina'), reads: 11800 },
+  { id: 'n8', cat: 'saude', source: 'Re@lys Notícias', time: 'há 6 h', title: 'Calor e chuva aumentam casos de dengue: veja como se proteger', summary: 'Água parada em vasos e calhas é o principal criadouro do mosquito.', photo: photo('realys-news-dengue'), reads: 8800 },
+  { id: 'n9', cat: 'esportes', source: 'Esporte Total', time: 'há 7 h', title: 'Copa da Várzea tem final marcada para domingo com transmissão no Re@lys', summary: 'Unidos e Vila Nova decidem o título às 10h.', photo: photo('realys-news-varzea'), reads: 3900 },
   { id: 'n10', cat: 'mundo', source: 'Agência Mundo', time: 'há 8 h', title: 'Países fecham acordo para reduzir o plástico nos oceanos', summary: 'Metas valem a partir de 2028 e incluem embalagens de comida.', photo: photo('realys-news-oceano'), reads: 4700 },
 ];
 

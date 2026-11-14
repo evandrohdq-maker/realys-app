@@ -1,4 +1,4 @@
-// Contratos e receitas do Realys (etapa 1, sem custo).
+// Contratos e receitas do Re@lys (etapa 1, sem custo).
 // - Contratos: aluguel de imóvel, aluguel de bens (carro, máquina), compra e venda de bens e prestação
 //   de serviço. As partes assinam dentro do app (biometria do celular + registro de data, hora e
 //   código do documento) e cada uma recebe o PDF. Também dá para assinar pelo gov.br (gratuito).
@@ -57,7 +57,7 @@ export const CONTRACT_TYPES = [
     clauses: (f) => [
       `O LOCADOR aluga ao LOCATÁRIO o imóvel situado em ${f.objeto}, para uso residencial, no estado em que se encontra, conforme vistoria anexa.`,
       `O prazo da locação é de ${f.prazo}, com início em ${f.inicio}.`,
-      `O aluguel mensal é de R$ ${f.valor}, pago até o ${f.vencimento} de cada mês pela carteira Realys (pagamento protegido) ou por Pix indicado pelo LOCADOR. O reajuste é anual, pelo IGP-M ou índice que o substituir.`,
+      `O aluguel mensal é de R$ ${f.valor}, pago até o ${f.vencimento} de cada mês pela carteira Re@lys (pagamento protegido) ou por Pix indicado pelo LOCADOR. O reajuste é anual, pelo IGP-M ou índice que o substituir.`,
       `Garantia da locação: ${f.garantia}.`,
       'Contas de consumo (água, luz, gás) e condomínio ordinário ficam por conta do LOCATÁRIO; IPTU e despesas extraordinárias seguem o combinado entre as partes e a Lei 8.245/1991 (Lei do Inquilinato).',
       'Em caso de devolução antes do prazo, a multa segue a proporção do tempo restante (art. 4º da Lei 8.245/1991).',
@@ -75,8 +75,8 @@ export const CONTRACT_TYPES = [
       ['caucao', 'Caução (R$, se houver)'],
     ],
     clauses: (f) => [
-      `O LOCADOR aluga ao LOCATÁRIO o bem: ${f.objeto}, em perfeito estado de funcionamento, conforme fotos e vistoria registradas no Realys.`,
-      `Período da locação: ${f.prazo}. Valor: R$ ${f.valor}, pago pela carteira Realys (pagamento protegido).`,
+      `O LOCADOR aluga ao LOCATÁRIO o bem: ${f.objeto}, em perfeito estado de funcionamento, conforme fotos e vistoria registradas no Re@lys.`,
+      `Período da locação: ${f.prazo}. Valor: R$ ${f.valor}, pago pela carteira Re@lys (pagamento protegido).`,
       `Caução: ${f.caucao || 'não há'}. A caução volta ao LOCATÁRIO na devolução do bem nas mesmas condições.`,
       'O LOCATÁRIO responde por danos, multas e uso indevido durante o período da locação.',
     ],
@@ -89,12 +89,12 @@ export const CONTRACT_TYPES = [
     fields: [
       ['objeto', 'Bem vendido (descrição, modelo, nº de série ou placa)'],
       ['valor', 'Preço (R$)'],
-      ['pagamento', 'Forma de pagamento (ex.: à vista pelo Realys)'],
+      ['pagamento', 'Forma de pagamento (ex.: à vista pelo Re@lys)'],
       ['entrega', 'Entrega (data e local)'],
     ],
     clauses: (f) => [
       `O VENDEDOR vende ao COMPRADOR o bem: ${f.objeto}, livre de dívidas e ônus.`,
-      `Preço: R$ ${f.valor}. Pagamento: ${f.pagamento}. Pelo Realys, o valor fica retido (Garantia Realys) até o COMPRADOR confirmar o recebimento pelo QR Code da entrega.`,
+      `Preço: R$ ${f.valor}. Pagamento: ${f.pagamento}. Pelo Re@lys, o valor fica retido (Garantia Re@lys) até o COMPRADOR confirmar o recebimento pelo QR Code da entrega.`,
       `Entrega: ${f.entrega}.`,
       'Para veículos, as partes fazem a transferência no Detran no prazo legal. Imóveis não são vendidos por este contrato: exigem escritura pública no cartório.',
     ],
@@ -112,15 +112,15 @@ export const CONTRACT_TYPES = [
     ],
     clauses: (f) => [
       `O PRESTADOR realiza para o CONTRATANTE o serviço: ${f.objeto}, em ${f.local}.`,
-      `Prazo: ${f.prazo}. Valor: R$ ${f.valor}, pago pela carteira Realys; o valor fica retido até o CONTRATANTE confirmar o serviço concluído.`,
-      'Materiais, garantia do serviço e eventuais ajustes seguem o combinado entre as partes no chat do Realys, que faz parte deste contrato.',
+      `Prazo: ${f.prazo}. Valor: R$ ${f.valor}, pago pela carteira Re@lys; o valor fica retido até o CONTRATANTE confirmar o serviço concluído.`,
+      'Materiais, garantia do serviço e eventuais ajustes seguem o combinado entre as partes no chat do Re@lys, que faz parte deste contrato.',
     ],
   },
 ];
 export const contractType = (key) => CONTRACT_TYPES.find((t) => t.key === key) || CONTRACT_TYPES[0];
 
 const COMMON_CLAUSES = [
-  'As partes concordam em assinar este contrato eletronicamente pelo Realys, com identificação por biometria, nos termos do art. 10, § 2º, da MP 2.200-2/2001 e da Lei 14.063/2020, e reconhecem a validade desta forma de assinatura.',
+  'As partes concordam em assinar este contrato eletronicamente pelo Re@lys, com identificação por biometria, nos termos do art. 10, § 2º, da MP 2.200-2/2001 e da Lei 14.063/2020, e reconhecem a validade desta forma de assinatura.',
   'Cada assinatura fica registrada com data, hora e o código deste documento. Qualquer alteração no texto muda o código e invalida as assinaturas.',
   'Fica eleito o foro da comarca do imóvel ou do local do serviço para resolver dúvidas deste contrato.',
 ];
@@ -162,7 +162,7 @@ const STYLE = `<style>
 
 const signBlock = (s, role) =>
   `<div class="sig"><b>${esc(role)}</b><br/>${esc(s.name)}${s.doc ? ` · ${esc(s.doc)}` : ''}<br/>${
-    s.signedAt ? `<span class="ok">✔ Assinado ${s.method === 'govbr' ? 'pelo gov.br' : 'no Realys (biometria)'} em ${when(s.signedAt)}</span>` : '<span class="wait">Aguardando assinatura</span>'
+    s.signedAt ? `<span class="ok">✔ Assinado ${s.method === 'govbr' ? 'pelo gov.br' : 'no Re@lys (biometria)'} em ${when(s.signedAt)}</span>` : '<span class="wait">Aguardando assinatura</span>'
   }</div>`;
 
 // Texto que define o conteúdo (é dele que sai o código do documento).
@@ -180,7 +180,7 @@ export function contractHtml(doc) {
   const [a, b] = doc.parties;
   return `<html><head><meta charset="utf-8"/>${STYLE}</head><body>
   <h1>Contrato de ${esc(t.label.toLowerCase())}</h1>
-  <div class="sub">Realys · Pessoas reais. Negócios reais. · Criado em ${when(doc.createdAt)}</div>
+  <div class="sub">Re@lys · Pessoas reais. Negócios reais. · Criado em ${when(doc.createdAt)}</div>
   <div class="box"><b>${esc(t.roles[0])}:</b> ${esc(a.name)}${a.doc ? `, ${esc(a.doc)}` : ''}<br/><b>${esc(t.roles[1])}:</b> ${esc(b.name)}${b.doc ? `, ${esc(b.doc)}` : ''}</div>
   <ol>${contractBody(doc).map((c) => `<li>${esc(c)}</li>`).join('')}</ol>
   ${doc.extra ? `<div class="box"><b>Combinado entre as partes:</b><br/>${esc(doc.extra)}</div>` : ''}
@@ -193,7 +193,7 @@ export function prescriptionHtml(doc) {
   const pro = doc.parties[0];
   return `<html><head><meta charset="utf-8"/>${STYLE}</head><body>
   <h1>Receita</h1>
-  <div class="sub">${esc(pro.name)} · ${esc(pro.title || '')} · ${esc(pro.doc || '')}<br/>Atendimento pelo Realys${doc.channel ? ` (${esc(doc.channel)})` : ''} em ${when(doc.createdAt)}</div>
+  <div class="sub">${esc(pro.name)} · ${esc(pro.title || '')} · ${esc(pro.doc || '')}<br/>Atendimento pelo Re@lys${doc.channel ? ` (${esc(doc.channel)})` : ''} em ${when(doc.createdAt)}</div>
   <div class="box"><b>Paciente:</b> ${esc(doc.patient.name)}${doc.patient.doc ? ` · ${esc(doc.patient.doc)}` : ''}</div>
   ${doc.items.map((it, i) => `<div class="rx"><b>${i + 1}. ${esc(it.med)}</b>${esc(it.dose || '')}</div>`).join('')}
   ${doc.notes ? `<div class="box"><b>Orientações:</b><br/>${esc(doc.notes)}</div>` : ''}
