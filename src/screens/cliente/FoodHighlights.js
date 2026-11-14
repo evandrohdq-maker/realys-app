@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf } from '../../store';
 import { colors, brl, soft } from '../../theme';
@@ -205,7 +206,7 @@ const styles = StyleSheet.create({
   liveNowText: { color: '#fff', fontSize: 11, fontWeight: '700' },
   barName: { color: colors.text, fontWeight: '700', fontSize: 16 },
   barVibe: { color: colors.primary, fontWeight: '700', fontSize: 13, marginTop: 2 },
-  btn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 36, borderRadius: 11, borderWidth: 1, borderColor: colors.primary, marginRight: 8 },
+  btn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 36, borderRadius: 11, borderWidth: 1, borderColor: colors.primary, marginRight: 8 },
   btnOn: { backgroundColor: colors.primary },
   btnText: { color: colors.primary, fontWeight: '700', fontSize: 12, marginLeft: 4 },
   newCard: { width: 140, marginRight: 10, backgroundColor: colors.card, borderRadius: 18, padding: 10, ...soft },

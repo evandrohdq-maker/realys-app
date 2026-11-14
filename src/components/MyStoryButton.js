@@ -2,7 +2,8 @@
 // (a foto, ou o texto sobre a cor). Tocar abre seus stories; o "+" no canto cria o próximo.
 // Sem story ainda: mostra a inicial do seu nome e tocar já abre para criar.
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
 import { colors } from '../theme';

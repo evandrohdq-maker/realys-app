@@ -1,7 +1,8 @@
 // Cartão de confirmação da Lotus: ações com dinheiro ou contratação só são feitas com toque no botão.
 // A voz apenas abre este cartão. Opções: Confirmar, Recusar ou Depois.
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Modal, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text } from '../responsive';
 import { colors } from '../theme';
 
 export default function LotusCartao({ cartao, onClose }) {

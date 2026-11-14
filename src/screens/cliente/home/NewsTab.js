@@ -2,7 +2,8 @@
 // Alertas oficiais primeiro (Defesa Civil, INMET, Cemaden), com "o que fazer", ligar e "Estou seguro".
 // Depois relatos de moradores (moderados), lives de noticiário e as notícias por assunto.
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, TextInput, Alert, Share } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Share } from 'react-native';
+import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../../../store';

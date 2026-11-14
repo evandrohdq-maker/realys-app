@@ -1,6 +1,7 @@
 // Selo do perfil social (ex.: 🎮 Gamer · Streamer) e o questionário que define o perfil no cadastro.
 import React, { useMemo, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Modal, ScrollView, StyleSheet } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, soft } from '../theme';

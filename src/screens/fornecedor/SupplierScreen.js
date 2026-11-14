@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { OpenRequests } from '../../components/Engage';
-import { View, Text, TouchableOpacity, ScrollView, Alert, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, ScrollView, Alert, StyleSheet } from 'react-native';
+import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
 import { MY_SUPPLIER_ID } from '../../data';
@@ -354,7 +355,7 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 38,
+    minHeight: 38,
     paddingHorizontal: 12,
     borderRadius: 19,
     borderWidth: 1,
@@ -376,10 +377,10 @@ const styles = StyleSheet.create({
     ...soft,
   },
   companyOn: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
-  small: { height: 32, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', marginRight: 6, marginBottom: 6 },
+  small: { minHeight: 32, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', marginRight: 6, marginBottom: 6 },
   smallOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   emoji: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 6, marginBottom: 6, borderWidth: 1, borderColor: colors.border },
   emojiOn: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
-  star: { flexDirection: 'row', alignItems: 'center', height: 32, paddingHorizontal: 10, borderRadius: 16, borderWidth: 1, borderColor: colors.primary },
+  star: { flexDirection: 'row', alignItems: 'center', minHeight: 32, paddingHorizontal: 10, borderRadius: 16, borderWidth: 1, borderColor: colors.primary },
   starOn: { backgroundColor: colors.primary },
 });

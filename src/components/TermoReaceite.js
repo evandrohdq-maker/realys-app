@@ -1,6 +1,7 @@
 // Termo de Adesão mudou: quem já tem conta lê a nova versão e aceita antes de continuar.
 import React, { useEffect, useState } from 'react';
-import { Modal, View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { Modal, View, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text } from '../responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { colors } from '../theme';

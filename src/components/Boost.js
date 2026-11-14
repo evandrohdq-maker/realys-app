@@ -1,7 +1,8 @@
 // Boost: aparecer mais e mais rápido (prestador, Date, produtos, publicações, lives) e anúncios.
 // Paga com pontos Re@lys ou com saldo (R$). Pontos só valem aqui, em serviços do próprio Re@lys.
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert } from 'react-native';
+import { Text } from '../responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';

@@ -136,6 +136,7 @@ export const INTENTS = [
   { key: 'mercado', label: 'mercado', command: 'abre o mercado', examples: ['acabou o arroz', 'acabou a comida de casa', 'fazer compras do mês', 'comprar arroz e feijão', 'supermercado', 'compras da casa', 'faltou leite em casa'] },
   { key: 'moradia', label: 'imóveis', command: 'abre imóveis', examples: ['quero morar sozinho', 'procurando um apartamento', 'casa para alugar', 'mudar de casa', 'comprar uma casa', 'quarto para morar'] },
   { key: 'curso', label: 'cursos', command: 'tem curso online', examples: ['quero estudar', 'aprender inglês', 'fazer uma faculdade', 'curso para melhorar o currículo', 'aprender algo novo', 'aulas online', 'me formar'] },
+  { key: 'radio', label: 'rádios', command: 'abre as rádios', examples: ['quero ouvir rádio', 'escutar rádio', 'rádio ao vivo', 'sintonizar uma rádio', 'ouvir a rádio da cidade'] },
   { key: 'musica', label: 'artistas e músicas', command: 'abre os artistas', examples: ['ouvir música', 'músicas novas', 'cantor gospel', 'banda ao vivo', 'quero escutar um som'] },
   { key: 'lives', label: 'lives', command: 'abre as lives', examples: ['assistir uma live', 'transmissão ao vivo', 'ver quem está ao vivo', 'abrir uma live'] },
   { key: 'agro', label: 'o Agro', command: 'me leva pro agro', examples: ['plantar', 'minha fazenda', 'colheita da soja', 'gado de corte', 'adubo para a lavoura', 'trator', 'sítio'] },

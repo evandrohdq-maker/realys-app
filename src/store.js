@@ -116,6 +116,7 @@ const initialState = {
   friends: initialFriends, // amizades: { id: 'amigo' | 'enviado' | 'recebido' }
   viewProfile: null, // id do membro cujo perfil está aberto (abre por cima de qualquer tela)
   myStories: [], // stories que o próprio usuário publicou
+  myReels: [], // Reels que o próprio usuário publicou (opção Reel do botão de publicação)
   communityPosts: initialCommunityPosts, // feed da Comunidade (na página de Stories)
   // Informações verificadas como falsas: saem da plataforma e do conhecimento da Lotus,
   // e ficam só marcadas como falsas para ela avisar quem perguntar (ver src/lm/factCheck.js).
@@ -947,6 +948,8 @@ function baseReducer(state, a) {
     }
     case 'PUBLISH_STORY':
       return { ...state, myStories: [...state.myStories, a.item] };
+    case 'PUBLISH_REEL':
+      return { ...state, myReels: [a.reel, ...(state.myReels || [])] };
 
     case 'BUYER_ACCEPT_COUNTER': {
       const p = state.proposals.find((x) => x.id === a.id);

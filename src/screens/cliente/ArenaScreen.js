@@ -6,8 +6,9 @@
 // Na demonstração, as conversas ficam no celular; com o servidor no ar, chegam para todos.
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, Alert, Share, Animated, KeyboardAvoidingView, Platform,
+  View, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Share, Animated, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
 import { colors } from '../../theme';

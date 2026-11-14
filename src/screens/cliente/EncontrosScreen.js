@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Switch, Alert, TextInput, Dimensions, Image } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Switch, Alert, Dimensions, Image } from 'react-native';
+import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../../store';
@@ -1328,7 +1329,7 @@ const styles = StyleSheet.create({
   detGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   detItem: { width: '48.5%', flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 12, padding: 10, marginBottom: 8, ...soft },
   label: { color: colors.muted, fontSize: 12, marginTop: 6, marginBottom: 6 },
-  pill: { height: 34, paddingHorizontal: 14, borderRadius: 17, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', marginRight: 6, marginBottom: 6 },
+  pill: { minHeight: 34, paddingHorizontal: 14, borderRadius: 17, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', marginRight: 6, marginBottom: 6 },
   pillOn: { backgroundColor: ROSE, borderColor: ROSE },
   termsLink: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, padding: 12, marginBottom: 10, ...soft },
   check: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 8 },

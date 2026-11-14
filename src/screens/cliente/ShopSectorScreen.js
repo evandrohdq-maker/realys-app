@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { InstallSuggest } from '../../components/Engage';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, soft } from '../../theme';
 import { Screen, Title, Photo, Badge, Row } from '../../components/ui';
@@ -229,7 +230,7 @@ const styles = StyleSheet.create({
   launchTitle: { color: colors.text, fontWeight: '700', fontSize: 12, paddingHorizontal: 8, marginTop: 6 },
   launchPrice: { fontWeight: '700', fontSize: 12, paddingHorizontal: 8, marginTop: 2, marginBottom: 8 },
   count: { color: colors.muted, fontSize: 12, fontWeight: '700' },
-  toggle: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.success, borderRadius: 14, paddingHorizontal: 10, height: 28, backgroundColor: '#FFFFFF' },
+  toggle: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.success, borderRadius: 14, paddingHorizontal: 10, minHeight: 28, backgroundColor: '#FFFFFF' },
   toggleText: { fontSize: 11, fontWeight: '700', marginLeft: 4 },
   card: { backgroundColor: '#FFFFFF', borderRadius: 16, marginBottom: 12, overflow: 'hidden', ...soft },
   cardImg: { width: '100%', height: 130 },

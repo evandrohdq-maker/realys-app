@@ -4,7 +4,8 @@
 // - Candidatura rápida com um toque, vagas salvas e o andamento de cada candidatura
 //   (enviada → vista → entrevista → resultado), com o mesmo status que a empresa marca no RH.
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Modal, Switch, TextInput } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Modal, Switch } from 'react-native';
+import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, allJobs } from '../../store';
 import { colors, soft } from '../../theme';
@@ -455,7 +456,7 @@ const styles = StyleSheet.create({
   barFill: { height: 5, borderRadius: 3, backgroundColor: '#FFFFFF' },
   resPct: { color: 'rgba(255,255,255,0.88)', fontSize: 11, marginTop: 4 },
   tabs: { flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 14, padding: 4, marginBottom: 12 },
-  tab: { flex: 1, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  tab: { flex: 1, minHeight: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   tabOn: { backgroundColor: '#FFFFFF', ...soft },
   tabText: { color: colors.muted, fontWeight: '700', fontSize: 13 },
   tabTextOn: { color: colors.primaryDark, fontWeight: '800' },
@@ -472,13 +473,13 @@ const styles = StyleSheet.create({
   title: { fontWeight: '800', color: colors.text, fontSize: 15 },
   meta: { color: colors.muted, fontSize: 12, marginTop: 2 },
   salarySmall: { color: colors.primary, fontWeight: '800', marginTop: 4, fontSize: 14 },
-  matchPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, height: 24, borderRadius: 12, marginRight: 6, marginBottom: 4 },
+  matchPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, minHeight: 24, borderRadius: 12, marginRight: 6, marginBottom: 4 },
   matchText: { fontWeight: '800', fontSize: 11, marginLeft: 3 },
-  tag: { paddingHorizontal: 8, height: 24, borderRadius: 12, backgroundColor: colors.cardAlt, justifyContent: 'center', marginRight: 6, marginBottom: 4 },
+  tag: { paddingHorizontal: 8, minHeight: 24, borderRadius: 12, backgroundColor: colors.cardAlt, justifyContent: 'center', marginRight: 6, marginBottom: 4 },
   tagText: { color: colors.text, fontSize: 11, fontWeight: '600' },
   posted: { color: colors.muted, fontSize: 11, marginLeft: 'auto' },
-  applyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 38, borderRadius: 19, backgroundColor: colors.primary, marginTop: 10 },
-  appliedRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 38, borderRadius: 19, backgroundColor: '#E8F6EE', marginTop: 10 },
+  applyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 38, borderRadius: 19, backgroundColor: colors.primary, marginTop: 10 },
+  appliedRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 38, borderRadius: 19, backgroundColor: '#E8F6EE', marginTop: 10 },
   steps: { flexDirection: 'row', alignItems: 'flex-start', marginTop: 14 },
   dot: { width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   dotLabel: { color: colors.muted, fontSize: 10, textAlign: 'center', marginTop: 4 },
@@ -496,15 +497,15 @@ const styles = StyleSheet.create({
   matchBig: { width: 70, height: 70, borderRadius: 35, borderWidth: 4, alignItems: 'center', justifyContent: 'center', marginLeft: 10 },
   matchBigN: { fontWeight: '800', fontSize: 17 },
   matchBigL: { color: colors.muted, fontSize: 10 },
-  skill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, height: 30, borderRadius: 15, backgroundColor: colors.cardAlt, marginRight: 6, marginBottom: 6 },
+  skill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, minHeight: 30, borderRadius: 15, backgroundColor: colors.cardAlt, marginRight: 6, marginBottom: 6 },
   skillHave: { backgroundColor: '#E8F6EE' },
   skillText: { marginLeft: 5, color: colors.text, fontWeight: '600', fontSize: 12 },
   h3: { fontWeight: '800', color: colors.text, marginTop: 14, marginBottom: 6 },
   body: { color: colors.text, lineHeight: 20 },
   hint: { color: colors.muted, fontSize: 12, marginBottom: 6 },
   input: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10, color: colors.text, marginBottom: 6 },
-  applyBig: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 50, borderRadius: 25, backgroundColor: colors.primary, marginTop: 12 },
-  pick: { paddingHorizontal: 12, height: 32, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: '#FFFFFF', justifyContent: 'center', marginRight: 6, marginBottom: 6 },
+  applyBig: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 50, borderRadius: 25, backgroundColor: colors.primary, marginTop: 12 },
+  pick: { paddingHorizontal: 12, minHeight: 32, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: '#FFFFFF', justifyContent: 'center', marginRight: 6, marginBottom: 6 },
   pickOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   pickText: { color: colors.text, fontWeight: '600', fontSize: 12 },
   addBtn: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginLeft: 8, marginBottom: 6 },

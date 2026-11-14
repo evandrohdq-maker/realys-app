@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Platform, AppState } from 'react-native';
+import { View, StyleSheet, Modal, TouchableOpacity, Platform, AppState } from 'react-native';
+import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
 import {
@@ -199,7 +200,7 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
   },
   row: { flexDirection: 'row', marginTop: 18, alignSelf: 'stretch' },
-  btn: { height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
+  btn: { minHeight: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
   btnGhost: { flex: 1, borderWidth: 1, borderColor: colors.border, marginRight: 10 },
   btnGhostText: { color: colors.text, fontWeight: '600' },
   btnMain: { backgroundColor: colors.primary, alignSelf: 'stretch' },

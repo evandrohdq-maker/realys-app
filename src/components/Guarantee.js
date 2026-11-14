@@ -1,6 +1,7 @@
 // Garantia Re@lys na tela: selo, botão "Tive um problema", janela para abrir o caso e acompanhamento.
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, Alert, ScrollView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, Alert, ScrollView } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';

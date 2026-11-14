@@ -1,7 +1,8 @@
 // Barra de pesquisa padrão do Re@lys: digitar + OK (ou a lupa) pesquisa, e o microfone pesquisa por voz.
 // Usada em todas as buscas do app (serviços, loja, pessoas, artistas, transporte…).
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Keyboard, Alert } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Platform, Keyboard, Alert } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import * as IntentLauncher from 'expo-intent-launcher';
 import { useStore } from '../store';

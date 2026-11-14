@@ -2,7 +2,8 @@
 // publicam (preços por setor, diferenças de preço, serviços, reputação, assuntos dos clientes),
 // o que ela acabou de aprender, o que foi descartado como informação falsa e as regras de uso.
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
 import { colors, brl } from '../../theme';

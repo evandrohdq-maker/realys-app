@@ -4,7 +4,7 @@
 // da corrida e o passageiro perde a corrida (o valor não volta).
 // O passageiro é lembrado pela Lotus quando faltam 5 e 2 minutos.
 import React, { useEffect, useRef, useState } from 'react';
-import { Text } from 'react-native';
+import { Text } from './responsive';
 import { useStore, serviceType } from './store';
 import { speakSoft } from './voice';
 

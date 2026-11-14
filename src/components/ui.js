@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, ScrollView, Image } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { colors, soft } from '../theme';
 
 export function Screen({ children, scroll = true, scrollRef }) {

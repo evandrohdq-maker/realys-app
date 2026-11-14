@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, BackHandler } from 'react-native';
+import { View, StyleSheet, Alert, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, BackHandler } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
 import { ADMIN_LOGIN } from '../data';
@@ -346,7 +347,7 @@ const styles = StyleSheet.create({
     padding: 4,
     marginBottom: 14,
   },
-  tab: { flex: 1, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  tab: { flex: 1, minHeight: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   tabOn: { backgroundColor: colors.card, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)' },
   tabText: { color: colors.muted, fontWeight: '700', fontSize: 15 },
   tabTextOn: { color: colors.primary },
@@ -375,7 +376,7 @@ const styles = StyleSheet.create({
   savedLogin: { color: colors.muted, fontSize: 12, marginLeft: 4 },
   trash: { marginLeft: 10, padding: 4 },
   otherBtn: {
-    height: 50,
+    minHeight: 50,
     borderRadius: 16,
     borderWidth: 1.5,
     borderColor: colors.primary,

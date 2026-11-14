@@ -1,7 +1,8 @@
 // Perfil › Carteira profissional: cadastrar a carteira da profissão e, depois de aprovada, escolher se
 // quer receber casos da plataforma (servidor público atende de graça, sem taxa do Re@lys).
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Switch, StyleSheet, Alert } from 'react-native';
+import { View, TouchableOpacity, Switch, StyleSheet, Alert } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useStore } from '../store';

@@ -1,6 +1,7 @@
 // Planos do Date (Date+): cartão compacto e tela de assinatura com comparação com os concorrentes.
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert } from 'react-native';
+import { Text } from '../responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';

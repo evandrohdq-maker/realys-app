@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
 import { colors, soft } from '../../theme';
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
   name: { fontWeight: '700', color: colors.text },
   sub: { color: colors.muted, fontSize: 12, marginTop: 2 },
   h2: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 8 },
-  chip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, height: 34, borderRadius: 17, borderWidth: 1, borderColor: colors.border, backgroundColor: '#FFFFFF', marginRight: 6, marginBottom: 6 },
+  chip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, minHeight: 34, borderRadius: 17, borderWidth: 1, borderColor: colors.border, backgroundColor: '#FFFFFF', marginRight: 6, marginBottom: 6 },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipText: { marginLeft: 5, fontWeight: '700', color: colors.primary, fontSize: 12 },
   cta: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, borderRadius: 14, padding: 12, marginTop: 8 },

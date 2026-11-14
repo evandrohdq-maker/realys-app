@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { GuaranteeInfo } from '../components/Guarantee';
 import { ScoreCard } from '../components/Engage';
-import { View, Text, TouchableOpacity, Switch, Alert, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Switch, Alert, StyleSheet } from 'react-native';
+import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { askMicPermission, wakeWordSupported } from '../wakeWord';
 import VoiceEnroll, { TratoPicker, PhrasesEditor } from '../components/VoiceEnroll';
@@ -372,7 +373,7 @@ const styles = StyleSheet.create({
   handle: { color: colors.muted, fontSize: 13, marginTop: 2 },
   bio: { color: colors.text, fontSize: 14, lineHeight: 20, marginTop: 10, textAlign: 'center', paddingHorizontal: 10 },
   quizCta: { flexDirection: 'row', alignItems: 'center', marginTop: 8, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.primary, backgroundColor: colors.primaryLight },
-  editBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 40, borderRadius: 20, backgroundColor: colors.primary, marginRight: 8 },
+  editBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 40, borderRadius: 20, backgroundColor: colors.primary, marginRight: 8 },
   stats: { flexDirection: 'row', alignSelf: 'stretch', marginTop: 14, backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: colors.border, paddingVertical: 10 },
   stat: { flex: 1, alignItems: 'center' },
   statN: { color: colors.text, fontWeight: '800', fontSize: 19 },
@@ -387,7 +388,7 @@ const styles = StyleSheet.create({
   itemBody: { paddingHorizontal: 14, paddingBottom: 14 },
   roleChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18, borderWidth: 1, borderColor: colors.border, marginRight: 8, marginBottom: 8, backgroundColor: '#FFFFFF' },
   roleChipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  privPill: { flexDirection: 'row', alignItems: 'center', height: 38, paddingHorizontal: 12, borderRadius: 19, borderWidth: 1, borderColor: 'rgba(168,121,10,0.4)', backgroundColor: colors.primaryLight },
+  privPill: { flexDirection: 'row', alignItems: 'center', minHeight: 38, paddingHorizontal: 12, borderRadius: 19, borderWidth: 1, borderColor: 'rgba(168,121,10,0.4)', backgroundColor: colors.primaryLight },
   wallet: {
     flexDirection: 'row',
     alignItems: 'center',

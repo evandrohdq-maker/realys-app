@@ -3,7 +3,8 @@
 // - Uma classe (ex.: Gamers): cabeçalho com "Seguir", subclasses, missão do dia (pontos),
 //   destaque, Em alta, agenda com "Lembrar", criadores em alta e produtos da loja ligados à classe.
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { Text } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../../store';
 import { soft, colors, brl } from '../../../theme';

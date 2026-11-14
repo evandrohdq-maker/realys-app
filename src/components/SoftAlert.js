@@ -6,7 +6,8 @@
 // Funciona trocando o Alert.alert do React Native: todos os 200+ avisos do app mudam de uma vez.
 // Abre por cima de qualquer tela, inclusive das janelas (Modal) já abertas.
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Modal, View, Text, TouchableOpacity, Pressable, StyleSheet, Animated, Easing } from 'react-native';
+import { Alert, Modal, View, TouchableOpacity, Pressable, StyleSheet, Animated, Easing } from 'react-native';
+import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme';

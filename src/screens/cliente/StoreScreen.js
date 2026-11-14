@@ -1,6 +1,7 @@
 import { askPix } from '../../components/PixPay';
 import React, { useState, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { Text } from '../../responsive';
 import { useStore, storeOf, cartTotal } from '../../store';
 import { colors, brl, soft } from '../../theme';
 import { SearchBar, GlobalResults } from '../../components/Search';

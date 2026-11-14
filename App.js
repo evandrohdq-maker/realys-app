@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform, Alert, BackHandler, ToastAndroid, ActivityIndicator, Image } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Platform, Alert, BackHandler, ToastAndroid, ActivityIndicator, Image } from 'react-native';
+import { Text } from './src/responsive';
 import { BackProvider, createBackStack } from './src/back';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -100,14 +101,15 @@ const TABS = {
     // Community vem primeiro: é a aba que abre quando o app inicia.
     { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'home', label: 'Shop', icon: 'bag-handle-outline', Comp: HomeScreen },
-    // Reels: vídeos curtos em tela cheia (lojas e comida), estilo Instagram.
-    { key: 'reels', label: 'Reels', icon: 'play-circle-outline', Comp: ReelsScreen },
     { key: 'encontros', label: 'Date', icon: 'heart-outline', Comp: EncontrosScreen },
     { key: 'food', label: 'Food', icon: 'restaurant-outline', Comp: FoodScreen },
     { key: 'servicos', label: 'Serviços', icon: 'construct-outline', Comp: ServicesScreen },
     { key: 'pedidos', label: 'Pedidos', icon: 'receipt-outline', Comp: OrdersScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
     // Abertas pelo menu ⋮ (e pelo SOS da aba Perfil): não ocupam lugar na barra de baixo.
+    // Reels: sem botão na barra. Abre arrastando a página inicial para a direita (como no Instagram)
+    // ou pela Lotus; para publicar, é a opção Reel do botão de publicação.
+    { key: 'reels', label: 'Reels', icon: 'play-circle-outline', Comp: ReelsScreen, hidden: true },
     { key: 'transporte', label: 'Transporte', icon: 'bus-outline', Comp: TransitScreen, hidden: true },
     { key: 'socorro', label: 'Socorro', icon: 'medkit-outline', Comp: SosScreen, hidden: true },
     { key: 'artistas', label: 'Artistas', icon: 'musical-notes-outline', Comp: ArtistsScreen, hidden: true },
@@ -317,7 +319,8 @@ function Shell() {
     if (role === state.activeRole) return setTab(tabKey);
     switchRole(role, tabKey);
   };
-  // Gestos de arrastar: Perfil ← [página inicial] → Feed de Notícias.
+  // Gestos de arrastar: Reels ← [página inicial] → Perfil.
+  // Puxando a tela para a direita abre os Reels; puxando para a esquerda abre o Perfil.
   const homeKey = tabs[0].key;
   const onNews = current.key === 'stories' && commTop === 'noticias';
   const onCommunityFeed = current.key === 'stories' && commTop === 'comunidade';
@@ -325,12 +328,16 @@ function Shell() {
   const openNews = () => pick({ tab: 'stories', top: 'noticias' });
   const openProfile = () => pick({ tab: 'perfil' });
   const backHome = () => (homeKey === 'stories' ? pick({ tab: 'stories' }) : setTab(homeKey));
+  const hasReels = tabs.some((t) => t.key === 'reels');
+  const openReels = () => pick({ tab: 'reels' });
   const swipe =
     isHome || onCommunityFeed
-      ? { left: openNews, right: openProfile }
+      ? { left: openProfile, right: hasReels ? openReels : undefined }
       : onNews
       ? { right: backHome }
       : current.key === 'perfil'
+      ? { right: backHome }
+      : current.key === 'reels'
       ? { left: backHome }
       : {};
 
@@ -339,7 +346,7 @@ function Shell() {
 
   // Eventos, Promoções, Anúncios e Lives agora ficam na Community (antes ficavam no Shop).
   const route = (go) =>
-    go && go.tab === 'home' && ['noticias', 'eventos', 'promo', 'anuncios', 'lives', 'comunidade'].includes(go.top) ? { ...go, tab: 'stories' } : go;
+    go && go.tab === 'home' && ['noticias', 'eventos', 'stream', 'promo', 'anuncios', 'lives', 'comunidade'].includes(go.top) ? { ...go, tab: 'stories' } : go;
 
   // Escolha feita no menu ⋮: vai para a aba certa (trocando de perfil se precisar).
   const pick = (goIn) => {
@@ -413,7 +420,7 @@ function Shell() {
       </View>
 
       {/* Página inicial com arrastar para os lados (qualquer perfil):
-          esquerda → Feed de Notícias, direita → Perfil. De lá, o gesto contrário volta. */}
+          puxar para a direita → Reels, puxar para a esquerda → Perfil. De lá, o gesto contrário volta. */}
       <SwipePages onLeft={swipe.left} onRight={swipe.right}>
         <Comp goTo={setTab} openVoice={() => setVoice(true)} explore={explore} openArea={openArea} navigate={pick} onTop={setCommTop} />
       </SwipePages>

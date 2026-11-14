@@ -5,7 +5,8 @@
 //   - 3 extras opcionais: mais variedade de sons (números, perguntas, saudação), para ela
 //     conhecer melhor a voz do titular desde o começo.
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, TextInput } from 'react-native';
+import { Modal, View, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';

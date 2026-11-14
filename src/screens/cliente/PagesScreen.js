@@ -1,7 +1,8 @@
 // Aba Páginas: descobrir páginas de outros usuários e cuidar das minhas.
 // Só cria página quem é usuário (conta verificada). Cada página é assinada pelo dono ou anônima.
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Switch } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Alert, Switch } from 'react-native';
+import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
 import { colors, soft } from '../../theme';

@@ -3,7 +3,8 @@
 // segurança do Re@lys e, quando houver convênio, vai direto para o profissional mais perto
 // (policial na ativa, socorrista, ambulância). Ver PENDENCIAS.md (Polícia Inteligente).
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, ScrollView, TextInput, Switch, StyleSheet, Linking, Share } from 'react-native';
+import { Modal, View, TouchableOpacity, ScrollView, Switch, StyleSheet, Linking, Share } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';

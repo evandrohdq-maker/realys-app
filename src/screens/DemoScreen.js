@@ -1,6 +1,7 @@
 // Demonstração das novidades, dentro do aplicativo. Simulações: nada é enviado ao servidor.
 import React, { useState } from 'react';
-import { Modal, View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { Modal, View, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
 import PrestacaoScreen from './prestador/PrestacaoScreen';

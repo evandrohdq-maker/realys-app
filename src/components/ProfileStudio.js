@@ -4,7 +4,8 @@
 //    escolhe onde aparece: no Social, no Portfólio e/ou na parte Empresarial (página do CNPJ).
 // Também: editar o perfil e o "modo invisível" (não expor o perfil para ninguém).
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, TextInput, Switch, Alert, Animated, Easing } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Modal, ScrollView, Switch, Alert, Animated, Easing } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -483,7 +484,7 @@ const styles = StyleSheet.create({
   modalHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
   modalTitle: { color: colors.text, fontWeight: '800', fontSize: 18 },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-  saveBtn: { height: 38, borderRadius: 19, paddingHorizontal: 16, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  saveBtn: { minHeight: 38, borderRadius: 19, paddingHorizontal: 16, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   avatarRing: { width: 104, height: 104, borderRadius: 52, borderWidth: 3, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primaryLight },
   avatar: { width: 94, height: 94, borderRadius: 47 },
   camBadge: { position: 'absolute', bottom: 2, right: 2, width: 28, height: 28, borderRadius: 14, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFFFFF' },
@@ -497,7 +498,7 @@ const styles = StyleSheet.create({
   cover: { width: 72, height: 72, borderRadius: 14, overflow: 'hidden', backgroundColor: colors.cardAlt },
   coverTag: { position: 'absolute', left: 5, bottom: 5, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(31,42,68,0.7)', alignItems: 'center', justifyContent: 'center' },
   kTag: { color: colors.accent, fontSize: 10, fontWeight: '800', letterSpacing: 1.2 },
-  chip: { flexDirection: 'row', alignItems: 'center', height: 30, paddingHorizontal: 10, borderRadius: 15, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)', backgroundColor: colors.primaryLight, marginRight: 6 },
+  chip: { flexDirection: 'row', alignItems: 'center', minHeight: 30, paddingHorizontal: 10, borderRadius: 15, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)', backgroundColor: colors.primaryLight, marginRight: 6 },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipTxt: { color: colors.primaryDark, fontWeight: '700', fontSize: 12, marginLeft: 4 },
   empty: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: 14, padding: 12, marginTop: 8 },

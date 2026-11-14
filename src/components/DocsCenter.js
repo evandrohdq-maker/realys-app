@@ -1,7 +1,8 @@
 // Tela de contratos e receitas (abre pelo Perfil, pelo painel do prestador ou pela Lotus:
 // "Lotus, fazer um contrato de aluguel", "Lotus, receita para Maria: dipirona 500 mg...").
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, TextInput, ActivityIndicator, Linking } from 'react-native';
+import { Modal, View, TouchableOpacity, ScrollView, StyleSheet, Alert, ActivityIndicator, Linking } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';

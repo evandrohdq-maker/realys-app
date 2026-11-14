@@ -4,7 +4,8 @@
 // Abre com dispatch({ type: 'OPEN_VENUE' }). Na demonstração dá para ver o painel do caixa.
 import { askPix } from './PixPay';
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
@@ -238,7 +239,7 @@ const styles = StyleSheet.create({
   table: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10, ...soft },
   tableText: { color: colors.text, fontWeight: '700', marginLeft: 8, flex: 1, fontSize: 13 },
   tableInput: { width: 48, height: 32, borderRadius: 10, borderWidth: 1, borderColor: colors.borderStrong, color: colors.text, textAlign: 'center', fontWeight: '800', marginLeft: 8 },
-  tableBtn: { backgroundColor: colors.gold, borderRadius: 10, paddingHorizontal: 10, height: 32, alignItems: 'center', justifyContent: 'center', marginLeft: 6 },
+  tableBtn: { backgroundColor: colors.gold, borderRadius: 10, paddingHorizontal: 10, minHeight: 32, alignItems: 'center', justifyContent: 'center', marginLeft: 6 },
   tab: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)', marginRight: 6 },
   tabOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   tabText: { color: colors.primaryDark, fontWeight: '700', fontSize: 12 },

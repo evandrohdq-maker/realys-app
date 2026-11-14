@@ -1,7 +1,8 @@
 // Parte social do perfil: depoimentos (estilo Orkut), galeria de fotos, galeria de vídeos e destaques de stories.
 // Usado no perfil dos outros membros, no "Meu perfil" e no feed abaixo dos stories.
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, TextInput, Alert, Share, Image, KeyboardAvoidingView, Platform, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, Share, Image, KeyboardAvoidingView, Platform, useWindowDimensions } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -778,7 +779,7 @@ const styles = StyleSheet.create({
   sub: { color: colors.text, fontWeight: '700', fontSize: 15, marginBottom: 8 },
   hint: { color: colors.muted, fontSize: 12, marginBottom: 10, lineHeight: 17 },
   feedHead: { flexDirection: 'row', alignItems: 'center', marginTop: 6, marginBottom: 10 },
-  writeBtn: { flexDirection: 'row', alignItems: 'center', height: 36, paddingHorizontal: 12, borderRadius: 18, backgroundColor: colors.primary, marginLeft: 10 },
+  writeBtn: { flexDirection: 'row', alignItems: 'center', minHeight: 36, paddingHorizontal: 12, borderRadius: 18, backgroundColor: colors.primary, marginLeft: 10 },
   pendingBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: 12, padding: 10, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(168,121,10,0.3)' },
 
   tCard: { backgroundColor: colors.card, borderRadius: 18, padding: 12, marginBottom: 12, ...soft },
@@ -808,9 +809,9 @@ const styles = StyleSheet.create({
   input: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 14, height: 46, color: colors.text, fontSize: 15 },
   err: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FDECEC', borderRadius: 10, padding: 10, marginTop: 8 },
   info: { flexDirection: 'row', backgroundColor: colors.primaryLight, borderRadius: 12, padding: 10, marginTop: 12 },
-  primaryBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 48, borderRadius: 14, backgroundColor: colors.primary, marginTop: 14, paddingHorizontal: 14 },
+  primaryBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 48, borderRadius: 14, backgroundColor: colors.primary, marginTop: 14, paddingHorizontal: 14 },
   primaryTxt: { color: colors.onPrimary, fontWeight: '800', fontSize: 15 },
-  lineBtn: { height: 48, borderRadius: 14, borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
+  lineBtn: { minHeight: 48, borderRadius: 14, borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
   okCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   waiting: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: 12, padding: 10, marginBottom: 10 },
 

@@ -1,6 +1,7 @@
 // Peças de engajamento entre os lados (dados e regras em src/engage.js).
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput, Animated, Modal } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Animated, Modal } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { useBack } from '../back';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';

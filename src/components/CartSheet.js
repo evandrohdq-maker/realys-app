@@ -2,7 +2,8 @@
 // Abre pelo ícone discreto no topo (só aparece quando há itens), pela barra da loja ou pedindo
 // à Lotus ("abre meu carrinho"). dispatch({ type: 'OPEN_CART' }).
 import React from 'react';
-import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore, cartTotal, storeOf } from '../store';

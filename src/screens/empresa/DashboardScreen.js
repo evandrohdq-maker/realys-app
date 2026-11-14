@@ -1,6 +1,7 @@
 import React from 'react';
 import { UnmetProducts, IntelPanel } from '../../components/Engage';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
+import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, myProducts } from '../../store';
 import { colors, brl } from '../../theme';

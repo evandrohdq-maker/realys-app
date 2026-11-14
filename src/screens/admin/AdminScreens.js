@@ -110,7 +110,8 @@ function HireNotices() {
     </Section>
   );
 }
-import { View, Text, TouchableOpacity, Alert, Linking } from 'react-native';
+import { View, TouchableOpacity, Alert, Linking } from 'react-native';
+import { Text } from '../../responsive';
 import { CONSELHO_TEXT, CONSULTA_URL, professionOf } from '../../credentials';
 import { useStore } from '../../store';
 import { platformStats } from '../../data';

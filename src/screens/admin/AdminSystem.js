@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, Share, Alert, Pressable } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, Share, Alert, Pressable } from 'react-native';
+import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
 import { colors, soft } from '../../theme';
@@ -33,7 +34,8 @@ export const SYSTEM_MAP = [
       { key: 'c-enc', name: 'Date (encontros)', desc: 'Relacionamentos: termos e status (casados não participam), perfil de namoro opcional com % completo, radar por GPS, curtir/passar, match, conversa, denunciar', status: 'simulado', role: 'cliente', tab: 'encontros', why: 'Radar de verdade e notificações precisam do servidor e do GPS em segundo plano' },
       { key: 'c-shop', name: 'Início › Shop', desc: 'Lançamentos das lojas no topo (com vídeo de apresentação), destaques e lojas (patrocinadas primeiro)', status: 'demo', role: 'cliente', tab: 'home', top: 'shop', why: 'O vídeo de lançamento é simulado: gravar e hospedar precisa de servidor' },
       { key: 'c-eventos', name: 'Início › Eventos', desc: 'Ao lado do Shop: festas promocionais e anúncios de promoções em destaque; shows e noite, salões e espaços, eventos gratuitos', status: 'demo', role: 'cliente', tab: 'home', top: 'eventos', why: 'Venda de ingresso e lista VIP de verdade precisam de servidor' },
-      { key: 'c-promo', name: 'Início › Promoções', desc: 'Ofertas com desconto', status: 'demo', role: 'cliente', tab: 'home', top: 'promo' },
+      { key: 'c-stream', name: 'Início › Stream', desc: 'Rádios e TV online: cada rádio ou canal indexa a URL do próprio sinal', status: 'demo', role: 'cliente', tab: 'home', top: 'stream', why: 'Os canais de TV de exemplo usam sinais públicos de teste' },
+      { key: 'c-promo', name: 'Início › Promoções', desc: 'Ofertas com desconto (sem botão no topo: abre pelo menu ⋮, busca e Lotus)', status: 'demo', role: 'cliente', tab: 'home', top: 'promo' },
       { key: 'c-ads', name: 'Início › Anúncios', desc: 'Imóveis, aluguel de carros e máquinas, hotéis, festas e noite, cursos e faculdades online', status: 'demo', role: 'cliente', tab: 'home', top: 'anuncios', why: 'Criar anúncio de verdade precisa de servidor' },
       { key: 'c-com', name: 'Stories › Comunidade', desc: 'Stories no topo e feed único de posts e depoimentos (curtir, comentar, compartilhar), mensagens, contatos, live e chamada de vídeo', status: 'simulado', role: 'cliente', tab: 'stories', why: 'Mensagens não saem do celular; vídeo é só visual' },
       { key: 'c-lives', name: 'Início › Lives', desc: 'Assistir e abrir live, inclusive aulas ao vivo', status: 'simulado', role: 'cliente', tab: 'home', top: 'lives', why: 'Precisa de servidor de vídeo e da câmera' },
@@ -287,7 +289,7 @@ const styles = StyleSheet.create({
   },
   notesHead: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   h2: { color: colors.text, fontSize: 17, fontWeight: '700' },
-  shareBtn: { flexDirection: 'row', alignItems: 'center', height: 38, paddingHorizontal: 14, borderRadius: 12, backgroundColor: colors.primary },
+  shareBtn: { flexDirection: 'row', alignItems: 'center', minHeight: 38, paddingHorizontal: 14, borderRadius: 12, backgroundColor: colors.primary },
   tip: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -316,7 +318,7 @@ const styles = StyleSheet.create({
   smallBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 34,
+    minHeight: 34,
     paddingHorizontal: 12,
     borderRadius: 10,
     borderWidth: 1,
@@ -349,7 +351,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlignVertical: 'top',
   },
-  btn: { flex: 1, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  btn: { flex: 1, minHeight: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   btnGhost: { borderWidth: 1, borderColor: colors.border, marginRight: 10 },
   btnMain: { backgroundColor: colors.primary },
 });

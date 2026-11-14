@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Animated, Easing, Alert, Dimensions } from 'react-native';
+import { View, StyleSheet, Modal, TouchableOpacity, Animated, Easing, Alert, Dimensions } from 'react-native';
+import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, soft } from '../../theme';
@@ -256,7 +257,7 @@ const styles = StyleSheet.create({
   live: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 36,
+    minHeight: 36,
     paddingHorizontal: 14,
     borderRadius: 18,
     backgroundColor: 'rgba(255,255,255,0.95)',
@@ -302,18 +303,18 @@ const styles = StyleSheet.create({
   profileBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 40,
+    minHeight: 40,
     paddingHorizontal: 12,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(168,121,10,0.55)',
   },
   profileText: { color: colors.primary, fontWeight: '700', fontSize: 13, marginLeft: 6 },
-  mainBtn: { height: 48, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  mainBtn: { minHeight: 48, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   mainText: { color: colors.onPrimary, fontWeight: '700' },
   action: {
     flex: 1,
-    height: 48,
+    minHeight: 48,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: '#F0E9DA',

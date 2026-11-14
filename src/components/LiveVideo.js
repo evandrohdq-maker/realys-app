@@ -4,7 +4,8 @@
 // - VideoCallHost: toca quando alguém liga, atende/recusa e mostra a chamada (montado uma vez no App).
 // Sem servidor contratado, nada disso aparece e o app segue no modo demonstração.
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Modal, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, serverOn } from '../api';

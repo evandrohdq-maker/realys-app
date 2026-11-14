@@ -3,7 +3,8 @@
 // Vale para qualquer conta: o usuário que consome e o prestador que recebe pelos serviços.
 import React, { useMemo, useState } from 'react';
 import GiftIcon from '../components/GiftIcon';
-import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
@@ -554,7 +555,7 @@ const styles = StyleSheet.create({
   giftRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border, marginTop: 6 },
   balanceCard: { backgroundColor: colors.primary, borderRadius: 20, padding: 16 },
   balance: { color: '#fff', fontSize: 32, fontWeight: '800', marginVertical: 4 },
-  bigBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 44, borderRadius: 14, backgroundColor: '#fff' },
+  bigBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 44, borderRadius: 14, backgroundColor: '#fff' },
   periods: { flexDirection: 'row', marginTop: 16 },
   section: { color: colors.text, fontWeight: '700', fontSize: 16, marginTop: 14, marginBottom: 8 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
@@ -571,6 +572,6 @@ const styles = StyleSheet.create({
   sheet: { backgroundColor: colors.bg, borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 16 },
   label: { color: colors.text, fontWeight: '700', marginBottom: 6 },
   input: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 14, height: 48, color: colors.text, fontSize: 16 },
-  primary: { height: 50, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginTop: 16 },
+  primary: { minHeight: 50, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginTop: 16 },
   primaryTxt: { color: colors.onPrimary, fontWeight: '800', fontSize: 15 },
 });

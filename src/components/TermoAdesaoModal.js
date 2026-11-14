@@ -1,6 +1,7 @@
 // Mostra o Termo de Adesão completo (o mesmo texto que o servidor publica).
 import React from 'react';
-import { Modal, View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { Modal, View, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { TERMO_ADESAO } from '../termoAdesao';
 import { colors } from '../theme';

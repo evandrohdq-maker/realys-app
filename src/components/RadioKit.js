@@ -1,7 +1,8 @@
 // Player das rádios: o RadioHost toca (um só no app inteiro), o RadioCard aparece na página
 // da rádio e no diretório, e a barrinha embaixo mostra o que está tocando em qualquer tela.
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Animated, ActivityIndicator } from 'react-native';
+import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { radioNow, onRadioNow, setRadioNow, playRadio, stopRadio, resolveStream, loadRadios, radioOf, onRadios } from '../radio';
 

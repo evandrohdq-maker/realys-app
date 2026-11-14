@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { UnmetServices, OpenRequests } from '../../components/Engage';
-import { View, Text, Switch, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { View, Switch, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, priceText, serviceType } from '../../store';
 import { serviceTypes } from '../../data';

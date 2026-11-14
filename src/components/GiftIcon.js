@@ -1,6 +1,7 @@
 // Ícone de presente: emoji, ou a flor dourada da Lotus no presente "Flor de Lótus".
 import React from 'react';
-import { Text, Image } from 'react-native';
+import { Image } from 'react-native';
+import { Text } from '../responsive';
 import { FAB } from './lotus/frames';
 
 export default function GiftIcon({ gift, size = 28 }) {

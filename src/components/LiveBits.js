@@ -1,7 +1,8 @@
 // Peças das lives ligadas aos perfis: selo de quem transmite (tocar abre o perfil),
 // "Ao vivo agora" dentro dos perfis e a janela global para assistir de qualquer lugar.
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
 import { colors } from '../theme';

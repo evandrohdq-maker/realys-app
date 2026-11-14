@@ -1,7 +1,8 @@
 // Perfil de serviço público (Bombeiros, Defesa Civil, SAMU, hospital público, UPA, UBS) e o cartão do
 // SUS do cidadão. Abre pelo SOS, pela busca ou pela Lotus ("Lotus, abre o perfil dos bombeiros").
 import React, { useEffect, useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Alert, Switch } from 'react-native';
+import { Modal, View, TouchableOpacity, ScrollView, StyleSheet, Alert, Switch } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';

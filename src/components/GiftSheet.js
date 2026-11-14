@@ -3,7 +3,8 @@
 // Sem "to", a pessoa escolhe para quem: amigos e pessoas, prestadores (ou clientes, se for empresa).
 import React, { useEffect, useState } from 'react';
 import { giftPoints } from '../rewards';
-import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';

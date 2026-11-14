@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Share, AppState } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Share, AppState } from 'react-native';
+import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, brl, soft } from '../../theme';
 import { Screen, Title, Card, Row, Photo, Badge, Chip } from '../../components/ui';

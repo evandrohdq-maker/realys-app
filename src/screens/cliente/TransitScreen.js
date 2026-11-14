@@ -1,7 +1,8 @@
 import { askPix } from '../../components/PixPay';
 import React, { useState, useEffect } from 'react';
 import { TransportAlerts } from './home/NewsTab';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
 import { colors, brl, soft } from '../../theme';
@@ -320,7 +321,7 @@ const styles = StyleSheet.create({
   dash: { flex: 1, height: 2, backgroundColor: colors.border, marginHorizontal: 12 },
   tkRow: { flexDirection: 'row', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border, marginTop: 6 },
   back: { color: colors.primary, fontWeight: '700', marginBottom: 10 },
-  stopRow: { flexDirection: 'row', alignItems: 'center', height: 54 },
+  stopRow: { flexDirection: 'row', alignItems: 'center', minHeight: 54 },
   rail: { width: 30, height: '100%', alignItems: 'center', justifyContent: 'center' },
   railLine: { position: 'absolute', top: 0, bottom: 0, width: 4, backgroundColor: colors.border, borderRadius: 2 },
   dot: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#FFFFFF', borderWidth: 3, borderColor: colors.border },

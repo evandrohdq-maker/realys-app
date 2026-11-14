@@ -3,7 +3,8 @@
 // Resposta de segurança: parece assinado ("Contrato confirmado com sucesso, parabéns"), mas a
 // assinatura não vale e a segurança é acionada em silêncio.
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
+import { Modal, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 import { colors } from '../theme';

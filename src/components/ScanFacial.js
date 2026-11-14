@@ -8,7 +8,8 @@
 // A detecção do rosto usa o ML Kit do Google, no próprio celular (nada sai do aparelho
 // nessa etapa). Se o detector não estiver disponível, cai num modo com contagem regressiva.
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { Modal, View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { Text } from '../responsive';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { File } from 'expo-file-system';
 import * as Speech from 'expo-speech';

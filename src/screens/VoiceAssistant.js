@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  View, Text, Modal, TouchableOpacity, StyleSheet, ScrollView, Platform, KeyboardAvoidingView,
-  Animated, Easing, TextInput, Pressable, Dimensions, AppState,
+  View, Modal, TouchableOpacity, StyleSheet, ScrollView, Platform, KeyboardAvoidingView, Animated, Easing, Pressable, Dimensions, AppState,
 } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as IntentLauncher from 'expo-intent-launcher';
@@ -706,6 +706,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
   const insets = useSafeAreaInsets();
   // Conversa limpa: na rolagem ficam só as últimas mensagens; o resto fica no histórico (relógio).
   const [showHist, setShowHist] = useState(false);
+  const [fullReply, setFullReply] = useState(null); // resposta aberta por inteiro (as com opções mostram só o começo)
+  const answersRef = useRef(null);
   // Quantas respostas desde que a caixa abriu (a flor abre sempre dourada).
   const [openBase, setOpenBase] = useState(0);
   const [now, setNow] = useState(Date.now());
@@ -1477,12 +1479,20 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
   const last = history[0];
   const mood = moodOf(last, history.length - openBase);
   const win = Dimensions.get('window');
+  // Quando a resposta traz opções (prestadores, produtos, chamada, botões de confirmar) ou o
+  // histórico está aberto, a flor encolhe e a caixa cresce: a lista precisa de espaço na tela.
+  // Resposta nova: a lista volta para o topo, onde ficam o pedido e as opções.
+  const lastAt = last ? last.at || 0 : 0;
+  useEffect(() => {
+    if (answersRef.current) answersRef.current.scrollTo({ y: 0, animated: false });
+  }, [lastAt]);
+  const compact = !!(showHist || (last && (last.list || last.results || last.call || (last.pending && pending))));
 
   return (
     <Modal visible={visible} animationType="none" transparent onRequestClose={() => (preview ? setPreview(null) : close())} statusBarTranslucent>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
         <Pressable style={{ flex: 1 }} onPress={close} />
-        <Animated.View style={[styles.sheet, { backgroundColor: skyBg(sky), paddingBottom: 16 + insets.bottom, opacity: enter, transform: [{ translateY }] }]}>
+        <Animated.View style={[styles.sheet, compact && styles.sheetTall, { backgroundColor: skyBg(sky), paddingBottom: 16 + insets.bottom, opacity: enter, transform: [{ translateY }] }]}>
           <StarField active={visible} sky={sky} south={!weather || weather.south !== false} />
           <View style={styles.grip} />
           <View style={styles.head}>
@@ -1522,6 +1532,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
             }}
             visible={visible}
             mood={mood}
+            compact={compact}
           />
           <View style={styles.statusRow}>
             <View style={[styles.statusDot, { backgroundColor: phase === 'listening' ? '#60A5FA' : phase === 'idle' ? 'rgba(255,255,255,0.4)' : colors.gold }]} />
@@ -1532,9 +1543,12 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
               {ear === 'on' ? (earHeard ? `🎙 ouvindo: “${earHeard}”` : '🎙 diga “Lotus” para interromper') : 'toque na flor para interromper'}
             </Text>
           ) : null}
-          <Text style={[styles.live, !partial && !last && styles.livePlaceholder]} numberOfLines={2}>
-            {partial || (last && phase !== 'listening' ? splitSentences(last.reply)[0] : tratoOf() ? openLine(tratoOf(), state.user && state.user.name) : '“Me leva pro Agro”')}
-          </Text>
+          {/* Com opções na tela, a resposta já está no cartão logo abaixo: aqui fica só o que você está falando. */}
+          {compact && !partial ? null : (
+            <Text style={[styles.live, !partial && !last && styles.livePlaceholder]} numberOfLines={2}>
+              {partial || (last && phase !== 'listening' ? splitSentences(last.reply)[0] : tratoOf() ? openLine(tratoOf(), state.user && state.user.name) : '“Me leva pro Agro”')}
+            </Text>
+          )}
           {paused && phase !== 'speaking' ? (
             <View style={styles.pauseRow}>
               <Text style={styles.pauseHint}>Diga "continua" ou faça outro pedido sobre o mesmo assunto</Text>
@@ -1545,7 +1559,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
             </View>
           ) : null}
 
-          <ScrollView style={{ flex: 1, marginTop: 10 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <ScrollView ref={answersRef} style={{ flex: 1, marginTop: 10 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             {!history.length ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingVertical: 4 }}>
                 {EXAMPLES.map((e, i) => (
@@ -1583,7 +1597,20 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
                         <Text style={styles.senseTxt}>Entendi pelo sentido: {h.understood}</Text>
                       </View>
                     ) : null}
-                    <Text style={styles.botText}>{h.reply}</Text>
+                    {/* Resposta com opções embaixo: mostra só o começo (a Lotus fala o resto) para as
+                        opções aparecerem na tela. Tocar no texto abre e fecha a resposta inteira. */}
+                    {h.list || h.results ? (
+                      <Text
+                        style={styles.botText}
+                        numberOfLines={fullReply === (h.at || i) ? undefined : 3}
+                        onPress={() => setFullReply(fullReply === (h.at || i) ? null : h.at || i)}
+                        accessibilityHint="Toque para ver a resposta inteira"
+                      >
+                        {h.reply}
+                      </Text>
+                    ) : (
+                      <Text style={styles.botText}>{h.reply}</Text>
+                    )}
                   </View>
                 </View>
                 {h.list
@@ -1758,6 +1785,8 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 24,
   },
+  // Com opções na tela a caixa sobe mais, para a lista caber.
+  sheetTall: { height: '93%' },
   grip: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.25)', marginBottom: 8 },
   // por cima da flor e da luz: o botão fechar sempre recebe o toque
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', zIndex: 10, elevation: 10 },
@@ -1799,7 +1828,7 @@ const styles = StyleSheet.create({
   chipText: { color: '#FDE68A', fontWeight: '700', fontSize: 13 },
 
   userLine: { alignSelf: 'flex-end', backgroundColor: 'rgba(255,255,255,0.92)', paddingHorizontal: 14, paddingVertical: 9, borderRadius: 16, borderBottomRightRadius: 4, maxWidth: '85%', marginBottom: 6 },
-  userText: { color: colors.text, fontSize: 14 },
+  userText: { color: colors.text, fontSize: 15, fontWeight: '600' },
   botCard: { flexDirection: 'row', backgroundColor: 'rgba(10,16,38,0.58)', borderRadius: 16, padding: 12, marginBottom: 6 },
   botBar: { width: 3, borderRadius: 2, backgroundColor: colors.gold, marginRight: 10 },
   botText: { color: '#FFFFFF', fontSize: 14, lineHeight: 20 },
@@ -1808,7 +1837,7 @@ const styles = StyleSheet.create({
 
   item: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 10, marginBottom: 6, ...soft },
   itemTag: { color: colors.accent, fontSize: 10, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
-  itemTitle: { color: colors.text, fontWeight: '700' },
+  itemTitle: { color: colors.text, fontWeight: '700', fontSize: 15 },
   itemSub: { color: colors.muted, fontSize: 12 },
   itemPrice: { color: colors.primary, fontWeight: '700', fontSize: 13 },
   pPhoto: { width: 44, height: 44, borderRadius: 22 },

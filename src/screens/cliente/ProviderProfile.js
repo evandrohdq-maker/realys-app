@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LiveNowBadge } from '../../components/LiveBits';
-import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity } from 'react-native';
+import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, soft } from '../../theme';
@@ -284,7 +285,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     ...soft,
   },
-  tab: { flex: 1, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  tab: { flex: 1, minHeight: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   tabOn: { backgroundColor: colors.primary },
   tabText: { color: colors.text, fontSize: 12, fontWeight: '700' },
   item: {
@@ -356,7 +357,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 10,
   },
-  barBtn: { height: 50, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  barBtn: { minHeight: 50, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   barGhost: { flex: 1, borderWidth: 1, borderColor: 'rgba(168,121,10,0.55)', marginRight: 10 },
   barMain: { flex: 1.4, backgroundColor: colors.primary },
 });

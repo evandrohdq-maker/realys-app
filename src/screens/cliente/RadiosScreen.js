@@ -1,7 +1,8 @@
 // Rádios: diretório das rádios do Re@lys e cadastro da rádio da empresa.
 // A rádio indexa a URL do próprio streaming e passa a tocar na página dela e aqui.
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
 import { colors } from '../../theme';

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Animated, Easing, Alert, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, Modal, TouchableOpacity, Animated, Easing, Alert, useWindowDimensions } from 'react-native';
+import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, soft } from '../theme';

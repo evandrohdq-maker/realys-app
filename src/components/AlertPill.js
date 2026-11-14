@@ -3,7 +3,8 @@
 // Visual leve, no padrão clean do app: cartão claro com sombra suave, ícone em anel e um botão "Ver".
 // Tocar abre Notícias e Alertas; o X esconde até aparecer um alerta novo.
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
 import { ALERTS, ALERT_LEVELS } from '../newsData';

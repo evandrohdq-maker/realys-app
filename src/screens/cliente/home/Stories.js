@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { PHOTO_RULE } from '../../../moderation';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, Pressable, KeyboardAvoidingView, Platform, Image, Alert } from 'react-native';
+import { View, StyleSheet, Modal, TouchableOpacity, ScrollView, Pressable, KeyboardAvoidingView, Platform, Image, Alert } from 'react-native';
+import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../../theme';
@@ -275,7 +276,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
   },
-  cta: { flexDirection: 'row', alignSelf: 'center', alignItems: 'center', height: 42, paddingHorizontal: 20, borderRadius: 21, backgroundColor: colors.primary, marginBottom: 12 },
+  cta: { flexDirection: 'row', alignSelf: 'center', alignItems: 'center', minHeight: 42, paddingHorizontal: 20, borderRadius: 21, backgroundColor: colors.primary, marginBottom: 12 },
   reply: { flex: 1, height: 46, borderRadius: 23, borderWidth: 1, borderColor: 'rgba(255,255,255,0.7)', paddingHorizontal: 16, color: '#fff', backgroundColor: 'rgba(0,0,0,0.25)' },
   sendBtn: { width: 46, height: 46, alignItems: 'center', justifyContent: 'center', marginLeft: 6 },
   seenBy: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', backgroundColor: 'rgba(0,0,0,0.35)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18 },
@@ -283,7 +284,7 @@ const styles = StyleSheet.create({
   textOnPhoto: { textShadowColor: 'rgba(0,0,0,0.7)', textShadowRadius: 8 },
 
   composerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14 },
-  publish: { height: 38, paddingHorizontal: 16, borderRadius: 19, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  publish: { minHeight: 38, paddingHorizontal: 16, borderRadius: 19, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   palette: { paddingHorizontal: 16, paddingTop: 12, backgroundColor: 'rgba(0,0,0,0.25)' },
   swatch: { width: 40, height: 40, borderRadius: 20, marginRight: 10, borderWidth: 2, borderColor: 'rgba(255,255,255,0.6)' },
   swatchOn: { borderColor: '#fff', borderWidth: 3, transform: [{ scale: 1.1 }] },

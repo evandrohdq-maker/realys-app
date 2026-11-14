@@ -1,6 +1,6 @@
 // Arrastar a página inicial para os lados, como páginas vizinhas:
-//   arrastar para a ESQUERDA  → a página vem junto com o dedo e abre o Feed de Notícias (à direita);
-//   arrastar para a DIREITA   → abre o Perfil (à esquerda).
+//   arrastar para a DIREITA   → a página vem junto com o dedo e abre os Reels (à esquerda);
+//   arrastar para a ESQUERDA  → abre o Perfil (à direita).
 // Vale para qualquer perfil de acesso (usuário, empresa, prestador, fornecedor, admin).
 // Faixas horizontais (stories, carrosséis) continuam rolando normalmente: elas têm prioridade.
 import React, { useMemo, useRef } from 'react';

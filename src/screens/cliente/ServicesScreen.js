@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, buildServiceCall, callReply, serviceType, priceText, detectService } from '../../store';
 import { SearchBar, GlobalResults } from '../../components/Search';
@@ -764,7 +765,7 @@ const styles = StyleSheet.create({
   mapSelText: { color: colors.text, fontSize: 11, fontWeight: '700', marginLeft: 4, flexShrink: 1 },
   mapLabel: { position: 'absolute', left: 10, bottom: 10, color: colors.text, fontSize: 11, backgroundColor: 'rgba(255,255,255,0.92)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, overflow: 'hidden' },
   quickRow: { flexDirection: 'row', marginTop: 10 },
-  quickBtn: { flex: 1, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
+  quickBtn: { flex: 1, minHeight: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
   quickGhost: { borderWidth: 1, borderColor: 'rgba(168,121,10,0.55)', marginRight: 8 },
   quickMain: { flex: 1.4, backgroundColor: colors.primary, paddingHorizontal: 10 },
   // Acompanhando
@@ -778,7 +779,7 @@ const styles = StyleSheet.create({
   howNum: { width: 20, height: 20, borderRadius: 10, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginRight: 8, marginTop: -1 },
   // Lista
   segment: { flexDirection: 'row', backgroundColor: colors.cardAlt, borderRadius: 14, padding: 4, marginBottom: 12 },
-  segBtn: { flex: 1, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', paddingHorizontal: 4 },
+  segBtn: { flex: 1, minHeight: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', paddingHorizontal: 4 },
   segBtnOn: { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 4, elevation: 1 },
   segText: { color: colors.muted, fontWeight: '700', fontSize: 12, marginLeft: 4, flexShrink: 1 },
   listLabel: { color: colors.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1.4, marginBottom: 8, marginTop: 2 },
@@ -800,7 +801,7 @@ const styles = StyleSheet.create({
   miniStat: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 3, marginRight: 6, marginBottom: 4 },
   miniStatText: { color: colors.muted, fontSize: 11, marginLeft: 4, fontWeight: '600' },
   actions: { flexDirection: 'row', marginTop: 12 },
-  actMain: { flex: 1, height: 46, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', paddingHorizontal: 10 },
+  actMain: { flex: 1, minHeight: 46, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', paddingHorizontal: 10 },
   actMainText: { color: colors.onPrimary, fontWeight: '800', fontSize: 14, marginLeft: 6 },
   iconBtn: { width: 46, height: 46, borderRadius: 14, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', marginLeft: 8, backgroundColor: '#FFFFFF' },
   // Voz

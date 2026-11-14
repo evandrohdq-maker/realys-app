@@ -1,9 +1,11 @@
-// Aba Reels (botão próprio na barra de baixo): todos os Reels do Re@lys num lugar só,
-// estilo Instagram. "Para você" mistura lojas e comida; "Shop" e "Food" filtram.
+// Reels (abre arrastando a página inicial para a direita ou pela Lotus): todos os Reels do
+// Re@lys num lugar só, estilo Instagram. Os Reels publicados pelo usuário aparecem primeiro. "Para você" mistura lojas e comida; "Shop" e "Food" filtram.
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text } from '../../responsive';
 import { ReelsFeed } from '../../components/Reels';
 import { SHOP_CLIPS, FOOD_CLIPS, MERCADO_CLIPS } from '../../adsData';
+import { useStore } from '../../store';
 
 const TABS = [
   { key: 'todos', label: 'Para você' },
@@ -23,11 +25,13 @@ export default function ReelsScreen() {
   const [tab, setTab] = useState('todos');
   const shop = useMemo(() => SHOP_CLIPS.map((c) => ({ ...c, kind: 'shop' })), []);
   const food = useMemo(() => [...FOOD_CLIPS, ...MERCADO_CLIPS].map((c) => ({ ...c, kind: 'food' })), []);
-  const reels = tab === 'shop' ? shop : tab === 'food' ? food : mix(shop, food);
+  const { state } = useStore();
+  const mine = state.myReels || [];
+  const reels = tab === 'shop' ? shop : tab === 'food' ? food : [...mine, ...mix(shop, food)];
   return (
     <View style={{ flex: 1, backgroundColor: '#000' }}>
       {/* key: trocar o filtro recomeça do primeiro Reel */}
-      <ReelsFeed key={tab} reels={reels} />
+      <ReelsFeed key={tab + (tab === 'todos' ? mine.length : '')} reels={reels} />
       <View style={styles.top} pointerEvents="box-none">
         {TABS.map((t) => (
           <TouchableOpacity key={t.key} onPress={() => setTab(t.key)} style={styles.tab} accessibilityLabel={`Reels: ${t.label}`}>

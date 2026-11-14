@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { GroupBuys, ReversePost } from '../../components/Engage';
 import { LiveNowBadge } from '../../components/LiveBits';
-import { View, Text, Alert, TouchableOpacity } from 'react-native';
+import { View, Alert, TouchableOpacity } from 'react-native';
+import { Text } from '../../responsive';
 import { useStore } from '../../store';
 import { MY_COMPANY_ID } from '../../data';
 import { colors, brl } from '../../theme';

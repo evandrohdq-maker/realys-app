@@ -1,7 +1,8 @@
 // Janela de avaliação: abre sozinha quando o pedido é entregue ou o serviço é concluído
 // (e também pelo botão "Avaliar"). dispatch({ type: 'OPEN_RATE', kind, refId }).
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';

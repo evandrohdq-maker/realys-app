@@ -3,7 +3,8 @@ import { moderateText } from '../../../moderation';
 import { usePrivateScreen } from '../../../privacyGuard';
 import { giftPoints } from '../../../rewards';
 import GiftIcon from '../../../components/GiftIcon';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, Animated, Easing } from 'react-native';
+import { View, StyleSheet, Modal, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, Animated, Easing } from 'react-native';
+import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, brl, soft } from '../../../theme';
@@ -666,7 +667,7 @@ const styles = StyleSheet.create({
   typeChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 34,
+    minHeight: 34,
     paddingHorizontal: 10,
     borderRadius: 17,
     borderWidth: 1,
@@ -674,7 +675,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   typeChipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  goLiveBtn: { height: 52, borderRadius: 16, backgroundColor: '#FF3B5C', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  goLiveBtn: { minHeight: 52, borderRadius: 16, backgroundColor: '#FF3B5C', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   earned: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E2B649', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4, marginLeft: 8 },
   earnedText: { color: '#0B1124', fontWeight: '800', fontSize: 12, marginLeft: 4 },
   giftComment: { backgroundColor: 'rgba(226,182,73,0.22)', borderWidth: 1, borderColor: 'rgba(226,182,73,0.6)' },
@@ -714,5 +715,5 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   heart: { width: 48, height: 44, alignItems: 'center', justifyContent: 'center', marginLeft: 8, borderRadius: 22 },
-  endLive: { height: 44, paddingHorizontal: 16, borderRadius: 22, backgroundColor: '#FF3B5C', alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
+  endLive: { minHeight: 44, paddingHorizontal: 16, borderRadius: 22, backgroundColor: '#FF3B5C', alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
 });

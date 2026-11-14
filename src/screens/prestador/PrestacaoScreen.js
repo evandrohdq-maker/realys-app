@@ -4,7 +4,8 @@
 //  - Mandados de serviço: o funcionário aceita (biometria) e conclui (biometria), e a empresa responde pelo atendimento.
 //  - Exemplos: perfis fictícios para testar cada regra.
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Switch, Alert, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Switch, Alert, StyleSheet } from 'react-native';
+import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { serviceTypes } from '../../data';
 import { colors } from '../../theme';

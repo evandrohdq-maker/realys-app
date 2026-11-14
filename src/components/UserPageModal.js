@@ -1,7 +1,8 @@
 // Página de usuário aberta por cima de qualquer tela (pela aba Páginas, pela busca ou pela Lotus).
 // dispatch({ type: 'OPEN_USER_PAGE', id })
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, Switch } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, Switch } from 'react-native';
+import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';

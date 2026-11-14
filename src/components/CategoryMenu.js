@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Pressable, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Modal, ScrollView, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, ROLE_LABELS, soft } from '../theme';
@@ -234,11 +235,12 @@ export const CATEGORIES = [
   },
   {
     key: 'radios',
-    title: 'Rádios',
-    hint: 'Rádios ao vivo das empresas; indexe a URL da sua',
-    icon: 'radio-outline',
+    title: 'Stream: rádios e TV',
+    hint: 'Rádios e TV online ao vivo; indexe a URL da sua',
+    icon: 'tv-outline',
     subs: [
-      { label: 'Ouvir rádios', hint: 'Diretório de rádios ao vivo', icon: 'headset-outline', go: { tab: 'radios' } },
+      { label: 'Ouvir rádios', hint: 'Diretório de rádios ao vivo', icon: 'headset-outline', go: { tab: 'home', top: 'stream', stream: 'radios' } },
+      { label: 'TV online', hint: 'Canais ao vivo', icon: 'tv-outline', go: { tab: 'home', top: 'stream', stream: 'tv' } },
       { label: 'Indexar minha rádio', hint: 'Cole a URL do streaming', icon: 'link-outline', go: { tab: 'radios' } },
     ],
   },
@@ -600,7 +602,7 @@ const styles = StyleSheet.create({
   search: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 48,
+    minHeight: 48,
     borderRadius: 16,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,

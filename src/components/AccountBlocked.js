@@ -1,6 +1,7 @@
 // Conta bloqueada por chamada de emergência falsa: o app fica travado nesta tela e o saldo retido.
 import React, { useEffect } from 'react';
-import { Modal, View, Text, StyleSheet } from 'react-native';
+import { Modal, View, StyleSheet } from 'react-native';
+import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useStore } from '../store';

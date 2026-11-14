@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, serviceType, priceText } from '../../store';
 import { serviceTypes } from '../../data';
@@ -345,13 +346,13 @@ const styles = StyleSheet.create({
   slot: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14, backgroundColor: colors.cardAlt, marginRight: 6, marginBottom: 6 },
   slotOn: { backgroundColor: colors.primary },
   slotText: { color: colors.text, fontSize: 12, fontWeight: '700' },
-  bookBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary, borderRadius: 14, height: 44, marginTop: 8 },
+  bookBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary, borderRadius: 14, minHeight: 44, marginTop: 8 },
   bookText: { color: colors.onPrimary, fontWeight: '800', fontSize: 14, marginLeft: 6 },
-  enroll: { backgroundColor: colors.primary, borderRadius: 14, paddingHorizontal: 16, height: 40, alignItems: 'center', justifyContent: 'center' },
+  enroll: { backgroundColor: colors.primary, borderRadius: 14, paddingHorizontal: 16, minHeight: 40, alignItems: 'center', justifyContent: 'center' },
 
   appt: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: 16, padding: 10, marginBottom: 8 },
   apptPhoto: { width: 40, height: 40, borderRadius: 14 },
-  joinBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, borderRadius: 12, paddingHorizontal: 12, height: 34 },
+  joinBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, borderRadius: 12, paddingHorizontal: 12, minHeight: 34 },
   joinText: { color: colors.onPrimary, fontWeight: '800', marginLeft: 5, fontSize: 13 },
 
   cover: { width: '100%', height: 130, borderRadius: 14 },

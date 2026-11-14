@@ -1,7 +1,8 @@
 // Agenda do prestador: próximos trabalhos, calendário do mês, trabalhos já feitos e horário de trabalho.
 // Regras e datas em src/agenda.js. As visitas aceitas pelo Re@lys entram sozinhas.
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Linking, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Linking, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../../store';

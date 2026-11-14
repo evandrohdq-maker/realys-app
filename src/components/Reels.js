@@ -4,9 +4,9 @@
 // Assistiu até o fim, ganha pontos Re@lys (uma vez por Reel).
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, Animated, Alert, Share, Image,
-  TextInput, KeyboardAvoidingView, Platform, Pressable, AppState,
+  View, StyleSheet, TouchableOpacity, FlatList, Modal, Animated, Alert, Share, Image, KeyboardAvoidingView, Platform, Pressable, AppState,
 } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore, storeOf } from '../store';
@@ -100,6 +100,7 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
       prog.setValue(0);
       return;
     }
+    if (reel.user) return; // Reel de usuário não é anúncio: não conta visualização paga nem dá pontos
     dispatch({ type: 'AD_EVENT', id: reel.id, ev: 'views' });
     if (state.adRewards[reel.id]) return;
     const t = setTimeout(() => {
@@ -112,7 +113,7 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
   }, [active]);
 
   const like = () => {
-    if (!liked) dispatch({ type: 'AD_EVENT', id: reel.id, ev: 'taps' });
+    if (!liked && !reel.user) dispatch({ type: 'AD_EVENT', id: reel.id, ev: 'taps' });
     setLiked(!liked);
   };
   // Toque: pausa/continua. Toque duplo: curte (com o coração grande no meio).
@@ -149,7 +150,7 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
       {EV && reel.video ? (
         <Video reel={reel} active={active} muted={muted} paused={paused} onProgress={(v) => prog.setValue(v)} />
       ) : (
-        <Image source={reel.poster} style={StyleSheet.absoluteFill} resizeMode="cover" />
+        reel.poster ? <Image source={reel.poster} style={StyleSheet.absoluteFill} resizeMode="cover" /> : null
       )}
       <View pointerEvents="none" style={styles.shadeTop} />
       <View pointerEvents="none" style={styles.shadeBottom} />
@@ -170,9 +171,15 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
 
       {/* Lado direito */}
       <View style={[styles.side, { bottom: 150 + (p ? 0 : -60) }]}>
-        <TouchableOpacity style={styles.avatar} onPress={() => { onClose && onClose(); dispatch({ type: 'OPEN_COMPANY', id: reel.storeId }); }} accessibilityLabel={`Abrir a página de ${s.name}`}>
-          <Text style={{ fontSize: 22 }}>{s.logo || '🏪'}</Text>
-        </TouchableOpacity>
+        {reel.user ? (
+          <View style={styles.avatar} accessibilityLabel={`Reel de ${reel.user}`}>
+            <Text style={{ fontSize: 20, fontWeight: '800', color: colors.primaryDark }}>{String(reel.user).charAt(0).toUpperCase()}</Text>
+          </View>
+        ) : (
+          <TouchableOpacity style={styles.avatar} onPress={() => { onClose && onClose(); dispatch({ type: 'OPEN_COMPANY', id: reel.storeId }); }} accessibilityLabel={`Abrir a página de ${s.name}`}>
+            <Text style={{ fontSize: 22 }}>{s.logo || '🏪'}</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity style={styles.sideBtn} onPress={like} accessibilityLabel="Curtir">
           <Ionicons name={liked ? 'heart' : 'heart-outline'} size={31} color={liked ? '#FF3B5C' : '#fff'} />
           <Text style={styles.sideText}>{shortNum((reel.likes || 0) + (liked ? 1 : 0))}</Text>
@@ -183,7 +190,7 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.sideBtn}
-          onPress={() => Share.share({ message: `${reel.title} · ${s.name} no Re@lys\nRe@lys · Pessoas reais. Negócios reais.` }).catch(() => {})}
+          onPress={() => Share.share({ message: `${reel.title} · ${reel.user || s.name} no Re@lys\nRe@lys · Pessoas reais. Negócios reais.` }).catch(() => {})}
           accessibilityLabel="Enviar"
         >
           <Ionicons name="paper-plane-outline" size={27} color="#fff" />
@@ -196,11 +203,18 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
 
       {/* Embaixo: loja, título e produto */}
       <View style={styles.bottom}>
-        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => { onClose && onClose(); dispatch({ type: 'OPEN_COMPANY', id: reel.storeId }); }}>
-          <Text style={styles.store}>{s.name}</Text>
-          <Ionicons name="shield-checkmark" size={13} color="#E2B649" style={{ marginLeft: 5 }} />
-        </TouchableOpacity>
-        <Text style={styles.sponsor}>Patrocinado · CNPJ verificado</Text>
+        {reel.user ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={styles.store}>{reel.user}</Text>
+            <Ionicons name="shield-checkmark" size={13} color="#E2B649" style={{ marginLeft: 5 }} />
+          </View>
+        ) : (
+          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => { onClose && onClose(); dispatch({ type: 'OPEN_COMPANY', id: reel.storeId }); }}>
+            <Text style={styles.store}>{s.name}</Text>
+            <Ionicons name="shield-checkmark" size={13} color="#E2B649" style={{ marginLeft: 5 }} />
+          </TouchableOpacity>
+        )}
+        <Text style={styles.sponsor}>{reel.user ? 'Pessoa verificada por biometria' : 'Patrocinado · CNPJ verificado'}</Text>
         <Text style={styles.title} numberOfLines={2}>{reel.title}</Text>
         {p ? (
           <View style={styles.prodBox}>

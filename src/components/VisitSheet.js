@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { GuaranteeButton } from './Guarantee';
 import { visitCovered } from '../guarantee';
-import { View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore, serviceType } from '../store';
@@ -242,7 +243,7 @@ const styles = StyleSheet.create({
   hint: { color: colors.muted, fontSize: 12, marginTop: 8, lineHeight: 17 },
   demo: { color: colors.sponsored, fontSize: 11, fontWeight: '700', marginTop: 8 },
   phone: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(30,158,99,0.08)', borderRadius: 12, padding: 10, marginTop: 10 },
-  small: { flex: 1, height: 38, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', marginTop: 8, marginRight: 8, paddingHorizontal: 6 },
+  small: { flex: 1, minHeight: 38, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', marginTop: 8, marginRight: 8, paddingHorizontal: 6 },
   smallMain: { backgroundColor: colors.primary, borderColor: colors.primary },
   smallDanger: { borderColor: 'rgba(217,83,79,0.5)' },
 });

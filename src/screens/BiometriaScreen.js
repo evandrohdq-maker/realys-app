@@ -2,7 +2,8 @@
 // Fluxo: termo -> scan do rosto (câmera centralizada) -> foto do documento e seus dados -> análise no servidor.
 // A decisão é sempre do servidor: o app só captura, envia e mostra o resultado.
 import React, { useEffect, useState } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, Alert } from 'react-native';
+import { Modal, View, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, Alert } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { api, uploadMedia } from '../api';

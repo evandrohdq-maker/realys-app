@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { PHOTO_RULE } from '../moderation';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Pressable, TextInput, Image, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Pressable, Image, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,7 +25,8 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
   const [adding, setAdding] = useState(false); // menu do +
   const [posting, setPosting] = useState(false);
   const [writingDep, setWritingDep] = useState(false);
-  // Barra do topo: Community, Eventos, Promoções, Anúncios e Lives (vieram do Shop).
+  const [reeling, setReeling] = useState(false); // publicar um Reel (vídeo curto)
+  // Barra do topo: Notícias, Eventos, Stream (rádios e TV online) e Lives.
   const [top, setTop] = useState('comunidade');
   useBack(top !== 'comunidade', () => setTop('comunidade'));
   useEffect(() => {
@@ -75,7 +77,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <TopTabs items={COMMUNITY_TOP.filter((t) => t.key !== 'comunidade')} value={top} onChange={(k) => setTop(k === top ? 'comunidade' : k)} />
+      <TopTabs items={COMMUNITY_TOP.filter((t) => t.key !== 'comunidade' && !t.hidden)} value={top} onChange={(k) => setTop(k === top ? 'comunidade' : k)} />
       <CommunityExtras top={top} explore={explore} navigate={navigate} />
       {top === 'comunidade' ? (
       <CommunityHub
@@ -138,6 +140,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
         onPick={(k) => {
           setAdding(false);
           if (k === 'post') setPosting(true);
+          if (k === 'reel') setReeling(true);
           if (k === 'story') setComposing(true);
           if (k === 'dep') setWritingDep(true);
         }}
@@ -157,6 +160,22 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
         }}
       />
       <TestimonialComposer visible={writingDep} onClose={() => setWritingDep(false)} />
+      <ReelComposer
+        visible={reeling}
+        onClose={() => setReeling(false)}
+        onPublish={(reel) => {
+          setReeling(false);
+          // A IA verificadora confere a legenda antes de publicar, como nas publicações.
+          const check = checkText(reel.title);
+          if (check.verdict === 'falso')
+            return Alert.alert('Reel não publicado', `A IA do Re@lys verificou a legenda como informação falsa (${check.reasons.join(', ')}). O Reel não foi publicado.`);
+          dispatch({ type: 'PUBLISH_REEL', reel: { ...reel, user: userName } });
+          Alert.alert('Reel publicado ✅', 'Ele já aparece nos Reels. Para ver, puxe a página inicial para a direita.', [
+            { text: 'Ok' },
+            { text: 'Ver Reels', onPress: () => navigate && navigate({ tab: 'reels' }) },
+          ]);
+        }}
+      />
       <StoryComposer
         visible={composing}
         onClose={() => setComposing(false)}
@@ -174,6 +193,7 @@ function AddSheet({ visible, onClose, onPick }) {
   const insets = useSafeAreaInsets();
   const opts = [
     ['post', 'Publicação', 'Texto e foto no feed da Comunidade', 'create-outline'],
+    ['reel', 'Reel', 'Vídeo curto em tela cheia, até 60 segundos', 'play-circle-outline'],
     ['story', 'Story', 'Some em 24 h (ou fica nos seus destaques)', 'aperture-outline'],
     ['dep', 'Depoimento', 'Escreva sobre um amigo para o perfil dele', 'chatbox-ellipses-outline'],
   ];
@@ -267,6 +287,70 @@ function PostComposer({ visible, onClose, onPublish }) {
   );
 }
 
+// Novo Reel: um vídeo curto da galeria (até 60 s) e uma legenda.
+function ReelComposer({ visible, onClose, onPublish }) {
+  const insets = useSafeAreaInsets();
+  const [title, setTitle] = useState('');
+  const [video, setVideo] = useState(null); // { uri, secs }
+  useEffect(() => {
+    if (!visible) return;
+    setTitle('');
+    setVideo(null);
+  }, [visible]);
+  const pick = async () => {
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) return Alert.alert('Permissão necessária', 'Autorize o Re@lys a ver seus vídeos para publicar um Reel.');
+      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['videos'], videoMaxDuration: 60, quality: 0.8 });
+      const a = !res.canceled && res.assets && res.assets[0];
+      if (!a) return;
+      const secs = a.duration ? Math.round(a.duration / 1000) : 0;
+      if (secs > 61) return Alert.alert('Vídeo longo demais', 'O Reel tem até 60 segundos. Escolha um vídeo mais curto.');
+      setVideo({ uri: a.uri, secs });
+    } catch (e) {
+      Alert.alert('Não deu para abrir a galeria', 'Tente de novo em instantes.');
+    }
+  };
+  const ok = !!video;
+  return (
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <View style={[styles.postHead, { paddingTop: insets.top + 10 }]}>
+          <TouchableOpacity onPress={onClose} style={styles.closeBtn} accessibilityLabel="Cancelar">
+            <Ionicons name="close" size={20} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.sheetTitle}>Novo Reel</Text>
+          <TouchableOpacity
+            disabled={!ok}
+            onPress={() => onPublish({ id: 'r' + Date.now(), title: title.trim() || 'Meu Reel', video: video.uri, likes: 0, views: 0, kind: 'user' })}
+            style={[styles.publishBtn, !ok && { opacity: 0.4 }]}
+          >
+            <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Publicar</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
+          <TouchableOpacity style={styles.reelPick} onPress={pick} activeOpacity={0.85} accessibilityLabel={video ? 'Trocar o vídeo' : 'Escolher o vídeo'}>
+            <Ionicons name={video ? 'checkmark-circle' : 'videocam-outline'} size={34} color={video ? colors.success : colors.primary} />
+            <Text style={styles.reelPickTitle}>{video ? 'Vídeo escolhido' : 'Escolher vídeo da galeria'}</Text>
+            <Text style={styles.reelPickSub}>{video ? `${video.secs ? video.secs + ' s · ' : ''}toque para trocar` : 'Vídeo em pé, de até 60 segundos'}</Text>
+          </TouchableOpacity>
+          <TextInput
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Escreva uma legenda…"
+            placeholderTextColor={colors.muted}
+            multiline
+            maxLength={120}
+            style={[styles.postInput, { marginTop: 14, minHeight: 70 }]}
+          />
+          <Text style={{ color: colors.muted, fontSize: 11, marginTop: 10 }}>Só pessoas verificadas por biometria veem e comentam.</Text>
+          <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6 }}>{PHOTO_RULE}</Text>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
 function Grid({ title, groups, onOpen, seen }) {
   return (
     <View style={{ paddingHorizontal: 16, marginTop: 6 }}>
@@ -308,6 +392,9 @@ function Grid({ title, groups, onOpen, seen }) {
 
 const AV = 62;
 const styles = StyleSheet.create({
+  reelPick: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderRadius: 18, borderWidth: 1.5, borderColor: colors.borderStrong, borderStyle: 'dashed', paddingVertical: 28, paddingHorizontal: 16 },
+  reelPickTitle: { color: colors.text, fontWeight: '800', fontSize: 15, marginTop: 8, textAlign: 'center' },
+  reelPickSub: { color: colors.muted, fontSize: 12, marginTop: 3, textAlign: 'center' },
   head: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 14 },
   plusBtn: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginLeft: 10, elevation: 3, shadowColor: colors.primary, shadowOpacity: 0.35, shadowRadius: 6, shadowOffset: { width: 0, height: 2 } },
   backdrop: { flex: 1, backgroundColor: 'rgba(31,42,68,0.35)', justifyContent: 'flex-end' },
@@ -317,9 +404,9 @@ const styles = StyleSheet.create({
   optIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
   postHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
   closeBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
-  publishBtn: { height: 38, paddingHorizontal: 16, borderRadius: 19, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  publishBtn: { minHeight: 38, paddingHorizontal: 16, borderRadius: 19, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   postInput: { minHeight: 140, textAlignVertical: 'top', color: colors.text, fontSize: 17, lineHeight: 24 },
-  photoBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 46, borderRadius: 14, backgroundColor: colors.primaryLight, marginTop: 14 },
+  photoBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 46, borderRadius: 14, backgroundColor: colors.primaryLight, marginTop: 14 },
   removeImg: { position: 'absolute', top: 8, right: 8, width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' },
   title: { color: colors.text, fontSize: 26, fontWeight: '800' },
   postBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 28, paddingVertical: 6, paddingLeft: 6, paddingRight: 16, ...soft },

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput, Share } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Share } from 'react-native';
+import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf } from '../../../store';
 import { soft, colors, brl } from '../../../theme';
@@ -9,6 +10,7 @@ import { promos, listings, LISTING_KINDS, LISTING_CTA, communityPosts, contacts,
 import { ChatModal, VideoCallModal, LiveModal } from './Social';
 import LivesTab from './LivesTab';
 import NewsTab from './NewsTab';
+import StreamTab from './StreamTab';
 import { members, memberByName } from '../../../people';
 import { PeopleSearchModal, PersonRow } from '../../../components/People';
 import { LaunchStrip } from '../../../components/Launches';
@@ -33,15 +35,18 @@ export default function HomeScreen({ goTo, explore, navigate }) {
   );
 }
 
-// Barra do topo da Community: as opções que vieram do Shop. 'comunidade' é o feed
+// Barra do topo da Community: Notícias, Eventos, Stream e Lives. 'comunidade' é o feed
 // (aberto pelo botão Community do rodapé), não aparece como botão no topo.
 export const COMMUNITY_TOP = [
   { key: 'comunidade', label: 'Comunidade', icon: 'people-circle-outline' },
   { key: 'noticias', label: 'Notícias', icon: 'newspaper-outline' },
   { key: 'eventos', label: 'Eventos', icon: 'sparkles-outline' },
-  { key: 'promo', label: 'Promoções', icon: 'pricetags-outline' },
-  { key: 'anuncios', label: 'Anúncios', icon: 'megaphone-outline' },
+  // Stream: rádios e TV online (entrou no lugar dos botões Promoções e Anúncios).
+  { key: 'stream', label: 'Stream', icon: 'tv-outline' },
   { key: 'lives', label: 'Lives', icon: 'radio-outline' },
+  // Sem botão no topo: continuam abrindo pelo menu ⋮, pela busca e pela Lotus.
+  { key: 'promo', label: 'Promoções', icon: 'pricetags-outline', hidden: true },
+  { key: 'anuncios', label: 'Anúncios', icon: 'megaphone-outline', hidden: true },
 ];
 export const COMMUNITY_TOP_KEYS = COMMUNITY_TOP.map((t) => t.key);
 
@@ -75,6 +80,7 @@ export function CommunityExtras({ top, explore, navigate }) {
   const [videoWith, setVideoWith] = useState(null);
   const [live, setLive] = useState(null); // { live, mine }
   const [liveFilter, setLiveFilter] = useState('todas');
+  const [streamSeg, setStreamSeg] = useState('radios'); // Stream: 'radios' ou 'tv'
 
   // Veio do menu ⋮, da busca ou da Lotus (ex.: Imóveis → Alugar)
   useEffect(() => {
@@ -82,6 +88,7 @@ export function CommunityExtras({ top, explore, navigate }) {
     if (explore.kind) setKind(explore.kind);
     if (explore.live) setLiveFilter(explore.live);
     if (explore.group) setEvGroup(explore.group);
+    if (explore.stream) setStreamSeg(explore.stream === 'tv' ? 'tv' : 'radios');
   }, [explore]);
 
   const openChat = (contact) => {
@@ -105,6 +112,7 @@ export function CommunityExtras({ top, explore, navigate }) {
       {top === 'promo' ? <PromoTab /> : null}
       {top === 'anuncios' ? <AdsTab kind={kind} setKind={setKind} onContact={contactAdvertiser} /> : null}
       {top === 'noticias' ? <NewsTab onWatch={(l) => setLive({ live: l, mine: false })} navigate={navigate} /> : null}
+      {top === 'stream' ? <StreamTab seg={streamSeg} setSeg={setStreamSeg} navigate={navigate} /> : null}
       {top === 'lives' ? <LivesTab filter={liveFilter} setFilter={setLiveFilter} onWatch={(l) => setLive({ live: l, mine: false })} onGoLive={() => setLive({ live: null, mine: true })} navigate={navigate} /> : null}
 
       <ChatModal
@@ -939,7 +947,7 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 38,
+    minHeight: 38,
     paddingHorizontal: 12,
     borderRadius: 19,
     borderWidth: 1,
@@ -958,7 +966,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 46,
+    minHeight: 46,
     borderRadius: 14,
     borderWidth: 1,
     borderStyle: 'dashed',
@@ -973,13 +981,13 @@ const styles = StyleSheet.create({
   adTitle: { color: colors.text, fontWeight: '700', fontSize: 15, marginTop: 2 },
   adDetail: { color: colors.muted, fontSize: 12, marginTop: 2 },
   adPlace: { color: colors.muted, fontSize: 12, marginTop: 4 },
-  adBtn: { flex: 1, height: 38, borderRadius: 11, borderWidth: 1, borderColor: '#F0E9DA', alignItems: 'center', justifyContent: 'center', marginRight: 8 },
+  adBtn: { flex: 1, minHeight: 38, borderRadius: 11, borderWidth: 1, borderColor: '#F0E9DA', alignItems: 'center', justifyContent: 'center', marginRight: 8 },
   adBtnMain: { backgroundColor: colors.primary, borderColor: colors.primary },
   segRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 10 },
   seg: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 36,
+    minHeight: 36,
     paddingHorizontal: 10,
     borderRadius: 18,
     marginRight: 6,
@@ -989,9 +997,9 @@ const styles = StyleSheet.create({
   segOn: { borderColor: colors.primary, backgroundColor: 'rgba(168,121,10,0.1)' },
   segText: { color: colors.muted, fontWeight: '700', fontSize: 12, marginLeft: 5 },
   unread: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginLeft: 5, paddingHorizontal: 4 },
-  liveBtn: { flexDirection: 'row', alignItems: 'center', height: 32, paddingHorizontal: 10, borderRadius: 16, backgroundColor: '#FF3B5C', marginLeft: 'auto' },
+  liveBtn: { flexDirection: 'row', alignItems: 'center', minHeight: 32, paddingHorizontal: 10, borderRadius: 16, backgroundColor: '#FF3B5C', marginLeft: 'auto' },
   composer: { backgroundColor: colors.card, borderRadius: 18, padding: 12, marginBottom: 12, ...soft },
-  findPeople: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingHorizontal: 12, height: 46, marginBottom: 6 },
+  findPeople: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingHorizontal: 12, minHeight: 46, marginBottom: 6 },
   contactsTitle: { color: colors.text, fontWeight: '700', fontSize: 15, marginTop: 12, marginBottom: 8 },
   composerInput: { color: colors.text, fontSize: 15, minHeight: 44, textAlignVertical: 'top' },
   depBtn: { flexDirection: 'row', alignItems: 'center', height: 36, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1.5, borderColor: colors.primary, marginTop: 6, marginRight: 8 },

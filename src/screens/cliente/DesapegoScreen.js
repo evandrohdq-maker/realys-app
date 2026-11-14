@@ -3,7 +3,8 @@
 // confirma que recebeu (QR Code na entrega). Sem pagamento por fora, sem golpe.
 // Texto passa pela moderação; foto segue a regra de nudez; anúncio com nome real (biometria).
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, ScrollView, Alert, Image } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, Image } from 'react-native';
+import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Animated, Easing, useWindowDimensions, Alert, Share, Image } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Animated, Easing, useWindowDimensions, Alert, Share, Image } from 'react-native';
+import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf } from '../store';
 import { colors, soft, brl } from '../theme';
@@ -544,7 +545,7 @@ const styles = StyleSheet.create({
   playerBottom: { position: 'absolute', left: 12, right: 12, bottom: 34 },
   playerTitle: { color: '#fff', fontSize: 18, fontWeight: '800', marginBottom: 10, marginRight: 50 },
   prodBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 16, padding: 10 },
-  buy: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, height: 38, paddingHorizontal: 12, borderRadius: 12 },
+  buy: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, minHeight: 38, paddingHorizontal: 12, borderRadius: 12 },
 
   flashHero: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0B1124', borderRadius: 18, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(226,182,73,0.45)' },
   flashIcon: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#E2B649', alignItems: 'center', justifyContent: 'center' },
@@ -579,7 +580,7 @@ const styles = StyleSheet.create({
   soldText: { color: '#8A1C2E', fontSize: 10, fontWeight: '800', textAlign: 'center' },
   ends: { color: '#FF3B5C', fontSize: 11, fontWeight: '800', marginTop: 5, fontVariant: ['tabular-nums'] },
   limit: { color: colors.muted, fontSize: 10, marginTop: 2 },
-  flashBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 34, borderRadius: 11, backgroundColor: '#FF3B5C', marginTop: 8 },
+  flashBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 34, borderRadius: 11, backgroundColor: '#FF3B5C', marginTop: 8 },
 
   combo: { backgroundColor: colors.card, borderRadius: 18, padding: 12, marginBottom: 10, ...soft },
   comboTitle: { color: colors.text, fontWeight: '800', fontSize: 15 },

@@ -197,6 +197,20 @@ O administrador vê a visão geral da plataforma (usuários, empresas, receita),
 
 ---
 
+## Layout responsivo (textos e botões dentro das caixas)
+
+O app se ajusta sozinho ao celular de cada pessoa:
+
+- **Texto responsivo** (`src/responsive.js`): todas as telas importam `Text` e `TextInput` desse arquivo, e não direto do `react-native`. Ele limita o aumento da letra do sistema (até 15% maior), faz o texto quebrar a linha dentro da caixa quando está ao lado de um botão ou ícone e diminui a letra em telas estreitas (menos de 360 de largura). **Tela nova: importe `Text` e `TextInput` de `src/responsive`.**
+- **Botões e caixas com texto** usam `minHeight` no lugar de `height`: se o texto precisar de duas linhas, a caixa cresce junto. As pílulas das faixas que rolam para o lado continuam com altura fixa.
+- **Caixa da Lotus**: quando a resposta traz opções (prestadores, produtos, botões de confirmar), a flor encolhe, a caixa sobe e o texto da resposta mostra só o começo (toque nele para abrir inteiro), para as opções aparecerem na tela.
+
+## Topo da Community, Stream e Reels
+
+- **Barra do topo**: Notícias, Eventos, **Stream** e Lives. Promoções e Anúncios saíram da barra, mas as páginas continuam abrindo pelo menu ⋮, pela busca e pela Lotus.
+- **Stream** (`src/screens/cliente/home/StreamTab.js`): **Rádios** (o mesmo diretório de `src/radio.js`) e **TV online** (`src/tv.js`): cada canal indexa a URL do próprio sinal (`.m3u8` ou `.mp4`). Os dois canais de exemplo usam sinais públicos de teste.
+- **Reels**: não tem mais botão na barra de baixo. Abre **puxando a página inicial para a direita** (como no Instagram) ou pela Lotus; **puxando para a esquerda abre o Perfil**. Para publicar, use o botão de publicação › **Reel** (vídeo da galeria, até 60 s); os Reels do usuário aparecem primeiro em "Para você".
+
 ## Atualização automática do APK
 
 Toda vez que o app abre, ele pergunta ao GitHub se existe uma versão nova em **Releases**. Se existir, aparece o aviso **"Nova versão disponível"** com o botão **Atualizar agora**: o próprio Realys baixa a versão nova para a pasta interna dele (não abre o navegador e não salva nada em Downloads), abre a tela **"Deseja atualizar este app?"** do Android e, com um toque em **Atualizar**, substitui o app instalado, sem criar um ícone novo e sem perder login e dados. O arquivo baixado é apagado sozinho na próxima abertura. Na primeira vez, o Android pede para **permitir que o Realys instale apps**: é só ativar uma vez. Também dá para verificar à mão em **Perfil → Verificar atualizações**.

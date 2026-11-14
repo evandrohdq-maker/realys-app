@@ -1,7 +1,8 @@
 // Escolha de profissional em "tela sobre tela": primeiro a classe (Casa e reparos, Beleza…),
 // depois a subclasse (Eletricista, Manicure…) com quantos estão perto. Mesmo visual do Shop.
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, TextInput } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { Text, TextInput } from '../responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { PROF_CLASSES } from '../professionsData';
@@ -158,7 +159,7 @@ const styles = StyleSheet.create({
   headRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   title: { flex: 1, color: colors.text, fontWeight: '900', fontSize: 17, marginHorizontal: 6 },
   roundBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
-  search: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, paddingHorizontal: 12, height: 42, marginBottom: 14, ...soft },
+  search: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, paddingHorizontal: 12, minHeight: 42, marginBottom: 14, ...soft },
   searchInput: { flex: 1, color: colors.text, marginLeft: 8, fontSize: 14 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -4 },
   item: { width: '33.33%', alignItems: 'center', paddingHorizontal: 4, marginBottom: 14 },

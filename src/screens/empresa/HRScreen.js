@@ -4,7 +4,8 @@
 // - Banco de talentos: pessoas abertas a propostas perto da empresa, para convidar para a vaga.
 // - Nova vaga com benefícios, habilidades, "aceita sem experiência" e destaque.
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Modal, TextInput, Switch } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Alert, ScrollView, Modal, Switch } from 'react-native';
+import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
 import { colors, soft } from '../../theme';
@@ -416,7 +417,7 @@ const styles = StyleSheet.create({
   stat: { flex: 1, alignItems: 'center' },
   statN: { fontWeight: '800', fontSize: 20 },
   statL: { color: colors.muted, fontSize: 11, marginTop: 1 },
-  bigBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 46, borderRadius: 23, backgroundColor: colors.primary },
+  bigBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 46, borderRadius: 23, backgroundColor: colors.primary },
   bigBtnLight: { backgroundColor: colors.primaryLight },
   bigBtnText: { color: '#FFFFFF', fontWeight: '800', marginLeft: 6 },
   jobTab: { width: 170, padding: 12, borderRadius: 16, backgroundColor: '#FFFFFF', marginRight: 8, ...soft },
@@ -445,17 +446,17 @@ const styles = StyleSheet.create({
   sheetTitle: { fontSize: 19, fontWeight: '800', color: colors.text },
   cvMatch: { fontWeight: '800', marginTop: 12 },
   h3: { fontWeight: '800', color: colors.text, marginTop: 14, marginBottom: 6 },
-  skill: { paddingHorizontal: 10, height: 28, borderRadius: 14, backgroundColor: colors.cardAlt, justifyContent: 'center', marginRight: 6, marginBottom: 6 },
+  skill: { paddingHorizontal: 10, minHeight: 28, borderRadius: 14, backgroundColor: colors.cardAlt, justifyContent: 'center', marginRight: 6, marginBottom: 6 },
   skillText: { color: colors.text, fontSize: 12, fontWeight: '600' },
-  primaryBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 48, borderRadius: 24, backgroundColor: colors.primary, marginTop: 16 },
+  primaryBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 48, borderRadius: 24, backgroundColor: colors.primary, marginTop: 16 },
   primaryText: { color: '#FFFFFF', fontWeight: '800', fontSize: 15, marginLeft: 6 },
-  ghostBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 42, borderRadius: 21, borderWidth: 1, borderColor: colors.border, backgroundColor: '#FFFFFF' },
+  ghostBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 42, borderRadius: 21, borderWidth: 1, borderColor: colors.border, backgroundColor: '#FFFFFF' },
   ghostText: { color: colors.primary, fontWeight: '700', marginLeft: 5 },
-  pick: { paddingHorizontal: 12, height: 32, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', marginRight: 6, marginBottom: 6 },
+  pick: { paddingHorizontal: 12, minHeight: 32, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', marginRight: 6, marginBottom: 6 },
   pickOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   pickText: { color: colors.text, fontWeight: '600', fontSize: 12 },
   talent: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 10, marginBottom: 8, ...soft },
-  inviteBtn: { paddingHorizontal: 14, height: 34, borderRadius: 17, backgroundColor: colors.primary, justifyContent: 'center' },
+  inviteBtn: { paddingHorizontal: 14, minHeight: 34, borderRadius: 17, backgroundColor: colors.primary, justifyContent: 'center' },
   input: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10, color: colors.text, marginTop: 8 },
   switchRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, padding: 12, marginTop: 12 },
 });
