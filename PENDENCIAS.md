@@ -32,6 +32,17 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] Alertas da chave de segurança do motorista chegarem ao painel do administrador **em tempo real**
       (hoje ficam no celular, porque ainda não há servidor).
 
+## Negócios (imóveis, veículos e máquinas)
+
+- [ ] **Com o servidor**: guardar anúncios, fotos e pedidos de contato de verdade; avisar o anunciante
+      quando chega um interessado; cobrar o plano todo mês (hoje é cobrado só na assinatura).
+- [ ] **Devolução em 48 horas**: a tela promete devolver o valor do contato como crédito se o
+      interessado não responder em 48 horas. A devolução automática ainda não foi programada.
+- [ ] **Valores**: propostos em 14/11/2026 a partir dos preços públicos do ZAP e da Webmotors
+      (fontes: zapimoveis.com.br/blog/anunciar/quanto-custa-anunciar-no-zap-imoveis e
+      webmotors.com.br/vender-carro). Não foi achado preço público de cobrança por contato.
+- [ ] **Taxa de sucesso nos aluguéis** fechados com contrato assinado no app (etapa seguinte).
+
 ## Players (rádio, TV e lives)
 
 - [ ] **Testar num celular**: arrastar os players (segurar e arrastar), a TV em picture-in-picture

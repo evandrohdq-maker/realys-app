@@ -13,6 +13,12 @@ export const TAXAS = {
   presente: { pct: 10, quemPaga: 'descontado do presente', mercado: 'Pix entre pessoas é grátis, mas não tem garantia nem pontos', argumento: '10% com pontos de volta' },
   live: { criador: 70, criadorAntecipado: 63, quemPaga: 'descontado no saque', mercado: 'TikTok: o criador fica com cerca de 50%', argumento: 'o criador fica com 70% do que os fãs enviam' },
   planoEmpresa: { valor: 89, unidade: 'R$ por mês, só para quem vende mais de R$ 1.800 no mês', mercado: 'iFood: R$ 110 a R$ 150 por mês acima de R$ 1.800', argumento: 'R$ 89, e quem vende pouco não paga' },
+  // Negócios (imóveis, veículos e máquinas): o cliente nunca paga; o anunciante paga plano mensal
+  // (imobiliária, revenda) ou só quando libera a conversa com um interessado (proprietário, particular).
+  anuncioImobiliaria: { valor: 149, valor40: 349, unidade: 'R$ por mês até 10 anúncios (R$ 349 até 40), com as conversas liberadas', quemPaga: 'imobiliária', mercado: 'ZAP Imóveis: 10 anúncios a partir de R$ 499,90 por mês', argumento: 'R$ 149 por mês até 10 anúncios, com as conversas liberadas' },
+  contatoImovel: { valor: 9.9, unidade: 'R$ por conversa liberada', quemPaga: 'proprietário do imóvel', mercado: 'ZAP Imóveis: plano de proprietário a partir de R$ 77,39 por mês, com ou sem interessado', argumento: 'anunciar é grátis; R$ 9,90 só quando aparece um interessado verificado' },
+  anuncioRevenda: { valor: 99, unidade: 'R$ por mês, com as conversas liberadas', quemPaga: 'revenda de veículos ou máquinas', mercado: 'OLX: planos profissionais sem preço publicado; Viva Real para imobiliárias: R$ 400 a R$ 1.000 por mês', argumento: 'R$ 99 por mês com as conversas liberadas' },
+  contatoVeiculo: { valor: 4.9, unidade: 'R$ por conversa liberada', quemPaga: 'particular (veículo ou máquina)', mercado: 'Webmotors: anúncio a partir de R$ 9,90, pago antes de aparecer interessado', argumento: 'anunciar é grátis; R$ 4,90 só quando aparece um interessado verificado' },
   destaquePrestador: { valor: 49.9, unidade: 'R$ por mês', mercado: 'GetNinjas: pacotes a partir de R$ 149', argumento: 'destaque o mês inteiro por R$ 49,90' },
 };
 

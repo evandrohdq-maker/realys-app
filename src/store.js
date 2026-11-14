@@ -23,6 +23,7 @@ import { visitFee, visitDiscount, providerStats, splitFee, SAMPLE_VISIT_REQUESTS
 import { teleDoCarrinho, somarGasto } from './teleGratis';
 import { DEMO_PAGES, MAX_PAGES } from './userPages';
 import { sampleAgenda, DEFAULT_HOURS, parseWhen } from './agenda';
+import { negPlano, custoLiberar } from './negocios';
 
 const StoreContext = createContext(null);
 
@@ -211,6 +212,12 @@ const initialState = {
   // Lives: a minha no ar (aparece na aba Lives e no meu perfil) e a que estou assistindo pelo perfil de alguém.
   myLive: null, // { id, cat, hostType, hostId, host, title, viewers, mine: true }
   watchLive: null,
+  // Negócios (src/negocios.js): pedidos de contato que eu fiz, meu plano de anunciante, meus
+  // anúncios e os interessados neles.
+  negRequests: {}, // { [listingId]: 'aguardando' | 'liberado' }
+  negPlan: null, // { id, since }
+  negAds: [], // anúncios que eu publiquei
+  negLeads: [], // { id, adId, name, at, unlocked, paid }
   liveMini: null, // live minimizada numa janelinha flutuante (objeto da live)
   liveOpen: null, // live reaberta a partir da janelinha
   viewProvider: null, // perfil de prestador aberto por cima de qualquer tela
@@ -849,6 +856,40 @@ function baseReducer(state, a) {
       return { ...state, watchLive: a.id, viewCompany: null, viewProfile: null, viewProvider: null };
     case 'CLOSE_WATCH':
       return { ...state, watchLive: null };
+    // ---------- Negócios: contato pago pelo anunciante ----------
+    case 'NEG_REQUEST': // cliente tocou em "Tenho interesse": o pedido vai para o anunciante
+      return (state.negRequests || {})[a.listingId] ? state : { ...state, negRequests: { ...(state.negRequests || {}), [a.listingId]: 'aguardando' } };
+    case 'NEG_REQUEST_OPEN': // o anunciante liberou a conversa
+      return { ...state, negRequests: { ...(state.negRequests || {}), [a.listingId]: 'liberado' } };
+    case 'NEG_PLAN': {
+      const plan = negPlano(a.id);
+      if (!plan || state.wallet < plan.valor) return state;
+      return {
+        ...state,
+        negPlan: { id: plan.id, since: Date.now() },
+        wallet: +(state.wallet - plan.valor).toFixed(2),
+        walletTx: [{ id: newId('w'), ts: Date.now(), kind: 'gasto', cat: 'Anúncios', desc: `Plano ${plan.nome} (mensal)`, amount: plan.valor }, ...state.walletTx],
+      };
+    }
+    case 'NEG_PLAN_CANCEL':
+      return { ...state, negPlan: null };
+    case 'NEG_AD_CREATE':
+      return { ...state, negAds: [a.ad, ...(state.negAds || [])], negLeads: [...(a.leads || []), ...(state.negLeads || [])] };
+    case 'NEG_AD_REMOVE':
+      return { ...state, negAds: (state.negAds || []).filter((x) => x.id !== a.id), negLeads: (state.negLeads || []).filter((l) => l.adId !== a.id) };
+    case 'NEG_LEAD_UNLOCK': {
+      const lead = (state.negLeads || []).find((l) => l.id === a.id);
+      const ad = lead && (state.negAds || []).find((x) => x.id === lead.adId);
+      if (!lead || !ad || lead.unlocked) return state;
+      const cost = custoLiberar(state.negPlan && state.negPlan.id, ad.kind);
+      if (state.wallet < cost) return state;
+      return {
+        ...state,
+        negLeads: (state.negLeads || []).map((l) => (l.id === a.id ? { ...l, unlocked: true, paid: cost } : l)),
+        wallet: +(state.wallet - cost).toFixed(2),
+        walletTx: cost ? [{ id: newId('w'), ts: Date.now(), kind: 'gasto', cat: 'Anúncios', desc: `Conversa liberada: ${lead.name} (${ad.title})`, amount: cost }, ...state.walletTx] : state.walletTx,
+      };
+    }
     case 'LIVE_MINIMIZE':
       return { ...state, liveMini: a.live, liveOpen: null, watchLive: null };
     case 'LIVE_REOPEN':

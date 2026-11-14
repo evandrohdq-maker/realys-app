@@ -12,6 +12,7 @@ import { SegTabs, ClipStrip } from '../../components/AdKit';
 import { NEGOCIO_CLIPS } from '../../adsData';
 import { listings, LISTING_KINDS, LISTING_CTA } from '../../homeData';
 import { ChatModal, VideoCallModal } from './home/Social';
+import { AnunciarSheet, MyAds } from '../../components/NegociosAnunciar';
 
 // Setores da aba e os tipos de anúncio de cada um ([tipo, nome curto]).
 export const NEGOCIOS_GROUPS = [
@@ -30,6 +31,7 @@ export default function NegociosScreen({ explore }) {
   const [kind, setKind] = useState('todos'); // 'todos' ou um tipo do setor
   const [chatWith, setChatWith] = useState(null);
   const [videoWith, setVideoWith] = useState(null);
+  const [announcing, setAnnouncing] = useState(false);
 
   // Veio do menu ⋮, da busca ou da Lotus (ex.: "imóveis para alugar").
   useEffect(() => {
@@ -50,11 +52,24 @@ export default function NegociosScreen({ explore }) {
   // Conversa com o anunciante (fica em Comunidade › Mensagens).
   const convs = state.conversations;
   const setConvs = (fn) => dispatch({ type: 'UPDATE_CONVS', fn });
-  const contact = (l) => {
-    const c = { id: 'adv-' + l.who, name: l.who, status: 'anunciante verificado', photo: `https://picsum.photos/seed/${encodeURIComponent(l.who)}/200/200` };
+  const openChat = (c) => {
     if (!convs.find((x) => x.contactId === c.id)) setConvs((cs) => [{ id: 'm' + Date.now(), contactId: c.id, unread: 0, messages: [], extra: c }, ...cs]);
     setChatWith(c);
   };
+  // "Tenho interesse": o cliente não paga nada. O pedido vai para o anunciante, que libera a
+  // conversa (pelo plano mensal dele ou pagando por este contato). Só então a conversa abre.
+  const reqOf = (l) => (state.negRequests || {})[l.id];
+  const contact = (l) => {
+    const c = { id: 'adv-' + l.who, name: l.who, status: 'anunciante verificado', photo: `https://picsum.photos/seed/${encodeURIComponent(l.who)}/200/200` };
+    if (reqOf(l) === 'liberado') return openChat(c);
+    if (reqOf(l) === 'aguardando') return Alert.alert('Pedido enviado', `${l.who} já recebeu o seu interesse. Assim que liberar a conversa, ela abre aqui.`);
+    dispatch({ type: 'NEG_REQUEST', listingId: l.id });
+    Alert.alert('Interesse enviado ✅', `${l.who} recebeu o seu pedido. Você não paga nada: quando o anunciante liberar a conversa, ela abre aqui e nas suas mensagens.`);
+    // Demonstração: o anunciante de exemplo libera a conversa em alguns segundos.
+    setTimeout(() => dispatch({ type: 'NEG_REQUEST_OPEN', listingId: l.id }), 6000);
+  };
+  // Conversa com um interessado no meu anúncio (já liberada).
+  const chatLead = (lead) => openChat({ id: 'lead-' + lead.id, name: lead.name, status: 'interessado verificado', photo: `https://picsum.photos/seed/${encodeURIComponent(lead.name)}/200/200` });
   const chatConv = chatWith ? convs.find((c) => c.contactId === chatWith.id) : null;
 
   return (
@@ -89,11 +104,14 @@ export default function NegociosScreen({ explore }) {
         <TouchableOpacity
           style={st.announce}
           activeOpacity={0.85}
-          onPress={() => Alert.alert('Anunciar no Re@lys', 'Imóveis, veículos e máquinas, para vender ou alugar. Pessoas verificadas por biometria veem o seu anúncio.')}
+          onPress={() => setAnnouncing(true)}
         >
           <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
           <Text style={st.announceText}>Criar anúncio</Text>
         </TouchableOpacity>
+
+        {/* Meus anúncios deste setor, com os interessados */}
+        <MyAds kinds={kinds} kindLabel={kindLabel} onChat={chatLead} />
 
         {list.map((l) => (
           <View key={l.id} style={st.ad}>
@@ -122,8 +140,10 @@ export default function NegociosScreen({ explore }) {
               </View>
               {/* Rodapé do cartão: um botão em cima do outro, na largura toda */}
               <View style={{ marginTop: 12 }}>
-                <TouchableOpacity style={[st.adBtn, st.adBtnMain]} onPress={() => contact(l)}>
-                  <Text style={st.adBtnMainText}>Tenho interesse</Text>
+                <TouchableOpacity style={[st.adBtn, st.adBtnMain, reqOf(l) === 'aguardando' && st.adBtnWait]} onPress={() => contact(l)}>
+                  <Text style={[st.adBtnMainText, reqOf(l) === 'aguardando' && { color: colors.text }]}>
+                    {reqOf(l) === 'liberado' ? 'Abrir conversa' : reqOf(l) === 'aguardando' ? 'Interesse enviado · aguardando' : 'Tenho interesse'}
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.adBtn, { marginTop: 8 }]} onPress={() => Alert.alert(cta(l), `Pedido enviado para ${l.who}. A confirmação chega nas suas mensagens.`)}>
                   <Text style={st.adBtnText}>{cta(l)}</Text>
@@ -144,6 +164,7 @@ export default function NegociosScreen({ explore }) {
         onVideo={() => setVideoWith(chatWith)}
       />
       <VideoCallModal contact={videoWith} visible={!!videoWith} onClose={() => setVideoWith(null)} />
+      <AnunciarSheet visible={announcing} onClose={() => setAnnouncing(false)} kinds={kinds} kindLabel={kindLabel} />
     </View>
   );
 }
@@ -169,6 +190,7 @@ const st = StyleSheet.create({
   adWho: { color: colors.text, fontSize: 12, marginLeft: 5 },
   adBtn: { alignSelf: 'stretch', minHeight: 44, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 12, borderWidth: 1, borderColor: colors.borderStrong, alignItems: 'center', justifyContent: 'center' },
   adBtnMain: { backgroundColor: colors.primary, borderColor: colors.primary },
+  adBtnWait: { backgroundColor: colors.primaryLight, borderColor: colors.borderStrong },
   adBtnMainText: { color: colors.onPrimary, fontWeight: '700', textAlign: 'center' },
   adBtnText: { color: colors.text, fontWeight: '600', textAlign: 'center' },
   empty: { color: colors.muted, textAlign: 'center', marginVertical: 24 },
