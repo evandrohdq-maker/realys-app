@@ -14,6 +14,8 @@ import { isPanicAny } from './panic';
 import { findCall } from './wakeMatch';
 import { securityQuestion } from './voicePrint';
 import { answerKind } from './voicePhrases';
+import { withSystemDialog } from './systemDialog';
+import { onDeviceOptions, noteVoiceError } from './offlineVoice';
 
 // "Lotus" + socorro/denúncia/emergência + resposta de segurança → { kind, tipo } ou null.
 function silentOf(texts) {
@@ -33,6 +35,16 @@ function silentOf(texts) {
 // Com música de outro app tocando, o "abrir Lotus" fica desligado (o microfone do Android pausaria
 // a música). Confere de tempos em tempos e volta a ouvir sozinho quando a música para.
 const MUSIC_CHECK_MS = 4000;
+
+// O Android desliga o microfone sozinho depois de uns segundos de silêncio, e o app religa na hora.
+// Antes, cada religada fechava e abria a flor (a cada ~3 segundos, mesmo em silêncio). Agora a flor
+// só fecha se o microfone ficar desligado de verdade por mais que isto:
+const HEAR_OFF_DELAY_MS = 2500;
+// Falhas seguidas sem ouvir nada (ex.: sem internet): espera cada vez mais antes de tentar de novo
+// (2 s, 4 s, 8 s… até 30 s), em vez de liga-desliga sem parar gastando bateria.
+const RETRY_BASE_MS = 2000;
+const RETRY_MAX_MS = 30000;
+const NORMAL_END = [null, undefined, 'no-speech', 'speech-timeout', 'aborted', 'no-match'];
 
 // A caixa da Lotus abre NA HORA em que o "abrir Lotus" é reconhecido (sem esperar a pessoa terminar
 // de falar). O resto do pedido continua sendo ouvido pelo MESMO microfone, já com a caixa aberta:
@@ -56,7 +68,7 @@ const hearWake = (results) => {
 
 export async function askMicPermission() {
   try {
-    const r = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+    const r = await withSystemDialog(() => ExpoSpeechRecognitionModule.requestPermissionsAsync());
     return !!(r && r.granted);
   } catch (e) {
     return false;
@@ -72,7 +84,39 @@ export function wakeWordSupported() {
 }
 
 // Componente invisível que escuta enquanto `enabled` for verdadeiro.
-export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, onReject, onPanic, onSilent, onListening, onFatal, onMusic }) {
+export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, onReject, onPanic, onSilent, onListening: rawListening, onFatal, onMusic }) {
+  // Flor de "ouvindo": liga na hora; desliga na hora só quando o microfone para de verdade.
+  // Numa religada normal do Android (soft), espera um pouco antes de fechar a flor.
+  const shown = useRef(false);
+  const offTimer = useRef(null);
+  const onListening = (v, soft) => {
+    if (!rawListening) return;
+    if (v) {
+      clearTimeout(offTimer.current);
+      offTimer.current = null;
+      if (!shown.current) {
+        shown.current = true;
+        rawListening(true);
+      }
+      return;
+    }
+    if (soft) {
+      if (!shown.current || offTimer.current) return;
+      offTimer.current = setTimeout(() => {
+        offTimer.current = null;
+        shown.current = false;
+        rawListening(false);
+      }, HEAR_OFF_DELAY_MS);
+      return;
+    }
+    clearTimeout(offTimer.current);
+    offTimer.current = null;
+    shown.current = false;
+    rawListening(false);
+  };
+  const lastErr = useRef(null);
+  const fails = useRef(0);
+  const retryNow = useRef(false);
   const on = useRef(false);
   const running = useRef(false);
   const woke = useRef(null); // { rest, timer }
@@ -104,6 +148,15 @@ export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, on
         maxAlternatives: 5,
         // Dica para o reconhecedor do celular: estas palavras existem e são prováveis.
         contextualStrings: ['abrir Lotus', 'Lotus', 'Lótus'],
+        // Em Androids que não têm o "continuous", o microfone aguenta mais tempo ligado no silêncio
+        // (menos religadas).
+        androidIntentOptions: {
+          EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS: 60000,
+          EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS: 10000,
+          EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS: 10000,
+        },
+        // Sem internet: usa o reconhecimento do próprio celular (se ele tiver).
+        ...onDeviceOptions(),
         // Com a voz do titular cadastrada, o celular entrega o áudio para conferir quem chamou.
         ...(voiceGateOn() ? recordingFor('wake') : {}),
       });
@@ -170,9 +223,12 @@ export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, on
 
   useEffect(() => {
     on.current = enabled;
+    fails.current = 0;
     if (enabled) start();
-    else stop();
-    onListening && onListening(false);
+    else {
+      stop();
+      onListening(false);
+    }
     return () => stop();
   }, [enabled]);
 
@@ -193,8 +249,7 @@ export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, on
   // A caixa da Lotus usa o mesmo microfone: só reage aos eventos quando está ouvindo o "abrir Lotus".
   useSpeechRecognitionEvent('start', () => {
     if (!on.current) return;
-    errors.current = 0;
-    onListening && onListening(true);
+    onListening(true);
   });
 
   useSpeechRecognitionEvent('audiostart', (e) => {
@@ -211,6 +266,7 @@ export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, on
   useSpeechRecognitionEvent('result', (event) => {
     if (!on.current || firing.current) return;
     if (!appActive.current) return stop();
+    fails.current = 0; // o microfone está funcionando
     // Chave de segurança ("Lotus" + frase secreta): dispara na hora, em silêncio, sem abrir a Lotus.
     if (isPanicAny((event.results || []).map((a) => a && a.transcript))) {
       stop();
@@ -248,13 +304,31 @@ export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, on
     if (!on.current || firing.current) return;
     // O celular desligou o microfone logo depois do "abrir Lotus": a caixa (já aberta) assume e ouve.
     if (woke.current) return fire(woke.current.rest);
-    onListening && onListening(false);
-    if (on.current && appActive.current) scheduleRestart(errors.current > 4 ? 5000 : 150);
+    if (!on.current || !appActive.current) return onListening(false);
+    const code = lastErr.current;
+    lastErr.current = null;
+    // Sem internet e o celular entende português sozinho: tenta de novo na hora, pelo aparelho.
+    if (retryNow.current) {
+      retryNow.current = false;
+      onListening(false, true);
+      return scheduleRestart(150);
+    }
+    // Silêncio (o Android desligou sozinho): religa na hora, sem fechar a flor.
+    if (NORMAL_END.includes(code)) {
+      onListening(false, true);
+      return scheduleRestart(150);
+    }
+    // Erro de verdade (sem internet, microfone ocupado…): espera cada vez mais.
+    fails.current += 1;
+    onListening(false);
+    scheduleRestart(Math.min(RETRY_MAX_MS, RETRY_BASE_MS * 2 ** (fails.current - 1)));
   });
 
   useSpeechRecognitionEvent('error', (event) => {
     if (!on.current) return;
     errors.current += 1;
+    lastErr.current = event && event.error;
+    if (noteVoiceError(lastErr.current)) retryNow.current = true;
     if (event && (event.error === 'not-allowed' || event.error === 'service-not-allowed')) {
       on.current = false;
       stop();
