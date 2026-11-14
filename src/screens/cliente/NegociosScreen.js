@@ -8,7 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
 import { colors, soft } from '../../theme';
 import { Screen, Photo } from '../../components/ui';
-import { SegTabs } from '../../components/AdKit';
+import { SegTabs, ClipStrip } from '../../components/AdKit';
+import { NEGOCIO_CLIPS } from '../../adsData';
 import { listings, LISTING_KINDS, LISTING_CTA } from '../../homeData';
 import { ChatModal, VideoCallModal } from './home/Social';
 
@@ -81,6 +82,9 @@ export default function NegociosScreen({ explore }) {
             })}
           </View>
         ) : null}
+
+        {/* Reels dos anunciantes: só os do setor aberto */}
+        <ClipStrip title="🎬 Reels de negócios" clips={NEGOCIO_CLIPS.filter((c) => kinds.includes((listings.find((l) => l.id === c.listingId) || {}).kind))} />
 
         <TouchableOpacity
           style={st.announce}

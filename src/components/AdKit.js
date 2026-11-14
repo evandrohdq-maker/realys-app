@@ -6,6 +6,7 @@ import { useStore, storeOf } from '../store';
 import { colors, soft, brl } from '../theme';
 import { Photo, ProductThumb } from './ui';
 import { ReelsViewer } from './Reels';
+import { listings } from '../homeData';
 import { CLIP_POINTS, CLIP_MS, flashEndsAt, countdown, shortNum, comboOff } from '../adsData';
 
 // Peças de publicidade paga e do setor de Promoções, usadas no Shop e no Food.
@@ -151,6 +152,10 @@ export function ClipStrip({ title, clips, food }) {
         {clips.map((c, k) => {
           const s = storeOf(state, c.storeId) || {};
           const done = !!state.adRewards[c.id];
+          // Serviços: nome do prestador. Negócios: nome do anunciante.
+          const prov = c.providerId ? state.providers.find((x) => x.id === c.providerId) : null;
+          const ad = c.listingId ? listings.find((l) => l.id === c.listingId) : null;
+          const owner = prov ? `🛠️ ${prov.name}` : ad ? `🏷️ ${ad.who}` : `${s.logo || ''} ${s.name || ''}`;
           return (
             <TouchableOpacity key={c.id} style={styles.clip} activeOpacity={0.9} onPress={() => setOpen(k)} accessibilityLabel={`Assistir clipe: ${c.title}`}>
               {c.poster ? <Image source={c.poster} style={StyleSheet.absoluteFill} resizeMode="cover" /> : <Photo uri={c.photo} style={StyleSheet.absoluteFill} fallback={s.logo || '🎬'} />}
@@ -162,7 +167,7 @@ export function ClipStrip({ title, clips, food }) {
                 <Text style={styles.clipPtsText}>{done ? '✓ visto' : `+${CLIP_POINTS} pts`}</Text>
               </View>
               <View style={styles.clipBody}>
-                <Text style={styles.clipStore} numberOfLines={1}>{s.logo} {s.name}</Text>
+                <Text style={styles.clipStore} numberOfLines={1}>{owner}</Text>
                 <Text style={styles.clipTitle} numberOfLines={2}>{c.title}</Text>
                 <Text style={styles.clipViews}>
                   <Ionicons name="eye" size={10} color="rgba(255,255,255,0.85)" /> {shortNum(c.views)}
@@ -173,7 +178,7 @@ export function ClipStrip({ title, clips, food }) {
         })}
       </ScrollView>
       {reels ? (
-        <ReelsViewer reels={clips.map((c) => ({ ...c, kind: food ? 'food' : 'shop' }))} index={open} onClose={() => setOpen(null)} />
+        <ReelsViewer reels={clips.map((c) => ({ ...c, kind: c.kind || (food ? 'food' : 'shop') }))} index={open} onClose={() => setOpen(null)} />
       ) : (
         <ClipPlayer clips={clips} index={open} onIndex={setOpen} onClose={() => setOpen(null)} food={food} />
       )}

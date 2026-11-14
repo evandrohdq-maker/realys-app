@@ -9,7 +9,8 @@ import {
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useStore, storeOf } from '../store';
+import { useStore, storeOf, priceText } from '../store';
+import { listings } from '../homeData';
 import { colors, brl } from '../theme';
 import { Photo, ProductThumb } from './ui';
 import { CLIP_POINTS, shortNum } from '../adsData';
@@ -92,6 +93,17 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
   const s = storeOf(state, reel.storeId) || {};
   const p = state.products.find((x) => x.id === reel.productId);
   const food = reel.kind === 'food';
+  // Reel de Serviços (prestador) ou de Negócios (anúncio): quem aparece e para onde o toque leva.
+  const prov = reel.providerId ? state.providers.find((x) => x.id === reel.providerId) : null;
+  const ad = reel.listingId ? listings.find((l) => l.id === reel.listingId) : null;
+  const owner = reel.user || (prov && prov.name) || (ad && ad.who) || s.name;
+  const openOwner = () => {
+    if (reel.user) return;
+    onClose && onClose();
+    if (prov) return dispatch({ type: 'OPEN_PROVIDER', id: prov.id });
+    if (ad) return dispatch({ type: 'NAV_REQUEST', go: { tab: 'negocios', kind: ad.kind } });
+    dispatch({ type: 'OPEN_COMPANY', id: reel.storeId });
+  };
 
   // Saiu da tela: volta a tocar do começo quando voltar.
   useEffect(() => {
@@ -170,14 +182,14 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
       ) : null}
 
       {/* Lado direito */}
-      <View style={[styles.side, { bottom: 150 + (p ? 0 : -60) }]}>
+      <View style={[styles.side, { bottom: 150 + (p || prov || ad ? 0 : -60) }]}>
         {reel.user ? (
           <View style={styles.avatar} accessibilityLabel={`Reel de ${reel.user}`}>
             <Text style={{ fontSize: 20, fontWeight: '800', color: colors.primaryDark }}>{String(reel.user).charAt(0).toUpperCase()}</Text>
           </View>
         ) : (
-          <TouchableOpacity style={styles.avatar} onPress={() => { onClose && onClose(); dispatch({ type: 'OPEN_COMPANY', id: reel.storeId }); }} accessibilityLabel={`Abrir a página de ${s.name}`}>
-            <Text style={{ fontSize: 22 }}>{s.logo || '🏪'}</Text>
+          <TouchableOpacity style={styles.avatar} onPress={openOwner} accessibilityLabel={`Abrir ${owner}`}>
+            <Text style={{ fontSize: 22 }}>{prov ? '🛠️' : ad ? '🏷️' : s.logo || '🏪'}</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity style={styles.sideBtn} onPress={like} accessibilityLabel="Curtir">
@@ -190,7 +202,7 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.sideBtn}
-          onPress={() => Share.share({ message: `${reel.title} · ${reel.user || s.name} no Re@lys\nRe@lys · Pessoas reais. Negócios reais.` }).catch(() => {})}
+          onPress={() => Share.share({ message: `${reel.title} · ${owner} no Re@lys\nRe@lys · Pessoas reais. Negócios reais.` }).catch(() => {})}
           accessibilityLabel="Enviar"
         >
           <Ionicons name="paper-plane-outline" size={27} color="#fff" />
@@ -209,12 +221,12 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
             <Ionicons name="shield-checkmark" size={13} color="#F5C331" style={{ marginLeft: 5 }} />
           </View>
         ) : (
-          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => { onClose && onClose(); dispatch({ type: 'OPEN_COMPANY', id: reel.storeId }); }}>
-            <Text style={styles.store}>{s.name}</Text>
+          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={openOwner}>
+            <Text style={styles.store}>{owner}</Text>
             <Ionicons name="shield-checkmark" size={13} color="#F5C331" style={{ marginLeft: 5 }} />
           </TouchableOpacity>
         )}
-        <Text style={styles.sponsor}>{reel.user ? 'Pessoa verificada por biometria' : 'Patrocinado · CNPJ verificado'}</Text>
+        <Text style={styles.sponsor}>{reel.user ? 'Pessoa verificada por biometria' : prov ? 'Patrocinado · prestador verificado' : ad ? 'Patrocinado · anunciante verificado' : 'Patrocinado · CNPJ verificado'}</Text>
         <Text style={styles.title} numberOfLines={2}>{reel.title}</Text>
         {p ? (
           <View style={styles.prodBox}>
@@ -226,6 +238,18 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
             <TouchableOpacity style={styles.buy} onPress={add} accessibilityLabel={`${food ? 'Pedir' : 'Comprar'} ${p.name}`}>
               <Ionicons name={food ? 'restaurant' : 'cart'} size={15} color="#fff" />
               <Text style={{ color: '#fff', fontWeight: '800', marginLeft: 5, fontSize: 13 }}>{food ? 'Pedir' : 'Comprar'}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+        {prov || ad ? (
+          <View style={styles.prodBox}>
+            <View style={{ flex: 1 }}>
+              <Text numberOfLines={1} style={{ color: colors.text, fontWeight: '700' }}>{prov ? (prov.functions || [])[0] || 'Prestador de serviço' : ad.title}</Text>
+              <Text numberOfLines={1} style={{ color: colors.primary, fontWeight: '800', marginTop: 2 }}>{prov ? priceText(prov) : ad.price}</Text>
+            </View>
+            <TouchableOpacity style={styles.buy} onPress={openOwner} accessibilityLabel={prov ? `Ver o perfil de ${prov.name}` : `Ver o anúncio de ${ad.who}`}>
+              <Ionicons name={prov ? 'person' : 'pricetag'} size={15} color="#fff" />
+              <Text style={{ color: '#fff', fontWeight: '800', marginLeft: 5, fontSize: 13 }}>{prov ? 'Ver perfil' : 'Tenho interesse'}</Text>
             </TouchableOpacity>
           </View>
         ) : null}

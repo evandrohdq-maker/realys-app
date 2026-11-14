@@ -14,7 +14,8 @@ import TrackingScreen from './TrackingScreen';
 import { speakSoft } from '../../voice';
 import { isVisitService, rankProviders, providerStats, isNewProvider, visitFee, visitDiscount } from '../../serviceVisits';
 import { VisitRequestSheet, VisitCard } from '../../components/VisitSheet';
-import { SegTabs } from '../../components/AdKit';
+import { SegTabs, ClipStrip } from '../../components/AdKit';
+import { SERVICE_CLIPS } from '../../adsData';
 import ProfessionPicker from '../../components/ProfessionPicker';
 import { CAR_FEATURES, featuresOf, featureIcon, featureLabel, hasAll, isPassenger } from '../../vehicleInfo';
 import { useBack } from '../../back';
@@ -396,6 +397,8 @@ export default function ServicesScreen({ explore, navigate }) {
           }
         }}
       />
+      {/* Reels dos profissionais (o toque leva ao perfil de trabalho; a chamada continua pela busca ou pela Lotus). */}
+      {!searched ? <ClipStrip title="🎬 Reels dos profissionais" clips={SERVICE_CLIPS} /> : null}
       {searched ? (
         <>
           {found ? (

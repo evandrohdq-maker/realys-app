@@ -221,6 +221,9 @@ O app se ajusta sozinho ao celular de cada pessoa:
 - **Tom dos textos**: linguagem moderna e direta nas explicações (ex.: "Bateu a fome? Pede aí"). Textos novos devem seguir esse tom.
 - **Leveza**: o APK sai só com as arquiteturas de celular (`buildArchs` no `app.json`), o modelo da Lotus carrega ao abrir a Lotus e as fotos de exemplo vêm no tamanho em que aparecem.
 
+- **Reels de Serviços e de Negócios** (`SERVICE_CLIPS` e `NEGOCIO_CLIPS` em `src/adsData.js`): faixa "Reels dos profissionais" na aba Serviços (o toque leva ao perfil de trabalho do prestador) e "Reels de negócios" na aba Negócios (leva ao anúncio). Também entram na tela de Reels, nas abas Serviços e Negócios. Os vídeos de exemplo são gerados por `tools/reels/render.py` (só gera os que faltam; `--all` refaz todos).
+- **Cabeçalho**: só a logo (`assets/logo-mark.png`, sem fundo dourado e sem o nome escrito). Na Community, a foto do perfil com o "+" é o primeiro item da faixa de stories.
+
 ## Atualização automática do APK
 
 Toda vez que o app abre, ele pergunta ao GitHub se existe uma versão nova em **Releases**. Se existir, aparece o aviso **"Nova versão disponível"** com o botão **Atualizar agora**: o próprio Realys baixa a versão nova para a pasta interna dele (não abre o navegador e não salva nada em Downloads), abre a tela **"Deseja atualizar este app?"** do Android e, com um toque em **Atualizar**, substitui o app instalado, sem criar um ícone novo e sem perder login e dados. O arquivo baixado é apagado sozinho na próxima abertura. Na primeira vez, o Android pede para **permitir que o Realys instale apps**: é só ativar uma vez. Também dá para verificar à mão em **Perfil → Verificar atualizações**.

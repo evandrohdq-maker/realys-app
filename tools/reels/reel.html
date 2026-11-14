@@ -64,7 +64,9 @@ function frame(o, t) {
     x.fillStyle = '#C9971C'; x.beginPath(); x.arc(0, 0, 70, 0, 7); x.fill();
     x.strokeStyle = '#FFF3C4'; x.lineWidth = 4; x.beginPath(); x.arc(0, 0, 62, 0, 7); x.stroke();
     x.fillStyle = '#fff'; x.textAlign = 'center'; x.font = '700 16px P'; x.fillText('POR', 0, -18);
-    x.font = '700 28px P'; x.fillText(o.price, 0, 16);
+    // preço comprido ('R$ 1.400/dia'): a letra diminui até caber dentro do selo
+    let fs = 28; x.font = `700 ${fs}px P`; while (fs > 13 && x.measureText(o.price).width > 108) { fs -= 1; x.font = `700 ${fs}px P`; }
+    x.fillText(o.price, 0, 16);
     x.restore();
   }
   // selo do Re@lys (aos 3,6 s)

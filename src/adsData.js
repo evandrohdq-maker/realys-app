@@ -155,3 +155,19 @@ export const countdown = (ms) => {
 };
 
 export const shortNum = (n) => (n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace('.', ',') + ' mil' : String(n));
+
+// ---------- Reels de Serviços e de Negócios ----------
+// Serviços: o Reel é de um prestador (providerId, de src/data.js) e leva ao perfil de trabalho dele.
+// Negócios: o Reel é de um anúncio (listingId, de src/homeData.js) e leva à aba Negócios.
+export const SERVICE_CLIPS = [
+  { id: 'clip-v1', kind: 'servico', providerId: 'v4', title: 'Chuveiro novo instalado em 20 minutos', views: 6800, likes: 742, video: require('../assets/reels/clip-v1.mp4'), poster: require('../assets/reels/clip-v1.jpg') },
+  { id: 'clip-v2', kind: 'servico', providerId: 'v1', title: 'Aeroporto sem estresse: busco na porta', views: 9100, likes: 1104, video: require('../assets/reels/clip-v2.mp4'), poster: require('../assets/reels/clip-v2.jpg') },
+  { id: 'clip-v3', kind: 'servico', providerId: 'v2', title: 'Sua entrega chega em minutos', views: 5400, likes: 613, video: require('../assets/reels/clip-v3.mp4'), poster: require('../assets/reels/clip-v3.jpg') },
+  { id: 'clip-v4', kind: 'servico', providerId: 'v6', title: 'Casa brilhando hoje mesmo', views: 4300, likes: 520, video: require('../assets/reels/clip-v4.mp4'), poster: require('../assets/reels/clip-v4.jpg') },
+];
+export const NEGOCIO_CLIPS = [
+  { id: 'clip-n1', kind: 'negocio', listingId: 'l1', title: 'Tour pelo apê de 2 quartos com varanda', views: 7600, likes: 830, video: require('../assets/reels/clip-n1.mp4'), poster: require('../assets/reels/clip-n1.jpg') },
+  { id: 'clip-n2', kind: 'negocio', listingId: 'l40', title: 'Hatch 2021 de único dono: olha o estado', views: 8200, likes: 915, video: require('../assets/reels/clip-n2.mp4'), poster: require('../assets/reels/clip-n2.jpg') },
+  { id: 'clip-n3', kind: 'negocio', listingId: 'l10', title: 'Retroescavadeira com operador pra sua obra', views: 3100, likes: 288, video: require('../assets/reels/clip-n3.mp4'), poster: require('../assets/reels/clip-n3.jpg') },
+  { id: 'clip-n4', kind: 'negocio', listingId: 'l4', title: 'Kitnet mobiliada a 5 min do metrô', views: 5900, likes: 644, video: require('../assets/reels/clip-n4.mp4'), poster: require('../assets/reels/clip-n4.jpg') },
+];
