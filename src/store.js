@@ -241,6 +241,8 @@ const initialState = {
   jobs: J.jobs,
   myJobs: J.myJobs,
   applications: {}, // { jobId: 'enviada' }
+  resume: J.defaultResume, // currículo do usuário para as vagas
+  savedJobs: {}, // vagas salvas { jobId: true }
   // Nota fiscal eletrônica emitida automaticamente a cada venda (simulada na demonstração).
   nfeSeq: 1240,
   // Publicidade paga do Shop e do Food (src/adsData.js): visualizações e toques de cada anúncio,
@@ -1621,12 +1623,18 @@ function baseReducer(state, a) {
     // RH: candidatura do cliente. Se a vaga for da minha empresa, a pessoa entra na lista de candidatos.
     case 'APPLY_JOB': {
       const mine = state.myJobs.find((j) => j.id === a.id);
+      const r = state.resume || {};
       const me = {
         id: 'cand-me',
         name: state.user ? state.user.name : 'Você',
-        photo: null,
+        photo: (state.myProfile && state.myProfile.photo) || null,
         city: 'Identidade verificada',
-        exp: a.note || 'Candidatura pelo app Re@lys',
+        headline: r.headline || '',
+        exp: a.note || r.exp || 'Candidatura pelo app Re@lys',
+        edu: r.edu || '',
+        skills: r.skills || [],
+        avail: (r.avail || []).join(', '),
+        match: a.match || null,
         status: 'novo',
       };
       return {
@@ -1655,7 +1663,31 @@ function baseReducer(state, a) {
       return {
         ...state,
         myJobs: state.myJobs.map((j) =>
-          j.id === a.jobId ? { ...j, candidates: j.candidates.map((c) => (c.id === a.candId ? { ...c, status: a.status } : c)) } : j
+          j.id === a.jobId
+            ? { ...j, candidates: j.candidates.map((c) => (c.id === a.candId ? { ...c, status: a.status, seen: true, ...(a.interview ? { interview: a.interview } : {}) } : c)) }
+            : j
+        ),
+      };
+    case 'SEE_CANDIDATE':
+      return {
+        ...state,
+        myJobs: state.myJobs.map((j) => (j.id === a.jobId ? { ...j, candidates: j.candidates.map((c) => (c.id === a.candId ? { ...c, seen: true } : c)) } : j)),
+      };
+    // Currículo do usuário e vagas salvas.
+    case 'SET_RESUME':
+      return { ...state, resume: { ...(state.resume || J.defaultResume), ...a.resume } };
+    case 'TOGGLE_SAVE_JOB': {
+      const savedJobs = { ...(state.savedJobs || {}) };
+      if (savedJobs[a.id]) delete savedJobs[a.id];
+      else savedJobs[a.id] = true;
+      return { ...state, savedJobs };
+    }
+    // Banco de talentos: a empresa convida uma pessoa aberta a propostas para a vaga.
+    case 'INVITE_TALENT':
+      return {
+        ...state,
+        myJobs: state.myJobs.map((j) =>
+          j.id === a.jobId && !j.candidates.some((c) => c.id === a.talent.id) ? { ...j, candidates: [{ ...a.talent, status: 'convidado' }, ...j.candidates] } : j
         ),
       };
     case 'CLOSE_JOB':

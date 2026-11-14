@@ -17,6 +17,7 @@ export const JOB_TYPES = ['CLT', 'Temporário', 'Meio período', 'Freelance', 'E
 export const jobs = [
   {
     id: 'j1',
+    skills: ['Cozinha', 'Forno a lenha', 'Organização'], noExp: false,
     companyId: 'e2',
     company: 'Pizzaria da Praça',
     logo: '🍕',
@@ -35,6 +36,7 @@ export const jobs = [
   },
   {
     id: 'j2',
+    skills: ['Atendimento', 'Vendas', 'Vitrine'], noExp: true,
     companyId: 'e3',
     company: 'Moda Brasil',
     logo: '👕',
@@ -53,6 +55,7 @@ export const jobs = [
   },
   {
     id: 'j3',
+    skills: ['Eletrônica', 'Celulares', 'Atendimento'], noExp: false,
     companyId: 'e4',
     company: 'Tech Center',
     logo: '🎧',
@@ -71,6 +74,7 @@ export const jobs = [
   },
   {
     id: 'j4',
+    skills: ['Atendimento', 'Caixa', 'Delivery'], noExp: true,
     companyId: 'e5',
     company: 'Burguer do Zé',
     logo: '🍔',
@@ -89,6 +93,7 @@ export const jobs = [
   },
   {
     id: 'j5',
+    skills: ['Direção', 'Logística', 'CNH D'], noExp: false,
     companyId: 's1',
     company: 'Distribuidora Real Alimentos',
     logo: '🚚',
@@ -107,6 +112,7 @@ export const jobs = [
   },
   {
     id: 'j6',
+    skills: ['Moto', 'Entregas', 'CNH A'], noExp: true,
     companyId: 'e2',
     company: 'Pizzaria da Praça',
     logo: '🍕',
@@ -131,6 +137,7 @@ export const jobs = [
 export const myJobs = [
   {
     id: 'mj1',
+    skills: ['Organização', 'Estoque', 'Supermercado'], noExp: true,
     title: 'Repositor(a) de mercadorias',
     area: 'Comércio',
     type: 'CLT',
@@ -142,13 +149,14 @@ export const myJobs = [
     status: 'aberta',
     posted: 'Há 2 dias',
     candidates: [
-      { id: 'c1', name: 'Ana Paula Ribeiro', photo: face('realys-cand1'), city: 'Bela Vista · 1,1 km', exp: '2 anos como repositora em supermercado', status: 'novo' },
-      { id: 'c2', name: 'Lucas Ferreira', photo: face('realys-cand2'), city: 'Liberdade · 2,0 km', exp: 'Primeiro emprego, curso de logística', status: 'entrevista' },
-      { id: 'c3', name: 'Rogério Santos', photo: face('realys-cand3'), city: 'Cambuci · 3,4 km', exp: '5 anos em atacado, empilhadeira', status: 'novo' },
+      { id: 'c1', skills: ['Estoque', 'Organização', 'Supermercado'], edu: 'Ensino médio completo', avail: 'Manhã e tarde', match: 94, name: 'Ana Paula Ribeiro', photo: face('realys-cand1'), city: 'Bela Vista · 1,1 km', exp: '2 anos como repositora em supermercado', status: 'novo' },
+      { id: 'c2', skills: ['Logística', 'Organização'], edu: 'Curso técnico em logística', avail: 'Integral', match: 78, name: 'Lucas Ferreira', photo: face('realys-cand2'), city: 'Liberdade · 2,0 km', exp: 'Primeiro emprego, curso de logística', status: 'entrevista' },
+      { id: 'c3', skills: ['Estoque', 'Empilhadeira', 'Atacado'], edu: 'Ensino fundamental', avail: 'Manhã', match: 88, name: 'Rogério Santos', photo: face('realys-cand3'), city: 'Cambuci · 3,4 km', exp: '5 anos em atacado, empilhadeira', status: 'novo' },
     ],
   },
   {
     id: 'mj2',
+    skills: ['Caixa', 'Atendimento', 'Pix'], noExp: false,
     title: 'Operador(a) de caixa',
     area: 'Comércio',
     type: 'Temporário',
@@ -159,11 +167,12 @@ export const myJobs = [
     reqs: ['Ensino médio completo'],
     status: 'aberta',
     posted: 'Hoje',
-    candidates: [{ id: 'c4', name: 'Juliana Costa', photo: face('realys-cand4'), city: 'Bela Vista · 0,8 km', exp: '1 ano como operadora de caixa', status: 'novo' }],
+    candidates: [{ id: 'c4', skills: ['Caixa', 'Atendimento', 'Pix'], edu: 'Ensino médio completo', avail: 'Tarde e noite', match: 91, name: 'Juliana Costa', photo: face('realys-cand4'), city: 'Bela Vista · 0,8 km', exp: '1 ano como operadora de caixa', status: 'novo' }],
   },
 ];
 
 export const CANDIDATE_STATUS = {
+  convidado: { label: 'Convidado pela empresa', color: '#7B6CF6' },
   novo: { label: 'Novo', color: '#2F74D0' },
   entrevista: { label: 'Entrevista marcada', color: '#A8790A' },
   contratado: { label: 'Contratado', color: '#1E9E63' },
@@ -174,3 +183,52 @@ export const salaryText = (j) => {
   const v = 'R$ ' + Number(j.salary).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   return `${v} ${j.salaryUnit || 'por mês'}`;
 };
+
+// ---------- Currículo, compatibilidade e banco de talentos ----------
+
+export const BENEFITS = ['Vale-transporte', 'Vale-refeição', 'Plano de saúde', 'Cesta básica', 'Comissão', 'Refeição no local', 'Gorjetas', 'Home office'];
+export const AVAILABILITY = ['Manhã', 'Tarde', 'Noite', 'Fins de semana', 'Integral'];
+export const SKILL_SUGGESTIONS = ['Atendimento', 'Vendas', 'Caixa', 'Estoque', 'Organização', 'Cozinha', 'Delivery', 'Moto', 'Direção', 'Logística', 'Celulares', 'Informática', 'Limpeza', 'Pix', 'Redes sociais'];
+
+// Currículo do usuário (montado a partir do perfil verificado; ele completa o resto).
+export const defaultResume = {
+  headline: '',
+  exp: '',
+  edu: 'Ensino médio completo',
+  skills: ['Atendimento', 'Organização'],
+  avail: ['Manhã', 'Tarde'],
+  wish: '',
+  open: true, // aberto a propostas: empresas podem encontrar e convidar
+};
+
+// Etapas da candidatura (o usuário vê em que passo está).
+export const APP_STEPS = [
+  { key: 'enviada', label: 'Enviada' },
+  { key: 'vista', label: 'Vista pela empresa' },
+  { key: 'entrevista', label: 'Entrevista' },
+  { key: 'resultado', label: 'Resultado' },
+];
+
+const norm = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+// Compatibilidade (0 a 100) entre o currículo e a vaga: habilidades, distância e experiência.
+export function matchScore(resume, job) {
+  if (!resume) return 0;
+  const mine = (resume.skills || []).map(norm);
+  const want = (job.skills || []).map(norm);
+  const hits = want.filter((w) => mine.some((m) => m.includes(w) || w.includes(m))).length;
+  let score = want.length ? 45 + Math.round((hits / want.length) * 40) : 60;
+  const d = job.distanceKm || 0;
+  score += d <= 2 ? 10 : d <= 5 ? 6 : d <= 15 ? 2 : -8;
+  if (job.noExp) score += 5;
+  else if (resume.exp && resume.exp.trim().length > 10) score += 5;
+  return Math.max(30, Math.min(99, score));
+}
+
+// Pessoas abertas a propostas perto da empresa (banco de talentos).
+export const TALENTS = [
+  { id: 't1', name: 'Marcos Vieira', photo: face('realys-tal1'), city: 'Bela Vista · 0,9 km', headline: 'Repositor e conferente', exp: '3 anos em supermercado', edu: 'Ensino médio completo', skills: ['Estoque', 'Organização', 'Conferência'], avail: 'Manhã', match: 92 },
+  { id: 't2', name: 'Patrícia Gomes', photo: face('realys-tal2'), city: 'Liberdade · 1,7 km', headline: 'Operadora de caixa', exp: '2 anos em caixa de mercado', edu: 'Ensino médio completo', skills: ['Caixa', 'Pix', 'Atendimento'], avail: 'Tarde e noite', match: 95 },
+  { id: 't3', name: 'Diego Almeida', photo: face('realys-tal3'), city: 'Cambuci · 2,8 km', headline: 'Primeiro emprego', exp: 'Curso de jovem aprendiz', edu: 'Cursando ensino médio (noite)', skills: ['Organização', 'Informática'], avail: 'Manhã', match: 74 },
+  { id: 't4', name: 'Sandra Moraes', photo: face('realys-tal4'), city: 'Aclimação · 3,5 km', headline: 'Atendente e auxiliar de cozinha', exp: '4 anos em lanchonete', edu: 'Ensino fundamental', skills: ['Atendimento', 'Cozinha', 'Caixa'], avail: 'Integral', match: 83 },
+];
