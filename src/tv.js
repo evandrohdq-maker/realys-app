@@ -66,3 +66,24 @@ export function removeTv(id) {
   save();
   emit();
 }
+
+// ---------- Canal no ar ----------
+// O vídeo toca numa janela flutuante por cima do app (src/components/FloatPlayers.js), um canal
+// por vez. A aba Stream só pede o canal; a janela continua quando a pessoa muda de tela.
+let now = { channel: null, req: 0 };
+const psubs = new Set();
+export const tvNow = () => now;
+export function onTvNow(fn) {
+  psubs.add(fn);
+  return () => psubs.delete(fn);
+}
+const pemit = () => psubs.forEach((fn) => fn(now));
+export function playTv(channel) {
+  now = { channel, req: Date.now() };
+  pemit();
+}
+export function stopTv() {
+  if (!now.channel) return;
+  now = { channel: null, req: Date.now() };
+  pemit();
+}

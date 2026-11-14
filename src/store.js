@@ -211,6 +211,8 @@ const initialState = {
   // Lives: a minha no ar (aparece na aba Lives e no meu perfil) e a que estou assistindo pelo perfil de alguém.
   myLive: null, // { id, cat, hostType, hostId, host, title, viewers, mine: true }
   watchLive: null,
+  liveMini: null, // live minimizada numa janelinha flutuante (objeto da live)
+  liveOpen: null, // live reaberta a partir da janelinha
   viewProvider: null, // perfil de prestador aberto por cima de qualquer tela
   previewProvider: null, // prévia do perfil de trabalho aberta pela pesquisa (só para analisar)
   liked: {},
@@ -847,6 +849,14 @@ function baseReducer(state, a) {
       return { ...state, watchLive: a.id, viewCompany: null, viewProfile: null, viewProvider: null };
     case 'CLOSE_WATCH':
       return { ...state, watchLive: null };
+    case 'LIVE_MINIMIZE':
+      return { ...state, liveMini: a.live, liveOpen: null, watchLive: null };
+    case 'LIVE_REOPEN':
+      return { ...state, liveOpen: state.liveMini, liveMini: null };
+    case 'LIVE_MINI_CLOSE':
+      return { ...state, liveMini: null };
+    case 'LIVE_OPEN_CLOSE':
+      return { ...state, liveOpen: null };
     case 'OPEN_PROVIDER':
       return { ...state, viewProvider: a.id, watchLive: null };
     case 'CLOSE_PROVIDER':

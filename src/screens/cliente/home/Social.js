@@ -390,6 +390,19 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
             </View>
           ) : null}
           <View style={{ flex: 1 }} />
+          {!mine && live ? (
+            <TouchableOpacity
+              style={[styles.iconBtnDark, { marginRight: 8 }]}
+              accessibilityLabel="Minimizar a live numa janelinha"
+              onPress={() => {
+                // A live vira uma janelinha flutuante: dá para mexer no resto do app e voltar com um toque.
+                onClose();
+                dispatch({ type: 'LIVE_MINIMIZE', live });
+              }}
+            >
+              <Ionicons name="contract" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+          ) : null}
           <TouchableOpacity style={styles.iconBtnDark} onPress={close} accessibilityLabel="Fechar">
             <Ionicons name="close" size={22} color="#FFFFFF" />
           </TouchableOpacity>

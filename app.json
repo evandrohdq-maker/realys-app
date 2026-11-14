@@ -47,7 +47,13 @@
         }
       ],
       "expo-status-bar",
-      "expo-video",
+      [
+        "expo-video",
+        {
+          "supportsBackgroundPlayback": true,
+          "supportsPictureInPicture": true
+        }
+      ],
       [
         "expo-build-properties",
         {

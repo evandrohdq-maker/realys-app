@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Animated, ActivityIndicator } from 'react-native';
 import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
+import Floating from './Floating';
 import { radioNow, onRadioNow, setRadioNow, playRadio, stopRadio, resolveStream, loadRadios, radioOf, onRadios } from '../radio';
 
 loadRadios(); // rádios indexadas guardadas no celular
@@ -142,12 +143,13 @@ export function RadioCard({ radio, dark }) {
   );
 }
 
-// Barrinha "tocando agora" em qualquer tela.
+// Barrinha "tocando agora" em qualquer tela. É flutuante: segure e arraste para mudar de lugar.
+// (Rádio é só som: ao sair do app ela continua tocando, com o controle na barra de notificações.)
 export function RadioMiniBar({ bottom }) {
   const n = useRadioNow();
   if (!n.radio || n.status === 'parado') return null;
   return (
-    <View style={[st.mini, { bottom }]}>
+    <Floating place={{ left: 12, right: 84, bottom }} style={st.mini}>
       <Text style={{ fontSize: 18 }}>{n.radio.emoji || '📻'}</Text>
       <View style={{ flex: 1, marginLeft: 8 }}>
         <Text style={st.miniName} numberOfLines={1}>{n.radio.name}</Text>
@@ -157,7 +159,7 @@ export function RadioMiniBar({ bottom }) {
       <TouchableOpacity onPress={stopRadio} style={st.miniBtn} accessibilityLabel="Parar a rádio">
         <Ionicons name="close" size={18} color="#fff" />
       </TouchableOpacity>
-    </View>
+    </Floating>
   );
 }
 
@@ -173,7 +175,7 @@ const st = StyleSheet.create({
   err: { color: '#E5484D', fontSize: 12, marginTop: 4 },
   play: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#B8860B', alignItems: 'center', justifyContent: 'center', marginLeft: 10 },
   bar: { width: 4, height: 22, borderRadius: 2, backgroundColor: '#B8860B', marginHorizontal: 1.5 },
-  mini: { position: 'absolute', left: 12, right: 84, flexDirection: 'row', alignItems: 'center', backgroundColor: '#1B1B1F', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 8, elevation: 6 },
+  mini: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1B1B1F', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 8, elevation: 6 },
   miniName: { color: '#fff', fontWeight: '800', fontSize: 13 },
   miniStatus: { color: 'rgba(255,255,255,0.7)', fontSize: 11 },
   miniBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center', marginLeft: 8 },

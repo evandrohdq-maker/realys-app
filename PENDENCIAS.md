@@ -32,6 +32,15 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] Alertas da chave de segurança do motorista chegarem ao painel do administrador **em tempo real**
       (hoje ficam no celular, porque ainda não há servidor).
 
+## Players (rádio, TV e lives)
+
+- [ ] **Testar num celular**: arrastar os players (segurar e arrastar), a TV em picture-in-picture
+      (botão de janela e ao sair do app) e a rádio tocando com o app minimizado.
+- [ ] **Live em janela fora do app**: hoje a live minimizada só flutua dentro do Re@lys. Para ela
+      continuar num canto da tela com o app minimizado é preciso código nativo de picture-in-picture
+      para o vídeo WebRTC (dá para pôr no módulo `modules/realys-updater` ou num módulo novo).
+- [ ] **Canais de TV de exemplo**: usam sinais públicos de teste; trocar por canais reais quando houver.
+
 ## Parceria com o governo (serviço público e SUS)
 
 - [ ] Contas verificadas para os órgãos públicos (Bombeiros, Defesa Civil, SAMU, hospitais, UPAs, UBSs):

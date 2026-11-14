@@ -10,15 +10,10 @@ import { Screen } from '../../../components/ui';
 import { SegTabs } from '../../../components/AdKit';
 import { RadioCard } from '../../../components/RadioKit';
 import { allRadios, loadRadios, onRadios, stopRadio } from '../../../radio';
-import { allTvs, loadTvs, onTvs, saveTv, removeTv, checkTvUrl } from '../../../tv';
+import { allTvs, loadTvs, onTvs, saveTv, removeTv, checkTvUrl, playTv, stopTv } from '../../../tv';
+import { useTvNow } from '../../../components/FloatPlayers';
 import { moderateText } from '../../../moderation';
 import { MY_COMPANY_ID } from '../../../data';
-
-// expo-video só existe no APK novo: sem ele, a TV avisa em vez de fechar o app.
-let EV = null;
-try {
-  EV = require('expo-video');
-} catch (e) {}
 
 const SEGS = [
   { key: 'radios', label: 'Rádios', icon: 'radio-outline' },
@@ -83,35 +78,11 @@ function RadioList({ navigate }) {
   );
 }
 
-// Player do canal escolhido. Trocar de canal remonta o player (key = id do canal).
-function TvPlayer({ channel }) {
-  const player = EV.useVideoPlayer({ uri: channel.url, metadata: { title: channel.name, artist: 'TV no Re@lys' } }, (p) => {
-    p.play();
-  });
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    const sub = player.addListener('statusChange', (e) => {
-      if (e && e.status === 'error') setFailed(true);
-    });
-    return () => sub.remove();
-  }, [player]);
-  return (
-    <View style={st.screen}>
-      <EV.VideoView player={player} style={StyleSheet.absoluteFill} contentFit="contain" nativeControls />
-      {failed ? (
-        <View style={st.screenMsg}>
-          <Ionicons name="cloud-offline-outline" size={26} color="#fff" />
-          <Text style={st.screenMsgText}>Não consegui abrir o sinal deste canal agora.</Text>
-        </View>
-      ) : null}
-    </View>
-  );
-}
-
 function TvList() {
   const [list, setList] = useState(allTvs());
   const [q, setQ] = useState('');
-  const [on, setOn] = useState(null); // canal no ar
+  // Canal no ar: o vídeo fica na janela flutuante do app (FloatPlayers), não nesta tela.
+  const on = useTvNow().channel;
   const [form, setForm] = useState(null);
   useEffect(() => {
     loadTvs().then(() => setList(allTvs()));
@@ -122,8 +93,9 @@ function TvList() {
   const mine = list.find((t) => t.storeId === MY_COMPANY_ID) || null;
 
   const watch = (t) => {
+    if (on && on.id === t.id) return stopTv();
     stopRadio(); // um som só por vez: a TV entra, a rádio sai
-    setOn(on && on.id === t.id ? null : t);
+    playTv(t);
   };
   const openForm = () => setForm(mine ? { ...mine } : { name: '', url: '', genre: '', city: 'Passo Fundo, RS', emoji: '📺', storeId: MY_COMPANY_ID });
   const save = () => {
@@ -141,22 +113,14 @@ function TvList() {
     <View>
       {on ? (
         <View style={st.nowBox}>
-          {EV ? (
-            <TvPlayer key={on.id} channel={on} />
-          ) : (
-            <View style={[st.screen, { alignItems: 'center', justifyContent: 'center' }]}>
-              <Text style={st.screenMsgText}>Atualize o app para assistir TV online.</Text>
-            </View>
-          )}
-          <View style={st.nowRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={st.nowName} numberOfLines={1}>{on.name}</Text>
-              <Text style={st.meta} numberOfLines={1}>{[on.genre, on.city].filter(Boolean).join(' · ')}</Text>
-            </View>
-            <TouchableOpacity onPress={() => setOn(null)} style={st.closeBtn} accessibilityLabel="Fechar o canal">
-              <Ionicons name="close" size={18} color={colors.text} />
-            </TouchableOpacity>
+          <Ionicons name="tv" size={18} color={colors.primary} />
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={st.nowName} numberOfLines={1}>No ar: {on.name}</Text>
+            <Text style={st.meta}>O vídeo tá na janelinha. Segura e arrasta pra mudar de canto. O botão de janela (ou sair do app) deixa o canal num cantinho da tela enquanto você usa o celular.</Text>
           </View>
+          <TouchableOpacity onPress={stopTv} style={st.closeBtn} accessibilityLabel="Fechar o canal">
+            <Ionicons name="close" size={18} color={colors.text} />
+          </TouchableOpacity>
         </View>
       ) : null}
 
@@ -224,7 +188,7 @@ function TvList() {
                 onPress={() =>
                   Alert.alert('Remover canal', 'O canal sai da TV online do Re@lys.', [
                     { text: 'Cancelar', style: 'cancel' },
-                    { text: 'Remover', style: 'destructive', onPress: () => { if (on && on.id === form.id) setOn(null); removeTv(form.id); setForm(null); } },
+                    { text: 'Remover', style: 'destructive', onPress: () => { if (on && on.id === form.id) stopTv(); removeTv(form.id); setForm(null); } },
                   ])
                 }
               >
@@ -246,7 +210,7 @@ const st = StyleSheet.create({
   ownSub: { color: 'rgba(255,255,255,0.85)', fontSize: 12, marginTop: 2 },
   empty: { color: colors.muted, textAlign: 'center', marginVertical: 20 },
 
-  nowBox: { backgroundColor: colors.card, borderRadius: 18, overflow: 'hidden', marginBottom: 14, ...soft },
+  nowBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 18, padding: 12, marginBottom: 14, ...soft },
   screen: { width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000' },
   screenMsg: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.7)', padding: 16 },
   screenMsgText: { color: '#fff', textAlign: 'center', marginTop: 6, fontSize: 13 },

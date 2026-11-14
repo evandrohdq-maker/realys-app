@@ -82,6 +82,7 @@ import ReelsScreen from './src/screens/cliente/ReelsScreen';
 import ArenaScreen from './src/screens/cliente/ArenaScreen';
 import RadiosScreen from './src/screens/cliente/RadiosScreen';
 import { RadioHost, RadioMiniBar } from './src/components/RadioKit';
+import { TvFloat, LiveFloat } from './src/components/FloatPlayers';
 import HRScreen from './src/screens/empresa/HRScreen';
 import { TechScreen, AgroScreen } from './src/screens/cliente/TechAgroScreen';
 import { ElectronicsScreen, FashionScreen, HomeGoodsScreen, AppliancesScreen, FurnitureScreen, VariousScreen, EXTRA_SECTOR_KEYS, SECTOR_SCREENS } from './src/screens/cliente/ShopSectorScreen';
@@ -443,6 +444,9 @@ function Shell() {
 
       {/* Rádio tocando: barrinha em qualquer tela (o player é um só no app). */}
       <RadioMiniBar bottom={88 + insets.bottom} />
+      {/* TV da aba Stream e live minimizada: janelinhas flutuantes (segure e arraste). */}
+      <TvFloat bottom={150 + insets.bottom} />
+      <LiveFloat bottom={150 + insets.bottom} />
       <TouchableOpacity
         style={[styles.fab, { bottom: 84 + insets.bottom }]}
         onPress={() => setVoice(true)}
