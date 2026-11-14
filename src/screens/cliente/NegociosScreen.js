@@ -17,7 +17,7 @@ import { ChatModal, VideoCallModal } from './home/Social';
 export const NEGOCIOS_GROUPS = [
   { key: 'imoveis', label: 'Imóveis', icon: 'home-outline', kinds: [['imovel-venda', 'Comprar'], ['imovel-aluguel', 'Alugar']] },
   { key: 'veiculos', label: 'Veículos', icon: 'car-sport-outline', kinds: [['veiculo-venda', 'Comprar'], ['carro-aluguel', 'Alugar']] },
-  { key: 'maquinas', label: 'Máquinas', icon: 'construct-outline', kinds: [['maquina-aluguel', 'Alugar']] },
+  { key: 'maquinas', label: 'Máquinas', icon: 'construct-outline', kinds: [['maquina-venda', 'Comprar'], ['maquina-aluguel', 'Alugar']] },
 ];
 // Tipos de anúncio que pertencem à aba Negócios (o App usa para mandar os atalhos para cá).
 export const NEGOCIOS_KINDS = NEGOCIOS_GROUPS.flatMap((g) => g.kinds.map((k) => k[0]));
@@ -120,11 +120,12 @@ export default function NegociosScreen({ explore }) {
                 <Ionicons name="shield-checkmark" size={13} color={colors.primary} />
                 <Text style={st.adWho}>{l.who}</Text>
               </View>
-              <View style={{ flexDirection: 'row', marginTop: 12 }}>
+              {/* Rodapé do cartão: um botão em cima do outro, na largura toda */}
+              <View style={{ marginTop: 12 }}>
                 <TouchableOpacity style={[st.adBtn, st.adBtnMain]} onPress={() => contact(l)}>
                   <Text style={st.adBtnMainText}>Tenho interesse</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[st.adBtn, { marginRight: 0 }]} onPress={() => Alert.alert(cta(l), `Pedido enviado para ${l.who}. A confirmação chega nas suas mensagens.`)}>
+                <TouchableOpacity style={[st.adBtn, { marginTop: 8 }]} onPress={() => Alert.alert(cta(l), `Pedido enviado para ${l.who}. A confirmação chega nas suas mensagens.`)}>
                   <Text style={st.adBtnText}>{cta(l)}</Text>
                 </TouchableOpacity>
               </View>
@@ -166,7 +167,7 @@ const st = StyleSheet.create({
   line: { flexDirection: 'row', alignItems: 'center', marginTop: 5 },
   adPlace: { color: colors.muted, fontSize: 12, marginLeft: 5 },
   adWho: { color: colors.text, fontSize: 12, marginLeft: 5 },
-  adBtn: { flex: 1, minHeight: 38, paddingHorizontal: 8, paddingVertical: 6, borderRadius: 11, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', marginRight: 8 },
+  adBtn: { alignSelf: 'stretch', minHeight: 44, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 12, borderWidth: 1, borderColor: colors.borderStrong, alignItems: 'center', justifyContent: 'center' },
   adBtnMain: { backgroundColor: colors.primary, borderColor: colors.primary },
   adBtnMainText: { color: colors.onPrimary, fontWeight: '700', textAlign: 'center' },
   adBtnText: { color: colors.text, fontWeight: '600', textAlign: 'center' },

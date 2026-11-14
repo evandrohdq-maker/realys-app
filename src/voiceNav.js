@@ -75,6 +75,7 @@ export const NAV_TARGETS = [
   T('Imóveis à venda', { tab: 'home', top: 'anuncios', kind: 'imovel-venda' }, ['imoveis', 'imovel', 'imobiliaria', 'imoveis a venda']),
   T('Imóveis para alugar', { tab: 'home', top: 'anuncios', kind: 'imovel-aluguel' }, ['aluguel de imoveis', 'imoveis para alugar', 'locacao de imoveis']),
   T('Aluguel de carros', { tab: 'home', top: 'anuncios', kind: 'carro-aluguel' }, ['aluguel de carros', 'aluguel de carro', 'alugar carro', 'alugar um carro', 'locadora']),
+  T('Máquinas à venda', { tab: 'negocios', kind: 'maquina-venda' }, ['maquinas a venda', 'maquina a venda', 'comprar maquina', 'comprar uma maquina', 'comprar trator', 'comprar um trator', 'tratores a venda']),
   T('Aluguel de máquinas', { tab: 'home', top: 'anuncios', kind: 'maquina-aluguel' }, ['aluguel de maquinas', 'aluguel de maquina', 'locacao de maquinas']),
   T('Cursos', { tab: 'servicos', seg: 'cursos' }, ['cursos', 'curso', 'cursos online', 'faculdade', 'faculdades', 'faculdade online']),
   T('Atendimento online', { tab: 'servicos', seg: 'online' }, ['atendimento online', 'atendimentos online', 'consulta online', 'consultas online', 'servicos online', 'aba online', 'chamada de video com profissional']),

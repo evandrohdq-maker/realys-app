@@ -551,12 +551,13 @@ function AdsTab({ kind, setKind, onContact }) {
               <Ionicons name="shield-checkmark" size={13} color={colors.primary} />
               <Text style={{ color: colors.text, fontSize: 12, marginLeft: 5 }}>{l.who}</Text>
             </View>
-            <View style={{ flexDirection: 'row', marginTop: 12 }}>
-              <TouchableOpacity style={[styles.adBtn, styles.adBtnMain]} onPress={() => onContact(l)}>
+            {/* Rodapé do cartão: um botão em cima do outro, na largura toda */}
+            <View style={{ marginTop: 12 }}>
+              <TouchableOpacity style={[styles.adBtn, styles.adBtnMain, styles.adBtnStack]} onPress={() => onContact(l)}>
                 <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>Tenho interesse</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.adBtn, { marginRight: 0 }]}
+                style={[styles.adBtn, styles.adBtnStack, { marginTop: 8 }]}
                 onPress={() => Alert.alert(cta(l), `Pedido enviado para ${l.who}. A confirmação chega nas suas mensagens.`)}
               >
                 <Text style={{ color: colors.text, fontWeight: '600' }}>{cta(l)}</Text>
@@ -983,6 +984,7 @@ const styles = StyleSheet.create({
   adPlace: { color: colors.muted, fontSize: 12, marginTop: 4 },
   adBtn: { flex: 1, minHeight: 38, borderRadius: 11, borderWidth: 1, borderColor: '#F0E9DA', alignItems: 'center', justifyContent: 'center', marginRight: 8 },
   adBtnMain: { backgroundColor: colors.primary, borderColor: colors.primary },
+  adBtnStack: { flex: 0, alignSelf: 'stretch', marginRight: 0, minHeight: 44 },
   segRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 10 },
   seg: {
     flexDirection: 'row',
