@@ -303,21 +303,27 @@ const TINT = {
   aulas: '#0D9488',
   imoveis: '#7A5806',
   locacao: '#55607A',
+  arena: '#7B6CF6',
+  radios: '#C77D0A',
+  desapego: '#1E9E63',
 };
 const tintOf = (key) => TINT[key] || '#6C5CE7';
 
-// Seções do menu: cada classe aparece uma vez. O que não estiver aqui cai em "Mais".
-const SECTIONS = [
-  { title: 'Dia a dia', keys: ['servicos', 'restaurantes', 'lojas', 'transporte', 'socorro'] },
-  { title: 'Compras por setor', keys: SHOP_SECTOR_KEYS },
-  { title: 'Trabalho e negócios', keys: ['empregos', 'tecnologia', 'agro', 'empresa'] },
-  { title: 'Lazer e comunidade', keys: ['eventos', 'social', 'artistas', 'aulas'] },
-  { title: 'Anúncios', keys: ['imoveis', 'locacao'] },
+// Classes maiores do menu: cada classe do app fica em UMA delas. O que não estiver aqui cai em "Mais".
+// Tocar numa classe maior mostra as classes dela; se ela tiver uma só, já abre direto.
+const MEGA = [
+  { key: 'compras', title: 'Compras', hint: 'Lojas, todos os setores e desapego', icon: 'bag-handle', tint: '#6C5CE7', keys: ['lojas', ...SHOP_SECTOR_KEYS, 'desapego'] },
+  { key: 'comida', title: 'Comida', hint: 'Restaurantes, bares, delivery e mercado', icon: 'restaurant', tint: '#E4572E', keys: ['restaurantes'] },
+  { key: 'servicos', title: 'Serviços e aluguéis', hint: 'Profissionais, imóveis, veículos e transporte', icon: 'construct', tint: '#A8790A', keys: ['servicos', 'imoveis', 'locacao', 'transporte'] },
+  { key: 'lazer', title: 'Lazer e diversão', hint: 'Festas, lives, gamers, rádios e artistas', icon: 'sparkles', tint: '#D9468F', keys: ['eventos', 'social', 'arena', 'radios', 'artistas'] },
+  { key: 'trabalho', title: 'Trabalho e estudo', hint: 'Vagas, cursos, tecnologia e agro', icon: 'school', tint: '#0D9488', keys: ['empregos', 'aulas', 'tecnologia', 'agro'] },
+  { key: 'saude', title: 'Saúde e segurança', hint: 'SOS, hospitais, SAMU e especialistas', icon: 'medkit', tint: '#D9534F', keys: ['socorro'] },
+  { key: 'empresa', title: 'Minha empresa', hint: 'Estoque, caixa, vendas, RH e negociações', icon: 'business', tint: '#1F2A44', keys: ['empresa'] },
 ];
-const sectionsWithRest = () => {
-  const used = new Set(SECTIONS.flatMap((s) => s.keys));
+const megaWithRest = () => {
+  const used = new Set(MEGA.flatMap((m) => m.keys));
   const rest = CATEGORIES.filter((c) => !used.has(c.key)).map((c) => c.key);
-  return rest.length ? [...SECTIONS, { title: 'Mais', keys: rest }] : SECTIONS;
+  return rest.length ? [...MEGA, { key: 'mais', title: 'Mais', hint: 'Outras áreas do app', icon: 'apps', tint: '#55607A', keys: rest }] : MEGA;
 };
 
 // Atalhos de um toque, no topo do menu.
@@ -339,16 +345,26 @@ const norm = (t) =>
 export default function CategoryMenu({ visible, onClose, onPick, roles = [], activeRole, onRole }) {
   const insets = useSafeAreaInsets();
   const [cat, setCat] = useState(null);
+  const [mega, setMega] = useState(null);
   const [q, setQ] = useState('');
   useEffect(() => {
     if (!visible) {
       setCat(null);
+      setMega(null);
       setQ('');
     }
   }, [visible]);
 
   const byKey = useMemo(() => Object.fromEntries(CATEGORIES.map((c) => [c.key, c])), []);
-  const sections = useMemo(sectionsWithRest, []);
+  const megas = useMemo(megaWithRest, []);
+  const openMega = (m) => {
+    const list = m.keys.map((k) => byKey[k]).filter(Boolean);
+    if (list.length === 1) {
+      setMega(null);
+      return setCat(list[0]);
+    }
+    setMega(m);
+  };
   // Busca dentro do menu: procura em todas as opções de todas as classes.
   const results = useMemo(() => {
     const t = norm(q.trim());
@@ -368,7 +384,8 @@ export default function CategoryMenu({ visible, onClose, onPick, roles = [], act
     return out.slice(0, 40);
   }, [q]);
 
-  const back = () => (cat ? setCat(null) : onClose());
+  // Voltar: da classe para a classe maior, da classe maior para o começo.
+  const back = () => (cat ? setCat(null) : mega ? setMega(null) : onClose());
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={back} statusBarTranslucent>
@@ -429,7 +446,7 @@ export default function CategoryMenu({ visible, onClose, onPick, roles = [], act
                   </>
                 ) : (
                   <>
-                    {roles.length > 1 ? (
+                    {!mega && roles.length > 1 ? (
                       <>
                         <Text style={styles.kicker}>ACESSAR COMO</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
@@ -446,8 +463,8 @@ export default function CategoryMenu({ visible, onClose, onPick, roles = [], act
                       </>
                     ) : null}
 
-                    <Text style={styles.kicker}>ATALHOS</Text>
-                    <View style={styles.shortcuts}>
+                    {!mega ? <Text style={styles.kicker}>ATALHOS</Text> : null}
+                    {!mega ? <View style={styles.shortcuts}>
                       {SHORTCUTS.map((s) => (
                         <TouchableOpacity key={s.label} style={styles.shortcut} onPress={() => onPick(s.go)} accessibilityLabel={`Abrir ${s.label}`}>
                           <View style={[styles.shortIcon, { backgroundColor: s.tint }]}>
@@ -458,13 +475,24 @@ export default function CategoryMenu({ visible, onClose, onPick, roles = [], act
                           </Text>
                         </TouchableOpacity>
                       ))}
-                    </View>
+                    </View> : null}
 
-                    {sections.map((sec) => (
-                      <View key={sec.title} style={{ marginBottom: 6 }}>
-                        <Text style={styles.kicker}>{sec.title.toUpperCase()}</Text>
+                    {mega ? (
+                      <>
+                        <View style={[styles.megaHead, { backgroundColor: mega.tint + '14', borderColor: mega.tint + '40' }]}>
+                          <TouchableOpacity onPress={() => setMega(null)} style={styles.iconBtnLight} accessibilityLabel="Voltar">
+                            <Ionicons name="arrow-back" size={18} color={colors.text} />
+                          </TouchableOpacity>
+                          <View style={[styles.catHeadIcon, { backgroundColor: mega.tint }]}>
+                            <Ionicons name={mega.icon} size={22} color="#FFFFFF" />
+                          </View>
+                          <View style={{ flex: 1, marginLeft: 10 }}>
+                            <Text style={styles.subTitle}>{mega.title}</Text>
+                            <Text style={styles.hint} numberOfLines={1}>{mega.hint}</Text>
+                          </View>
+                        </View>
                         <View style={styles.grid3}>
-                          {sec.keys
+                          {mega.keys
                             .map((k) => byKey[k])
                             .filter(Boolean)
                             .map((c) => {
@@ -474,16 +502,34 @@ export default function CategoryMenu({ visible, onClose, onPick, roles = [], act
                                   <View style={[styles.catIcon, { backgroundColor: tint + '1A' }]}>
                                     <Ionicons name={c.icon} size={22} color={tint} />
                                   </View>
-                                  <Text style={styles.catTitle} numberOfLines={2}>
-                                    {c.title}
-                                  </Text>
+                                  <Text style={styles.catTitle} numberOfLines={2}>{c.title}</Text>
                                   <Text style={styles.catCount}>{c.subs.length} opções</Text>
                                 </TouchableOpacity>
                               );
                             })}
                         </View>
-                      </View>
-                    ))}
+                      </>
+                    ) : (
+                      <>
+                        <Text style={styles.kicker}>CATEGORIAS</Text>
+                        {megas.map((m) => {
+                          const n = m.keys.map((k) => byKey[k]).filter(Boolean);
+                          return (
+                            <TouchableOpacity key={m.key} style={styles.mega} onPress={() => openMega(m)} activeOpacity={0.85} accessibilityLabel={m.title}>
+                              <View style={[styles.megaIcon, { backgroundColor: m.tint }]}>
+                                <Ionicons name={m.icon} size={24} color="#FFFFFF" />
+                              </View>
+                              <View style={{ flex: 1, marginLeft: 12 }}>
+                                <Text style={styles.megaTitle}>{m.title}</Text>
+                                <Text style={styles.megaHint} numberOfLines={1}>{m.hint}</Text>
+                              </View>
+                              <Text style={[styles.megaCount, { color: m.tint }]}>{n.length > 1 ? n.length : ''}</Text>
+                              <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </>
+                    )}
                   </>
                 )}
               </ScrollView>
@@ -491,7 +537,7 @@ export default function CategoryMenu({ visible, onClose, onPick, roles = [], act
           ) : (
             <>
               <View style={[styles.catHead, { backgroundColor: tintOf(cat.key) + '14', borderColor: tintOf(cat.key) + '40' }]}>
-                <TouchableOpacity onPress={() => setCat(null)} style={styles.iconBtnLight} accessibilityLabel="Voltar">
+                <TouchableOpacity onPress={back} style={styles.iconBtnLight} accessibilityLabel="Voltar">
                   <Ionicons name="arrow-back" size={18} color={colors.text} />
                 </TouchableOpacity>
                 <View style={[styles.catHeadIcon, { backgroundColor: tintOf(cat.key) }]}>
@@ -589,6 +635,12 @@ const styles = StyleSheet.create({
   resIcon: { width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   resTitle: { color: colors.text, fontWeight: '700', fontSize: 14 },
   resHint: { color: colors.muted, fontSize: 12, marginTop: 2 },
+  mega: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 18, backgroundColor: '#FFFFFF', marginBottom: 10, ...soft },
+  megaIcon: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  megaTitle: { color: colors.text, fontWeight: '800', fontSize: 16 },
+  megaHint: { color: colors.muted, fontSize: 12, marginTop: 2 },
+  megaCount: { fontWeight: '800', fontSize: 13, marginRight: 6 },
+  megaHead: { flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 20, borderWidth: 1, marginBottom: 12 },
   catHead: { flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 20, borderWidth: 1, marginBottom: 12 },
   catHeadIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   subTitle: { color: colors.text, fontWeight: '800', fontSize: 17 },
