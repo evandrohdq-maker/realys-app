@@ -57,6 +57,20 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
         <Ionicons name="chevron-forward" size={18} color={colors.muted} />
       </TouchableOpacity>
 
+      {/* Arena Gamer (estilo Discord): atalho visível nas Lives, em "Todas" e na classe Gamers. */}
+      {f === 'todas' || f === 'gamers' ? (
+        <TouchableOpacity style={styles.goLiveCard} onPress={() => navigate && navigate({ tab: 'arena' })} activeOpacity={0.9} accessibilityLabel="Abrir a Arena Gamer">
+          <View style={[styles.goLiveIcon, { backgroundColor: '#5865F2' }]}>
+            <Ionicons name="game-controller" size={22} color="#fff" />
+          </View>
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>Arena Gamer</Text>
+            <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Servidores de jogos com canais de texto e de voz, para jogar com a galera</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+        </TouchableOpacity>
+      ) : null}
+
       {real.length ? (
         <View style={{ marginBottom: 12 }}>
           <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15, marginBottom: 6 }}>🔴 Ao vivo agora no Re@lys</Text>
