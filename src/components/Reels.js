@@ -266,19 +266,36 @@ export function ReelsFeed({ reels, start = 0, onClose, visible = true }) {
     ({ item, index: i }) => <ReelItem reel={item} active={visible && appOn && i === index} height={h} muted={muted} onMute={() => setMuted((m) => !m)} onClose={onClose} />,
     [h, index, muted, visible, appOn],
   );
+  // Cada Reel ocupa exatamente a altura da tela. Se a altura mudar depois de abrir (barra de status,
+  // barra de navegação), a lista é refeita e volta para o Reel certo, encaixado no topo.
+  const list = useRef(null);
+  const cur = useRef(start);
+  cur.current = index;
+  const onLayout = (e) => {
+    const nh = Math.round(e.nativeEvent.layout.height);
+    if (nh && nh !== h) setH(nh);
+  };
+  useEffect(() => {
+    if (!h || !list.current) return;
+    const t = setTimeout(() => list.current && list.current.scrollToOffset({ offset: cur.current * h, animated: false }), 0);
+    return () => clearTimeout(t);
+  }, [h]);
   return (
-    <View style={{ flex: 1, backgroundColor: '#000' }} onLayout={(e) => setH(e.nativeEvent.layout.height)}>
+    <View style={{ flex: 1, backgroundColor: '#000' }} onLayout={onLayout}>
       {h ? (
         <FlatList
+          key={h}
+          ref={list}
           data={reels}
           keyExtractor={(r) => r.id}
           renderItem={render}
           pagingEnabled
           snapToInterval={h}
           snapToAlignment="start"
+          disableIntervalMomentum
           decelerationRate="fast"
           showsVerticalScrollIndicator={false}
-          initialScrollIndex={Math.min(start, reels.length - 1)}
+          initialScrollIndex={Math.min(cur.current, reels.length - 1)}
           getItemLayout={(_, i) => ({ length: h, offset: h * i, index: i })}
           onViewableItemsChanged={onViewable}
           viewabilityConfig={{ itemVisiblePercentThreshold: 60 }}
