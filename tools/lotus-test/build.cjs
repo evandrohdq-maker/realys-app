@@ -3,7 +3,7 @@
 const esbuild = require(process.env.ESBUILD || 'esbuild');
 const stub = { name: 'stub', setup(b) {
   b.onResolve({ filter: /^(react-native|expo-.*|@expo\/.*|@react-native.*|react-native-.*)$/ }, a => ({ path: a.path, namespace: 'stub' }));
-  b.onResolve({ filter: /\.(png|jpg|webp|ttf|onnx|bin)$/ }, a => ({ path: a.path, namespace: 'stub' }));
+  b.onResolve({ filter: /\.(png|jpg|webp|ttf|onnx|bin|mp4|mp3)$/ }, a => ({ path: a.path, namespace: 'stub' }));
   b.onLoad({ filter: /.*/, namespace: 'stub' }, () => ({ contents: `
     const N = ${JSON.stringify(require(__dirname + '/names.json'))};
     const f = function(){ return P; };

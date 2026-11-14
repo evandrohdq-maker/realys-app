@@ -284,12 +284,13 @@ export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, on
       if (on.current) scheduleRestart(1500);
       return;
     }
+    // Basta falar "Lotus" (no começo, no meio ou no fim da frase) para ela prestar atenção.
+    // "abrir Lotus" continua valendo. O que vem depois do último "Lotus" é o pedido.
     const heard = hearWake(event.results);
-    // Chamou "Lotus" enquanto ela fala (caixa fechada, ex.: "Abrindo Agro"): ela se cala na hora.
-    if (!heard && !woke.current && running.current && hearCall(event.results)) stopSpeaking();
-    if (!heard) return;
-    const { said, m } = heard;
-    const rest = said.slice(m.end).replace(/^[\s,.!?]+/, '');
+    const call = heard ? null : hearCall(event.results);
+    if (!heard && !call) return;
+    stopSpeaking(); // chamou enquanto ela falava (ex.: "Abrindo Agro"): ela se cala na hora
+    const rest = heard ? heard.said.slice(heard.m.end).replace(/^[\s,.!?]+/, '') : call.rest;
     // Primeira vez que ouviu "abrir Lotus": abre a caixa AGORA (o pedido vem depois).
     if (!woke.current) onWakeStart && onWakeStart();
     onWakeHeard && onWakeHeard(rest);

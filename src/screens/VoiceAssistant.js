@@ -510,7 +510,11 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   // Nome de um produto ("tênis", "geladeira", "celular") sem pedir para abrir uma página:
   // em vez de só abrir a seção, mostra os produtos que existem no app; tocar leva até a loja.
   const OPEN_VERB = /\b(abre|abrir|abra|abri|me leva|leva|levar|vai|vamos|ir|entra|entrar|volta|voltar|aba|pagina|tela|secao|setor|categoria|area)\b/;
-  if (nav && !nav.back && !OPEN_VERB.test(t)) {
+  // Falou só o nome de uma página do app ("gamers", "agro", "reels"): vai direto para ela.
+  // (Grupos de produtos do Shop, como "tênis" ou "celular", continuam mostrando os produtos.)
+  const said = norm(stripWake(text)).replace(/^(a |o |as |os )?(pagina|aba|tela|secao|area)( de| do| da| dos| das)? /, '').trim();
+  const exactPage = nav && !nav.back && nav.go && !nav.go.group && [nav.label, ...((nav.target && nav.target.words) || [])].some((w) => norm(w) === said);
+  if (nav && !nav.back && !exactPage && !OPEN_VERB.test(t)) {
     const found = searchAll(state, stripWake(text));
     const words = (found.tokens || []).map((w) => norm(w));
     const hit = (r) => words.some((w) => norm(r.title).includes(w.slice(0, Math.max(4, w.length - 1))));
