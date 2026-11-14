@@ -233,6 +233,16 @@ export const CATEGORIES = [
     ],
   },
   {
+    key: 'arena',
+    title: 'Arena Gamer',
+    hint: 'Servidores de jogos estilo Discord: canais de texto e de voz',
+    icon: 'game-controller-outline',
+    subs: [
+      { label: 'Meus servidores', hint: 'Re@lys Gamers, Free Fire, Minecraft, EA FC…', icon: 'server-outline', go: { tab: 'arena' } },
+      { label: 'Lives de games', hint: 'Quem está jogando ao vivo agora', icon: 'radio-outline', go: { tab: 'home', top: 'lives', live: 'gamers' } },
+    ],
+  },
+  {
     key: 'social',
     title: 'Comunidade e lives',
     hint: 'Posts, mensagens, vídeo e lives',

@@ -126,6 +126,7 @@ export const NAV_TARGETS = [
   T('Móveis e decoração', { tab: 'moveis', group: 'todos' }, ['moveis', 'movel', 'moveis e decoracao', 'decoracao']),
   T('Vários', { tab: 'varios', group: 'todos' }, ['varios', 'diversos', 'outros']),
   T('Desapego', { tab: 'desapego' }, ['desapego', 'desapegos', 'usados', 'coisas usadas', 'vender usado', 'brecho']),
+  T('Arena Gamer', { tab: 'arena' }, ['arena', 'arena gamer', 'discord', 'servidor de jogo', 'servidores gamer', 'canal de voz', 'chamar o squad', 'jogar com a galera']),
   T('Pet shop', { tab: 'pet', group: 'todos' }, ['pet', 'pet shop', 'petshop']),
   T('Brinquedos', { tab: 'brinquedos', group: 'todos' }, ['brinquedos', 'brinquedo']),
   T('Beleza e saúde', { tab: 'beleza', group: 'todos' }, ['beleza', 'beleza e saude', 'perfumaria', 'maquiagem', 'cosmeticos']),
