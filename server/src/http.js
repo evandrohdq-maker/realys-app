@@ -26,7 +26,7 @@ export class Router {
   add(method, path, handler, opts = {}) {
     const keys = [];
     const re = new RegExp('^' + path.replace(/:(\w+)/g, (_, k) => (keys.push(k), '([^/]+)')) + '/?$');
-    this.routes.push({ method, re, keys, handler, opts });
+    this.routes.push({ method, path, re, keys, handler, opts });
     return this;
   }
   get(p, h, o) { return this.add('GET', p, h, o); }

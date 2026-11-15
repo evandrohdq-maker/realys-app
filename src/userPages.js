@@ -8,6 +8,7 @@
 //    continua sujeita à IA contra notícias falsas, às denúncias e ao bloqueio, como tudo no app.
 // Regras das anônimas: não pode se passar por pessoa, empresa ou órgão real, nem vender (vendas são
 // assinadas, para a Garantia Re@lys funcionar).
+import { FUTURE_THEMES } from './components/ThemeArt';
 const photo = (seed, w = 800, h = 400) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
 
 export const MAX_PAGES = 5; // páginas por usuário
@@ -90,7 +91,7 @@ export function pageNameProblem(name, anon, state) {
 
 export const PAGE_RULES = [
   'A página é sua e fica ligada à sua conta verificada por biometria.',
-  'Cada página custa R$ 14,90 por mês, do seu saldo Re@lys.',
+  'A primeira página é gratuita. Da segunda em diante, cada uma custa R$ 14,90 por mês, do seu saldo Re@lys.',
   'Anônima: seu nome não aparece, mas o Re@lys sabe quem é e só revela por ordem judicial.',
   'Página anônima não pode se passar por pessoa, empresa ou órgão real, nem vender produtos.',
   'Todo post passa pela IA contra notícias falsas; fake news não é publicada e pode bloquear a página.',
@@ -104,6 +105,8 @@ export const PAGE_BACKGROUNDS = [
   { key: 'papel', label: 'Papel', bg: '#F1E8D8', card: '#FAF4E8', text: '#2B2620', muted: '#6B6255', line: '#E2D6BF' },
   { key: 'neve', label: 'Neve', bg: '#FFFFFF', card: '#F6F6F4', text: '#14120E', muted: '#5B564B', line: '#ECECE8' },
   { key: 'escuro', label: 'Escuro', bg: '#15130F', card: '#221F1A', text: '#F5F1E8', muted: '#B5AE9F', line: '#322E27' },
+  // Temas futuristas: degradê, luzes e desenho (src/components/ThemeArt.js). art = chave do tema.
+  ...FUTURE_THEMES.map((t) => ({ key: t.key, label: t.label, art: t.key, bg: t.to, card: t.card, text: t.text, muted: t.muted, line: t.line, accent: t.accent })),
 ];
 export const PAGE_FONTS = [
   { key: 'moderna', label: 'Moderna', family: undefined },
@@ -123,7 +126,8 @@ export function pageStyle(pg) {
   const font = PAGE_FONTS.find((f) => f.key === st.font) || PAGE_FONTS[0];
   const layout = PAGE_LAYOUTS.some((l) => l.key === st.layout) ? st.layout : 'cartoes';
   // Destaque escuro some no fundo escuro: nesse caso usa a cor do texto.
-  const accent = tone.key === 'escuro' && st.accent === '#14120E' ? tone.text : st.accent;
+  // Nos temas futuristas, o destaque padrão vira a cor de luz do tema.
+  const accent = st.accent === '#14120E' && tone.art ? tone.accent : tone.key === 'escuro' && st.accent === '#14120E' ? tone.text : st.accent;
   return { ...st, layout, tone, family: font.family, accent };
 }
 

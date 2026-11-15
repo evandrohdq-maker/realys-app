@@ -112,6 +112,8 @@ const initialState = {
   bills: D.upcomingBills,
   proposals: D.initialProposals,
   offers: D.initialOffers, // propostas que o fornecedor envia para as empresas
+  chatLists: null, // listas para classificar conversas (null = as padrão: Família, Trabalho, Clientes)
+  chatMeta: {}, // por contato: { lists: [idDaLista], pinned, archived }
   conversations: initialConversations, // Comunidade › Mensagens (também recebe respostas de stories)
   storySeen: {},
   friends: initialFriends, // amizades: { id: 'amigo' | 'enviado' | 'recebido' }
@@ -369,6 +371,7 @@ const NEEDS_BIO = new Set([
 ]);
 export const needsBio = (type) => NEEDS_BIO.has(type);
 
+const DEFAULT_CHAT_LISTS = [{ id: 'familia', name: 'Família' }, { id: 'trabalho', name: 'Trabalho' }, { id: 'clientes', name: 'Clientes' }];
 function reducer(state, a) {
   // (A primeira página é gratuita e faz parte do perfil social: essa a conta sem biometria pode criar.)
   if (state.user && state.user.verified === false && NEEDS_BIO.has(a.type) && !(a.type === 'PAGE_CREATE' && pagePrice(state) === 0)) return { ...state, bioGate: Date.now() };
@@ -834,7 +837,7 @@ function baseReducer(state, a) {
     case 'SET_PRIVACY':
       return { ...state, privacy: { ...state.privacy, ...a.privacy } };
     case 'LOAD_PROFILE':
-      return { ...state, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, userPages: a.data.myUserPages ? [...a.data.myUserPages, ...(state.userPages || []).filter((p) => p.ownerId !== 'me')] : state.userPages, followingPages: a.data.followingPages || state.followingPages, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind };
+      return { ...state, chatLists: a.data.chatLists || state.chatLists, chatMeta: a.data.chatMeta || state.chatMeta, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, userPages: a.data.myUserPages ? [...a.data.myUserPages, ...(state.userPages || []).filter((p) => p.ownerId !== 'me')] : state.userPages, followingPages: a.data.followingPages || state.followingPages, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind };
     case 'ADD_CREATION':
       return { ...state, creations: [a.item, ...state.creations] };
     case 'UPDATE_CREATION':
@@ -941,6 +944,8 @@ function baseReducer(state, a) {
     // ---------- Biometria feita depois do cadastro ----------
     case 'SET_VERIFIED':
       return state.user ? { ...state, user: { ...state.user, verified: true }, bioGate: null } : state;
+    case 'SET_UNVERIFIED': // o servidor disse que a biometria ainda não foi aprovada
+      return state.user && state.user.verified !== false ? { ...state, user: { ...state.user, verified: false } } : state;
     case 'BIO_GATE':
       return { ...state, bioGate: Date.now() };
     case 'BIO_GATE_CLOSE':
@@ -991,6 +996,18 @@ function baseReducer(state, a) {
     }
 
     // Mensagens e stories (compartilhados entre o Início e a página de Stories).
+    // ---------- Conversas: listas, fixar e arquivar ----------
+    case 'CHAT_META':
+      return { ...state, chatMeta: { ...(state.chatMeta || {}), [a.contactId]: { ...((state.chatMeta || {})[a.contactId] || {}), ...a.patch } } };
+    case 'CHAT_LIST_ADD':
+      return { ...state, chatLists: [...(state.chatLists || DEFAULT_CHAT_LISTS), a.list] };
+    case 'CHAT_LIST_REMOVE': {
+      const chatMeta = {};
+      Object.keys(state.chatMeta || {}).forEach((k) => (chatMeta[k] = { ...state.chatMeta[k], lists: (state.chatMeta[k].lists || []).filter((x) => x !== a.id) }));
+      return { ...state, chatLists: (state.chatLists || DEFAULT_CHAT_LISTS).filter((l) => l.id !== a.id), chatMeta };
+    }
+    case 'CHAT_UNREAD':
+      return { ...state, conversations: state.conversations.map((c) => (c.contactId === a.contactId ? { ...c, unread: a.unread } : c)) };
     case 'UPDATE_CONVS':
       return { ...state, conversations: a.fn(state.conversations) };
     case 'STORY_SEEN':
@@ -1883,8 +1900,8 @@ export function StoreProvider({ children }) {
   }, [profileKey]);
   useEffect(() => {
     if (!profileKey || profileLoaded.current !== profileKey) return;
-    AsyncStorage.setItem(profileKey, JSON.stringify({ myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myUserPages: (state.userPages || []).filter((p) => p.ownerId === 'me'), followingPages: state.followingPages, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, agendaRemind: state.agendaRemind })).catch(() => {});
-  }, [state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
+    AsyncStorage.setItem(profileKey, JSON.stringify({ chatLists: state.chatLists, chatMeta: state.chatMeta, myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myUserPages: (state.userPages || []).filter((p) => p.ownerId === 'me'), followingPages: state.followingPages, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, agendaRemind: state.agendaRemind })).catch(() => {});
+  }, [state.chatLists, state.chatMeta, state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
   // Cartão do SUS e agendamentos: dado de saúde, guardado no cofre criptografado do Android, por conta.
   const susKey = state.user ? `realys_sus_${String(state.user.id || state.user.cpf || state.user.cnpj || state.user.name).replace(/[^A-Za-z0-9._-]/g, '_')}` : null;
   const susLoaded = useRef(null);

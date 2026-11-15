@@ -15,6 +15,7 @@ import { STORY_SAMPLE_PHOTOS } from '../homeData';
 import { StoryViewer } from '../screens/cliente/home/Stories';
 import { privacyOf, creationsOf } from '../studioData';
 import { canSee, LockedPanel, CreationsGrid, coverTone } from './ProfileStudio';
+import ThemeArt from './ThemeArt';
 
 const first = (name) => String(name || '').split(' ')[0];
 
@@ -774,6 +775,7 @@ export function ProfilePreviewModal({ visible, onClose }) {
         </View>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 30 + insets.bottom }}>
           <View style={{ height: 96, borderRadius: 18, overflow: 'hidden', backgroundColor: coverTone(prof.coverTone).color, marginBottom: -40 }}>
+            {!prof.cover && coverTone(prof.coverTone).art ? <ThemeArt theme={coverTone(prof.coverTone).art} /> : null}
             {prof.cover ? <Photo uri={prof.cover} style={{ width: '100%', height: '100%' }} /> : null}
           </View>
           <View style={{ alignItems: 'center', marginBottom: 14 }}>

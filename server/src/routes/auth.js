@@ -3,6 +3,7 @@
 // Entrar: um campo só (usuário, CPF ou CNPJ) + senha. O tipo de acesso vem da conta, não de uma escolha.
 // Na primeira vez entra com senha; o app guarda a sessão do aparelho no cofre do celular, protegida
 // pela biometria. Nas próximas vezes a biometria libera a sessão e o app troca por um token novo.
+import { podeComprar } from '../bioGate.js';
 import { str, fail, newId, now } from '../http.js';
 import { TERMO_ADESAO_VERSAO, TERMO_ADESAO, TERMO_EMPRESA } from '../termos.js';
 import {
@@ -177,8 +178,11 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
   });
 
   // Eu: dados da conta, carteira e empresa (se tiver).
-  r.get('/me', ({ user }) => ({
+  r.get('/me', ({ user, roles }) => ({
     user: publicUser(user, { self: true }),
+    // O app usa isto para saber se a conta está completa ou no modo social (sem biometria).
+    podeComprar: podeComprar(db, cfg, user, roles || []),
+    exigeBiometria: !!cfg.exigirBiometria,
     company: db.prepare('SELECT * FROM companies WHERE owner_id = ?').get(user.id) || null,
     provider: db.prepare('SELECT * FROM providers WHERE user_id = ?').get(user.id) || null,
   }));

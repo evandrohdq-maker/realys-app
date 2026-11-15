@@ -4,19 +4,45 @@
 // nada até fazer a biometria.
 // Aqui ficam: a regra das telas liberadas, a tela de "falta a biometria", o aviso do Perfil e a
 // janela que aparece quando a pessoa tenta comprar ou contratar.
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal, Alert } from 'react-native';
 import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
 import { colors, soft } from '../theme';
 import { confirmBiometric, markVerified } from '../accounts';
+import { api, serverOn, onBioBlocked } from '../api';
 
 // A conta sem biometria navega por tudo (Shop, Food, Serviços, Negócios…) e vê preços e vitrines
 // normalmente. O que não passa é a compra ou a contratação: essas ações param no store (NEEDS_BIO)
 // e abrem a janela "falta só a biometria".
 export const isVerified = (state) => !state.user || state.user.verified !== false;
 export const canOpenTab = () => true;
+
+// Com o servidor ligado, quem manda é ele: ao entrar, o app pergunta se a conta pode comprar
+// (biometria aprovada) e acerta o modo da conta. Se o servidor recusar uma compra por falta de
+// biometria, o mesmo aviso aparece. Sem servidor (demonstração), vale só a regra do app.
+export function useServerBio() {
+  const { state, dispatch } = useStore();
+  const uid = state.user ? state.user.id || state.user.cpf || state.user.name : null;
+  useEffect(() => {
+    onBioBlocked(() => dispatch({ type: 'BIO_GATE' }));
+    return () => onBioBlocked(null);
+  }, [dispatch]);
+  useEffect(() => {
+    if (!uid || !serverOn()) return;
+    let alive = true;
+    api('GET', '/me')
+      .then((me) => {
+        if (!alive || !me || !me.exigeBiometria) return;
+        dispatch({ type: me.podeComprar ? 'SET_VERIFIED' : 'SET_UNVERIFIED' });
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [uid, dispatch]);
+}
 
 // Faz a biometria agora e libera a conta. Devolve true se liberou.
 export function useVerify() {

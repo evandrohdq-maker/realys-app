@@ -16,6 +16,9 @@ export const API_URL = String((Constants.expoConfig && Constants.expoConfig.extr
 export const serverOn = () => !!API_URL;
 
 let accessToken = null;
+// Quem o app chama quando o servidor responde "biometria não cadastrada" (definido em BioGate.js).
+let bioBlocked = null;
+export const onBioBlocked = (fn) => (bioBlocked = fn);
 let refreshing = null;
 
 export class ApiError extends Error {
@@ -41,6 +44,8 @@ async function raw(method, path, body, headers = {}) {
     throw new ApiError(0, 'Sem conexão com o Re@lys. Confira sua internet.');
   }
   const data = await res.json().catch(() => ({}));
+  // O servidor recusou por falta de biometria: o app abre o aviso "Biometria não cadastrada".
+  if (!res.ok && data.code === 'biometria' && bioBlocked) bioBlocked();
   if (!res.ok) throw new ApiError(res.status, data.error || 'Algo deu errado. Tente de novo.', data.code);
   return data;
 }

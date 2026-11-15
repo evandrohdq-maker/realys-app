@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { colors, soft } from '../theme';
 import { Row, Input, Button, Photo } from './ui';
+import ThemeArt from './ThemeArt';
 import { pageById, signatureOf, categoryOfPage, pageStyle, pageNameProblem, PAGE_ACCENTS, PAGE_BACKGROUNDS, PAGE_FONTS, PAGE_LAYOUTS, PAGE_CATEGORIES } from '../userPages';
 import { moderateText } from '../moderation';
 import { checkText } from '../lm/factCheck';
@@ -80,7 +81,8 @@ function PageEditor({ pg, visible, onClose }) {
         </View>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 + insets.bottom }} keyboardShouldPersistTaps="handled">
           {/* Prévia ao vivo do estilo escolhido */}
-          <View style={[st.pv, { backgroundColor: th.tone.bg, borderColor: th.tone.line }]}>
+          <View style={[st.pv, { backgroundColor: th.tone.bg, borderColor: th.tone.line, overflow: 'hidden' }]}>
+            {th.tone.art ? <ThemeArt theme={th.tone.art} /> : null}
             <Photo uri={f.cover} style={st.pvCover} fallback="📄" />
             <View style={{ padding: 12 }}>
               <Text style={{ color: th.tone.text, fontWeight: '800', fontSize: 18, fontFamily: th.family }} numberOfLines={1}>{f.name || 'Nome da página'}</Text>
@@ -119,7 +121,7 @@ function PageEditor({ pg, visible, onClose }) {
             ))}
           </View>
 
-          <Text style={st.label}>Fundo</Text>
+          <Text style={st.label}>Fundo e tema</Text>
           <View style={st.wrapRow}>
             {PAGE_BACKGROUNDS.map((b) => (
               <Opt key={b.key} on={f.style.bg === b.key} label={b.label} onPress={() => setStyle({ bg: b.key })} />
@@ -217,6 +219,7 @@ export default function UserPageModal() {
   return (
     <Modal visible animationType="slide" onRequestClose={close} statusBarTranslucent>
       <View style={[st.wrap, { paddingTop: insets.top, paddingBottom: insets.bottom, backgroundColor: T.bg }]}>
+        {T.art ? <ThemeArt theme={T.art} /> : null}
         <ScrollView keyboardShouldPersistTaps="handled">
           <View>
             <Photo uri={pg.cover} style={st.cover} fallback="📄" />

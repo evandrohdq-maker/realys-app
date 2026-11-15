@@ -11,6 +11,7 @@ import { ChatModal, VideoCallModal, LiveModal } from './Social';
 import LivesTab from './LivesTab';
 import NewsTab from './NewsTab';
 import StreamTab from './StreamTab';
+import ConvList from '../../../components/ConvList';
 import { members, memberByName } from '../../../people';
 import { PeopleSearchModal, PersonRow } from '../../../components/People';
 import { LaunchStrip } from '../../../components/Launches';
@@ -801,34 +802,7 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
         </View>
       ) : null}
 
-      {seg === 'msgs' ? (
-        <View>
-          {convs.map((c) => {
-            const ct = contactOf(c.contactId);
-            if (!ct) return null;
-            const last = c.messages[c.messages.length - 1];
-            return (
-              <TouchableOpacity key={c.id} style={styles.convRow} onPress={() => onChat(ct)} activeOpacity={0.85}>
-                <Photo uri={ct.photo} style={styles.convAvatar} fallback="🙂" />
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={{ color: colors.text, fontWeight: '700' }}>{ct.name}</Text>
-                  <Text numberOfLines={1} style={{ color: c.unread ? colors.text : colors.muted, fontSize: 13, marginTop: 2 }}>
-                    {last ? (last.from === 'me' ? 'Você: ' : '') + last.text : 'Nova conversa'}
-                  </Text>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={{ color: colors.muted, fontSize: 11 }}>{last ? last.time : ''}</Text>
-                  {c.unread ? (
-                    <View style={[styles.unread, { marginTop: 4, marginLeft: 0 }]}>
-                      <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '700' }}>{c.unread}</Text>
-                    </View>
-                  ) : null}
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      ) : null}
+      {seg === 'msgs' ? <ConvList convs={convs} contactOf={contactOf} onChat={onChat} /> : null}
 
       {seg === 'contatos' ? (
         <View>

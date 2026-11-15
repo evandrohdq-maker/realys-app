@@ -246,3 +246,18 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
 - [x] Publicidade avulsa (story R$ 9,90; buscas R$ 14,90/dia ou R$ 79,90/semana; banner R$ 39,90/dia ou
       R$ 199,90/semana) aparece na oferta do plano da loja.
 - [x] Conta sem biometria navega normalmente em Shop, Food e Serviços; só a compra e a contratação pedem a biometria.
+
+## Servidor pronto para a biometria, conversas organizadas e temas futuristas — novembro de 2026
+
+- [x] Servidor: compra, chamado de serviço, pagamento, carteira e presentes só com biometria aprovada
+      (`server/src/bioGate.js`, liga com `EXIGIR_BIOMETRIA=true`; em produção já vem ligado). Resposta 403
+      com código `biometria`; o app abre o aviso "Biometria não cadastrada". `/me` devolve `podeComprar`.
+- [x] Conversas: listas para classificar contatos (Família, Trabalho, Clientes e as que a pessoa criar),
+      não lidas, fixar no topo, arquivar e busca. Segurar a conversa abre as opções.
+- [x] Temas futuristas (Neon, Aurora, Cyber, Holograma, Galáxia, Ouro digital) para o fundo das páginas
+      e para a capa do perfil (`src/components/ThemeArt.js`).
+- [ ] O login do app ainda é local: quando o servidor entrar no ar, ligar cadastro/login ao servidor para
+      a trava valer de ponta a ponta (hoje o app só consulta `/me` se já houver sessão com o servidor).
+- [ ] Servidor ainda não tem as rotas de plano da loja, páginas pagas, anúncios e Negócios; quando forem
+      criadas, incluir em `ROTAS_COM_BIOMETRIA`.
+- [ ] Listas e conversas arquivadas ficam salvas só no celular.

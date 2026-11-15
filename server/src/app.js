@@ -20,6 +20,7 @@ import servicesRoutes from './routes/services.js';
 import livesRoutes from './routes/lives.js';
 import mediaRoutes from './routes/media.js';
 import adminRoutes from './routes/admin.js';
+import { exigirBiometria } from './bioGate.js';
 import biometriaRoutes from './routes/biometria.js';
 import videoRoutes from './routes/video.js';
 import { makeCipher, parseKeys } from './crypto.js';
@@ -111,6 +112,8 @@ export function createApp(cfg) {
         if (!ctx.user) throw new HttpError(401, 'Sessão expirada. Entre de novo.', 'sem_sessao');
         ctx.roles = JSON.parse(ctx.user.roles);
         if (route.opts.auth === 'admin' && !ctx.roles.includes('admin')) throw new HttpError(403, 'Só o administrador pode fazer isso.');
+        // Compra, contratação e carteira: só com a biometria aprovada (src/bioGate.js).
+        exigirBiometria(db, cfg, route, req.method, ctx.user, ctx.roles);
       }
       if (route.opts.raw) ctx.raw = await readBody(req, cfg.maxUploadMb * 1024 * 1024);
       else if (req.method !== 'GET' && req.method !== 'DELETE') {

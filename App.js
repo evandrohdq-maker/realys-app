@@ -84,7 +84,7 @@ import ArenaScreen from './src/screens/cliente/ArenaScreen';
 import RadiosScreen from './src/screens/cliente/RadiosScreen';
 import { RadioHost, RadioMiniBar } from './src/components/RadioKit';
 import { TvFloat, LiveFloat } from './src/components/FloatPlayers';
-import { BioGateModal, LockedScreen, canOpenTab, isVerified } from './src/components/BioGate';
+import { BioGateModal, LockedScreen, canOpenTab, isVerified, useServerBio } from './src/components/BioGate';
 import HRScreen from './src/screens/empresa/HRScreen';
 import { TechScreen, AgroScreen } from './src/screens/cliente/TechAgroScreen';
 import { ElectronicsScreen, FashionScreen, HomeGoodsScreen, AppliancesScreen, FurnitureScreen, VariousScreen, EXTRA_SECTOR_KEYS, SECTOR_SCREENS } from './src/screens/cliente/ShopSectorScreen';
@@ -172,6 +172,7 @@ function Shell() {
   const { state, dispatch } = useStore();
   // Conta sem biometria usa só o perfil de usuário (modo social).
   const verified = isVerified(state);
+  useServerBio();
   const tabs = TABS[verified ? state.activeRole : TABS.cliente ? 'cliente' : state.activeRole] || TABS[state.activeRole];
   const [tab, setTabRaw] = useState(tabs[0].key);
   // Caminho percorrido (para o botão voltar do celular): [{ role, tab }]

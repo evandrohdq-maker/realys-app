@@ -3,6 +3,7 @@
 //  • Estúdio (portfólio de trabalhos e criações: música, vídeo, arte, foto, projeto) — cada criação
 //    escolhe onde aparece: no Social, no Portfólio e/ou na parte Empresarial (página do CNPJ).
 // Também: editar o perfil e o "modo invisível" (não expor o perfil para ninguém).
+import ThemeArt, { FUTURE_THEMES } from './ThemeArt';
 import React, { useEffect, useRef, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, Modal, ScrollView, Switch, Alert, Animated, Easing } from 'react-native';
 import { Text, TextInput } from '../responsive';
@@ -151,6 +152,8 @@ export const COVER_TONES = [
   { key: 'rose', label: 'Rosé', color: '#EFDFE2' },
   { key: 'lavanda', label: 'Lavanda', color: '#E5DFEE' },
   { key: 'grafite', label: 'Grafite', color: '#2B2925' },
+  // Temas futuristas (degradê, luzes e desenho): src/components/ThemeArt.js
+  ...FUTURE_THEMES.map((t) => ({ key: t.key, label: t.label, color: t.to, art: t.key })),
 ];
 export const coverTone = (key) => COVER_TONES.find((t) => t.key === key) || COVER_TONES[0];
 
@@ -200,6 +203,7 @@ export function ProfileEditor({ visible, onClose }) {
           {/* Capa de fundo: foto da galeria ou um tom suave */}
           <Text style={styles.label}>Capa de fundo</Text>
           <View style={{ height: 84, borderRadius: 14, overflow: 'hidden', backgroundColor: coverTone(f.coverTone).color, marginBottom: 8 }}>
+            {!f.cover && coverTone(f.coverTone).art ? <ThemeArt theme={coverTone(f.coverTone).art} /> : null}
             {f.cover ? <Photo uri={f.cover} style={{ width: '100%', height: '100%' }} /> : null}
           </View>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -210,8 +214,10 @@ export function ProfileEditor({ visible, onClose }) {
                   key={t.key}
                   onPress={() => setF({ ...f, cover: null, coverTone: t.key })}
                   accessibilityLabel={`Capa em tom ${t.label}`}
-                  style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: t.color, marginRight: 8, marginBottom: 8, borderWidth: on ? 2.5 : 1, borderColor: on ? colors.text : colors.borderStrong }}
-                />
+                  style={{ width: 34, height: 34, borderRadius: 17, overflow: 'hidden', backgroundColor: t.color, marginRight: 8, marginBottom: 8, borderWidth: on ? 2.5 : 1, borderColor: on ? colors.text : colors.borderStrong }}
+                >
+                  {t.art ? <ThemeArt theme={t.art} /> : null}
+                </TouchableOpacity>
               );
             })}
             <TouchableOpacity

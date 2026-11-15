@@ -38,6 +38,9 @@ export function loadConfig(overrides = {}) {
     // Fase de testes: depósito entra na hora como "depósito de teste" (sem Pix de verdade).
     // Desligado, o depósito fica pendente até o administrador confirmar.
     testDeposits: bool(env.TEST_DEPOSITS, true),
+    // Conta sem biometria aprovada é só perfil social: não compra, não contrata e não usa a carteira.
+    // Em produção já vem ligado; nos testes locais fica desligado para não travar a demonstração.
+    exigirBiometria: bool(env.EXIGIR_BIOMETRIA, production),
     // Regras de dinheiro (mesmas do app). Valores em reais.
     giftFeePct: num(env.GIFT_FEE_PCT, 10), // 10%, descontado do presente (igual ao app)
     giftFeeMin: num(env.GIFT_FEE_MIN, 0),
