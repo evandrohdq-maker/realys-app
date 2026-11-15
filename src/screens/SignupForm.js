@@ -93,8 +93,8 @@ export default function SignupForm({ onDone, onGoLogin }) {
         bio === 'ok'
           ? `Bem-vindo ao Re@lys, ${account.name.split(' ')[0]}. Sua identidade foi confirmada pela biometria.`
           : bio === 'sem'
-          ? `Bem-vindo ao Re@lys, ${account.name.split(' ')[0]}. Este celular não tem digital nem rosto cadastrados, então sua conta começa no modo social: dá para interagir, mas não comprar nem usar serviços. Cadastre a biometria no aparelho e libere a conta pelo Perfil.`
-          : `Bem-vindo ao Re@lys, ${account.name.split(' ')[0]}. Sua conta começa no modo social: dá para interagir, mas não comprar nem usar serviços. Quando quiser liberar tudo, faça a biometria no Perfil.`,
+          ? `Bem-vindo ao Re@lys, ${account.name.split(' ')[0]}. Este celular não tem digital nem rosto cadastrados, então sua conta começa no modo social: dá para interagir e navegar por tudo, mas não comprar nem contratar. Cadastre a biometria no aparelho e libere a conta pelo Perfil.`
+          : `Bem-vindo ao Re@lys, ${account.name.split(' ')[0]}. Sua conta começa no modo social: dá para interagir e navegar por tudo, mas não comprar nem contratar. Quando quiser liberar tudo, faça a biometria no Perfil.`,
         [{ text: 'Entrar', onPress: () => onDone(account, remember) }]
       );
     } finally {
@@ -336,7 +336,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
       {/* Sem biometria agora: a conta nasce no modo social (não compra nem usa serviços). */}
       <TouchableOpacity style={{ paddingVertical: 14, alignItems: 'center' }} onPress={() => submit(true)} disabled={busy} activeOpacity={0.7} accessibilityLabel="Criar a conta sem biometria por enquanto">
         <Text style={{ color: colors.text, fontWeight: '700' }}>Fazer a biometria depois</Text>
-        <Text style={{ color: colors.muted, fontSize: 12, marginTop: 3, textAlign: 'center' }}>Você entra só no modo social: interage, mas não compra nem usa serviços até fazer a biometria.</Text>
+        <Text style={{ color: colors.muted, fontSize: 12, marginTop: 3, textAlign: 'center' }}>Você entra, interage e navega por tudo, mas só compra ou contrata depois de fazer a biometria.</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={authStyles.link} onPress={onGoLogin}>

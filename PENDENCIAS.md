@@ -245,3 +245,4 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
       Pedidos ganhou a aba "Aguardando" (chamados, interesses e pedidos esperando retorno).
 - [x] Publicidade avulsa (story R$ 9,90; buscas R$ 14,90/dia ou R$ 79,90/semana; banner R$ 39,90/dia ou
       R$ 199,90/semana) aparece na oferta do plano da loja.
+- [x] Conta sem biometria navega normalmente em Shop, Food e Serviços; só a compra e a contratação pedem a biometria.

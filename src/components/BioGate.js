@@ -1,7 +1,7 @@
 // Conta sem biometria: perfil só social.
 // O cadastro pede documento e biometria. Quem prefere deixar a biometria para depois entra e usa
-// a parte social (Community, News, Stream, Lives, Reels, páginas e o próprio perfil), mas não
-// compra, não contrata e não usa serviço nenhum até fazer a biometria.
+// a parte social e navega normalmente pelo Shop, Food e Serviços, mas não compra nem contrata
+// nada até fazer a biometria.
 // Aqui ficam: a regra das telas liberadas, a tela de "falta a biometria", o aviso do Perfil e a
 // janela que aparece quando a pessoa tenta comprar ou contratar.
 import React, { useState } from 'react';
@@ -12,10 +12,11 @@ import { useStore } from '../store';
 import { colors, soft } from '../theme';
 import { confirmBiometric, markVerified } from '../accounts';
 
-// Telas que a conta sem biometria pode abrir. O SOS fica sempre liberado: emergência não espera.
-export const SOCIAL_TABS = ['stories', 'reels', 'perfil', 'paginas', 'radios', 'arena', 'socorro'];
+// A conta sem biometria navega por tudo (Shop, Food, Serviços, Negócios…) e vê preços e vitrines
+// normalmente. O que não passa é a compra ou a contratação: essas ações param no store (NEEDS_BIO)
+// e abrem a janela "falta só a biometria".
 export const isVerified = (state) => !state.user || state.user.verified !== false;
-export const canOpenTab = (state, key) => isVerified(state) || SOCIAL_TABS.includes(key);
+export const canOpenTab = () => true;
 
 // Faz a biometria agora e libera a conta. Devolve true se liberou.
 export function useVerify() {
@@ -43,7 +44,7 @@ export function useVerify() {
 }
 
 const POINTS = [
-  ['chatbubbles-outline', 'Liberado agora', 'Community, News, Stream, Lives, Reels, páginas e o seu perfil.'],
+  ['chatbubbles-outline', 'Liberado agora', 'Navegar no Shop, Food e Serviços, ver preços, e usar a Community, News, Stream, Lives, Reels, páginas e o seu perfil.'],
   ['lock-closed-outline', 'Liberado com a biometria', 'Comprar, pedir comida, contratar serviços, anunciar, carteira e presentes.'],
 ];
 
@@ -55,7 +56,7 @@ function Body({ onLater }) {
         <Ionicons name="finger-print" size={30} color={colors.text} />
       </View>
       <Text style={st.title}>Falta só a biometria</Text>
-      <Text style={st.text}>Sua conta está no modo social. Para comprar e usar os serviços do Re@lys, a gente precisa confirmar que é você: é isso que mantém a plataforma só com gente de verdade.</Text>
+      <Text style={st.text}>Você pode olhar tudo à vontade. Para comprar ou contratar pelo Re@lys, a gente precisa confirmar que é você: é isso que mantém a plataforma só com gente de verdade.</Text>
       {POINTS.map(([icon, t, d]) => (
         <View key={t} style={st.row}>
           <Ionicons name={icon} size={17} color={colors.menu} />
