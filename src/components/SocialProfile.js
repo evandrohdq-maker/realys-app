@@ -332,7 +332,7 @@ export function TestimonialFeed() {
 }
 
 // Aba de depoimentos dentro de um perfil.
-function TestimonialsTab({ ownerId }) {
+export function TestimonialsTab({ ownerId }) {
   const { state, dispatch } = useStore();
   const person = usePerson();
   const owner = person(ownerId);

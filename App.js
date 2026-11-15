@@ -493,11 +493,11 @@ function Shell() {
               if (t.key === 'stories') setExplore({ tab: 'stories', at: Date.now() });
               setTab(t.key);
             }}>
-              {/* Aba ativa: ícone dourado dentro de uma pílula clarinha */}
-              <View style={[styles.tabIcon, on && styles.tabIconOn]}>
-                <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={21} color={on ? colors.text : colors.menu} />
+              {/* Aba ativa: sem fundo, só o ícone e o nome em dourado */}
+              <View style={styles.tabIcon}>
+                <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={21} color={on ? colors.primary : colors.menu} />
               </View>
-              <Text numberOfLines={1} style={[styles.tabLabel, on && { color: colors.text, fontWeight: '800' }]}>{t.label}</Text>
+              <Text numberOfLines={1} style={[styles.tabLabel, on && { color: colors.primary, fontWeight: '800' }]}>{t.label}</Text>
             </TouchableOpacity>
           );
         })}

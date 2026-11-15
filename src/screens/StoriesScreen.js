@@ -28,6 +28,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
   const [reeling, setReeling] = useState(false); // publicar um Reel (vídeo curto)
   // Barra do topo: Notícias, Eventos, Stream (rádios e TV online) e Lives.
   const [top, setTop] = useState('comunidade');
+  const [kick, setKick] = useState(0);
   useBack(top !== 'comunidade', () => setTop('comunidade'));
   useEffect(() => {
     if (!explore || explore.tab !== 'stories') return;
@@ -77,8 +78,9 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <TopTabs items={COMMUNITY_TOP.filter((t) => t.key !== 'comunidade' && !t.hidden)} value={top} onChange={(k) => setTop(k === top ? 'comunidade' : k)} />
-      <CommunityExtras top={top} explore={explore} navigate={navigate} />
+      <TopTabs items={COMMUNITY_TOP.filter((t) => t.key !== 'comunidade' && !t.hidden)} value={top} onChange={(k) => (k === top ? setKick((n) => n + 1) : setTop(k))} />
+      {/* Tocar de novo no mesmo botão volta ao topo da página (a tela é remontada no início). */}
+      <CommunityExtras key={kick} top={top} explore={explore} navigate={navigate} />
       {top === 'comunidade' ? (
       <CommunityHub
         explore={explore}

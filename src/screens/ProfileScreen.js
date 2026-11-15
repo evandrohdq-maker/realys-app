@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { GuaranteeInfo } from '../components/Guarantee';
 import { ScoreCard } from '../components/Engage';
-import { View, TouchableOpacity, Switch, Alert, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Switch, Alert, StyleSheet, Modal, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { askMicPermission, wakeWordSupported } from '../wakeWord';
@@ -14,7 +15,7 @@ import { Screen, Title, Card, Row, Button, Badge } from '../components/ui';
 import UpdateChecker from '../components/UpdateChecker';
 import { VERSION_LABEL } from '../updates';
 import { getSavedUsers, forgetUser } from '../accounts';
-import { ProfileSocial, ProfilePreviewModal } from '../components/SocialProfile';
+import { ProfileSocial, ProfilePreviewModal, TestimonialsTab } from '../components/SocialProfile';
 import { PeopleSearchModal } from '../components/People';
 import { UnverifiedBanner, isVerified } from '../components/BioGate';
 import ThemeArt from '../components/ThemeArt';
@@ -58,6 +59,15 @@ export default function ProfileScreen({ navigate, explore }) {
   const [previewing, setPreviewing] = useState(false); // ver o perfil como os outros veem
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [focus, setFocus] = useState(null); // aba aberta pelos números do topo
+  const [depOpen, setDepOpen] = useState(false); // página com todos os depoimentos
+  const insets = useSafeAreaInsets();
+  const scrollRef = React.useRef(null);
+  const socialY = React.useRef(0);
+  // Fotos e vídeos: abre a aba de fotos e rola a tela até elas.
+  const goPhotos = () => {
+    setFocus({ tab: 'photos', n: Date.now() });
+    setTimeout(() => scrollRef.current && scrollRef.current.scrollTo({ y: Math.max(0, socialY.current - 8), animated: true }), 60);
+  };
   const [bioOpen, setBioOpen] = useState(false);
   const [demoOpen, setDemoOpen] = useState(false);
   const [quizOpen, setQuizOpen] = useState(false);
@@ -113,7 +123,7 @@ export default function ProfileScreen({ navigate, explore }) {
   const roleOn = (r) => state.activeRole === r;
 
   return (
-    <Screen>
+    <Screen scrollRef={scrollRef}>
       {/* Cabeçalho: foto, nome verificado, @ e profissão, perfil social e bio. */}
       {/* Conta sem biometria: aviso para completar o cadastro */}
       <UnverifiedBanner />
@@ -177,25 +187,25 @@ export default function ProfileScreen({ navigate, explore }) {
               style={styles.stat}
               activeOpacity={0.7}
               accessibilityLabel={`${n} ${label}`}
-              onPress={() => (label === 'Amigos' ? setFriendsOpen(true) : setFocus({ tab: label === 'Depoimentos' ? 'dep' : 'photos', n: Date.now() }))}
+              onPress={() => (label === 'Amigos' ? setFriendsOpen(true) : label === 'Depoimentos' ? setDepOpen(true) : goPhotos())}
             >
               <Text style={styles.statN}>{n}</Text>
               <Text style={styles.statL}>{label}</Text>
             </TouchableOpacity>
           ))}
         </View>
-        <View style={{ flexDirection: 'row', marginTop: 14, alignSelf: 'stretch' }}>
-          <TouchableOpacity onPress={() => setEditing(true)} style={styles.editBtn} activeOpacity={0.85} accessibilityLabel="Editar perfil">
-            <Ionicons name="create-outline" size={16} color={colors.onPrimary} />
-            <Text style={{ color: colors.onPrimary, fontWeight: '800', marginLeft: 6 }}>Editar perfil</Text>
+        <View style={{ flexDirection: 'row', marginTop: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <TouchableOpacity onPress={() => setEditing(true)} style={[styles.privPill, { marginRight: 8 }]} activeOpacity={0.85} accessibilityLabel="Editar perfil">
+            <Ionicons name="create-outline" size={14} color={colors.text} />
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>Editar</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => dispatch({ type: 'SET_PRIVACY', privacy: { exposed: !priv.exposed } })} style={[styles.privPill, !priv.exposed && { borderColor: colors.accent }]} accessibilityLabel={priv.exposed ? 'Deixar perfil invisível' : 'Expor meu perfil'}>
-            <Ionicons name={priv.exposed ? 'eye' : 'eye-off'} size={15} color={priv.exposed ? colors.text : colors.accent} />
+            <Ionicons name={priv.exposed ? 'eye' : 'eye-off'} size={14} color={priv.exposed ? colors.text : colors.accent} />
             <Text style={{ color: priv.exposed ? colors.text : colors.accent, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>{priv.exposed ? 'Exposto' : 'Invisível'}</Text>
           </TouchableOpacity>
           {/* Ver como o perfil aparece para os outros */}
           <TouchableOpacity onPress={() => setPreviewing(true)} style={[styles.privPill, { marginLeft: 8 }]} accessibilityLabel="Ver como o meu perfil aparece para os outros">
-            <Ionicons name="scan-outline" size={15} color={colors.text} />
+            <Ionicons name="scan-outline" size={14} color={colors.text} />
             <Text style={{ color: colors.text, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>Prévia</Text>
           </TouchableOpacity>
         </View>
@@ -214,7 +224,24 @@ export default function ProfileScreen({ navigate, explore }) {
       </TouchableOpacity>
 
       {/* O que os amigos veem: destaques, fotos, vídeos e depoimentos aceitos. */}
-      <ProfileSocial ownerId="me" focus={focus} />
+      <View onLayout={(e) => (socialY.current = e.nativeEvent.layout.y)}>
+        <ProfileSocial ownerId="me" focus={focus} />
+      </View>
+
+      {/* Página com todos os depoimentos (abre pelo número "Depoimentos" lá em cima) */}
+      <Modal visible={depOpen} animationType="slide" onRequestClose={() => setDepOpen(false)}>
+        <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10 }}>
+            <TouchableOpacity onPress={() => setDepOpen(false)} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }} accessibilityLabel="Voltar">
+              <Ionicons name="chevron-back" size={24} color={colors.text} />
+            </TouchableOpacity>
+            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 18, marginLeft: 4 }}>Depoimentos</Text>
+          </View>
+          <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 30 + insets.bottom }} keyboardShouldPersistTaps="handled">
+            <TestimonialsTab ownerId="me" />
+          </ScrollView>
+        </View>
+      </Modal>
 
       {/* Todo o resto fica guardado aqui, sem poluir o perfil. */}
       <Text style={styles.moreTitle}>Mais opções</Text>
@@ -419,7 +446,7 @@ const styles = StyleSheet.create({
   itemBody: { paddingHorizontal: 14, paddingBottom: 14 },
   roleChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18, borderWidth: 1, borderColor: colors.border, marginRight: 8, marginBottom: 8, backgroundColor: '#FFFFFF' },
   roleChipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  privPill: { flexDirection: 'row', alignItems: 'center', minHeight: 38, paddingHorizontal: 12, borderRadius: 19, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card },
+  privPill: { flexDirection: 'row', alignItems: 'center', minHeight: 30, paddingHorizontal: 11, borderRadius: 19, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card },
   wallet: {
     flexDirection: 'row',
     alignItems: 'center',
