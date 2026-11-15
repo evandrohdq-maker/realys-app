@@ -3,6 +3,7 @@
 // na sala de voz do time ao abrir a live e a Arena mostra que ele está lá.
 // Guardado enquanto o app está aberto (sai da tela e volta, as mensagens continuam).
 import { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const now = Date.now();
 const m = (min) => now - min * 60000;
@@ -87,10 +88,46 @@ export function setArenaVoice(v) {
   emit();
 }
 
+// ---------- Opções por usuário (como no Discord) ----------
+// Para cada pessoa eu guardo, só para mim: silenciar a voz dela, o volume dela (0 a 200%),
+// ignorar (esconde as mensagens), bloquear, pedido de amizade e um apelido/nota.
+// Fica salvo no celular.
+const PREFS_KEY = 'realys.arena.prefs.v1';
+let prefs = {};
+let prefsLoaded = false;
+export const ARENA_PREF_DEFAULT = { muted: false, volume: 100, ignored: false, blocked: false, friend: null, note: '' };
+export const arenaPref = (name) => ({ ...ARENA_PREF_DEFAULT, ...(prefs[name] || {}) });
+export function setArenaPref(name, patch) {
+  prefs = { ...prefs, [name]: { ...arenaPref(name), ...patch } };
+  AsyncStorage.setItem(PREFS_KEY, JSON.stringify(prefs)).catch(() => {});
+  emit();
+}
+export function loadArenaPrefs() {
+  if (prefsLoaded) return;
+  prefsLoaded = true;
+  AsyncStorage.getItem(PREFS_KEY)
+    .then((raw) => {
+      if (!raw) return;
+      prefs = { ...JSON.parse(raw), ...prefs };
+      emit();
+    })
+    .catch(() => {});
+}
+// Tira a pessoa do servidor (dono ou moderador) ou só da sala de voz.
+export function arenaKick(sid, name, { voiceOnly = false } = {}) {
+  servers = servers.map((s) =>
+    s.id !== sid
+      ? s
+      : { ...s, members: voiceOnly ? s.members : s.members.filter((x) => x.name !== name), channels: s.channels.map((c) => (c.kind === 'voice' ? { ...c, inVoice: dropMe(c.inVoice, name) } : c)) }
+  );
+  emit();
+}
+
 // Para as telas: redesenha quando os servidores ou a sala de voz mudam.
 export function useArena() {
   const [, tick] = useState(0);
   useEffect(() => {
+    loadArenaPrefs();
     const fn = () => tick((n) => n + 1);
     subs.add(fn);
     return () => subs.delete(fn);

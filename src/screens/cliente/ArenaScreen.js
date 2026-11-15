@@ -14,7 +14,8 @@ import { useStore } from '../../store';
 import { colors } from '../../theme';
 import { moderateText } from '../../moderation';
 import { useBack } from '../../back';
-import { useArena } from '../../arena';
+import { useArena, arenaPref } from '../../arena';
+import ArenaUserSheet from '../../components/ArenaUserSheet';
 
 const D = { bg: '#F7F5EF', rail: '#EDE8DA', card: '#FFFFFF', text: '#1B1B1F', muted: '#7A7468', gold: '#B8860B', online: '#2FB463', idle: '#E0A92B', dnd: '#E5484D' };
 const ROLE = { dono: { label: 'Dono', color: '#B8860B' }, mod: { label: 'Moderador', color: '#3B82F6' }, membro: { label: 'Membro', color: '#1B1B1F' } };
@@ -66,6 +67,8 @@ export default function ArenaScreen({ explore }) {
     }
   }, [explore]);
   const [mic, setMic] = useState(true);
+  const [userOpen, setUserOpen] = useState(null); // pessoa com as opções abertas (silenciar, volume, bloquear…)
+  const openUser = (name) => name && name !== me && setUserOpen(name);
   const [deaf, setDeaf] = useState(false);
   const [members, setMembers] = useState(false);
   const [create, setCreate] = useState(null);
@@ -187,8 +190,18 @@ export default function ArenaScreen({ explore }) {
             const mem = sv.members.find((x) => x.name === msg.who) || {};
             const role = ROLE[mem.role] || ROLE.membro;
             const mention = msg.text.includes('@' + me);
+            const pf = msg.who === me ? null : arenaPref(msg.who);
+            // Bloqueado: a mensagem nem aparece. Ignorado: fica recolhida; tocar abre as opções da pessoa.
+            if (pf && pf.blocked) return null;
+            if (pf && pf.ignored)
+              return (
+                <TouchableOpacity key={i} onPress={() => openUser(msg.who)} style={[st.msg, { opacity: 0.6 }]} accessibilityLabel={`Mensagem de ${msg.who}, que você ignorou`}>
+                  <Ionicons name="eye-off-outline" size={16} color={D.muted} style={{ width: 38, textAlign: 'center' }} />
+                  <Text style={{ color: D.muted, fontSize: 12.5, marginLeft: 10, flex: 1 }}>Mensagem de {msg.who.split(' ')[0]}, que você ignorou.</Text>
+                </TouchableOpacity>
+              );
             return (
-              <TouchableOpacity key={i} activeOpacity={0.8} onLongPress={() => setReact({ i })} style={[st.msg, mention && st.msgMention]}>
+              <TouchableOpacity key={i} activeOpacity={0.8} onPress={() => openUser(msg.who)} onLongPress={() => setReact({ i })} style={[st.msg, mention && st.msgMention]}>
                 <Avatar name={msg.who} size={38} />
                 <View style={{ flex: 1, marginLeft: 10 }}>
                   <Text>
@@ -225,7 +238,8 @@ export default function ArenaScreen({ explore }) {
             </View>
           </TouchableOpacity>
         </Modal>
-        <MembersModal open={members} onClose={() => setMembers(false)} sv={sv} />
+        <MembersModal open={members} onClose={() => setMembers(false)} sv={sv} me={me} onUser={(n) => { setMembers(false); openUser(n); }} />
+        <ArenaUserSheet name={userOpen} sv={sv} me={me} myRole={myRole} onClose={() => setUserOpen(null)} onMention={(n) => setDraft((d) => `${d}${d && !d.endsWith(' ') ? ' ' : ''}@${n} `)} />
       </KeyboardAvoidingView>
     );
   }
@@ -302,30 +316,34 @@ export default function ArenaScreen({ explore }) {
                   <Text style={st.chanCount}>{(c.inVoice || []).length ? `${(c.inVoice || []).length} na voz` : 'Entrar'}</Text>
                 </TouchableOpacity>
                 {(c.inVoice || []).map((n, k) => (
-                  <View key={n} style={st.voiceUser}>
-                    <Avatar name={n} size={24} speaking={n !== me ? k % 2 === 0 : mic && inIt} />
-                    <Text style={{ marginLeft: 8, color: D.text }}>{n === me ? `${n} (você)` : n}</Text>
+                  <TouchableOpacity key={n} style={st.voiceUser} onPress={() => openUser(n)} activeOpacity={n === me ? 1 : 0.7} accessibilityLabel={n === me ? 'Você' : `Opções de ${n}`}>
+                    <Avatar name={n} size={24} speaking={n !== me ? k % 2 === 0 && !deaf && !arenaPref(n).muted && !arenaPref(n).blocked : mic && inIt} />
+                    <Text style={{ marginLeft: 8, color: D.text, flexShrink: 1 }} numberOfLines={1}>{n === me ? `${n} (você)` : n}</Text>
                     {n === me && !mic ? <Ionicons name="mic-off" size={14} color={D.dnd} style={{ marginLeft: 6 }} /> : null}
-                  </View>
+                    {n === me && deaf ? <Ionicons name="volume-mute" size={14} color={D.dnd} style={{ marginLeft: 4 }} /> : null}
+                    {n !== me && (arenaPref(n).muted || arenaPref(n).blocked) ? <Ionicons name="volume-mute" size={14} color={D.dnd} style={{ marginLeft: 6 }} /> : null}
+                    {n !== me && !arenaPref(n).muted && arenaPref(n).volume !== 100 ? <Text style={{ color: D.muted, fontSize: 11, marginLeft: 6 }}>{arenaPref(n).volume}%</Text> : null}
+                  </TouchableOpacity>
                 ))}
               </View>
             );
           })}
           <Text style={st.cat}>JOGANDO AGORA</Text>
-          {sv.members.filter((x) => x.game).map((x) => (
-            <View key={x.name} style={st.playing}>
+          {sv.members.filter((x) => x.game && !arenaPref(x.name).blocked).map((x) => (
+            <TouchableOpacity key={x.name} style={st.playing} onPress={() => openUser(x.name)} activeOpacity={0.7}>
               <Avatar name={x.name} status={x.status} size={30} />
               <View style={{ marginLeft: 10 }}>
                 <Text style={{ fontWeight: '700', color: D.text }}>{x.name}</Text>
                 <Text style={{ color: D.muted, fontSize: 12 }}>🎮 Jogando {x.game}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
         </ScrollView>
         {voice ? <VoiceBar ch={voiceCh} sv={voiceSv} mic={mic} deaf={deaf} setMic={setMic} setDeaf={setDeaf} leave={leaveVoice} /> : null}
       </View>
 
-      <MembersModal open={members} onClose={() => setMembers(false)} sv={sv} />
+      <MembersModal open={members} onClose={() => setMembers(false)} sv={sv} me={me} onUser={(n) => { setMembers(false); openUser(n); }} />
+        <ArenaUserSheet name={userOpen} sv={sv} me={me} myRole={myRole} onClose={() => setUserOpen(null)} onMention={(n) => setDraft((d) => `${d}${d && !d.endsWith(' ') ? ' ' : ''}@${n} `)} />
 
       <Modal visible={!!create} transparent animationType="fade" onRequestClose={() => setCreate(null)}>
         <View style={st.backdrop}>
@@ -373,26 +391,37 @@ function VoiceBar({ ch, sv, mic, deaf, setMic, setDeaf, leave }) {
         <Text style={{ color: D.online, fontWeight: '800', fontSize: 13 }}>Conectado na voz</Text>
         <Text style={{ color: D.muted, fontSize: 12 }} numberOfLines={1}>{ch.name} · {sv && sv.name}</Text>
       </View>
-      <TouchableOpacity onPress={() => setMic(!mic)} style={st.vBtn} accessibilityLabel={mic ? 'Desligar microfone' : 'Ligar microfone'}>
-        <Ionicons name={mic ? 'mic' : 'mic-off'} size={19} color={mic ? D.text : D.dnd} />
+      {/* Mutar o microfone (ninguém me ouve) e mutar o áudio (eu não ouço ninguém) */}
+      <TouchableOpacity onPress={() => setMic(!mic)} style={st.vCol} accessibilityLabel={mic ? 'Mutar microfone' : 'Ligar microfone'}>
+        <View style={[st.vBtn, !mic && { backgroundColor: '#FBE3E4' }]}>
+          <Ionicons name={mic ? 'mic' : 'mic-off'} size={19} color={mic ? D.text : D.dnd} />
+        </View>
+        <Text style={[st.vLabel, !mic && { color: D.dnd }]}>{mic ? 'Mic' : 'Mic mudo'}</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => setDeaf(!deaf)} style={st.vBtn} accessibilityLabel={deaf ? 'Voltar a ouvir' : 'Silenciar a sala'}>
-        <Ionicons name={deaf ? 'volume-mute' : 'headset'} size={19} color={deaf ? D.dnd : D.text} />
+      <TouchableOpacity onPress={() => setDeaf(!deaf)} style={st.vCol} accessibilityLabel={deaf ? 'Ligar áudio' : 'Mutar áudio'}>
+        <View style={[st.vBtn, deaf && { backgroundColor: '#FBE3E4' }]}>
+          <Ionicons name={deaf ? 'volume-mute' : 'headset'} size={19} color={deaf ? D.dnd : D.text} />
+        </View>
+        <Text style={[st.vLabel, deaf && { color: D.dnd }]}>{deaf ? 'Áudio mudo' : 'Áudio'}</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={leave} style={[st.vBtn, { backgroundColor: D.dnd }]} accessibilityLabel="Sair da voz">
-        <Ionicons name="call" size={17} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
+      <TouchableOpacity onPress={leave} style={st.vCol} accessibilityLabel="Sair da voz">
+        <View style={[st.vBtn, { backgroundColor: D.dnd }]}>
+          <Ionicons name="call" size={17} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
+        </View>
+        <Text style={st.vLabel}>Sair</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
-function MembersModal({ open, onClose, sv }) {
+function MembersModal({ open, onClose, sv, me, onUser }) {
   const groups = ['dono', 'mod', 'membro'];
   return (
     <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)' }} activeOpacity={1} onPress={onClose} />
       <View style={st.sheet}>
         <Text style={st.dialogTitle}>Membros · {sv.name}</Text>
+        <Text style={{ color: D.muted, fontSize: 12, marginBottom: 4 }}>Toque numa pessoa para silenciar, ajustar o volume, ignorar, bloquear ou adicionar.</Text>
         <ScrollView style={{ maxHeight: 420 }}>
           {groups.map((g) => {
             const list = sv.members.filter((x) => x.role === g);
@@ -401,13 +430,14 @@ function MembersModal({ open, onClose, sv }) {
               <View key={g}>
                 <Text style={st.cat}>{ROLE[g].label.toUpperCase()} — {list.length}</Text>
                 {list.map((x) => (
-                  <View key={x.name} style={st.playing}>
+                  <TouchableOpacity key={x.name} style={st.playing} onPress={() => x.name !== me && onUser && onUser(x.name)} activeOpacity={x.name === me ? 1 : 0.7} accessibilityLabel={`Opções de ${x.name}`}>
                     <Avatar name={x.name} status={x.status} size={34} />
-                    <View style={{ marginLeft: 10 }}>
+                    <View style={{ marginLeft: 10, flex: 1 }}>
                       <Text style={{ fontWeight: '700', color: ROLE[g].color }}>{x.name} <Ionicons name="shield-checkmark" size={12} color={D.gold} /></Text>
                       <Text style={{ color: D.muted, fontSize: 12 }}>{x.game ? `🎮 Jogando ${x.game}` : x.status === 'idle' ? 'Ausente' : x.status === 'dnd' ? 'Não perturbe' : 'Online'}</Text>
                     </View>
-                  </View>
+                    {arenaPref(x.name).blocked ? <Text style={{ color: D.dnd, fontSize: 11, fontWeight: '700' }}>Bloqueado</Text> : arenaPref(x.name).muted ? <Ionicons name="volume-mute" size={16} color={D.dnd} /> : arenaPref(x.name).ignored ? <Ionicons name="eye-off-outline" size={16} color={D.muted} /> : x.name !== me ? <Ionicons name="ellipsis-horizontal" size={16} color={D.muted} /> : null}
+                  </TouchableOpacity>
                 ))}
               </View>
             );
@@ -455,7 +485,9 @@ const st = StyleSheet.create({
   input: { flex: 1, backgroundColor: D.card, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 9, color: D.text },
   sendBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: D.gold, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
   voiceBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, backgroundColor: D.card, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#DDD6C4' },
-  vBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F1ECDD', marginLeft: 6 },
+  vBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F1ECDD' },
+  vCol: { alignItems: 'center', marginLeft: 8, minWidth: 46 },
+  vLabel: { color: D.muted, fontSize: 9.5, fontWeight: '700', marginTop: 2 },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center', padding: 24 },
   reactBox: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 30, paddingHorizontal: 8 },
   dialog: { backgroundColor: '#fff', borderRadius: 18, padding: 18, alignSelf: 'stretch' },

@@ -261,3 +261,8 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
 - [ ] Servidor ainda não tem as rotas de plano da loja, páginas pagas, anúncios e Negócios; quando forem
       criadas, incluir em `ROTAS_COM_BIOMETRIA`.
 - [ ] Listas e conversas arquivadas ficam salvas só no celular.
+- [x] Arena (estilo Discord): tocar numa pessoa abre as opções: volume só dela (0 a 200%), silenciar,
+      ignorar, bloquear, adicionar amigo, mencionar, apelido/nota, denunciar e, para dono ou moderador,
+      tirar da voz e expulsar. Barra de voz com Mic e Áudio (mutar) com nome.
+- [ ] Arena: a voz ainda é demonstração. Volume, silenciar e mutar já ficam guardados, mas só agem de
+      verdade quando a voz real (servidor) entrar. Bloqueio e denúncia também precisam do servidor.
