@@ -55,8 +55,8 @@ function Body({ onLater }) {
       <View style={st.icon}>
         <Ionicons name="finger-print" size={30} color={colors.text} />
       </View>
-      <Text style={st.title}>Falta só a biometria</Text>
-      <Text style={st.text}>Você pode olhar tudo à vontade. Para comprar ou contratar pelo Re@lys, a gente precisa confirmar que é você: é isso que mantém a plataforma só com gente de verdade.</Text>
+      <Text style={st.title}>Biometria não cadastrada</Text>
+      <Text style={st.text}>Por favor, cadastre sua biometria para continuar. Você pode olhar tudo à vontade, mas para comprar ou contratar pelo Re@lys a gente precisa confirmar que é você: é isso que mantém a plataforma só com gente de verdade.</Text>
       {POINTS.map(([icon, t, d]) => (
         <View key={t} style={st.row}>
           <Ionicons name={icon} size={17} color={colors.menu} />
@@ -68,7 +68,7 @@ function Body({ onLater }) {
       ))}
       <TouchableOpacity style={[st.btn, busy && { opacity: 0.6 }]} disabled={busy} onPress={async () => (await verify()) && onLater && onLater()} activeOpacity={0.85} accessibilityLabel="Fazer a biometria agora">
         <Ionicons name="finger-print" size={18} color="#fff" />
-        <Text style={st.btnText}>{busy ? 'Confirmando…' : 'Fazer a biometria agora'}</Text>
+        <Text style={st.btnText}>{busy ? 'Confirmando…' : 'Cadastrar biometria agora'}</Text>
       </TouchableOpacity>
       {onLater ? (
         <TouchableOpacity onPress={onLater} style={{ paddingVertical: 12 }} accessibilityLabel="Agora não">
