@@ -335,7 +335,7 @@ function EventsTab({ group, setGroup, onContact }) {
       if (table) dispatch({ type: 'VENUE_RESERVE', venueId: venue.id, table });
       Alert.alert(
         'Ingresso garantido 🎟️',
-        `${e.title} · ${e.who} · ${e.when}${table ? `\n\nMesa ${table} reservada para você.` : ''}\n\nQuando chegar, toque em "Estou no local" para pedir bebidas e comidas pelo app${table ? ', direto na sua mesa' : ''}.`,
+        `${e.title} · ${e.who} · ${e.when}${table ? `\n\nMesa ${table} reservada para você.` : ''}\n\nQuando chegar, toque em "No local · pedir" para pedir bebidas e comidas pelo app${table ? ', direto na sua mesa' : ''}.`,
       );
     };
     // Sem saldo: escolhe ingresso ou ingresso + mesa e paga no Pix (valor inteiro ou saldo + restante).
@@ -346,7 +346,7 @@ function EventsTab({ group, setGroup, onContact }) {
       { text: 'Ingresso + mesa', onPress: () => pay(true) },
     ]);
   };
-  const withCta = (e) => (ticketOf(e) ? { ...e, cta: 'Estou no local · pedir' } : e);
+  const withCta = (e) => (ticketOf(e) ? { ...e, cta: 'No local · pedir' } : e);
   return (
     <Screen>
       <ShopHero title="Eventos e festas" sub="O rolê de hoje: festa com desconto, lista VIP e promo da noite" />
@@ -673,30 +673,32 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
   return (
     <Screen>
       {top}
-      <View style={[styles.segRow, { paddingHorizontal: 0, paddingTop: 0, marginBottom: 12 }]}>
+      {/* Feed, Mensagens, Contatos e Live: mesmo modelo dos botões do topo (ícone em cima, nome embaixo, centralizados). */}
+      <View style={[styles.topTabs, { paddingHorizontal: 0, paddingTop: 0, paddingBottom: 0, marginBottom: 12 }]}>
         {[
           ['posts', 'Feed', 'newspaper-outline'],
           ['msgs', 'Mensagens', 'mail-outline'],
           ['contatos', 'Contatos', 'person-add-outline'],
+          ['live', 'Live', 'radio-outline'],
         ].map(([k, label, icon]) => {
           const on = k === seg;
           const unread = k === 'msgs' ? convs.reduce((s, c) => s + c.unread, 0) : 0;
           return (
-            <TouchableOpacity key={k} style={[styles.seg, on && styles.segOn]} onPress={() => setSeg(k)}>
-              <Ionicons name={icon} size={16} color={on ? colors.primary : colors.muted} />
-              <Text style={[styles.segText, on && { color: colors.primary }]}>{label}</Text>
-              {unread ? (
-                <View style={styles.unread}>
-                  <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '700' }}>{unread}</Text>
-                </View>
-              ) : null}
+            <TouchableOpacity key={k} style={[styles.topTab, on && styles.topTabOn]} onPress={() => (k === 'live' ? onGoLive() : setSeg(k))} accessibilityLabel={k === 'live' ? 'Abrir live' : label}>
+              <View>
+                <Ionicons name={on ? icon.replace('-outline', '') : icon} size={19} color={k === 'live' ? '#FF3B5C' : on ? colors.text : colors.menu} />
+                {unread ? (
+                  <View style={[styles.unread, { position: 'absolute', top: -6, right: -14, marginLeft: 0 }]}>
+                    <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '700' }}>{unread}</Text>
+                  </View>
+                ) : null}
+              </View>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.topTabText, on && { color: colors.text, fontWeight: '800' }]}>
+                {label}
+              </Text>
             </TouchableOpacity>
           );
         })}
-        <TouchableOpacity style={styles.liveBtn} onPress={onGoLive} accessibilityLabel="Abrir live">
-          <Ionicons name="radio" size={15} color="#fff" />
-          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12, marginLeft: 4 }}>Live</Text>
-        </TouchableOpacity>
       </View>
 
       {seg === 'posts' ? (

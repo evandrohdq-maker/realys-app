@@ -93,7 +93,7 @@ export default function VenueSheet() {
             ) : (
               <>
                 <Text style={[styles.tableText, { flex: 0 }]}>Mesa:</Text>
-                <TextInput value={tableText} onChangeText={setTableText} placeholder="nº" placeholderTextColor={colors.muted} keyboardType="number-pad" style={styles.tableInput} />
+                <TextInput value={tableText} onChangeText={setTableText} placeholder="nº" placeholderTextColor={colors.muted} keyboardType="number-pad" maxLength={2} onSubmitEditing={setTable} returnKeyType="done" style={styles.tableInput} />
                 <TouchableOpacity onPress={setTable} style={styles.tableBtn}>
                   <Text style={{ color: NIGHT, fontWeight: '800', fontSize: 12 }}>OK</Text>
                 </TouchableOpacity>
@@ -238,8 +238,9 @@ const styles = StyleSheet.create({
   closeBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cardAlt },
   table: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10, ...soft },
   tableText: { color: colors.text, fontWeight: '700', marginLeft: 8, flex: 1, fontSize: 13 },
-  tableInput: { width: 48, height: 32, borderRadius: 10, borderWidth: 1, borderColor: colors.borderStrong, color: colors.text, textAlign: 'center', fontWeight: '800', marginLeft: 8 },
-  tableBtn: { backgroundColor: colors.gold, borderRadius: 10, paddingHorizontal: 10, minHeight: 32, alignItems: 'center', justifyContent: 'center', marginLeft: 6 },
+  // Altura folgada e sem preenchimento interno: no Android o preenchimento padrão escondia o dígito.
+  tableInput: { width: 58, minWidth: 58, height: 42, flexShrink: 0, flexGrow: 0, paddingVertical: 0, paddingHorizontal: 4, borderRadius: 10, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: '#FFFFFF', color: '#14120E', fontSize: 17, textAlign: 'center', textAlignVertical: 'center', fontWeight: '800', marginLeft: 8 },
+  tableBtn: { backgroundColor: colors.gold, borderRadius: 10, paddingHorizontal: 10, minHeight: 42, alignItems: 'center', justifyContent: 'center', marginLeft: 6 },
   tab: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(168,121,10,0.35)', marginRight: 6 },
   tabOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   tabText: { color: colors.primaryDark, fontWeight: '700', fontSize: 12 },
