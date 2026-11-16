@@ -22,6 +22,7 @@ import {
 } from '../accounts';
 import SignupForm from './SignupForm';
 import ScanFacial from '../components/ScanFacial';
+import SupportCenter from '../components/SupportCenter';
 import { authStyles } from './authStyles';
 
 // Um campo só: usuário, CPF ou CNPJ. O tipo de acesso vem da própria conta.
@@ -52,6 +53,7 @@ export default function LoginScreen() {
   const [pendente, setPendente] = useState(null); // conta de aparelho novo: aguarda o reconhecimento facial
   const { dispatch } = useStore();
   const [mode, setMode] = useState('entrar'); // entrar | cadastro
+  const [help, setHelp] = useState(false); // suporte por mensagem, sem precisar entrar
   const [saved, setSaved] = useState([]);
   const [showForm, setShowForm] = useState(false); // com contas salvas, o formulário fica atrás de "Entrar com outra conta"
   const [value, setValue] = useState('');
@@ -303,7 +305,13 @@ export default function LoginScreen() {
             )}
           </View>
         )}
+        {/* Não consegue entrar? O suporte atende por mensagem, mesmo sem a pessoa estar na conta. */}
+        <TouchableOpacity style={[styles.link, { marginTop: 14 }]} onPress={() => setHelp(true)} accessibilityLabel="Não consigo entrar. Falar com o suporte por mensagem">
+          <Ionicons name="headset-outline" size={16} color={colors.muted} />
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.linkText, { color: colors.muted }]}>Não consigo entrar · Falar com o suporte</Text>
+        </TouchableOpacity>
       </ScrollView>
+      <SupportCenter visible={help} onClose={() => setHelp(false)} />
       <ScanFacial
         visible={!!pendente}
         title="Reconhecimento facial da conta"

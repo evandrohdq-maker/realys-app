@@ -12,11 +12,17 @@ import { useSupport, SUPPORT_TOPICS, topicOf, STATUS_LABEL, FAQ, lotusAnswer, gu
 
 const day = (t) => new Date(t).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 
+// Quem ainda não entrou na conta (tela de entrada) também fala com o suporte, só por mensagem:
+// os chamados ficam ligados a este aparelho.
+const GUEST = { id: 'visitante', name: 'Visitante (sem entrar na conta)' };
+
 export default function SupportCenter({ visible, onClose }) {
   const insets = useSafeAreaInsets();
   const { state } = useStore();
   useSupport();
-  const mine = ticketsOf(state.user);
+  const user = state.user || GUEST;
+  const guest = !state.user;
+  const mine = ticketsOf(user);
   const [q, setQ] = useState('');
   const [asked, setAsked] = useState(null); // { text, faq } depois que a Lotus respondeu
   const [topic, setTopic] = useState(null);
@@ -36,7 +42,7 @@ export default function SupportCenter({ visible, onClose }) {
     setTopic(null);
   };
   const create = () => {
-    const tk = openTicket({ user: state.user, topic: topic || 'outro', text: asked.text, lotusTried: !!asked.faq });
+    const tk = openTicket({ user, topic: topic || 'outro', text: asked.text, lotusTried: !!asked.faq });
     reset();
     setTicketId(tk.id);
   };
@@ -68,7 +74,7 @@ export default function SupportCenter({ visible, onClose }) {
               </View>
               {!asked ? (
                 <>
-                  <TextInput value={q} onChangeText={setQ} placeholder="Escreva a sua dúvida ou o que aconteceu" placeholderTextColor={colors.muted} multiline maxLength={400} style={st.input} />
+                  <TextInput value={q} onChangeText={setQ} placeholder={guest ? 'Diga o seu nome, o seu usuário e o que aconteceu' : 'Escreva a sua dúvida ou o que aconteceu'} placeholderTextColor={colors.muted} multiline maxLength={400} style={st.input} />
                   <TouchableOpacity style={[st.btn, !q.trim() && { opacity: 0.5 }]} onPress={ask} disabled={!q.trim()} accessibilityLabel="Enviar dúvida">
                     <Text numberOfLines={1} style={st.btnText}>Enviar</Text>
                   </TouchableOpacity>
@@ -135,7 +141,7 @@ export default function SupportCenter({ visible, onClose }) {
                 {openFaq === f.id ? <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>{f.a}</Text> : null}
               </TouchableOpacity>
             ))}
-            <Text style={st.note}>Em caso de perigo, use o SOS no Perfil. O suporte não substitui a polícia nem o SAMU.</Text>
+            <Text style={st.note}>O atendimento do Re@lys é só por mensagem, aqui no app. {guest ? 'Volte a esta tela para ver a resposta do seu chamado.' : 'Em caso de perigo, use o SOS no Perfil: o suporte não substitui a polícia nem o SAMU.'}</Text>
           </ScrollView>
         )}
       </KeyboardAvoidingView>

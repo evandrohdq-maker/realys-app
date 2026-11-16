@@ -323,4 +323,5 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
 - [ ] Suporte: hoje os chamados ficam salvos no celular (usuário e administrador só se enxergam no
       mesmo aparelho). Com o servidor: chamados pelo servidor, aviso (notificação) quando a equipe
       responde, mais de um atendente e prazo de resposta. Revisar os textos das perguntas frequentes.
-- [ ] Falta a recuperação de senha na tela de entrada (quem não consegue entrar não tem como abrir chamado pelo app) e um contato de suporte fora do app.
+- [x] Atendimento só por mensagem (decisão do Evandro): na tela de entrada, "Não consigo entrar · Falar com o suporte" abre a mesma central sem precisar estar na conta (chamados ligados ao aparelho).
+- [ ] Recuperação de senha automática ainda não existe: por enquanto é feita pela equipe, por chamado. Com o servidor, a equipe precisa de um jeito de redefinir a senha depois de confirmar a biometria.
