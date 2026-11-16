@@ -308,3 +308,7 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
       se o celular não informar, é estimada pelo tempo.
 - [x] Varredura de botões: 465 botões (em 85 arquivos) agora ficam em uma linha só, encolhendo a letra
       quando o nome não cabe. Fontes menores na página da empresa, nos números do painel e nos títulos.
+- [x] Camada responsiva reforçada (`src/responsive.js`): a letra acompanha a largura da tela (base 392,
+      a maioria dos Android tem 360), títulos e números grandes ficam contidos (acima de 16 crescem pela
+      metade) e a letra grande do sistema aumenta o app no máximo 10%.
+- [ ] Conferir no celular, tela por tela, antes da apresentação: nada disso foi visto num aparelho.
