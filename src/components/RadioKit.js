@@ -5,7 +5,7 @@ import { View, StyleSheet, TouchableOpacity, Animated, ActivityIndicator } from 
 import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import Floating from './Floating';
-import { radioNow, onRadioNow, setRadioNow, playRadio, stopRadio, resolveStream, loadRadios, radioOf, onRadios } from '../radio';
+import { radioNow, onRadioNow, setRadioNow, playRadio, stopRadio, resolveStream, loadRadios, radioOf, onRadios, radioEnded } from '../radio';
 
 loadRadios(); // rádios indexadas guardadas no celular
 
@@ -46,7 +46,12 @@ function Host() {
     const b = player.addListener('playingChange', (e) => {
       if (e && e.isPlaying) setRadioNow({ status: 'tocando', error: null });
     });
-    return () => (a.remove(), b.remove());
+    // A música chegou ao fim: passa para a próxima da fila (rádio ao vivo não termina).
+    const c = player.addListener('playToEnd', () => {
+      const r = radioNow().radio;
+      if (r && r.track) radioEnded();
+    });
+    return () => (a.remove(), b.remove(), c.remove());
   }, [player]);
   useEffect(() => {
     if (!n.req || n.req === last.current) return;
@@ -156,6 +161,11 @@ export function RadioMiniBar({ bottom }) {
         <Text style={st.miniStatus} numberOfLines={1}>{n.status === 'carregando' ? 'Conectando…' : n.status === 'erro' ? 'Não foi possível tocar' : n.radio.track ? n.radio.artist || 'Tocando' : 'Tocando ao vivo'}</Text>
       </View>
       {n.status === 'tocando' ? <Bars on /> : null}
+      {n.radio.track ? (
+        <TouchableOpacity onPress={radioEnded} style={st.miniBtn} accessibilityLabel="Próxima música">
+          <Ionicons name="play-skip-forward" size={16} color="#fff" />
+        </TouchableOpacity>
+      ) : null}
       <TouchableOpacity onPress={stopRadio} style={st.miniBtn} accessibilityLabel={n.radio.track ? 'Parar a música' : 'Parar a rádio'}>
         <Ionicons name="close" size={18} color="#fff" />
       </TouchableOpacity>

@@ -94,3 +94,7 @@ export function setRadioNow(patch) {
 }
 export const playRadio = (radio) => setRadioNow({ radio, status: 'carregando', error: null, req: Date.now() });
 export const stopRadio = () => setRadioNow({ status: 'parado', error: null, req: Date.now() });
+// Quem cuida do fim de uma faixa (músicas: passa para a próxima). Definido em src/music.js.
+let endedHandler = null;
+export const setOnEnded = (fn) => (endedHandler = fn);
+export const radioEnded = () => endedHandler && endedHandler(radioNow().radio);

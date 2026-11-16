@@ -7,13 +7,13 @@ import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, soft, brl } from '../../../theme';
 import { useStore } from '../../../store';
-import { playRadio, stopRadio, checkUrl } from '../../../radio';
+import { stopRadio, checkUrl } from '../../../radio';
 import { useRadioNow } from '../../../components/RadioKit';
 import { moderateText } from '../../../moderation';
 import { isVerified } from '../../../components/BioGate';
 import {
   useMusic, allTracks, trackById, publishTrack, removeTrack, registerSale, createPlaylist, removePlaylist, togglePlaylistTrack,
-  subscribePlan, cancelPlan, planInfo, countPlay, artistGets, MUSIC_FEE_PCT, MUSIC_PLAN_PRICE, MUSIC_PLAN_FREE_MONTHS, MUSIC_GENRES, ADS_EVERY,
+  subscribePlan, cancelPlan, planInfo, playTrack, startTrack, setAdHook, artistGets, MUSIC_FEE_PCT, MUSIC_PLAN_PRICE, MUSIC_PLAN_FREE_MONTHS, MUSIC_GENRES, ADS_EVERY,
 } from '../../../music';
 
 const SEGS = [
@@ -56,15 +56,19 @@ export default function MusicTab() {
     return () => clearTimeout(id);
   }, [ad, left]);
 
-  const start = (t) => playRadio({ id: t.id, name: t.title, url: t.url, emoji: t.emoji, track: true, artist: t.artist });
-  const play = (t) => {
-    if (playingId === t.id) return stopRadio();
-    if (countPlay()) {
-      stopRadio();
+  const start = startTrack;
+  // Com esta tela aberta, a propaganda aparece aqui (também quando a música troca sozinha).
+  useEffect(() => {
+    setAdHook((t) => {
       setLeft(AD_SECS);
-      return setAd(t);
-    }
-    start(t);
+      setAd(t);
+    });
+    return () => setAdHook(null);
+  }, []);
+  // list: a lista em que a música está (vira a fila: quando acaba, toca a próxima).
+  const play = (t, list) => {
+    if (playingId === t.id) return stopRadio();
+    playTrack(t, list);
   };
   const buy = (t) => {
     if (bought[t.id]) return;
@@ -80,15 +84,15 @@ export default function MusicTab() {
     Alert.alert('Música baixada ✅', `"${t.title}" fica guardada no app para ouvir sem internet.`);
   };
 
-  const Row = ({ t, extra }) => {
+  const Row = ({ t, extra, list }) => {
     const on = playingId === t.id;
     const own = !!bought[t.id] || t.mine;
     return (
       <View style={st.row}>
-        <TouchableOpacity style={[st.cover, on && { backgroundColor: colors.text }]} onPress={() => play(t)} accessibilityLabel={on ? `Parar ${t.title}` : `Ouvir ${t.title}`}>
+        <TouchableOpacity style={[st.cover, on && { backgroundColor: colors.text }]} onPress={() => play(t, list)} accessibilityLabel={on ? `Parar ${t.title}` : `Ouvir ${t.title}`}>
           {on ? <Ionicons name="pause" size={20} color="#fff" /> : <Text style={{ fontSize: 22 }}>{t.emoji}</Text>}
         </TouchableOpacity>
-        <TouchableOpacity style={{ flex: 1, marginLeft: 10 }} onPress={() => play(t)} activeOpacity={0.8}>
+        <TouchableOpacity style={{ flex: 1, marginLeft: 10 }} onPress={() => play(t, list)} activeOpacity={0.8}>
           <Text style={{ color: on ? colors.primary : colors.text, fontWeight: '800' }} numberOfLines={1}>{t.title}</Text>
           <Text style={{ color: colors.muted, fontSize: 12.5 }} numberOfLines={1}>{t.artist} · {t.genre}{t.plays ? ` · ${short(t.plays)} plays` : ''}</Text>
         </TouchableOpacity>
@@ -164,9 +168,9 @@ export default function MusicTab() {
               </TouchableOpacity>
             ))}
           </ScrollView>
-          {gallery.map((t) => <Row key={t.id} t={t} />)}
+          {gallery.map((t) => <Row key={t.id} t={t} list={gallery} />)}
           {!gallery.length ? <Text style={st.empty}>Nenhuma música encontrada.</Text> : null}
-          <Text style={st.note}>Ouvir é livre. Para baixar, compre a música direto do artista.</Text>
+          <Text style={st.note}>Ouvir é livre. Quando uma música acaba, a próxima da lista começa sozinha. Para baixar, compre direto do artista.</Text>
         </>
       ) : null}
 
@@ -179,7 +183,7 @@ export default function MusicTab() {
               <Text style={{ color: colors.muted, fontSize: 12 }}>{pl.tracks.length} músicas</Text>
             </TouchableOpacity>
             {pl.tracks.map(trackById).filter(Boolean).map((t) => (
-              <Row key={t.id} t={t} extra={
+              <Row key={t.id} t={t} list={pl.tracks.map(trackById).filter(Boolean)} extra={
                 <TouchableOpacity style={st.iconBtn} onPress={() => togglePlaylistTrack(pl.id, t.id)} accessibilityLabel="Tirar da playlist">
                   <Ionicons name="remove-circle-outline" size={22} color={colors.muted} />
                 </TouchableOpacity>
@@ -215,7 +219,7 @@ export default function MusicTab() {
 
       {seg === 'compradas' ? (
         <>
-          {mineBought.map((t) => <Row key={t.id} t={t} />)}
+          {mineBought.map((t) => <Row key={t.id} t={t} list={mineBought} />)}
           {!mineBought.length ? <Text style={st.empty}>Você ainda não comprou músicas. As compradas ficam aqui para baixar e ouvir sem propaganda.</Text> : null}
         </>
       ) : null}

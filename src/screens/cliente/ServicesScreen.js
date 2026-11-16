@@ -366,7 +366,9 @@ export default function ServicesScreen({ explore, navigate }) {
   };
 
   const hasActivity = toRate || lastCall || myVisits.length;
-  const menu = <SegTabs items={SERVICE_TABS} value={tab} onChange={changeTab} />;
+  // O botão "Serviços" já está no rodapé, então aqui em cima ficam só as outras abas.
+  // Tocar de novo na aba aberta volta para a visão geral de Serviços.
+  const menu = <SegTabs items={SERVICE_TABS.filter((t) => t.key !== 'servicos')} value={tab} onChange={(k) => changeTab(k === tab ? 'servicos' : k)} />;
 
   // Cursos e Online têm conteúdo próprio (não usam mapa nem visita).
   if (tab === 'cursos' || tab === 'online') {

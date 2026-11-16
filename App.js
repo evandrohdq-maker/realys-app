@@ -350,10 +350,29 @@ function Shell() {
   const current = tabs.find((t) => t.key === tab) || tabs[0];
   // Aba de compra ou serviço numa conta sem biometria: mostra a tela "falta só a biometria".
   const Comp = canOpenTab(state, current.key) ? current.Comp : LockedScreen;
-  // Barra de baixo: até 6 botões numa linha; com mais, duas linhas iguais (empresa: 4 em cima e 4 embaixo).
+  // Menus: todo perfil tem o menu numa linha só, no rodapé. A empresa tem dois menus: 4 botões no
+  // alto da tela (logo abaixo do cabeçalho) e 4 no rodapé.
   const shownTabs = tabs.filter((t) => !t.hidden);
+  const splitMenu = verified && state.activeRole === 'empresa' && shownTabs.length > 4;
   const half = Math.ceil(shownTabs.length / 2);
-  const tabRows = shownTabs.length > 6 ? [shownTabs.slice(0, half), shownTabs.slice(half)] : [shownTabs];
+  const topMenu = splitMenu ? shownTabs.slice(0, half) : [];
+  const bottomMenu = splitMenu ? shownTabs.slice(half) : shownTabs;
+  const renderTab = (t) => {
+    const on = t.key === current.key;
+    return (
+      <TouchableOpacity key={t.key} style={styles.tab} onPress={() => {
+        // Community no rodapé sempre volta para o feed (sai de Eventos, Lives etc.).
+        if (t.key === 'stories') setExplore({ tab: 'stories', at: Date.now() });
+        setTab(t.key);
+      }}>
+        {/* Aba ativa: sem fundo, só o ícone e o nome em dourado */}
+        <View style={styles.tabIcon}>
+          <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={21} color={on ? colors.primary : colors.menu} />
+        </View>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.tabLabel, on && { color: colors.primary, fontWeight: '800' }]}>{t.label}</Text>
+      </TouchableOpacity>
+    );
+  };
   const nextRole = () => {
     const r = state.user.roles;
     switchRole(r[(r.indexOf(state.activeRole) + 1) % r.length]);
@@ -481,6 +500,8 @@ function Shell() {
 
       {/* Página inicial com arrastar para os lados (qualquer perfil):
           puxar para a direita → Reels, puxar para a esquerda → Perfil. De lá, o gesto contrário volta. */}
+      {/* Empresa: primeiro menu, no alto da tela */}
+      {topMenu.length ? <View style={styles.topMenu}>{topMenu.map(renderTab)}</View> : null}
       <SwipePages onLeft={swipe.left} onRight={swipe.right}>
         <Comp goTo={setTab} openVoice={() => setVoice(true)} explore={explore} openArea={openArea} navigate={pick} onTop={setCommTop} />
       </SwipePages>
@@ -518,28 +539,7 @@ function Shell() {
         </View>
       ) : null}
 
-      <View style={[styles.tabbar, { paddingBottom: 10 + insets.bottom, flexDirection: 'column' }]}>
-       {tabRows.map((row, ri) => (
-        <View key={ri} style={{ flexDirection: 'row', marginTop: ri ? 6 : 0 }}>
-        {row.map((t) => {
-          const on = t.key === current.key;
-          return (
-            <TouchableOpacity key={t.key} style={styles.tab} onPress={() => {
-              // Community no rodapé sempre volta para o feed (sai de Eventos, Lives etc.).
-              if (t.key === 'stories') setExplore({ tab: 'stories', at: Date.now() });
-              setTab(t.key);
-            }}>
-              {/* Aba ativa: sem fundo, só o ícone e o nome em dourado */}
-              <View style={styles.tabIcon}>
-                <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={21} color={on ? colors.primary : colors.menu} />
-              </View>
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.tabLabel, on && { color: colors.primary, fontWeight: '800' }]}>{t.label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-        </View>
-       ))}
-      </View>
+      <View style={[styles.tabbar, { paddingBottom: 10 + insets.bottom }]}>{bottomMenu.map(renderTab)}</View>
 
       <VoiceAssistant
         visible={voice}
@@ -776,6 +776,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -3 },
   },
   tab: { flex: 1, alignItems: 'center', paddingHorizontal: 2 },
+  topMenu: { flexDirection: 'row', backgroundColor: colors.card, paddingTop: 6, paddingBottom: 8, paddingHorizontal: 6, borderBottomWidth: 1, borderBottomColor: colors.border },
   rolePill: { flexDirection: 'row', alignItems: 'center', minHeight: 30, paddingHorizontal: 10, borderRadius: 15, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card, marginRight: 6 },
   rolePillText: { color: colors.text, fontWeight: '700', fontSize: 12, marginLeft: 4 },
   tabIcon: { width: 44, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },

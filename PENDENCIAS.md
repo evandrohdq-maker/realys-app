@@ -297,3 +297,7 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
       outros apps o Android não permite sem código nativo e permissão especial.
 - [ ] Leads: campanhas trazem interessados de exemplo; com o servidor, mostrar a oferta ao público
       escolhido e cobrar por lead. Pedido de orçamento só entra no CRM quando é para a empresa da demonstração.
+- [x] Músicas: passagem automática para a próxima da lista (Galeria, playlist ou Compradas) e botão
+      de próxima na barrinha do player. Com a tela de Músicas fechada, a propaganda entre músicas não aparece.
+- [x] Menus: perfis voltaram a ter o menu numa linha só no rodapé; a empresa tem um menu no alto da
+      tela (4 botões) e outro no rodapé (4 botões).

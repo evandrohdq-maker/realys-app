@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TAXAS } from './taxas';
+import { playRadio, stopRadio, setOnEnded } from './radio';
 
 export const MUSIC_FEE_PCT = TAXAS.musicaVenda.pct; // % do Re@lys sobre cada venda
 export const MUSIC_PLAN_PRICE = TAXAS.musicaPremium.valor;
@@ -102,3 +103,29 @@ export function countPlay() {
   set({ heard });
   return !planInfo().on && heard % ADS_EVERY === 0;
 }
+
+// ---------- Tocar e passar para a próxima sozinho ----------
+// A fila é a lista em que a pessoa tocou a música (Galeria, uma playlist, Compradas). Quando a faixa
+// termina, entra a seguinte; no fim da lista, volta para a primeira.
+let queue = [];
+let adHook = null; // a tela de Músicas mostra a propaganda (quando está aberta)
+export const setAdHook = (fn) => (adHook = fn);
+const toRadio = (t) => ({ id: t.id, name: t.title, url: t.url, emoji: t.emoji, track: true, artist: t.artist });
+export const startTrack = (t) => playRadio(toRadio(t));
+// Toca a faixa (com a propaganda antes, quando é a vez dela e a tela de Músicas está aberta).
+export function playTrack(t, list) {
+  if (list && list.length) queue = list.map((x) => x.id);
+  if (countPlay() && adHook) {
+    stopRadio();
+    return adHook(t);
+  }
+  startTrack(t);
+}
+export function nextTrack(current) {
+  const ids = queue.filter((id) => trackById(id));
+  if (!ids.length) return;
+  const i = ids.indexOf(current && current.id);
+  const next = trackById(ids[(i + 1) % ids.length]);
+  if (next) playTrack(next);
+}
+setOnEnded(nextTrack);
