@@ -312,3 +312,15 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
       a maioria dos Android tem 360), títulos e números grandes ficam contidos (acima de 16 crescem pela
       metade) e a letra grande do sistema aumenta o app no máximo 10%.
 - [ ] Conferir no celular, tela por tela, antes da apresentação: nada disso foi visto num aparelho.
+
+## Suporte aos usuários — novembro de 2026
+
+- [x] Perfil › Ajuda e suporte: a Lotus responde as dúvidas comuns (12 perguntas frequentes), e o que
+      ela não resolve vira chamado numerado, com assunto, conversa, "resolvido" e nota do atendimento.
+      Pagamento, conta e biometria entram com prioridade.
+- [x] Administrador › Suporte: fila (aguardando, respondidos, resolvidos), urgentes na frente,
+      respostas prontas, encerrar chamado e nota média.
+- [ ] Suporte: hoje os chamados ficam salvos no celular (usuário e administrador só se enxergam no
+      mesmo aparelho). Com o servidor: chamados pelo servidor, aviso (notificação) quando a equipe
+      responde, mais de um atendente e prazo de resposta. Revisar os textos das perguntas frequentes.
+- [ ] Falta a recuperação de senha na tela de entrada (quem não consegue entrar não tem como abrir chamado pelo app) e um contato de suporte fora do app.

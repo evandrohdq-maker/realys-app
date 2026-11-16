@@ -23,6 +23,7 @@ import ServicesScreen from './src/screens/cliente/ServicesScreen';
 import OrdersScreen from './src/screens/cliente/OrdersScreen';
 import DashboardScreen from './src/screens/empresa/DashboardScreen';
 import CrmScreen from './src/screens/empresa/CrmScreen';
+import AdminSupport from './src/screens/admin/AdminSupport';
 const CRM_PRESTADOR = ['prestador', 'aulas', 'online'];
 const CrmPrestador = () => <CrmScreen board="prestador" boards={CRM_PRESTADOR} />;
 import InventoryScreen from './src/screens/empresa/InventoryScreen';
@@ -101,6 +102,7 @@ const TABS = {
     { key: 'sistema', label: 'Sistema', icon: 'git-network-outline', Comp: AdminSystem },
     { key: 'mercado', label: 'Mercado', icon: 'analytics-outline', Comp: AdminMarket },
     { key: 'moderacao', label: 'Moderação', icon: 'flag-outline', Comp: AdminModeration },
+    { key: 'suporte', label: 'Suporte', icon: 'headset-outline', Comp: AdminSupport },
     { key: 'cadastros', label: 'Cadastros', icon: 'checkmark-done-outline', Comp: AdminSignups },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
   ],

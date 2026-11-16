@@ -19,6 +19,7 @@ import { ProfileSocial, ProfilePreviewModal, TestimonialsTab } from '../componen
 import { PeopleSearchModal } from '../components/People';
 import { UnverifiedBanner, isVerified } from '../components/BioGate';
 import ThemeArt from '../components/ThemeArt';
+import SupportCenter from '../components/SupportCenter';
 import WalletScreen from './WalletScreen';
 import BiometriaScreen from './BiometriaScreen';
 import DemoScreen from './DemoScreen';
@@ -60,7 +61,8 @@ export default function ProfileScreen({ navigate, explore }) {
   const [previewing, setPreviewing] = useState(false); // ver o perfil como os outros veem
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [focus, setFocus] = useState(null); // aba aberta pelos números do topo
-  const [depOpen, setDepOpen] = useState(false); // página com todos os depoimentos
+  const [depOpen, setDepOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false); // Ajuda e suporte // página com todos os depoimentos
   const insets = useSafeAreaInsets();
   const scrollRef = React.useRef(null);
   const socialY = React.useRef(0);
@@ -376,6 +378,7 @@ export default function ProfileScreen({ navigate, explore }) {
           <Credentials />
         </Item>
         <Item open={open} onToggle={toggle} icon="document-text-outline" title="Contratos e receitas" sub="Assinatura online e cópia para cada parte" onPress={() => dispatch({ type: 'OPEN_DOCS' })} />
+        <Item open={open} onToggle={toggle} icon="headset-outline" title="Ajuda e suporte" sub="Dúvidas e chamados" onPress={() => setHelpOpen(true)} />
         <Item open={open} onToggle={toggle} icon="sparkles-outline" title="Novidades do app" sub="Demonstração do que tem de novo" onPress={() => setDemoOpen(true)} />
         <Item open={open} onToggle={toggle} icon="cloud-download-outline" title="Verificar atualizações" sub={VERSION_LABEL} onPress={() => setChecking(true)} />
         <Item open={open} onToggle={toggle} icon="people-outline" title="Trocar usuário" sub="Celular compartilhado (ex.: da empresa)" onPress={switchUser} />
@@ -396,6 +399,7 @@ export default function ProfileScreen({ navigate, explore }) {
       />
 
       {checking ? <UpdateChecker manual onDone={() => setChecking(false)} /> : null}
+      <SupportCenter visible={helpOpen} onClose={() => setHelpOpen(false)} />
       <WalletScreen visible={walletOpen} onClose={() => setWalletOpen(false)} />
       <ProfileEditor visible={editing} onClose={() => setEditing(false)} />
       <ProfilePreviewModal visible={previewing} onClose={() => setPreviewing(false)} />
