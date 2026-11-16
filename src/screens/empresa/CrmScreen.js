@@ -8,25 +8,39 @@ import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, brl, soft } from '../../theme';
 import { Screen, Title } from '../../components/ui';
-import { useCrm, CRM_STAGES, CRM_LOST, CRM_ORIGINS, CRM_LOST_REASONS, stageOf, stageIndex, crmMove, crmSend, crmRead, crmUpdate, crmAdd, crmRemove, crmSummary, crmIdle } from '../../crm';
+import { useCrm, crmStages, crmBoard, CRM_LOST, CRM_ORIGINS, CRM_LOST_REASONS, stageOf, stageIndex, crmMove, crmSend, crmRead, crmUpdate, crmAdd, crmRemove, crmSummary, crmIdle } from '../../crm';
 
 const dateTime = (t) => new Date(t).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 const num = (s) => Number(String(s).replace(/\./g, '').replace(',', '.').replace(/[^0-9.]/g, '')) || 0;
 
-export default function CrmScreen() {
-  const leads = useCrm();
+// board: 'empresa' (loja), 'prestador', 'imoveis' ou 'veiculos'. Cada um tem os seus atendimentos e nomes de etapa.
+// boards: lista de quadros para escolher no topo (ex.: prestador com Serviços, Aulas e Online).
+export default function CrmScreen({ board: firstBoard = 'empresa', boards }) {
+  const [board, setBoard] = useState(firstBoard);
+  const leads = useCrm(board);
+  const B = crmBoard(board);
+  const stages = crmStages(board);
   const sum = crmSummary(leads);
   const [stage, setStage] = useState('novo');
   const [openId, setOpenId] = useState(null);
   const [adding, setAdding] = useState(false);
   const [q, setQ] = useState('');
-  const all = [...CRM_STAGES, CRM_LOST];
+  const all = [...stages, CRM_LOST];
   const shown = leads.filter((l) => (q.trim() ? (l.client + ' ' + l.interest).toLowerCase().includes(q.trim().toLowerCase()) : l.stage === stage));
   const open = leads.find((l) => l.id === openId) || null;
 
   return (
     <Screen>
-      <Title sub="Do primeiro contato até a venda fechada, etapa por etapa.">Clientes</Title>
+      <Title sub={B.sub}>{B.title}</Title>
+      {boards && boards.length > 1 ? (
+        <View style={{ flexDirection: 'row', marginBottom: 12 }}>
+          {boards.map((b) => (
+            <TouchableOpacity key={b} onPress={() => { setBoard(b); setStage('novo'); setQ(''); }} style={[st.chip, { flex: 1, marginRight: 6 }, board === b && { backgroundColor: colors.text, borderColor: colors.text }]} accessibilityLabel={crmBoard(b).tab || crmBoard(b).title}>
+              <Text style={{ color: board === b ? '#fff' : colors.text, fontWeight: '800', fontSize: 13 }}>{crmBoard(b).tab || crmBoard(b).title}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      ) : null}
 
       {/* Números do funil */}
       <View style={st.kpis}>
@@ -37,7 +51,7 @@ export default function CrmScreen() {
         </View>
         <View style={st.kpi}>
           <Text style={st.kpiN}>{sum.wonCount}</Text>
-          <Text style={st.kpiL}>vendas fechadas</Text>
+          <Text style={st.kpiL}>{B.won}</Text>
           <Text style={st.kpiS}>{brl(sum.wonValue)}</Text>
         </View>
         <View style={st.kpi}>
@@ -75,7 +89,7 @@ export default function CrmScreen() {
           })}
         </ScrollView>
       ) : null}
-      {!q.trim() && stageOf(stage).hint ? <Text style={st.hint}>{stageOf(stage).hint}</Text> : null}
+      {!q.trim() && stageOf(stage, board).hint ? <Text style={st.hint}>{stageOf(stage, board).hint}</Text> : null}
 
       {shown.map((l) => (
         <TouchableOpacity key={l.id} style={st.card} onPress={() => { setOpenId(l.id); crmRead(l.id); }} activeOpacity={0.85} accessibilityLabel={`Atendimento de ${l.client}`}>
@@ -98,7 +112,7 @@ export default function CrmScreen() {
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, flexWrap: 'wrap' }}>
             <View style={st.tag}><Text style={st.tagText}>{l.origin}</Text></View>
-            {q.trim() ? <View style={st.tag}><Text style={st.tagText}>{stageOf(l.stage).short}</Text></View> : null}
+            {q.trim() ? <View style={st.tag}><Text style={st.tagText}>{stageOf(l.stage, board).short}</Text></View> : null}
             {l.stage === 'perdido' && l.lostReason ? <View style={st.tag}><Text style={st.tagText}>{l.lostReason}</Text></View> : null}
             <Text style={{ color: colors.muted, fontSize: 12, flex: 1, textAlign: 'right' }}>nesta etapa {crmIdle(l)}</Text>
           </View>
@@ -107,7 +121,7 @@ export default function CrmScreen() {
       {!shown.length ? <Text style={st.empty}>{q.trim() ? 'Nenhum atendimento com esse nome.' : 'Nenhum atendimento nesta etapa.'}</Text> : null}
 
       <LeadModal lead={open} onClose={() => setOpenId(null)} />
-      <AddModal open={adding} onClose={() => setAdding(false)} onCreated={(id) => { setAdding(false); setStage('novo'); setOpenId(id); }} />
+      <AddModal board={board} open={adding} onClose={() => setAdding(false)} onCreated={(id) => { setAdding(false); setStage('novo'); setOpenId(id); }} />
     </Screen>
   );
 }
@@ -129,10 +143,13 @@ function LeadModal({ lead, onClose }) {
     setText('');
   }, [leadId]);
   if (!lead) return null;
+  const board = lead.board || 'empresa';
+  const B = crmBoard(board);
+  const STAGES = crmStages(board);
   const idx = stageIndex(lead.stage);
   const lost = lead.stage === 'perdido';
   const won = lead.stage === 'fechado';
-  const next = !lost && !won ? CRM_STAGES[idx + 1] : null;
+  const next = !lost && !won ? STAGES[idx + 1] : null;
   const send = () => {
     const t = text.trim();
     if (!t) return;
@@ -143,9 +160,9 @@ function LeadModal({ lead, onClose }) {
   const advance = () => {
     if (!next) return;
     if (next.key === 'fechado') {
-      return Alert.alert('Fechar a venda?', `${lead.client} · ${brl(lead.value || 0)}`, [
+      return Alert.alert(`${B.close}?`, `${lead.client} · ${brl(lead.value || 0)}`, [
         { text: 'Ainda não', style: 'cancel' },
-        { text: 'Venda fechada', onPress: () => crmMove(lead.id, 'fechado') },
+        { text: B.close, onPress: () => crmMove(lead.id, 'fechado') },
       ]);
     }
     crmMove(lead.id, next.key);
@@ -177,7 +194,7 @@ function LeadModal({ lead, onClose }) {
 
         {/* Etapas: tocar numa etapa leva o atendimento para ela */}
         <View style={st.steps}>
-          {CRM_STAGES.map((s, i) => {
+          {STAGES.map((s, i) => {
             const done = !lost && i <= idx;
             return (
               <TouchableOpacity key={s.key} style={{ flex: 1, alignItems: 'center' }} onPress={() => crmMove(lead.id, s.key)} accessibilityLabel={`Levar para ${s.label}`}>
@@ -186,7 +203,7 @@ function LeadModal({ lead, onClose }) {
                   <View style={[st.dot, done && { backgroundColor: colors.primary, borderColor: colors.primary }]}>
                     {done ? <Ionicons name="checkmark" size={11} color="#fff" /> : <Text style={{ color: colors.muted, fontSize: 10, fontWeight: '800' }}>{i + 1}</Text>}
                   </View>
-                  <View style={[st.line, i === CRM_STAGES.length - 1 && { opacity: 0 }, !lost && i < idx && { backgroundColor: colors.primary }]} />
+                  <View style={[st.line, i === STAGES.length - 1 && { opacity: 0 }, !lost && i < idx && { backgroundColor: colors.primary }]} />
                 </View>
                 <Text style={[st.stepLabel, !lost && i === idx && { color: colors.text, fontWeight: '800' }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{s.short}</Text>
               </TouchableOpacity>
@@ -220,7 +237,7 @@ function LeadModal({ lead, onClose }) {
                   {next ? (
                     <TouchableOpacity style={st.advance} onPress={advance} accessibilityLabel={`Avançar para ${next.label}`}>
                       <Ionicons name="arrow-forward-circle" size={18} color="#fff" />
-                      <Text style={{ color: '#fff', fontWeight: '800', marginLeft: 6, fontSize: 13 }} numberOfLines={1}>{next.key === 'fechado' ? 'Fechar a venda' : `Avançar: ${next.short}`}</Text>
+                      <Text style={{ color: '#fff', fontWeight: '800', marginLeft: 6, fontSize: 13 }} numberOfLines={1}>{next.key === 'fechado' ? B.close : `Avançar: ${next.short}`}</Text>
                     </TouchableOpacity>
                   ) : null}
                   <TouchableOpacity style={st.lose} onPress={lose} accessibilityLabel="Marcar que não fechou">
@@ -269,8 +286,8 @@ function LeadModal({ lead, onClose }) {
             <Text style={st.label}>Linha do tempo</Text>
             {lead.history.map((hst, i) => (
               <View key={i} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 6 }}>
-                <Ionicons name={stageOf(hst.stage).icon} size={17} color={hst.stage === 'perdido' ? colors.muted : colors.primary} />
-                <Text style={{ color: colors.text, fontWeight: '700', marginLeft: 8, flex: 1 }}>{stageOf(hst.stage).label}</Text>
+                <Ionicons name={stageOf(hst.stage, board).icon} size={17} color={hst.stage === 'perdido' ? colors.muted : colors.primary} />
+                <Text style={{ color: colors.text, fontWeight: '700', marginLeft: 8, flex: 1 }}>{stageOf(hst.stage, board).label}</Text>
                 <Text style={{ color: colors.muted, fontSize: 12 }}>{dateTime(hst.at)}</Text>
               </View>
             ))}
@@ -284,11 +301,11 @@ function LeadModal({ lead, onClose }) {
   );
 }
 
-function AddModal({ open, onClose, onCreated }) {
+function AddModal({ open, onClose, onCreated, board }) {
   const [f, setF] = useState({ client: '', interest: '', value: '', origin: 'Indicação' });
   const create = () => {
     if (!f.client.trim()) return Alert.alert('Falta o nome', 'Escreva o nome do cliente.');
-    const id = crmAdd({ client: f.client.trim(), interest: f.interest.trim() || 'Sem descrição', value: num(f.value), origin: f.origin });
+    const id = crmAdd({ client: f.client.trim(), interest: f.interest.trim() || 'Sem descrição', value: num(f.value), origin: f.origin, board });
     setF({ client: '', interest: '', value: '', origin: 'Indicação' });
     onCreated(id);
   };

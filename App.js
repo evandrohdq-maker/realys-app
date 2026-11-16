@@ -23,6 +23,8 @@ import ServicesScreen from './src/screens/cliente/ServicesScreen';
 import OrdersScreen from './src/screens/cliente/OrdersScreen';
 import DashboardScreen from './src/screens/empresa/DashboardScreen';
 import CrmScreen from './src/screens/empresa/CrmScreen';
+const CRM_PRESTADOR = ['prestador', 'aulas', 'online'];
+const CrmPrestador = () => <CrmScreen board="prestador" boards={CRM_PRESTADOR} />;
 import InventoryScreen from './src/screens/empresa/InventoryScreen';
 import FinanceScreen from './src/screens/empresa/FinanceScreen';
 import B2BScreen from './src/screens/empresa/B2BScreen';
@@ -155,6 +157,7 @@ const TABS = {
   prestador: [
     { key: 'prestar', label: 'Trabalhar', icon: 'navigate-circle-outline', Comp: DriverScreen },
     { key: 'agenda', label: 'Agenda', icon: 'calendar-outline', Comp: AgendaScreen },
+    { key: 'clientes', label: 'Clientes', icon: 'chatbubbles-outline', Comp: CrmPrestador },
     { key: 'inicio', label: 'Feed', icon: 'home-outline', Comp: FeedScreen },
     { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },

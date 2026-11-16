@@ -272,3 +272,6 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
 - [ ] CRM: os atendimentos são de exemplo e ficam no celular. Com o servidor, cada conversa de cliente
       com a loja (Shop, Food, Reels, anúncio, página) deve abrir um atendimento sozinha, e a venda feita
       pelo app deve fechar a etapa automaticamente. O lembrete de retorno ainda não gera notificação.
+- [x] CRM também para prestador (aba Clientes, com Serviços, Aulas e Atendimento online) e para
+      imobiliárias e revendas (botão Clientes em Negócios › Meus anúncios). Cada um com os nomes de
+      etapa do seu trabalho. Tudo ainda com atendimentos de exemplo, salvos no celular.

@@ -1,6 +1,7 @@
 // Anunciar na aba Negócios: como funciona a cobrança, os planos e o formulário do anúncio.
 // Também o painel "Meus anúncios", com os interessados e o botão de liberar a conversa.
 // Regras e valores em src/negocios.js e src/taxas.js.
+import CrmScreen from '../screens/empresa/CrmScreen';
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Text, TextInput } from '../responsive';
@@ -131,6 +132,7 @@ export function AnunciarSheet({ visible, onClose, kinds, kindLabel }) {
 // Meus anúncios (do setor aberto) com os interessados. onChat abre a conversa já liberada.
 export function MyAds({ kinds, kindLabel, onChat }) {
   const { state, dispatch } = useStore();
+  const [crm, setCrm] = useState(false);
   const ads = (state.negAds || []).filter((a) => kinds.includes(a.kind));
   if (!ads.length) return null;
   const planId = state.negPlan && state.negPlan.id;
@@ -147,9 +149,26 @@ export function MyAds({ kinds, kindLabel, onChat }) {
       { text: `Liberar por ${brl(cost)}`, onPress: go },
     ]);
   };
+  const board = kinds.some((k) => String(k).startsWith('imovel')) ? 'imoveis' : 'veiculos';
   return (
     <View style={{ marginBottom: 14 }}>
-      <Text style={st.h}>Meus anúncios</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <Text style={[st.h, { flex: 1 }]}>Meus anúncios</Text>
+        {/* CRM do anunciante: acompanha cada interessado por etapas, até fechar negócio */}
+        <TouchableOpacity onPress={() => setCrm(true)} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card }} accessibilityLabel="Acompanhar meus clientes por etapas">
+          <Ionicons name="chatbubbles-outline" size={15} color={colors.text} />
+          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 12.5, marginLeft: 5 }}>Clientes</Text>
+        </TouchableOpacity>
+      </View>
+      <Modal visible={crm} animationType="slide" onRequestClose={() => setCrm(false)}>
+        <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: 36 }}>
+          <TouchableOpacity onPress={() => setCrm(false)} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8 }} accessibilityLabel="Voltar">
+            <Ionicons name="chevron-back" size={22} color={colors.text} />
+            <Text style={{ color: colors.text, fontWeight: '700', marginLeft: 4 }}>Voltar</Text>
+          </TouchableOpacity>
+          <CrmScreen board={board} />
+        </View>
+      </Modal>
       {ads.map((ad) => {
         const leads = (state.negLeads || []).filter((l) => l.adId === ad.id);
         const cost = custoLiberar(planId, ad.kind);
