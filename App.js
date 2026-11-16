@@ -22,6 +22,7 @@ import StoreScreen, { FoodScreen } from './src/screens/cliente/StoreScreen';
 import ServicesScreen from './src/screens/cliente/ServicesScreen';
 import OrdersScreen from './src/screens/cliente/OrdersScreen';
 import DashboardScreen from './src/screens/empresa/DashboardScreen';
+import CrmScreen from './src/screens/empresa/CrmScreen';
 import InventoryScreen from './src/screens/empresa/InventoryScreen';
 import FinanceScreen from './src/screens/empresa/FinanceScreen';
 import B2BScreen from './src/screens/empresa/B2BScreen';
@@ -143,6 +144,7 @@ const TABS = {
   ],
   empresa: [
     { key: 'painel', label: 'Painel', icon: 'speedometer-outline', Comp: DashboardScreen },
+    { key: 'clientes', label: 'Clientes', icon: 'chatbubbles-outline', Comp: CrmScreen },
     { key: 'estoque', label: 'Estoque', icon: 'file-tray-stacked-outline', Comp: InventoryScreen },
     { key: 'caixa', label: 'Caixa', icon: 'wallet-outline', Comp: FinanceScreen },
     { key: 'negocios', label: 'Negócios', icon: 'swap-horizontal-outline', Comp: B2BScreen },

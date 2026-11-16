@@ -266,3 +266,9 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
       tirar da voz e expulsar. Barra de voz com Mic e Áudio (mutar) com nome.
 - [ ] Arena: a voz ainda é demonstração. Volume, silenciar e mutar já ficam guardados, mas só agem de
       verdade quando a voz real (servidor) entrar. Bloqueio e denúncia também precisam do servidor.
+- [x] Empresa: aba Clientes (CRM). Atendimentos por etapas (Novo contato, Em conversa, Proposta enviada,
+      Negociação, Venda fechada, Não fechou), conversa, valor, notas, lembrete de retorno, origem e linha
+      do tempo; números do funil no topo (`src/crm.js`, `src/screens/empresa/CrmScreen.js`).
+- [ ] CRM: os atendimentos são de exemplo e ficam no celular. Com o servidor, cada conversa de cliente
+      com a loja (Shop, Food, Reels, anúncio, página) deve abrir um atendimento sozinha, e a venda feita
+      pelo app deve fechar a etapa automaticamente. O lembrete de retorno ainda não gera notificação.
