@@ -3,7 +3,7 @@
 // Vale para qualquer conta: o usuário que consome e o prestador que recebe pelos serviços.
 import React, { useMemo, useState } from 'react';
 import GiftIcon from '../components/GiftIcon';
-import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Pressable, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -144,8 +144,8 @@ export default function WalletScreen({ visible, onClose }) {
             <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>Moeda Re@lys · 1 RLS = R$ 1,00 na demonstração</Text>
             <View style={{ flexDirection: 'row', marginTop: 14 }}>
               <BigBtn icon="add-circle-outline" label="Depositar" onPress={() => setAction('deposito')} />
-              <BigBtn icon="arrow-up-circle-outline" label="Sacar" onPress={() => setAction('saque')} style={{ marginLeft: 8 }} />
-              <BigBtn icon="gift-outline" label="Presentear" onPress={() => dispatch({ type: 'OPEN_GIFT', asCompany: state.activeRole === 'empresa' })} style={{ marginLeft: 8 }} />
+              <BigBtn icon="arrow-up-circle-outline" label="Sacar" onPress={() => setAction('saque')} />
+              <BigBtn icon="gift-outline" label="Presentear" onPress={() => dispatch({ type: 'OPEN_GIFT', asCompany: state.activeRole === 'empresa' })} />
             </View>
           </View>
 
@@ -410,12 +410,19 @@ export default function WalletScreen({ visible, onClose }) {
   );
 }
 
+// Mesmo modelo dos botões do app: sem fundo, ícone em cima e nome embaixo em uma linha; ao tocar, fica dourado.
 function BigBtn({ icon, label, onPress, style }) {
   return (
-    <TouchableOpacity style={[styles.bigBtn, style]} onPress={onPress} activeOpacity={0.85} accessibilityLabel={label}>
-      <Ionicons name={icon} size={20} color={colors.primary} />
-      <Text style={{ color: colors.primary, fontWeight: '800', marginLeft: 6 }}>{label}</Text>
-    </TouchableOpacity>
+    <Pressable style={[styles.bigBtn, style]} onPress={onPress} accessibilityLabel={label}>
+      {({ pressed }) => (
+        <>
+          <Ionicons name={pressed ? icon.replace('-outline', '') : icon} size={21} color={pressed ? colors.gold : '#FFFFFF'} />
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: pressed ? colors.gold : '#FFFFFF', fontWeight: '700', fontSize: 12, marginTop: 3 }}>
+            {label}
+          </Text>
+        </>
+      )}
+    </Pressable>
   );
 }
 
@@ -553,9 +560,9 @@ const styles = StyleSheet.create({
   convertText: { color: '#0B1124', fontWeight: '800', fontSize: 12, marginLeft: 4 },
   liveRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border, marginTop: 6 },
   giftRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border, marginTop: 6 },
-  balanceCard: { backgroundColor: colors.primary, borderRadius: 20, padding: 16 },
+  balanceCard: { backgroundColor: '#14120E', borderRadius: 20, padding: 16 },
   balance: { color: '#fff', fontSize: 32, fontWeight: '800', marginVertical: 4 },
-  bigBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 44, borderRadius: 14, backgroundColor: '#fff' },
+  bigBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 46, paddingHorizontal: 2 },
   periods: { flexDirection: 'row', marginTop: 16 },
   section: { color: colors.text, fontWeight: '700', fontSize: 16, marginTop: 14, marginBottom: 8 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },

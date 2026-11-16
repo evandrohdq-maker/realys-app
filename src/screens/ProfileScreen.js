@@ -34,19 +34,20 @@ const ROLE_ICON = { cliente: '🛍️', empresa: '🏪', prestador: '🛵', forn
 function Item({ k, icon, title, sub, onPress, children, danger, open, onToggle }) {
   const isOpen = open === k;
   return (
-    <View style={styles.item}>
-      <TouchableOpacity style={styles.itemRow} onPress={onPress || (() => onToggle(k))} activeOpacity={0.8} accessibilityLabel={title}>
-        <View style={[styles.itemIcon, danger && { backgroundColor: '#FDECEC' }]}>
-          <Ionicons name={icon} size={19} color={danger ? colors.danger : colors.menu} />
-        </View>
-        <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={[styles.itemTitle, danger && { color: colors.danger }]}>{title}</Text>
-          {sub ? <Text style={styles.itemSub} numberOfLines={1}>{sub}</Text> : null}
-        </View>
-        <Ionicons name={onPress ? 'chevron-forward' : isOpen ? 'chevron-up' : 'chevron-down'} size={17} color={colors.muted} />
-      </TouchableOpacity>
+    // Menu em duas grades, uma ao lado da outra: cada opção é um quadrinho de meia largura.
+    // A opção aberta mostra o conteúdo logo abaixo, na largura toda.
+    <>
+      <View style={styles.item}>
+        <TouchableOpacity style={styles.itemRow} onPress={onPress || (() => onToggle(k))} activeOpacity={0.8} accessibilityLabel={title}>
+          <Ionicons name={isOpen ? icon.replace('-outline', '') : icon} size={19} color={danger ? colors.danger : isOpen ? colors.primary : colors.menu} />
+          <View style={{ flex: 1, marginLeft: 8 }}>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.itemTitle, danger && { color: colors.danger }, isOpen && { color: colors.primary }]}>{title}</Text>
+            {sub ? <Text style={styles.itemSub} numberOfLines={1}>{sub}</Text> : null}
+          </View>
+        </TouchableOpacity>
+      </View>
       {!onPress && isOpen ? <View style={styles.itemBody}>{children}</View> : null}
-    </View>
+    </>
   );
 }
 
@@ -439,13 +440,13 @@ const styles = StyleSheet.create({
   statN: { color: colors.text, fontWeight: '800', fontSize: 19 },
   statL: { color: colors.muted, fontSize: 11, marginTop: 1 },
   moreTitle: { color: colors.text, fontWeight: '800', fontSize: 16, marginTop: 18, marginBottom: 8 },
-  moreBox: { backgroundColor: '#FFFFFF', borderRadius: 18, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
-  item: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
-  itemRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12 },
+  moreBox: { backgroundColor: '#FFFFFF', borderRadius: 18, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', flexDirection: 'row', flexWrap: 'wrap' },
+  item: { width: '50%', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  itemRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 10, minHeight: 50 },
   itemIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
-  itemTitle: { color: colors.text, fontWeight: '700', fontSize: 15 },
-  itemSub: { color: colors.muted, fontSize: 12, marginTop: 1 },
-  itemBody: { paddingHorizontal: 14, paddingBottom: 14 },
+  itemTitle: { color: colors.text, fontWeight: '700', fontSize: 13 },
+  itemSub: { color: colors.muted, fontSize: 10.5, marginTop: 1 },
+  itemBody: { width: '100%', paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   roleChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18, borderWidth: 1, borderColor: colors.border, marginRight: 8, marginBottom: 8, backgroundColor: '#FFFFFF' },
   roleChipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   privPill: { flexDirection: 'row', alignItems: 'center', minHeight: 30, paddingHorizontal: 11, borderRadius: 19, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card },
