@@ -76,7 +76,7 @@ function PageEditor({ pg, visible, onClose }) {
           </TouchableOpacity>
           <Text style={st.edTitle}>Editar página</Text>
           <TouchableOpacity onPress={save} style={st.edSave} accessibilityLabel="Salvar a página">
-            <Text style={{ color: '#fff', fontWeight: '800' }}>Salvar</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Salvar</Text>
           </TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 + insets.bottom }} keyboardShouldPersistTaps="handled">
@@ -99,7 +99,7 @@ function PageEditor({ pg, visible, onClose }) {
             accessibilityLabel="Trocar a capa da página"
           >
             <Ionicons name="image-outline" size={16} color={colors.text} />
-            <Text style={{ color: colors.text, fontWeight: '700', marginLeft: 6 }}>Trocar a capa</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', marginLeft: 6 }}>Trocar a capa</Text>
           </TouchableOpacity>
 
           <Text style={st.label}>Nome da página</Text>
@@ -229,7 +229,7 @@ export default function UserPageModal() {
             {mine ? (
               <TouchableOpacity onPress={() => setEditing(true)} style={st.editBtn} accessibilityLabel="Editar a página: nome, capa, cores e formato">
                 <Ionicons name="color-palette-outline" size={16} color="#fff" />
-                <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12.5, marginLeft: 6 }}>Editar página</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800', fontSize: 12.5, marginLeft: 6 }}>Editar página</Text>
               </TouchableOpacity>
             ) : null}
           </View>
@@ -250,7 +250,7 @@ export default function UserPageModal() {
                 accessibilityLabel={`Ver o perfil de ${pg.ownerName}`}
               >
                 <Ionicons name="shield-checkmark" size={15} color={th.accent} />
-                <Text style={[st.sealText, { color: T.text }]}>{signatureOf(pg)}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.sealText, { color: T.text }]}>{signatureOf(pg)}</Text>
               </TouchableOpacity>
             )}
             <Text style={[st.about, { color: T.text }, ff]}>{pg.about}</Text>
@@ -278,25 +278,25 @@ export default function UserPageModal() {
                     accessibilityLabel={photo ? 'Tirar a foto do post' : 'Pôr uma foto no post'}
                   >
                     <Ionicons name={photo ? 'close' : 'image-outline'} size={16} color={colors.text} />
-                    <Text style={{ color: colors.text, fontWeight: '700', fontSize: 12.5, marginLeft: 6 }}>{photo ? 'Tirar foto' : 'Foto'}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', fontSize: 12.5, marginLeft: 6 }}>{photo ? 'Tirar foto' : 'Foto'}</Text>
                   </TouchableOpacity>
                   <View style={{ flex: 1 }} />
                   {editPost ? (
                     <TouchableOpacity onPress={() => { setEditPost(null); setText(''); setTitle(''); setPhoto(null); }} style={{ marginRight: 12 }}>
-                      <Text style={{ color: colors.muted, fontWeight: '700' }}>Cancelar</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '700' }}>Cancelar</Text>
                     </TouchableOpacity>
                   ) : null}
                   <Button title={editPost ? 'Salvar post' : 'Publicar'} onPress={publish} small />
                 </Row>
                 <TouchableOpacity onPress={remove} style={{ marginTop: 12 }}>
-                  <Text style={{ color: colors.danger, fontWeight: '700', fontSize: 13 }}>Apagar página</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.danger, fontWeight: '700', fontSize: 13 }}>Apagar página</Text>
                 </TouchableOpacity>
               </View>
             ) : (
               <Row style={{ marginTop: 12 }}>
                 <Button title={following ? 'Seguindo' : 'Seguir'} variant={following ? 'light' : 'primary'} small onPress={() => dispatch({ type: 'PAGE_FOLLOW', id: pg.id })} />
                 <TouchableOpacity onPress={report} style={{ marginLeft: 14 }} accessibilityLabel="Denunciar página">
-                  <Text style={{ color: T.muted, fontWeight: '700', fontSize: 13 }}>Denunciar</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: T.muted, fontWeight: '700', fontSize: 13 }}>Denunciar</Text>
                 </TouchableOpacity>
               </Row>
             )}

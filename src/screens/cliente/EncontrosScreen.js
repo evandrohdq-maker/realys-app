@@ -223,7 +223,7 @@ function DateShowcase({ people, today, onStart }) {
       </View>
 
       <TouchableOpacity style={styles.bigCta} onPress={onStart} activeOpacity={0.9} accessibilityLabel="Quero ver quem cruzou comigo">
-        <Text style={styles.bigCtaText}>Quero ver quem cruzou comigo</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.bigCtaText}>Quero ver quem cruzou comigo</Text>
       </TouchableOpacity>
       <Text style={{ color: colors.muted, fontSize: 11, textAlign: 'center', marginTop: 8 }}>Leva menos de 1 minuto · só para maiores de 18</Text>
     </Screen>
@@ -340,7 +340,7 @@ function Main({ openTerms }) {
           return (
             <TouchableOpacity key={k} style={[styles.seg, on && styles.segOn]} onPress={() => setSeg(k)}>
               <Ionicons name={on ? icon.replace('-outline', '') : icon} size={16} color={on ? '#fff' : ROSE} />
-              <Text style={[styles.segText, on && { color: '#fff' }]}>{label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.segText, on && { color: '#fff' }]}>{label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -399,7 +399,7 @@ function Main({ openTerms }) {
                     {p.name}, {p.age}
                   </Text>
                   <TouchableOpacity style={styles.likedBack} onPress={() => like(p)} accessibilityLabel={`Curtir ${p.name} de volta`}>
-                    <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>Curtir de volta</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>Curtir de volta</Text>
                   </TouchableOpacity>
                 </TouchableOpacity>
               ))}
@@ -435,11 +435,11 @@ function Main({ openTerms }) {
                 </Row>
                 <Row style={{ marginTop: 10 }}>
                   <TouchableOpacity onPress={() => dispatch({ type: 'ENC_UNMATCH', id: p.id })}>
-                    <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '600' }}>Desfazer crush</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontSize: 12, fontWeight: '600' }}>Desfazer crush</Text>
                   </TouchableOpacity>
                   <Text style={{ color: colors.border, marginHorizontal: 8 }}>|</Text>
                   <TouchableOpacity onPress={() => report(p)}>
-                    <Text style={{ color: colors.danger, fontSize: 12, fontWeight: '600' }}>Denunciar e bloquear</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.danger, fontSize: 12, fontWeight: '600' }}>Denunciar e bloquear</Text>
                   </TouchableOpacity>
                 </Row>
               </Card>
@@ -599,7 +599,7 @@ function DateCard({ p, liked, charmed, matched, onLike, onPass, onCharm, onOpen,
           </Row>
         )}
         <TouchableOpacity onPress={() => onReport(p)} style={{ alignSelf: 'center', marginTop: 8 }} hitSlop={8}>
-          <Text style={{ color: colors.muted, fontSize: 11 }}>Denunciar</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontSize: 11 }}>Denunciar</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -697,7 +697,7 @@ function MatchModal({ p, onClose, onChat }) {
           </Text>
           <Button title={`Mandar mensagem para ${p.name}`} onPress={onChat} style={{ marginTop: 14, alignSelf: 'stretch', backgroundColor: ROSE, borderColor: ROSE }} />
           <TouchableOpacity onPress={onClose} style={{ marginTop: 12 }}>
-            <Text style={{ color: colors.muted, fontWeight: '700' }}>Continuar vendo os cruzamentos</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '700' }}>Continuar vendo os cruzamentos</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -916,7 +916,7 @@ function ProfileEditor({ visible, onClose }) {
           <Text style={{ color: colors.text, fontSize: 18, fontWeight: '700', marginLeft: 12, flex: 1 }}>Meu perfil do Date</Text>
           <TouchableOpacity onPress={() => setPreview(true)} style={styles.previewBtn} accessibilityLabel="Ver como os outros me veem">
             <Ionicons name="eye-outline" size={14} color={ROSE} />
-            <Text style={{ color: ROSE, fontWeight: '800', fontSize: 12, marginLeft: 4 }}>Como me veem</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: ROSE, fontWeight: '800', fontSize: 12, marginLeft: 4 }}>Como me veem</Text>
           </TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 + insets.bottom }} keyboardShouldPersistTaps="handled">
@@ -949,7 +949,7 @@ function ProfileEditor({ visible, onClose }) {
             {album.map((x, i) => (
               <TouchableOpacity key={x.id} style={styles.albumSlot} onPress={() => makeMain(i)} activeOpacity={0.85} accessibilityLabel={i ? 'Tornar principal' : 'Foto principal'}>
                 <Photo uri={x.uri} style={styles.albumImg} fallback="🙂" />
-                {!i ? <Text style={styles.mainTag}>PRINCIPAL</Text> : null}
+                {!i ? <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.mainTag}>PRINCIPAL</Text> : null}
                 <TouchableOpacity style={styles.albumX} onPress={() => removeAt(i)} hitSlop={6} accessibilityLabel="Tirar do álbum">
                   <Ionicons name="close" size={13} color="#fff" />
                 </TouchableOpacity>
@@ -958,7 +958,7 @@ function ProfileEditor({ visible, onClose }) {
             {album.length < ALBUM_MAX ? (
               <TouchableOpacity style={[styles.albumSlot, styles.albumAdd]} onPress={addFromPhone} accessibilityLabel="Adicionar foto do celular">
                 <Ionicons name="add" size={30} color={ROSE} />
-                <Text style={{ color: ROSE, fontSize: 10, fontWeight: '700' }}>do celular</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: ROSE, fontSize: 10, fontWeight: '700' }}>do celular</Text>
               </TouchableOpacity>
             ) : null}
           </View>
@@ -1233,7 +1233,7 @@ function Bullet({ icon, text }) {
 function Pill({ label, on, onPress }) {
   return (
     <TouchableOpacity style={[styles.pill, on && styles.pillOn]} onPress={onPress}>
-      <Text style={{ color: on ? '#fff' : colors.text, fontWeight: '700', fontSize: 12 }}>{label}</Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: on ? '#fff' : colors.text, fontWeight: '700', fontSize: 12 }}>{label}</Text>
     </TouchableOpacity>
   );
 }

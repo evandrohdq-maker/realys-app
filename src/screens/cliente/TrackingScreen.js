@@ -162,13 +162,13 @@ export default function TrackingScreen({ call, visible, onClose, onOpenProfile }
             </View>
             <TouchableOpacity style={styles.profileBtn} onPress={() => onOpenProfile(p)}>
               <Ionicons name="person-outline" size={15} color={colors.primary} />
-              <Text style={styles.profileText}>Ver perfil</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.profileText}>Ver perfil</Text>
             </TouchableOpacity>
           </View>
 
           {arrived && !started ? (
             <TouchableOpacity style={[styles.mainBtn, { marginBottom: 10 }]} onPress={() => setStarted(true)}>
-              <Text style={styles.mainText}>Código conferido · iniciar serviço</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.mainText}>Código conferido · iniciar serviço</Text>
             </TouchableOpacity>
           ) : null}
           {started ? (
@@ -180,7 +180,7 @@ export default function TrackingScreen({ call, visible, onClose, onOpenProfile }
                 onClose();
               }}
             >
-              <Text style={styles.mainText}>Concluir e pagar pelo Re@lys</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.mainText}>Concluir e pagar pelo Re@lys</Text>
             </TouchableOpacity>
           ) : null}
 
@@ -190,14 +190,14 @@ export default function TrackingScreen({ call, visible, onClose, onOpenProfile }
               onPress={() => Alert.alert(`Ligando para ${first}`, 'A ligação passa pela Re@lys: o seu número fica protegido.')}
             >
               <Ionicons name="call" size={16} color={colors.onPrimary} />
-              <Text style={[styles.actionText, { color: colors.onPrimary }]}>Ligar</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.actionText, { color: colors.onPrimary }]}>Ligar</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.action} onPress={() => Alert.alert('Mensagem', `Conversa com ${first} aberta no chat do Re@lys.`)}>
               <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.text} />
-              <Text style={styles.actionText}>Mensagem</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.actionText}>Mensagem</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.action, { borderColor: 'rgba(255,138,128,0.5)', marginRight: 0 }]} onPress={cancel}>
-              <Text style={[styles.actionText, { color: colors.danger }]}>Cancelar</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.actionText, { color: colors.danger }]}>Cancelar</Text>
             </TouchableOpacity>
           </View>
         </View>

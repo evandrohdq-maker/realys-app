@@ -135,10 +135,10 @@ export function NoteModal({ visible, where, onClose }) {
           />
           <View style={{ flexDirection: 'row', marginTop: 12 }}>
             <TouchableOpacity style={[styles.btn, styles.btnGhost]} onPress={onClose}>
-              <Text style={{ color: colors.text, fontWeight: '600' }}>Cancelar</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '600' }}>Cancelar</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.btn, styles.btnMain]} onPress={save}>
-              <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>Salvar anotação</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '700' }}>Salvar anotação</Text>
             </TouchableOpacity>
           </View>
         </Pressable>
@@ -191,7 +191,7 @@ export function AdminSystem({ openArea }) {
         </View>
         <TouchableOpacity style={styles.shareBtn} onPress={share}>
           <Ionicons name="share-social-outline" size={16} color={colors.onPrimary} />
-          <Text style={{ color: colors.onPrimary, fontWeight: '700', marginLeft: 6, fontSize: 13 }}>Enviar</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '700', marginLeft: 6, fontSize: 13 }}>Enviar</Text>
         </TouchableOpacity>
       </View>
       {!state.notes.length ? (
@@ -249,12 +249,12 @@ export function AdminSystem({ openArea }) {
                     {i.role ? (
                       <TouchableOpacity style={[styles.smallBtn, styles.smallMain]} onPress={() => openArea(i.role, i.tab, i.top)}>
                         <Ionicons name="open-outline" size={14} color={colors.onPrimary} />
-                        <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>Abrir tela</Text>
+                        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>Abrir tela</Text>
                       </TouchableOpacity>
                     ) : null}
                     <TouchableOpacity style={styles.smallBtn} onPress={() => setNoteFor(i.name)}>
                       <Ionicons name="create-outline" size={14} color={colors.text} />
-                      <Text style={{ color: colors.text, fontWeight: '600', fontSize: 12, marginLeft: 5 }}>Anotar</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '600', fontSize: 12, marginLeft: 5 }}>Anotar</Text>
                     </TouchableOpacity>
                   </View>
                 </View>

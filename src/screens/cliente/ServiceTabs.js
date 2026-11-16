@@ -160,7 +160,7 @@ export function OnlineTab({ appts, setAppts, focus }) {
                 accessibilityLabel={`Entrar na chamada com ${a.p.name}`}
               >
                 <Ionicons name="videocam" size={15} color={colors.onPrimary} />
-                <Text style={styles.joinText}>Entrar</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.joinText}>Entrar</Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -173,7 +173,7 @@ export function OnlineTab({ appts, setAppts, focus }) {
           return (
             <TouchableOpacity key={a.key} onPress={() => setArea(a.key)} style={[styles.pill, on && styles.pillOn]}>
               <Ionicons name={a.icon} size={14} color={on ? colors.primaryDark : colors.muted} />
-              <Text style={[styles.pillText, on && { color: colors.primaryDark }]}>{a.label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pillText, on && { color: colors.primaryDark }]}>{a.label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -211,14 +211,14 @@ export function OnlineTab({ appts, setAppts, focus }) {
                 const on = s === chosen;
                 return (
                   <TouchableOpacity key={s} onPress={() => setSlot({ ...slot, [p.id]: s })} style={[styles.slot, on && styles.slotOn]}>
-                    <Text style={[styles.slotText, on && { color: colors.onPrimary }]}>{s}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.slotText, on && { color: colors.onPrimary }]}>{s}</Text>
                   </TouchableOpacity>
                 );
               })}
             </Row>
             <TouchableOpacity style={styles.bookBtn} onPress={() => book(p)} accessibilityLabel={`Agendar chamada de vídeo com ${p.name}`}>
               <Ionicons name="videocam" size={16} color={colors.onPrimary} />
-              <Text style={styles.bookText}>Agendar chamada de vídeo · {chosen}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.bookText}>Agendar chamada de vídeo · {chosen}</Text>
             </TouchableOpacity>
           </View>
         );
@@ -262,7 +262,7 @@ export function CoursesTab({ navigate }) {
           return (
             <TouchableOpacity key={k.key} onPress={() => setKind(k.key)} style={[styles.pill, on && styles.pillOn]}>
               <Ionicons name={k.icon} size={14} color={on ? colors.primaryDark : colors.muted} />
-              <Text style={[styles.pillText, on && { color: colors.primaryDark }]}>{k.label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pillText, on && { color: colors.primaryDark }]}>{k.label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -278,7 +278,7 @@ export function CoursesTab({ navigate }) {
           <Row style={{ justifyContent: 'space-between', marginTop: 10 }}>
             <Text style={styles.price}>{c.price}</Text>
             <TouchableOpacity style={styles.enroll} onPress={() => enroll(c)} accessibilityLabel={`Inscrever-se em ${c.title}`}>
-              <Text style={styles.bookText}>Inscrever-se</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.bookText}>Inscrever-se</Text>
             </TouchableOpacity>
           </Row>
         </View>

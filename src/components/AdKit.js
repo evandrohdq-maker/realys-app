@@ -259,7 +259,7 @@ function ClipPlayer({ clips, index, onIndex, onClose, food }) {
         <View style={styles.side}>
           <TouchableOpacity style={styles.sideBtn} onPress={() => setLiked({ ...liked, [c.id]: !isLiked })} accessibilityLabel="Curtir">
             <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={28} color={isLiked ? '#FF5A7A' : '#fff'} />
-            <Text style={styles.sideText}>{shortNum(c.likes + (isLiked ? 1 : 0))}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.sideText}>{shortNum(c.likes + (isLiked ? 1 : 0))}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.sideBtn}
@@ -267,7 +267,7 @@ function ClipPlayer({ clips, index, onIndex, onClose, food }) {
             accessibilityLabel="Compartilhar"
           >
             <Ionicons name="share-social-outline" size={26} color="#fff" />
-            <Text style={styles.sideText}>Enviar</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.sideText}>Enviar</Text>
           </TouchableOpacity>
         </View>
 
@@ -289,7 +289,7 @@ function ClipPlayer({ clips, index, onIndex, onClose, food }) {
               </View>
               <TouchableOpacity style={styles.buy} onPress={add} accessibilityLabel={`Adicionar ${p.name} ao carrinho`}>
                 <Ionicons name={food ? 'restaurant' : 'cart'} size={15} color="#fff" />
-                <Text style={{ color: '#fff', fontWeight: '800', marginLeft: 5, fontSize: 12 }}>{food ? 'Pedir' : 'Comprar'}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800', marginLeft: 5, fontSize: 12 }}>{food ? 'Pedir' : 'Comprar'}</Text>
               </TouchableOpacity>
             </View>
           ) : null}
@@ -348,7 +348,7 @@ export function PromoSector({ flash, coupons, combos, food, onOpenStore }) {
           return (
             <TouchableOpacity key={x.key} style={[styles.chip, on && styles.chipOn]} onPress={() => setF(x.key)}>
               <Ionicons name={x.icon} size={15} color={on ? colors.onPrimary : colors.primary} />
-              <Text style={[styles.chipText, on && { color: colors.onPrimary }]}>{x.label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, on && { color: colors.onPrimary }]}>{x.label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -383,7 +383,7 @@ export function PromoSector({ flash, coupons, combos, food, onOpenStore }) {
                         Alert.alert('Cupom guardado 🎟️', `${c.title} na ${s.name}. Ele desconta sozinho quando você comprar lá.`);
                       }}
                     >
-                      <Text style={styles.couponBtnText}>{got ? '✓ Guardado' : 'Pegar cupom'}</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.couponBtnText}>{got ? '✓ Guardado' : 'Pegar cupom'}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -425,7 +425,7 @@ export function PromoSector({ flash, coupons, combos, food, onOpenStore }) {
                   {limit ? <Text style={styles.limit}>{limit}</Text> : null}
                   <TouchableOpacity style={styles.flashBtn} onPress={() => add(p)} accessibilityLabel={`Aproveitar ${p.name}`}>
                     <Ionicons name="flash" size={14} color="#fff" />
-                    <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12, marginLeft: 3 }}>Aproveitar</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800', fontSize: 12, marginLeft: 3 }}>Aproveitar</Text>
                   </TouchableOpacity>
                 </View>
               );
@@ -479,7 +479,7 @@ export function PromoSector({ flash, coupons, combos, food, onOpenStore }) {
                     }}
                   >
                     <Ionicons name="add" size={16} color="#fff" />
-                    <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12, marginLeft: 3 }}>Adicionar combo</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800', fontSize: 12, marginLeft: 3 }}>Adicionar combo</Text>
                   </TouchableOpacity>
                 </View>
               </View>

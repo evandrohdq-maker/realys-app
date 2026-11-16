@@ -197,7 +197,7 @@ export default function ArenaScreen({ explore }) {
               return (
                 <TouchableOpacity key={i} onPress={() => openUser(msg.who)} style={[st.msg, { opacity: 0.6 }]} accessibilityLabel={`Mensagem de ${msg.who}, que você ignorou`}>
                   <Ionicons name="eye-off-outline" size={16} color={D.muted} style={{ width: 38, textAlign: 'center' }} />
-                  <Text style={{ color: D.muted, fontSize: 12.5, marginLeft: 10, flex: 1 }}>Mensagem de {msg.who.split(' ')[0]}, que você ignorou.</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: D.muted, fontSize: 12.5, marginLeft: 10, flex: 1 }}>Mensagem de {msg.who.split(' ')[0]}, que você ignorou.</Text>
                 </TouchableOpacity>
               );
             return (
@@ -233,7 +233,7 @@ export default function ArenaScreen({ explore }) {
           <TouchableOpacity style={st.backdrop} activeOpacity={1} onPress={() => setReact(null)}>
             <View style={st.reactBox}>
               {['👍', '🔥', '😂', '❤️', '🎮', '🏆'].map((e) => (
-                <TouchableOpacity key={e} onPress={() => addReaction(e)} style={{ padding: 8 }}><Text style={{ fontSize: 28 }}>{e}</Text></TouchableOpacity>
+                <TouchableOpacity key={e} onPress={() => addReaction(e)} style={{ padding: 8 }}><Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontSize: 28 }}>{e}</Text></TouchableOpacity>
               ))}
             </View>
           </TouchableOpacity>
@@ -254,7 +254,7 @@ export default function ArenaScreen({ explore }) {
             <TouchableOpacity key={s.id} onPress={() => { setSid(s.id); setCid(null); }} style={st.railItem} accessibilityLabel={`Servidor ${s.name}`}>
               {on ? <View style={st.railPill} /> : null}
               <View style={[st.railIcon, { borderRadius: on ? 16 : 24, backgroundColor: on ? s.tint : D.card }]}>
-                <Text style={{ fontSize: 22 }}>{s.emoji}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontSize: 22 }}>{s.emoji}</Text>
               </View>
             </TouchableOpacity>
           );
@@ -284,7 +284,7 @@ export default function ArenaScreen({ explore }) {
         <ScrollView contentContainerStyle={{ paddingBottom: voice ? 90 : 24 }}>
           {!iAmIn(sv) ? (
             <TouchableOpacity style={st.joinBtn} onPress={join}>
-              <Text style={{ color: '#fff', fontWeight: '800' }}>Entrar no servidor</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Entrar no servidor</Text>
             </TouchableOpacity>
           ) : null}
           <View style={st.catRow}>
@@ -353,14 +353,14 @@ export default function ArenaScreen({ explore }) {
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 }}>
               {['🎮', '🔥', '⚽', '⛏️', '🏎️', '🔫', '🧙', '🏀', '♟️', '🕹️'].map((e) => (
                 <TouchableOpacity key={e} onPress={() => setCreate({ ...create, emoji: e })} style={[st.emojiPick, create && create.emoji === e && { borderColor: D.gold }]}>
-                  <Text style={{ fontSize: 22 }}>{e}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontSize: 22 }}>{e}</Text>
                 </TouchableOpacity>
               ))}
             </View>
             <TextInput value={create ? create.name : ''} onChangeText={(t) => setCreate({ ...create, name: t })} placeholder="Nome do servidor" placeholderTextColor={D.muted} style={st.field} maxLength={40} />
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 14 }}>
-              <TouchableOpacity onPress={() => setCreate(null)} style={{ padding: 10 }}><Text style={{ color: D.muted, fontWeight: '700' }}>Cancelar</Text></TouchableOpacity>
-              <TouchableOpacity onPress={makeServer} style={st.okBtn}><Text style={{ color: '#fff', fontWeight: '800' }}>Criar</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => setCreate(null)} style={{ padding: 10 }}><Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: D.muted, fontWeight: '700' }}>Cancelar</Text></TouchableOpacity>
+              <TouchableOpacity onPress={makeServer} style={st.okBtn}><Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Criar</Text></TouchableOpacity>
             </View>
           </View>
         </View>
@@ -372,8 +372,8 @@ export default function ArenaScreen({ explore }) {
             <Text style={st.dialogTitle}>{newCh && newCh.kind === 'voice' ? 'Novo canal de voz' : 'Novo canal de texto'}</Text>
             <TextInput value={newCh ? newCh.name : ''} onChangeText={(t) => setNewCh({ ...newCh, name: t })} placeholder={newCh && newCh.kind === 'voice' ? 'Ex.: Squad 2' : 'Ex.: dicas'} placeholderTextColor={D.muted} style={st.field} maxLength={30} />
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 14 }}>
-              <TouchableOpacity onPress={() => setNewCh(null)} style={{ padding: 10 }}><Text style={{ color: D.muted, fontWeight: '700' }}>Cancelar</Text></TouchableOpacity>
-              <TouchableOpacity onPress={makeChannel} style={st.okBtn}><Text style={{ color: '#fff', fontWeight: '800' }}>Criar</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => setNewCh(null)} style={{ padding: 10 }}><Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: D.muted, fontWeight: '700' }}>Cancelar</Text></TouchableOpacity>
+              <TouchableOpacity onPress={makeChannel} style={st.okBtn}><Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Criar</Text></TouchableOpacity>
             </View>
           </View>
         </View>
@@ -396,19 +396,19 @@ function VoiceBar({ ch, sv, mic, deaf, setMic, setDeaf, leave }) {
         <View style={[st.vBtn, !mic && { backgroundColor: '#FBE3E4' }]}>
           <Ionicons name={mic ? 'mic' : 'mic-off'} size={19} color={mic ? D.text : D.dnd} />
         </View>
-        <Text style={[st.vLabel, !mic && { color: D.dnd }]}>{mic ? 'Mic' : 'Mic mudo'}</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.vLabel, !mic && { color: D.dnd }]}>{mic ? 'Mic' : 'Mic mudo'}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => setDeaf(!deaf)} style={st.vCol} accessibilityLabel={deaf ? 'Ligar áudio' : 'Mutar áudio'}>
         <View style={[st.vBtn, deaf && { backgroundColor: '#FBE3E4' }]}>
           <Ionicons name={deaf ? 'volume-mute' : 'headset'} size={19} color={deaf ? D.dnd : D.text} />
         </View>
-        <Text style={[st.vLabel, deaf && { color: D.dnd }]}>{deaf ? 'Áudio mudo' : 'Áudio'}</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.vLabel, deaf && { color: D.dnd }]}>{deaf ? 'Áudio mudo' : 'Áudio'}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={leave} style={st.vCol} accessibilityLabel="Sair da voz">
         <View style={[st.vBtn, { backgroundColor: D.dnd }]}>
           <Ionicons name="call" size={17} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
         </View>
-        <Text style={st.vLabel}>Sair</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.vLabel}>Sair</Text>
       </TouchableOpacity>
     </View>
   );

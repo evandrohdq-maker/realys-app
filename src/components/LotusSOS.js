@@ -55,7 +55,7 @@ function Shell({ title, onClose, children, quickExit }) {
           <Text style={st.title}>{title}</Text>
           <TouchableOpacity onPress={onClose} style={st.exit} accessibilityLabel={quickExit ? 'Sair rápido' : 'Fechar'}>
             <Ionicons name="close" size={18} color="#fff" />
-            {quickExit ? <Text style={st.exitText}>Sair rápido</Text> : null}
+            {quickExit ? <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.exitText}>Sair rápido</Text> : null}
           </TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 30 + insets.bottom }}>{children}</ScrollView>
@@ -76,7 +76,7 @@ const Big = ({ icon, label, sub, color = RED, onPress }) => (
 const Line = ({ icon, label, onPress }) => (
   <TouchableOpacity style={st.line} onPress={onPress} activeOpacity={0.8}>
     <Ionicons name={icon} size={20} color={colors.primary} />
-    <Text style={st.lineText}>{label}</Text>
+    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.lineText}>{label}</Text>
     <Ionicons name="chevron-forward" size={16} color={colors.muted} />
   </TouchableOpacity>
 );
@@ -161,7 +161,7 @@ function Denuncia({ onClose }) {
           <View style={st.chips}>
             {DENUNCIA_TIPOS.map((t) => (
               <TouchableOpacity key={t} style={[st.chip, tipo === t && st.chipOn]} onPress={() => setTipo(t)}>
-                <Text style={[st.chipText, tipo === t && { color: '#fff' }]}>{t}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, tipo === t && { color: '#fff' }]}>{t}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -183,7 +183,7 @@ function Denuncia({ onClose }) {
             <Switch value={anon} onValueChange={setAnon} />
           </View>
           <TouchableOpacity style={[st.send, !texto.trim() && { opacity: 0.4 }]} disabled={!texto.trim()} onPress={enviar}>
-            <Text style={st.sendText}>Enviar denúncia</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.sendText}>Enviar denúncia</Text>
           </TouchableOpacity>
         </>
       ) : null}

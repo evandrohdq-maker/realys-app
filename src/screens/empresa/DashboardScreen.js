@@ -178,7 +178,7 @@ function AdsPerformance() {
 function Metric({ label, value }) {
   return (
     <View style={{ alignItems: 'center', flex: 1 }}>
-      <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 16 }}>{value}</Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: colors.primary, fontWeight: '800', fontSize: 14 }}>{value}</Text>
       <Text style={{ color: colors.muted, fontSize: 11 }}>{label}</Text>
     </View>
   );

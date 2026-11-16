@@ -95,7 +95,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
                 <Photo uri={myPhoto} style={styles.avatar} fallback="🙂" />
               ) : (
                 <View style={[styles.avatar, { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }]}>
-                  <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 22 }}>{userName.charAt(0).toUpperCase()}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 22 }}>{userName.charAt(0).toUpperCase()}</Text>
                 </View>
               )}
               <View style={styles.mePlus}>
@@ -253,7 +253,7 @@ function PostComposer({ visible, onClose, onPublish }) {
             onPress={() => onPublish({ id: 'n' + Date.now(), text: text.trim(), image, likes: 0, comments: 0, time: 'agora' })}
             style={[styles.publishBtn, !ok && { opacity: 0.4 }]}
           >
-            <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Publicar</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '800' }}>Publicar</Text>
           </TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
@@ -276,7 +276,7 @@ function PostComposer({ visible, onClose, onPublish }) {
           ) : null}
           <TouchableOpacity style={styles.photoBtn} onPress={pick}>
             <Ionicons name="image-outline" size={18} color={colors.primary} />
-            <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>{image ? 'Trocar foto' : 'Adicionar foto'}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>{image ? 'Trocar foto' : 'Adicionar foto'}</Text>
           </TouchableOpacity>
           <Text style={{ color: colors.muted, fontSize: 11, marginTop: 10 }}>Só pessoas verificadas por biometria veem e comentam.</Text>
           <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6 }}>{PHOTO_RULE}</Text>
@@ -324,7 +324,7 @@ export function ReelComposer({ visible, onClose, onPublish }) {
             onPress={() => onPublish({ id: 'r' + Date.now(), title: title.trim() || 'Meu Reel', video: video.uri, likes: 0, views: 0, kind: 'user' })}
             style={[styles.publishBtn, !ok && { opacity: 0.4 }]}
           >
-            <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Publicar</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '800' }}>Publicar</Text>
           </TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">

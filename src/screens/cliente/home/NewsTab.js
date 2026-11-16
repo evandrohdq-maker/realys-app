@@ -41,7 +41,7 @@ export default function NewsTab({ onWatch, navigate }) {
           return (
             <TouchableOpacity key={c.key} style={[styles.chip, on && (alert ? styles.chipAlertOn : styles.chipOn)]} onPress={() => setCat(c.key)} accessibilityLabel={c.label}>
               <Ionicons name={c.icon} size={15} color={on ? '#fff' : alert ? ALERT_LEVELS.extremo.color : colors.primary} />
-              <Text style={[styles.chipText, on && { color: '#fff' }]}>{c.label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, on && { color: '#fff' }]}>{c.label}</Text>
               {alert ? <View style={styles.dot} /> : null}
             </TouchableOpacity>
           );
@@ -153,7 +153,7 @@ function AlertCard({ a, navigate }) {
       <Text style={styles.alertArea}>📍 {a.area} · {a.until}</Text>
       <Text style={styles.alertText}>{a.text}</Text>
       <TouchableOpacity onPress={() => setMore(!more)} style={{ marginTop: 6 }}>
-        <Text style={{ color: L.color, fontWeight: '800', fontSize: 12 }}>{more ? 'Esconder' : 'O que fazer agora'} {more ? '▲' : '▼'}</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: L.color, fontWeight: '800', fontSize: 12 }}>{more ? 'Esconder' : 'O que fazer agora'} {more ? '▲' : '▼'}</Text>
       </TouchableOpacity>
       {more
         ? a.todo.map((t, i) => (
@@ -166,11 +166,11 @@ function AlertCard({ a, navigate }) {
       <View style={{ flexDirection: 'row', marginTop: 10 }}>
         <TouchableOpacity style={[styles.alertBtn, { backgroundColor: L.color }]} onPress={() => confirmCall(a.phoneLabel, a.phone)} accessibilityLabel={`Ligar ${a.phone}`}>
           <Ionicons name="call" size={14} color="#fff" />
-          <Text style={styles.alertBtnText}>{a.phoneLabel} {a.phone}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.alertBtnText}>{a.phoneLabel} {a.phone}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.sosBtn} onPress={() => navigate && navigate({ tab: 'socorro' })} accessibilityLabel="Abrir SOS" activeOpacity={0.85}>
           <Ionicons name="medkit" size={14} color="#fff" />
-          <Text style={styles.sosText}>SOS</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.sosText}>SOS</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.alertBtn, styles.alertBtnLight, { borderColor: L.color }]}
@@ -194,7 +194,7 @@ export function TransportAlerts({ navigate, all, compact }) {
         <Text style={[styles.h, { marginBottom: 0, marginLeft: 6, flex: 1, fontSize: 14 }]}>Viagens e transporte</Text>
         {!compact ? (
           <TouchableOpacity onPress={() => navigate && navigate({ tab: 'transporte' })} accessibilityLabel="Abrir Transporte">
-            <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 12 }}>Abrir Transporte ›</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '800', fontSize: 12 }}>Abrir Transporte ›</Text>
           </TouchableOpacity>
         ) : null}
       </View>
@@ -257,7 +257,7 @@ function Reports({ onReport, mine }) {
         <Ionicons name="people" size={16} color={colors.accent} />
         <Text style={[styles.h, { marginBottom: 0, marginLeft: 6, flex: 1, fontSize: 14 }]}>Relatos de moradores</Text>
         <TouchableOpacity onPress={onReport} accessibilityLabel="Enviar relato">
-          <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 12 }}>+ Enviar relato</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '800', fontSize: 12 }}>+ Enviar relato</Text>
         </TouchableOpacity>
       </View>
       <Text style={[styles.meta, { marginBottom: 4 }]}>Pessoas verificadas, revisadas pela moderação. Não substituem o alerta oficial.</Text>
@@ -298,7 +298,7 @@ function ReportSheet({ visible, onClose }) {
           <TextInput style={styles.input} placeholder="Onde? (rua, bairro)" placeholderTextColor={colors.muted} value={area} onChangeText={setArea} />
           <TextInput style={[styles.input, { minHeight: 70 }]} placeholder="O que está acontecendo?" placeholderTextColor={colors.muted} value={text} onChangeText={setText} multiline />
           <TouchableOpacity style={styles.send} onPress={send}>
-            <Text style={{ color: '#fff', fontWeight: '800' }}>Enviar para a moderação</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Enviar para a moderação</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -329,7 +329,7 @@ function Article({ n, onClose }) {
             Esta é uma notícia de demonstração. Na versão real, o texto completo vem do canal verificado que publicou, com nome do jornalista responsável e data.
           </Text>
           <TouchableOpacity style={[styles.send, { backgroundColor: colors.primary }]} onPress={() => Share.share({ message: `${n.title} (${n.source}, via Re@lys)` }).catch(() => {})}>
-            <Text style={{ color: '#fff', fontWeight: '800' }}>Compartilhar</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Compartilhar</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

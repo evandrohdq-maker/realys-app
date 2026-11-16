@@ -134,7 +134,7 @@ export default function ProfileScreen({ navigate, explore }) {
         {prof.cover ? <Photo uri={prof.cover} style={styles.bannerImg} /> : null}
         <View style={styles.verifiedPill}>
           <Ionicons name="shield-checkmark" size={13} color="#FFFFFF" />
-          <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 11, marginLeft: 4 }}>{isVerified(state) ? 'Identidade verificada' : 'Perfil social · sem biometria'}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 11, marginLeft: 4 }}>{isVerified(state) ? 'Identidade verificada' : 'Perfil social · sem biometria'}</Text>
         </View>
         <View style={styles.coverEdit}>
           <Ionicons name="image-outline" size={13} color="#FFFFFF" />
@@ -147,7 +147,7 @@ export default function ProfileScreen({ navigate, explore }) {
               <Photo uri={prof.photo} style={styles.avatar} />
             ) : (
               <View style={[styles.avatar, { backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' }]}>
-                <Text style={{ color: colors.text, fontSize: 34, fontWeight: '800' }}>{u.name[0]}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontSize: 34, fontWeight: '800' }}>{u.name[0]}</Text>
               </View>
             )}
           </View>
@@ -158,7 +158,7 @@ export default function ProfileScreen({ navigate, explore }) {
           <Ionicons name="heart-outline" size={14} color={colors.muted} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigate && navigate({ tab: 'socorro', seg: 'emergencia' })} accessibilityLabel="SOS, socorro e emergência" activeOpacity={0.7} hitSlop={10} style={[styles.quiet, { right: 6 }]}>
-          <Text style={styles.quietSos}>SOS</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.quietSos}>SOS</Text>
         </TouchableOpacity>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
           <Text style={styles.name}>{u.name}</Text>
@@ -172,7 +172,7 @@ export default function ProfileScreen({ navigate, explore }) {
         ) : (
           <TouchableOpacity onPress={() => setQuizOpen(true)} style={styles.quizCta} activeOpacity={0.85}>
             <Ionicons name="planet-outline" size={16} color={colors.text} />
-            <Text style={{ color: colors.text, fontWeight: '700', marginLeft: 6, fontSize: 13 }}>Descubra seu perfil social</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', marginLeft: 6, fontSize: 13 }}>Descubra seu perfil social</Text>
           </TouchableOpacity>
         )}
         {prof.bio ? <Text style={styles.bio}>{prof.bio}</Text> : null}
@@ -198,16 +198,16 @@ export default function ProfileScreen({ navigate, explore }) {
         <View style={{ flexDirection: 'row', marginTop: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <TouchableOpacity onPress={() => setEditing(true)} style={[styles.privPill, { marginRight: 8 }]} activeOpacity={0.85} accessibilityLabel="Editar perfil">
             <Ionicons name="create-outline" size={14} color={colors.text} />
-            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>Editar</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>Editar</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => dispatch({ type: 'SET_PRIVACY', privacy: { exposed: !priv.exposed } })} style={[styles.privPill, !priv.exposed && { borderColor: colors.accent }]} accessibilityLabel={priv.exposed ? 'Deixar perfil invisível' : 'Expor meu perfil'}>
             <Ionicons name={priv.exposed ? 'eye' : 'eye-off'} size={14} color={priv.exposed ? colors.text : colors.accent} />
-            <Text style={{ color: priv.exposed ? colors.text : colors.accent, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>{priv.exposed ? 'Exposto' : 'Invisível'}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: priv.exposed ? colors.text : colors.accent, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>{priv.exposed ? 'Exposto' : 'Invisível'}</Text>
           </TouchableOpacity>
           {/* Ver como o perfil aparece para os outros */}
           <TouchableOpacity onPress={() => setPreviewing(true)} style={[styles.privPill, { marginLeft: 8 }]} accessibilityLabel="Ver como o meu perfil aparece para os outros">
             <Ionicons name="scan-outline" size={14} color={colors.text} />
-            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>Prévia</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>Prévia</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -328,7 +328,7 @@ export default function ProfileScreen({ navigate, explore }) {
               {voicePrintSupported() ? (
                 <Row style={{ marginTop: 10 }}>
                   <TouchableOpacity onPress={openEnroll} style={{ marginRight: 18 }}>
-                    <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{vp ? 'Refazer cadastro da voz' : 'Cadastrar minha voz'}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{vp ? 'Refazer cadastro da voz' : 'Cadastrar minha voz'}</Text>
                   </TouchableOpacity>
                   {vp ? (
                     <TouchableOpacity
@@ -339,7 +339,7 @@ export default function ProfileScreen({ navigate, explore }) {
                         ])
                       }
                     >
-                      <Text style={{ color: '#B4532A', fontWeight: '700', fontSize: 13 }}>Apagar minha voz</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#B4532A', fontWeight: '700', fontSize: 13 }}>Apagar minha voz</Text>
                     </TouchableOpacity>
                   ) : null}
                 </Row>

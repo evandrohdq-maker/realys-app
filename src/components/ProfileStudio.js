@@ -90,7 +90,7 @@ function AudiencePicker({ value, onChange }) {
         return (
           <TouchableOpacity key={a.key} onPress={() => onChange(a.key)} style={[styles.aud, on && styles.audOn]} activeOpacity={0.85} accessibilityLabel={`${a.label}: ${a.hint}`}>
             <FutureIcon name={on ? a.icon : `${a.icon}-outline`} size={34} active={on} />
-            <Text style={[styles.audLabel, on && { color: colors.primaryDark }]}>{a.label}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.audLabel, on && { color: colors.primaryDark }]}>{a.label}</Text>
           </TouchableOpacity>
         );
       })}
@@ -179,7 +179,7 @@ export function ProfileEditor({ visible, onClose }) {
           </TouchableOpacity>
           <Text style={styles.modalTitle}>Editar perfil</Text>
           <TouchableOpacity onPress={save} style={styles.saveBtn} accessibilityLabel="Salvar perfil">
-            <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Salvar</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '800' }}>Salvar</Text>
           </TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 + insets.bottom }} keyboardShouldPersistTaps="handled">
@@ -229,7 +229,7 @@ export function ProfileEditor({ visible, onClose }) {
               accessibilityLabel="Escolher uma foto para a capa"
             >
               <Ionicons name="image-outline" size={15} color={colors.text} />
-              <Text style={{ color: colors.text, fontWeight: '700', fontSize: 12.5, marginLeft: 6 }}>{f.cover ? 'Trocar foto' : 'Usar uma foto'}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', fontSize: 12.5, marginLeft: 6 }}>{f.cover ? 'Trocar foto' : 'Usar uma foto'}</Text>
             </TouchableOpacity>
           </View>
 
@@ -339,7 +339,7 @@ function CreationComposer({ visible, kind, onClose }) {
           </TouchableOpacity>
           <Text style={styles.modalTitle}>Nova {k.label.toLowerCase()}</Text>
           <TouchableOpacity onPress={save} style={styles.saveBtn} accessibilityLabel="Publicar">
-            <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Publicar</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '800' }}>Publicar</Text>
           </TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 + insets.bottom }} keyboardShouldPersistTaps="handled">
@@ -432,7 +432,7 @@ function CreationCard({ c, owner }) {
                 accessibilityLabel={`${on ? 'Tirar de' : 'Mostrar em'} ${d.label}`}
               >
                 <Ionicons name={on ? d.icon : `${d.icon}-outline`} size={13} color={on ? '#FFFFFF' : colors.primaryDark} />
-                <Text style={[styles.chipTxt, on && { color: '#FFFFFF' }]}>{d.label}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipTxt, on && { color: '#FFFFFF' }]}>{d.label}</Text>
               </TouchableOpacity>
             );
           })}
@@ -455,7 +455,7 @@ export function StudioPanel() {
         {CREATION_KINDS.map((k) => (
           <TouchableOpacity key={k.key} onPress={() => setKind(k.key)} style={styles.createTile} activeOpacity={0.85} accessibilityLabel={`Criar ${k.label}`}>
             <FutureIcon name={k.icon} size={44} />
-            <Text style={styles.createLabel}>{k.label}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.createLabel}>{k.label}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -464,7 +464,7 @@ export function StudioPanel() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8, marginBottom: 8 }}>
             {[{ key: 'todos', label: `Tudo ${state.creations.length}` }, ...DESTS.filter((d) => d.key !== 'empresa').map((d) => ({ key: d.key, label: `${d.label} ${count(d.key)}` }))].map((t) => (
               <TouchableOpacity key={t.key} onPress={() => setFilter(t.key)} style={[styles.filter, filter === t.key && styles.filterOn]}>
-                <Text style={[styles.filterTxt, filter === t.key && { color: '#FFFFFF' }]}>{t.label}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.filterTxt, filter === t.key && { color: '#FFFFFF' }]}>{t.label}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>

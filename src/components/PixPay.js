@@ -161,11 +161,11 @@ export function PixPayHost() {
               </Text>
               <TouchableOpacity style={[styles.payBtn, busy && { opacity: 0.7 }]} onPress={paid} disabled={busy} activeOpacity={0.85}>
                 {busy ? <ActivityIndicator color="#0B1124" /> : <Ionicons name="checkmark-circle-outline" size={18} color="#0B1124" />}
-                <Text style={styles.payText}>{busy ? 'Confirmando o Pix…' : 'Já fiz o Pix'}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.payText}>{busy ? 'Confirmando o Pix…' : 'Já fiz o Pix'}</Text>
               </TouchableOpacity>
               {avail > 0 ? (
                 <TouchableOpacity onPress={() => setMode(null)} style={{ alignSelf: 'center', marginTop: 8 }}>
-                  <Text style={{ color: colors.muted, fontWeight: '700', fontSize: 12 }}>Trocar forma de pagamento</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '700', fontSize: 12 }}>Trocar forma de pagamento</Text>
                 </TouchableOpacity>
               ) : null}
               <Text style={styles.demo}>Demonstração: o QR é ilustrativo. Na versão final o Pix é gerado pelo banco parceiro e confirmado sozinho.</Text>

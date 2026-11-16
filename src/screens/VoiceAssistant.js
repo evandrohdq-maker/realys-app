@@ -1560,7 +1560,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
               <Text style={styles.pauseHint}>Diga "continua" ou faça outro pedido sobre o mesmo assunto</Text>
               <TouchableOpacity onPress={() => resume(false)} style={styles.pauseBtn} accessibilityLabel="Continuar a fala da Lotus">
                 <Ionicons name="play" size={14} color={colors.onPrimary} />
-                <Text style={styles.pauseBtnText}>Continuar</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.pauseBtnText}>Continuar</Text>
               </TouchableOpacity>
             </View>
           ) : null}
@@ -1639,7 +1639,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
                           <Text style={styles.itemPrice}>{priceText(p)}</Text>
                         </View>
                         <TouchableOpacity style={styles.callBtn} onPress={() => callProvider(p)}>
-                          <Text style={styles.callText}>Chamar</Text>
+                          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.callText}>Chamar</Text>
                         </TouchableOpacity>
                       </TouchableOpacity>
                     ))
@@ -1685,7 +1685,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
                               run(`Adicionar ${prod.name}`, { reply: `Adicionei ${prod.name} ao carrinho. Quer que eu finalize a compra agora?`, pending: { type: 'checkout', total: cartTotal(state) + prod.price } });
                             }}
                           >
-                            <Text style={styles.callText}>Adicionar</Text>
+                            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.callText}>Adicionar</Text>
                           </TouchableOpacity>
                         ) : (
                           <Ionicons name="chevron-forward" size={18} color={colors.muted} />
@@ -1711,7 +1711,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
                       : [['Sim', 'Sim', true], ['Não', 'Não']]
                     ).map(([label, say, main]) => (
                       <TouchableOpacity key={label} style={[styles.chip, main && styles.chipOn]} onPress={() => run(say, null, null, true)}>
-                        <Text style={[styles.chipText, main && { color: colors.onPrimary }]}>{label}</Text>
+                        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, main && { color: colors.onPrimary }]}>{label}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>

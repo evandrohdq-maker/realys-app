@@ -380,7 +380,7 @@ function EventsTab({ group, setGroup, onContact }) {
         onPress={() => Alert.alert('Divulgar no Re@lys', 'Casas noturnas, bares, restaurantes e organizadores podem anunciar festas e promoções para pessoas verificadas por biometria. Patrocinados aparecem primeiro.')}
       >
         <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
-        <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>Divulgar festa ou promoção</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>Divulgar festa ou promoção</Text>
       </TouchableOpacity>
     </Screen>
   );
@@ -447,10 +447,10 @@ function EventRow({ e, big, onAct, onContact }) {
         </View>
         <View style={{ flexDirection: 'row', marginTop: 12 }}>
           <TouchableOpacity style={[styles.adBtn, styles.adBtnMain]} onPress={onAct}>
-            <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>{e.cta}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '700' }}>{e.cta}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.adBtn, { marginRight: 0 }]} onPress={onContact}>
-            <Text style={{ color: colors.text, fontWeight: '600' }}>Mensagem</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '600' }}>Mensagem</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -514,7 +514,7 @@ function AdsTab({ kind, setKind, onContact }) {
           return (
             <TouchableOpacity key={k.key} style={[styles.chip, on && styles.chipOn]} onPress={() => setKind(k.key)}>
               <Ionicons name={k.icon} size={15} color={on ? colors.onPrimary : colors.primary} />
-              <Text style={[styles.chipText, on && { color: colors.onPrimary }]}>{k.label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, on && { color: colors.onPrimary }]}>{k.label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -525,7 +525,7 @@ function AdsTab({ kind, setKind, onContact }) {
         onPress={() => Alert.alert('Anunciar no Re@lys', 'Imóveis, veículos, máquinas e produtos. Pessoas verificadas por biometria veem o seu anúncio.')}
       >
         <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
-        <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>Criar anúncio</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>Criar anúncio</Text>
       </TouchableOpacity>
 
       {list.map((l) => (
@@ -555,13 +555,13 @@ function AdsTab({ kind, setKind, onContact }) {
             {/* Rodapé do cartão: um botão em cima do outro, na largura toda */}
             <View style={{ marginTop: 12 }}>
               <TouchableOpacity style={[styles.adBtn, styles.adBtnMain, styles.adBtnStack]} onPress={() => onContact(l)}>
-                <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>Tenho interesse</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '700' }}>Tenho interesse</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.adBtn, styles.adBtnStack, { marginTop: 8 }]}
                 onPress={() => Alert.alert(cta(l), `Pedido enviado para ${l.who}. A confirmação chega nas suas mensagens.`)}
               >
-                <Text style={{ color: colors.text, fontWeight: '600' }}>{cta(l)}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '600' }}>{cta(l)}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -748,7 +748,7 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
                 <View style={{ flexDirection: 'row', marginTop: 10 }}>
                   <TouchableOpacity style={styles.postAct} onPress={() => setLiked({ ...liked, [it.p.id]: !liked[it.p.id] })} accessibilityLabel="Curtir">
                     <Ionicons name={liked[it.p.id] ? 'heart' : 'heart-outline'} size={18} color={liked[it.p.id] ? '#FF5A7A' : colors.muted} />
-                    <Text style={styles.postActText}>{it.p.likes + (liked[it.p.id] ? 1 : 0)}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.postActText}>{it.p.likes + (liked[it.p.id] ? 1 : 0)}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.postAct}
@@ -759,11 +759,11 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
                     accessibilityLabel="Comentar"
                   >
                     <Ionicons name="chatbubble-outline" size={17} color={colors.muted} />
-                    <Text style={styles.postActText}>{it.p.comments + (cmts[it.p.id] || []).length}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.postActText}>{it.p.comments + (cmts[it.p.id] || []).length}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.postAct} onPress={() => sharePost(it.p)} accessibilityLabel="Compartilhar">
                     <Ionicons name="share-social-outline" size={17} color={colors.muted} />
-                    <Text style={styles.postActText}>{shared[it.p.id] ? `Compartilhado ${shared[it.p.id]}x` : 'Compartilhar'}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.postActText}>{shared[it.p.id] ? `Compartilhado ${shared[it.p.id]}x` : 'Compartilhar'}</Text>
                   </TouchableOpacity>
                 </View>
                 {(cmts[it.p.id] || []).map((c, k) => (
@@ -810,7 +810,7 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
         <View>
           <TouchableOpacity style={styles.findPeople} onPress={() => setSearching(true)} activeOpacity={0.85}>
             <Ionicons name="search" size={18} color={colors.muted} />
-            <Text style={{ color: colors.muted, marginLeft: 8, flex: 1 }}>Buscar pessoas por nome ou @usuário</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, marginLeft: 8, flex: 1 }}>Buscar pessoas por nome ou @usuário</Text>
             <Ionicons name="person-add-outline" size={18} color={colors.primary} />
           </TouchableOpacity>
           {requests.length ? (
@@ -827,7 +827,7 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
             onPress={() => Alert.alert('Convidar amigos', 'Mande o convite: quem entra no Re@lys passa pela verificação por biometria.')}
           >
             <Ionicons name="person-add-outline" size={18} color={colors.primary} />
-            <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>Convidar para o Re@lys</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>Convidar para o Re@lys</Text>
           </TouchableOpacity>
           {people.map((ct) => (
             <View key={ct.id} style={styles.convRow}>
@@ -867,7 +867,7 @@ function SectionHead({ title, action, onAction }) {
       <Text style={styles.sectionTitle}>{title}</Text>
       {action ? (
         <TouchableOpacity onPress={onAction}>
-          <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 13 }}>{action}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '600', fontSize: 13 }}>{action}</Text>
         </TouchableOpacity>
       ) : null}
     </View>

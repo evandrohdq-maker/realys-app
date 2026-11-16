@@ -74,27 +74,27 @@ export default function RadiosScreen() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
             {EMOJIS.map((e) => (
               <TouchableOpacity key={e} onPress={() => setForm({ ...form, emoji: e })} style={[st.emoji, form.emoji === e && { borderColor: colors.primary }]}>
-                <Text style={{ fontSize: 20 }}>{e}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontSize: 20 }}>{e}</Text>
               </TouchableOpacity>
             ))}
           </View>
           <View style={{ flexDirection: 'row', marginTop: 14 }}>
             <TouchableOpacity style={st.testBtn} onPress={test}>
               <Ionicons name="play-outline" size={16} color={colors.primaryDark} />
-              <Text style={{ color: colors.primaryDark, fontWeight: '800', marginLeft: 5 }}>Testar</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primaryDark, fontWeight: '800', marginLeft: 5 }}>Testar</Text>
             </TouchableOpacity>
             <TouchableOpacity style={st.saveBtn} onPress={save}>
-              <Text style={{ color: '#fff', fontWeight: '800' }}>Salvar rádio</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Salvar rádio</Text>
             </TouchableOpacity>
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
-            <TouchableOpacity onPress={() => setForm(null)}><Text style={{ color: colors.muted, fontWeight: '700' }}>Cancelar</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => setForm(null)}><Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '700' }}>Cancelar</Text></TouchableOpacity>
             {form.id ? (
               <TouchableOpacity onPress={() => Alert.alert('Remover rádio', 'A rádio sai da sua página e do diretório.', [
                 { text: 'Cancelar', style: 'cancel' },
                 { text: 'Remover', style: 'destructive', onPress: () => (removeRadio(form.id), setForm(null)) },
               ])}>
-                <Text style={{ color: '#E5484D', fontWeight: '700' }}>Remover</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#E5484D', fontWeight: '700' }}>Remover</Text>
               </TouchableOpacity>
             ) : null}
           </View>

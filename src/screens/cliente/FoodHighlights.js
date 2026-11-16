@@ -101,7 +101,7 @@ export function FoodHighlights({ filter, onOpenStore, onAdd, only }) {
                   <View style={{ flexDirection: 'row', marginTop: 10 }}>
                     <TouchableOpacity style={[styles.btn, isGoing && styles.btnOn]} onPress={() => setGoing({ ...going, [b.id]: !isGoing })}>
                       <Ionicons name={isGoing ? 'checkmark-circle' : 'calendar-outline'} size={16} color={isGoing ? colors.onPrimary : colors.primary} />
-                      <Text style={[styles.btnText, isGoing && { color: colors.onPrimary }]}>{isGoing ? 'Vou!' : 'Vou hoje'}</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.btnText, isGoing && { color: colors.onPrimary }]}>{isGoing ? 'Vou!' : 'Vou hoje'}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.btn, isHere && styles.btnOn]}
@@ -118,7 +118,7 @@ export function FoodHighlights({ filter, onOpenStore, onAdd, only }) {
                       }}
                     >
                       <Ionicons name="location" size={16} color={isHere ? colors.onPrimary : colors.primary} />
-                      <Text style={[styles.btnText, isHere && { color: colors.onPrimary }]}>Check-in</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.btnText, isHere && { color: colors.onPrimary }]}>Check-in</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.btn, { marginRight: 0 }]}
@@ -130,7 +130,7 @@ export function FoodHighlights({ filter, onOpenStore, onAdd, only }) {
                       }}
                     >
                       <Ionicons name={b.storeId ? 'book-outline' : 'people-outline'} size={16} color={colors.primary} />
-                      <Text style={styles.btnText}>{b.storeId ? 'Cardápio' : 'Reservar'}</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.btnText}>{b.storeId ? 'Cardápio' : 'Reservar'}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -152,7 +152,7 @@ export function FoodHighlights({ filter, onOpenStore, onAdd, only }) {
                 <Text style={[styles.price, { fontSize: 14 }]}>{brl(p.price)}</Text>
                 <TouchableOpacity style={styles.add} onPress={() => onAdd(p.id)}>
                   <Ionicons name="add" size={16} color={colors.onPrimary} />
-                  <Text style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 12 }}>Pedir</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '700', fontSize: 12 }}>Pedir</Text>
                 </TouchableOpacity>
               </View>
             ))}
@@ -173,7 +173,7 @@ export function FoodHighlights({ filter, onOpenStore, onAdd, only }) {
           <Photo uri={f.photo} style={styles.postImg} fallback="🍽️" />
           <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }} onPress={() => setLiked({ ...liked, [f.id]: !liked[f.id] })}>
             <Ionicons name={liked[f.id] ? 'heart' : 'heart-outline'} size={18} color={liked[f.id] ? '#FF5A7A' : colors.muted} />
-            <Text style={{ color: colors.muted, fontSize: 12, marginLeft: 5 }}>{f.likes + (liked[f.id] ? 1 : 0)}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontSize: 12, marginLeft: 5 }}>{f.likes + (liked[f.id] ? 1 : 0)}</Text>
           </TouchableOpacity>
         </View>
       ))}

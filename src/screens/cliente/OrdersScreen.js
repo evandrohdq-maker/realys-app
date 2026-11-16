@@ -48,7 +48,7 @@ function RecentDone() {
                 <Text style={styles.recentDoneTag}>🎁 Gorjeta enviada</Text>
               ) : (
                 <TouchableOpacity style={styles.recentBtn} onPress={() => tip(r)}>
-                  <Text style={styles.recentBtnText}>🎁 Dar gorjeta para {r.tipTo.name.split(' ')[0]}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.recentBtnText}>🎁 Dar gorjeta para {r.tipTo.name.split(' ')[0]}</Text>
                 </TouchableOpacity>
               )
             ) : null}
@@ -56,7 +56,7 @@ function RecentDone() {
               <Text style={styles.recentDoneTag}>⭐ Avaliado</Text>
             ) : (
               <TouchableOpacity style={[styles.recentBtn, styles.recentBtnMain]} onPress={() => dispatch({ type: 'OPEN_RATE', kind: r.kind, refId: r.refId })}>
-                <Text style={[styles.recentBtnText, { color: '#fff' }]}>⭐ Avaliar</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.recentBtnText, { color: '#fff' }]}>⭐ Avaliar</Text>
               </TouchableOpacity>
             )}
           </Row>
@@ -101,7 +101,7 @@ function CourierCard({ order: o }) {
           accessibilityLabel={`Dar gorjeta para ${o.courier}`}
         >
           <Ionicons name={tipped ? 'checkmark' : 'gift-outline'} size={14} color={tipped ? '#FFFFFF' : '#0B1124'} />
-          <Text style={[styles.tipText, tipped && { color: '#FFFFFF' }]}>{tipped ? 'Gorjeta dada' : 'Gorjeta'}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.tipText, tipped && { color: '#FFFFFF' }]}>{tipped ? 'Gorjeta dada' : 'Gorjeta'}</Text>
         </TouchableOpacity>
       ) : null}
     </View>
@@ -146,7 +146,7 @@ function ServiceOrder({ r, onTrack }) {
             accessibilityLabel={`Gorjeta para ${p.name}`}
           >
             <Ionicons name="gift-outline" size={14} color="#0B1124" />
-            <Text style={styles.tipText}>Gorjeta</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.tipText}>Gorjeta</Text>
           </TouchableOpacity>
         </Row>
       </Row>
@@ -371,7 +371,7 @@ export default function OrdersScreen({ navigate, explore }) {
       <View style={styles.viewRow}>
         {[['andamento', 'Em andamento'], ['concluidos', 'Concluídos'], ['despesas', 'Despesas']].map(([k, l]) => (
           <TouchableOpacity key={k} onPress={() => setView(k)} style={[styles.viewItem, view === k && styles.viewOn]} accessibilityLabel={l}>
-            <Text style={[styles.viewText, view === k && styles.viewTextOn]}>{l}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.viewText, view === k && styles.viewTextOn]}>{l}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -461,7 +461,7 @@ export default function OrdersScreen({ navigate, explore }) {
             {o.status === 'A caminho' ? (
               <TouchableOpacity style={styles.trackBtn} onPress={() => setTrack({ order: o })} activeOpacity={0.85} accessibilityLabel="Acompanhar a entrega no mapa">
                 <Ionicons name="navigate" size={16} color="#0B1124" />
-                <Text style={styles.trackText}>Acompanhar {isFood(o) ? 'o motoboy' : 'a entrega'} no mapa</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.trackText}>Acompanhar {isFood(o) ? 'o motoboy' : 'a entrega'} no mapa</Text>
                 <View style={styles.trackLive} />
               </TouchableOpacity>
             ) : null}

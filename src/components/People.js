@@ -74,7 +74,7 @@ function Btn({ icon, label, onPress, solid, compact, style, a11y }) {
       activeOpacity={0.85}
     >
       <Ionicons name={icon} size={compact ? 14 : 16} color={solid ? colors.onPrimary : colors.primary} />
-      {label ? <Text style={[styles.btnText, compact && { fontSize: 12 }, { color: solid ? colors.onPrimary : colors.primary }]}>{label}</Text> : null}
+      {label ? <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.btnText, compact && { fontSize: 12 }, { color: solid ? colors.onPrimary : colors.primary }]}>{label}</Text> : null}
     </TouchableOpacity>
   );
 }
@@ -142,7 +142,7 @@ export function UserProfileModal() {
             )}
             <TouchableOpacity style={[styles.msgBtn, st === 'recebido' && { flex: 1, justifyContent: 'center', marginLeft: 0 }]} onPress={openChat} accessibilityLabel={`Mensagem para ${m.name}`}>
               <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.primary} />
-              <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 6 }}>Mensagem</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700', marginLeft: 6 }}>Mensagem</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.msgBtn, { paddingHorizontal: 12 }]} onPress={() => dispatch({ type: 'OPEN_GIFT', to: memberTarget(m) })} accessibilityLabel={`Presentear ${m.name}`}>
               <Ionicons name="gift-outline" size={18} color={colors.primary} />
@@ -310,7 +310,7 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
                 {CLASSES.filter((c) => members.some((m) => m.social && (m.social.cls === c.id || (m.social.extra || []).includes(c.id)))).map((c) => (
                   <TouchableOpacity key={c.id} onPress={() => setQ(c.label)} style={[styles.classChip, { borderColor: c.color + '66' }]} activeOpacity={0.85}>
                     <Ionicons name={c.icon} size={15} color={c.color} />
-                    <Text style={{ color: c.color, fontWeight: '700', fontSize: 13, marginLeft: 5 }}>{c.label}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: c.color, fontWeight: '700', fontSize: 13, marginLeft: 5 }}>{c.label}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>

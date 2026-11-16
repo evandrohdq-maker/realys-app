@@ -98,7 +98,7 @@ export function ProfileQuiz({ value, onChange }) {
           return (
             <TouchableOpacity key={h.id} onPress={() => toggleHobby(h.id)} style={[styles.chip, on && styles.chipOn]} activeOpacity={0.85}>
               <Ionicons name={h.icon} size={14} color={on ? colors.onPrimary : colors.primary} />
-              <Text style={[styles.chipText, on && { color: colors.onPrimary }]}>{h.label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, on && { color: colors.onPrimary }]}>{h.label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -131,12 +131,12 @@ export function ProfileQuiz({ value, onChange }) {
       </View>
       <TouchableOpacity onPress={() => setPicker(true)} style={styles.change} activeOpacity={0.8}>
         <Ionicons name="swap-horizontal" size={15} color={colors.accent} />
-        <Text style={styles.changeText}>{v.manual ? 'Trocar perfil' : 'Não é isso? Escolher outro'}</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.changeText}>{v.manual ? 'Trocar perfil' : 'Não é isso? Escolher outro'}</Text>
       </TouchableOpacity>
       {v.manual ? (
         <TouchableOpacity onPress={() => set({ manual: false })} style={[styles.change, { marginTop: 0 }]}>
           <Ionicons name="sparkles" size={15} color={colors.primary} />
-          <Text style={[styles.changeText, { color: colors.primary }]}>Voltar para o automático</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.changeText, { color: colors.primary }]}>Voltar para o automático</Text>
         </TouchableOpacity>
       ) : null}
 
@@ -174,7 +174,7 @@ export function ClassPicker({ visible, current, onClose, onPick }) {
                   <View style={[styles.ring, { width: 34, height: 34, borderRadius: 17, borderColor: c.color }]}>
                     <Ionicons name={c.icon} size={17} color={c.color} />
                   </View>
-                  <Text style={styles.pLabel}>{c.label}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.pLabel}>{c.label}</Text>
                   <Ionicons name={open === c.id ? 'chevron-up' : 'chevron-down'} size={18} color={colors.muted} />
                 </TouchableOpacity>
                 {open === c.id ? (
@@ -183,12 +183,12 @@ export function ClassPicker({ visible, current, onClose, onPick }) {
                       const on = current && current.cls === c.id && current.sub === s.id;
                       return (
                         <TouchableOpacity key={s.id} onPress={() => onPick(c.id, s.id)} style={[styles.chip, on && { backgroundColor: c.color, borderColor: c.color }]}>
-                          <Text style={[styles.chipText, { color: on ? '#fff' : c.color }]}>{s.label}</Text>
+                          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, { color: on ? '#fff' : c.color }]}>{s.label}</Text>
                         </TouchableOpacity>
                       );
                     })}
                     <TouchableOpacity onPress={() => onPick(c.id, null)} style={styles.chip}>
-                      <Text style={[styles.chipText, { color: colors.muted }]}>Só {c.label}</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, { color: colors.muted }]}>Só {c.label}</Text>
                     </TouchableOpacity>
                   </View>
                 ) : null}
@@ -221,7 +221,7 @@ export function ProfileQuizModal({ visible, initial, onClose, onSave }) {
         <ProfileQuiz value={v} onChange={setV} />
         <TouchableOpacity style={styles.save} onPress={() => onSave({ ...v, social: result })} activeOpacity={0.85}>
           <Ionicons name="checkmark-circle" size={20} color={colors.onPrimary} />
-          <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 15, marginLeft: 8 }}>Salvar perfil</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 15, marginLeft: 8 }}>Salvar perfil</Text>
         </TouchableOpacity>
       </ScrollView>
     </Modal>

@@ -195,11 +195,11 @@ export default function ScanFacial({ visible, title = 'Scan facial', onFrames, o
         {erro ? <Text style={styles.erro}>{erro}</Text> : null}
         {erro ? (
           <TouchableOpacity style={styles.btn} onPress={tentarDeNovo} activeOpacity={0.85}>
-            <Text style={styles.btnText}>Tentar de novo</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.btnText}>Tentar de novo</Text>
           </TouchableOpacity>
         ) : null}
         <TouchableOpacity onPress={fechar} style={{ marginTop: 14, paddingVertical: 6 }}>
-          <Text style={{ color: colors.muted, textAlign: 'center' }}>Cancelar</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, textAlign: 'center' }}>Cancelar</Text>
         </TouchableOpacity>
       </View>
     </Modal>

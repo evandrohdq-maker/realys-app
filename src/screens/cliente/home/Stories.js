@@ -142,7 +142,7 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
           {group.cta ? (
             <TouchableOpacity style={styles.cta} onPress={() => onCta && onCta(group)}>
               <Ionicons name="chevron-up" size={16} color={colors.onPrimary} />
-              <Text style={{ color: colors.onPrimary, fontWeight: '700', marginLeft: 6 }}>{group.cta}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '700', marginLeft: 6 }}>{group.cta}</Text>
             </TouchableOpacity>
           ) : null}
           {group.mine ? (
@@ -208,7 +208,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
           </TouchableOpacity>
           <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>Novo story</Text>
           <TouchableOpacity style={[styles.publish, !(text.trim() || image) && { opacity: 0.5 }]} onPress={publish}>
-            <Text style={{ color: colors.primary, fontWeight: '800' }}>Publicar</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '800' }}>Publicar</Text>
           </TouchableOpacity>
         </View>
 

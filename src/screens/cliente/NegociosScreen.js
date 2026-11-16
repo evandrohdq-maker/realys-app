@@ -91,7 +91,7 @@ export default function NegociosScreen({ explore }) {
               const on = k === kind;
               return (
                 <TouchableOpacity key={k} style={[st.pill, on && st.pillOn]} onPress={() => setKind(k)} activeOpacity={0.85} accessibilityLabel={label}>
-                  <Text style={[st.pillText, on && { color: colors.onPrimary }]}>{label}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.pillText, on && { color: colors.onPrimary }]}>{label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -107,7 +107,7 @@ export default function NegociosScreen({ explore }) {
           onPress={() => setAnnouncing(true)}
         >
           <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
-          <Text style={st.announceText}>Criar anúncio</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.announceText}>Criar anúncio</Text>
         </TouchableOpacity>
 
         {/* Meus anúncios deste setor, com os interessados */}
@@ -141,12 +141,12 @@ export default function NegociosScreen({ explore }) {
               {/* Rodapé do cartão: um botão em cima do outro, na largura toda */}
               <View style={{ marginTop: 12 }}>
                 <TouchableOpacity style={[st.adBtn, st.adBtnMain, reqOf(l) === 'aguardando' && st.adBtnWait]} onPress={() => contact(l)}>
-                  <Text style={[st.adBtnMainText, reqOf(l) === 'aguardando' && { color: colors.text }]}>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.adBtnMainText, reqOf(l) === 'aguardando' && { color: colors.text }]}>
                     {reqOf(l) === 'liberado' ? 'Abrir conversa' : reqOf(l) === 'aguardando' ? 'Interesse enviado · aguardando' : 'Tenho interesse'}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[st.adBtn, { marginTop: 8 }]} onPress={() => Alert.alert(cta(l), `Pedido enviado para ${l.who}. A confirmação chega nas suas mensagens.`)}>
-                  <Text style={st.adBtnText}>{cta(l)}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.adBtnText}>{cta(l)}</Text>
                 </TouchableOpacity>
               </View>
             </View>

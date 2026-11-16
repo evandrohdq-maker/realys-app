@@ -68,10 +68,10 @@ export default function SecurityQuestion({ secq, visible, onResult, onCancel }) 
           {msg ? <Text style={st.msg}>{msg}</Text> : null}
           <View style={{ flexDirection: 'row', marginTop: 14 }}>
             <TouchableOpacity style={[st.btn, st.btnLight]} onPress={onCancel}>
-              <Text style={{ color: colors.text, fontWeight: '700' }}>Cancelar</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700' }}>Cancelar</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[st.btn, { marginLeft: 10, opacity: text.trim() ? 1 : 0.4 }]} disabled={!text.trim()} onPress={() => decide(text)}>
-              <Text style={{ color: '#fff', fontWeight: '800' }}>Responder</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Responder</Text>
             </TouchableOpacity>
           </View>
         </View>

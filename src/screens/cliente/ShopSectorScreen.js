@@ -43,7 +43,7 @@ function ItemCard({ it, onPress, tint }) {
         <Row style={{ justifyContent: 'space-between', marginTop: 10 }}>
           <Text style={styles.price}>{priceText(it)}</Text>
           <TouchableOpacity style={[styles.cta, { backgroundColor: tint }]} onPress={() => onPress(it)} activeOpacity={0.85}>
-            <Text style={styles.ctaText}>{it.cta}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.ctaText}>{it.cta}</Text>
           </TouchableOpacity>
         </Row>
       </View>
@@ -178,7 +178,7 @@ function SectorScreen({ sectorKey, explore, navigate }) {
         </Text>
         <TouchableOpacity onPress={() => setOnlyShip((v) => !v)} style={[styles.toggle, onlyShip && { backgroundColor: colors.success, borderColor: colors.success }]}>
           <Ionicons name="cube-outline" size={14} color={onlyShip ? '#FFFFFF' : colors.success} />
-          <Text style={[styles.toggleText, { color: onlyShip ? '#FFFFFF' : colors.success }]}>Envia para o Brasil</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.toggleText, { color: onlyShip ? '#FFFFFF' : colors.success }]}>Envia para o Brasil</Text>
         </TouchableOpacity>
       </Row>
 

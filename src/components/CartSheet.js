@@ -151,7 +151,7 @@ export default function CartSheet({ onOrders }) {
 
               <TouchableOpacity style={styles.payBtn} onPress={pay}>
                 <Ionicons name="shield-checkmark-outline" size={17} color={NIGHT} />
-                <Text style={styles.payText}>Pagar com saldo Re@lys</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.payText}>Pagar com saldo Re@lys</Text>
               </TouchableOpacity>
               <Text style={[styles.sub, { textAlign: 'center', marginTop: 6 }]}>Pagamento protegido · NF-e emitida automaticamente</Text>
               <GuaranteeSeal text="Garantia Re@lys: deu problema, seu dinheiro volta" style={{ alignSelf: 'center', marginTop: 6 }} />
@@ -172,7 +172,7 @@ export function CartIcon({ style }) {
     <TouchableOpacity onPress={() => dispatch({ type: 'OPEN_CART' })} style={style} accessibilityLabel={`Abrir carrinho, ${count} itens`}>
       <Ionicons name="bag-handle-outline" size={21} color={colors.text} />
       <View style={styles.badge}>
-        <Text style={styles.badgeText}>{count > 9 ? '9+' : count}</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.badgeText}>{count > 9 ? '9+' : count}</Text>
       </View>
     </TouchableOpacity>
   );

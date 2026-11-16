@@ -114,7 +114,7 @@ export default function RateSheet() {
                           const on = v.tags.includes(tag);
                           return (
                             <TouchableOpacity key={tag} onPress={() => set(t.key, { tags: on ? v.tags.filter((x) => x !== tag) : [...v.tags, tag] })} style={[styles.tag, on && (v.stars <= 3 ? styles.tagBad : styles.tagOn)]}>
-                              <Text style={[styles.tagText, on && { color: '#FFFFFF' }]}>{tag}</Text>
+                              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.tagText, on && { color: '#FFFFFF' }]}>{tag}</Text>
                             </TouchableOpacity>
                           );
                         })}
@@ -142,10 +142,10 @@ export default function RateSheet() {
             </View>
             <TouchableOpacity style={[styles.sendBtn, !any && { opacity: 0.5 }]} onPress={send}>
               <Ionicons name="send" size={16} color={NIGHT} />
-              <Text style={styles.sendText}>Enviar avaliação{any ? ` · +${pointsFor(targets.map((t) => val(t.key)))} pontos` : ''}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.sendText}>Enviar avaliação{any ? ` · +${pointsFor(targets.map((t) => val(t.key)))} pontos` : ''}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={close} style={{ alignItems: 'center', paddingVertical: 10 }}>
-              <Text style={{ color: colors.muted, fontWeight: '700' }}>Avaliar depois</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '700' }}>Avaliar depois</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>

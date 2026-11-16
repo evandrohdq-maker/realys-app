@@ -306,3 +306,5 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
       exigência do Android: a chave "instalar apps desconhecidos" pedida uma única vez e, em Android
       anterior ao 12, a tela de confirmação do próprio sistema. A porcentagem vem do tamanho já baixado;
       se o celular não informar, é estimada pelo tempo.
+- [x] Varredura de botões: 465 botões (em 85 arquivos) agora ficam em uma linha só, encolhendo a letra
+      quando o nome não cabe. Fontes menores na página da empresa, nos números do painel e nos títulos.

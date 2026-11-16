@@ -203,16 +203,16 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
           </View>
         ) : (
           <TouchableOpacity style={styles.avatar} onPress={openOwner} accessibilityLabel={`Abrir ${owner}`}>
-            <Text style={{ fontSize: 22 }}>{prov ? '🛠️' : ad ? '🏷️' : s.logo || '🏪'}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontSize: 22 }}>{prov ? '🛠️' : ad ? '🏷️' : s.logo || '🏪'}</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity style={styles.sideBtn} onPress={like} accessibilityLabel="Curtir">
           <Ionicons name={liked ? 'heart' : 'heart-outline'} size={31} color={liked ? '#FF3B5C' : '#fff'} />
-          <Text style={styles.sideText}>{shortNum((reel.likes || 0) + (liked ? 1 : 0))}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.sideText}>{shortNum((reel.likes || 0) + (liked ? 1 : 0))}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.sideBtn} onPress={() => setComments(true)} accessibilityLabel="Comentários">
           <Ionicons name="chatbubble-outline" size={28} color="#fff" />
-          <Text style={styles.sideText}>{list.length}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.sideText}>{list.length}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.sideBtn}
@@ -220,7 +220,7 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
           accessibilityLabel="Enviar"
         >
           <Ionicons name="paper-plane-outline" size={27} color="#fff" />
-          <Text style={styles.sideText}>Enviar</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.sideText}>Enviar</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.sideBtn} onPress={onMute} accessibilityLabel={muted ? 'Ligar o som' : 'Tirar o som'}>
           <Ionicons name={muted ? 'volume-mute-outline' : 'volume-high-outline'} size={26} color="#fff" />
@@ -236,7 +236,7 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
           </View>
         ) : (
           <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={openOwner}>
-            <Text style={styles.store}>{owner}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.store}>{owner}</Text>
             <Ionicons name="shield-checkmark" size={13} color="#F5C331" style={{ marginLeft: 5 }} />
           </TouchableOpacity>
         )}
@@ -251,7 +251,7 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
             </View>
             <TouchableOpacity style={styles.buy} onPress={add} accessibilityLabel={`${food ? 'Pedir' : 'Comprar'} ${p.name}`}>
               <Ionicons name={food ? 'restaurant' : 'cart'} size={15} color="#fff" />
-              <Text style={{ color: '#fff', fontWeight: '800', marginLeft: 5, fontSize: 13 }}>{food ? 'Pedir' : 'Comprar'}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800', marginLeft: 5, fontSize: 13 }}>{food ? 'Pedir' : 'Comprar'}</Text>
             </TouchableOpacity>
           </View>
         ) : null}

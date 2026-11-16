@@ -68,7 +68,7 @@ export default function CrmScreen({ board: firstBoard = 'empresa', boards }) {
         <TextInput value={q} onChangeText={setQ} placeholder="Buscar cliente ou pedido" placeholderTextColor={colors.muted} style={{ flex: 1, marginLeft: 8, color: colors.text, paddingVertical: 8 }} />
         <TouchableOpacity onPress={() => setAdding(true)} style={st.addBtn} accessibilityLabel="Novo atendimento">
           <Ionicons name="add" size={18} color={colors.text} />
-          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 12.5, marginLeft: 2 }}>Novo</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', fontSize: 12.5, marginLeft: 2 }}>Novo</Text>
         </TouchableOpacity>
       </View>
 
@@ -180,16 +180,16 @@ function LeadCapture({ board }) {
             <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
               {AUDIENCES.map((a) => (
                 <TouchableOpacity key={a} style={[st.chip, f.audience === a && { backgroundColor: colors.text, borderColor: colors.text }]} onPress={() => setF({ ...f, audience: a })}>
-                  <Text style={{ color: f.audience === a ? '#fff' : colors.text, fontWeight: '700', fontSize: 12.5 }}>{a}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: f.audience === a ? '#fff' : colors.text, fontWeight: '700', fontSize: 12.5 }}>{a}</Text>
                 </TouchableOpacity>
               ))}
             </View>
             <View style={{ flexDirection: 'row', marginTop: 12 }}>
               <TouchableOpacity style={[st.btn, { backgroundColor: colors.cardAlt, marginRight: 8 }]} onPress={() => setOpen(false)}>
-                <Text style={{ color: colors.text, fontWeight: '700' }}>Voltar</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700' }}>Voltar</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[st.btn, { backgroundColor: colors.text }]} onPress={create}>
-                <Text style={{ color: '#fff', fontWeight: '800' }}>Publicar</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Publicar</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -288,7 +288,7 @@ function LeadModal({ lead, onClose }) {
         <View style={{ flexDirection: 'row', paddingHorizontal: 12, marginBottom: 6 }}>
           {[['conversa', 'Conversa'], ['dados', 'Dados e histórico']].map(([k, label]) => (
             <TouchableOpacity key={k} onPress={() => setTab(k)} style={[st.tab, tab === k && st.tabOn]}>
-              <Text style={{ color: tab === k ? colors.text : colors.muted, fontWeight: '800', fontSize: 13 }}>{label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: tab === k ? colors.text : colors.muted, fontWeight: '800', fontSize: 13 }}>{label}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -314,7 +314,7 @@ function LeadModal({ lead, onClose }) {
                     </TouchableOpacity>
                   ) : null}
                   <TouchableOpacity style={st.lose} onPress={lose} accessibilityLabel="Marcar que não fechou">
-                    <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>Não fechou</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>Não fechou</Text>
                   </TouchableOpacity>
                 </View>
               ) : null}
@@ -336,12 +336,12 @@ function LeadModal({ lead, onClose }) {
             <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
               {[['Hoje', 0], ['Amanhã', 1], ['Em 3 dias', 3], ['Em 1 semana', 7]].map(([label, d]) => (
                 <TouchableOpacity key={label} style={st.chip} onPress={() => crmUpdate(lead.id, { followUp: Date.now() + d * 86400000 })}>
-                  <Text style={{ color: colors.text, fontWeight: '700', fontSize: 12.5 }}>{label}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', fontSize: 12.5 }}>{label}</Text>
                 </TouchableOpacity>
               ))}
               {lead.followUp ? (
                 <TouchableOpacity style={st.chip} onPress={() => crmUpdate(lead.id, { followUp: null })}>
-                  <Text style={{ color: colors.muted, fontWeight: '700', fontSize: 12.5 }}>Tirar</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '700', fontSize: 12.5 }}>Tirar</Text>
                 </TouchableOpacity>
               ) : null}
             </View>
@@ -351,7 +351,7 @@ function LeadModal({ lead, onClose }) {
             <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
               {CRM_ORIGINS.map((o) => (
                 <TouchableOpacity key={o} style={[st.chip, lead.origin === o && { backgroundColor: colors.text, borderColor: colors.text }]} onPress={() => crmUpdate(lead.id, { origin: o })}>
-                  <Text style={{ color: lead.origin === o ? '#fff' : colors.text, fontWeight: '700', fontSize: 12.5 }}>{o}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: lead.origin === o ? '#fff' : colors.text, fontWeight: '700', fontSize: 12.5 }}>{o}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -365,7 +365,7 @@ function LeadModal({ lead, onClose }) {
               </View>
             ))}
             <TouchableOpacity onPress={remove} style={{ paddingVertical: 16, alignItems: 'center' }}>
-              <Text style={{ color: colors.muted, fontWeight: '700' }}>Apagar atendimento</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '700' }}>Apagar atendimento</Text>
             </TouchableOpacity>
           </ScrollView>
         )}
@@ -394,16 +394,16 @@ function AddModal({ open, onClose, onCreated, board }) {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 }}>
             {CRM_ORIGINS.map((o) => (
               <TouchableOpacity key={o} style={[st.chip, f.origin === o && { backgroundColor: colors.text, borderColor: colors.text }]} onPress={() => setF({ ...f, origin: o })}>
-                <Text style={{ color: f.origin === o ? '#fff' : colors.text, fontWeight: '700', fontSize: 12.5 }}>{o}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: f.origin === o ? '#fff' : colors.text, fontWeight: '700', fontSize: 12.5 }}>{o}</Text>
               </TouchableOpacity>
             ))}
           </View>
           <View style={{ flexDirection: 'row', marginTop: 12 }}>
             <TouchableOpacity style={[st.btn, { backgroundColor: colors.cardAlt, marginRight: 8 }]} onPress={onClose}>
-              <Text style={{ color: colors.text, fontWeight: '700' }}>Voltar</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700' }}>Voltar</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[st.btn, { backgroundColor: colors.text }]} onPress={create}>
-              <Text style={{ color: '#fff', fontWeight: '800' }}>Criar</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Criar</Text>
             </TouchableOpacity>
           </View>
         </View>

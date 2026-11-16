@@ -315,7 +315,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
           <Text style={authStyles.checkText}>Li e aceito o Termo de Adesão ao Re@lys</Text>
           <Text style={authStyles.checkSub}>Uma pessoa, uma conta. Inclui as regras de reconhecimento facial e de documentos.</Text>
           <TouchableOpacity onPress={() => setTermoOpen(true)} hitSlop={8} accessibilityLabel="Ler o termo de adesão">
-            <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 12, marginTop: 4 }}>Ler o termo completo ›</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700', fontSize: 12, marginTop: 4 }}>Ler o termo completo ›</Text>
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
@@ -331,7 +331,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
 
       <TouchableOpacity style={[authStyles.btn, busy && { opacity: 0.6 }]} onPress={() => submit(false)} disabled={busy} activeOpacity={0.85}>
         <Ionicons name="finger-print" size={20} color={colors.onPrimary} />
-        <Text style={authStyles.btnText}>{busy ? 'Criando conta…' : 'Criar conta com biometria'}</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={authStyles.btnText}>{busy ? 'Criando conta…' : 'Criar conta com biometria'}</Text>
       </TouchableOpacity>
       {/* Sem biometria agora: a conta nasce no modo social (não compra nem usa serviços). */}
       <TouchableOpacity style={{ paddingVertical: 14, alignItems: 'center' }} onPress={() => submit(true)} disabled={busy} activeOpacity={0.7} accessibilityLabel="Criar a conta sem biometria por enquanto">
@@ -340,7 +340,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
       </TouchableOpacity>
 
       <TouchableOpacity style={authStyles.link} onPress={onGoLogin}>
-        <Text style={authStyles.linkText}>Já tem conta? Entrar</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={authStyles.linkText}>Já tem conta? Entrar</Text>
       </TouchableOpacity>
     </View>
   );

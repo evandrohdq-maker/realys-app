@@ -74,7 +74,7 @@ function ItemCard({ it, onPress, otherLabel }) {
         <Row style={{ justifyContent: 'space-between', marginTop: 10 }}>
           <Text style={styles.price}>{priceText(it)}</Text>
           <TouchableOpacity style={styles.cta} onPress={() => onPress(it)} activeOpacity={0.85}>
-            <Text style={styles.ctaText}>{it.cta}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.ctaText}>{it.cta}</Text>
           </TouchableOpacity>
         </Row>
       </View>
@@ -91,7 +91,7 @@ function Segments({ list, value, onChange, tint }) {
         return (
           <TouchableOpacity key={s.key} onPress={() => onChange(s.key)} style={[styles.chip, { borderColor: on ? c : colors.border }, on && { backgroundColor: c }]}>
             <Ionicons name={s.icon} size={14} color={on ? '#FFFFFF' : c} />
-            <Text style={[styles.chipText, { color: on ? '#FFFFFF' : c }]}>{s.label}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, { color: on ? '#FFFFFF' : c }]}>{s.label}</Text>
           </TouchableOpacity>
         );
       })}
@@ -270,7 +270,7 @@ function LeafDoctor({ navigate, chain }) {
       </Row>
       {step === 'idle' ? (
         <TouchableOpacity style={[styles.cta, { alignSelf: 'stretch', alignItems: 'center', marginTop: 10, backgroundColor: GREEN }]} onPress={scan}>
-          <Text style={styles.ctaText}>📷 Fotografar a folha</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.ctaText}>📷 Fotografar a folha</Text>
         </TouchableOpacity>
       ) : null}
       {step === 'busy' ? (
@@ -286,10 +286,10 @@ function LeafDoctor({ navigate, chain }) {
           <Text style={styles.detail}>{res.advice}</Text>
           <Row style={{ marginTop: 10 }}>
             <TouchableOpacity style={[styles.cta, { backgroundColor: GREEN, marginRight: 8 }]} onPress={() => navigate && navigate({ tab: 'servicos', service: 'agronomo' })}>
-              <Text style={styles.ctaText}>Chamar agrônomo</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.ctaText}>Chamar agrônomo</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.cta, { backgroundColor: colors.cardAlt }]} onPress={() => setStep('idle')}>
-              <Text style={[styles.ctaText, { color: colors.text }]}>Nova foto</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.ctaText, { color: colors.text }]}>Nova foto</Text>
             </TouchableOpacity>
           </Row>
           <Text style={[styles.boxSmall, { marginTop: 8 }]}>Demonstração: o resultado é de exemplo e não substitui a avaliação de um agrônomo.</Text>

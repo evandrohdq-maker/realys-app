@@ -196,7 +196,7 @@ export default function LoginScreen() {
             ['cadastro', 'Cadastre-se'],
           ].map(([k, label]) => (
             <TouchableOpacity key={k} style={[styles.tab, mode === k && styles.tabOn]} onPress={() => setMode(k)} activeOpacity={0.85}>
-              <Text style={[styles.tabText, mode === k && styles.tabTextOn]}>{label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.tabText, mode === k && styles.tabTextOn]}>{label}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -230,7 +230,7 @@ export default function LoginScreen() {
             })}
             <TouchableOpacity style={styles.otherBtn} onPress={openForm} activeOpacity={0.85}>
               <Ionicons name="person-add-outline" size={18} color={colors.primary} />
-              <Text style={styles.otherText}>Entrar com outra conta</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.otherText}>Entrar com outra conta</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -288,17 +288,17 @@ export default function LoginScreen() {
 
             <TouchableOpacity style={[styles.btn, busy && { opacity: 0.6 }]} onPress={enter} disabled={busy} activeOpacity={0.85}>
               <Ionicons name={info.kind === 'admin' ? 'log-in-outline' : 'finger-print'} size={20} color={colors.onPrimary} />
-              <Text style={styles.btnText}>{busy ? 'Verificando…' : info.kind === 'admin' ? 'Entrar' : 'Entrar com biometria'}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.btnText}>{busy ? 'Verificando…' : info.kind === 'admin' ? 'Entrar' : 'Entrar com biometria'}</Text>
             </TouchableOpacity>
 
             {saved.length ? (
               <TouchableOpacity style={styles.link} onPress={() => setShowForm(false)}>
                 <Ionicons name="people-outline" size={16} color={colors.accent} />
-                <Text style={styles.linkText}>Voltar para as contas salvas ({saved.length})</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.linkText}>Voltar para as contas salvas ({saved.length})</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity style={styles.link} onPress={() => setMode('cadastro')}>
-                <Text style={styles.linkText}>Ainda não tem conta? Cadastre-se</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.linkText}>Ainda não tem conta? Cadastre-se</Text>
               </TouchableOpacity>
             )}
           </View>

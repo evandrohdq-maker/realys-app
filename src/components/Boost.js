@@ -62,11 +62,11 @@ export function BoostOffers({ targets }) {
               </View>
               <View style={{ alignItems: 'flex-end', marginLeft: 6 }}>
                 <TouchableOpacity disabled={!canPts} onPress={() => buy(o, 'pontos')} style={[styles.ptsBtn, !canPts && { opacity: 0.4 }]} accessibilityLabel={`${o.title} por ${o.points} pontos`}>
-                  <Text style={styles.ptsText}>{o.points} pts</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.ptsText}>{o.points} pts</Text>
                 </TouchableOpacity>
                 {o.money ? (
                   <TouchableOpacity disabled={!canMoney} onPress={() => buy(o, 'saldo')} style={[styles.moneyBtn, !canMoney && { opacity: 0.4 }]} accessibilityLabel={`${o.title} por ${brl(o.money)}`}>
-                    <Text style={styles.moneyText}>{brl(o.money)}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.moneyText}>{brl(o.money)}</Text>
                   </TouchableOpacity>
                 ) : null}
               </View>

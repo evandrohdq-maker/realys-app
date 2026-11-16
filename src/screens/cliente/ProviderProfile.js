@@ -72,7 +72,7 @@ export default function ProviderProfile({ provider: p, visible, onClose, onHire,
               {team ? (
                 <TouchableOpacity style={[styles.pill, styles.pillOn]} onPress={() => setShowTeam(!showTeam)} accessibilityLabel={`Ver a equipe ${team.name}`}>
                   <Ionicons name="people" size={13} color={colors.primary} />
-                  <Text style={[styles.pillText, { color: colors.primary }]}>Equipe {team.name} · {team.members.length} MEIs</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pillText, { color: colors.primary }]}>Equipe {team.name} · {team.members.length} MEIs</Text>
                 </TouchableOpacity>
               ) : null}
             </View>
@@ -135,7 +135,7 @@ export default function ProviderProfile({ provider: p, visible, onClose, onHire,
                 const on = k === tab;
                 return (
                   <TouchableOpacity key={k} style={[styles.tab, on && styles.tabOn]} onPress={() => setTab(k)}>
-                    <Text style={[styles.tabText, on && { color: colors.onPrimary }]}>{label}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.tabText, on && { color: colors.onPrimary }]}>{label}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -198,10 +198,10 @@ export default function ProviderProfile({ provider: p, visible, onClose, onHire,
             <Ionicons name="gift-outline" size={20} color={colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity style={[styles.barBtn, styles.barGhost]} onPress={() => onQuote(p)}>
-            <Text style={{ color: colors.primary, fontWeight: '700' }}>Orçamento</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700' }}>Orçamento</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.barBtn, styles.barMain]} onPress={() => onHire(p)}>
-            <Text style={{ color: colors.onPrimary, fontWeight: '700' }}>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '700' }}>
               {byVisit ? 'Pedir visita' : `Contratar ${p.name.split(' ')[0]}`}
             </Text>
           </TouchableOpacity>

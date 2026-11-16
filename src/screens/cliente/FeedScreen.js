@@ -65,7 +65,7 @@ export default function FeedScreen({ goTo }) {
             <View style={{ padding: 12 }}>
               <Row style={{ marginBottom: 8 }}>
                 <TouchableOpacity onPress={() => dispatch({ type: 'TOGGLE_LIKE', id: p.id })}>
-                  <Text style={styles.action}>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.action}>
                     {liked ? '💚' : '🤍'} {p.likes + (liked ? 1 : 0)}
                   </Text>
                 </TouchableOpacity>

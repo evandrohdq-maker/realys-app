@@ -460,7 +460,7 @@ export default function CategoryMenu({ visible, onClose, onPick, roles = [], act
                             return (
                               <TouchableOpacity key={r} onPress={() => onRole && onRole(r)} style={[styles.role, on && styles.roleOn]} accessibilityLabel={`Usar como ${ROLE_LABELS[r]}`}>
                                 <Ionicons name={ROLE_ICON[r] || 'person-outline'} size={15} color={on ? colors.onPrimary : colors.primary} />
-                                <Text style={[styles.roleTxt, on && { color: colors.onPrimary }]}>{ROLE_LABELS[r]}</Text>
+                                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.roleTxt, on && { color: colors.onPrimary }]}>{ROLE_LABELS[r]}</Text>
                               </TouchableOpacity>
                             );
                           })}

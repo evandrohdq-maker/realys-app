@@ -72,11 +72,11 @@ function GiftCashout() {
       </Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>
         <TouchableOpacity onPress={() => sacar(q)} style={{ marginRight: 8, marginBottom: 6, backgroundColor: q.ok ? colors.primary : 'rgba(0,0,0,0.08)', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 }}>
-          <Text style={{ color: q.ok ? '#fff' : colors.muted, fontWeight: '800', fontSize: 12.5 }}>{q.ok ? `Sacar ${brl(q.net)} (${CASHOUT_KEEP_PCT}%)` : `Sacar (${pts(CASHOUT_MIN_POINTS)} pts)`}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: q.ok ? '#fff' : colors.muted, fontWeight: '800', fontSize: 12.5 }}>{q.ok ? `Sacar ${brl(q.net)} (${CASHOUT_KEEP_PCT}%)` : `Sacar (${pts(CASHOUT_MIN_POINTS)} pts)`}</Text>
         </TouchableOpacity>
         {!q.ok ? (
           <TouchableOpacity onPress={() => sacar(qe)} style={{ marginBottom: 6, borderWidth: 1, borderColor: qe.ok ? colors.primary : 'rgba(0,0,0,0.12)', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 }}>
-            <Text style={{ color: qe.ok ? colors.primary : colors.muted, fontWeight: '800', fontSize: 12.5 }}>{qe.ok ? `Antecipar ${brl(qe.net)} (${CASHOUT_EARLY_KEEP_PCT}%)` : `Antecipar (${pts(CASHOUT_EARLY_MIN_POINTS)} pts)`}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: qe.ok ? colors.primary : colors.muted, fontWeight: '800', fontSize: 12.5 }}>{qe.ok ? `Antecipar ${brl(qe.net)} (${CASHOUT_EARLY_KEEP_PCT}%)` : `Antecipar (${pts(CASHOUT_EARLY_MIN_POINTS)} pts)`}</Text>
           </TouchableOpacity>
         ) : null}
       </View>
@@ -206,7 +206,7 @@ export default function WalletScreen({ visible, onClose }) {
                 }}
               >
                 <Ionicons name="swap-horizontal" size={14} color="#0B1124" />
-                <Text style={styles.convertText}>Converter em RLS</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.convertText}>Converter em RLS</Text>
               </TouchableOpacity>
             </View>
             <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6, lineHeight: 16 }}>
@@ -303,7 +303,7 @@ export default function WalletScreen({ visible, onClose }) {
           <View style={styles.periods}>
             {PERIODS.map(([k, label]) => (
               <TouchableOpacity key={k} onPress={() => setPeriod(k)} style={[styles.chip, period === k && styles.chipOn]}>
-                <Text style={[styles.chipTxt, period === k && { color: colors.onPrimary }]}>{label}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipTxt, period === k && { color: colors.onPrimary }]}>{label}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -331,7 +331,7 @@ export default function WalletScreen({ visible, onClose }) {
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={{ color: colors.text, fontWeight: '700', flex: 1 }}>Limite de gastos do mês</Text>
               <TouchableOpacity onPress={() => setAction('limite')}>
-                <Text style={{ color: colors.primary, fontWeight: '700' }}>Ajustar</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700' }}>Ajustar</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.track}>
@@ -370,7 +370,7 @@ export default function WalletScreen({ visible, onClose }) {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
             {FILTERS.map(([k, label]) => (
               <TouchableOpacity key={k} onPress={() => setFilter(k)} style={[styles.chip, filter === k && styles.chipOn]}>
-                <Text style={[styles.chipTxt, filter === k && { color: colors.onPrimary }]}>{label}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipTxt, filter === k && { color: colors.onPrimary }]}>{label}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -487,7 +487,7 @@ function ActionSheet({ kind, onClose, wallet, limit, dispatch }) {
                 <Text style={{ color: colors.text, textAlign: 'center', marginTop: 10, lineHeight: 20 }}>{done}</Text>
               </View>
               <TouchableOpacity style={styles.primary} onPress={reset}>
-                <Text style={styles.primaryTxt}>Concluir</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.primaryTxt}>Concluir</Text>
               </TouchableOpacity>
             </>
           ) : (
@@ -504,7 +504,7 @@ function ActionSheet({ kind, onClose, wallet, limit, dispatch }) {
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>
                 {(kind === 'saque' ? [50, 100, Math.floor(wallet)] : [50, 100, 200, 500]).filter((x) => x > 0).map((x, i) => (
                   <TouchableOpacity key={i} style={styles.chip} onPress={() => setValue(String(x))}>
-                    <Text style={styles.chipTxt}>{kind === 'saque' && x === Math.floor(wallet) ? `Tudo (${brl(x)})` : brl(x)}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.chipTxt}>{kind === 'saque' && x === Math.floor(wallet) ? `Tudo (${brl(x)})` : brl(x)}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -514,7 +514,7 @@ function ActionSheet({ kind, onClose, wallet, limit, dispatch }) {
                   <View style={{ flexDirection: 'row' }}>
                     {['Pix', 'cartão', 'boleto'].map((m) => (
                       <TouchableOpacity key={m} style={[styles.chip, method === m && styles.chipOn]} onPress={() => setMethod(m)}>
-                        <Text style={[styles.chipTxt, method === m && { color: colors.onPrimary }]}>{m === 'Pix' ? 'Pix' : m[0].toUpperCase() + m.slice(1)}</Text>
+                        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipTxt, method === m && { color: colors.onPrimary }]}>{m === 'Pix' ? 'Pix' : m[0].toUpperCase() + m.slice(1)}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -528,7 +528,7 @@ function ActionSheet({ kind, onClose, wallet, limit, dispatch }) {
                 </>
               ) : null}
               <TouchableOpacity style={styles.primary} onPress={confirm}>
-                <Text style={styles.primaryTxt}>{kind === 'saque' ? 'Confirmar saque' : kind === 'limite' ? 'Salvar limite' : 'Confirmar depósito'}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.primaryTxt}>{kind === 'saque' ? 'Confirmar saque' : kind === 'limite' ? 'Salvar limite' : 'Confirmar depósito'}</Text>
               </TouchableOpacity>
             </>
           )}

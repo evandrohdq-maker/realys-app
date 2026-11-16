@@ -94,11 +94,11 @@ function Body({ onLater }) {
       ))}
       <TouchableOpacity style={[st.btn, busy && { opacity: 0.6 }]} disabled={busy} onPress={async () => (await verify()) && onLater && onLater()} activeOpacity={0.85} accessibilityLabel="Fazer a biometria agora">
         <Ionicons name="finger-print" size={18} color="#fff" />
-        <Text style={st.btnText}>{busy ? 'Confirmando…' : 'Cadastrar biometria agora'}</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.btnText}>{busy ? 'Confirmando…' : 'Cadastrar biometria agora'}</Text>
       </TouchableOpacity>
       {onLater ? (
         <TouchableOpacity onPress={onLater} style={{ paddingVertical: 12 }} accessibilityLabel="Agora não">
-          <Text style={{ color: colors.muted, fontWeight: '700', textAlign: 'center' }}>Agora não</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '700', textAlign: 'center' }}>Agora não</Text>
         </TouchableOpacity>
       ) : null}
     </View>

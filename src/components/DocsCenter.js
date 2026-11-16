@@ -141,7 +141,7 @@ function NewContract({ onDone }) {
       <View style={st.chips}>
         {CONTRACT_TYPES.map((x) => (
           <TouchableOpacity key={x.key} style={[st.chip, type === x.key && st.chipOn]} onPress={() => (setType(x.key), setFields({}))}>
-            <Text style={[st.chipText, type === x.key && { color: '#fff' }]}>{x.label}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, type === x.key && { color: '#fff' }]}>{x.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -149,7 +149,7 @@ function NewContract({ onDone }) {
       <View style={st.chips}>
         {t.roles.map((r, i) => (
           <TouchableOpacity key={r} style={[st.chip, me === i && st.chipOn]} onPress={() => setMe(i)}>
-            <Text style={[st.chipText, me === i && { color: '#fff' }]}>{r}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, me === i && { color: '#fff' }]}>{r}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -161,7 +161,7 @@ function NewContract({ onDone }) {
       <Field label="Outros combinados (opcional)" value={extra} onChangeText={setExtra} multiline placeholder="Ex.: animais permitidos; pintura na saída por conta do locatário" />
       <Text style={st.note}>O contrato usa cláusulas padrão. Para casos especiais, vale revisar com um advogado.</Text>
       <TouchableOpacity style={st.btn} onPress={create} disabled={busy}>
-        {busy ? <ActivityIndicator color="#fff" /> : <Text style={st.btnText}>Criar contrato</Text>}
+        {busy ? <ActivityIndicator color="#fff" /> : <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.btnText}>Criar contrato</Text>}
       </TouchableOpacity>
     </ScrollView>
   );
@@ -260,7 +260,7 @@ function NewPrescription({ draft, onDone }) {
       <View style={st.chips}>
         {CHANNELS.map((c) => (
           <TouchableOpacity key={c} style={[st.chip, channel === c && st.chipOn]} onPress={() => setChannel(c)}>
-            <Text style={[st.chipText, channel === c && { color: '#fff' }]}>{c}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, channel === c && { color: '#fff' }]}>{c}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -268,7 +268,7 @@ function NewPrescription({ draft, onDone }) {
       <Field label="CPF do paciente (opcional)" value={patient.doc} onChangeText={(v) => setPatient((p) => ({ ...p, doc: v }))} keyboardType="numeric" />
       <TouchableOpacity style={[st.dictate, rec && { backgroundColor: colors.primary }]} onPress={dictate}>
         <Ionicons name="mic" size={20} color={rec ? '#fff' : colors.primary} />
-        <Text style={[st.dictateText, rec && { color: '#fff' }]}>{rec ? 'Ouvindo… fale o remédio e como tomar' : 'Ditar pela voz'}</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.dictateText, rec && { color: '#fff' }]}>{rec ? 'Ouvindo… fale o remédio e como tomar' : 'Ditar pela voz'}</Text>
       </TouchableOpacity>
       <Text style={st.small}>Ex.: "dipirona 500 mg, 1 comprimido de 6 em 6 horas por 3 dias; e omeprazol 20 mg, 1 cápsula em jejum"</Text>
       {items.map((it, i) => (
@@ -283,12 +283,12 @@ function NewPrescription({ draft, onDone }) {
         </View>
       ))}
       <TouchableOpacity onPress={() => setItems((l) => [...l, { med: '', dose: '' }])} style={{ marginBottom: 12 }}>
-        <Text style={{ color: colors.primary, fontWeight: '700' }}>+ Adicionar medicamento</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700' }}>+ Adicionar medicamento</Text>
       </TouchableOpacity>
       <Field label="Orientações (opcional)" value={notes} onChangeText={setNotes} multiline />
       <Text style={st.note}>Receitas de controle especial (ex.: Notificação de Receita A) seguem regras próprias da Anvisa e podem não valer em formato digital.</Text>
       <TouchableOpacity style={st.btn} onPress={create} disabled={busy}>
-        {busy ? <ActivityIndicator color="#fff" /> : <Text style={st.btnText}>Gerar receita</Text>}
+        {busy ? <ActivityIndicator color="#fff" /> : <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.btnText}>Gerar receita</Text>}
       </TouchableOpacity>
     </ScrollView>
   );
@@ -478,7 +478,7 @@ function SmallBtn({ label, icon, main, busy, onPress }) {
   return (
     <TouchableOpacity style={[st.sBtn, main && st.sBtnMain]} onPress={onPress} disabled={!!busy}>
       {busy ? <ActivityIndicator size="small" color={main ? '#fff' : colors.primary} /> : icon ? <Ionicons name={icon} size={16} color={main ? '#fff' : colors.primary} style={{ marginRight: 6 }} /> : null}
-      <Text style={[st.sBtnText, main && { color: '#fff' }]}>{label}</Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.sBtnText, main && { color: '#fff' }]}>{label}</Text>
     </TouchableOpacity>
   );
 }

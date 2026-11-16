@@ -37,7 +37,7 @@ export default function ReelsScreen() {
       <View style={styles.top} pointerEvents="box-none">
         {TABS.map((t) => (
           <TouchableOpacity key={t.key} onPress={() => setTab(t.key)} style={styles.tab} accessibilityLabel={`Reels: ${t.label}`}>
-            <Text style={[styles.tabText, tab === t.key && styles.tabOn]}>{t.label}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.tabText, tab === t.key && styles.tabOn]}>{t.label}</Text>
             {tab === t.key ? <View style={styles.dot} /> : null}
           </TouchableOpacity>
         ))}

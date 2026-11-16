@@ -63,7 +63,7 @@ export function PublicOrgModal() {
         <View style={st.tabs}>
           {tabs.map(([key, label]) => (
             <TouchableOpacity key={key} onPress={() => setTab(key)} style={st.tab}>
-              <Text style={[st.tabText, tab === key && { color: colors.primary, fontWeight: '800' }]}>{label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.tabText, tab === key && { color: colors.primary, fontWeight: '800' }]}>{label}</Text>
               {tab === key ? <View style={st.tabLine} /> : null}
             </TouchableOpacity>
           ))}
@@ -174,7 +174,7 @@ function Booking({ org }) {
             <Text style={st.small}>{whenText(b.at)} · {b.who}</Text>
           </View>
           <TouchableOpacity onPress={() => Alert.alert('Cancelar este agendamento?', 'O horário volta a ficar livre para outra pessoa.', [{ text: 'Manter', style: 'cancel' }, { text: 'Cancelar agendamento', style: 'destructive', onPress: () => dispatch({ type: 'SUS_CANCEL', id: b.id }) }])}>
-            <Text style={{ color: '#D9534F', fontWeight: '700' }}>Cancelar</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#D9534F', fontWeight: '700' }}>Cancelar</Text>
           </TouchableOpacity>
         </View>
       ))}
@@ -241,21 +241,21 @@ function OrgPanel({ org }) {
         <Switch value={!!org.gps} onValueChange={(v) => dispatch({ type: 'PUBLIC_EDIT', orgId: org.id, data: { gps: v } })} trackColor={{ true: colors.primary }} />
       </View>
       <TouchableOpacity style={st.btn} onPress={saveStaff}>
-        <Text style={st.btnText}>Atualizar equipe</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.btnText}>Atualizar equipe</Text>
       </TouchableOpacity>
 
       <Text style={st.h}>Nova publicação</Text>
       <View style={st.chips}>
         {POST_TYPES.map((t) => (
           <TouchableOpacity key={t.key} onPress={() => setType(t.key)} style={[st.chip, type === t.key && st.chipOn]}>
-            <Text style={[st.chipText, type === t.key && { color: '#fff' }]}>{t.label}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, type === t.key && { color: '#fff' }]}>{t.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
       <Field label="Título" value={title} onChangeText={setTitle} />
       <Field label="Texto (reunião, equipe, evento, salvamento, progresso…)" value={text} onChangeText={setText} multiline />
       <TouchableOpacity style={st.btn} onPress={publish}>
-        <Text style={st.btnText}>Publicar</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.btnText}>Publicar</Text>
       </TouchableOpacity>
 
       {org.sus ? (
@@ -268,7 +268,7 @@ function OrgPanel({ org }) {
             <Field label="Hora" value={slotHour} onChangeText={setSlotHour} num />
           </View>
           <TouchableOpacity style={st.btn} onPress={addSlot}>
-            <Text style={st.btnText}>Publicar horário</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.btnText}>Publicar horário</Text>
           </TouchableOpacity>
         </>
       ) : null}
@@ -319,7 +319,7 @@ export function SusCard({ compact }) {
         </View>
         {!editing ? (
           <TouchableOpacity onPress={start}>
-            <Text style={{ color: colors.primary, fontWeight: '800' }}>{sus ? 'Editar' : 'Cadastrar'}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '800' }}>{sus ? 'Editar' : 'Cadastrar'}</Text>
           </TouchableOpacity>
         ) : null}
       </View>
@@ -330,10 +330,10 @@ export function SusCard({ compact }) {
           <Field label="Unidade de saúde de referência (opcional)" value={unit} onChangeText={setUnit} placeholder="UBS do seu bairro" />
           <View style={{ flexDirection: 'row' }}>
             <TouchableOpacity style={[st.btn, { flex: 1, marginRight: 6 }]} onPress={save}>
-              <Text style={st.btnText}>Salvar</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.btnText}>Salvar</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[st.btn, { flex: 1, backgroundColor: '#F3F1EC' }]} onPress={() => setEditing(false)}>
-              <Text style={[st.btnText, { color: colors.muted }]}>Cancelar</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.btnText, { color: colors.muted }]}>Cancelar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -342,14 +342,14 @@ export function SusCard({ compact }) {
         <View style={{ marginTop: 10 }}>
           {bookings.map((b) => (
             <TouchableOpacity key={b.id} onPress={() => dispatch({ type: 'OPEN_PUBLIC', id: b.orgId, tab: 'agendar' })}>
-              <Text style={st.small}>📅 {b.specialty} · {whenText(b.at)} · {b.orgName}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.small}>📅 {b.specialty} · {whenText(b.at)} · {b.orgName}</Text>
             </TouchableOpacity>
           ))}
         </View>
       ) : null}
       {!compact && sus ? (
         <TouchableOpacity onPress={() => dispatch({ type: 'OPEN_PUBLIC', id: 'pub-ubs', tab: 'agendar' })} style={{ marginTop: 8 }}>
-          <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>Agendar consulta no posto de saúde →</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>Agendar consulta no posto de saúde →</Text>
         </TouchableOpacity>
       ) : null}
     </View>

@@ -42,7 +42,7 @@ export default function PlanoLojaCard() {
             Sua loja está no ar sem pagar nada. O plano só começa quando você aceitar o primeiro pedido pelo Re@lys, e o primeiro mês é gratuito. Depois: {brl(LOJA_MENSAL)} por mês ou {brl(LOJA_ANUAL)} no anual, mais {LOJA_COMISSAO_PCT}% de cada venda.
           </Text>
           <TouchableOpacity onPress={() => dispatch({ type: 'STORE_FIRST_ORDER' })} style={{ marginTop: 10, paddingVertical: 10, borderRadius: 12, backgroundColor: colors.cardAlt, alignItems: 'center' }} accessibilityLabel="Simular a chegada do primeiro pedido">
-            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>Simular: chegou o primeiro pedido</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>Simular: chegou o primeiro pedido</Text>
           </TouchableOpacity>
         </>
       ) : null}

@@ -99,7 +99,7 @@ export default function AdminMarket() {
       ))}
       {m.sectors.length > 8 ? (
         <TouchableOpacity onPress={() => setAllSectors(!allSectors)} style={styles.more}>
-          <Text style={{ color: colors.primary, fontWeight: '700' }}>{allSectors ? 'Mostrar menos' : `Ver todos os ${m.sectors.length} setores`}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700' }}>{allSectors ? 'Mostrar menos' : `Ver todos os ${m.sectors.length} setores`}</Text>
         </TouchableOpacity>
       ) : null}
 

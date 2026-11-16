@@ -43,7 +43,7 @@ export default function TermoReaceite() {
           onPress={() => saveAccepted(uid).then(() => setShow(false))}
           accessibilityLabel="Li e aceito o termo"
         >
-          <Text style={st.btnText}>Li e aceito</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.btnText}>Li e aceito</Text>
         </TouchableOpacity>
       </View>
     </Modal>

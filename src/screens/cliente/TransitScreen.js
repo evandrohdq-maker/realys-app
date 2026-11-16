@@ -66,7 +66,7 @@ export default function TransitScreen({ explore, navigate }) {
           return (
             <TouchableOpacity key={s.key} onPress={() => { setScope(s.key); setDest(''); setSearched(''); }} style={[styles.scope, on && styles.scopeOn]}>
               <Ionicons name={s.icon} size={18} color={on ? colors.onPrimary : colors.primary} />
-              <Text style={[styles.scopeText, on && { color: colors.onPrimary }]}>{s.label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.scopeText, on && { color: colors.onPrimary }]}>{s.label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -236,7 +236,7 @@ function TrackView({ tr, onBack }) {
   return (
     <Screen>
       <TouchableOpacity onPress={onBack}>
-        <Text style={styles.back}>‹ Transporte público</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.back}>‹ Transporte público</Text>
       </TouchableOpacity>
       <Text style={styles.h1}>{isTrip ? `${t.from.split(' - ')[0]} → ${t.to.split(' - ')[0]}` : `${l.code} · ${l.name}`}</Text>
       <Text style={styles.sub}>{isTrip ? company(t.companyId).name : `${company(l.companyId).name} · veículo ${tr.bus}`}</Text>
@@ -282,7 +282,7 @@ function TicketView({ t, onBack, onTrack }) {
   return (
     <Screen>
       <TouchableOpacity onPress={onBack}>
-        <Text style={styles.back}>‹ Transporte público</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.back}>‹ Transporte público</Text>
       </TouchableOpacity>
       <Card style={{ alignItems: 'center', paddingVertical: 20 }}>
         <Text style={styles.kicker}>PASSAGEM REALYS</Text>

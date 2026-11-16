@@ -100,7 +100,7 @@ export function VisitRequestSheet({ provider: p, visible, onClose, address = '',
 
             <TouchableOpacity style={styles.sendBtn} onPress={send}>
               <Ionicons name="shield-checkmark" size={16} color={colors.onPrimary} />
-              <Text style={styles.sendText}>Pagar {brl(fee)} e pedir visita</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.sendText}>Pagar {brl(fee)} e pedir visita</Text>
             </TouchableOpacity>
             <Text style={styles.saldo}>Saldo Re@lys: {brl(state.wallet)}</Text>
           </ScrollView>
@@ -167,7 +167,7 @@ export function VisitCard({ visit: v }) {
               Telefone liberado: <Text style={{ fontWeight: '700' }}>{phoneOf(v.providerId)}</Text>
             </Text>
             <TouchableOpacity onPress={() => Alert.alert('Chat do Re@lys', `Conversa com ${first} aberta.`)}>
-              <Text style={{ color: colors.primary, fontWeight: '700' }}>Chat</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700' }}>Chat</Text>
             </TouchableOpacity>
           </View>
           <Text style={styles.hint}>Depois que {first} passar aí, confirme a visita. Só então o valor é liberado.</Text>

@@ -21,7 +21,7 @@ function Pick({ label, on, onPress, icon, small }) {
   return (
     <TouchableOpacity onPress={onPress} style={[styles.pick, small && styles.pickSmall, on && styles.pickOn]} activeOpacity={0.8}>
       {icon ? <Ionicons name={icon} size={small ? 12 : 14} color={on ? NIGHT : colors.primary} style={{ marginRight: 4 }} /> : null}
-      <Text style={[styles.pickText, small && { fontSize: 11 }, on && { color: NIGHT }]}>{label}</Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pickText, small && { fontSize: 11 }, on && { color: NIGHT }]}>{label}</Text>
       {on && small ? <Ionicons name="checkmark" size={12} color={NIGHT} style={{ marginLeft: 3 }} /> : null}
     </TouchableOpacity>
   );
@@ -243,7 +243,7 @@ export default function PageScreen() {
         </Row>
         <TouchableOpacity style={styles.previewBtn} onPress={() => dispatch({ type: 'OPEN_COMPANY', id: MY_COMPANY_ID })}>
           <Ionicons name="eye-outline" size={16} color={NIGHT} />
-          <Text style={styles.previewBtnText}>Ver como cliente</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.previewBtnText}>Ver como cliente</Text>
         </TouchableOpacity>
       </View>
 
@@ -409,7 +409,7 @@ export default function PageScreen() {
               </View>
               <TouchableOpacity onPress={() => toggleReview(rv)} style={[styles.expose, rv.shown && styles.exposeOn]}>
                 <Ionicons name={rv.shown ? 'eye' : 'eye-off-outline'} size={14} color={rv.shown ? '#FFFFFF' : colors.muted} />
-                <Text style={[styles.exposeText, rv.shown && { color: '#FFFFFF' }]}>{rv.shown ? 'Exposto' : 'Oculto'}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.exposeText, rv.shown && { color: '#FFFFFF' }]}>{rv.shown ? 'Exposto' : 'Oculto'}</Text>
               </TouchableOpacity>
             </Row>
             <Text style={{ color: colors.text, marginTop: 8, lineHeight: 19 }}>“{rv.text}”</Text>
@@ -468,7 +468,7 @@ export default function PageScreen() {
                 return (
                   <TouchableOpacity key={k} onPress={() => { setKind(k); setFile(null); }} style={[styles.kind, on && styles.kindOn]}>
                     <Ionicons name={p.icon} size={18} color={on ? colors.onPrimary : colors.primary} />
-                    <Text style={[styles.kindText, on && { color: colors.onPrimary }]}>{p.label}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.kindText, on && { color: colors.onPrimary }]}>{p.label}</Text>
                   </TouchableOpacity>
                 );
               })}

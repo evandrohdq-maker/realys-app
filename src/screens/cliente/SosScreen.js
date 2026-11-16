@@ -56,7 +56,7 @@ export default function SosScreen({ explore }) {
             Permita ligações para pedir socorro com um toque. A ligação sai do seu próprio celular.
           </Text>
           <TouchableOpacity style={styles.permBtn} onPress={allow}>
-            <Text style={styles.permBtnText}>Permitir ligações</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.permBtnText}>Permitir ligações</Text>
           </TouchableOpacity>
         </Card>
       ) : (
@@ -88,7 +88,7 @@ export default function SosScreen({ explore }) {
           return (
             <TouchableOpacity key={s.key} onPress={() => setSeg(s.key)} style={[styles.seg, on && styles.segOn]}>
               <Ionicons name={s.icon} size={16} color={on ? '#FFFFFF' : colors.danger} />
-              <Text style={[styles.segText, on && { color: '#FFFFFF' }]}>{s.label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.segText, on && { color: '#FFFFFF' }]}>{s.label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -125,7 +125,7 @@ export default function SosScreen({ explore }) {
             <Text style={{ color: colors.muted, marginTop: 4 }}>{MY_SPOT}</Text>
             <TouchableOpacity style={styles.shareBtn} onPress={shareLocation}>
               <Ionicons name="share-social-outline" size={16} color={colors.accent} />
-              <Text style={{ color: colors.accent, fontWeight: '700', marginLeft: 6 }}>Enviar minha localização para alguém</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.accent, fontWeight: '700', marginLeft: 6 }}>Enviar minha localização para alguém</Text>
             </TouchableOpacity>
           </Card>
           <Text style={styles.note}>Em risco de vida, ligue primeiro para o 192 (SAMU) ou 193 (Bombeiros). As ligações de emergência são gratuitas.</Text>
@@ -254,7 +254,7 @@ function Action({ icon, label, color, onPress }) {
   return (
     <TouchableOpacity onPress={onPress} style={[styles.action, { borderColor: color }]} activeOpacity={0.8}>
       <Ionicons name={icon} size={15} color={color} />
-      <Text style={[styles.actionText, { color }]}>{label}</Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.actionText, { color }]}>{label}</Text>
     </TouchableOpacity>
   );
 }

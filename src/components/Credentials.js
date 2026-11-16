@@ -170,12 +170,12 @@ export default function Credentials() {
                   <View style={{ flexDirection: 'row' }}>
                     <TextInput style={[st.input, { flex: 1, marginRight: 8 }]} value={(mail[c.id] || {}).code || ''} onChangeText={(v) => setM(c.id, { code: v.replace(/\D/g, '').slice(0, 6) })} placeholder="Código de 6 números" placeholderTextColor={colors.muted} keyboardType="number-pad" />
                     <TouchableOpacity style={[st.btn, { marginTop: 0, paddingHorizontal: 14, justifyContent: 'center' }]} onPress={() => confirmCode(c)}>
-                      <Text style={st.btnText}>Confirmar</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.btnText}>Confirmar</Text>
                     </TouchableOpacity>
                   </View>
                 ) : (
                   <TouchableOpacity onPress={() => sendCode(c)}>
-                    <Text style={st.link}>Enviar código para o e-mail</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.link}>Enviar código para o e-mail</Text>
                   </TouchableOpacity>
                 )}
                 <Text style={st.itemSub}>Não tem e-mail institucional? A equipe confirma direto com o seu órgão.</Text>
@@ -220,13 +220,13 @@ export default function Credentials() {
                   <Text style={[st.itemSub, { color: '#1E9E63', fontWeight: '700' }]}>Você está acompanhando</Text>
                 ) : (
                   <TouchableOpacity onPress={() => (r.server ? api('POST', `/casos/${r.id}/acompanhar`, {}).then(() => setSrvCases((l) => l.map((x) => (x.id === r.id ? { ...x, acompanhando: true } : x)))).catch((e) => Alert.alert('Não deu certo', e.message)) : null, !r.server && dispatch({ type: 'CASE_FOLLOW', id: r.id, who: state.user ? state.user.name : 'Profissional', label: c.discreto ? `${c.label} verificado (sigilo)` : `${c.label} ${state.user ? state.user.name : ''}`.trim() }))}>
-                    <Text style={st.link}>Quero acompanhar este caso</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.link}>Quero acompanhar este caso</Text>
                   </TouchableOpacity>
                 )}
               </View>
             ))}
             <TouchableOpacity onPress={() => dispatch({ type: 'CRED_REMOVE', id: c.id })}>
-              <Text style={[st.link, { color: colors.muted }]}>Remover</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.link, { color: colors.muted }]}>Remover</Text>
             </TouchableOpacity>
           </View>
         );
@@ -234,14 +234,14 @@ export default function Credentials() {
 
       {!adding ? (
         <TouchableOpacity onPress={() => setAdding(true)}>
-          <Text style={st.link}>+ Cadastrar carteira profissional</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.link}>+ Cadastrar carteira profissional</Text>
         </TouchableOpacity>
       ) : (
         <View style={{ marginTop: 10 }}>
           <View style={st.chips}>
             {PROFESSIONS.map((x) => (
               <TouchableOpacity key={x.key} style={[st.chip, prof === x.key && st.chipOn]} onPress={() => setProf(x.key)}>
-                <Text style={[st.chipText, prof === x.key && { color: '#fff' }]}>{x.label}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, prof === x.key && { color: '#fff' }]}>{x.label}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -270,15 +270,15 @@ export default function Credentials() {
               )}
               <TouchableOpacity style={st.photoBtn} onPress={pick}>
                 <Ionicons name={photo ? 'checkmark-circle' : 'camera-outline'} size={20} color={colors.primary} />
-                <Text style={[st.link, { marginTop: 0, marginLeft: 6 }]}>{photo ? 'Foto da carteira tirada' : `Fotografar a ${p.doc}`}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.link, { marginTop: 0, marginLeft: 6 }]}>{photo ? 'Foto da carteira tirada' : `Fotografar a ${p.doc}`}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[st.btn, busy && { opacity: 0.5 }]} disabled={busy} onPress={save}>
-                <Text style={st.btnText}>{busy ? 'Conferindo…' : 'Enviar e conferir'}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.btnText}>{busy ? 'Conferindo…' : 'Enviar e conferir'}</Text>
               </TouchableOpacity>
             </>
           ) : null}
           <TouchableOpacity onPress={() => setAdding(false)}>
-            <Text style={[st.link, { color: colors.muted }]}>Cancelar</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.link, { color: colors.muted }]}>Cancelar</Text>
           </TouchableOpacity>
         </View>
       )}

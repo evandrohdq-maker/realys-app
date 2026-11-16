@@ -79,15 +79,15 @@ export default function InventoryScreen() {
               <View style={{ alignItems: 'center' }}>
                 <Row>
                   <TouchableOpacity style={styles.qtyBtn} onPress={() => dispatch({ type: 'UPDATE_STOCK', id: p.id, delta: -1 })}>
-                    <Text style={styles.qtyTxt}>−</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.qtyTxt}>−</Text>
                   </TouchableOpacity>
                   <Text style={[styles.qty, { color: colors.text }]}>{p.stock}</Text>
                   <TouchableOpacity style={styles.qtyBtn} onPress={() => dispatch({ type: 'UPDATE_STOCK', id: p.id, delta: 1 })}>
-                    <Text style={styles.qtyTxt}>+</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.qtyTxt}>+</Text>
                   </TouchableOpacity>
                 </Row>
                 <TouchableOpacity onPress={() => dispatch({ type: 'COUNTER_SALE', id: p.id })}>
-                  <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '700', marginTop: 6 }}>Venda no balcão</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontSize: 12, fontWeight: '700', marginTop: 6 }}>Venda no balcão</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => {
@@ -95,7 +95,7 @@ export default function InventoryScreen() {
                     if (!p.launch) Alert.alert('Lançamento publicado 🚀', `${p.name} agora aparece em Lançamentos, no topo do Shop dos clientes.`);
                   }}
                 >
-                  <Text style={{ color: p.launch ? colors.danger : colors.accent, fontSize: 12, fontWeight: '700', marginTop: 6 }}>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: p.launch ? colors.danger : colors.accent, fontSize: 12, fontWeight: '700', marginTop: 6 }}>
                     {p.launch ? 'Tirar dos lançamentos' : '🚀 Lançar no Shop'}
                   </Text>
                 </TouchableOpacity>

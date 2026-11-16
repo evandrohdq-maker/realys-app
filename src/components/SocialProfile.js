@@ -162,7 +162,7 @@ function Action({ icon, label, onPress, color = colors.muted }) {
   return (
     <TouchableOpacity style={styles.action} onPress={onPress} accessibilityLabel={label} activeOpacity={0.7}>
       <Ionicons name={icon} size={19} color={color} />
-      <Text style={[styles.actionTxt, color !== colors.muted && { color }]}>{label}</Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.actionTxt, color !== colors.muted && { color }]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -222,7 +222,7 @@ export function TestimonialComposer({ visible, onClose, toId }) {
                 A Re@lys já analisou o texto. Agora {first(sent.name)} decide se aceita. Só depois de aprovado ele aparece no perfil e no feed de depoimentos.
               </Text>
               <TouchableOpacity style={[styles.primaryBtn, { marginTop: 22, alignSelf: 'stretch' }]} onPress={onClose}>
-                <Text style={styles.primaryTxt}>Concluir</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.primaryTxt}>Concluir</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -237,7 +237,7 @@ export function TestimonialComposer({ visible, onClose, toId }) {
                   </View>
                   {toId ? null : (
                     <TouchableOpacity onPress={() => setTo(null)}>
-                      <Text style={{ color: colors.primary, fontWeight: '700' }}>Trocar</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700' }}>Trocar</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -286,7 +286,7 @@ export function TestimonialComposer({ visible, onClose, toId }) {
 
               <TouchableOpacity style={[styles.primaryBtn, !(to && text.trim()) && { opacity: 0.5 }]} disabled={!(to && text.trim())} onPress={send}>
                 <Ionicons name="send" size={16} color={colors.onPrimary} />
-                <Text style={[styles.primaryTxt, { marginLeft: 8 }]}>Enviar para análise</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.primaryTxt, { marginLeft: 8 }]}>Enviar para análise</Text>
               </TouchableOpacity>
             </>
           )}
@@ -312,7 +312,7 @@ export function TestimonialFeed() {
         </View>
         <TouchableOpacity style={styles.writeBtn} onPress={() => setWriting(true)} accessibilityLabel="Escrever depoimento">
           <Ionicons name="create-outline" size={16} color={colors.onPrimary} />
-          <Text style={{ color: colors.onPrimary, fontWeight: '700', marginLeft: 4, fontSize: 13 }}>Escrever</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '700', marginLeft: 4, fontSize: 13 }}>Escrever</Text>
         </TouchableOpacity>
       </View>
       {pendingMine ? (
@@ -390,7 +390,7 @@ export function TestimonialsTab({ ownerId }) {
                   <View style={{ flexDirection: 'row', marginTop: 10 }}>
                     <TouchableOpacity style={[styles.primaryBtn, { flex: 1, marginTop: 0 }]} onPress={() => dispatch({ type: 'T_RESPOND', id: t.id, status: 'aprovado' })}>
                       <Ionicons name="checkmark" size={16} color={colors.onPrimary} />
-                      <Text style={[styles.primaryTxt, { marginLeft: 6 }]}>Aceitar e expor</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.primaryTxt, { marginLeft: 6 }]}>Aceitar e expor</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.lineBtn, { marginLeft: 8 }]}
@@ -401,7 +401,7 @@ export function TestimonialsTab({ ownerId }) {
                         ])
                       }
                     >
-                      <Text style={{ color: colors.danger, fontWeight: '700' }}>Recusar</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.danger, fontWeight: '700' }}>Recusar</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -417,7 +417,7 @@ export function TestimonialsTab({ ownerId }) {
           {isFriend ? (
             <TouchableOpacity style={[styles.primaryBtn, { marginTop: 0, marginBottom: 12 }]} onPress={() => setWriting(true)}>
               <Ionicons name="create-outline" size={16} color={colors.onPrimary} />
-              <Text style={[styles.primaryTxt, { marginLeft: 8 }]}>Escrever depoimento para {first(owner.name)}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.primaryTxt, { marginLeft: 8 }]}>Escrever depoimento para {first(owner.name)}</Text>
             </TouchableOpacity>
           ) : (
             <Text style={styles.hint}>Só amigos podem escrever depoimentos para {first(owner.name)}. Adicione como amigo primeiro.</Text>
@@ -471,7 +471,7 @@ export function HighlightsRow({ ownerId }) {
             <View style={[styles.hlRing, { borderStyle: 'dashed', borderColor: colors.primary }]}>
               <Ionicons name="add" size={28} color={colors.primary} />
             </View>
-            <Text style={styles.hlName}>Novo</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.hlName}>Novo</Text>
           </TouchableOpacity>
         ) : null}
         {highlights.map((h, i) => (
@@ -552,7 +552,7 @@ function HighlightComposer({ visible, onClose }) {
           </TouchableOpacity>
           <Text style={styles.modalTitle}>Novo destaque</Text>
           <TouchableOpacity onPress={save} disabled={!title.trim() || !chosen.length}>
-            <Text style={{ color: colors.primary, fontWeight: '800', opacity: title.trim() && chosen.length ? 1 : 0.4 }}>Salvar</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '800', opacity: title.trim() && chosen.length ? 1 : 0.4 }}>Salvar</Text>
           </TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 + insets.bottom }} keyboardShouldPersistTaps="handled">
@@ -648,7 +648,7 @@ function MediaGallery({ ownerId, kind }) {
       {mine ? (
         <TouchableOpacity style={[styles.lineBtn, { alignSelf: 'stretch', marginBottom: 10, flexDirection: 'row', justifyContent: 'center' }]} onPress={add}>
           <Ionicons name={kind === 'videos' ? 'videocam-outline' : 'images-outline'} size={18} color={colors.primary} />
-          <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>{kind === 'videos' ? 'Adicionar vídeos do celular' : 'Adicionar fotos do celular'}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>{kind === 'videos' ? 'Adicionar vídeos do celular' : 'Adicionar fotos do celular'}</Text>
         </TouchableOpacity>
       ) : null}
       {!items.length ? <Empty text={kind === 'videos' ? 'Nenhum vídeo na galeria ainda.' : 'Nenhuma foto na galeria ainda.'} /> : null}
@@ -767,7 +767,7 @@ export function ProfilePreviewModal({ visible, onClose }) {
             <View style={{ flexDirection: 'row', marginTop: 6 }}>
               {[['todos', 'Qualquer pessoa'], ['amigos', 'Um amigo']].map(([k, label]) => (
                 <TouchableOpacity key={k} onPress={() => setAs(k)} style={[styles.pvPill, as === k && styles.pvPillOn]} accessibilityLabel={`Ver como ${label}`}>
-                  <Text style={{ color: as === k ? '#fff' : colors.text, fontWeight: '700', fontSize: 12.5 }}>{label}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: as === k ? '#fff' : colors.text, fontWeight: '700', fontSize: 12.5 }}>{label}</Text>
                 </TouchableOpacity>
               ))}
             </View>

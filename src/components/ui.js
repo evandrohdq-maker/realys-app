@@ -62,7 +62,7 @@ export function Button({ title, onPress, variant = 'primary', small, style, disa
         style,
       ]}
     >
-      <Text style={[styles.btnText, small && { fontSize: 13 }, { color: v.fg }]}>{title}</Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.btnText, small && { fontSize: 13 }, { color: v.fg }]}>{title}</Text>
     </TouchableOpacity>
   );
 }
@@ -86,8 +86,8 @@ export function Row({ children, style }) {
 export function Stat({ label, value, color = colors.text, hint }) {
   return (
     <View style={styles.stat}>
-      <Text style={styles.statLabel}>{label}</Text>
-      <Text style={[styles.statValue, { color }]}>{value}</Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.statLabel}>{label}</Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={[styles.statValue, { color }]}>{value}</Text>
       {hint ? <Text style={styles.statHint}>{hint}</Text> : null}
     </View>
   );
@@ -168,7 +168,7 @@ export function Photo({ uri, style, fallback = '🖼️' }) {
 export function Chip({ label, active, onPress }) {
   return (
     <TouchableOpacity onPress={onPress} style={[styles.chip, active && styles.chipActive]}>
-      <Text style={[styles.chipText, active && { color: colors.onPrimary }]}>{label}</Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, active && { color: colors.onPrimary }]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -180,8 +180,8 @@ export function Empty({ text }) {
 const styles = StyleSheet.create({
   screenScroll: { flex: 1, backgroundColor: colors.bg },
   screen: { padding: 18, paddingBottom: 110, backgroundColor: colors.bg, flexGrow: 1 },
-  title: { fontSize: 24, fontWeight: '700', color: colors.text, letterSpacing: -0.3 },
-  sub: { fontSize: 14, color: colors.muted, marginTop: 4, lineHeight: 20 },
+  title: { fontSize: 20, fontWeight: '700', color: colors.text, letterSpacing: -0.3 },
+  sub: { fontSize: 13, color: colors.muted, marginTop: 3, lineHeight: 18 },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.text, letterSpacing: -0.2 },
   // Cartão clean: sem contorno, só uma sombra leve e quente.
@@ -211,12 +211,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.card,
     borderRadius: 16,
-    padding: 14,
+    padding: 10,
     marginHorizontal: 4,
     ...soft,
   },
-  statLabel: { fontSize: 12, color: colors.muted },
-  statValue: { fontSize: 18, fontWeight: '700', marginTop: 4 },
+  statLabel: { fontSize: 11, color: colors.muted },
+  statValue: { fontSize: 15, fontWeight: '700', marginTop: 3 },
   statHint: { fontSize: 11, color: colors.muted, marginTop: 2 },
   barValue: { fontSize: 9, color: colors.muted, marginBottom: 3 },
   barLabel: { flex: 1, textAlign: 'center', fontSize: 11, color: colors.muted },

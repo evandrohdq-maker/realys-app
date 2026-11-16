@@ -91,14 +91,14 @@ export function DatePlansModal({ visible, onClose, reason }) {
           </View>
 
           <TouchableOpacity style={st.buy} onPress={() => buy('saldo')}>
-            <Text style={st.buyText}>Assinar com saldo · {brl(plan.price)}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.buyText}>Assinar com saldo · {brl(plan.price)}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[st.buy, st.buyAlt]} onPress={() => buy('pontos')}>
-            <Text style={[st.buyText, { color: ROSE }]}>Usar pontos · {planPoints(plan)} pontos</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.buyText, { color: ROSE }]}>Usar pontos · {planPoints(plan)} pontos</Text>
           </TouchableOpacity>
           {sub ? (
             <TouchableOpacity onPress={() => dispatch({ type: 'DATE_SUB_CANCEL' })} style={{ alignSelf: 'center', marginTop: 12 }}>
-              <Text style={{ color: colors.muted, fontWeight: '600' }}>{sub.renew === false ? 'Renovação cancelada' : 'Cancelar renovação'}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '600' }}>{sub.renew === false ? 'Renovação cancelada' : 'Cancelar renovação'}</Text>
             </TouchableOpacity>
           ) : null}
 

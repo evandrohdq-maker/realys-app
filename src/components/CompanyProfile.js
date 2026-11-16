@@ -124,7 +124,7 @@ export function MediaList({ items, showOwner }) {
             </View>
             {m.price && !owned(m) ? (
               <TouchableOpacity style={styles.buy} onPress={() => buy(m)}>
-                <Text style={styles.buyText}>{brl(m.price)}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.buyText}>{brl(m.price)}</Text>
               </TouchableOpacity>
             ) : m.kind === 'musica' ? (
               <Ionicons name="download-outline" size={20} color={colors.primary} style={{ marginLeft: 8 }} />
@@ -190,7 +190,7 @@ export function CompanyProfileModal() {
           <Row style={{ marginTop: 12 }}>
             <TouchableOpacity style={[styles.btn, following && styles.btnOff]} onPress={() => dispatch({ type: 'FOLLOW', id: p.id })}>
               <Ionicons name={following ? 'checkmark' : 'add'} size={16} color={following ? colors.primary : '#FFFFFF'} />
-              <Text style={[styles.btnText, following && { color: colors.primary }]}>{following ? 'Seguindo' : 'Seguir'}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.btnText, following && { color: colors.primary }]}>{following ? 'Seguindo' : 'Seguir'}</Text>
             </TouchableOpacity>
             {/* Pedir orçamento: o pedido chega como contato novo no CRM da empresa (aba Clientes). */}
             <TouchableOpacity style={[styles.btn, styles.btnOff, { marginLeft: 8 }]} onPress={lead.ask} accessibilityLabel={`Pedir orçamento para ${p.name}`}>
@@ -203,7 +203,7 @@ export function CompanyProfileModal() {
           <Row style={styles.tabs}>
             {tabs.map(([k, label]) => (
               <TouchableOpacity key={k} onPress={() => setTab(k)} style={[styles.tab, tab === k && styles.tabOn]}>
-                <Text style={[styles.tabText, tab === k && { color: colors.primary }]}>{label}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.tabText, tab === k && { color: colors.primary }]}>{label}</Text>
               </TouchableOpacity>
             ))}
           </Row>

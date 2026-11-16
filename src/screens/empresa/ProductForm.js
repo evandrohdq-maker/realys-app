@@ -116,7 +116,7 @@ export default function ProductForm({ onSave, onCancel, food = false, categoria 
         {photos.map((u, i) => (
           <TouchableOpacity key={u + i} onPress={() => setPhotos([u, ...photos.filter((_, j) => j !== i)])} activeOpacity={0.85} style={{ marginRight: 6 }}>
             <Photo uri={u} style={styles.ph} fallback="📦" />
-            {!i ? <Text style={styles.capa}>CAPA</Text> : null}
+            {!i ? <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.capa}>CAPA</Text> : null}
             <TouchableOpacity style={styles.phX} onPress={() => setPhotos(photos.filter((_, j) => j !== i))} hitSlop={6} accessibilityLabel="Tirar foto">
               <Ionicons name="close" size={12} color="#fff" />
             </TouchableOpacity>
@@ -125,7 +125,7 @@ export default function ProductForm({ onSave, onCancel, food = false, categoria 
         {photos.length < MAX_PHOTOS ? (
           <TouchableOpacity style={[styles.ph, styles.phAdd]} onPress={addPhotos} accessibilityLabel="Adicionar fotos do produto">
             <Ionicons name="add" size={26} color="#B8860B" />
-            <Text style={{ color: '#B8860B', fontSize: 9, fontWeight: '800' }}>FOTO</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#B8860B', fontSize: 9, fontWeight: '800' }}>FOTO</Text>
           </TouchableOpacity>
         ) : null}
       </ScrollView>
@@ -151,7 +151,7 @@ export default function ProductForm({ onSave, onCancel, food = false, categoria 
             <Text style={styles.why}>{manual ? 'Escolhido por você' : food ? 'O Re@lys classificou pelo nome e pela descrição' : 'O Re@lys classificou pelo nome e pela descrição'}</Text>
           </View>
           <TouchableOpacity onPress={() => setChoosing(!choosing)} hitSlop={8}>
-            <Text style={styles.chg}>{choosing ? 'fechar' : 'trocar'}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.chg}>{choosing ? 'fechar' : 'trocar'}</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -162,7 +162,7 @@ export default function ProductForm({ onSave, onCancel, food = false, categoria 
           </Text>
           {name.trim().length >= 3 ? (
             <TouchableOpacity onPress={() => setChoosing(!choosing)} hitSlop={8}>
-              <Text style={styles.chg}>escolher</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.chg}>escolher</Text>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -184,7 +184,7 @@ export default function ProductForm({ onSave, onCancel, food = false, categoria 
                         setChoosing(false);
                       }}
                     >
-                      <Text style={[styles.pillText, on && { color: '#fff' }]}>{sub.label}</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pillText, on && { color: '#fff' }]}>{sub.label}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -193,7 +193,7 @@ export default function ProductForm({ onSave, onCancel, food = false, categoria 
           ))}
           {manual ? (
             <TouchableOpacity onPress={() => (setManual(null), setChoosing(false))}>
-              <Text style={[styles.chg, { textAlign: 'center', marginTop: 4 }]}>Voltar para a escolha automática</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chg, { textAlign: 'center', marginTop: 4 }]}>Voltar para a escolha automática</Text>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -217,7 +217,7 @@ export default function ProductForm({ onSave, onCancel, food = false, categoria 
                           setChoosing(false);
                         }}
                       >
-                        <Text style={[styles.pillText, on && { color: '#fff' }]}>
+                        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pillText, on && { color: '#fff' }]}>
                           {g.icon} {g.label}
                         </Text>
                       </TouchableOpacity>
@@ -228,7 +228,7 @@ export default function ProductForm({ onSave, onCancel, food = false, categoria 
           ))}
           {manual ? (
             <TouchableOpacity onPress={() => (setManual(null), setChoosing(false))}>
-              <Text style={[styles.chg, { textAlign: 'center', marginTop: 4 }]}>Voltar para a escolha automática</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chg, { textAlign: 'center', marginTop: 4 }]}>Voltar para a escolha automática</Text>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -242,7 +242,7 @@ export default function ProductForm({ onSave, onCancel, food = false, categoria 
               const on = modos.includes(m.key);
               return (
                 <TouchableOpacity key={m.key} style={[styles.modo, on && styles.pillOn, { flex: 1 }]} onPress={() => toggleModo(m.key)} activeOpacity={0.85}>
-                  <Text style={[styles.pillText, on && { color: '#fff', fontWeight: '800' }]}>{m.label}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pillText, on && { color: '#fff', fontWeight: '800' }]}>{m.label}</Text>
                 </TouchableOpacity>
               );
             })}

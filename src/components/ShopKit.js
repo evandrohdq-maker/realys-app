@@ -124,7 +124,7 @@ export function ShopHead({ title, action, onAction }) {
       <Text style={styles.sectionTitle}>{title}</Text>
       {action ? (
         <TouchableOpacity onPress={onAction}>
-          <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 13 }}>{action}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '600', fontSize: 13 }}>{action}</Text>
         </TouchableOpacity>
       ) : null}
     </View>
@@ -153,7 +153,7 @@ export function ShopProductCard({ p, storeName, onAdd, style, sponsored, onPress
       {p.stock === undefined || p.stock > 0 ? (
         <TouchableOpacity style={[styles.addBtn, dark && { backgroundColor: NIGHT }]} onPress={onAdd} accessibilityLabel={`Adicionar ${p.name} ao carrinho`}>
           <Ionicons name="add" size={16} color={dark ? GOLD : colors.onPrimary} />
-          <Text style={[styles.addText, dark && { color: GOLD }]}>Carrinho</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.addText, dark && { color: GOLD }]}>Carrinho</Text>
         </TouchableOpacity>
       ) : (
         <View style={[styles.addBtn, { backgroundColor: colors.cardAlt }]}>

@@ -110,11 +110,11 @@ export default function HRScreen() {
       <View style={{ flexDirection: 'row', marginBottom: 14 }}>
         <TouchableOpacity style={[styles.bigBtn, { marginRight: 8 }]} onPress={() => setForm(EMPTY)}>
           <Ionicons name="add-circle" size={18} color="#FFFFFF" />
-          <Text style={styles.bigBtnText}>Anunciar vaga</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.bigBtnText}>Anunciar vaga</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.bigBtn, styles.bigBtnLight]} onPress={() => setTalents(true)}>
           <Ionicons name="people" size={18} color={colors.primary} />
-          <Text style={[styles.bigBtnText, { color: colors.primary }]}>Banco de talentos</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.bigBtnText, { color: colors.primary }]}>Banco de talentos</Text>
         </TouchableOpacity>
       </View>
 
@@ -146,7 +146,7 @@ export default function HRScreen() {
               <Text style={styles.meta}>{salaryText(job)} · {job.type} · {job.posted}</Text>
             </View>
             <TouchableOpacity onPress={() => dispatch({ type: 'CLOSE_JOB', id: job.id })}>
-              <Text style={{ color: job.status !== 'aberta' ? colors.primary : colors.danger, fontWeight: '700', fontSize: 12 }}>{job.status !== 'aberta' ? 'Reabrir' : 'Encerrar'}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: job.status !== 'aberta' ? colors.primary : colors.danger, fontWeight: '700', fontSize: 12 }}>{job.status !== 'aberta' ? 'Reabrir' : 'Encerrar'}</Text>
             </TouchableOpacity>
           </View>
           {/* Funil */}
@@ -231,24 +231,24 @@ export default function HRScreen() {
                 {cv.status === 'novo' || cv.status === 'convidado' ? (
                   <TouchableOpacity style={styles.primaryBtn} onPress={() => (setMeet({ cand: cv, day: 'Amanhã', hour: '10h', mode: 'presencial' }), setCv(null))}>
                     <Ionicons name="calendar" size={17} color="#FFFFFF" />
-                    <Text style={styles.primaryText}>Marcar entrevista</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.primaryText}>Marcar entrevista</Text>
                   </TouchableOpacity>
                 ) : null}
                 {cv.status === 'entrevista' ? (
                   <TouchableOpacity style={[styles.primaryBtn, { backgroundColor: colors.success }]} onPress={() => setStatus(cv, 'contratado')}>
                     <Ionicons name="checkmark-done" size={17} color="#FFFFFF" />
-                    <Text style={styles.primaryText}>Contratar</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.primaryText}>Contratar</Text>
                   </TouchableOpacity>
                 ) : null}
                 {cv.status !== 'contratado' && cv.status !== 'recusado' ? (
                   <View style={{ flexDirection: 'row', marginTop: 8 }}>
                     <TouchableOpacity style={[styles.ghostBtn, { marginRight: 8 }]} onPress={() => Alert.alert('Mensagem', `Conversa com ${cv.name.split(' ')[0]} aberta no chat do Re@lys.`)}>
                       <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary} />
-                      <Text style={styles.ghostText}>Mensagem</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.ghostText}>Mensagem</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.ghostBtn} onPress={() => setStatus(cv, 'recusado')}>
                       <Ionicons name="close-circle-outline" size={16} color={colors.danger} />
-                      <Text style={[styles.ghostText, { color: colors.danger }]}>Não seguir</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.ghostText, { color: colors.danger }]}>Não seguir</Text>
                     </TouchableOpacity>
                   </View>
                 ) : null}
@@ -269,7 +269,7 @@ export default function HRScreen() {
                 {[['presencial', 'Na empresa', 'business-outline'], ['video', 'Por vídeo', 'videocam-outline']].map(([k, l, i]) => (
                   <TouchableOpacity key={k} onPress={() => setMeet({ ...meet, mode: k })} style={[styles.pick, { flex: 1, marginRight: 6, height: 40, flexDirection: 'row' }, meet.mode === k && styles.pickOn]}>
                     <Ionicons name={i} size={15} color={meet.mode === k ? '#FFFFFF' : colors.primary} />
-                    <Text style={[styles.pickText, { marginLeft: 5 }, meet.mode === k && { color: '#FFFFFF' }]}>{l}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pickText, { marginLeft: 5 }, meet.mode === k && { color: '#FFFFFF' }]}>{l}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -277,7 +277,7 @@ export default function HRScreen() {
               <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                 {DAYS.map((d) => (
                   <TouchableOpacity key={d} onPress={() => setMeet({ ...meet, day: d })} style={[styles.pick, meet.day === d && styles.pickOn]}>
-                    <Text style={[styles.pickText, meet.day === d && { color: '#FFFFFF' }]}>{d}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pickText, meet.day === d && { color: '#FFFFFF' }]}>{d}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -285,15 +285,15 @@ export default function HRScreen() {
               <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                 {HOURS.map((h) => (
                   <TouchableOpacity key={h} onPress={() => setMeet({ ...meet, hour: h })} style={[styles.pick, meet.hour === h && styles.pickOn]}>
-                    <Text style={[styles.pickText, meet.hour === h && { color: '#FFFFFF' }]}>{h}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pickText, meet.hour === h && { color: '#FFFFFF' }]}>{h}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
               <TouchableOpacity style={styles.primaryBtn} onPress={confirmMeet}>
-                <Text style={styles.primaryText}>Enviar convite</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.primaryText}>Enviar convite</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setMeet(null)} style={{ alignSelf: 'center', marginTop: 10 }}>
-                <Text style={{ color: colors.muted, fontWeight: '700' }}>Cancelar</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '700' }}>Cancelar</Text>
               </TouchableOpacity>
             </View>
           ) : null}
@@ -323,7 +323,7 @@ export default function HRScreen() {
                       <Text style={[styles.meta, { color: matchColor(t.match), fontWeight: '800' }]}>⚡ {t.match}% compatível</Text>
                     </View>
                     <TouchableOpacity disabled={invited || !job} onPress={() => invite(t)} style={[styles.inviteBtn, invited && { backgroundColor: colors.cardAlt }]}>
-                      <Text style={{ color: invited ? colors.muted : '#FFFFFF', fontWeight: '800', fontSize: 12 }}>{invited ? 'Convidado' : 'Convidar'}</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: invited ? colors.muted : '#FFFFFF', fontWeight: '800', fontSize: 12 }}>{invited ? 'Convidado' : 'Convidar'}</Text>
                     </TouchableOpacity>
                   </View>
                 );
@@ -352,7 +352,7 @@ export default function HRScreen() {
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                   {JOB_AREAS.filter((a) => a.key !== 'todas').map((a) => (
                     <TouchableOpacity key={a.key} onPress={() => setForm({ ...form, area: a.key })} style={[styles.pick, form.area === a.key && styles.pickOn]}>
-                      <Text style={[styles.pickText, form.area === a.key && { color: '#FFFFFF' }]}>{a.label}</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pickText, form.area === a.key && { color: '#FFFFFF' }]}>{a.label}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -360,7 +360,7 @@ export default function HRScreen() {
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                   {JOB_TYPES.map((t) => (
                     <TouchableOpacity key={t} onPress={() => setForm({ ...form, type: t })} style={[styles.pick, form.type === t && styles.pickOn]}>
-                      <Text style={[styles.pickText, form.type === t && { color: '#FFFFFF' }]}>{t}</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pickText, form.type === t && { color: '#FFFFFF' }]}>{t}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -368,7 +368,7 @@ export default function HRScreen() {
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                   {BENEFITS.map((b) => (
                     <TouchableOpacity key={b} onPress={() => toggle('benefits', b)} style={[styles.pick, form.benefits.includes(b) && styles.pickOn]}>
-                      <Text style={[styles.pickText, form.benefits.includes(b) && { color: '#FFFFFF' }]}>{b}</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pickText, form.benefits.includes(b) && { color: '#FFFFFF' }]}>{b}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -376,7 +376,7 @@ export default function HRScreen() {
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                   {SKILL_SUGGESTIONS.map((s) => (
                     <TouchableOpacity key={s} onPress={() => toggle('skills', s)} style={[styles.pick, form.skills.includes(s) && styles.pickOn]}>
-                      <Text style={[styles.pickText, form.skills.includes(s) && { color: '#FFFFFF' }]}>{s}</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pickText, form.skills.includes(s) && { color: '#FFFFFF' }]}>{s}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -392,7 +392,7 @@ export default function HRScreen() {
                   <Switch value={form.sponsored} onValueChange={(sponsored) => setForm({ ...form, sponsored })} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
                 </View>
                 <TouchableOpacity style={styles.primaryBtn} onPress={save}>
-                  <Text style={styles.primaryText}>Publicar vaga</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.primaryText}>Publicar vaga</Text>
                 </TouchableOpacity>
               </ScrollView>
             ) : null}

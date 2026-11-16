@@ -84,7 +84,7 @@ export default function ConvList({ convs, contactOf, onChat }) {
             style={[st.chip, filter === ch.key && st.chipOn]}
             accessibilityLabel={`Filtro ${ch.label}${ch.list ? '. Segure para apagar a lista' : ''}`}
           >
-            <Text style={[st.chipText, filter === ch.key && st.chipTextOn]}>{ch.label}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, filter === ch.key && st.chipTextOn]}>{ch.label}</Text>
           </TouchableOpacity>
         ))}
         <TouchableOpacity onPress={() => setCreating(true)} style={[st.chip, { paddingHorizontal: 10 }]} accessibilityLabel="Criar lista">
@@ -102,7 +102,7 @@ export default function ConvList({ convs, contactOf, onChat }) {
       {filter === 'arquivadas' ? (
         <TouchableOpacity style={st.archivedRow} onPress={() => setFilter('todas')} accessibilityLabel="Voltar para as conversas">
           <Ionicons name="chevron-back" size={18} color={colors.menu} />
-          <Text style={{ color: colors.text, fontWeight: '700', marginLeft: 10 }}>Arquivadas · voltar</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', marginLeft: 10 }}>Arquivadas · voltar</Text>
         </TouchableOpacity>
       ) : null}
 
@@ -162,26 +162,26 @@ export default function ConvList({ convs, contactOf, onChat }) {
                 return (
                   <TouchableOpacity key={l.id} onPress={() => toggleList(menu.c.contactId, l.id)} style={[st.chip, { marginBottom: 8 }, on && st.chipOn]} accessibilityLabel={`${on ? 'Tirar da' : 'Colocar na'} lista ${l.name}`}>
                     {on ? <Ionicons name="checkmark" size={14} color="#fff" style={{ marginRight: 4 }} /> : null}
-                    <Text style={[st.chipText, on && st.chipTextOn]}>{l.name}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, on && st.chipTextOn]}>{l.name}</Text>
                   </TouchableOpacity>
                 );
               })}
               <TouchableOpacity onPress={() => setCreating(true)} style={[st.chip, { marginBottom: 8 }]} accessibilityLabel="Criar lista">
                 <Ionicons name="add" size={15} color={colors.text} />
-                <Text style={[st.chipText, { marginLeft: 3 }]}>Nova lista</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, { marginLeft: 3 }]}>Nova lista</Text>
               </TouchableOpacity>
             </View>
             <TouchableOpacity style={st.action} onPress={() => { set(menu.c.contactId, { pinned: !menuMeta.pinned }); setMenu(null); }}>
               <Ionicons name={menuMeta.pinned ? 'pin-outline' : 'pin'} size={19} color={colors.text} />
-              <Text style={st.actionText}>{menuMeta.pinned ? 'Desafixar' : 'Fixar no topo'}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.actionText}>{menuMeta.pinned ? 'Desafixar' : 'Fixar no topo'}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={st.action} onPress={() => { set(menu.c.contactId, { archived: !menuMeta.archived, pinned: false }); setMenu(null); }}>
               <Ionicons name={menuMeta.archived ? 'arrow-undo-outline' : 'archive-outline'} size={19} color={colors.text} />
-              <Text style={st.actionText}>{menuMeta.archived ? 'Desarquivar conversa' : 'Arquivar conversa'}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.actionText}>{menuMeta.archived ? 'Desarquivar conversa' : 'Arquivar conversa'}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={st.action} onPress={() => { dispatch({ type: 'CHAT_UNREAD', contactId: menu.c.contactId, unread: menu.c.unread ? 0 : 1 }); setMenu(null); }}>
               <Ionicons name={menu.c.unread ? 'mail-open-outline' : 'mail-unread-outline'} size={19} color={colors.text} />
-              <Text style={st.actionText}>{menu.c.unread ? 'Marcar como lida' : 'Marcar como não lida'}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.actionText}>{menu.c.unread ? 'Marcar como lida' : 'Marcar como não lida'}</Text>
             </TouchableOpacity>
           </View>
         ) : null}
@@ -196,10 +196,10 @@ export default function ConvList({ convs, contactOf, onChat }) {
             <TextInput value={name} onChangeText={setName} placeholder="Nome da lista" placeholderTextColor={colors.muted} maxLength={22} autoFocus style={st.input} onSubmitEditing={createList} />
             <View style={{ flexDirection: 'row', marginTop: 12 }}>
               <TouchableOpacity style={[st.btn, { backgroundColor: colors.cardAlt, marginRight: 8 }]} onPress={() => { setCreating(false); setName(''); }}>
-                <Text style={{ color: colors.text, fontWeight: '700' }}>Voltar</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700' }}>Voltar</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[st.btn, { backgroundColor: colors.text }]} onPress={createList}>
-                <Text style={{ color: '#fff', fontWeight: '800' }}>Criar lista</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Criar lista</Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -125,7 +125,7 @@ function Gallery({ photos }) {
           return (
             <TouchableOpacity key={t.key} onPress={() => setType(t.key)} style={[styles.gType, on && styles.gTypeOn]}>
               <Ionicons name={t.icon} size={13} color={on ? '#FFFFFF' : colors.primary} />
-              <Text style={[styles.gTypeText, on && { color: '#FFFFFF' }]}>{t.label} · {n}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.gTypeText, on && { color: '#FFFFFF' }]}>{t.label} · {n}</Text>
             </TouchableOpacity>
           );
         })}
@@ -294,10 +294,10 @@ function WriteReview({ company, onClose }) {
       <TextInput value={text} onChangeText={setText} placeholder="Conte o que você comprou e como foi" placeholderTextColor={colors.muted} multiline style={styles.writeInput} />
       <View style={{ flexDirection: 'row', marginTop: 8 }}>
         <TouchableOpacity style={[styles.cta, { flex: 1 }]} onPress={send}>
-          <Text style={styles.ctaText}>Enviar depoimento</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.ctaText}>Enviar depoimento</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.ctaGhost, { marginLeft: 8 }]} onPress={onClose}>
-          <Text style={{ color: colors.primary, fontWeight: '700' }}>Cancelar</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700' }}>Cancelar</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -318,7 +318,7 @@ function ProductCard({ x, onAdd, big }) {
       {x.stock > 0 ? (
         <TouchableOpacity style={styles.addBtn} onPress={() => onAdd(x.id)}>
           <Ionicons name="cart-outline" size={14} color="#FFFFFF" />
-          <Text style={styles.addText}>Carrinho</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.addText}>Carrinho</Text>
         </TouchableOpacity>
       ) : (
         <Text style={[styles.sub, { color: colors.danger, fontWeight: '700' }]}>Esgotado</Text>
@@ -433,8 +433,8 @@ export function BusinessPageModal({ p, media, MediaList }) {
                 [b.since ? String(b.since) : String(products.length), b.since ? 'desde' : 'produtos'],
               ].map(([v, l], i) => (
                 <View key={l} style={[styles.stat, i > 0 && styles.statSep]}>
-                  <Text style={styles.statValue}>{v}</Text>
-                  <Text style={styles.statLabel}>{l}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={styles.statValue}>{v}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={styles.statLabel}>{l}</Text>
                 </View>
               ))}
             </View>
@@ -513,7 +513,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
             return (
               <TouchableOpacity key={k} onPress={() => setTab(k)} style={[styles.tab, on && styles.tabOn]}>
                 <Ionicons name={icon} size={15} color={on ? NIGHT : colors.primary} />
-                <Text style={[styles.tabText, on && { color: NIGHT }]}>{label}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.tabText, on && { color: NIGHT }]}>{label}</Text>
               </TouchableOpacity>
             );
           })}
@@ -531,7 +531,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
                 </View>
                 {products.length > showcase.length ? (
                   <TouchableOpacity style={styles.more} onPress={() => setTab('produtos')}>
-                    <Text style={{ color: colors.primary, fontWeight: '700' }}>Ver todos os {products.length} produtos</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700' }}>Ver todos os {products.length} produtos</Text>
                     <Ionicons name="chevron-forward" size={16} color={colors.primary} />
                   </TouchableOpacity>
                 ) : null}
@@ -560,7 +560,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
                 bought ? (
                   <TouchableOpacity style={[styles.cta, { marginBottom: 12 }]} onPress={() => setWriting(true)}>
                     <Ionicons name="create-outline" size={16} color={NIGHT} />
-                    <Text style={styles.ctaText}>Escrever depoimento</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.ctaText}>Escrever depoimento</Text>
                   </TouchableOpacity>
                 ) : (
                   <Text style={[styles.sub, { textAlign: 'center', marginBottom: 12 }]}>Só quem comprou aqui pelo Re@lys pode escrever depoimento.</Text>
@@ -614,22 +614,22 @@ const styles = StyleSheet.create({
   orbitDot: { position: 'absolute', width: 8, height: 8, borderRadius: 4 },
   logo: { width: 84, height: 84, borderRadius: 42, backgroundColor: '#FFFDF8', borderWidth: 2, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
 
-  heroName: { color: colors.text, fontSize: 26, fontWeight: '800', marginTop: 12, letterSpacing: 0.3 },
+  heroName: { color: colors.text, fontSize: 20, fontWeight: '800', marginTop: 12, letterSpacing: 0.3 },
   tagline: { color: colors.primary, fontSize: 14, fontWeight: '700', marginTop: 4 },
   badges: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
   glassBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingHorizontal: 9, paddingVertical: 4, marginRight: 6, marginBottom: 6 },
   glassBadgeText: { color: colors.text, fontSize: 11, fontWeight: '700', marginLeft: 4 },
   stats: { flexDirection: 'row', backgroundColor: '#FFFFFF', borderRadius: 18, paddingVertical: 12, marginTop: 8, ...soft },
-  stat: { flex: 1, alignItems: 'center' },
+  stat: { flex: 1, alignItems: 'center', paddingHorizontal: 3 },
   statSep: { borderLeftWidth: 1, borderLeftColor: colors.border },
-  statValue: { color: colors.text, fontSize: 16, fontWeight: '800' },
-  statLabel: { color: colors.muted, fontSize: 10, fontWeight: '700', letterSpacing: 0.8, marginTop: 2, textTransform: 'uppercase' },
+  statValue: { color: colors.text, fontSize: 14, fontWeight: '800' },
+  statLabel: { color: colors.muted, fontSize: 9.5, fontWeight: '700', letterSpacing: 0.3, marginTop: 2, textTransform: 'uppercase' },
   cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.gold },
   ctaOn: { backgroundColor: 'transparent' },
-  ctaText: { color: NIGHT, fontWeight: '800', marginLeft: 6 },
+  ctaText: { color: NIGHT, fontWeight: '800', fontSize: 13, marginLeft: 6 },
   ctaGhost: { borderRadius: 14, paddingVertical: 11, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   glassBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.borderStrong },
-  glassBtnText: { color: colors.text, fontWeight: '700', marginLeft: 6 },
+  glassBtnText: { color: colors.text, fontWeight: '700', fontSize: 13, marginLeft: 6 },
   bio: { color: colors.text, marginTop: 14, lineHeight: 20 },
   hours: { color: colors.muted, fontSize: 12, marginTop: 6 },
   heroH: { color: colors.primary, fontSize: 11, fontWeight: '800', letterSpacing: 2.5, marginTop: 20, marginBottom: 10 },
@@ -661,7 +661,7 @@ const styles = StyleSheet.create({
   more: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10 },
 
   summary: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 18, padding: 14, marginBottom: 12, ...soft },
-  avg: { color: colors.text, fontSize: 34, fontWeight: '800' },
+  avg: { color: colors.text, fontSize: 26, fontWeight: '800' },
   barLabel: { color: colors.muted, fontSize: 11, width: 12 },
   barTrack: { flex: 1, height: 6, borderRadius: 3, backgroundColor: colors.cardAlt, overflow: 'hidden' },
   barFill: { height: 6, backgroundColor: colors.gold },

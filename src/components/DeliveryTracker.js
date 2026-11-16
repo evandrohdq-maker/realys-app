@@ -179,7 +179,7 @@ export default function DeliveryTracker({ visible, onClose, who = {}, kind = 'mo
         {arrived && onArrived ? (
           <TouchableOpacity style={styles.confirm} onPress={onArrived} activeOpacity={0.85}>
             <Ionicons name="checkmark-circle" size={18} color={NIGHT} />
-            <Text style={styles.confirmText}>{kind === 'motorista' || kind === 'prestador' ? 'Confirmar que chegou' : 'Confirmar que recebi'}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.confirmText}>{kind === 'motorista' || kind === 'prestador' ? 'Confirmar que chegou' : 'Confirmar que recebi'}</Text>
           </TouchableOpacity>
         ) : null}
         <Text style={styles.note}>

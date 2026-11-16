@@ -95,7 +95,7 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
           return (
             <TouchableOpacity key={c.key} style={[styles.chip, on && styles.chipOn]} onPress={() => setFilter(c.key)} accessibilityLabel={`Lives: ${c.label}`}>
               <Ionicons name={c.icon} size={15} color={on ? colors.onPrimary : colors.primary} />
-              <Text style={[styles.chipText, on && { color: colors.onPrimary }]}>{c.label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, on && { color: colors.onPrimary }]}>{c.label}</Text>
               {n ? <View style={[styles.chipDot, on && { backgroundColor: '#fff' }]} /> : null}
             </TouchableOpacity>
           );
@@ -122,7 +122,7 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
               accessibilityLabel={follows.includes(cat.key) ? `Deixar de seguir ${cat.label}` : `Seguir ${cat.label}`}
             >
               <Ionicons name={follows.includes(cat.key) ? 'notifications' : 'add'} size={14} color={follows.includes(cat.key) ? cat.tint : '#fff'} />
-              <Text style={{ color: follows.includes(cat.key) ? cat.tint : '#fff', fontWeight: '800', fontSize: 12, marginLeft: 3 }}>{follows.includes(cat.key) ? 'Seguindo' : 'Seguir'}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: follows.includes(cat.key) ? cat.tint : '#fff', fontWeight: '800', fontSize: 12, marginLeft: 3 }}>{follows.includes(cat.key) ? 'Seguindo' : 'Seguir'}</Text>
             </TouchableOpacity>
           </View>
 
@@ -156,7 +156,7 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
             Ninguém ao vivo {sub !== 'todas' && cat ? `em ${(subOf(cat.key, sub) || { label: 'este estilo' }).label}` : 'aqui'} agora.
           </Text>
           <TouchableOpacity style={styles.emptyBtn} onPress={onGoLive}>
-            <Text style={{ color: '#fff', fontWeight: '800' }}>Abrir a primeira live</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Abrir a primeira live</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -221,7 +221,7 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
                     {u.prize ? <Text style={styles.upPrize} numberOfLines={1}>🏆 {u.prize}</Text> : null}
                     <TouchableOpacity style={[styles.remindBtn, on && styles.remindOn]} onPress={() => dispatch({ type: 'TOGGLE_LIVE_REMIND', id: u.id })} accessibilityLabel={on ? 'Lembrete ativado' : 'Lembrar'}>
                       <Ionicons name={on ? 'notifications' : 'notifications-outline'} size={13} color={on ? '#fff' : colors.primary} />
-                      <Text style={{ color: on ? '#fff' : colors.primary, fontWeight: '800', fontSize: 12, marginLeft: 4 }}>{on ? 'Vou lembrar' : 'Lembrar'}</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: on ? '#fff' : colors.primary, fontWeight: '800', fontSize: 12, marginLeft: 4 }}>{on ? 'Vou lembrar' : 'Lembrar'}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -347,7 +347,7 @@ function SectionHead({ title, right, onRight }) {
       <Text style={styles.sectionTitle}>{title}</Text>
       {right ? (
         <TouchableOpacity disabled={!onRight} onPress={onRight}>
-          <Text style={{ color: onRight ? colors.primary : colors.muted, fontWeight: '600', fontSize: 12 }}>{right}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: onRight ? colors.primary : colors.muted, fontWeight: '600', fontSize: 12 }}>{right}</Text>
         </TouchableOpacity>
       ) : null}
     </View>

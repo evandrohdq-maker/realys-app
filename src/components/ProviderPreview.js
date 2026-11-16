@@ -113,12 +113,12 @@ export default function ProviderPreview({ provider: p, onClose, onCall }) {
         {onCall ? (
           <TouchableOpacity style={styles.callBtn} onPress={() => onCall(p)} accessibilityLabel={`Chamar ${p.name} pela Lotus`}>
             <Ionicons name="sparkles" size={15} color={colors.onPrimary} />
-            <Text style={styles.callTxt}>Chamar {p.name.split(' ')[0]} pela Lotus</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.callTxt}>Chamar {p.name.split(' ')[0]} pela Lotus</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity style={styles.backBtn} onPress={onClose} accessibilityLabel="Voltar aos resultados">
             <Ionicons name="arrow-back" size={15} color={colors.text} />
-            <Text style={styles.backTxt}>Voltar aos resultados</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.backTxt}>Voltar aos resultados</Text>
           </TouchableOpacity>
         )}
       </Animated.View>

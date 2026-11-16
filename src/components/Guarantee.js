@@ -143,7 +143,7 @@ export function GuaranteeButton({ kind, refId, title, amount, giftPart, delivere
                 return (
                   <TouchableOpacity key={r.key} style={[styles.reason, on && styles.reasonOn]} onPress={() => setReason(r)}>
                     <Ionicons name={r.icon} size={18} color={on ? '#fff' : GREEN} />
-                    <Text style={[styles.reasonText, on && { color: '#fff' }]}>{r.label}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.reasonText, on && { color: '#fff' }]}>{r.label}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -151,7 +151,7 @@ export function GuaranteeButton({ kind, refId, title, amount, giftPart, delivere
               <TextInput style={styles.input} value={text} onChangeText={setText} placeholder="Ex.: a embalagem chegou aberta e faltou uma peça" placeholderTextColor={colors.muted} multiline />
               <Text style={styles.note}>O Re@lys vai olhar a conversa, o GPS da entrega, o QR Code e as fotos. Enquanto isso, o dinheiro fica retido. Caso falso tira pontos do seu Score.</Text>
               <TouchableOpacity style={styles.send} onPress={send}>
-                <Text style={{ color: '#fff', fontWeight: '800' }}>Abrir caso na Garantia Re@lys</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Abrir caso na Garantia Re@lys</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>

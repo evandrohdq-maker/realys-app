@@ -168,7 +168,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
     return (
       <Screen>
         <TouchableOpacity onPress={() => setShowCart(false)}>
-          <Text style={styles.back}>‹ {food ? 'Voltar para o Food' : 'Voltar para a loja'}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.back}>‹ {food ? 'Voltar para o Food' : 'Voltar para a loja'}</Text>
         </TouchableOpacity>
         <Text style={styles.h1}>Seu carrinho</Text>
         {state.cart.length === 0 ? <Empty text="Carrinho vazio." /> : null}
@@ -186,7 +186,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
                   </Text>
                 </View>
                 <TouchableOpacity onPress={() => dispatch({ type: 'REMOVE_FROM_CART', productId: p.id })}>
-                  <Text style={{ color: colors.danger, fontWeight: '700' }}>Remover</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.danger, fontWeight: '700' }}>Remover</Text>
                 </TouchableOpacity>
               </Row>
             </Card>
@@ -219,7 +219,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
     return (
       <Screen>
         <TouchableOpacity onPress={() => setOpenStore(null)}>
-          <Text style={styles.back}>‹ {food ? 'Todos os restaurantes e bares' : 'Todas as lojas'}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.back}>‹ {food ? 'Todos os restaurantes e bares' : 'Todas as lojas'}</Text>
         </TouchableOpacity>
         <Photo uri={s.cover} style={styles.cover} fallback={s.logo} />
         <Row style={{ marginTop: 12, marginBottom: 4 }}>
@@ -340,7 +340,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
               const on = cat === t.key;
               return (
                 <TouchableOpacity key={t.key} style={[styles.tipo, on && styles.tipoOn]} onPress={() => setCat(t.key)} activeOpacity={0.85} accessibilityLabel={t.label}>
-                  <Text style={[styles.tipoText, on && styles.tipoTextOn]}>{t.label}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.tipoText, on && styles.tipoTextOn]}>{t.label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -514,7 +514,7 @@ function CardapioFood({ items, store, onAdd, filtro = null }) {
       <View style={styles.modoRow}>
         {[{ key: 'todos', label: 'Tudo' }, ...MODOS].map((m) => (
           <TouchableOpacity key={m.key} onPress={() => setModo(m.key)} style={[styles.modoBtn, modo === m.key && styles.modoBtnOn]} activeOpacity={0.85}>
-            <Text style={[styles.modoTxt, modo === m.key && { color: '#fff' }]}>{m.label}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.modoTxt, modo === m.key && { color: '#fff' }]}>{m.label}</Text>
           </TouchableOpacity>
         ))}
       </View>

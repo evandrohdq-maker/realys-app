@@ -60,7 +60,7 @@ export function InstallSuggest({ names, onGo, dark }) {
               }}
               accessibilityLabel={`${rule.label} para ${name}`}
             >
-              <Text style={styles.installBtnText}>Pedir</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.installBtnText}>Pedir</Text>
             </TouchableOpacity>
           </Row>
         );
@@ -176,7 +176,7 @@ export function ReversePost({ kinds = ['servico', 'produto'], title = 'Peça e r
           {kinds.map((k) => (
             <TouchableOpacity key={k} style={[styles.pill, kind === k && styles.pillOn]} onPress={() => setKind(k)}>
               <Ionicons name={REVERSE_KINDS[k].icon} size={13} color={kind === k ? '#fff' : colors.primary} />
-              <Text style={[styles.pillText, kind === k && { color: '#fff' }]}>{REVERSE_KINDS[k].label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pillText, kind === k && { color: '#fff' }]}>{REVERSE_KINDS[k].label}</Text>
             </TouchableOpacity>
           ))}
         </Row>
@@ -187,7 +187,7 @@ export function ReversePost({ kinds = ['servico', 'produto'], title = 'Peça e r
         <TextInput style={[styles.input, { flex: 1 }]} placeholder="Orçamento (opcional)" placeholderTextColor={colors.muted} value={budget} onChangeText={setBudget} keyboardType="numeric" />
       </Row>
       <TouchableOpacity style={styles.mainBtn} onPress={post}>
-        <Text style={styles.mainBtnText}>Publicar pedido</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.mainBtnText}>Publicar pedido</Text>
       </TouchableOpacity>
 
       {mine.map((r) => (
@@ -218,7 +218,7 @@ export function ReversePost({ kinds = ['servico', 'produto'], title = 'Peça e r
                         ])
                       }
                     >
-                      <Text style={styles.smallBtnText}>Aceitar</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.smallBtnText}>Aceitar</Text>
                     </TouchableOpacity>
                   ) : (
                     <Text style={{ color: colors.success, fontWeight: '800', fontSize: 11 }}>Combine no chat</Text>
@@ -229,7 +229,7 @@ export function ReversePost({ kinds = ['servico', 'produto'], title = 'Peça e r
           })}
           {r.status === 'aberto' ? (
             <TouchableOpacity onPress={() => dispatch({ type: 'REVERSE_CANCEL', id: r.id })}>
-              <Text style={[styles.small, { color: colors.danger, marginTop: 6 }]}>Cancelar pedido</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.small, { color: colors.danger, marginTop: 6 }]}>Cancelar pedido</Text>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -269,7 +269,7 @@ export function OpenRequests({ kind, service }) {
                     dispatch({ type: 'REVERSE_SEND', id: r.id, price: v });
                   }}
                 >
-                  <Text style={styles.smallBtnText}>Enviar</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.smallBtnText}>Enviar</Text>
                 </TouchableOpacity>
               </Row>
             )}
@@ -325,7 +325,7 @@ export function GroupBuys() {
               </Row>
             ) : (
               <TouchableOpacity style={[styles.mainBtn, { backgroundColor: colors.success }]} onPress={() => join(g.minEach)}>
-                <Text style={styles.mainBtnText}>Entrar no grupo ({g.minEach} {g.unit}s)</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.mainBtnText}>Entrar no grupo ({g.minEach} {g.unit}s)</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -354,7 +354,7 @@ export function UnmetServices() {
       ))}
       {!state.available ? (
         <TouchableOpacity style={styles.mainBtn} onPress={() => dispatch({ type: 'TOGGLE_AVAILABLE' })}>
-          <Text style={styles.mainBtnText}>Ligar o GPS e aparecer agora</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.mainBtnText}>Ligar o GPS e aparecer agora</Text>
         </TouchableOpacity>
       ) : (
         <Text style={[styles.small, { marginTop: 8, color: colors.success, fontWeight: '700' }]}>Você está disponível. Um boost coloca você no topo dessas buscas.</Text>
@@ -377,7 +377,7 @@ export function UnmetProducts({ onAdd }) {
       ))}
       {onAdd ? (
         <TouchableOpacity style={styles.mainBtn} onPress={onAdd}>
-          <Text style={styles.mainBtnText}>Cadastrar esses produtos</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.mainBtnText}>Cadastrar esses produtos</Text>
         </TouchableOpacity>
       ) : null}
     </View>
@@ -412,7 +412,7 @@ export function Subscriptions() {
                 </Row>
                 <Row style={{ marginTop: 6 }}>
                   <TouchableOpacity onPress={() => dispatch({ type: 'SUB_TOGGLE', id: x.id })}>
-                    <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 12, marginRight: 16 }}>{x.status === 'ativa' ? 'Pausar' : 'Retomar'}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '800', fontSize: 12, marginRight: 16 }}>{x.status === 'ativa' ? 'Pausar' : 'Retomar'}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() =>
@@ -422,7 +422,7 @@ export function Subscriptions() {
                       ])
                     }
                   >
-                    <Text style={{ color: colors.danger, fontWeight: '800', fontSize: 12 }}>Cancelar</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.danger, fontWeight: '800', fontSize: 12 }}>Cancelar</Text>
                   </TouchableOpacity>
                 </Row>
               </View>
@@ -454,7 +454,7 @@ export function Subscriptions() {
                   ])
                 }
               >
-                <Text style={styles.smallBtnText}>Assinar</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.smallBtnText}>Assinar</Text>
               </TouchableOpacity>
             )}
           </Row>
@@ -496,7 +496,7 @@ export function LotusNudges() {
         <Ionicons name="flower" size={14} color={colors.gold} />
         <Text style={styles.nudgeLabel}>A Lotus lembrou</Text>
         <TouchableOpacity onPress={() => setAll(true)} accessibilityLabel="Ver todas as ofertas" hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Text style={styles.nudgeAll}>Ver todas ›</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.nudgeAll}>Ver todas ›</Text>
         </TouchableOpacity>
       </Row>
       <Animated.View style={{ opacity: fade }}>
@@ -540,7 +540,7 @@ export function LotusNudges() {
                     </TouchableOpacity>
                   </Row>
                   <TouchableOpacity style={[styles.smallBtn, { alignSelf: 'flex-start', marginTop: 6, marginLeft: 30 }]} onPress={() => open(x)}>
-                    <Text style={styles.smallBtnText}>{x.cta}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.smallBtnText}>{x.cta}</Text>
                   </TouchableOpacity>
                 </View>
               ))}
@@ -602,14 +602,14 @@ export function IntelPanel() {
             <Text key={t} style={[styles.small, { marginTop: 4 }]}>💡 {t}</Text>
           ))}
           <TouchableOpacity onPress={() => dispatch({ type: 'INTEL_PLAN', on: false })}>
-            <Text style={[styles.small, { color: colors.danger, marginTop: 10 }]}>Cancelar plano</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.small, { color: colors.danger, marginTop: 10 }]}>Cancelar plano</Text>
           </TouchableOpacity>
         </>
       ) : (
         <>
           <Text style={[styles.small, { marginTop: 8 }]}>🔒 Ranking completo, horários de pico do bairro, ticket médio da região, público e dicas da Lotus.</Text>
           <TouchableOpacity style={[styles.mainBtn, { backgroundColor: colors.accent }]} onPress={subscribe}>
-            <Text style={styles.mainBtnText}>Liberar tudo · {brl(INTEL_PLAN.price)}/mês</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.mainBtnText}>Liberar tudo · {brl(INTEL_PLAN.price)}/mês</Text>
           </TouchableOpacity>
         </>
       )}

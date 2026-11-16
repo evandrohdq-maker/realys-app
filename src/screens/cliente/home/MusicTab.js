@@ -90,7 +90,7 @@ export default function MusicTab() {
     return (
       <View style={st.row}>
         <TouchableOpacity style={[st.cover, on && { backgroundColor: colors.text }]} onPress={() => play(t, list)} accessibilityLabel={on ? `Parar ${t.title}` : `Ouvir ${t.title}`}>
-          {on ? <Ionicons name="pause" size={20} color="#fff" /> : <Text style={{ fontSize: 22 }}>{t.emoji}</Text>}
+          {on ? <Ionicons name="pause" size={20} color="#fff" /> : <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontSize: 22 }}>{t.emoji}</Text>}
         </TouchableOpacity>
         <TouchableOpacity style={{ flex: 1, marginLeft: 10 }} onPress={() => play(t, list)} activeOpacity={0.8}>
           <Text style={{ color: on ? colors.primary : colors.text, fontWeight: '800' }} numberOfLines={1}>{t.title}</Text>
@@ -164,7 +164,7 @@ export default function MusicTab() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingVertical: 8 }}>
             {[null, ...MUSIC_GENRES].map((g) => (
               <TouchableOpacity key={g || 'todos'} style={[st.chip, genre === g && st.chipOn]} onPress={() => setGenre(g)}>
-                <Text style={[st.chipText, genre === g && { color: '#fff' }]}>{g || 'Tudo'}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, genre === g && { color: '#fff' }]}>{g || 'Tudo'}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -191,7 +191,7 @@ export default function MusicTab() {
             ))}
             {!pl.tracks.length ? <Text style={st.empty}>Playlist vazia. Na Galeria, toque no + de uma música para colocar aqui.</Text> : null}
             <TouchableOpacity style={{ paddingVertical: 14, alignItems: 'center' }} onPress={() => Alert.alert('Apagar a playlist?', pl.name, [{ text: 'Voltar', style: 'cancel' }, { text: 'Apagar', style: 'destructive', onPress: () => { removePlaylist(pl.id); setOpenPl(null); } }])}>
-              <Text style={{ color: colors.muted, fontWeight: '700' }}>Apagar playlist</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '700' }}>Apagar playlist</Text>
             </TouchableOpacity>
           </>
         ) : (
@@ -199,7 +199,7 @@ export default function MusicTab() {
             <View style={{ flexDirection: 'row', marginBottom: 10 }}>
               <TextInput value={newPl} onChangeText={setNewPl} placeholder="Nome da nova playlist" placeholderTextColor={colors.muted} maxLength={30} style={[st.field, { flex: 1, marginTop: 0 }]} />
               <TouchableOpacity style={st.create} onPress={() => { const n = newPl.trim(); if (!n) return; createPlaylist(n); setNewPl(''); }} accessibilityLabel="Criar playlist">
-                <Text style={{ color: '#fff', fontWeight: '800' }}>Criar</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Criar</Text>
               </TouchableOpacity>
             </View>
             {m.playlists.map((p) => (
@@ -244,7 +244,7 @@ export default function MusicTab() {
           <View style={{ flexDirection: 'row', marginTop: 12 }}>
             <TextInput value={newPl} onChangeText={setNewPl} placeholder="Nova playlist" placeholderTextColor={colors.muted} maxLength={30} style={[st.field, { flex: 1, marginTop: 0 }]} />
             <TouchableOpacity style={st.create} onPress={() => { const n = newPl.trim(); if (!n || !pickFor) return; const p = createPlaylist(n); togglePlaylistTrack(p.id, pickFor.id); setNewPl(''); }}>
-              <Text style={{ color: '#fff', fontWeight: '800' }}>Criar</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Criar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -260,7 +260,7 @@ export default function MusicTab() {
             <Text style={{ color: colors.muted, fontSize: 13, textAlign: 'center', marginTop: 4 }}>Anuncie entre as músicas do Re@lys e fale com quem está ouvindo agora.</Text>
             <Text style={{ color: colors.text, fontWeight: '800', marginTop: 14 }}>Sua música começa em {left} s</Text>
             <TouchableOpacity style={[st.planBtn, { marginTop: 12 }]} onPress={() => { subscribePlan(); setLeft(0); }}>
-              <Text style={{ color: colors.text, fontWeight: '800', fontSize: 12.5 }}>Tirar as propagandas · {MUSIC_PLAN_FREE_MONTHS} meses grátis</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '800', fontSize: 12.5 }}>Tirar as propagandas · {MUSIC_PLAN_FREE_MONTHS} meses grátis</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -300,7 +300,7 @@ function ArtistArea() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingVertical: 8 }}>
         {MUSIC_GENRES.map((g) => (
           <TouchableOpacity key={g} style={[st.chip, f.genre === g && st.chipOn]} onPress={() => setF({ ...f, genre: g })}>
-            <Text style={[st.chipText, f.genre === g && { color: '#fff' }]}>{g}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, f.genre === g && { color: '#fff' }]}>{g}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -311,7 +311,7 @@ function ArtistArea() {
         <Text style={{ color: colors.muted, fontSize: 12.5, marginLeft: 10, flex: 1 }}>Você recebe {brl(artistGets(price))} por venda.</Text>
       </View>
       <TouchableOpacity style={[st.create, { marginLeft: 0, marginTop: 12, minHeight: 46 }]} onPress={publish} accessibilityLabel="Publicar música">
-        <Text style={{ color: '#fff', fontWeight: '800' }}>Publicar e pôr à venda</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Publicar e pôr à venda</Text>
       </TouchableOpacity>
       <Text style={st.note}>A música entra na Galeria para ouvir com propaganda. O download só é liberado para quem comprar.</Text>
 

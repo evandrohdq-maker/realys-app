@@ -121,7 +121,7 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
                 accessibilityLabel={friendSt ? 'Remover dos contatos' : 'Adicionar aos contatos'}
               >
                 <Ionicons name={friendSt ? 'checkmark' : 'person-add'} size={16} color={friendSt ? colors.primary : colors.onPrimary} />
-                <Text style={[styles.peekBtnText, friendSt && { color: colors.primary }]}>{friendSt ? 'Nos seus contatos' : 'Adicionar contato'}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.peekBtnText, friendSt && { color: colors.primary }]}>{friendSt ? 'Nos seus contatos' : 'Adicionar contato'}</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
@@ -437,7 +437,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                 }}
               >
                 <Ionicons name="game-controller" size={14} color="#fff" />
-                <Text style={styles.serverBtnText}>Entrar no servidor do streamer</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.serverBtnText}>Entrar no servidor do streamer</Text>
               </TouchableOpacity>
             ) : null}
             {live.hostType ? (
@@ -464,7 +464,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                 return (
                   <TouchableOpacity key={c.key} style={[styles.typeChip, on && styles.typeChipOn]} onPress={() => { setCat(c.key); setSub(null); if (c.key === 'gamers') { setSource('tela'); setHost(hosts.find((h) => h.type === 'gamer') || null); } }}>
                     <Ionicons name={c.icon} size={14} color={on ? colors.onPrimary : colors.primary} />
-                    <Text style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>{c.label}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>{c.label}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -475,7 +475,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                 const on = sub === x.key;
                 return (
                   <TouchableOpacity key={x.key} style={[styles.typeChip, on && styles.typeChipOn]} onPress={() => setSub(on ? null : x.key)}>
-                    <Text style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700' }}>{x.label}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700' }}>{x.label}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -487,7 +487,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                 return (
                   <TouchableOpacity key={k} style={[styles.typeChip, on && styles.typeChipOn]} onPress={() => setSource(k)} accessibilityLabel={`Transmitir ${label}`}>
                     <Ionicons name={icon} size={14} color={on ? colors.onPrimary : colors.primary} />
-                    <Text style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>{label}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>{label}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -503,14 +503,14 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                 <Text style={{ color: colors.muted, fontSize: 11, marginBottom: 6 }}>Entre numa sala de voz da Arena Gamer ao abrir a live e fale com o seu time sem sair do Re@lys.</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <TouchableOpacity style={[styles.typeChip, !team && styles.typeChipOn]} onPress={() => setTeam(null)} accessibilityLabel="Sem sala de voz">
-                    <Text style={{ color: !team ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700' }}>Sem sala</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: !team ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700' }}>Sem sala</Text>
                   </TouchableOpacity>
                   {teamRooms.map((r) => {
                     const on = team && team.sid === r.sid && team.cid === r.cid;
                     return (
                       <TouchableOpacity key={r.sid + r.cid} style={[styles.typeChip, on && styles.typeChipOn]} onPress={() => setTeam({ sid: r.sid, cid: r.cid })} accessibilityLabel={`Sala ${r.room} do servidor ${r.server}`}>
                         <Ionicons name="volume-high-outline" size={14} color={on ? colors.onPrimary : colors.primary} />
-                        <Text style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>
+                        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>
                           {r.room} · {r.server}{r.people.length ? ` (${r.people.length})` : ''}
                         </Text>
                       </TouchableOpacity>
@@ -527,7 +527,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                 return (
                   <TouchableOpacity key={h.type} style={[styles.typeChip, { marginBottom: 6 }, on && styles.typeChipOn]} onPress={() => setHost(h)}>
                     <Ionicons name={t.icon} size={14} color={on ? colors.onPrimary : colors.primary} />
-                    <Text style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>{t.label}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: on ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>{t.label}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -542,7 +542,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
             />
             <TouchableOpacity style={styles.goLiveBtn} onPress={start}>
               <Ionicons name="radio-outline" size={20} color="#fff" />
-              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16, marginLeft: 8 }}>Iniciar live</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '700', fontSize: 16, marginLeft: 8 }}>Iniciar live</Text>
             </TouchableOpacity>
           </View>
         ) : null}
@@ -602,12 +602,12 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
                   {LIVE_GIFT_QTY.map((q) => (
                     <TouchableOpacity key={q} style={[styles.qty, qty === q && styles.qtyOn]} onPress={() => setQty(q)}>
-                      <Text style={{ color: qty === q ? '#0B1124' : '#FFFFFF', fontWeight: '800', fontSize: 12 }}>x{q}</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: qty === q ? '#0B1124' : '#FFFFFF', fontWeight: '800', fontSize: 12 }}>x{q}</Text>
                     </TouchableOpacity>
                   ))}
                   <View style={{ flex: 1 }} />
                   <TouchableOpacity style={styles.giftSend} onPress={sendGift}>
-                    <Text style={styles.giftSendText}>Enviar · {brl(cost.total)}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.giftSendText}>Enviar · {brl(cost.total)}</Text>
                   </TouchableOpacity>
                 </View>
                 <Text style={styles.trayNote}>
@@ -627,7 +627,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
               />
               {mine ? (
                 <TouchableOpacity style={styles.endLive} onPress={close}>
-                  <Text style={{ color: '#fff', fontWeight: '700' }}>Encerrar</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '700' }}>Encerrar</Text>
                 </TouchableOpacity>
               ) : (
                 <>
@@ -636,7 +636,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.heart} onPress={() => setLiked(liked + 1)} accessibilityLabel="Curtir">
                     <Ionicons name="heart" size={22} color="#FF5A7A" />
-                    {liked ? <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: '700' }}>{liked}</Text> : null}
+                    {liked ? <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: "#FFFFFF", fontSize: 10, fontWeight: '700' }}>{liked}</Text> : null}
                   </TouchableOpacity>
                 </>
               )}

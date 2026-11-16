@@ -31,10 +31,10 @@ export function useLeadAsk(company) {
           <TextInput value={text} onChangeText={setText} placeholder="Ex.: preciso de 20 cestas para sexta" placeholderTextColor={colors.muted} multiline maxLength={300} autoFocus style={{ borderWidth: 1, borderColor: colors.borderStrong, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, color: colors.text, marginTop: 12, minHeight: 80, textAlignVertical: 'top' }} />
           <View style={{ flexDirection: 'row', marginTop: 12 }}>
             <TouchableOpacity style={{ flex: 1, minHeight: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cardAlt, marginRight: 8 }} onPress={() => setOpen(false)}>
-              <Text style={{ color: colors.text, fontWeight: '700' }}>Voltar</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700' }}>Voltar</Text>
             </TouchableOpacity>
             <TouchableOpacity style={{ flex: 1, minHeight: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.text }} onPress={send}>
-              <Text style={{ color: '#fff', fontWeight: '800' }}>Enviar pedido</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Enviar pedido</Text>
             </TouchableOpacity>
           </View>
         </View>

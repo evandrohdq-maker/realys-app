@@ -21,7 +21,7 @@ export default function LotusCartao({ cartao, onClose }) {
           {cartao.aviso ? <Text style={styles.aviso}>{cartao.aviso}</Text> : null}
           {opcoes.map((o) => (
             <TouchableOpacity key={o.label} onPress={o.onPress} activeOpacity={0.85} style={[styles.btn, o.primary && styles.btnPrimary]}>
-              <Text style={[styles.btnTexto, o.primary && { color: colors.onPrimary }]}>{o.label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.btnTexto, o.primary && { color: colors.onPrimary }]}>{o.label}</Text>
             </TouchableOpacity>
           ))}
         </View>

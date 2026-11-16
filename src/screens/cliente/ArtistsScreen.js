@@ -53,7 +53,7 @@ export default function ArtistsScreen({ explore, navigate }) {
           return (
             <TouchableOpacity key={k.key} onPress={() => setKind(k.key)} style={[styles.chip, on && styles.chipOn]}>
               <Ionicons name={k.icon} size={14} color={on ? colors.onPrimary : colors.primary} />
-              <Text style={[styles.chipText, on && { color: colors.onPrimary }]}>{k.label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, on && { color: colors.onPrimary }]}>{k.label}</Text>
             </TouchableOpacity>
           );
         })}

@@ -95,7 +95,7 @@ export default function VenueSheet() {
                 <Text style={[styles.tableText, { flex: 0 }]}>Mesa:</Text>
                 <TextInput value={tableText} onChangeText={setTableText} placeholder="nº" placeholderTextColor={colors.muted} keyboardType="number-pad" maxLength={2} onSubmitEditing={setTable} returnKeyType="done" style={styles.tableInput} />
                 <TouchableOpacity onPress={setTable} style={styles.tableBtn}>
-                  <Text style={{ color: NIGHT, fontWeight: '800', fontSize: 12 }}>OK</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: NIGHT, fontWeight: '800', fontSize: 12 }}>OK</Text>
                 </TouchableOpacity>
                 <Text style={[styles.tableText, { fontSize: 11, color: colors.muted }]}>ou retire no balcão</Text>
               </>
@@ -105,7 +105,7 @@ export default function VenueSheet() {
           <View style={{ flexDirection: 'row', marginVertical: 8 }}>
             {[['cardapio', 'Cardápio'], ['pedidos', `Meus pedidos${mine.length ? ` (${mine.length})` : ''}`], ['caixa', 'Caixa (demo)']].map(([k, l]) => (
               <TouchableOpacity key={k} onPress={() => setTab(k)} style={[styles.tab, tab === k && styles.tabOn]}>
-                <Text style={[styles.tabText, tab === k && { color: '#FFFFFF' }]}>{l}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.tabText, tab === k && { color: '#FFFFFF' }]}>{l}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -178,7 +178,7 @@ export default function VenueSheet() {
                         </View>
                         {next ? (
                           <TouchableOpacity onPress={() => dispatch({ type: 'VENUE_ORDER_STATUS', id: o.id, status: next })} style={styles.feedBtn}>
-                            <Text style={{ color: NIGHT, fontWeight: '800', fontSize: 11 }}>{next === 'Entregue' ? 'Entregar' : next.split(' ')[0]}</Text>
+                            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: NIGHT, fontWeight: '800', fontSize: 11 }}>{next === 'Entregue' ? 'Entregar' : next.split(' ')[0]}</Text>
                           </TouchableOpacity>
                         ) : null}
                       </View>
@@ -194,7 +194,7 @@ export default function VenueSheet() {
           {tab === 'cardapio' ? (
             <TouchableOpacity style={[styles.payBtn, !items.length && { opacity: 0.45 }]} onPress={order} disabled={!items.length}>
               <Ionicons name="flash" size={16} color={NIGHT} />
-              <Text style={styles.payText}>{items.length ? `Pedir e pagar · ${brl(total)}` : 'Escolha o que vai pedir'}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.payText}>{items.length ? `Pedir e pagar · ${brl(total)}` : 'Escolha o que vai pedir'}</Text>
             </TouchableOpacity>
           ) : null}
           <TouchableOpacity
@@ -206,7 +206,7 @@ export default function VenueSheet() {
             }
             style={{ alignItems: 'center', paddingTop: 10 }}
           >
-            <Text style={{ color: colors.muted, fontWeight: '700', fontSize: 12 }}>Saí do local</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '700', fontSize: 12 }}>Saí do local</Text>
           </TouchableOpacity>
         </View>
       </View>

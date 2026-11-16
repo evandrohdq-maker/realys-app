@@ -34,11 +34,11 @@ function CentralSeguranca() {
           <Row style={{ marginTop: 10 }}>
             {x.local && x.local.lat != null ? (
               <TouchableOpacity onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${x.local.lat},${x.local.lon}`).catch(() => {})} style={{ marginRight: 16 }}>
-                <Text style={{ color: colors.primary, fontWeight: '700' }}>Mapa</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700' }}>Mapa</Text>
               </TouchableOpacity>
             ) : null}
             <TouchableOpacity onPress={() => act(x, 'atendido')} style={{ marginRight: 16 }}>
-              <Text style={{ color: colors.success, fontWeight: '700' }}>Atendido</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.success, fontWeight: '700' }}>Atendido</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() =>
@@ -48,7 +48,7 @@ function CentralSeguranca() {
                 ])
               }
             >
-              <Text style={{ color: colors.danger, fontWeight: '700' }}>Chamada falsa</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.danger, fontWeight: '700' }}>Chamada falsa</Text>
             </TouchableOpacity>
           </Row>
         </Card>
@@ -164,7 +164,7 @@ export function AdminOverview() {
               {x.status === 'aberto' ? (
                 <Row style={{ marginTop: 10 }}>
                   <TouchableOpacity onPress={() => dispatch({ type: 'PANIC_REAL', id: x.id })} style={{ marginRight: 18 }}>
-                    <Text style={{ color: colors.primary, fontWeight: '700' }}>Atendido (era real)</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700' }}>Atendido (era real)</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() =>
@@ -174,7 +174,7 @@ export function AdminOverview() {
                       ])
                     }
                   >
-                    <Text style={{ color: colors.danger, fontWeight: '700' }}>Chamada falsa</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.danger, fontWeight: '700' }}>Chamada falsa</Text>
                   </TouchableOpacity>
                 </Row>
               ) : (
@@ -209,16 +209,16 @@ export function AdminOverview() {
                   const url = CONSULTA_URL[cons] || `https://www.google.com/search?q=${encodeURIComponent(`consulta inscrição ${cons || ''} ${c.uf || ''} ${c.number}`)}`;
                   return (
                     <TouchableOpacity onPress={() => Linking.openURL(url).catch(() => {})} style={{ marginTop: 6 }}>
-                      <Text style={{ color: colors.primary, fontWeight: '700' }}>Abrir a consulta do {c.gov ? 'órgão' : cons || 'conselho'} ({c.number})</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700' }}>Abrir a consulta do {c.gov ? 'órgão' : cons || 'conselho'} ({c.number})</Text>
                     </TouchableOpacity>
                   );
                 })()}
                 <Row style={{ marginTop: 10 }}>
                   <TouchableOpacity onPress={() => dispatch({ type: 'CRED_SET', id: c.id, patch: { status: 'aprovado', reviewedAt: Date.now() } })} style={{ marginRight: 18 }}>
-                    <Text style={{ color: colors.success, fontWeight: '700' }}>Aprovar (conferido)</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.success, fontWeight: '700' }}>Aprovar (conferido)</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => dispatch({ type: 'CRED_SET', id: c.id, patch: { status: 'recusado', receiveCases: false, reviewedAt: Date.now() } })}>
-                    <Text style={{ color: colors.danger, fontWeight: '700' }}>Recusar</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.danger, fontWeight: '700' }}>Recusar</Text>
                   </TouchableOpacity>
                 </Row>
               </Card>

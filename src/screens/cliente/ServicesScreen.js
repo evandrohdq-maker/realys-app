@@ -33,7 +33,7 @@ function DemoArrive({ call }) {
   if (!isTransport(r) || r.done || r.arrivedAt || r.when) return null;
   return (
     <TouchableOpacity onPress={() => dispatch({ type: 'RIDE_ARRIVED', id: r.id })} style={{ marginTop: 8 }}>
-      <Text style={{ color: colors.muted, fontSize: 11, textDecorationLine: 'underline' }}>Demonstração: simular motorista chegando</Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontSize: 11, textDecorationLine: 'underline' }}>Demonstração: simular motorista chegando</Text>
     </TouchableOpacity>
   );
 }
@@ -480,7 +480,7 @@ export default function ServicesScreen({ explore, navigate }) {
             ].map(([v, label, icon]) => (
               <TouchableOpacity key={label} onPress={() => setForOther(v)} style={[styles.otherSegBtn, forOther === v && styles.otherSegOn]}>
                 <Ionicons name={icon} size={14} color={forOther === v ? '#fff' : colors.text} />
-                <Text style={[styles.otherSegText, forOther === v && { color: '#fff' }]}>{label}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.otherSegText, forOther === v && { color: '#fff' }]}>{label}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -505,7 +505,7 @@ export default function ServicesScreen({ explore, navigate }) {
                   const on = needs.includes(k);
                   return (
                     <TouchableOpacity key={k} onPress={() => toggleNeed(k)} style={[styles.needChip, on && styles.needChipOn]} accessibilityLabel={label}>
-                      <Text style={[styles.needText, on && { color: '#fff' }]}>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.needText, on && { color: '#fff' }]}>
                         {icon} {label}
                       </Text>
                     </TouchableOpacity>
@@ -577,7 +577,7 @@ export default function ServicesScreen({ explore, navigate }) {
                   accessibilityLabel={`Selecionar ${p.name}`}
                   style={[styles.pin, { left: `${Math.min(92, Math.max(4, pos.left))}%`, top: `${Math.min(84, Math.max(6, pos.top))}%` }, on && styles.pinOn]}
                 >
-                  <Text style={[styles.pinText, on && { color: colors.onPrimary }]}>{num[p.id]}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pinText, on && { color: colors.onPrimary }]}>{num[p.id]}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -599,7 +599,7 @@ export default function ServicesScreen({ explore, navigate }) {
             {nearestP && sel && nearestP.id !== sel.id ? (
               <TouchableOpacity style={[styles.quickBtn, styles.quickGhost]} onPress={() => setSelId(nearestP.id)}>
                 <Ionicons name="navigate-outline" size={16} color={colors.primary} />
-                <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 6 }}>Ver o mais perto</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700', marginLeft: 6 }}>Ver o mais perto</Text>
               </TouchableOpacity>
             ) : null}
             <TouchableOpacity style={[styles.quickBtn, styles.quickMain]} onPress={() => hire(sel)}>
@@ -617,7 +617,7 @@ export default function ServicesScreen({ explore, navigate }) {
         <TouchableOpacity style={styles.howBox} onPress={() => setHowOpen(!howOpen)} activeOpacity={0.85}>
           <Row>
             <Ionicons name="shield-checkmark" size={18} color={colors.primary} />
-            <Text style={styles.howTitle}>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.howTitle}>
               Pagamento protegido{minFee != null ? ` · visita a partir de ${brl(minFee)}` : ''}
             </Text>
             <Ionicons name={howOpen ? 'chevron-up' : 'chevron-down'} size={18} color={colors.muted} />

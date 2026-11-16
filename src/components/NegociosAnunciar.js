@@ -77,7 +77,7 @@ export function AnunciarSheet({ visible, onClose, kinds, kindLabel }) {
               const on = k === kind;
               return (
                 <TouchableOpacity key={k} style={[st.pill, on && st.pillOn]} onPress={() => setKind(k)}>
-                  <Text style={[st.pillText, on && { color: '#fff' }]}>{kindLabel(k)}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.pillText, on && { color: '#fff' }]}>{kindLabel(k)}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -104,7 +104,7 @@ export function AnunciarSheet({ visible, onClose, kinds, kindLabel }) {
                     <Text style={st.lineSub}>{p.detalhe}, com todas as conversas liberadas.</Text>
                   </View>
                   <TouchableOpacity style={[st.planBtn, mineP && st.planBtnOn]} onPress={() => (mineP ? null : assinar(p))} disabled={mineP} accessibilityLabel={mineP ? `Plano ${p.nome} ativo` : `Assinar o plano ${p.nome}`}>
-                    <Text style={[st.planBtnText, mineP && { color: colors.text }]}>{mineP ? 'Ativo' : 'Assinar'}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.planBtnText, mineP && { color: colors.text }]}>{mineP ? 'Ativo' : 'Assinar'}</Text>
                   </TouchableOpacity>
                 </View>
               );
@@ -120,7 +120,7 @@ export function AnunciarSheet({ visible, onClose, kinds, kindLabel }) {
           <Text style={st.label}>Cidade</Text>
           <TextInput value={place} onChangeText={setPlace} style={st.field} placeholderTextColor={colors.muted} maxLength={40} />
           <TouchableOpacity style={st.publish} onPress={publicar} activeOpacity={0.85}>
-            <Text style={st.publishText}>Publicar anúncio</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.publishText}>Publicar anúncio</Text>
           </TouchableOpacity>
           <Text style={st.note}>{covered ? `Coberto pelo seu plano ${plan.nome}.` : 'Publicar é grátis.'} Na demonstração, as fotos e a análise do anúncio ficam para quando o servidor estiver no ar.</Text>
         </ScrollView>
@@ -157,14 +157,14 @@ export function MyAds({ kinds, kindLabel, onChat }) {
         {/* CRM do anunciante: acompanha cada interessado por etapas, até fechar negócio */}
         <TouchableOpacity onPress={() => setCrm(true)} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card }} accessibilityLabel="Acompanhar meus clientes por etapas">
           <Ionicons name="chatbubbles-outline" size={15} color={colors.text} />
-          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 12.5, marginLeft: 5 }}>Clientes</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', fontSize: 12.5, marginLeft: 5 }}>Clientes</Text>
         </TouchableOpacity>
       </View>
       <Modal visible={crm} animationType="slide" onRequestClose={() => setCrm(false)}>
         <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: 36 }}>
           <TouchableOpacity onPress={() => setCrm(false)} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8 }} accessibilityLabel="Voltar">
             <Ionicons name="chevron-back" size={22} color={colors.text} />
-            <Text style={{ color: colors.text, fontWeight: '700', marginLeft: 4 }}>Voltar</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', marginLeft: 4 }}>Voltar</Text>
           </TouchableOpacity>
           <CrmScreen board={board} />
         </View>
@@ -197,7 +197,7 @@ export function MyAds({ kinds, kindLabel, onChat }) {
                   <Text style={st.leadSub}>{l.unlocked ? (l.paid ? `Conversa liberada por ${brl(l.paid)}` : 'Conversa liberada pelo plano') : 'Pessoa real, conferida por biometria'}</Text>
                 </View>
                 <TouchableOpacity style={[st.leadBtn, l.unlocked && st.leadBtnOpen]} onPress={() => (l.unlocked ? onChat(l) : unlock(l, ad))} accessibilityLabel={l.unlocked ? `Abrir conversa com ${l.name}` : 'Liberar conversa'}>
-                  <Text style={[st.leadBtnText, l.unlocked && { color: colors.text }]}>{l.unlocked ? 'Conversar' : cost ? `Liberar · ${brl(cost)}` : 'Liberar'}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.leadBtnText, l.unlocked && { color: colors.text }]}>{l.unlocked ? 'Conversar' : cost ? `Liberar · ${brl(cost)}` : 'Liberar'}</Text>
                 </TouchableOpacity>
               </View>
             ))}

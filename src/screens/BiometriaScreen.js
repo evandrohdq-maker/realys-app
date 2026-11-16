@@ -121,14 +121,14 @@ export default function BiometriaScreen({ visible, onClose }) {
               <Text style={styles.termo}>• Usamos seu rosto para confirmar que é você, e só em situações que exigem segurança.</Text>
               <Text style={styles.termo}>• Guardamos um código matemático criptografado. As fotos são apagadas após a análise.</Text>
               <Text style={styles.termo}>• Você pode apagar seu cadastro a qualquer momento.</Text>
-              <TouchableOpacity onPress={() => setTermoOpen(true)} hitSlop={8}><Text style={styles.link}>Ler o termo de adesão completo ›</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => setTermoOpen(true)} hitSlop={8}><Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.link}>Ler o termo de adesão completo ›</Text></TouchableOpacity>
               {status === 'sem_consentimento' || status === 'revogado' ? (
                 <TouchableOpacity style={styles.btn} onPress={aceitar} disabled={busy} activeOpacity={0.85}>
-                  {busy ? <ActivityIndicator color={colors.onPrimary} /> : <Text style={styles.btnText}>Aceito e quero cadastrar</Text>}
+                  {busy ? <ActivityIndicator color={colors.onPrimary} /> : <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.btnText}>Aceito e quero cadastrar</Text>}
                 </TouchableOpacity>
               ) : (
                 <TouchableOpacity style={styles.btn} onPress={() => setStep('scan')} activeOpacity={0.85}>
-                  <Text style={styles.btnText}>Fazer o scan do rosto</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.btnText}>Fazer o scan do rosto</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -141,7 +141,7 @@ export default function BiometriaScreen({ visible, onClose }) {
               <View style={styles.chips}>
                 {DOC_TIPOS.map((t) => (
                   <TouchableOpacity key={t.key} onPress={() => setTipo(t.key)} style={[styles.chip, tipo === t.key && styles.chipOn]}>
-                    <Text style={[styles.chipText, tipo === t.key && { color: colors.onPrimary }]}>{t.label}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, tipo === t.key && { color: colors.onPrimary }]}>{t.label}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -150,7 +150,7 @@ export default function BiometriaScreen({ visible, onClose }) {
               <Text style={styles.label}>Validade (se houver)</Text>
               <TextInput style={styles.input} value={validade} onChangeText={setValidade} placeholder="AAAA-MM-DD" placeholderTextColor={colors.muted} autoCapitalize="none" />
               <Text style={styles.termo}>Na foto do documento: ele precisa estar inteiro, nítido e com todos os dados legíveis. Evite reflexo: nada de luz direta, flash ou superfície brilhante. Foto borrada ou com reflexo é recusada.</Text>
-              <TouchableOpacity style={styles.btn} onPress={enviarTudo} activeOpacity={0.85}><Text style={styles.btnText}>Fotografar o documento e enviar</Text></TouchableOpacity>
+              <TouchableOpacity style={styles.btn} onPress={enviarTudo} activeOpacity={0.85}><Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.btnText}>Fotografar o documento e enviar</Text></TouchableOpacity>
             </View>
           ) : null}
 
@@ -163,7 +163,7 @@ export default function BiometriaScreen({ visible, onClose }) {
 
           {status === 'aprovado' ? (
             <TouchableOpacity style={styles.btnDanger} onPress={revogar} activeOpacity={0.85}>
-              <Text style={styles.btnDangerText}>Apagar meu cadastro biométrico</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.btnDangerText}>Apagar meu cadastro biométrico</Text>
             </TouchableOpacity>
           ) : null}
         </ScrollView>

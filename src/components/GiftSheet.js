@@ -98,7 +98,7 @@ export default function GiftSheet() {
                 </View>
                 {!open.to ? (
                   <TouchableOpacity onPress={() => setTo(null)}>
-                    <Text style={{ color: colors.primary, fontWeight: '700' }}>Trocar</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700' }}>Trocar</Text>
                   </TouchableOpacity>
                 ) : null}
               </View>
@@ -108,7 +108,7 @@ export default function GiftSheet() {
                   <View style={{ flexDirection: 'row', marginBottom: 8 }}>
                     {[['pessoas', 'Pessoas'], ['prestadores', 'Prestadores']].map(([k, l]) => (
                       <TouchableOpacity key={k} onPress={() => setTab(k)} style={[styles.chip, tab === k && styles.chipOn]}>
-                        <Text style={[styles.chipText, tab === k && { color: '#FFFFFF' }]}>{l}</Text>
+                        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, tab === k && { color: '#FFFFFF' }]}>{l}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -130,7 +130,7 @@ export default function GiftSheet() {
             <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
               {(to && to.tip ? [5, 10, 15, 20] : GIFT_AMOUNTS).map((v) => (
                 <TouchableOpacity key={v} onPress={() => { setAmount(v); setOther(''); }} style={[styles.amount, !other && amount === v && styles.amountOn]}>
-                  <Text style={[styles.amountText, !other && amount === v && { color: NIGHT }]}>{brl(v)}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.amountText, !other && amount === v && { color: NIGHT }]}>{brl(v)}</Text>
                 </TouchableOpacity>
               ))}
               <TextInput value={other} onChangeText={setOther} placeholder="Outro valor" placeholderTextColor={colors.muted} keyboardType="decimal-pad" style={[styles.amount, styles.otherInput, !!other && styles.amountOn]} />
@@ -141,7 +141,7 @@ export default function GiftSheet() {
             <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
               {occasions.map((o) => (
                 <TouchableOpacity key={o} onPress={() => setOccasion(o)} style={[styles.chip, (occasion || occasions[0]) === o && styles.chipOn]}>
-                  <Text style={[styles.chipText, (occasion || occasions[0]) === o && { color: '#FFFFFF' }]}>{o}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, (occasion || occasions[0]) === o && { color: '#FFFFFF' }]}>{o}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -165,7 +165,7 @@ export default function GiftSheet() {
 
             <TouchableOpacity style={[styles.sendBtn, !to && { opacity: 0.5 }]} onPress={send}>
               <Ionicons name="gift-outline" size={18} color={NIGHT} />
-              <Text style={styles.sendText}>{to && to.tip ? 'Enviar gorjeta' : 'Enviar presente'} · {brl(total)}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.sendText}>{to && to.tip ? 'Enviar gorjeta' : 'Enviar presente'} · {brl(total)}</Text>
             </TouchableOpacity>
             <Text style={[styles.sub, { textAlign: 'center', marginTop: 8 }]}>Seu saldo: {brl(state.wallet)}</Text>
           </ScrollView>

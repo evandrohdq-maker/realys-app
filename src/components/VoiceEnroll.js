@@ -102,12 +102,12 @@ export function PhrasesEditor({ initial, onSave, onSkip, saveLabel = 'Salvar e c
           const on = !own && q === question;
           return (
             <TouchableOpacity key={q} style={[st.chip, on && st.chipOn]} onPress={() => (setOwn(false), setQuestion(q), setErr(''))}>
-              <Text style={[st.chipText, on && { color: '#fff' }]}>{q}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, on && { color: '#fff' }]}>{q}</Text>
             </TouchableOpacity>
           );
         })}
         <TouchableOpacity style={[st.chip, own && st.chipOn]} onPress={() => (setOwn(true), setQuestion(''))}>
-          <Text style={[st.chipText, own && { color: '#fff' }]}>Escrever a minha</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, own && { color: '#fff' }]}>Escrever a minha</Text>
         </TouchableOpacity>
       </View>
       {own ? <TextInput style={st.input} value={question} onChangeText={(v) => setQuestion(v.slice(0, 70))} placeholder="Sua pergunta" placeholderTextColor={colors.muted} /> : null}
@@ -120,11 +120,11 @@ export function PhrasesEditor({ initial, onSave, onSkip, saveLabel = 'Salvar e c
       <Text style={[st.p, { marginTop: 12, color: '#B4532A' }]}>Atenção: chamada falsa (brincadeira, teste ou trote) leva ao bloqueio imediato da conta e do saldo, além de ser crime.</Text>
       {err ? <Text style={{ color: colors.danger, fontWeight: '700', marginTop: 4 }}>{err}</Text> : null}
       <TouchableOpacity style={st.btn} onPress={go}>
-        <Text style={st.btnText}>{saveLabel}</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.btnText}>{saveLabel}</Text>
       </TouchableOpacity>
       {onSkip ? (
         <TouchableOpacity style={st.btnLight} onPress={onSkip}>
-          <Text style={st.btnLightText}>Agora não (confirmo pelo botão)</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.btnLightText}>Agora não (confirmo pelo botão)</Text>
         </TouchableOpacity>
       ) : null}
     </View>
@@ -142,7 +142,7 @@ export function TratoPicker({ value, onChange, userName }) {
           const on = v.key === t.key;
           return (
             <TouchableOpacity key={t.key} style={[st.chip, on && st.chipOn]} onPress={() => onChange({ key: t.key, apelido: t.key === 'apelido' ? v.apelido || '' : undefined })} accessibilityState={{ selected: on }}>
-              <Text style={[st.chipText, on && { color: '#fff' }]}>{t.label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, on && { color: '#fff' }]}>{t.label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -285,7 +285,7 @@ export default function VoiceEnroll({ visible, onClose, onDone, userName }) {
           <View style={st.body}>
             <Text style={st.p}>Este celular usa uma versão do Android anterior à 13, que não entrega o áudio para o Re@lys. A Lotus funciona normalmente, mas sem reconhecer só a sua voz.</Text>
             <TouchableOpacity style={st.btn} onPress={() => onDone && onDone(false)}>
-              <Text style={st.btnText}>Ativar o "abrir Lotus" assim mesmo</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.btnText}>Ativar o "abrir Lotus" assim mesmo</Text>
             </TouchableOpacity>
           </View>
         ) : step === 'termo' ? (
@@ -299,7 +299,7 @@ export default function VoiceEnroll({ visible, onClose, onDone, userName }) {
               <Text style={[st.p, { flex: 1, marginLeft: 8, marginBottom: 0 }]}>Autorizo o Re@lys a criar e guardar neste celular a assinatura da minha voz (dado biométrico, LGPD), só para a Lotus me reconhecer.</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[st.btn, !agree && { opacity: 0.4 }]} disabled={!agree} onPress={() => setStep('gravar')}>
-              <Text style={st.btnText}>Começar</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.btnText}>Começar</Text>
             </TouchableOpacity>
           </ScrollView>
         ) : step === 'gravar' ? (
@@ -326,10 +326,10 @@ export default function VoiceEnroll({ visible, onClose, onDone, userName }) {
             <Text style={[st.h, { textAlign: 'center' }]}>Sua voz já está cadastrada</Text>
             <Text style={[st.p, { textAlign: 'center' }]}>Quer gravar mais 3 frases? Com elas, a Lotus conhece melhor a sua voz desde o começo e erra menos.</Text>
             <TouchableOpacity style={st.btn} onPress={() => (setI(REQUIRED), setStep('gravar'))}>
-              <Text style={st.btnText}>Gravar mais 3</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.btnText}>Gravar mais 3</Text>
             </TouchableOpacity>
             <TouchableOpacity style={st.btnLight} onPress={() => setStep('frases')}>
-              <Text style={st.btnLightText}>Concluir agora</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.btnLightText}>Concluir agora</Text>
             </TouchableOpacity>
           </View>
         ) : step === 'frases' ? (
@@ -346,7 +346,7 @@ export default function VoiceEnroll({ visible, onClose, onDone, userName }) {
             <Text style={[st.h, { textAlign: 'center' }]}>Pronto! A Lotus agora atende só você</Text>
             <Text style={[st.p, { textAlign: 'center' }]}>Diga “abrir Lotus” quando quiser. Se ela não te reconhecer (gripe, muito barulho), toque na flor e fale normalmente. Você pode refazer o cadastro no Perfil.</Text>
             <TouchableOpacity style={st.btn} onPress={() => onDone && onDone(true)}>
-              <Text style={st.btnText}>Ativar o “abrir Lotus”</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.btnText}>Ativar o “abrir Lotus”</Text>
             </TouchableOpacity>
           </View>
         )}

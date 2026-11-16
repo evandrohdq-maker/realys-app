@@ -90,7 +90,7 @@ export default function AgendaScreen() {
       {/* Botão de novo compromisso */}
       <TouchableOpacity style={[styles.fab, soft]} onPress={() => setForm({})} activeOpacity={0.85} accessibilityLabel="Novo compromisso">
         <Ionicons name="add" size={20} color={colors.onPrimary} />
-        <Text style={styles.fabText}>Novo</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.fabText}>Novo</Text>
       </TouchableOpacity>
 
       <JobSheet item={open} now={now} onClose={() => setOpen(null)} onEdit={(it) => { setOpen(null); setForm({ item: it }); }} />
@@ -140,7 +140,7 @@ function NextJob({ item, now, onOpen }) {
           <Text style={[styles.nextSub, { marginTop: 0, marginLeft: 4, flex: 1 }]} numberOfLines={1}>{item.address}</Text>
           <TouchableOpacity style={styles.routeBtn} onPress={() => openRoute(item.address)} accessibilityLabel="Abrir rota">
             <Ionicons name="navigate" size={14} color={colors.onPrimary} />
-            <Text style={styles.routeText}>Rota</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.routeText}>Rota</Text>
           </TouchableOpacity>
         </Row>
       ) : null}
@@ -183,7 +183,7 @@ function Upcoming({ items, now, late, onOpen, onNew }) {
       {/* Faixa dos próximos 14 dias */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }} contentContainerStyle={{ paddingRight: 8 }}>
         <TouchableOpacity style={[styles.dayChip, !day && styles.dayChipOn]} onPress={() => setDay(null)}>
-          <Text style={[styles.dayWeek, !day && styles.dayOnText]}>Todos</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.dayWeek, !day && styles.dayOnText]}>Todos</Text>
           <Ionicons name="list" size={16} color={!day ? colors.onPrimary : colors.primary} style={{ marginTop: 4 }} />
         </TouchableOpacity>
         {days.map((d) => {
@@ -236,7 +236,7 @@ function Upcoming({ items, now, late, onOpen, onNew }) {
             {free.map((f) => (
               <TouchableOpacity key={f.from} style={styles.freeChip} onPress={() => onNew(f.from)}>
                 <Ionicons name="add-circle-outline" size={14} color={colors.success} />
-                <Text style={styles.freeText}>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.freeText}>
                   {hhmm(f.from)} – {hhmm(f.to)}
                 </Text>
               </TouchableOpacity>
@@ -362,7 +362,7 @@ function MonthView({ items, now, onOpen, onNew }) {
                       on && styles.calOn,
                     ]}
                   >
-                    <Text style={[styles.calNum, off && { color: colors.muted }, on && { color: colors.onPrimary, fontWeight: '700' }]}>{new Date(d).getDate()}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.calNum, off && { color: colors.muted }, on && { color: colors.onPrimary, fontWeight: '700' }]}>{new Date(d).getDate()}</Text>
                   </View>
                   <Row style={{ height: 5, marginTop: 2 }}>
                     {hasOpen ? <View style={[styles.dot, { backgroundColor: colors.primary }]} /> : null}
@@ -386,7 +386,7 @@ function MonthView({ items, now, onOpen, onNew }) {
         {startOfDay(day) >= startOfDay(now) ? (
           <TouchableOpacity onPress={() => onNew(day)} style={styles.linkBtn}>
             <Ionicons name="add" size={15} color={colors.primary} />
-            <Text style={styles.linkText}>Marcar neste dia</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.linkText}>Marcar neste dia</Text>
           </TouchableOpacity>
         ) : null}
       </Row>
@@ -511,7 +511,7 @@ function Hours({ onBlock }) {
             <View key={d} style={[styles.hourRow, i === order.length - 1 && { borderBottomWidth: 0 }]}>
               <TouchableOpacity style={styles.hourDay} onPress={() => dispatch({ type: 'AGENDA_HOURS', day: d, patch: { on: !h.on } })} accessibilityLabel={`${WEEKDAYS[d]}: ${h.on ? 'trabalho' : 'folga'}`}>
                 <Ionicons name={h.on ? 'checkbox' : 'square-outline'} size={20} color={h.on ? colors.primary : colors.muted} />
-                <Text style={[styles.hourName, !h.on && { color: colors.muted }]}>{WEEKDAYS[d]}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.hourName, !h.on && { color: colors.muted }]}>{WEEKDAYS[d]}</Text>
               </TouchableOpacity>
               {h.on ? (
                 <Row>
@@ -821,7 +821,7 @@ function FormSheet({ form, items, onClose }) {
                         onPress={() => setTime(o)}
                         style={[styles.timeChip, offHours && !on && { opacity: 0.45 }, busy && !on && styles.timeBusy, on && styles.timeOn]}
                       >
-                        <Text style={[styles.timeText, busy && !on && { color: colors.muted, textDecorationLine: 'line-through' }, on && { color: colors.onPrimary }]}>
+                        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.timeText, busy && !on && { color: colors.muted, textDecorationLine: 'line-through' }, on && { color: colors.onPrimary }]}>
                           {o.m ? `${o.h}:30` : `${o.h}:00`}
                         </Text>
                       </TouchableOpacity>

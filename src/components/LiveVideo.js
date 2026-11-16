@@ -206,10 +206,10 @@ export function VideoCallHost() {
           <Text style={st.inviteSub}>Convite do Date · só vocês dois</Text>
           <View style={{ flexDirection: 'row', marginTop: 10 }}>
             <TouchableOpacity style={[st.inviteBtn, { backgroundColor: '#F1F1F4' }]} onPress={no} accessibilityLabel="Recusar">
-              <Text style={{ color: colors.text, fontWeight: '800' }}>Recusar</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '800' }}>Recusar</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[st.inviteBtn, { backgroundColor: '#E0567A', marginLeft: 10 }]} onPress={join} accessibilityLabel="Entrar agora">
-              <Text style={{ color: '#fff', fontWeight: '800' }}>Entrar agora</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Entrar agora</Text>
             </TouchableOpacity>
           </View>
         </View>

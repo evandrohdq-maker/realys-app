@@ -47,7 +47,7 @@ export default function SupplierScreen() {
           return (
             <TouchableOpacity key={k} style={[styles.chip, on && styles.chipOn]} onPress={() => setSeg(k)}>
               <Ionicons name={icon} size={15} color={on ? colors.onPrimary : colors.primary} />
-              <Text style={[styles.chipText, on && { color: colors.onPrimary }]}>{label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, on && { color: colors.onPrimary }]}>{label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -161,7 +161,7 @@ function SendOffer({ items, onSent }) {
           <TouchableOpacity
             onPress={() => setPicked(chosen.length === companies.length ? {} : Object.fromEntries(companies.map((c) => [c.id, true])))}
           >
-            <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{chosen.length === companies.length ? 'Limpar' : 'Selecionar todas'}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{chosen.length === companies.length ? 'Limpar' : 'Selecionar todas'}</Text>
           </TouchableOpacity>
         }
       >
@@ -191,7 +191,7 @@ function SendOffer({ items, onSent }) {
         <Row style={{ flexWrap: 'wrap', marginBottom: 10 }}>
           {VALIDITY.map((v) => (
             <TouchableOpacity key={v} style={[styles.small, valid === v && styles.smallOn]} onPress={() => setValid(v)}>
-              <Text style={{ color: valid === v ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700' }}>{v}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: valid === v ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700' }}>{v}</Text>
             </TouchableOpacity>
           ))}
         </Row>
@@ -310,7 +310,7 @@ function MyProducts({ items }) {
           <Row style={{ flexWrap: 'wrap', marginBottom: 10 }}>
             {EMOJIS.map((e) => (
               <TouchableOpacity key={e} style={[styles.emoji, emoji === e && styles.emojiOn]} onPress={() => setEmoji(e)}>
-                <Text style={{ fontSize: 20 }}>{e}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontSize: 20 }}>{e}</Text>
               </TouchableOpacity>
             ))}
           </Row>
@@ -340,7 +340,7 @@ function MyProducts({ items }) {
               accessibilityLabel={i.featured ? 'Tirar do destaque' : 'Destacar produto'}
             >
               <Ionicons name={i.featured ? 'star' : 'star-outline'} size={16} color={i.featured ? colors.onPrimary : colors.primary} />
-              <Text style={{ color: i.featured ? colors.onPrimary : colors.primary, fontSize: 11, fontWeight: '700', marginLeft: 4 }}>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: i.featured ? colors.onPrimary : colors.primary, fontSize: 11, fontWeight: '700', marginLeft: 4 }}>
                 {i.featured ? 'Destaque' : 'Destacar'}
               </Text>
             </TouchableOpacity>

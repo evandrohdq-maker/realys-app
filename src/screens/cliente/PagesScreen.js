@@ -74,7 +74,7 @@ function NewPage({ onDone }) {
         {PAGE_CATEGORIES.map((c) => (
           <TouchableOpacity key={c.key} onPress={() => setCategory(c.key)} style={[st.chip, category === c.key && st.chipOn]}>
             <Ionicons name={c.icon} size={13} color={category === c.key ? '#fff' : colors.primary} />
-            <Text style={[st.chipText, category === c.key && { color: '#fff' }]}>{c.label}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, category === c.key && { color: '#fff' }]}>{c.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -131,7 +131,7 @@ export default function PagesScreen({ explore }) {
       <View style={st.segs}>
         {SEGS.map(([k, label]) => (
           <TouchableOpacity key={k} onPress={() => setSeg(k)} style={st.seg}>
-            <Text style={[st.segText, seg === k && st.segOn]}>{label}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.segText, seg === k && st.segOn]}>{label}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -141,11 +141,11 @@ export default function PagesScreen({ explore }) {
           <Input value={q} onChangeText={setQ} placeholder="Buscar páginas" />
           <View style={[st.chips, { marginTop: 10 }]}>
             <TouchableOpacity onPress={() => setCat(null)} style={[st.chip, !cat && st.chipOn]}>
-              <Text style={[st.chipText, !cat && { color: '#fff' }]}>Todas</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, !cat && { color: '#fff' }]}>Todas</Text>
             </TouchableOpacity>
             {PAGE_CATEGORIES.filter((c) => others.some((p) => p.category === c.key)).map((c) => (
               <TouchableOpacity key={c.key} onPress={() => setCat(cat === c.key ? null : c.key)} style={[st.chip, cat === c.key && st.chipOn]}>
-                <Text style={[st.chipText, cat === c.key && { color: '#fff' }]}>{c.label}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, cat === c.key && { color: '#fff' }]}>{c.label}</Text>
               </TouchableOpacity>
             ))}
           </View>

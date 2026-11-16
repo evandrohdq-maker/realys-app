@@ -37,13 +37,13 @@ export default function DesapegoScreen() {
       <Title sub="Desapega e faz dinheiro: usados entre pessoas de verdade, com garantia">Desapego</Title>
       <TouchableOpacity style={st.sell} onPress={() => setForm(true)}>
         <Ionicons name="pricetag-outline" size={20} color="#fff" />
-        <Text style={st.sellText}>Anunciar um desapego</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.sellText}>Anunciar um desapego</Text>
       </TouchableOpacity>
       <TextInput style={st.search} value={q} onChangeText={setQ} placeholder="Buscar: bicicleta, sofá, celular…" placeholderTextColor={colors.muted} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
         {[['todos', 'Todos'], ...DESAPEGO_CATS].map(([k, l]) => (
           <TouchableOpacity key={k} style={[st.chip, cat === k && st.chipOn]} onPress={() => setCat(k)}>
-            <Text style={[st.chipText, cat === k && { color: '#fff' }]}>{l}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, cat === k && { color: '#fff' }]}>{l}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -57,10 +57,10 @@ export default function DesapegoScreen() {
           {x.buyer === me ? (
             <Row style={{ marginTop: 8 }}>
               <TouchableOpacity onPress={() => dispatch({ type: 'DESAPEGO_RECEIVED', id: x.id })} style={{ marginRight: 18 }}>
-                <Text style={{ color: colors.success, fontWeight: '700' }}>Recebi, tudo certo</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.success, fontWeight: '700' }}>Recebi, tudo certo</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => Alert.alert('Abrir um caso', 'Conte o problema pelo suporte: o Re@lys analisa o chat, as fotos e o QR da entrega, e o dinheiro continua retido enquanto isso.')}>
-                <Text style={{ color: colors.danger, fontWeight: '700' }}>Deu problema</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.danger, fontWeight: '700' }}>Deu problema</Text>
               </TouchableOpacity>
             </Row>
           ) : null}
@@ -107,13 +107,13 @@ function ItemModal({ x, me, onClose, onBuy, onRemove }) {
           </Text>
           {own ? (
             <TouchableOpacity style={[st.buy, { backgroundColor: colors.danger }]} onPress={() => onRemove(x)}>
-              <Text style={st.buyText}>Tirar o anúncio</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.buyText}>Tirar o anúncio</Text>
             </TouchableOpacity>
           ) : x.status === 'reservado' ? (
             <Text style={{ color: '#C77D12', fontWeight: '700', marginTop: 16 }}>Reservado para outra pessoa.</Text>
           ) : (
             <TouchableOpacity style={st.buy} onPress={() => onBuy(x)}>
-              <Text style={st.buyText}>Comprar com a Garantia Re@lys</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.buyText}>Comprar com a Garantia Re@lys</Text>
             </TouchableOpacity>
           )}
           <Text style={{ color: colors.muted, fontSize: 12, marginTop: 10 }}>Pagou pelo Re@lys, está protegido. Pagamento por fora não tem garantia.</Text>
@@ -164,7 +164,7 @@ function SellModal({ visible, onClose }) {
           </TouchableOpacity>
         </Row>
         <TouchableOpacity style={st.photoBox} onPress={pick}>
-          {photo ? <Image source={{ uri: photo }} style={{ width: '100%', height: '100%', borderRadius: 14 }} /> : <Text style={{ color: colors.primary, fontWeight: '700' }}>+ Foto do item</Text>}
+          {photo ? <Image source={{ uri: photo }} style={{ width: '100%', height: '100%', borderRadius: 14 }} /> : <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700' }}>+ Foto do item</Text>}
         </TouchableOpacity>
         <TextInput style={st.input} value={title} onChangeText={setTitle} placeholder="O que você está vendendo?" placeholderTextColor={colors.muted} maxLength={80} />
         <TextInput style={st.input} value={price} onChangeText={setPrice} placeholder="Preço (R$)" placeholderTextColor={colors.muted} keyboardType="decimal-pad" />
@@ -174,7 +174,7 @@ function SellModal({ visible, onClose }) {
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
           {DESAPEGO_CATS.map(([k, l]) => (
             <TouchableOpacity key={k} style={[st.chip, cat === k && st.chipOn]} onPress={() => setCat(k)}>
-              <Text style={[st.chipText, cat === k && { color: '#fff' }]}>{l}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, cat === k && { color: '#fff' }]}>{l}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -182,7 +182,7 @@ function SellModal({ visible, onClose }) {
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
           {DESAPEGO_CONDITIONS.map((c) => (
             <TouchableOpacity key={c} style={[st.chip, condition === c && st.chipOn]} onPress={() => setCondition(c)}>
-              <Text style={[st.chipText, condition === c && { color: '#fff' }]}>{c}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, condition === c && { color: '#fff' }]}>{c}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -190,7 +190,7 @@ function SellModal({ visible, onClose }) {
           Taxa do Re@lys: 10% da venda (a mesma dos pedidos), descontada só quando o comprador confirmar. Proibido: armas, remédios, animais, documentos e produtos ilegais.
         </Text>
         <TouchableOpacity style={st.buy} onPress={save}>
-          <Text style={st.buyText}>Publicar</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.buyText}>Publicar</Text>
         </TouchableOpacity>
       </ScrollView>
     </Modal>

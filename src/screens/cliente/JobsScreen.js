@@ -118,7 +118,7 @@ export default function JobsScreen({ explore }) {
           const on = t.key === seg;
           return (
             <TouchableOpacity key={t.key} onPress={() => setSeg(t.key)} style={[styles.tab, on && styles.tabOn]}>
-              <Text style={[styles.tabText, on && styles.tabTextOn]}>{t.label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.tabText, on && styles.tabTextOn]}>{t.label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -133,7 +133,7 @@ export default function JobsScreen({ explore }) {
               return (
                 <TouchableOpacity key={f.key} onPress={() => setQuick({ ...quick, [f.key]: !on })} style={[styles.chip, on && styles.chipOn]}>
                   <Ionicons name={f.icon} size={14} color={on ? colors.onPrimary : colors.primary} />
-                  <Text style={[styles.chipText, on && { color: colors.onPrimary }]}>{f.label}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, on && { color: colors.onPrimary }]}>{f.label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -143,7 +143,7 @@ export default function JobsScreen({ explore }) {
               const on = a.key === area;
               return (
                 <TouchableOpacity key={a.key} onPress={() => setArea(a.key)} style={[styles.areaChip, on && styles.areaOn]}>
-                  <Text style={[styles.areaText, on && { color: colors.primaryDark, fontWeight: '800' }]}>{a.label}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.areaText, on && { color: colors.primaryDark, fontWeight: '800' }]}>{a.label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -269,7 +269,7 @@ export default function JobsScreen({ explore }) {
                     <Steps step={progressOf(job).step} ok={progressOf(job).ok} no={progressOf(job).no} />
                     <Text style={styles.stepLabel}>{progressOf(job).label}</Text>
                     <TouchableOpacity onPress={() => dispatch({ type: 'CANCEL_APPLICATION', id: job.id })} style={{ marginTop: 12, alignSelf: 'center' }}>
-                      <Text style={{ color: colors.danger, fontWeight: '700' }}>Cancelar candidatura</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.danger, fontWeight: '700' }}>Cancelar candidatura</Text>
                     </TouchableOpacity>
                   </>
                 ) : (
@@ -279,13 +279,13 @@ export default function JobsScreen({ explore }) {
                     <Text style={styles.hint}>Vai junto o seu currículo Re@lys, com nome e foto verificados por biometria.</Text>
                     <TouchableOpacity style={styles.applyBig} onPress={() => { quickApply(job, note); setNote(''); setOpen(null); }}>
                       <Ionicons name="paper-plane" size={18} color="#FFFFFF" />
-                      <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 16, marginLeft: 8 }}>Candidatar-se</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 16, marginLeft: 8 }}>Candidatar-se</Text>
                     </TouchableOpacity>
                   </>
                 )}
                 <TouchableOpacity onPress={() => dispatch({ type: 'TOGGLE_SAVE_JOB', id: job.id })} style={{ marginTop: 14, alignSelf: 'center', flexDirection: 'row', alignItems: 'center' }}>
                   <Ionicons name={saved[job.id] ? 'bookmark' : 'bookmark-outline'} size={17} color={colors.primary} />
-                  <Text style={{ color: colors.primary, fontWeight: '700', marginLeft: 5 }}>{saved[job.id] ? 'Salva' : 'Salvar vaga'}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700', marginLeft: 5 }}>{saved[job.id] ? 'Salva' : 'Salvar vaga'}</Text>
                 </TouchableOpacity>
               </ScrollView>
             ) : null}
@@ -356,7 +356,7 @@ function JobCard({ j, applied, saved, onPress, onSave, onApply }) {
       ) : (
         <TouchableOpacity style={styles.applyBtn} onPress={onApply} accessibilityLabel={`Candidatura rápida para ${j.title}`}>
           <Ionicons name="flash-outline" size={15} color={colors.onPrimary} />
-          <Text style={{ color: colors.onPrimary, fontWeight: '800', marginLeft: 5 }}>Candidatura rápida</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '800', marginLeft: 5 }}>Candidatura rápida</Text>
         </TouchableOpacity>
       )}
     </TouchableOpacity>
@@ -408,7 +408,7 @@ function ResumeEditor({ visible, onClose }) {
                 const on = (r.skills || []).includes(sk);
                 return (
                   <TouchableOpacity key={sk} onPress={() => toggle('skills', sk)} style={[styles.pick, on && styles.pickOn]}>
-                    <Text style={[styles.pickText, on && { color: colors.onPrimary }]}>{sk}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pickText, on && { color: colors.onPrimary }]}>{sk}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -423,7 +423,7 @@ function ResumeEditor({ visible, onClose }) {
                 const on = (r.avail || []).includes(a);
                 return (
                   <TouchableOpacity key={a} onPress={() => toggle('avail', a)} style={[styles.pick, on && styles.pickOn]}>
-                    <Text style={[styles.pickText, on && { color: colors.onPrimary }]}>{a}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pickText, on && { color: colors.onPrimary }]}>{a}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -438,7 +438,7 @@ function ResumeEditor({ visible, onClose }) {
               <Switch value={!!r.open} onValueChange={(open) => setR({ ...r, open })} trackColor={{ false: colors.border, true: colors.primary }} thumbColor="#FFFFFF" />
             </View>
             <TouchableOpacity style={styles.applyBig} onPress={save}>
-              <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 16 }}>Salvar currículo</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 16 }}>Salvar currículo</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>

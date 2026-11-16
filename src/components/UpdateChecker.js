@@ -165,24 +165,24 @@ export default function UpdateChecker({ manual = false, onDone }) {
           {status === 'permission' ? (
             <View style={styles.row}>
               <TouchableOpacity style={[styles.btn, styles.btnGhost]} onPress={close}>
-                <Text style={styles.btnGhostText}>Depois</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.btnGhostText}>Depois</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.btn, styles.btnMain, { flex: 1 }]} onPress={openInstallPermission}>
-                <Text style={styles.btnMainText}>Ativar</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.btnMainText}>Ativar</Text>
               </TouchableOpacity>
             </View>
           ) : status === 'available' ? (
             <View style={styles.row}>
               <TouchableOpacity style={[styles.btn, styles.btnGhost]} onPress={close}>
-                <Text style={styles.btnGhostText}>Depois</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.btnGhostText}>Depois</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.btn, styles.btnMain, { flex: 1 }]} onPress={update}>
-                <Text style={styles.btnMainText}>Atualizar agora</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.btnMainText}>Atualizar agora</Text>
               </TouchableOpacity>
             </View>
           ) : !['checking', 'downloading', 'auto'].includes(status) ? (
             <TouchableOpacity style={[styles.btn, styles.btnMain, { marginTop: 16 }]} onPress={close}>
-              <Text style={styles.btnMainText}>Ok</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.btnMainText}>Ok</Text>
             </TouchableOpacity>
           ) : null}
         </View>

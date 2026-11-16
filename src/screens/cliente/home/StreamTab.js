@@ -174,16 +174,16 @@ function TvList() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
             {TV_EMOJIS.map((e) => (
               <TouchableOpacity key={e} onPress={() => setForm({ ...form, emoji: e })} style={[st.emoji, form.emoji === e && { borderColor: colors.primary }]}>
-                <Text style={{ fontSize: 20 }}>{e}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontSize: 20 }}>{e}</Text>
               </TouchableOpacity>
             ))}
           </View>
           <TouchableOpacity style={st.saveBtn} onPress={save}>
-            <Text style={st.saveText}>Salvar canal</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.saveText}>Salvar canal</Text>
           </TouchableOpacity>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
             <TouchableOpacity onPress={() => setForm(null)}>
-              <Text style={{ color: colors.muted, fontWeight: '700' }}>Cancelar</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '700' }}>Cancelar</Text>
             </TouchableOpacity>
             {form.id ? (
               <TouchableOpacity
@@ -194,7 +194,7 @@ function TvList() {
                   ])
                 }
               >
-                <Text style={{ color: colors.danger, fontWeight: '700' }}>Remover</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.danger, fontWeight: '700' }}>Remover</Text>
               </TouchableOpacity>
             ) : null}
           </View>
