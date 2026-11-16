@@ -3,6 +3,7 @@ import { View, StyleSheet, Modal, TouchableOpacity, Platform, AppState } from 'r
 import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   checkForUpdate,
   installUpdate,
@@ -20,6 +21,8 @@ import {
 export default function UpdateChecker({ manual = false, onDone }) {
   const [info, setInfo] = useState(null);
   const [status, setStatus] = useState(manual ? 'checking' : 'idle');
+  const [pct, setPct] = useState(0);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (Platform.OS !== 'android' && !manual) return;
@@ -30,7 +33,8 @@ export default function UpdateChecker({ manual = false, onDone }) {
         if (!alive) return;
         setInfo(r);
         if (!r.available) return setStatus(manual ? 'uptodate' : 'idle');
-        if (!supportsAutoUpdate()) return setStatus('available');
+        // Ao abrir o app não há aviso: a atualização começa sozinha, só com a barra de avanço.
+        if (!supportsAutoUpdate()) return manual ? setStatus('available') : start(r);
         // Automático: sem botão "Atualizar agora". Falta a chave? pede uma vez só.
         if (hasInstallPermission()) start(r);
         else setStatus('permission');
@@ -45,7 +49,7 @@ export default function UpdateChecker({ manual = false, onDone }) {
   useEffect(
     () =>
       onInstallStatus((st) => {
-        if (st === 'failed') setStatus('failed');
+        if (st === 'failed') setStatus(manual ? 'failed' : 'idle');
         else if (st === 'cancelled') setStatus('idle');
         else if (st === 'confirm') setStatus('installing');
       }),
@@ -63,14 +67,15 @@ export default function UpdateChecker({ manual = false, onDone }) {
 
   async function start(r) {
     try {
-      const how = await installUpdate(r.url, (st) => setStatus(st === 'installing' ? 'auto' : st));
+      setPct(0);
+      const how = await installUpdate(r.url, (st) => setStatus(st === 'installing' ? 'auto' : st), setPct, r.size);
       // Instalador normal (Android antigo): voltou dele = cancelou ou terminou. Fecha o aviso.
       if (how === 'intent') {
         setStatus('idle');
         onDone && onDone();
       }
     } catch (e) {
-      setStatus('failed');
+      setStatus(manual ? 'failed' : 'idle'); // automática: se falhar, tenta de novo na próxima abertura, sem aviso
     }
   }
 
@@ -81,9 +86,26 @@ export default function UpdateChecker({ manual = false, onDone }) {
 
   if (status === 'idle') return null;
 
+  // Atualização automática (ao abrir o app): sem aviso, só uma barra fina com a porcentagem no alto
+  // da tela. A pessoa continua usando o app enquanto baixa.
+  if (!manual && (status === 'downloading' || status === 'auto' || status === 'installing')) {
+    const shown = status === 'downloading' ? pct : 100;
+    return (
+      <View pointerEvents="none" style={[styles.bar, { top: insets.top + 4 }]} accessibilityLabel={`Atualizando o Re@lys, ${shown} por cento`}>
+        <View style={styles.barTrack}>
+          <View style={[styles.barFill, { width: `${shown}%` }]} />
+        </View>
+        <Text style={styles.barText}>{status === 'downloading' ? `Atualizando ${shown}%` : 'Instalando…'}</Text>
+      </View>
+    );
+  }
+  // Fora a chave do Android (pedida uma única vez), a atualização automática não mostra avisos.
+  if (!manual && status !== 'permission') return null;
+
   const update = async () => {
     try {
-      await installUpdate(info.url, setStatus);
+      setPct(0);
+      await installUpdate(info.url, setStatus, setPct, info.size);
       setStatus('idle'); // voltou do instalador (cancelou): fecha o aviso
       onDone && onDone();
     } catch (e) {
@@ -103,7 +125,7 @@ export default function UpdateChecker({ manual = false, onDone }) {
     downloading: {
       icon: 'cloud-download-outline',
       title: 'Baixando a atualização…',
-      text: `Aguarde um instante${mb}. O Re@lys baixa a versão nova por dentro do app, sem encher o celular de arquivos.`,
+      text: `${pct}%${mb}. O Re@lys baixa a versão nova por dentro do app, sem encher o celular de arquivos.`,
     },
     permission: {
       icon: 'shield-checkmark-outline',
@@ -170,6 +192,10 @@ export default function UpdateChecker({ manual = false, onDone }) {
 }
 
 const styles = StyleSheet.create({
+  bar: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(20,18,14,0.88)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 6, zIndex: 50, elevation: 8 },
+  barTrack: { flex: 1, height: 5, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.22)', overflow: 'hidden' },
+  barFill: { height: 5, borderRadius: 3, backgroundColor: '#F5C331' },
+  barText: { color: '#FFFFFF', fontSize: 11, fontWeight: '700', marginLeft: 8 },
   backdrop: { flex: 1, backgroundColor: 'rgba(31,42,68,0.35)', justifyContent: 'center', padding: 24 },
   card: {
     backgroundColor: '#FFFFFF',

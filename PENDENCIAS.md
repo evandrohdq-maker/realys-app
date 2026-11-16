@@ -301,3 +301,8 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
       de próxima na barrinha do player. Com a tela de Músicas fechada, a propaganda entre músicas não aparece.
 - [x] Menus: perfis voltaram a ter o menu numa linha só no rodapé; a empresa tem um menu no alto da
       tela (4 botões) e outro no rodapé (4 botões).
+- [x] Atualização automática sem aviso: ao abrir o app, só uma barra fina com a porcentagem no alto da
+      tela. O termo de adesão (v17) passou a prever a atualização automática. Continua existindo, por
+      exigência do Android: a chave "instalar apps desconhecidos" pedida uma única vez e, em Android
+      anterior ao 12, a tela de confirmação do próprio sistema. A porcentagem vem do tamanho já baixado;
+      se o celular não informar, é estimada pelo tempo.

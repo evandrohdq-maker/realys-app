@@ -1,9 +1,9 @@
 // Termo de adesão do Re@lys (texto igual ao do servidor: server/src/termos.js). Gerado a partir dele.
-export const TERMO_ADESAO_VERSAO = "2026-11-adesao-v16";
+export const TERMO_ADESAO_VERSAO = "2026-11-adesao-v17";
 export const TERMO_ADESAO = {
-  "versao": "2026-11-adesao-v16",
+  "versao": "2026-11-adesao-v17",
   "titulo": "Termo de Adesão ao aplicativo Re@lys",
-  "atualizado": "8 de novembro de 2026",
+  "atualizado": "16 de novembro de 2026",
   "itens": [
     {
       "titulo": "1. Objeto",
@@ -46,8 +46,8 @@ export const TERMO_ADESAO = {
       "texto": "O Re@lys deve ser usado de forma respeitosa e lícita. Não é permitido criar contas falsas, usar o rosto, a voz ou a identidade de terceiros, burlar a verificação facial, combinar pagamento por fora do aplicativo para fugir das regras, ou publicar conteúdo que viole a lei, este termo ou os direitos de outras pessoas. Contas que descumprirem estas regras podem ser advertidas, suspensas ou encerradas, conforme a gravidade."
     },
     {
-      "titulo": "11. Alterações",
-      "texto": "Este termo pode ser atualizado. Quando houver mudança relevante, você será convidado a ler e aceitar a nova versão antes de continuar usando o aplicativo ou as funções afetadas. A versão e a data do seu aceite ficam registradas na sua conta."
+      "titulo": "11. Alterações e atualização automática",
+      "texto": "Este termo pode ser atualizado. Quando houver mudança relevante, você será convidado a ler e aceitar a nova versão antes de continuar usando o aplicativo ou as funções afetadas. Atualização automática do aplicativo: para manter a segurança e o bom funcionamento, o Re@lys se atualiza sozinho. Ao abrir o aplicativo com internet, ele confere se há versão nova, baixa e instala por cima da atual, mostrando apenas uma barra de avanço, sem pedir confirmação a cada vez. A atualização não apaga a sua conta nem os seus dados. O download usa a internet do aparelho (Wi-Fi ou dados móveis), e o sistema do celular pode pedir, uma única vez, a permissão para o Re@lys instalar as próprias atualizações. Ao aceitar este termo, você concorda com a atualização automática; quem não quiser mais recebê-la pode desligar essa permissão nas configurações do aparelho ou desinstalar o aplicativo, ciente de que versões antigas podem deixar de funcionar. A versão e a data do seu aceite ficam registradas na sua conta."
     },
     {
       "titulo": "12. Prazos de guarda e suporte",

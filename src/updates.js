@@ -96,12 +96,34 @@ export function cleanupOldUpdate() {
 
 // Baixa o APK para dentro do app e abre a tela "Deseja atualizar este app?" do Android.
 // onStage('downloading' | 'installing') avisa a tela em que passo está.
-export async function installUpdate(url, onStage) {
+// onProgress(0 a 100) avisa o avanço do download. O avanço vem do tamanho do arquivo que já chegou;
+// se o celular não informar, é estimado pelo tempo (e para em 95% até o download terminar).
+export async function installUpdate(url, onStage, onProgress, totalBytes) {
   if (Platform.OS !== 'android') throw new Error('Atualização de APK só existe no Android');
 
   cleanupOldUpdate();
   onStage && onStage('downloading');
-  const file = await File.downloadFileAsync(url, apkFile(), { idempotent: true });
+  const t0 = Date.now();
+  let pct = 0;
+  const timer = onProgress
+    ? setInterval(() => {
+        let real = 0;
+        try {
+          const f = apkFile();
+          if (totalBytes && f.exists && f.size) real = Math.floor((f.size / totalBytes) * 100);
+        } catch (e) {}
+        const guess = Math.floor(95 * (1 - Math.exp(-(Date.now() - t0) / 25000)));
+        pct = Math.max(pct, Math.min(99, real || guess));
+        onProgress(pct);
+      }, 500)
+    : null;
+  let file;
+  try {
+    file = await File.downloadFileAsync(url, apkFile(), { idempotent: true });
+  } finally {
+    if (timer) clearInterval(timer);
+  }
+  onProgress && onProgress(100);
 
   onStage && onStage('installing');
   if (Native) {
