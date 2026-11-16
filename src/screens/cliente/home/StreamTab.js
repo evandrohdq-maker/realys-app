@@ -14,10 +14,12 @@ import { allTvs, loadTvs, onTvs, saveTv, removeTv, checkTvUrl, playTv, stopTv } 
 import { useTvNow } from '../../../components/FloatPlayers';
 import { moderateText } from '../../../moderation';
 import { MY_COMPANY_ID } from '../../../data';
+import MusicTab from './MusicTab';
 
 const SEGS = [
   { key: 'radios', label: 'Rádios', icon: 'radio-outline' },
   { key: 'tv', label: 'TV online', icon: 'tv-outline' },
+  { key: 'musicas', label: 'Músicas', icon: 'musical-notes-outline' },
 ];
 const TV_EMOJIS = ['📺', '🎬', '📰', '⚽', '⛪', '🎵', '🤠', '🎓'];
 
@@ -25,7 +27,7 @@ export default function StreamTab({ seg, setSeg, navigate }) {
   return (
     <Screen>
       <SegTabs items={SEGS} value={seg} onChange={setSeg} />
-      {seg === 'tv' ? <TvList /> : <RadioList navigate={navigate} />}
+      {seg === 'tv' ? <TvList /> : seg === 'musicas' ? <MusicTab /> : <RadioList navigate={navigate} />}
     </Screen>
   );
 }

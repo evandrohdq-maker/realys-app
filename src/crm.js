@@ -12,7 +12,7 @@ export const CRM_STAGES = [
   { key: 'fechado', label: 'Venda fechada', short: 'Fechada', icon: 'checkmark-circle-outline', hint: 'Vendido. Hora de entregar bem.' },
 ];
 export const CRM_LOST = { key: 'perdido', label: 'Não fechou', short: 'Não fechou', icon: 'close-circle-outline' };
-export const CRM_ORIGINS = ['Shop', 'Food', 'Reels', 'Anúncio', 'Página', 'Indicação'];
+export const CRM_ORIGINS = ['Shop', 'Food', 'Reels', 'Anúncio', 'Página', 'Campanha', 'Indicação'];
 export const CRM_LOST_REASONS = ['Achou caro', 'Comprou em outro lugar', 'Parou de responder', 'Sem estoque', 'Desistiu'];
 // Quadros: cada tipo de negócio tem o seu CRM, com os nomes das etapas do jeito que ele trabalha.
 // As chaves das etapas são as mesmas; só o nome muda.
@@ -261,4 +261,72 @@ export function crmIdle(l, at = Date.now()) {
   const last = l.history[l.history.length - 1];
   const hrs = Math.max(0, Math.round((at - (last ? last.at : at)) / 3600000));
   return hrs < 1 ? 'agora há pouco' : hrs < 24 ? `há ${hrs} h` : `há ${Math.round(hrs / 24)} dia${Math.round(hrs / 24) > 1 ? 's' : ''}`;
+}
+
+// ---------- Captação de leads ----------
+// Lead = pessoa interessada que deixou o contato. Entra direto na etapa "Novo contato".
+// 1) Pelo botão "Pedir orçamento" na página da empresa. 2) Por uma campanha de leads (oferta que a
+// empresa publica para atrair interessados).
+export function crmCapture({ client, text, interest, origin = 'Página', value = 0, board = 'empresa' }) {
+  const at = Date.now();
+  const lead = { board, id: 'l' + at + Math.round(Math.random() * 999), client, origin, interest: interest || text || 'Pedido de orçamento', value, stage: 'novo', unread: 1, note: '', followUp: null, history: [{ stage: 'novo', at }], messages: text ? [msg('them', text, at)] : [] };
+  leads = [lead, ...leads];
+  save();
+  emit();
+  return lead.id;
+}
+
+const CAMP_KEY = 'realys.crm.campaigns.v1';
+let campaigns = [];
+let campLoaded = false;
+const saveCamp = () => AsyncStorage.setItem(CAMP_KEY, JSON.stringify(campaigns)).catch(() => {});
+export function useCampaigns(board = 'empresa') {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const fn = () => tick((n) => n + 1);
+    subs.add(fn);
+    if (!campLoaded) {
+      campLoaded = true;
+      AsyncStorage.getItem(CAMP_KEY)
+        .then((raw) => {
+          if (raw) {
+            campaigns = JSON.parse(raw);
+            emit();
+          }
+        })
+        .catch(() => {});
+    }
+    return () => subs.delete(fn);
+  }, []);
+  return campaigns.filter((c) => (c.board || 'empresa') === board);
+}
+const DEMO_NAMES = ['Paula Ribeiro', 'Escritório Contábil Exata', 'Vinícius Amaral', 'Clínica Bem Viver', 'Oficina do Nando', 'Débora Martins'];
+const DEMO_ASK = ['Vi a oferta de vocês e quero saber mais.', 'Tenho interesse. Podem me passar os valores?', 'Gostei! Como funciona a entrega?'];
+// Cria a campanha. Na demonstração, dois interessados de exemplo chegam em seguida para mostrar o caminho.
+export function crmCampaign({ title, offer, audience, board = 'empresa' }) {
+  const c = { id: 'cp' + Date.now(), board, title, offer, audience, at: Date.now(), on: true, leads: 0 };
+  campaigns = [c, ...campaigns];
+  saveCamp();
+  emit();
+  [4000, 9000].forEach((ms, i) =>
+    setTimeout(() => {
+      const cur = campaigns.find((x) => x.id === c.id);
+      if (!cur || !cur.on) return;
+      const k = (campaigns.length + cur.leads + i) % DEMO_NAMES.length;
+      campaigns = campaigns.map((x) => (x.id === c.id ? { ...x, leads: x.leads + 1 } : x));
+      saveCamp();
+      crmCapture({ client: DEMO_NAMES[k], text: DEMO_ASK[(k + i) % DEMO_ASK.length], interest: title, origin: 'Campanha', board });
+    }, ms)
+  );
+  return c;
+}
+export function crmCampaignToggle(id) {
+  campaigns = campaigns.map((c) => (c.id === id ? { ...c, on: !c.on } : c));
+  saveCamp();
+  emit();
+}
+export function crmCampaignRemove(id) {
+  campaigns = campaigns.filter((c) => c.id !== id);
+  saveCamp();
+  emit();
 }

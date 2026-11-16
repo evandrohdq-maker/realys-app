@@ -213,14 +213,10 @@ export default function ProfileScreen({ navigate, explore }) {
 
       {/* Carteira: o saldo só aparece aqui no Perfil. */}
       <TouchableOpacity onPress={() => setWalletOpen(true)} activeOpacity={0.88} style={styles.wallet} accessibilityLabel="Abrir minha carteira">
-        <View style={styles.walletIcon}>
-          <Ionicons name="wallet" size={20} color={colors.text} />
-        </View>
-        <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '600' }}>Carteira Re@lys</Text>
-          <Text style={{ color: colors.text, fontWeight: '800', fontSize: 20 }}>{brl(state.wallet)}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+        <Ionicons name="wallet-outline" size={16} color={colors.menu} />
+        <Text style={{ color: colors.muted, fontSize: 12.5, fontWeight: '600', marginLeft: 6 }}>Carteira</Text>
+        <Text style={{ color: colors.text, fontWeight: '800', fontSize: 14, marginLeft: 6 }}>{brl(state.wallet)}</Text>
+        <Ionicons name="chevron-forward" size={14} color={colors.muted} style={{ marginLeft: 4 }} />
       </TouchableOpacity>
 
       {/* O que os amigos veem: destaques, fotos, vídeos e depoimentos aceitos. */}
@@ -250,9 +246,15 @@ export default function ProfileScreen({ navigate, explore }) {
           <ScoreCard />
           <GuaranteeInfo />
         </Item>
-        <Item open={open} onToggle={toggle} k="estudio" icon="rocket-outline" title="Estúdio" sub="Portfólio, músicas, vídeos e artes">
-          <StudioPanel />
-        </Item>
+        {/* Estúdio Re@lys: para artistas, músicos e criadores de conteúdo. Não aparece no perfil de empresa
+            (a empresa divulga por anúncios, propagandas e reels de anúncio, no Painel). */}
+        {state.activeRole !== 'empresa' ? (
+          <Item open={open} onToggle={toggle} k="estudio" icon="rocket-outline" title="Estúdio Re@lys" sub="Para artistas, músicos e criadores de conteúdo">
+            <StudioPanel />
+          </Item>
+        ) : (
+          <Item open={open} onToggle={toggle} icon="megaphone-outline" title="Anúncios e propaganda" sub="Espaços de anúncio e reels de anúncio" onPress={() => navigate && navigate({ tab: 'anuncie' })} />
+        )}
         <Item open={open} onToggle={toggle} icon="albums-outline" title={`Minhas páginas · ${myPages(state).length}/${MAX_PAGES}`} sub="Assinadas ou anônimas" onPress={() => navigate && navigate({ tab: 'paginas', seg: 'minhas' })} />
         <Item open={open} onToggle={toggle} k="privacidade" icon="lock-closed-outline" title="Quem vê meu perfil" sub={`Social: ${audienceLabel(priv.social).toLowerCase()} · Portfólio: ${audienceLabel(priv.portfolio).toLowerCase()}`}>
           <PrivacyPanel />
@@ -447,16 +449,19 @@ const styles = StyleSheet.create({
   roleChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18, borderWidth: 1, borderColor: colors.border, marginRight: 8, marginBottom: 8, backgroundColor: '#FFFFFF' },
   roleChipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   privPill: { flexDirection: 'row', alignItems: 'center', minHeight: 30, paddingHorizontal: 11, borderRadius: 19, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card },
+  // Carteira discreta: uma pílula pequena, centralizada, com o saldo à vista.
   wallet: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'center',
     backgroundColor: colors.card,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: 12,
-    marginTop: 12,
-    marginBottom: 14,
+    paddingHorizontal: 12,
+    minHeight: 32,
+    marginTop: 10,
+    marginBottom: 12,
   },
   walletIcon: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
   walletBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, paddingHorizontal: 10, height: 30 },

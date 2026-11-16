@@ -361,7 +361,7 @@ function CreationComposer({ visible, kind, onClose }) {
 
           <Text style={[styles.label, { marginTop: 18 }]}>Onde vai aparecer</Text>
           <Text style={styles.small}>Você pode mudar depois. Toque para ligar ou desligar cada lugar.</Text>
-          {DESTS.map((d) => {
+          {DESTS.filter((d) => d.key !== 'empresa').map((d) => {
             const locked = d.key === 'empresa' && !hasCompany;
             const on = !!dest[d.key] && !locked;
             return (
@@ -422,7 +422,7 @@ function CreationCard({ c, owner }) {
       </View>
       {owner ? (
         <View style={{ flexDirection: 'row', marginTop: 10 }}>
-          {DESTS.filter((d) => d.key !== 'empresa' || hasCompany).map((d) => {
+          {DESTS.filter((d) => d.key !== 'empresa').map((d) => {
             const on = !!(c.dest && c.dest[d.key]);
             return (
               <TouchableOpacity
@@ -462,7 +462,7 @@ export function StudioPanel() {
       {state.creations.length ? (
         <>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8, marginBottom: 8 }}>
-            {[{ key: 'todos', label: `Tudo ${state.creations.length}` }, ...DESTS.filter((d) => d.key !== 'empresa' || state.user.roles.includes('empresa')).map((d) => ({ key: d.key, label: `${d.label} ${count(d.key)}` }))].map((t) => (
+            {[{ key: 'todos', label: `Tudo ${state.creations.length}` }, ...DESTS.filter((d) => d.key !== 'empresa').map((d) => ({ key: d.key, label: `${d.label} ${count(d.key)}` }))].map((t) => (
               <TouchableOpacity key={t.key} onPress={() => setFilter(t.key)} style={[styles.filter, filter === t.key && styles.filterOn]}>
                 <Text style={[styles.filterTxt, filter === t.key && { color: '#FFFFFF' }]}>{t.label}</Text>
               </TouchableOpacity>
@@ -477,7 +477,7 @@ export function StudioPanel() {
         <View style={styles.empty}>
           <Ionicons name="rocket-outline" size={22} color={colors.primary} />
           <Text style={[styles.small, { flex: 1, marginLeft: 8, marginBottom: 0 }]}>
-            Toque em um tipo acima para criar. Cada criação pode ir para o Social, para o seu Portfólio{state.user.roles.includes('empresa') ? ' e para a página da sua empresa' : ''}.
+            Toque em um tipo acima para criar. Cada criação pode ir para o Social e para o seu Portfólio. Músicas também podem ir à venda em Stream › Músicas.
           </Text>
         </View>
       )}

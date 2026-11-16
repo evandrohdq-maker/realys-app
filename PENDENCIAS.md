@@ -275,3 +275,25 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
 - [x] CRM também para prestador (aba Clientes, com Serviços, Aulas e Atendimento online) e para
       imobiliárias e revendas (botão Clientes em Negócios › Meus anúncios). Cada um com os nomes de
       etapa do seu trabalho. Tudo ainda com atendimentos de exemplo, salvos no celular.
+
+## Empresa reorganizada, Músicas e leads — novembro de 2026
+
+- [x] Empresa: barra de baixo em duas linhas (4 em cima, 4 embaixo), nomes em uma linha só, botão
+      Community no topo (entra no perfil de usuário: feed e serviços) e botão Empresa para voltar.
+- [x] Estúdio Re@lys só para artistas, músicos e criadores (não aparece no perfil de empresa). A empresa
+      tem o cartão Divulgação no Painel: anúncios, propagandas e reel de anúncio.
+- [x] Carteira do Perfil virou uma pílula discreta com o saldo.
+- [x] Stream › Músicas: galeria dos artistas para ouvir grátis com propaganda (uma a cada 3 músicas),
+      compra da música (20% Re@lys, 80% artista) para liberar o download, playlists guardadas, plano
+      Premium sem propaganda (3 meses grátis, depois R$ 9,90/mês) e área do artista para publicar.
+- [x] Leads: campanhas de leads no CRM (aba Clientes › Captar leads) e botão Pedir orçamento nas
+      páginas de empresa, que cai como contato novo no CRM.
+- [ ] Músicas: faixas de exemplo usam áudios públicos de teste (não conferidos no celular). O artista
+      informa o link do MP3; envio do arquivo, repasse ao artista, cobrança do Premium depois dos 3 meses,
+      download de verdade (hoje só marca como baixada) e propaganda vendida de verdade dependem do servidor.
+      Não há passar para a próxima música sozinho.
+- [ ] Player fora do app: rádio e música continuam tocando com o app minimizado e aparecem na
+      notificação do celular (com pausar); TV tem janelinha (PiP). Janela flutuante de áudio por cima de
+      outros apps o Android não permite sem código nativo e permissão especial.
+- [ ] Leads: campanhas trazem interessados de exemplo; com o servidor, mostrar a oferta ao público
+      escolhido e cobrar por lead. Pedido de orçamento só entra no CRM quando é para a empresa da demonstração.

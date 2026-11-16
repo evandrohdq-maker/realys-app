@@ -89,7 +89,7 @@ export function CommunityExtras({ top, explore, navigate }) {
     if (explore.kind) setKind(explore.kind);
     if (explore.live) setLiveFilter(explore.live);
     if (explore.group) setEvGroup(explore.group);
-    if (explore.stream) setStreamSeg(explore.stream === 'tv' ? 'tv' : 'radios');
+    if (explore.stream) setStreamSeg(['tv', 'musicas'].includes(explore.stream) ? explore.stream : 'radios');
   }, [explore]);
 
   const openChat = (contact) => {

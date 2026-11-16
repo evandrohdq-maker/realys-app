@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LiveNowBadge } from './LiveBits';
 import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert } from 'react-native';
 import { Text } from '../responsive';
+import { useLeadAsk } from './LeadAsk';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
@@ -143,6 +144,7 @@ export function CompanyProfileModal() {
   const p = state.viewCompany ? profileById(state, state.viewCompany) : null;
   const isArtist = p && p.kind === 'artista';
   useEffect(() => setTab(isArtist ? 'musica' : 'produtos'), [state.viewCompany]);
+  const lead = useLeadAsk(p);
   if (!p) return null;
   // Empresas: página empresarial futurista (onde atua, segmentos, vitrine, depoimentos, propagandas).
   if (!isArtist) return <BusinessPageModal p={p} media={mediaOf(state, p.id)} MediaList={MediaList} />;
@@ -190,11 +192,13 @@ export function CompanyProfileModal() {
               <Ionicons name={following ? 'checkmark' : 'add'} size={16} color={following ? colors.primary : '#FFFFFF'} />
               <Text style={[styles.btnText, following && { color: colors.primary }]}>{following ? 'Seguindo' : 'Seguir'}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.btn, styles.btnOff, { marginLeft: 8 }]} onPress={() => Alert.alert('Mensagem', `Conversa com ${p.name} aberta no chat do Re@lys.`)}>
+            {/* Pedir orçamento: o pedido chega como contato novo no CRM da empresa (aba Clientes). */}
+            <TouchableOpacity style={[styles.btn, styles.btnOff, { marginLeft: 8 }]} onPress={lead.ask} accessibilityLabel={`Pedir orçamento para ${p.name}`}>
               <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary} />
-              <Text style={[styles.btnText, { color: colors.primary }]}>Mensagem</Text>
+              <Text numberOfLines={1} style={[styles.btnText, { color: colors.primary }]}>Pedir orçamento</Text>
             </TouchableOpacity>
           </Row>
+          {lead.modal}
 
           <Row style={styles.tabs}>
             {tabs.map(([k, label]) => (

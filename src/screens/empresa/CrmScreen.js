@@ -8,7 +8,7 @@ import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, brl, soft } from '../../theme';
 import { Screen, Title } from '../../components/ui';
-import { useCrm, crmStages, crmBoard, CRM_LOST, CRM_ORIGINS, CRM_LOST_REASONS, stageOf, stageIndex, crmMove, crmSend, crmRead, crmUpdate, crmAdd, crmRemove, crmSummary, crmIdle } from '../../crm';
+import { useCrm, crmStages, crmBoard, CRM_LOST, CRM_ORIGINS, CRM_LOST_REASONS, stageOf, stageIndex, crmMove, crmSend, crmRead, crmUpdate, crmAdd, crmRemove, crmSummary, crmIdle, useCampaigns, crmCampaign, crmCampaignToggle, crmCampaignRemove } from '../../crm';
 
 const dateTime = (t) => new Date(t).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 const num = (s) => Number(String(s).replace(/\./g, '').replace(',', '.').replace(/[^0-9.]/g, '')) || 0;
@@ -60,6 +60,8 @@ export default function CrmScreen({ board: firstBoard = 'empresa', boards }) {
           <Text style={st.kpiS}>{sum.unread ? `${sum.unread} sem resposta` : 'tudo respondido'}</Text>
         </View>
       </View>
+
+      <LeadCapture board={board} />
 
       <View style={st.search}>
         <Ionicons name="search" size={17} color={colors.muted} />
@@ -123,6 +125,77 @@ export default function CrmScreen({ board: firstBoard = 'empresa', boards }) {
       <LeadModal lead={open} onClose={() => setOpenId(null)} />
       <AddModal board={board} open={adding} onClose={() => setAdding(false)} onCreated={(id) => { setAdding(false); setStage('novo'); setOpenId(id); }} />
     </Screen>
+  );
+}
+
+// Captar leads: campanhas que trazem interessados direto para a etapa "Novo contato".
+const AUDIENCES = ['Pessoas da cidade', 'Empresas (CNPJ)', 'Quem já comprou', 'Seguidores da página'];
+function LeadCapture({ board }) {
+  const camps = useCampaigns(board);
+  const [open, setOpen] = useState(false);
+  const [f, setF] = useState({ title: '', offer: '', audience: AUDIENCES[0] });
+  const total = camps.reduce((s, c) => s + c.leads, 0);
+  const create = () => {
+    if (!f.title.trim()) return Alert.alert('Falta o título', 'Diga o que você está oferecendo. Ex.: "Orçamento grátis para festas".');
+    crmCampaign({ title: f.title.trim(), offer: f.offer.trim(), audience: f.audience, board });
+    setF({ title: '', offer: '', audience: f.audience });
+    setOpen(false);
+    Alert.alert('Campanha no ar ✅', 'Quem se interessar deixa o contato e cai aqui em "Novo contato".');
+  };
+  return (
+    <View style={st.leadBox}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <Ionicons name="magnet-outline" size={19} color={colors.text} />
+        <View style={{ flex: 1, marginLeft: 8 }}>
+          <Text style={{ color: colors.text, fontWeight: '800', fontSize: 14 }}>Captar leads</Text>
+          <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={2}>{camps.length ? `${camps.filter((c) => c.on).length} campanha(s) no ar · ${total} interessado(s) captado(s)` : 'Publique uma oferta e receba interessados prontos para atender.'}</Text>
+        </View>
+        <TouchableOpacity style={st.addBtn} onPress={() => setOpen(true)} accessibilityLabel="Criar campanha de leads">
+          <Ionicons name="add" size={17} color={colors.text} />
+          <Text numberOfLines={1} style={{ color: colors.text, fontWeight: '700', fontSize: 12.5, marginLeft: 2 }}>Campanha</Text>
+        </TouchableOpacity>
+      </View>
+      {camps.map((c) => (
+        <View key={c.id} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13 }} numberOfLines={1}>{c.title}</Text>
+            <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>{c.audience} · {c.leads} lead(s) · {c.on ? 'no ar' : 'pausada'}</Text>
+          </View>
+          <TouchableOpacity style={{ padding: 6 }} onPress={() => crmCampaignToggle(c.id)} accessibilityLabel={c.on ? 'Pausar campanha' : 'Retomar campanha'}>
+            <Ionicons name={c.on ? 'pause-circle-outline' : 'play-circle-outline'} size={22} color={colors.menu} />
+          </TouchableOpacity>
+          <TouchableOpacity style={{ padding: 6 }} onPress={() => Alert.alert('Apagar a campanha?', c.title, [{ text: 'Voltar', style: 'cancel' }, { text: 'Apagar', style: 'destructive', onPress: () => crmCampaignRemove(c.id) }])} accessibilityLabel="Apagar campanha">
+            <Ionicons name="trash-outline" size={19} color={colors.muted} />
+          </TouchableOpacity>
+        </View>
+      ))}
+      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(20,18,14,0.45)', justifyContent: 'center', padding: 20 }}>
+          <View style={{ backgroundColor: colors.card, borderRadius: 20, padding: 18 }}>
+            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 17 }}>Campanha de leads</Text>
+            <Text style={{ color: colors.muted, fontSize: 13, marginTop: 3 }}>Uma oferta com o botão "Tenho interesse". Quem tocar vira um contato novo aqui.</Text>
+            <TextInput value={f.title} onChangeText={(t) => setF({ ...f, title: t })} placeholder="O que você oferece" placeholderTextColor={colors.muted} maxLength={60} style={st.field} />
+            <TextInput value={f.offer} onChangeText={(t) => setF({ ...f, offer: t })} placeholder="Detalhe ou vantagem (opcional)" placeholderTextColor={colors.muted} maxLength={120} style={st.field} />
+            <Text style={st.label}>Para quem mostrar</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+              {AUDIENCES.map((a) => (
+                <TouchableOpacity key={a} style={[st.chip, f.audience === a && { backgroundColor: colors.text, borderColor: colors.text }]} onPress={() => setF({ ...f, audience: a })}>
+                  <Text style={{ color: f.audience === a ? '#fff' : colors.text, fontWeight: '700', fontSize: 12.5 }}>{a}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <View style={{ flexDirection: 'row', marginTop: 12 }}>
+              <TouchableOpacity style={[st.btn, { backgroundColor: colors.cardAlt, marginRight: 8 }]} onPress={() => setOpen(false)}>
+                <Text style={{ color: colors.text, fontWeight: '700' }}>Voltar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[st.btn, { backgroundColor: colors.text }]} onPress={create}>
+                <Text style={{ color: '#fff', fontWeight: '800' }}>Publicar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 }
 
@@ -340,6 +413,7 @@ function AddModal({ open, onClose, onCreated, board }) {
 }
 
 const st = StyleSheet.create({
+  leadBox: { backgroundColor: colors.card, borderRadius: 16, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: colors.border },
   kpis: { flexDirection: 'row', marginHorizontal: -4, marginBottom: 12 },
   kpi: { flex: 1, backgroundColor: colors.card, borderRadius: 16, padding: 10, marginHorizontal: 4, alignItems: 'center', ...soft },
   kpiN: { color: colors.text, fontWeight: '800', fontSize: 20 },

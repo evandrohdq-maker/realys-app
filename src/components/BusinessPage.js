@@ -16,6 +16,7 @@ import { Photo, ProductThumb } from './ui';
 import { ShopProductCard } from './ShopKit';
 import LotusFocus from './LotusFocus';
 import { MY_COMPANY_ID } from '../data';
+import { useLeadAsk } from './LeadAsk';
 import { memberById } from '../people';
 import { businessOf, showcaseOf, sectorByKey, roleByKey, SERVE_MODES, ratingOf, GALLERY_TYPES } from '../companyBusiness';
 
@@ -332,6 +333,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
   const insets = useSafeAreaInsets();
   const [tab, setTab] = useState('vitrine');
   const [writing, setWriting] = useState(false);
+  const lead = useLeadAsk(p);
   useEffect(() => {
     setTab('vitrine');
     setWriting(false);
@@ -440,13 +442,15 @@ export function BusinessPageModal({ p, media, MediaList }) {
             <View style={{ flexDirection: 'row', marginTop: 14 }}>
               <TouchableOpacity style={[styles.cta, { flex: 1 }, following && styles.ctaOn]} onPress={() => dispatch({ type: 'FOLLOW', id: p.id })}>
                 <Ionicons name={following ? 'checkmark' : 'add'} size={16} color={following ? colors.primary : NIGHT} />
-                <Text style={[styles.ctaText, following && { color: colors.primary }]}>{following ? 'Seguindo a empresa' : 'Seguir empresa'}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.ctaText, following && { color: colors.primary }]}>{following ? 'Seguindo' : 'Seguir empresa'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.glassBtn, { flex: 1, marginLeft: 8 }]} onPress={() => Alert.alert('Atendimento', `Atendimento de ${p.name} aberto no chat do Re@lys.${b.contact ? `\n\n${b.contact}` : ''}`)}>
-                <Ionicons name="headset-outline" size={16} color={colors.text} />
-                <Text style={styles.glassBtnText}>Atendimento</Text>
+              {/* Pedir orçamento: vira contato novo (lead) no CRM da empresa. */}
+              <TouchableOpacity style={[styles.glassBtn, { flex: 1, marginLeft: 8 }]} onPress={lead.ask} accessibilityLabel={`Pedir orçamento para ${p.name}`}>
+                <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.text} />
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={styles.glassBtnText}>Pedir orçamento</Text>
               </TouchableOpacity>
             </View>
+            {lead.modal}
 
             {p.bio ? <Text style={styles.bio}>{p.bio}</Text> : null}
             {p.hours ? <Text style={styles.hours}>🕒 {p.hours}</Text> : null}

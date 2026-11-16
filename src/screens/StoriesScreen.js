@@ -287,7 +287,7 @@ function PostComposer({ visible, onClose, onPublish }) {
 }
 
 // Novo Reel: um vídeo curto da galeria (até 60 s) e uma legenda.
-function ReelComposer({ visible, onClose, onPublish }) {
+export function ReelComposer({ visible, onClose, onPublish }) {
   const insets = useSafeAreaInsets();
   const [title, setTitle] = useState('');
   const [video, setVideo] = useState(null); // { uri, secs }

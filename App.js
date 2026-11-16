@@ -153,6 +153,10 @@ const TABS = {
     { key: 'rh', label: 'RH', icon: 'people-outline', Comp: HRScreen },
     { key: 'pagina', label: 'Página', icon: 'albums-outline', Comp: PageScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
+    // Anúncios e propaganda da empresa (abre pelo Painel › Divulgação).
+    { key: 'anuncie', label: 'Anuncie', icon: 'megaphone-outline', Comp: AnuncieScreen, hidden: true },
+    // Community para a empresa ver o feed sem trocar de perfil (quando a conta não tem perfil de usuário).
+    { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen, hidden: true },
   ],
   prestador: [
     { key: 'prestar', label: 'Trabalhar', icon: 'navigate-circle-outline', Comp: DriverScreen },
@@ -240,6 +244,7 @@ function Shell() {
   const [acaoPendente, setAcaoPendente] = useState(null); // mensagem da Lotus aguardando sim/não (só chat)
   const [cartaoLotus, setCartaoLotus] = useState(null); // cartão de confirmação com botões (finalização, dinheiro)
   const [menu, setMenu] = useState(false);
+  const [cameFromEmpresa, setCameFromEmpresa] = useState(false); // entrou na Community pelo botão da empresa
   const [explore, setExplore] = useState(null);
   const [noting, setNoting] = useState(false);
   const [wakeCmd, setWakeCmd] = useState(null);
@@ -267,6 +272,14 @@ function Shell() {
     history.current = [...history.current, { role: state.activeRole, tab }].slice(-30);
     pendingTab.current = tabKey || null;
     dispatch({ type: 'SET_ROLE', role });
+  };
+
+  // Empresa › Community: usa o perfil de usuário (feed, Shop, Food, Serviços…). Sem perfil de usuário, abre só o feed.
+  const goCommunity = () => {
+    if (state.user.roles.includes('cliente') && verified) {
+      setCameFromEmpresa(true);
+      switchRole('cliente', 'stories');
+    } else setTab('stories');
   };
 
   // Botão voltar do Android: 1) volta dentro da tela, 2) volta para a aba anterior,
@@ -337,6 +350,10 @@ function Shell() {
   const current = tabs.find((t) => t.key === tab) || tabs[0];
   // Aba de compra ou serviço numa conta sem biometria: mostra a tela "falta só a biometria".
   const Comp = canOpenTab(state, current.key) ? current.Comp : LockedScreen;
+  // Barra de baixo: até 6 botões numa linha; com mais, duas linhas iguais (empresa: 4 em cima e 4 embaixo).
+  const shownTabs = tabs.filter((t) => !t.hidden);
+  const half = Math.ceil(shownTabs.length / 2);
+  const tabRows = shownTabs.length > 6 ? [shownTabs.slice(0, half), shownTabs.slice(half)] : [shownTabs];
   const nextRole = () => {
     const r = state.user.roles;
     switchRole(r[(r.indexOf(state.activeRole) + 1) % r.length]);
@@ -424,6 +441,18 @@ function Shell() {
           <Image source={require('./assets/logo-mark.png')} style={styles.logoImg} />
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {/* Empresa: entra na Community (feed e serviços da página inicial). Depois, o mesmo lugar traz de volta. */}
+          {state.activeRole === 'empresa' ? (
+            <TouchableOpacity onPress={goCommunity} style={styles.rolePill} accessibilityLabel="Entrar na Community: ver o feed e usar os serviços">
+              <Ionicons name="people-circle-outline" size={16} color={colors.text} />
+              <Text numberOfLines={1} style={styles.rolePillText}>Community</Text>
+            </TouchableOpacity>
+          ) : cameFromEmpresa && state.user.roles.includes('empresa') ? (
+            <TouchableOpacity onPress={() => { setCameFromEmpresa(false); switchRole('empresa'); }} style={styles.rolePill} accessibilityLabel="Voltar para a empresa">
+              <Ionicons name="business-outline" size={15} color={colors.text} />
+              <Text numberOfLines={1} style={styles.rolePillText}>Empresa</Text>
+            </TouchableOpacity>
+          ) : null}
           {/* Carrinho discreto: só aparece quando há itens */}
           <CartIcon style={styles.iconBtn} />
           <TouchableOpacity onPress={() => setSearching(true)} style={styles.iconBtn} accessibilityLabel="Buscar pessoas na rede Re@lys">
@@ -489,8 +518,10 @@ function Shell() {
         </View>
       ) : null}
 
-      <View style={[styles.tabbar, { paddingBottom: 10 + insets.bottom }]}>
-        {tabs.filter((t) => !t.hidden).map((t) => {
+      <View style={[styles.tabbar, { paddingBottom: 10 + insets.bottom, flexDirection: 'column' }]}>
+       {tabRows.map((row, ri) => (
+        <View key={ri} style={{ flexDirection: 'row', marginTop: ri ? 6 : 0 }}>
+        {row.map((t) => {
           const on = t.key === current.key;
           return (
             <TouchableOpacity key={t.key} style={styles.tab} onPress={() => {
@@ -502,10 +533,12 @@ function Shell() {
               <View style={styles.tabIcon}>
                 <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={21} color={on ? colors.primary : colors.menu} />
               </View>
-              <Text numberOfLines={1} style={[styles.tabLabel, on && { color: colors.primary, fontWeight: '800' }]}>{t.label}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.tabLabel, on && { color: colors.primary, fontWeight: '800' }]}>{t.label}</Text>
             </TouchableOpacity>
           );
         })}
+        </View>
+       ))}
       </View>
 
       <VoiceAssistant
@@ -742,7 +775,9 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
     shadowOffset: { width: 0, height: -3 },
   },
-  tab: { flex: 1, alignItems: 'center' },
+  tab: { flex: 1, alignItems: 'center', paddingHorizontal: 2 },
+  rolePill: { flexDirection: 'row', alignItems: 'center', minHeight: 30, paddingHorizontal: 10, borderRadius: 15, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card, marginRight: 6 },
+  rolePillText: { color: colors.text, fontWeight: '700', fontSize: 12, marginLeft: 4 },
   tabIcon: { width: 44, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   tabIconOn: { backgroundColor: colors.gold },
   tabLabel: { fontSize: 10.5, fontWeight: '600', color: colors.menu, marginTop: 3 },

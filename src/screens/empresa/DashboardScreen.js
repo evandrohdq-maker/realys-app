@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { UnmetProducts, IntelPanel } from '../../components/Engage';
-import { View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, Alert } from 'react-native';
 import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, myProducts } from '../../store';
@@ -9,8 +9,10 @@ import { Screen, Title, Card, Row, Stat, BarChart, Section, ProductThumb, Badge 
 import { ALL_ADS, shortNum } from '../../adsData';
 import { MY_COMPANY_ID } from '../../data';
 import PlanoLojaCard from '../../components/PlanoLojaCard';
+import { ReelComposer } from '../StoriesScreen';
 
-export default function DashboardScreen({ goTo }) {
+export default function DashboardScreen({ goTo, navigate }) {
+  const [reeling, setReeling] = useState(false);
   const { state, dispatch } = useStore();
   const products = myProducts(state);
   const week = state.salesByDay.reduce((s, d) => s + d.value, 0);
@@ -38,6 +40,32 @@ export default function DashboardScreen({ goTo }) {
       </Row>
 
       <PlanoLojaCard />
+
+      {/* Divulgação da empresa: anúncios, propagandas e reels de anúncio (o Estúdio é só para artistas e criadores). */}
+      <View style={{ backgroundColor: '#FFFFFF', borderRadius: 18, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: colors.border }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Ionicons name="megaphone-outline" size={20} color={colors.text} />
+          <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15, marginLeft: 8 }}>Divulgação</Text>
+        </View>
+        <Text style={{ color: colors.muted, fontSize: 13, marginTop: 6 }}>Coloque a sua empresa na frente de quem compra: anúncio, propaganda e reel de anúncio.</Text>
+        <View style={{ flexDirection: 'row', marginTop: 10 }}>
+          <TouchableOpacity onPress={() => (navigate ? navigate({ tab: 'anuncie' }) : goTo && goTo('anuncie'))} style={{ flex: 1, minHeight: 40, borderRadius: 12, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center', marginRight: 8, paddingHorizontal: 6 }} accessibilityLabel="Anúncios e propagandas">
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>Anúncios e propagandas</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setReeling(true)} style={{ flex: 1, minHeight: 40, borderRadius: 12, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 }} accessibilityLabel="Publicar reel de anúncio">
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>Reel de anúncio</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <ReelComposer
+        visible={reeling}
+        onClose={() => setReeling(false)}
+        onPublish={(reel) => {
+          setReeling(false);
+          dispatch({ type: 'PUBLISH_REEL', reel: { ...reel, ad: true, user: 'Mercadinho Bom Preço' } });
+          Alert.alert('Reel de anúncio publicado ✅', 'Ele aparece nos Reels do Re@lys com a marca da sua empresa.');
+        }}
+      />
 
       {/* Presentear clientes: créditos que o cliente usa só para comprar no Re@lys */}
       <TouchableOpacity activeOpacity={0.9} onPress={() => dispatch({ type: 'OPEN_GIFT', asCompany: true })} style={{ backgroundColor: '#FFFFFF', borderRadius: 18, padding: 14, marginBottom: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border }}>

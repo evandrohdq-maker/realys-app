@@ -63,7 +63,7 @@ function Host() {
     resolveStream(n.radio.url).then((uri) => {
       if (!alive) return;
       try {
-        player.replace({ uri, metadata: { title: n.radio.name, artist: 'Rádio no Re@lys' } });
+        player.replace({ uri, metadata: { title: n.radio.name, artist: n.radio.track ? n.radio.artist || 'Música no Re@lys' : 'Rádio no Re@lys' } });
         player.play();
       } catch (e) {
         setRadioNow({ status: 'erro', error: 'Não consegui tocar esta rádio.' });
@@ -153,10 +153,10 @@ export function RadioMiniBar({ bottom }) {
       <Text style={{ fontSize: 18 }}>{n.radio.emoji || '📻'}</Text>
       <View style={{ flex: 1, marginLeft: 8 }}>
         <Text style={st.miniName} numberOfLines={1}>{n.radio.name}</Text>
-        <Text style={st.miniStatus} numberOfLines={1}>{n.status === 'carregando' ? 'Conectando…' : n.status === 'erro' ? 'Não foi possível tocar' : 'Tocando ao vivo'}</Text>
+        <Text style={st.miniStatus} numberOfLines={1}>{n.status === 'carregando' ? 'Conectando…' : n.status === 'erro' ? 'Não foi possível tocar' : n.radio.track ? n.radio.artist || 'Tocando' : 'Tocando ao vivo'}</Text>
       </View>
       {n.status === 'tocando' ? <Bars on /> : null}
-      <TouchableOpacity onPress={stopRadio} style={st.miniBtn} accessibilityLabel="Parar a rádio">
+      <TouchableOpacity onPress={stopRadio} style={st.miniBtn} accessibilityLabel={n.radio.track ? 'Parar a música' : 'Parar a rádio'}>
         <Ionicons name="close" size={18} color="#fff" />
       </TouchableOpacity>
     </Floating>
