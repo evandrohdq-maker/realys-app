@@ -117,8 +117,10 @@ const AREAS = [
 // Quem é só online vem primeiro; depois quem atende presencial e também por vídeo.
 const onlineOnly = (p) => isOnlineType(p.service);
 
-export function OnlineTab({ appts, setAppts, focus }) {
-  const { state } = useStore();
+export function OnlineTab({ focus }) {
+  const { state, dispatch } = useStore();
+  // Agendamentos ficam na store: aparecem também em Pedidos › Aguardando até o profissional confirmar.
+  const appts = (state.onlineAppts || []).filter((x) => x.status !== 'recusado');
   const [area, setArea] = useState('todos');
   const [slot, setSlot] = useState({}); // horário escolhido por profissional
   const pros = state.providers
@@ -135,8 +137,8 @@ export function OnlineTab({ appts, setAppts, focus }) {
       {
         text: 'Agendar',
         onPress: () => {
-          setAppts((a) => [{ id: `${p.id}-${Date.now()}`, p, when }, ...a.filter((x) => x.p.id !== p.id)]);
-          Alert.alert('Agendado!', `No horário, toque em "Entrar na chamada" aqui na aba Online. ${p.name.split(' ')[0]} recebeu o aviso.`);
+          dispatch({ type: 'ONLINE_BOOK', appt: { id: `${p.id}-${Date.now()}`, p, when, label: serviceType(p.service).label } });
+          Alert.alert('Pedido enviado!', `${p.name.split(' ')[0]} recebeu o pedido de agendamento. Acompanhe em Pedidos › Aguardando até a confirmação.`);
         },
       },
     ]);
@@ -154,6 +156,9 @@ export function OnlineTab({ appts, setAppts, focus }) {
                 <Text style={styles.name} numberOfLines={1}>{a.p.name}</Text>
                 <Text style={styles.meta}>{serviceType(a.p.service).label} · {a.when}</Text>
               </View>
+              {a.status === 'aguardando' ? (
+                <Text numberOfLines={1} style={{ color: colors.primary, fontWeight: '800', fontSize: 12 }}>⏳ Aguardando</Text>
+              ) : (
               <TouchableOpacity
                 style={styles.joinBtn}
                 onPress={() => Alert.alert('Chamada de vídeo', `A chamada com ${a.p.name.split(' ')[0]} abre aqui no Re@lys no horário marcado (${a.when}).`)}
@@ -162,6 +167,7 @@ export function OnlineTab({ appts, setAppts, focus }) {
                 <Ionicons name="videocam" size={15} color={colors.onPrimary} />
                 <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.joinText}>Entrar</Text>
               </TouchableOpacity>
+              )}
             </View>
           ))}
         </View>

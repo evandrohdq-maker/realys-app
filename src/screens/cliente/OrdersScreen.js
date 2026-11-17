@@ -325,6 +325,7 @@ export default function OrdersScreen({ navigate, explore }) {
   const waiting = [
     ...(state.visits || []).filter((v) => v.status === 'aguardando').map((v) => ({ id: v.id, at: v.at || 0, icon: 'construct-outline', title: `${v.serviceLabel} · ${v.provider.name}`, text: `Chamado enviado para ${v.when ? v.when.toLowerCase() : 'assim que possível'}. Aguardando ${v.provider.name.split(' ')[0]} aceitar.`, note: `Taxa de visita de ${brl(v.fee)} reservada. Se recusar, o valor volta na hora.` })),
     ...Object.keys(state.negRequests || {}).filter((id) => state.negRequests[id] === 'aguardando').map((id) => { const l = listings.find((x) => x.id === id) || {}; return { id: 'neg' + id, at: 0, icon: 'pricetag-outline', title: l.title || 'Anúncio', text: `Interesse enviado. Aguardando ${l.who || 'o anunciante'} liberar a conversa.`, note: 'Você não paga nada por isso.' }; }),
+    ...(state.onlineAppts || []).filter((x) => x.status === 'aguardando').map((x) => ({ id: x.id, at: x.at || 0, icon: 'videocam-outline', title: `${x.label || 'Atendimento online'} · ${x.p.name}`, text: `Agendamento pedido para ${x.when}. Aguardando ${x.p.name.split(' ')[0]} confirmar.`, note: 'Atendimento por chamada de vídeo aqui no Re@lys. O valor só é repassado depois do atendimento.', online: x })),
     ...(state.reverseRequests || []).filter((r) => r.status === 'aberto' && !r.offers.length).map((r) => ({ id: r.id, at: r.at || 0, icon: 'megaphone-outline', title: r.title || r.text || 'Pedido publicado', text: 'Pedido publicado. Aguardando as primeiras propostas.', note: 'As propostas chegam na aba Propostas.' })),
   ];
   // Em andamento · Concluídos · Despesas (vale para Compras, Comida, Ingressos e Serviços).
@@ -346,7 +347,7 @@ export default function OrdersScreen({ navigate, explore }) {
     { key: 'compras', label: 'Compras', icon: 'cube-outline', badge: buys.filter((o) => !orderDone(o)).length || null },
     { key: 'comida', label: 'Comida', icon: 'restaurant-outline', badge: food.filter((o) => !orderDone(o)).length || null },
     { key: 'ingressos', label: 'Ingressos', icon: 'ticket-outline', badge: tickets.filter((t) => !t.used).length + venueOrders.filter((o) => !venueDone(o)).length || null },
-    { key: 'servicos', label: 'Serviços', icon: 'construct-outline', badge: services.filter((r) => !r.done).length || null },
+    { key: 'servicos', label: 'Serviços', icon: 'construct-outline', badge: services.filter((r) => !r.done).length + (state.onlineAppts || []).filter((x) => x.status === 'confirmado').length || null },
     { key: 'propostas', label: 'Propostas', icon: 'megaphone-outline', badge: state.reverseRequests.filter((r) => r.status === 'aberto' && r.offers.length).length || null },
     { key: 'assinaturas', label: 'Assinaturas', icon: 'repeat-outline', badge: state.subscriptions.filter((x) => x.status === 'ativa').length || null },
   ];
@@ -376,7 +377,7 @@ export default function OrdersScreen({ navigate, explore }) {
         ))}
       </View>
       {view === 'despesas' ? <Expenses rows={expenses} /> : null}
-      {view !== 'despesas' ? <SegTabs items={SEGS} value={seg} onChange={setSeg} /> : null}
+      {view !== 'despesas' ? <SegTabs items={SEGS} value={seg} onChange={setSeg} rows={2} /> : null}
       {view === 'despesas' ? null : (
       <>
       {/* A Lotus avisa antes: uma oferta por vez, passando sozinha; "Ver todas" abre a lista. */}
@@ -411,6 +412,16 @@ export default function OrdersScreen({ navigate, explore }) {
               </Row>
               <Text style={{ color: colors.text, fontSize: 13, marginTop: 8 }}>{w.text}</Text>
               <Text style={{ color: colors.muted, fontSize: 12, marginTop: 3 }}>{w.note}</Text>
+              {w.online ? (
+                <Row style={{ marginTop: 10, justifyContent: 'space-between' }}>
+                  <TouchableOpacity onPress={() => dispatch({ type: 'ONLINE_CANCEL', id: w.online.id })} accessibilityLabel="Cancelar agendamento">
+                    <Text numberOfLines={1} style={{ color: colors.muted, fontWeight: '700', fontSize: 12 }}>Cancelar pedido</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => dispatch({ type: 'ONLINE_RESPOND', id: w.online.id, accept: true })} accessibilityLabel="Demonstração: simular confirmação do profissional">
+                    <Text numberOfLines={1} style={{ color: colors.sponsored, fontWeight: '700', fontSize: 11 }}>Demonstração: simular confirmação</Text>
+                  </TouchableOpacity>
+                </Row>
+              ) : null}
             </Card>
           ))
         ) : (
@@ -421,8 +432,20 @@ export default function OrdersScreen({ navigate, explore }) {
       {seg === 'assinaturas' ? <Subscriptions /> : null}
       {seg === 'carrinho' ? <CartTab onPaid={(hasFood) => setSeg(hasFood ? 'comida' : 'compras')} /> : null}
 
+      {seg === 'servicos' && view === 'andamento'
+        ? (state.onlineAppts || []).filter((x) => x.status === 'confirmado').map((x) => (
+            <Card key={x.id}>
+              <Row>
+                <Ionicons name="videocam" size={18} color={colors.primary} />
+                <Text numberOfLines={1} style={{ color: colors.text, fontWeight: '800', marginLeft: 8, flex: 1 }}>{x.label || 'Atendimento online'} · {x.p.name}</Text>
+              </Row>
+              <Text style={{ color: colors.success, fontWeight: '700', fontSize: 12, marginTop: 4 }}>✓ Confirmado · {x.when}</Text>
+              <Text style={{ color: colors.muted, fontSize: 12, marginTop: 3 }}>No horário, entre na chamada em Serviços › Online.</Text>
+            </Card>
+          ))
+        : null}
       {seg === 'servicos' ? (
-        svcList.length ? (
+        svcList.length || (view === 'andamento' && (state.onlineAppts || []).some((x) => x.status === 'confirmado')) ? (
           svcList.map((r) => <ServiceOrder key={r.id} r={r} onTrack={() => setTrack({ ride: r })} />)
         ) : (
           <Empty text={showDone ? 'Nenhum serviço concluído ainda.' : 'Nenhum serviço em andamento. Peça um eletricista, motorista ou outro prestador em Serviços ou pela Lotus.'} />

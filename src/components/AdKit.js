@@ -24,9 +24,21 @@ export function useNow(ms = 1000) {
 // Abas internas da página (ex.: Vitrine | Promoções), no mesmo estilo leve do menu do topo da
 // Community: sem caixa nem bordas, ícone em cima e texto embaixo; a ativa ganha só uma pílula
 // clarinha. items: [{ key, label, icon, badge }]
-export function SegTabs({ items, value, onChange }) {
+export function SegTabs({ items, value, onChange, rows = 1, compact = false }) {
+  // rows=2: o menu fica dividido em duas linhas (metade em cima, metade embaixo), como o menu do Perfil.
+  if (rows > 1) {
+    const per = Math.ceil(items.length / rows);
+    const parts = Array.from({ length: rows }, (_, i) => items.slice(i * per, (i + 1) * per));
+    return (
+      <View style={{ marginBottom: 6 }}>
+        {parts.map((part, i) => (
+          <SegTabs key={i} items={part} value={value} onChange={onChange} compact={i < rows - 1} />
+        ))}
+      </View>
+    );
+  }
   return (
-    <View style={styles.seg}>
+    <View style={[styles.seg, compact && { paddingBottom: 2, marginBottom: 2 }]}>
       {items.map((t) => {
         const on = t.key === value;
         return (

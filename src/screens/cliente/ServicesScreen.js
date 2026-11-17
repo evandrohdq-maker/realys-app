@@ -147,7 +147,6 @@ export default function ServicesScreen({ explore, navigate }) {
   const [needs, setNeeds] = useState([]);
   // Abas: Serviços (geral, tudo) | Cursos | Visitas | Aulas | Online
   const [tab, setTab] = useState('servicos');
-  const [appts, setAppts] = useState([]); // atendimentos online agendados
   const [onlineFocus, setOnlineFocus] = useState(null);
   useBack(tab !== 'servicos', () => setTab('servicos'));
 
@@ -375,7 +374,7 @@ export default function ServicesScreen({ explore, navigate }) {
     return (
       <Screen>
         {menu}
-        {tab === 'online' ? <OnlineTab appts={appts} setAppts={setAppts} focus={onlineFocus} /> : <CoursesTab navigate={navigate} />}
+        {tab === 'online' ? <OnlineTab focus={onlineFocus} /> : <CoursesTab navigate={navigate} />}
       </Screen>
     );
   }

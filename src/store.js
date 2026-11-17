@@ -165,6 +165,8 @@ const initialState = {
   rides: [],
   // Serviços por visita: os pedidos do cliente, os que chegam para o prestador e os que ele aceitou.
   visits: [],
+  // Atendimentos online (psicólogo, advogado, aulas por vídeo...): ficam "aguardando" até o profissional confirmar.
+  onlineAppts: [],
   visitRequests: SAMPLE_VISIT_REQUESTS,
   myVisits: [],
   // Agenda do prestador (src/agenda.js): compromissos, horário de trabalho e aviso antes de cada trabalho.
@@ -364,7 +366,7 @@ function giftPointsPatch(state, amount, desc) {
 // não são aceitas. Em vez de executar, o app abre a janela "falta só a biometria".
 const NEEDS_BIO = new Set([
   'ADD_TO_CART', 'OPEN_CART', 'CHECKOUT', 'ADD_COMBO', 'COLLECT_COUPON', 'SECTOR_ORDER', 'BUY_TICKET', 'BUY_MEDIA', 'MEDIA_UPLOAD', 'MEDIA_PLAN',
-  'VENUE_RESERVE', 'VENUE_ORDER', 'REQUEST_RIDE', 'VISIT_REQUEST', 'REVERSE_POST', 'REVERSE_ACCEPT', 'GROUP_JOIN', 'SUB_START', 'SUS_BOOK', 'DOC_SIGN',
+  'VENUE_RESERVE', 'VENUE_ORDER', 'REQUEST_RIDE', 'VISIT_REQUEST', 'ONLINE_BOOK', 'REVERSE_POST', 'REVERSE_ACCEPT', 'GROUP_JOIN', 'SUB_START', 'SUS_BOOK', 'DOC_SIGN',
   'NEG_REQUEST', 'NEG_PLAN', 'NEG_AD_CREATE', 'NEG_LEAD_UNLOCK', 'DESAPEGO_ADD', 'DESAPEGO_BUY', 'APPLY_JOB', 'PAGE_CREATE', 'REDEEM_POINTS', 'INTEL_PLAN',
   'OPEN_GIFT', 'SEND_GIFT', 'SEND_LIVE_GIFT', 'CONVERT_LIVE_CREDITS', 'GIFT_CASHOUT', 'WALLET_DEPOSIT', 'WALLET_WITHDRAW', 'DATE_SUBSCRIBE', 'SET_HIGHLIGHT',
   'SAVE_MY_PROVIDER', 'TOGGLE_AVAILABLE', 'SET_ROLE',
@@ -1625,6 +1627,14 @@ function baseReducer(state, a) {
       return { ...state, panicAlerts: [a.alert, ...(state.panicAlerts || [])] };
     case 'PANIC_UPDATE':
       return { ...state, panicAlerts: (state.panicAlerts || []).map((x) => (x.id === a.id ? { ...x, ...a.data } : x)) };
+
+    // ---------- Atendimentos online (aba Serviços › Online) ----------
+    case 'ONLINE_BOOK':
+      return { ...state, onlineAppts: [{ ...a.appt, status: 'aguardando', at: Date.now() }, ...(state.onlineAppts || []).filter((x) => !(x.p.id === a.appt.p.id && x.status === 'aguardando'))] };
+    case 'ONLINE_RESPOND':
+      return { ...state, onlineAppts: (state.onlineAppts || []).map((x) => (x.id === a.id && x.status === 'aguardando' ? { ...x, status: a.accept ? 'confirmado' : 'recusado' } : x)) };
+    case 'ONLINE_CANCEL':
+      return { ...state, onlineAppts: (state.onlineAppts || []).filter((x) => x.id !== a.id) };
 
     // ---------- Serviços por visita (src/serviceVisits.js) ----------
     // Cliente pede a visita: a taxa sai do saldo e fica retida até a visita ser confirmada.
