@@ -198,7 +198,7 @@ function DriverMain({ goTo, onCadastro }) {
   return (
     <Screen>
       <Title sub="Motorista, motoboy, eletricista, mecânico, diarista e qualquer MEI">Painel do prestador</Title>
-      <BoostButton target="prestador" label="Boost: pegar trabalho mais rápido" hint="Fique no topo das indicações da sua região por algumas horas" />
+      <BoostButton target="prestador" label="Boost: trabalho mais rápido" hint="Fique no topo das indicações da sua região por algumas horas" />
       <Button title="Cadastro, empresa e mandados de serviço" variant="light" onPress={onCadastro} style={{ marginBottom: 12 }} />
       <UnmetServices />
       <OpenRequests kind="servico" service={state.myProvider && state.myProvider.service} />

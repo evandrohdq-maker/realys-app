@@ -116,8 +116,8 @@ export function GuaranteeButton({ kind, refId, title, amount, giftPart, delivere
     <>
       <TouchableOpacity style={styles.btn} onPress={() => setOpen(true)} accessibilityLabel="Tive um problema: Garantia Re@lys">
         <Ionicons name="shield-checkmark-outline" size={14} color={GREEN} />
-        <Text style={styles.btnText}>Tive um problema</Text>
-        {deliveredAt ? <Text style={styles.btnSub}> · {daysLeft(deliveredAt)} dias de garantia</Text> : null}
+        <Text numberOfLines={1} style={styles.btnText}>Tive um problema</Text>
+        {deliveredAt ? <Text numberOfLines={1} style={[styles.btnSub, { flexShrink: 1 }]}> · {daysLeft(deliveredAt)} dias de garantia</Text> : null}
       </TouchableOpacity>
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)} statusBarTranslucent>
         <View style={styles.back}>

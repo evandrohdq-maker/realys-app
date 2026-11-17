@@ -181,6 +181,9 @@ const TABS = {
   ],
 };
 
+// Símbolo de cada perfil no botãozinho de troca do cabeçalho.
+const ROLE_ICONS = { cliente: 'person', prestador: 'construct', empresa: 'business', fornecedor: 'cube' };
+
 function Shell() {
   const { state, dispatch } = useStore();
   // Conta sem biometria usa só o perfil de usuário (modo social).
@@ -291,6 +294,20 @@ function Shell() {
     } else setTab('stories');
   };
 
+  // Troca de perfil (botãozinho do cabeçalho): trabalho (prestador, empresa, fornecedor) ⇄ usuário.
+  // Lembra qual era o perfil de trabalho para voltar direto para ele.
+  const WORK_ROLES = ['prestador', 'empresa', 'fornecedor'];
+  const workRoles = state.user.roles.filter((r) => WORK_ROLES.includes(r));
+  const lastWork = useRef(WORK_ROLES.includes(state.activeRole) ? state.activeRole : workRoles[0]);
+  if (WORK_ROLES.includes(state.activeRole)) lastWork.current = state.activeRole;
+  const canSwap = verified && state.user.roles.includes('cliente') && workRoles.length > 0 && state.activeRole !== 'admin';
+  const swapTarget = state.activeRole === 'cliente' ? lastWork.current || workRoles[0] : 'cliente';
+  const swapProfile = () => {
+    setCameFromEmpresa(false);
+    if (Platform.OS === 'android') ToastAndroid.show(`Modo ${ROLE_LABELS[swapTarget].toLowerCase()}`, ToastAndroid.SHORT);
+    switchRole(swapTarget, swapTarget === 'cliente' ? 'stories' : undefined);
+  };
+
   // Botão voltar do Android: 1) volta dentro da tela, 2) volta para a aba anterior,
   // 3) vai para a aba inicial, 4) na aba inicial, pede um segundo toque para sair.
   live.current = { tab, role: state.activeRole };
@@ -370,6 +387,12 @@ function Shell() {
     const on = t.key === current.key;
     return (
       <TouchableOpacity key={t.key} style={styles.tab} onPress={() => {
+        // Prestador/fornecedor tocando em Community: entra no modo usuário, com as abas de baixo do app
+        // (Shop, Negócios, Food, Serviços, Pedidos). O botãozinho de troca do cabeçalho traz de volta.
+        if (t.key === 'stories' && canSwap && state.activeRole !== 'cliente') {
+          setExplore({ tab: 'stories', at: Date.now() });
+          return switchRole('cliente', 'stories');
+        }
         // Community no rodapé sempre volta para o feed (sai de Eventos, Lives etc.).
         if (t.key === 'stories') setExplore({ tab: 'stories', at: Date.now() });
         setTab(t.key);
@@ -469,8 +492,18 @@ function Shell() {
           <Image source={require('./assets/logo-mark.png')} style={styles.logoImg} />
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          {/* Empresa: entra na Community (feed e serviços da página inicial). Depois, o mesmo lugar traz de volta. */}
-          {state.activeRole === 'empresa' ? (
+          {/* Troca de perfil: um símbolo só, pequeno. Mostra o perfil em uso; tocar troca trabalho ⇄ usuário. */}
+          {canSwap ? (
+            <TouchableOpacity onPress={swapProfile} style={styles.swapBtn} activeOpacity={0.8} accessibilityLabel={`Trocar para o modo ${ROLE_LABELS[swapTarget]}`}>
+              <View style={styles.swapRing}>
+                <Ionicons name={ROLE_ICONS[state.activeRole] || 'person'} size={15} color={colors.primary} />
+              </View>
+              <View style={styles.swapBadge}>
+                <Ionicons name="sync" size={9} color="#fff" />
+              </View>
+            </TouchableOpacity>
+          ) : state.activeRole === 'empresa' ? (
+            /* Empresa sem perfil de usuário: entra só no feed da Community. */
             <TouchableOpacity onPress={goCommunity} style={styles.rolePill} accessibilityLabel="Entrar na Community: ver o feed e usar os serviços">
               <Ionicons name="people-circle-outline" size={16} color={colors.text} />
               <Text numberOfLines={1} style={styles.rolePillText}>Community</Text>
@@ -795,6 +828,10 @@ const styles = StyleSheet.create({
   tab: { flex: 1, alignItems: 'center', paddingHorizontal: 2 },
   topMenu: { flexDirection: 'row', backgroundColor: colors.card, paddingTop: 6, paddingBottom: 8, paddingHorizontal: 6, borderBottomWidth: 1, borderBottomColor: colors.border },
   rolePill: { flexDirection: 'row', alignItems: 'center', minHeight: 30, paddingHorizontal: 10, borderRadius: 15, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card, marginRight: 6 },
+  // Botãozinho de troca de perfil: anel fino dourado com o símbolo do perfil em uso e as setinhas de troca.
+  swapBtn: { width: 36, height: 40, alignItems: 'center', justifyContent: 'center', marginRight: 2 },
+  swapRing: { width: 30, height: 30, borderRadius: 15, borderWidth: 1.5, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card },
+  swapBadge: { position: 'absolute', right: 1, bottom: 5, width: 14, height: 14, borderRadius: 7, backgroundColor: colors.primary, borderWidth: 1.5, borderColor: colors.bg, alignItems: 'center', justifyContent: 'center' },
   rolePillText: { color: colors.text, fontWeight: '700', fontSize: 12, marginLeft: 4 },
   tabIcon: { width: 44, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   tabIconOn: { backgroundColor: colors.gold },

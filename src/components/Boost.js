@@ -125,10 +125,8 @@ export function BoostButton({ target, label, hint, style }) {
           <Ionicons name="rocket" size={18} color={on ? colors.sponsored : '#fff'} />
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={[styles.btnTitle, on && { color: '#fff' }]}>{on ? `Boost ativo · faltam ${leftText(on.until)}` : label || 'Dar um boost'}</Text>
-          <Text style={[styles.btnHint, on && { color: 'rgba(255,255,255,0.85)' }]} numberOfLines={2}>
-            {on ? 'Você está aparecendo primeiro. Toque para estender.' : hint || 'Apareça primeiro e ganhe engajamento mais rápido'}
-          </Text>
+          {/* Uma linha só: a explicação fica dentro da janela do Boost. */}
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.btnTitle, on && { color: '#fff' }]}>{on ? `Boost ativo · ${leftText(on.until)}` : label || 'Dar um boost'}</Text>
         </View>
         <Ionicons name="chevron-forward" size={18} color={on ? '#fff' : colors.sponsored} />
       </TouchableOpacity>
@@ -145,6 +143,7 @@ export function BoostButton({ target, label, hint, style }) {
                 <Ionicons name="close" size={22} color={colors.muted} />
               </TouchableOpacity>
             </View>
+            <Text style={[styles.btnHint, { marginBottom: 6 }]}>{on ? 'Você está aparecendo primeiro. Escolha abaixo para estender.' : hint || 'Apareça primeiro e ganhe engajamento mais rápido'}</Text>
             <Text style={styles.balance}>
               Você tem <Text style={{ color: colors.primary, fontWeight: '800' }}>{state.points} pontos</Text> e <Text style={{ color: colors.text, fontWeight: '800' }}>{brl(state.wallet)}</Text> de saldo
             </Text>
