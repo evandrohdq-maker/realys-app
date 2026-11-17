@@ -532,12 +532,7 @@ function Shell() {
       <View style={styles.subHeader}>
         <AlertPill />
         <VenuePill style={[styles.idPill, { marginRight: 6 }]} textStyle={styles.idText} />
-        {state.handsFree ? (
-          <View style={[styles.idPill, hearing && { backgroundColor: 'rgba(47,116,208,0.1)' }]}>
-            <Ionicons name={hearing ? 'ear' : 'ear-outline'} size={12} color={hearing ? colors.accent : colors.muted} />
-            <Text style={[styles.idText, { color: hearing ? colors.accent : colors.muted }]}>{hearing ? 'Diga "abrir Lotus"' : state.handsFree && musicOn ? 'Música tocando · toque na flor' : 'Mãos livres'}</Text>
-          </View>
-        ) : null}
+        {/* Sem aviso de "Mãos livres" / "Diga abrir Lotus": a flor da Lotus já mostra quando está ouvindo. */}
       </View>
 
       {/* Página inicial com arrastar para os lados (qualquer perfil):
