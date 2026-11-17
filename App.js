@@ -557,6 +557,8 @@ function Shell() {
       >
         {/* A Lotus é o microfone: só a flor dourada, sem fundo. */}
         <LotusMic hearing={state.handsFree && hearing} open={voice} />
+        {/* Mãos livres: só um pontinho discreto na flor (dourado = ouvindo "abrir Lotus"; cinza = música tocando, toque na flor). */}
+        {state.handsFree ? <View style={[styles.earDot, { backgroundColor: hearing ? colors.primary : colors.muted, opacity: hearing ? 1 : 0.6 }]} /> : null}
       </TouchableOpacity>
 
       {isAdmin ? (
@@ -844,6 +846,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     elevation: 2,
   },
+  earDot: { position: 'absolute', top: 8, right: 8, width: 7, height: 7, borderRadius: 4, borderWidth: 1, borderColor: '#fff' },
   // Botão da Lotus: só o desenho da flor, sem fundo, sem borda e sem sombra.
   fab: {
     position: 'absolute',
