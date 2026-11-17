@@ -34,6 +34,7 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
   const { state, dispatch } = useStore();
   const [text, setText] = useState('');
   const [peek, setPeek] = useState(false); // prévia de quem não tem perfil no Re@lys
+  const [voice, setVoice] = useState(false); // chamada de voz
   const scroll = useRef(null);
   if (!contact) return null;
 
@@ -76,7 +77,7 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
           {hideVoice ? null : (
             <TouchableOpacity
               style={styles.iconBtn}
-              onPress={() => Alert.alert('Chamada de voz', `Ligando para ${contact.name} pela Re@lys.`)}
+              onPress={() => setVoice(true)}
               accessibilityLabel="Chamada de voz"
             >
               <Ionicons name="call-outline" size={19} color={colors.primary} />
@@ -142,24 +143,36 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+      <VideoCallModal audio contact={contact} visible={voice} onClose={() => setVoice(false)} />
     </Modal>
   );
 }
 
 // Chamada de vídeo entre usuários (demonstração visual; a real precisa do servidor).
-export function VideoCallModal({ contact, visible, onClose }) {
+// Chamada de voz: a mesma tela de chamada, sem câmera.
+export function VoiceCallModal(props) {
+  return <VideoCallModal {...props} audio />;
+}
+
+// audio: chamada só de voz (sem câmera). onEnd(segundos) avisa quanto durou.
+export function VideoCallModal({ contact, visible, onClose, audio = false, onEnd }) {
   usePrivateScreen(!!visible, 'chamada');
   const insets = useSafeAreaInsets();
   const [secs, setSecs] = useState(0);
   const [connected, setConnected] = useState(false);
   const [mute, setMute] = useState(false);
   const [cam, setCam] = useState(true);
+  const [speaker, setSpeaker] = useState(false);
+  const hang = () => {
+    if (onEnd && connected) onEnd(Math.max(0, secs - 2));
+    onClose();
+  };
 
   const { dispatch: callDispatch } = useStore();
   useEffect(() => {
     if (!visible) return;
     // Contato com conta no servidor e vídeo disponível: chamada de verdade, direto entre os celulares.
-    if (contact && contact.serverId && serverOn() && webrtcOk()) {
+    if (!audio && contact && contact.serverId && serverOn() && webrtcOk()) {
       callDispatch({ type: 'START_VIDEO_CALL', to: contact.serverId, name: contact.name, ctx: contact.ctx || null });
       onClose();
       return;
@@ -176,17 +189,23 @@ export function VideoCallModal({ contact, visible, onClose }) {
 
   if (!contact) return null;
   return (
-    <Modal visible={visible} animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="fade" onRequestClose={hang}>
       <View style={{ flex: 1, backgroundColor: '#03050A' }}>
-        <Photo uri={contact.photo ? contact.photo.replace('200/200', '800/1400') : null} style={StyleSheet.absoluteFill} fallback="🙂" />
+        {audio ? null : <Photo uri={contact.photo ? contact.photo.replace('200/200', '800/1400') : null} style={StyleSheet.absoluteFill} fallback="🙂" />}
         <View style={[StyleSheet.absoluteFill, { backgroundColor: connected ? 'rgba(3,5,10,0.15)' : 'rgba(3,5,10,0.7)' }]} />
 
         <View style={{ paddingTop: insets.top + 24, alignItems: 'center' }}>
           <Text style={styles.callName}>{contact.name}</Text>
-          <Text style={styles.callStatus}>{connected ? `Chamada de vídeo · ${mmss(Math.max(0, secs - 2))}` : contact.ctx === 'date' ? 'Convite enviado · esperando entrar…' : 'Chamando…'}</Text>
+          <Text style={styles.callStatus}>{connected ? `${audio ? 'Chamada de voz' : 'Chamada de vídeo'} · ${mmss(Math.max(0, secs - 2))}` : contact.ctx === 'date' ? 'Convite enviado · esperando entrar…' : 'Chamando…'}</Text>
         </View>
 
-        <View style={[styles.selfTile, { top: insets.top + 100 }]}>
+        {audio ? (
+          <View style={{ alignItems: 'center', marginTop: 50 }}>
+            <Photo uri={contact.photo} style={{ width: 130, height: 130, borderRadius: 65 }} fallback="🙂" />
+            <Ionicons name="call" size={22} color="rgba(255,255,255,0.7)" style={{ marginTop: 18 }} />
+          </View>
+        ) : null}
+        <View style={[styles.selfTile, { top: insets.top + 100 }, audio && { display: 'none' }]}>
           {cam ? (
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name="person" size={34} color={colors.muted} />
@@ -201,9 +220,15 @@ export function VideoCallModal({ contact, visible, onClose }) {
 
         <View style={[styles.callBar, { bottom: 30 + insets.bottom }]}>
           <CallBtn icon={mute ? 'mic-off' : 'mic'} on={mute} onPress={() => setMute(!mute)} label={mute ? 'Ativar microfone' : 'Silenciar'} />
-          <CallBtn icon={cam ? 'videocam' : 'videocam-off'} on={!cam} onPress={() => setCam(!cam)} label="Câmera" />
-          <CallBtn icon="camera-reverse" onPress={() => {}} label="Virar câmera" />
-          <TouchableOpacity style={[styles.callBtn, { backgroundColor: '#FF5A5F' }]} onPress={onClose} accessibilityLabel="Encerrar chamada">
+          {audio ? (
+            <CallBtn icon={speaker ? 'volume-high' : 'volume-medium'} on={speaker} onPress={() => setSpeaker(!speaker)} label="Viva-voz" />
+          ) : (
+            <>
+              <CallBtn icon={cam ? 'videocam' : 'videocam-off'} on={!cam} onPress={() => setCam(!cam)} label="Câmera" />
+              <CallBtn icon="camera-reverse" onPress={() => {}} label="Virar câmera" />
+            </>
+          )}
+          <TouchableOpacity style={[styles.callBtn, { backgroundColor: '#FF5A5F' }]} onPress={hang} accessibilityLabel="Encerrar chamada">
             <Ionicons name="call" size={24} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
           </TouchableOpacity>
         </View>

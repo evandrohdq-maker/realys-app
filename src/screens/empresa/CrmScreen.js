@@ -8,7 +8,10 @@ import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, brl, soft } from '../../theme';
 import { Screen, Title } from '../../components/ui';
-import { useCrm, crmStages, crmBoard, CRM_LOST, CRM_ORIGINS, CRM_LOST_REASONS, stageOf, stageIndex, crmMove, crmSend, crmRead, crmUpdate, crmAdd, crmRemove, crmSummary, crmIdle, useCampaigns, crmCampaign, crmCampaignToggle, crmCampaignRemove } from '../../crm';
+import CrmLead from '../../components/CrmLead';
+import TeamModal from '../../components/TeamModal';
+import { useTeam, memberOf } from '../../team';
+import { useCrm, crmStages, crmBoard, CRM_LOST, CRM_ORIGINS, CRM_LOST_REASONS, stageOf, stageIndex, crmMove, crmSend, crmRead, crmUpdate, crmAdd, crmRemove, crmSummary, crmIdle, crmTemp, crmToday, crmReport, qualDone, QUAL_STEPS, useCampaigns, crmCampaign, crmCampaignToggle, crmCampaignRemove } from '../../crm';
 
 const dateTime = (t) => new Date(t).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 const num = (s) => Number(String(s).replace(/\./g, '').replace(',', '.').replace(/[^0-9.]/g, '')) || 0;
@@ -20,13 +23,23 @@ export default function CrmScreen({ board: firstBoard = 'empresa', boards }) {
   const leads = useCrm(board);
   const B = crmBoard(board);
   const stages = crmStages(board);
-  const sum = crmSummary(leads);
+  const sum = crmSummary(who ? leads.filter((l) => l.owner === who) : leads);
   const [stage, setStage] = useState('novo');
   const [openId, setOpenId] = useState(null);
   const [adding, setAdding] = useState(false);
   const [q, setQ] = useState('');
+  const [view, setView] = useState('funil'); // funil · hoje · relatorio
+  const [teamOpen, setTeamOpen] = useState(false);
+  const [who, setWho] = useState(null); // filtro por funcionário (null = todos)
+  const team = useTeam();
   const all = [...stages, CRM_LOST];
-  const shown = leads.filter((l) => (q.trim() ? (l.client + ' ' + l.interest).toLowerCase().includes(q.trim().toLowerCase()) : l.stage === stage));
+  const mineOf = (list) => (who ? list.filter((l) => l.owner === who) : list);
+  const scoped = mineOf(leads);
+  const shown = scoped.filter((l) => (q.trim() ? (l.client + ' ' + l.interest).toLowerCase().includes(q.trim().toLowerCase()) : l.stage === stage));
+  const today = crmToday(scoped);
+  const todayCount = today.unread.length + today.follow.length + today.tasks.length + today.stalled.length + today.toPay.length;
+  const rep = view === 'relatorio' ? crmReport(scoped, board) : null;
+  const openLead = (id) => { setOpenId(id); crmRead(id); };
   const open = leads.find((l) => l.id === openId) || null;
 
   return (
@@ -61,6 +74,33 @@ export default function CrmScreen({ board: firstBoard = 'empresa', boards }) {
         </View>
       </View>
 
+      {/* Visões: funil, o que fazer hoje e relatório. Ao lado, a equipe. */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+        {[['funil', 'Funil'], ['hoje', todayCount ? `Hoje ${todayCount}` : 'Hoje'], ['relatorio', 'Relatório']].map(([k, label]) => (
+          <TouchableOpacity key={k} style={[st.view, view === k && st.viewOn]} onPress={() => setView(k)} accessibilityLabel={label}>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: view === k ? colors.text : colors.menu, fontWeight: view === k ? '800' : '700', fontSize: 13 }}>{label}</Text>
+          </TouchableOpacity>
+        ))}
+        <TouchableOpacity style={st.addBtn} onPress={() => setTeamOpen(true)} accessibilityLabel="Equipe: funcionários e classes">
+          <Ionicons name="people-outline" size={16} color={colors.text} />
+          <Text numberOfLines={1} style={{ color: colors.text, fontWeight: '700', fontSize: 12.5, marginLeft: 4 }}>Equipe</Text>
+        </TouchableOpacity>
+      </View>
+      {/* Atendimento direcionado: ver de todos ou de um funcionário */}
+      {team.members.length ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 10 }}>
+          {[{ id: null, name: 'Todos' }, ...team.members.filter((m) => m.active)].map((m) => (
+            <TouchableOpacity key={m.id || 'todos'} style={[st.chip, { marginBottom: 0 }, who === m.id && { backgroundColor: colors.text, borderColor: colors.text }]} onPress={() => setWho(m.id)}>
+              <Text numberOfLines={1} style={{ color: who === m.id ? '#fff' : colors.text, fontWeight: '700', fontSize: 12.5 }}>{m.name.split(' ')[0]}{m.id ? ` ${leads.filter((l) => l.owner === m.id && l.stage !== 'fechado' && l.stage !== 'perdido').length}` : ''}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      ) : null}
+
+      {view === 'hoje' ? <TodayView today={today} board={board} onOpen={openLead} /> : null}
+      {view === 'relatorio' && rep ? <ReportView rep={rep} sum={sum} B={B} /> : null}
+      {view === 'funil' ? (
+      <>
       <LeadCapture board={board} />
 
       <View style={st.search}>
@@ -94,7 +134,7 @@ export default function CrmScreen({ board: firstBoard = 'empresa', boards }) {
       {!q.trim() && stageOf(stage, board).hint ? <Text style={st.hint}>{stageOf(stage, board).hint}</Text> : null}
 
       {shown.map((l) => (
-        <TouchableOpacity key={l.id} style={st.card} onPress={() => { setOpenId(l.id); crmRead(l.id); }} activeOpacity={0.85} accessibilityLabel={`Atendimento de ${l.client}`}>
+        <TouchableOpacity key={l.id} style={st.card} onPress={() => openLead(l.id)} activeOpacity={0.85} accessibilityLabel={`Atendimento de ${l.client}`}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <View style={st.avatar}>
               <Text style={{ color: colors.text, fontWeight: '800' }}>{l.client.charAt(0)}</Text>
@@ -114,6 +154,7 @@ export default function CrmScreen({ board: firstBoard = 'empresa', boards }) {
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, flexWrap: 'wrap' }}>
             <View style={st.tag}><Text style={st.tagText}>{l.origin}</Text></View>
+            <LeadBadges l={l} />
             {q.trim() ? <View style={st.tag}><Text style={st.tagText}>{stageOf(l.stage, board).short}</Text></View> : null}
             {l.stage === 'perdido' && l.lostReason ? <View style={st.tag}><Text style={st.tagText}>{l.lostReason}</Text></View> : null}
             <Text style={{ color: colors.muted, fontSize: 12, flex: 1, textAlign: 'right' }}>nesta etapa {crmIdle(l)}</Text>
@@ -121,10 +162,108 @@ export default function CrmScreen({ board: firstBoard = 'empresa', boards }) {
         </TouchableOpacity>
       ))}
       {!shown.length ? <Text style={st.empty}>{q.trim() ? 'Nenhum atendimento com esse nome.' : 'Nenhum atendimento nesta etapa.'}</Text> : null}
+      </>
+      ) : null}
 
-      <LeadModal lead={open} onClose={() => setOpenId(null)} />
+      <CrmLead lead={open} onClose={() => setOpenId(null)} />
+      <TeamModal visible={teamOpen} onClose={() => setTeamOpen(false)} />
       <AddModal board={board} open={adding} onClose={() => setAdding(false)} onCreated={(id) => { setAdding(false); setStage('novo'); setOpenId(id); }} />
     </Screen>
+  );
+}
+
+// Selos do atendimento: temperatura, qualificação, cliente que voltou e responsável.
+function LeadBadges({ l }) {
+  const temp = crmTemp(l);
+  const owner = l.owner ? memberOf(l.owner) : null;
+  return (
+    <>
+      {temp ? <View style={[st.tag, { backgroundColor: 'transparent', borderWidth: 1, borderColor: temp.color }]}><Text style={[st.tagText, { color: temp.color }]}>{temp.label}</Text></View> : null}
+      {l.stage !== 'fechado' && l.stage !== 'perdido' ? <View style={st.tag}><Text style={st.tagText}>Qualif. {qualDone(l)}/{QUAL_STEPS.length}</Text></View> : null}
+      {(l.cycle || 1) > 1 ? <View style={st.tag}><Text style={st.tagText}>Voltou · {l.cycle}ª vez</Text></View> : null}
+      {owner ? <View style={st.tag}><Text style={st.tagText}>{owner.name.split(' ')[0]}</Text></View> : null}
+    </>
+  );
+}
+
+// Hoje: tudo que pede ação agora.
+function TodayView({ today, board, onOpen }) {
+  const Group = ({ title, icon, items, render }) =>
+    items.length ? (
+      <View style={{ marginBottom: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+          <Ionicons name={icon} size={17} color={colors.primary} />
+          <Text style={{ color: colors.text, fontWeight: '800', marginLeft: 6 }}>{title} · {items.length}</Text>
+        </View>
+        {items.map(render)}
+      </View>
+    ) : null;
+  const row = (l, sub, key) => (
+    <TouchableOpacity key={key || l.id} style={st.card} onPress={() => onOpen(l.id)} accessibilityLabel={`Abrir ${l.client}`}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: colors.text, fontWeight: '800' }} numberOfLines={1}>{l.client}</Text>
+          <Text style={{ color: colors.muted, fontSize: 12.5 }} numberOfLines={1}>{sub}</Text>
+        </View>
+        <Text style={{ color: colors.muted, fontSize: 12 }}>{stageOf(l.stage, board).short}</Text>
+        <Ionicons name="chevron-forward" size={16} color={colors.muted} style={{ marginLeft: 4 }} />
+      </View>
+    </TouchableOpacity>
+  );
+  const empty = !today.unread.length && !today.follow.length && !today.tasks.length && !today.stalled.length && !today.toPay.length;
+  return (
+    <View>
+      <Group title="Responder" icon="chatbubble-ellipses-outline" items={today.unread} render={(l) => row(l, `${l.unread} mensagem(ns) sem resposta`)} />
+      <Group title="Tarefas" icon="checkbox-outline" items={today.tasks} render={(x) => row(x.lead, `${x.late ? 'Atrasada · ' : ''}${x.task.text}`, x.task.id)} />
+      <Group title="Retornar hoje" icon="alarm-outline" items={today.follow} render={(l) => row(l, l.interest)} />
+      <Group title="Parados há mais de 2 dias" icon="hourglass-outline" items={today.stalled} render={(l) => row(l, `Nesta etapa ${crmIdle(l)}`)} />
+      <Group title="Fechados, aguardando pagamento" icon="cash-outline" items={today.toPay} render={(l) => row(l, `${brl(l.closing.value)} · taxa Re@lys ${brl(l.closing.fee)}`)} />
+      {empty ? <Text style={st.empty}>Nada pendente por aqui. Tudo em dia.</Text> : null}
+    </View>
+  );
+}
+
+// Relatório: funil, conversão, tempo para fechar, motivos de perda e origens.
+function ReportView({ rep, sum, B }) {
+  const Bar = ({ label, value, pct, right }) => (
+    <View style={{ marginBottom: 8 }}>
+      <View style={{ flexDirection: 'row' }}>
+        <Text style={{ color: colors.text, fontWeight: '700', flex: 1, fontSize: 13 }} numberOfLines={1}>{label}</Text>
+        <Text style={{ color: colors.muted, fontSize: 12.5 }}>{right != null ? right : value}</Text>
+      </View>
+      <View style={st.barTrack}><View style={[st.barFill, { width: `${Math.max(2, Math.min(100, pct))}%` }]} /></View>
+    </View>
+  );
+  const maxOrigin = Math.max(1, ...rep.origins.map(([, o]) => o.total));
+  const maxReason = Math.max(1, ...rep.reasons.map(([, n]) => n));
+  return (
+    <View>
+      <View style={st.kpis}>
+        <View style={st.kpi}><Text style={st.kpiN}>{sum.rate}%</Text><Text style={st.kpiL}>conversão</Text></View>
+        <View style={st.kpi}><Text style={st.kpiN}>{rep.avgCloseDays != null ? String(rep.avgCloseDays).replace('.', ',') : '–'}</Text><Text style={st.kpiL}>dias para fechar</Text></View>
+        <View style={st.kpi}><Text style={st.kpiN} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>{brl(rep.ticket)}</Text><Text style={st.kpiL}>valor médio</Text></View>
+      </View>
+      <View style={st.repBox}>
+        <Text style={st.repTitle}>Funil (quantos chegaram a cada etapa)</Text>
+        {rep.funnel.map((f) => <Bar key={f.key} label={f.label} pct={f.pct} right={`${f.count} · ${f.pct}%`} />)}
+      </View>
+      <View style={st.repBox}>
+        <Text style={st.repTitle}>De onde vêm os clientes</Text>
+        {rep.origins.map(([o, v]) => <Bar key={o} label={o} pct={(v.total / maxOrigin) * 100} right={`${v.total} · ${v.won} fechado(s)`} />)}
+      </View>
+      {rep.reasons.length ? (
+        <View style={st.repBox}>
+          <Text style={st.repTitle}>Por que não fecharam</Text>
+          {rep.reasons.map(([r, n]) => <Bar key={r} label={r} pct={(n / maxReason) * 100} value={n} />)}
+        </View>
+      ) : null}
+      <View style={st.repBox}>
+        <Text style={st.repTitle}>Fechamentos acompanhados pelo Re@lys</Text>
+        <Text style={{ color: colors.text, fontSize: 13 }}>{sum.wonCount} {B.won} · {brl(sum.wonValue)}</Text>
+        <Text style={{ color: colors.muted, fontSize: 13, marginTop: 2 }}>Taxa do Re@lys sobre os fechamentos: {brl(rep.fee)}</Text>
+        <Text style={{ color: colors.muted, fontSize: 13, marginTop: 2 }}>Clientes que voltaram depois de não fechar: {rep.returned}</Text>
+      </View>
+    </View>
   );
 }
 
@@ -199,181 +338,6 @@ function LeadCapture({ board }) {
   );
 }
 
-function LeadModal({ lead, onClose }) {
-  const insets = useSafeAreaInsets();
-  const [text, setText] = useState('');
-  const [tab, setTab] = useState('conversa'); // conversa · dados
-  const [value, setValue] = useState('');
-  const [note, setNote] = useState('');
-  const scroll = useRef(null);
-  const leadId = lead ? lead.id : null;
-  // Abriu outro atendimento: carrega o valor e as notas dele.
-  useEffect(() => {
-    if (!lead) return;
-    setValue(String(lead.value || '').replace('.', ','));
-    setNote(lead.note || '');
-    setTab('conversa');
-    setText('');
-  }, [leadId]);
-  if (!lead) return null;
-  const board = lead.board || 'empresa';
-  const B = crmBoard(board);
-  const STAGES = crmStages(board);
-  const idx = stageIndex(lead.stage);
-  const lost = lead.stage === 'perdido';
-  const won = lead.stage === 'fechado';
-  const next = !lost && !won ? STAGES[idx + 1] : null;
-  const send = () => {
-    const t = text.trim();
-    if (!t) return;
-    crmSend(lead.id, t);
-    setText('');
-    setTimeout(() => scroll.current && scroll.current.scrollToEnd({ animated: true }), 60);
-  };
-  const advance = () => {
-    if (!next) return;
-    if (next.key === 'fechado') {
-      return Alert.alert(`${B.close}?`, `${lead.client} · ${brl(lead.value || 0)}`, [
-        { text: 'Ainda não', style: 'cancel' },
-        { text: B.close, onPress: () => crmMove(lead.id, 'fechado') },
-      ]);
-    }
-    crmMove(lead.id, next.key);
-  };
-  const lose = () =>
-    Alert.alert('Por que não fechou?', 'Saber o motivo ajuda a vender melhor da próxima vez.', [
-      ...CRM_LOST_REASONS.slice(0, 4).map((r) => ({ text: r, onPress: () => crmMove(lead.id, 'perdido', { lostReason: r }) })),
-      { text: 'Voltar', style: 'cancel' },
-    ]);
-  const remove = () =>
-    Alert.alert('Apagar este atendimento?', 'A conversa e o histórico somem.', [
-      { text: 'Voltar', style: 'cancel' },
-      { text: 'Apagar', style: 'destructive', onPress: () => { crmRemove(lead.id); onClose(); } },
-    ]);
-
-  return (
-    <Modal visible animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={st.head}>
-          <TouchableOpacity onPress={onClose} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }} accessibilityLabel="Voltar">
-            <Ionicons name="chevron-back" size={24} color={colors.text} />
-          </TouchableOpacity>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }} numberOfLines={1}>{lead.client}</Text>
-            <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>{lead.interest}</Text>
-          </View>
-          <Text style={{ color: colors.text, fontWeight: '800', marginRight: 12 }}>{brl(lead.value || 0)}</Text>
-        </View>
-
-        {/* Etapas: tocar numa etapa leva o atendimento para ela */}
-        <View style={st.steps}>
-          {STAGES.map((s, i) => {
-            const done = !lost && i <= idx;
-            return (
-              <TouchableOpacity key={s.key} style={{ flex: 1, alignItems: 'center' }} onPress={() => crmMove(lead.id, s.key)} accessibilityLabel={`Levar para ${s.label}`}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'stretch' }}>
-                  <View style={[st.line, i === 0 && { opacity: 0 }, done && { backgroundColor: colors.primary }]} />
-                  <View style={[st.dot, done && { backgroundColor: colors.primary, borderColor: colors.primary }]}>
-                    {done ? <Ionicons name="checkmark" size={11} color="#fff" /> : <Text style={{ color: colors.muted, fontSize: 10, fontWeight: '800' }}>{i + 1}</Text>}
-                  </View>
-                  <View style={[st.line, i === STAGES.length - 1 && { opacity: 0 }, !lost && i < idx && { backgroundColor: colors.primary }]} />
-                </View>
-                <Text style={[st.stepLabel, !lost && i === idx && { color: colors.text, fontWeight: '800' }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{s.short}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-        {lost ? <Text style={st.lostBar}>Não fechou{lead.lostReason ? ` · ${lead.lostReason}` : ''}. Toque numa etapa para reabrir.</Text> : null}
-
-        <View style={{ flexDirection: 'row', paddingHorizontal: 12, marginBottom: 6 }}>
-          {[['conversa', 'Conversa'], ['dados', 'Dados e histórico']].map(([k, label]) => (
-            <TouchableOpacity key={k} onPress={() => setTab(k)} style={[st.tab, tab === k && st.tabOn]}>
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: tab === k ? colors.text : colors.muted, fontWeight: '800', fontSize: 13 }}>{label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {tab === 'conversa' ? (
-          <>
-            <ScrollView ref={scroll} style={{ flex: 1 }} contentContainerStyle={{ padding: 14 }} onContentSizeChange={() => scroll.current && scroll.current.scrollToEnd({ animated: false })}>
-              {lead.messages.map((m, i) => (
-                <View key={i} style={[st.bubble, m.from === 'me' ? st.mine : st.theirs]}>
-                  <Text style={{ color: colors.text, fontSize: 14.5 }}>{m.text}</Text>
-                  <Text style={{ color: colors.muted, fontSize: 10.5, marginTop: 3, alignSelf: 'flex-end' }}>{m.time}</Text>
-                </View>
-              ))}
-              {!lead.messages.length ? <Text style={st.empty}>Sem mensagens ainda. Mande a primeira.</Text> : null}
-            </ScrollView>
-            <View style={{ paddingHorizontal: 12, paddingBottom: 8 + insets.bottom }}>
-              {next || (!lost && !won) ? (
-                <View style={{ flexDirection: 'row', marginBottom: 8 }}>
-                  {next ? (
-                    <TouchableOpacity style={st.advance} onPress={advance} accessibilityLabel={`Avançar para ${next.label}`}>
-                      <Ionicons name="arrow-forward-circle" size={18} color="#fff" />
-                      <Text style={{ color: '#fff', fontWeight: '800', marginLeft: 6, fontSize: 13 }} numberOfLines={1}>{next.key === 'fechado' ? B.close : `Avançar: ${next.short}`}</Text>
-                    </TouchableOpacity>
-                  ) : null}
-                  <TouchableOpacity style={st.lose} onPress={lose} accessibilityLabel="Marcar que não fechou">
-                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>Não fechou</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : null}
-              <View style={st.inputRow}>
-                <TextInput value={text} onChangeText={setText} placeholder="Escreva para o cliente" placeholderTextColor={colors.muted} style={st.input} multiline onSubmitEditing={send} />
-                <TouchableOpacity onPress={send} style={st.send} accessibilityLabel="Enviar">
-                  <Ionicons name="send" size={17} color="#fff" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </>
-        ) : (
-          <ScrollView contentContainerStyle={{ padding: 14, paddingBottom: 30 + insets.bottom }} keyboardShouldPersistTaps="handled">
-            <Text style={st.label}>Valor do negócio (R$)</Text>
-            <TextInput value={value} onChangeText={setValue} onEndEditing={() => crmUpdate(lead.id, { value: num(value) })} keyboardType="decimal-pad" placeholder="0,00" placeholderTextColor={colors.muted} style={st.field} />
-            <Text style={st.label}>Notas do atendimento (só a empresa vê)</Text>
-            <TextInput value={note} onChangeText={setNote} onEndEditing={() => crmUpdate(lead.id, { note: note.trim() })} placeholder="Ex.: prefere entrega de manhã" placeholderTextColor={colors.muted} style={[st.field, { minHeight: 70, textAlignVertical: 'top' }]} multiline />
-            <Text style={st.label}>Lembrete de retorno</Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-              {[['Hoje', 0], ['Amanhã', 1], ['Em 3 dias', 3], ['Em 1 semana', 7]].map(([label, d]) => (
-                <TouchableOpacity key={label} style={st.chip} onPress={() => crmUpdate(lead.id, { followUp: Date.now() + d * 86400000 })}>
-                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', fontSize: 12.5 }}>{label}</Text>
-                </TouchableOpacity>
-              ))}
-              {lead.followUp ? (
-                <TouchableOpacity style={st.chip} onPress={() => crmUpdate(lead.id, { followUp: null })}>
-                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '700', fontSize: 12.5 }}>Tirar</Text>
-                </TouchableOpacity>
-              ) : null}
-            </View>
-            {lead.followUp ? <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13, marginTop: 4 }}>⏰ Retornar em {new Date(lead.followUp).toLocaleDateString('pt-BR')}</Text> : null}
-
-            <Text style={st.label}>Origem do contato</Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-              {CRM_ORIGINS.map((o) => (
-                <TouchableOpacity key={o} style={[st.chip, lead.origin === o && { backgroundColor: colors.text, borderColor: colors.text }]} onPress={() => crmUpdate(lead.id, { origin: o })}>
-                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: lead.origin === o ? '#fff' : colors.text, fontWeight: '700', fontSize: 12.5 }}>{o}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={st.label}>Linha do tempo</Text>
-            {lead.history.map((hst, i) => (
-              <View key={i} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 6 }}>
-                <Ionicons name={stageOf(hst.stage, board).icon} size={17} color={hst.stage === 'perdido' ? colors.muted : colors.primary} />
-                <Text style={{ color: colors.text, fontWeight: '700', marginLeft: 8, flex: 1 }}>{stageOf(hst.stage, board).label}</Text>
-                <Text style={{ color: colors.muted, fontSize: 12 }}>{dateTime(hst.at)}</Text>
-              </View>
-            ))}
-            <TouchableOpacity onPress={remove} style={{ paddingVertical: 16, alignItems: 'center' }}>
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '700' }}>Apagar atendimento</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        )}
-      </KeyboardAvoidingView>
-    </Modal>
-  );
-}
-
 function AddModal({ open, onClose, onCreated, board }) {
   const [f, setF] = useState({ client: '', interest: '', value: '', origin: 'Indicação' });
   const create = () => {
@@ -413,6 +377,12 @@ function AddModal({ open, onClose, onCreated, board }) {
 }
 
 const st = StyleSheet.create({
+  view: { flex: 1, minHeight: 36, alignItems: 'center', justifyContent: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent', paddingHorizontal: 2 },
+  viewOn: { borderBottomColor: colors.primary },
+  barTrack: { height: 6, borderRadius: 3, backgroundColor: colors.border, marginTop: 4, overflow: 'hidden' },
+  barFill: { height: 6, borderRadius: 3, backgroundColor: colors.primary },
+  repBox: { backgroundColor: colors.card, borderRadius: 16, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: colors.border },
+  repTitle: { color: colors.text, fontWeight: '800', marginBottom: 8 },
   leadBox: { backgroundColor: colors.card, borderRadius: 16, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: colors.border },
   kpis: { flexDirection: 'row', marginHorizontal: -4, marginBottom: 12 },
   kpi: { flex: 1, backgroundColor: colors.card, borderRadius: 16, padding: 10, marginHorizontal: 4, alignItems: 'center', ...soft },
@@ -431,7 +401,7 @@ const st = StyleSheet.create({
   card: { backgroundColor: colors.card, borderRadius: 16, padding: 12, marginBottom: 8, ...soft },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
   unread: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, marginTop: 3 },
-  tag: { backgroundColor: colors.cardAlt, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, marginRight: 6 },
+  tag: { backgroundColor: colors.cardAlt, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, marginRight: 6, marginBottom: 4 },
   tagText: { color: colors.menu, fontSize: 11, fontWeight: '700' },
   empty: { color: colors.muted, textAlign: 'center', paddingVertical: 26 },
   head: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 6, paddingVertical: 8 },

@@ -325,3 +325,27 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
       responde, mais de um atendente e prazo de resposta. Revisar os textos das perguntas frequentes.
 - [x] Atendimento só por mensagem (decisão do Evandro): na tela de entrada, "Não consigo entrar · Falar com o suporte" abre a mesma central sem precisar estar na conta (chamados ligados ao aparelho).
 - [ ] Recuperação de senha automática ainda não existe: por enquanto é feita pela equipe, por chamado. Com o servidor, a equipe precisa de um jeito de redefinir a senha depois de confirmar a biometria.
+
+## CRM profissional, equipe, catálogo e chamadas de voz — novembro de 2026
+
+- [x] CRM: visões Funil, Hoje (responder, tarefas, retornos, parados, a receber) e Relatório (funil,
+      conversão, dias para fechar, valor médio, origens, motivos de perda). Qualificação em 4 passos,
+      temperatura (quente, morno, frio), tarefas, mensagens prontas por etapa.
+- [x] Cliente que não fechou e escreve de novo: o atendimento recomeça do início (novo ciclo,
+      qualificação zerada, histórico guardado).
+- [x] Fechamento acompanhado pelo Re@lys: ao fechar, a taxa fica registrada (lojas 10%; serviços, aulas
+      e atendimento online com a taxa de serviço; imóveis e veículos sem taxa no fechamento, pois pagam
+      por plano ou por conversa). Administrador › Geral mostra os fechamentos e a taxa.
+- [x] Prestador: pedidos de visita e visitas aceitas entram sozinhos no CRM (aba Clientes).
+- [x] Equipe (botão no CRM): classes de funcionários (exemplos que o dono renomeia, altera, apaga e
+      cria), funcionários com tela própria de controles, permissões, origens que atende, biometria
+      obrigatória, responsabilidade da empresa e atendimento direcionado (distribuição automática).
+- [x] Conversa do CRM: enviar catálogo da loja, chamada de voz e de vídeo, registro das chamadas.
+      Conversas comuns também ganharam a chamada de voz.
+- [ ] Depende do servidor: mensagem real do cliente (hoje há o botão "Simular mensagem do cliente"),
+      cobrança do fechamento pelo Re@lys com desconto automático da taxa, login próprio de cada
+      funcionário (hoje o perfil é criado dentro da empresa, no mesmo aparelho), permissões valendo
+      por pessoa, chamada de voz real (hoje é demonstração visual) e o cliente tocar no catálogo para comprar.
+- [ ] Incluir no termo da empresa a responsabilidade pelos funcionários e a taxa por fechamento do CRM.
+- [ ] Notificação com o app fechado: precisa da biblioteca de notificações, de uma conta Firebase
+      (Google) do Re@lys e do servidor enviando os avisos. Ainda não instalado.

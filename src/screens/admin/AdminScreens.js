@@ -117,11 +117,36 @@ import { useStore } from '../../store';
 import { platformStats } from '../../data';
 import { ORDER_FEE_PCT, SERVICE_FEE_PCT, GIFT_FEE_PCT, GIFT_FUND_SPLIT, orderFee, splitGiftFees } from '../../fees';
 import { colors, brl } from '../../theme';
+import { useCrm, crmPlatform } from '../../crm';
 import { Screen, Title, Card, Row, Stat, Button, Badge, Section, Chip, Empty, BarChart } from '../../components/ui';
 
 const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
 // Visão geral de toda a plataforma.
+// Fechamentos acompanhados: tudo que as empresas e os prestadores fecharam pelo CRM e a parte do Re@lys.
+function CrmClosings() {
+  useCrm();
+  const c = crmPlatform();
+  const NAMES = { empresa: 'Lojas', prestador: 'Serviços', aulas: 'Aulas', online: 'Atendimento online', imoveis: 'Imóveis', veiculos: 'Veículos' };
+  return (
+    <Card>
+      <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>Fechamentos pelo CRM</Text>
+      <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 2 }}>Negócios fechados com acompanhamento do Re@lys e a taxa da plataforma.</Text>
+      <Row style={{ marginTop: 10 }}>
+        <Stat label="Fechados" value={String(c.count)} />
+        <Stat label="Valor" value={brl(c.value)} />
+        <Stat label="Taxa Re@lys" value={brl(c.fee)} />
+      </Row>
+      {Object.keys(c.by).map((b) => (
+        <Text key={b} style={{ color: colors.text, fontSize: 13, marginTop: 6 }}>
+          {NAMES[b] || b}: {c.by[b].count} · {brl(c.by[b].value)} · taxa {brl(c.by[b].fee)}
+        </Text>
+      ))}
+      <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 6 }}>{c.open} atendimento(s) em andamento · {brl(c.pending)} de taxa aguardando pagamento do cliente.</Text>
+    </Card>
+  );
+}
+
 export function AdminOverview() {
   const { state, dispatch } = useStore();
   const openReports = state.reports.filter((r) => r.status === 'aberta').length;
@@ -135,6 +160,7 @@ export function AdminOverview() {
   return (
     <Screen>
       <Title sub="Controle geral da plataforma Re@lys">Administração</Title>
+      <CrmClosings />
       <HireNotices />
 
       {/* Central de segurança 24 h (servidor): todos os alertas chegam aqui na hora. */}

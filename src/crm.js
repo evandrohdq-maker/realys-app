@@ -3,6 +3,8 @@
 // Na demonstração fica salvo no celular; com o servidor, as conversas chegam dos clientes de verdade.
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ORDER_FEE_PCT, SERVICE_FEE_PCT } from './fees';
+import { pickOwner } from './team';
 
 export const CRM_STAGES = [
   { key: 'novo', label: 'Novo contato', short: 'Novo', icon: 'sparkles-outline', hint: 'O cliente chamou. Responda rápido.' },
@@ -12,7 +14,7 @@ export const CRM_STAGES = [
   { key: 'fechado', label: 'Venda fechada', short: 'Fechada', icon: 'checkmark-circle-outline', hint: 'Vendido. Hora de entregar bem.' },
 ];
 export const CRM_LOST = { key: 'perdido', label: 'Não fechou', short: 'Não fechou', icon: 'close-circle-outline' };
-export const CRM_ORIGINS = ['Shop', 'Food', 'Reels', 'Anúncio', 'Página', 'Campanha', 'Indicação'];
+export const CRM_ORIGINS = ['Shop', 'Food', 'Reels', 'Anúncio', 'Página', 'Campanha', 'Chamado', 'Indicação'];
 export const CRM_LOST_REASONS = ['Achou caro', 'Comprou em outro lugar', 'Parou de responder', 'Sem estoque', 'Desistiu'];
 // Quadros: cada tipo de negócio tem o seu CRM, com os nomes das etapas do jeito que ele trabalha.
 // As chaves das etapas são as mesmas; só o nome muda.
@@ -178,7 +180,15 @@ const SEED = [
 ];
 
 const KEY = 'realys.crm.v3';
-let leads = SEED;
+// Campos que todo atendimento tem (os salvos em versões antigas ganham os que faltam).
+const normLead = (l) => ({ cycle: 1, qual: {}, tasks: [], owner: null, ...l });
+// Atendimento direcionado: escolhe o funcionário que recebe o cliente novo (src/team.js).
+const ownerFor = (board, origin) => {
+  const openBy = {};
+  leads.forEach((l) => l.owner && (l.board || 'empresa') === board && l.stage !== 'fechado' && l.stage !== 'perdido' && (openBy[l.owner] = (openBy[l.owner] || 0) + 1));
+  return pickOwner(origin, openBy);
+};
+let leads = SEED.map(normLead);
 let loaded = false;
 const subs = new Set();
 const emit = () => subs.forEach((fn) => fn());
@@ -199,7 +209,7 @@ export function useCrm(board = 'empresa') {
       AsyncStorage.getItem(KEY)
         .then((raw) => {
           if (raw) {
-            leads = JSON.parse(raw);
+            leads = JSON.parse(raw).map(normLead);
             emit();
           }
         })
@@ -211,8 +221,21 @@ export function useCrm(board = 'empresa') {
 }
 
 // Muda de etapa e registra a data na linha do tempo.
+// Ao fechar, o Re@lys registra o fechamento e a parte dele (crmFee): é assim que a plataforma ganha
+// por negócio fechado.
 export function crmMove(id, stage, extra = {}) {
-  patch(id, (l) => (l.stage === stage ? l : { ...l, ...extra, stage, lostReason: stage === 'perdido' ? extra.lostReason || l.lostReason : null, history: [...l.history, { stage, at: Date.now() }] }));
+  patch(id, (l) =>
+    l.stage === stage
+      ? l
+      : {
+          ...l,
+          ...extra,
+          stage,
+          lostReason: stage === 'perdido' ? extra.lostReason || l.lostReason : null,
+          closing: stage === 'fechado' ? { at: Date.now(), value: l.value || 0, ...crmFee(l.board, l.value), paid: false } : stage === 'perdido' ? l.closing : null,
+          history: [...l.history, { stage, at: Date.now(), cycle: l.cycle || 1 }],
+        }
+  );
 }
 export function crmSend(id, text) {
   const at = Date.now();
@@ -226,9 +249,14 @@ export function crmSend(id, text) {
 }
 export const crmRead = (id) => patch(id, (l) => (l.unread ? { ...l, unread: 0 } : l));
 export const crmUpdate = (id, data) => patch(id, (l) => ({ ...l, ...data }));
+// Passa o atendimento para outro funcionário (fica registrado na conversa).
+export function crmAssign(id, ownerId, ownerName) {
+  const at = Date.now();
+  patch(id, (l) => ({ ...l, owner: ownerId, messages: [...l.messages, { from: 'system', text: ownerId ? `Atendimento passado para ${ownerName}.` : 'Atendimento sem responsável.', at, time: hhmm(at) }] }));
+}
 export function crmAdd({ client, interest, value, origin, board = 'empresa' }) {
   const at = Date.now();
-  const lead = { board, id: 'l' + at, client, origin: origin || 'Indicação', interest, value: value || 0, stage: 'novo', unread: 0, note: '', followUp: null, history: [{ stage: 'novo', at }], messages: [] };
+  const lead = { owner: ownerFor(board, origin || 'Indicação'), board, id: 'l' + at, client, origin: origin || 'Indicação', interest, value: value || 0, stage: 'novo', unread: 0, note: '', followUp: null, cycle: 1, qual: {}, tasks: [], history: [{ stage: 'novo', at, cycle: 1 }], messages: [] };
   leads = [lead, ...leads];
   save();
   emit();
@@ -236,6 +264,207 @@ export function crmAdd({ client, interest, value, origin, board = 'empresa' }) {
 }
 export function crmRemove(id) {
   leads = leads.filter((l) => l.id !== id);
+  save();
+  emit();
+}
+
+// ---------- Fechamento acompanhado pelo Re@lys ----------
+// Todo negócio fechado pelo CRM é registrado na plataforma, e o Re@lys recebe a parte dele sobre o
+// valor fechado: lojas pagam a comissão de venda; prestadores, aulas e atendimento online pagam a
+// taxa de serviço. Imóveis e veículos já pagam por plano ou por conversa liberada (sem taxa no fechamento).
+export const CRM_FEE_PCT = { empresa: ORDER_FEE_PCT, prestador: SERVICE_FEE_PCT, aulas: SERVICE_FEE_PCT, online: SERVICE_FEE_PCT, imoveis: 0, veiculos: 0 };
+const r2 = (n) => Math.round(n * 100) / 100;
+export function crmFee(board, value) {
+  const pct = CRM_FEE_PCT[board || 'empresa'] || 0;
+  const fee = r2(((value || 0) * pct) / 100);
+  return { pct, fee, net: r2((value || 0) - fee) };
+}
+// Cliente pagou pelo Re@lys: o fechamento fica quitado (na demonstração, marcado à mão).
+export const crmPaid = (id) => patch(id, (l) => (l.closing ? { ...l, closing: { ...l.closing, paid: true, paidAt: Date.now() } } : l));
+// Visão da plataforma (administrador): tudo que foi fechado pelos CRMs e quanto o Re@lys recebe.
+export function crmPlatform() {
+  const won = leads.filter((l) => l.stage === 'fechado' && l.closing);
+  const by = {};
+  won.forEach((l) => {
+    const b = l.board || 'empresa';
+    by[b] = by[b] || { count: 0, value: 0, fee: 0 };
+    by[b].count += 1;
+    by[b].value = r2(by[b].value + l.closing.value);
+    by[b].fee = r2(by[b].fee + l.closing.fee);
+  });
+  return {
+    count: won.length,
+    value: r2(won.reduce((s, l) => s + l.closing.value, 0)),
+    fee: r2(won.reduce((s, l) => s + l.closing.fee, 0)),
+    pending: r2(won.filter((l) => !l.closing.paid).reduce((s, l) => s + l.closing.fee, 0)),
+    open: leads.filter((l) => l.stage !== 'fechado' && l.stage !== 'perdido').length,
+    by,
+  };
+}
+
+// ---------- Qualificação passo a passo ----------
+// Quatro perguntas que dizem se o cliente está pronto para comprar. Valem para o ciclo atual: se o
+// cliente não fechou e volta a falar, a qualificação recomeça do zero.
+export const QUAL_STEPS = [
+  { key: 'need', label: 'Necessidade', q: 'O que o cliente precisa?', ph: 'Ex.: 20 cestas para sexta' },
+  { key: 'budget', label: 'Orçamento', q: 'Quanto pode ou pretende gastar?', ph: 'Ex.: até R$ 500' },
+  { key: 'deadline', label: 'Prazo', q: 'Para quando precisa?', ph: 'Ex.: esta semana' },
+  { key: 'decider', label: 'Decisão', q: 'É essa pessoa que decide a compra?', ph: 'Ex.: sim, é a dona' },
+];
+export const qualDone = (l) => QUAL_STEPS.filter((s) => l.qual && l.qual[s.key] && l.qual[s.key].done).length;
+export const crmQual = (id, key, data) => patch(id, (l) => ({ ...l, qual: { ...(l.qual || {}), [key]: { ...((l.qual || {})[key] || {}), ...data } } }));
+// Temperatura: junta a qualificação com o quanto o atendimento está parado.
+export function crmTemp(l, at = Date.now()) {
+  if (l.stage === 'fechado' || l.stage === 'perdido') return null;
+  const last = l.history[l.history.length - 1];
+  const idleH = (at - (last ? last.at : at)) / 3600000;
+  const q = qualDone(l);
+  const score = q + (l.unread ? 1 : 0) + (stageIndex(l.stage) >= 2 ? 1 : 0) - (idleH > 72 ? 2 : idleH > 24 ? 1 : 0);
+  return score >= 4 ? { key: 'quente', label: 'Quente', color: '#D9480F' } : score >= 2 ? { key: 'morno', label: 'Morno', color: '#B8860B' } : { key: 'frio', label: 'Frio', color: '#5B7C99' };
+}
+
+// ---------- Tarefas (próxima ação) ----------
+export const crmTaskAdd = (id, text, days = 0) => patch(id, (l) => ({ ...l, tasks: [...(l.tasks || []), { id: 't' + Date.now(), text, due: Date.now() + days * 86400000, done: false }] }));
+export const crmTaskToggle = (id, tid) => patch(id, (l) => ({ ...l, tasks: (l.tasks || []).map((t) => (t.id === tid ? { ...t, done: !t.done } : t)) }));
+export const crmTaskRemove = (id, tid) => patch(id, (l) => ({ ...l, tasks: (l.tasks || []).filter((t) => t.id !== tid) }));
+
+// ---------- Mensagem do cliente ----------
+// Chegou mensagem do cliente. Se o atendimento estava em "Não fechou", ele recomeça do início:
+// volta para "Novo contato", abre um ciclo novo e a qualificação é refeita passo a passo.
+export function crmReceive(id, text) {
+  const at = Date.now();
+  patch(id, (l) => {
+    const base = { ...l, unread: (l.unread || 0) + 1, messages: [...l.messages, msg('them', text, at)] };
+    if (l.stage !== 'perdido') return base;
+    const cycle = (l.cycle || 1) + 1;
+    return {
+      ...base,
+      stage: 'novo',
+      cycle,
+      qual: {},
+      lostReason: null,
+      lastLost: l.lostReason || null,
+      followUp: null,
+      tasks: (l.tasks || []).filter((t) => t.done),
+      history: [...l.history, { stage: 'novo', at, cycle, restart: true }],
+      messages: [...base.messages, { from: 'system', text: `O cliente voltou a falar. O atendimento recomeçou do início (${cycle}ª vez): refaça a qualificação passo a passo.`, at, time: hhmm(at) }],
+    };
+  });
+}
+// Catálogo enviado na conversa (lojas): a mensagem leva os produtos escolhidos.
+export function crmSendCatalog(id, items, storeName) {
+  const at = Date.now();
+  patch(id, (l) => ({
+    ...l,
+    unread: 0,
+    messages: [...l.messages, { from: 'me', kind: 'catalog', text: `Catálogo de ${storeName}`, items, at, time: hhmm(at) }],
+    ...(l.stage === 'novo' ? { stage: 'conversa', history: [...l.history, { stage: 'conversa', at, cycle: l.cycle || 1 }] } : {}),
+  }));
+}
+// Registro de chamada (voz ou vídeo) na conversa.
+export function crmCallLog(id, kind, secs) {
+  const at = Date.now();
+  const mm = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+  patch(id, (l) => ({ ...l, messages: [...l.messages, { from: 'system', text: `${kind === 'video' ? 'Chamada de vídeo' : 'Chamada de voz'} · ${mm}`, at, time: hhmm(at) }] }));
+}
+
+// Mensagens prontas por etapa (o atendente ajusta antes de enviar).
+export const CRM_TEMPLATES = {
+  novo: ['Olá! Obrigado pelo contato. Como posso ajudar?', 'Oi! Vi a sua mensagem. Me conta o que você precisa?'],
+  conversa: ['Para quando você precisa?', 'Tem um valor em mente?', 'Posso te mandar uma proposta ainda hoje.'],
+  proposta: ['Enviei a proposta. Ficou alguma dúvida?', 'Consigo segurar esse valor até amanhã.'],
+  negociacao: ['Consigo melhorar a condição se fecharmos hoje.', 'Podemos confirmar? Assim já deixo tudo reservado.'],
+  fechado: ['Obrigado pela confiança! Qualquer coisa, é só chamar.', 'Se gostou, deixa uma avaliação? Ajuda muito.'],
+  perdido: ['Oi! Passando para saber se ainda posso ajudar.', 'Temos uma condição nova. Quer que eu te mande?'],
+};
+
+// ---------- Hoje: o que pede ação agora ----------
+export function crmToday(list, at = Date.now()) {
+  const end = new Date(at);
+  end.setHours(23, 59, 59, 999);
+  const open = list.filter((l) => l.stage !== 'fechado' && l.stage !== 'perdido');
+  const idleH = (l) => (at - (l.history[l.history.length - 1] || { at }).at) / 3600000;
+  return {
+    unread: list.filter((l) => l.unread),
+    follow: list.filter((l) => l.followUp && l.followUp <= end.getTime() && l.stage !== 'fechado'),
+    tasks: list.flatMap((l) => (l.tasks || []).filter((t) => !t.done && t.due <= end.getTime()).map((t) => ({ lead: l, task: t, late: t.due < at - 86400000 }))),
+    stalled: open.filter((l) => !l.unread && idleH(l) > 48),
+    toPay: list.filter((l) => l.stage === 'fechado' && l.closing && !l.closing.paid),
+  };
+}
+
+// ---------- Relatório ----------
+export function crmReport(list, board) {
+  const stages = crmStages(board);
+  // Quantos atendimentos chegaram a cada etapa (no ciclo atual).
+  const reached = stages.map((s, i) => list.filter((l) => l.history.some((h) => (h.cycle || 1) === (l.cycle || 1) && stageIndex(h.stage) >= i)).length);
+  const won = list.filter((l) => l.stage === 'fechado');
+  const lost = list.filter((l) => l.stage === 'perdido');
+  const closeH = won.map((l) => {
+    const cyc = l.history.filter((h) => (h.cycle || 1) === (l.cycle || 1));
+    return cyc.length ? (cyc[cyc.length - 1].at - cyc[0].at) / 3600000 : 0;
+  });
+  const reasons = {};
+  lost.forEach((l) => (reasons[l.lostReason || 'Sem motivo'] = (reasons[l.lostReason || 'Sem motivo'] || 0) + 1));
+  const origins = {};
+  list.forEach((l) => {
+    origins[l.origin] = origins[l.origin] || { total: 0, won: 0, value: 0 };
+    origins[l.origin].total += 1;
+    if (l.stage === 'fechado') {
+      origins[l.origin].won += 1;
+      origins[l.origin].value += l.value || 0;
+    }
+  });
+  return {
+    funnel: stages.map((s, i) => ({ key: s.key, label: s.short, count: reached[i], pct: reached[0] ? Math.round((reached[i] / reached[0]) * 100) : 0 })),
+    avgCloseDays: closeH.length ? Math.round((closeH.reduce((a, b) => a + b, 0) / closeH.length / 24) * 10) / 10 : null,
+    ticket: won.length ? r2(won.reduce((a, l) => a + (l.value || 0), 0) / won.length) : 0,
+    reasons: Object.entries(reasons).sort((a, b) => b[1] - a[1]),
+    origins: Object.entries(origins).sort((a, b) => b[1].total - a[1].total),
+    returned: list.filter((l) => (l.cycle || 1) > 1).length,
+    fee: r2(won.reduce((a, l) => a + ((l.closing && l.closing.fee) || crmFee(board, l.value).fee), 0)),
+  };
+}
+
+// ---------- Prestador: chamados e visitas entram sozinhos no CRM ----------
+// Pedido de visita que chega vira "Novo pedido"; visita aceita vai para "Agendado"; concluída fecha.
+// Pedido recusado vai para "Não fechou". Assim o prestador acompanha tudo num lugar só.
+export function crmSyncVisits({ requests = [], visits = [] }) {
+  const at = Date.now();
+  let changed = false;
+  const byRef = {};
+  leads.forEach((l) => l.ref && (byRef[l.ref] = l));
+  const add = [];
+  const mk = (v, stage) => ({
+    board: 'prestador', ref: v.id, id: 'lv' + v.id, client: v.client, origin: 'Chamado', interest: v.problem || v.service || 'Pedido de visita', value: v.fee || 0, stage, unread: stage === 'novo' ? 1 : 0, note: [v.address, v.when].filter(Boolean).join(' · '), followUp: null, cycle: 1, qual: {}, tasks: [],
+    history: [{ stage: 'novo', at, cycle: 1 }, ...(stage !== 'novo' ? [{ stage, at, cycle: 1 }] : [])],
+    messages: [msg('them', [v.problem, v.when && `Para ${String(v.when).toLowerCase()}`, v.address].filter(Boolean).join('. '), at)],
+    closing: stage === 'fechado' ? { at, value: v.fee || 0, ...crmFee('prestador', v.fee), paid: true } : null,
+  });
+  const target = (v) => (v.status === 'concluida' ? 'fechado' : 'negociacao');
+  requests.forEach((r) => !byRef[r.id] && add.push(mk(r, 'novo')));
+  visits.forEach((v) => !byRef[v.id] && add.push(mk(v, target(v))));
+  const liveRefs = new Set([...requests, ...visits].map((x) => x.id));
+  const next = leads.map((l) => {
+    if (!l.ref) return l;
+    const v = visits.find((x) => x.id === l.ref);
+    if (v) {
+      const tg = target(v);
+      if (l.stage !== 'perdido' && stageIndex(tg) > stageIndex(l.stage)) {
+        changed = true;
+        return { ...l, stage: tg, value: v.fee || l.value, history: [...l.history, { stage: tg, at, cycle: l.cycle || 1 }], closing: tg === 'fechado' ? { at, value: v.fee || l.value || 0, ...crmFee('prestador', v.fee || l.value), paid: true } : l.closing };
+      }
+      return l;
+    }
+    // O pedido saiu da fila sem virar visita: foi recusado.
+    if (!liveRefs.has(l.ref) && (l.stage === 'novo' || l.stage === 'conversa')) {
+      changed = true;
+      return { ...l, stage: 'perdido', lostReason: 'Pedido recusado', unread: 0, history: [...l.history, { stage: 'perdido', at, cycle: l.cycle || 1 }] };
+    }
+    return l;
+  });
+  if (!changed && !add.length) return;
+  leads = [...add, ...next];
   save();
   emit();
 }
@@ -253,6 +482,7 @@ export function crmSummary(list = leads) {
     wonValue: won.reduce((s, l) => s + (l.value || 0), 0),
     lostCount: lost.length,
     rate: done ? Math.round((won.length / done) * 100) : 0,
+    fee: r2(won.reduce((s, l) => s + ((l.closing && l.closing.fee) || 0), 0)),
     unread: list.reduce((s, l) => s + (l.unread || 0), 0),
   };
 }
@@ -269,7 +499,7 @@ export function crmIdle(l, at = Date.now()) {
 // empresa publica para atrair interessados).
 export function crmCapture({ client, text, interest, origin = 'Página', value = 0, board = 'empresa' }) {
   const at = Date.now();
-  const lead = { board, id: 'l' + at + Math.round(Math.random() * 999), client, origin, interest: interest || text || 'Pedido de orçamento', value, stage: 'novo', unread: 1, note: '', followUp: null, history: [{ stage: 'novo', at }], messages: text ? [msg('them', text, at)] : [] };
+  const lead = { owner: ownerFor(board, origin), board, id: 'l' + at + Math.round(Math.random() * 999), client, origin, interest: interest || text || 'Pedido de orçamento', value, stage: 'novo', unread: 1, note: '', followUp: null, cycle: 1, qual: {}, tasks: [], history: [{ stage: 'novo', at }], messages: text ? [msg('them', text, at)] : [] };
   leads = [lead, ...leads];
   save();
   emit();

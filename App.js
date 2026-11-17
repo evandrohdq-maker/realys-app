@@ -23,6 +23,7 @@ import ServicesScreen from './src/screens/cliente/ServicesScreen';
 import OrdersScreen from './src/screens/cliente/OrdersScreen';
 import DashboardScreen from './src/screens/empresa/DashboardScreen';
 import CrmScreen from './src/screens/empresa/CrmScreen';
+import { crmSyncVisits } from './src/crm';
 import AdminSupport from './src/screens/admin/AdminSupport';
 const CRM_PRESTADOR = ['prestador', 'aulas', 'online'];
 const CrmPrestador = () => <CrmScreen board="prestador" boards={CRM_PRESTADOR} />;
@@ -184,6 +185,11 @@ function Shell() {
   // Conta sem biometria usa só o perfil de usuário (modo social).
   const verified = isVerified(state);
   useServerBio();
+  // Prestador: pedidos de visita e visitas aceitas entram sozinhos no CRM (aba Clientes).
+  const hasProvider = !!state.myProvider;
+  useEffect(() => {
+    if (hasProvider) crmSyncVisits({ requests: state.visitRequests, visits: state.myVisits });
+  }, [hasProvider, state.visitRequests, state.myVisits]);
   const tabs = TABS[verified ? state.activeRole : TABS.cliente ? 'cliente' : state.activeRole] || TABS[state.activeRole];
   const [tab, setTabRaw] = useState(tabs[0].key);
   // Caminho percorrido (para o botão voltar do celular): [{ role, tab }]
