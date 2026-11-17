@@ -334,13 +334,16 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
               );
             })}
           </View>
-          {/* Subclasses: o tipo de lugar */}
+          {/* Subclasses: o tipo de lugar. Mesmo modelo dos botões do app: sem fundo, ícone em cima,
+              nome embaixo, e dourado quando escolhido (com um tracinho embaixo). */}
           <View style={styles.tipos}>
             {FOOD_TIPOS.map((t) => {
               const on = cat === t.key;
               return (
-                <TouchableOpacity key={t.key} style={[styles.tipo, on && styles.tipoOn]} onPress={() => setCat(t.key)} activeOpacity={0.85} accessibilityLabel={t.label}>
+                <TouchableOpacity key={t.key} style={styles.tipo} onPress={() => setCat(t.key)} activeOpacity={0.7} accessibilityLabel={t.label}>
+                  <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={22} color={on ? colors.primary : colors.menu} />
                   <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.tipoText, on && styles.tipoTextOn]}>{t.label}</Text>
+                  <View style={[styles.tipoBar, on && styles.tipoBarOn]} />
                 </TouchableOpacity>
               );
             })}
@@ -560,11 +563,12 @@ const styles = StyleSheet.create({
   modeOn: { backgroundColor: colors.gold, borderColor: colors.gold },
   modeTitle: { color: colors.text, fontWeight: '800', fontSize: 15 },
   modeHint: { color: colors.menu, fontSize: 11, marginTop: 1 },
-  tipos: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 6 },
-  tipo: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 16, backgroundColor: colors.cardAlt, marginRight: 6, marginBottom: 6 },
-  tipoOn: { backgroundColor: colors.text },
-  tipoText: { color: colors.menu, fontWeight: '700', fontSize: 12.5 },
-  tipoTextOn: { color: '#FFFFFF' },
+  tipos: { flexDirection: 'row', marginBottom: 8, marginTop: 2 },
+  tipo: { flex: 1, alignItems: 'center', paddingTop: 4, paddingHorizontal: 2 },
+  tipoText: { color: colors.menu, fontWeight: '700', fontSize: 12, marginTop: 3 },
+  tipoTextOn: { color: colors.primary, fontWeight: '800' },
+  tipoBar: { width: 18, height: 3, borderRadius: 2, marginTop: 5, backgroundColor: 'transparent' },
+  tipoBarOn: { backgroundColor: colors.primary },
   reserveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 14, paddingVertical: 11, paddingHorizontal: 12, marginBottom: 10 },
   reserveText: { color: colors.text, fontWeight: '800', marginLeft: 8 },
   pageBtn: { borderWidth: 1, borderColor: colors.primary, borderRadius: 12, padding: 10, marginBottom: 10, backgroundColor: colors.primaryLight },

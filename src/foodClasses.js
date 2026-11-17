@@ -162,10 +162,10 @@ export const FOOD_MODES = [
   { key: 'reservas', label: 'Reservas', icon: 'calendar-outline', hint: 'Garanta a sua mesa', color: '#7A5806' },
 ];
 export const FOOD_TIPOS = [
-  { key: 'todos', label: 'Tudo' },
-  { key: 'restaurantes', label: 'Restaurantes', cats: ['Alimentação'] },
-  { key: 'bares', label: 'Bares', cats: ['Bares'] },
-  { key: 'doces', label: 'Doces e cafés', cats: ['Doces e cafés'] },
+  { key: 'todos', label: 'Tudo', icon: 'flame-outline' },
+  { key: 'restaurantes', label: 'Pratos', icon: 'restaurant-outline', cats: ['Alimentação'] },
+  { key: 'bares', label: 'Bar & Drinks', icon: 'beer-outline', cats: ['Bares'] },
+  { key: 'doces', label: 'Café & Doces', icon: 'cafe-outline', cats: ['Doces e cafés'] },
 ];
 
 // Modos de um produto: os que a loja marcou no cadastro ou os calculados pelo nome.
