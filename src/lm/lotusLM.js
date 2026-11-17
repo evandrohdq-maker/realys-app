@@ -196,5 +196,13 @@ export function understand(text, { min = 0.64, gap = 0.03 } = {}) {
   return { intent: a.intent, score: a.score, margin, ranking: scored.slice(0, 3) };
 }
 
+// Para a base de conhecimento (src/lm/realysKnowledge.js): codifica uma frase uma vez e compara
+// depois com a mesma nota de parecença usada nas intenções.
+export function encode(text) {
+  const v = sentenceVector(text);
+  return v ? { v, w: wordVectors(text) } : null;
+}
+export const likeness = (q, e) => (q && e && e.w.length ? similarity(q, e) : 0);
+
 // Para os testes e para o administrador: as 3 intenções mais parecidas, com a nota.
 export const explain = (text) => rank(text).slice(0, 3).map((x) => ({ key: x.key, score: x.score }));

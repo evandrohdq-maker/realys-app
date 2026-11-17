@@ -32,6 +32,7 @@ import { confirmCall } from '../phone';
 import { findNavigation, navReply } from '../voiceNav';
 import { understand } from '../lm/lotusLM';
 import { knowledgeAnswer } from '../lm/knowledge';
+import { askRealys, looksLikeRealysQuestion } from '../lm/realysKnowledge';
 import { openAction, isPartyQuery, hasPartyCue, partyReply, findProfile, pickOption, openReply, askReply, toResult } from '../voiceIntents';
 import { withSystemDialog, systemDialogOpen } from '../systemDialog';
 import { onDeviceOptions, noteVoiceError, isNetError, worksOffline } from '../offlineVoice';
@@ -489,7 +490,15 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   // Conhecimento da Lotus (o que empresas e clientes publicaram): preços, comparação, opinião dos
   // clientes e informação falsa. "Quanto custa um eletricista?", "o que falam da Pizzaria?",
   // "é verdade que a gasolina vai a R$ 15?". Só responde: nunca compra, vende ou age sozinha.
-  const known = knowledgeAnswer(state, stripWake(text));
+  // Dúvida sobre o próprio Re@lys (taxas, garantia, saque, biometria, Date, termos...): responde pela
+  // base de conhecimento, com os dados da conta. Só quando a pergunta é claramente sobre o app;
+  // "quanto custa um eletricista?" continua indo para os preços do mercado logo abaixo.
+  const ask = stripWake(text);
+  if ((looksLikeRealysQuestion(ask) || /\?\s*$/.test(String(text))) && REALYS_CUE.test(norm(text))) {
+    const kb = askRealys(ask, state);
+    if (kb && kb.reply && kb.confident && kb.score >= 0.7) return { reply: kb.reply, voice: kb.voice, kb: true };
+  }
+  const known = knowledgeAnswer(state, ask);
   if (known) return withCartOffer(known, state);
 
   // Perfil de alguém: "abre o perfil da Ana", "página da Pizzaria da Praça".
@@ -609,6 +618,11 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   }
   const { results, tokens, label } = found;
   if (results.length || found.category) return withCartOffer({ reply: contentReply(results, label, found), results }, state);
+  // Não achou nada no app: talvez seja uma dúvida sobre o Re@lys ("e se eu não embarcar a tempo?").
+  if (!depth) {
+    const kb = askRealys(stripWake(text), state);
+    if (kb && kb.reply && kb.score >= 0.6) return { reply: kb.reply, voice: kb.voice, kb: true };
+  }
   if (tokens.length) return { miss: true, reply: contentReply([], label) };
   return {
     miss: true,
@@ -616,6 +630,9 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
       'Desculpe, ainda não entendi. Você pode pedir para eu abrir qualquer página, como "me leva pro Agro", procurar hotéis, lojas ou cursos, chamar um prestador, ou ver pedidos, vendas e estoque.',
   };
 }
+
+// Palavras que mostram que a dúvida é sobre o próprio Re@lys (e não sobre um produto ou prestador).
+const REALYS_CUE = /\b(realys|app|aplicativo|plataforma|taxa|taxas|cobra|cobram|comiss|garantia|biometria|reconhecimento|rosto|saque|sacar|saco|saca|grana|dinheiro|saldo|carteira|pix|ponto|pontos|reembolso|estorno|devolu|conta|senha|termo|regra|plano|mensalidade|assinatura|anunciar|anuncio|vender|desapego|date|lotus|ouvindo|escuta|microfone|suporte|chamado|atendente|qr|gorjeta|presente|live|streamer|boost|pagina|menor|idade|seguro|golpe|fake|privacidade|dados|atualiza|contrato|prestador|motorista|embarc|espera|loja)/;
 
 // Entre as opções que o celular ouviu, prefere a que é um pedido de navegação
 // ("histories" na 1ª opção, "stories" na 2ª → vai para os Stories).
@@ -1206,7 +1223,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     setPending(res.pending || null);
     if (res.needFace) setFaceAsk(res.needFace);
     setHistory((h) => [{ at: Date.now(), q: cmd, ...res }, ...h]);
-    say(res, splitSentences(forSpeech(res.reply)), 0);
+    say(res, splitSentences(forSpeech(res.voice || res.reply)), 0);
   };
 
   // Microfone pelo diálogo do Google: só se o reconhecimento dentro do app não existir no celular.

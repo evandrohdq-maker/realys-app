@@ -30,11 +30,13 @@ export default function SupportCenter({ visible, onClose }) {
   const [ticketId, setTicketId] = useState(null);
   const ticket = mine.find((t) => t.id === ticketId) || null;
 
-  const ask = () => {
-    const t = q.trim();
+  const ask = (text) => {
+    const t = String(typeof text === 'string' ? text : q).trim();
     if (!t) return;
-    setAsked({ text: t, faq: lotusAnswer(t) });
-    setTopic(guessTopic(t));
+    const r = lotusAnswer(t, state.user ? state : null);
+    setQ(t);
+    setAsked({ text: t, faq: r && r.a ? r : null, suggestions: (r && r.suggestions) || [] });
+    setTopic((r && r.topic) || guessTopic(t));
   };
   const reset = () => {
     setAsked(null);
@@ -75,7 +77,7 @@ export default function SupportCenter({ visible, onClose }) {
               {!asked ? (
                 <>
                   <TextInput value={q} onChangeText={setQ} placeholder={guest ? 'Diga o seu nome, o seu usuário e o que aconteceu' : 'Escreva a sua dúvida ou o que aconteceu'} placeholderTextColor={colors.muted} multiline maxLength={400} style={st.input} />
-                  <TouchableOpacity style={[st.btn, !q.trim() && { opacity: 0.5 }]} onPress={ask} disabled={!q.trim()} accessibilityLabel="Enviar dúvida">
+                  <TouchableOpacity style={[st.btn, !q.trim() && { opacity: 0.5 }]} onPress={() => ask()} disabled={!q.trim()} accessibilityLabel="Enviar dúvida">
                     <Text numberOfLines={1} style={st.btnText}>Enviar</Text>
                   </TouchableOpacity>
                 </>
@@ -88,6 +90,19 @@ export default function SupportCenter({ visible, onClose }) {
                     <Text style={st.who}>Lotus</Text>
                     <Text style={{ color: colors.text, lineHeight: 20 }}>{asked.faq ? asked.faq.a : 'Essa eu prefiro passar para a equipe, para você ter a resposta certa. É só confirmar o assunto abaixo.'}</Text>
                   </View>
+                  {/* Perguntas parecidas: tocar pergunta de novo para a Lotus. */}
+                  {asked.suggestions && asked.suggestions.length ? (
+                    <>
+                      <Text style={st.label}>{asked.faq ? 'Também pode te ajudar:' : 'Não tenho certeza do que você quis dizer. Seria uma destas?'}</Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                        {asked.suggestions.map((sg) => (
+                          <TouchableOpacity key={sg} style={st.chip} onPress={() => ask(sg)} accessibilityLabel={sg}>
+                            <Text numberOfLines={1} style={st.chipText}>{sg}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </>
+                  ) : null}
                   {asked.faq ? (
                     <TouchableOpacity style={st.btnGhost} onPress={reset} accessibilityLabel="Resolveu">
                       <Ionicons name="checkmark-circle-outline" size={17} color={colors.text} />

@@ -19,25 +19,20 @@ export const SUPPORT_TOPICS = [
 export const topicOf = (key) => SUPPORT_TOPICS.find((t) => t.key === key) || SUPPORT_TOPICS[SUPPORT_TOPICS.length - 1];
 export const STATUS_LABEL = { aberto: 'Aguardando a equipe', respondido: 'Respondido', resolvido: 'Resolvido' };
 
-// Perguntas frequentes. keys: palavras que a Lotus procura na dúvida da pessoa.
-export const FAQ = [
-  { id: 'f1', topic: 'biometria', q: 'Por que preciso cadastrar a biometria?', a: 'A biometria confirma que cada conta é de uma pessoa de verdade. Sem ela você navega e interage, mas não compra nem contrata. Para cadastrar, vá em Perfil e toque em "Conta no modo social".', keys: ['biometria', 'rosto', 'digital', 'facial', 'modo social', 'verificar', 'verificacao'] },
-  { id: 'f2', topic: 'pagamento', q: 'Como coloco saldo na carteira?', a: 'Vá em Perfil › Carteira › Depositar, escolha o valor e pague pelo Pix. O saldo entra assim que o pagamento é confirmado.', keys: ['depositar', 'deposito', 'saldo', 'pix', 'colocar dinheiro', 'recarga', 'carteira'] },
-  { id: 'f3', topic: 'pagamento', q: 'Como saco o meu dinheiro?', a: 'Em Perfil › Carteira › Sacar. O valor vai por Pix para uma conta no seu CPF ou CNPJ. Créditos de presente não podem ser sacados: servem para comprar no Re@lys.', keys: ['sacar', 'saque', 'retirar', 'transferir', 'receber dinheiro'] },
-  { id: 'f4', topic: 'pedido', q: 'Meu pedido não chegou. O que eu faço?', a: 'Abra Pedidos e toque no pedido para acompanhar a entrega e falar com a loja. Se passou do prazo e ninguém respondeu, abra um chamado aqui: o pagamento fica protegido até a entrega ser confirmada.', keys: ['pedido', 'entrega', 'nao chegou', 'atrasado', 'atraso', 'entregador', 'compra'] },
-  { id: 'f5', topic: 'pedido', q: 'Como peço reembolso?', a: 'Em Pedidos, abra a compra e toque em "Tive um problema". A loja tem prazo para responder. Se não houver acordo, o Re@lys analisa e devolve o valor para a sua carteira quando for o caso.', keys: ['reembolso', 'devolver', 'devolucao', 'estorno', 'dinheiro de volta', 'cancelar pedido', 'cancelar'] },
-  { id: 'f6', topic: 'servico', q: 'O prestador não apareceu. E agora?', a: 'A taxa de visita fica reservada e só é liberada quando a visita acontece. Se o prestador não veio, abra o chamado em Pedidos › Aguardando ou Serviços e o valor volta para a sua carteira.', keys: ['prestador', 'nao veio', 'nao apareceu', 'visita', 'servico', 'taxa de visita', 'eletricista', 'encanador'] },
-  { id: 'f7', topic: 'conta', q: 'Problema com a senha ou com o acesso', a: 'Confira se o usuário e a senha estão certos (maiúsculas e minúsculas contam). Se não lembra a senha, ou se o celular foi trocado ou roubado, abra um chamado de Conta e acesso dizendo o seu nome e o seu usuário: a equipe confirma a sua identidade pela biometria antes de liberar. Dá para abrir o chamado pela tela de entrada, sem estar na conta.', keys: ['senha', 'entrar', 'login', 'acesso', 'esqueci', 'bloqueada', 'bloqueado', 'celular roubado', 'trocar celular'] },
-  { id: 'f8', topic: 'loja', q: 'Quanto a loja paga para vender no Re@lys?', a: 'A loja paga 10% sobre cada venda. O plano da loja (R$ 49,90 por mês, ou anual por 75% do valor) só começa quando ela aceita o primeiro pedido, e o primeiro mês é gratuito.', keys: ['taxa', 'comissao', 'plano', 'mensalidade', 'loja', 'vender', '49', 'quanto custa'] },
-  { id: 'f9', topic: 'loja', q: 'Como anuncio no Re@lys?', a: 'Empresa: no Painel, cartão Divulgação. Usuário: em Negócios, toque em Anunciar. Os espaços de publicidade têm preço fechado e você contrata direto no app.', keys: ['anunciar', 'anuncio', 'propaganda', 'publicidade', 'divulgar', 'divulgacao'] },
-  { id: 'f10', topic: 'app', q: 'O app está travando ou com erro', a: 'Feche o Re@lys e abra de novo: ele se atualiza sozinho ao abrir, com internet. Se continuar, abra um chamado dizendo em qual tela acontece. Isso ajuda a equipe a corrigir rápido.', keys: ['travando', 'travou', 'erro', 'bug', 'lento', 'fechando', 'nao abre', 'atualizar', 'atualizacao'] },
-  { id: 'f11', topic: 'conta', q: 'Como apago a minha conta e os meus dados?', a: 'Abra um chamado de Conta e acesso pedindo a exclusão. A equipe confirma a sua identidade e apaga a conta e a biometria, guardando só o que a lei obriga.', keys: ['apagar conta', 'excluir conta', 'deletar', 'meus dados', 'lgpd', 'privacidade', 'excluir'] },
-  { id: 'f12', topic: 'outro', q: 'Sofri um golpe ou fui ofendido por alguém', a: 'Toque em Denunciar no perfil ou na mensagem da pessoa. Em caso de perigo, use o SOS no Perfil. Abra também um chamado aqui contando o que houve: como toda conta tem dono identificado, a equipe consegue agir.', keys: ['golpe', 'fraude', 'ofensa', 'assedio', 'ameaca', 'denunciar', 'denuncia', 'enganado'] },
-];
+// Perguntas frequentes: src/supportFaq.js (a Lotus também usa).
+import { FAQ } from './supportFaq';
+import { askRealys } from './lm/realysKnowledge';
+export { FAQ };
+
 
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 // A Lotus procura a pergunta frequente que mais combina com a dúvida. Sem combinação boa, devolve null.
-export function lotusAnswer(text) {
+// A Lotus responde pelo conhecimento do Re@lys (src/lm/realysKnowledge.js): entende pelo sentido,
+// usa as regras e taxas do app, o Termo de Adesão e os dados da própria conta (saldo, pedidos...).
+// Sem resposta boa, cai nas perguntas frequentes por palavra-chave.
+export function lotusAnswer(text, state) {
+  const r = askRealys(text, state);
+  if (r && r.reply) return { q: text, a: r.reply, topic: r.topic, confident: r.confident, suggestions: r.suggestions, go: r.go };
   const t = norm(text);
   let best = null;
   let score = 0;
@@ -48,12 +43,13 @@ export function lotusAnswer(text) {
       best = f;
     }
   });
-  return score >= 1 ? best : null;
+  if (score >= 1) return { ...best, suggestions: [] };
+  return r && r.suggestions && r.suggestions.length ? { a: null, suggestions: r.suggestions } : null;
 }
 // Pelo texto, adivinha o assunto do chamado (a pessoa pode trocar).
 export function guessTopic(text) {
   const f = lotusAnswer(text);
-  return f ? f.topic : 'outro';
+  return f && f.topic ? f.topic : 'outro';
 }
 
 const hhmm = (t) => new Date(t).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
