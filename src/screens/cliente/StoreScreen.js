@@ -123,11 +123,13 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
   // Ordem da busca: patrocinadas primeiro, depois recomendadas, depois por nota.
   const rankedStores = useMemo(() => {
     const term = q.trim().toLowerCase();
-    const foodCats = food ? (FOOD_TIPOS.find((f) => f.key === cat) || {}).cats : null;
+    // Atalho escolhido no Food: lojas que têm produto das classes dele.
+    const tipoCls = food ? (FOOD_TIPOS.find((f) => f.key === cat) || {}).cls : null;
+    const inTipo = (s) => !tipoCls || tipoCls.some((k) => (foodIndex.lojas.get(k) || new Set()).has(s.id));
     return state.stores
       .filter((s) =>
         food
-          ? isFoodStore(s) && (!foodCats || foodCats.includes(s.category)) && (term || !isMarket(s)) && (term || storeInMode(mode, s, foodIndex.porLoja.get(s.id) || [])) && (!chaveFood || (foodIndex.lojas.get(chaveFood) || new Set()).has(s.id))
+          ? isFoodStore(s) && inTipo(s) && (term || !isMarket(s)) && (term || storeInMode(mode, s, foodIndex.porLoja.get(s.id) || [])) && (!chaveFood || (foodIndex.lojas.get(chaveFood) || new Set()).has(s.id))
           : !isFoodStore(s) && (cat === 'Todos' || s.category === cat)
       )
       .filter(
@@ -336,7 +338,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
           </View>
           {/* Subclasses: o tipo de lugar. Mesmo modelo dos botões do app: sem fundo, ícone em cima,
               nome embaixo, e dourado quando escolhido (com um tracinho embaixo). */}
-          <View style={styles.tipos}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={styles.tipos}>
             {FOOD_TIPOS.map((t) => {
               const on = cat === t.key;
               return (
@@ -347,7 +349,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
                 </TouchableOpacity>
               );
             })}
-          </View>
+          </ScrollView>
           <FoodClassPicker selected={foodCls} counts={foodIndex.counts} onPick={setFoodCls} title={FOOD_COPY[mode].title} hint={FOOD_COPY[mode].hint} />
         </>
       ) : null}
@@ -563,8 +565,8 @@ const styles = StyleSheet.create({
   modeOn: { backgroundColor: colors.gold, borderColor: colors.gold },
   modeTitle: { color: colors.text, fontWeight: '800', fontSize: 15 },
   modeHint: { color: colors.menu, fontSize: 11, marginTop: 1 },
-  tipos: { flexDirection: 'row', marginBottom: 8, marginTop: 2 },
-  tipo: { flex: 1, alignItems: 'center', paddingTop: 4, paddingHorizontal: 2 },
+  tipos: { paddingHorizontal: 12, marginBottom: 8, marginTop: 2 },
+  tipo: { width: 74, alignItems: 'center', paddingTop: 4, paddingHorizontal: 2 },
   tipoText: { color: colors.menu, fontWeight: '700', fontSize: 12, marginTop: 3 },
   tipoTextOn: { color: colors.primary, fontWeight: '800' },
   tipoBar: { width: 18, height: 3, borderRadius: 2, marginTop: 5, backgroundColor: 'transparent' },

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, TouchableOpacity, StyleSheet, Platform, Alert, BackHandler, ToastAndroid, ActivityIndicator, Image } from 'react-native';
-import { Text } from './src/responsive';
+import { Text, setTextBoost, BIG_TEXT_KEY } from './src/responsive';
 import { BackProvider, createBackStack } from './src/back';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -710,7 +711,15 @@ function Shell() {
 }
 
 function Root() {
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
+  // Modo acessível (letras maiores): lido do celular ao abrir; vale antes de desenhar as telas.
+  useEffect(() => {
+    AsyncStorage.getItem(BIG_TEXT_KEY)
+      .then((v) => v === '1' && dispatch({ type: 'SET_BIG_TEXT', on: true }))
+      .catch(() => {});
+  }, []);
+  setTextBoost(!!state.bigText);
+  const tk = state.bigText ? ':big' : '';
   return (
     <>
       <StatusBar style="dark" />
@@ -720,9 +729,9 @@ function Root() {
           <ActivityIndicator color={colors.primary} />
         </View>
       ) : state.user ? (
-        <Shell key={state.user.name} />
+        <Shell key={state.user.name + tk} />
       ) : (
-        <LoginScreen />
+        <LoginScreen key={'login' + tk} />
       )}
       <UpdateChecker />
     </>

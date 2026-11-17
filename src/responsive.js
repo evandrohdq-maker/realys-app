@@ -32,13 +32,20 @@ export const calm = (size) => (size > 16 ? 16 + (size - 16) * 0.5 : size);
 // Só figurinha ou ícone em forma de texto (sem letra nem número): o tamanho é do desenho, não mexe.
 const isSymbolOnly = (children) => typeof children === 'string' && children.length <= 8 && !/[0-9A-Za-zÀ-ÿ]/.test(children);
 
+// Modo acessível (Perfil › Letras maiores): aumenta todo o texto do app, para quem enxerga pouco.
+let BOOST = 1;
+export const TEXT_BOOST = 1.18;
+export const BIG_TEXT_KEY = 'realys.bigtext'; // guardado no celular
+export const setTextBoost = (on) => (BOOST = on ? TEXT_BOOST : 1);
+export const textBoost = () => BOOST;
+
 function fit(style, children) {
-  const k = narrowScale();
+  const k = narrowScale() * BOOST;
   const flat = StyleSheet.flatten(style) || {};
   const base = flat.fontSize || 14;
   const symbol = isSymbolOnly(children);
   let size = symbol ? base : calm(base);
-  if (k !== 1) size = base <= MIN_FONT ? size : Math.max(MIN_FONT, size * k);
+  if (k !== 1) size = base <= MIN_FONT && BOOST === 1 ? size : Math.max(MIN_FONT, size * k);
   size = round(size);
   if (size === base) return style;
   const out = { fontSize: size };

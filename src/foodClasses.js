@@ -162,10 +162,16 @@ export const FOOD_MODES = [
   { key: 'reservas', label: 'Reservas', icon: 'calendar-outline', hint: 'Garanta a sua mesa', color: '#7A5806' },
 ];
 export const FOOD_TIPOS = [
+  // Atalhos do Food. cls: as classes de comida que entram (a loja aparece se tiver produto delas).
   { key: 'todos', label: 'Tudo', icon: 'flame-outline' },
-  { key: 'restaurantes', label: 'Pratos', icon: 'restaurant-outline', cats: ['Alimentação'] },
-  { key: 'bares', label: 'Bar & Drinks', icon: 'beer-outline', cats: ['Bares'] },
-  { key: 'doces', label: 'Café & Doces', icon: 'cafe-outline', cats: ['Doces e cafés'] },
+  { key: 'restaurantes', label: 'Pratos', icon: 'restaurant-outline', cls: ['pratos'] },
+  { key: 'lanches', label: 'Lanches', icon: 'fast-food-outline', cls: ['lanches'] },
+  { key: 'pizza', label: 'Pizza', icon: 'pizza-outline', cls: ['pizzaria'] },
+  { key: 'japonesa', label: 'Japonesa', icon: 'fish-outline', cls: ['japonesa'] },
+  { key: 'padaria', label: 'Padaria', icon: 'basket-outline', cls: ['padaria'] },
+  { key: 'doces', label: 'Café & Doces', icon: 'cafe-outline', cls: ['doces'] },
+  { key: 'saudavel', label: 'Saudável', icon: 'leaf-outline', cls: ['pratos:saudavel'] },
+  { key: 'bares', label: 'Bar & Drinks', icon: 'beer-outline', cls: ['bar', 'bebidas'] },
 ];
 
 // Modos de um produto: os que a loja marcou no cadastro ou os calculados pelo nome.

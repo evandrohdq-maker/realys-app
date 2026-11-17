@@ -179,7 +179,8 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
       própria carteira e emite a própria nota. Exemplo: Equipe Luz & Força (5 eletricistas).
 - [ ] Selo de Equipe no servidor: convite e aceite de cada membro, e o administrador poder retirar o selo
       se a equipe funcionar como empresa com empregados (pejotização). Confirmar as regras com um contador.
-- [ ] **Modo acessível**: letras maiores, alto contraste e modo simples para idosos em todo o app.
+- [x] **Modo acessível**: Perfil › Letras maiores (todo o texto 18% maior, guardado no celular).
+- [ ] Modo acessível: alto contraste e modo simples para idosos.
 - [ ] **Microcrédito e seguros para MEI**: só com parceiro autorizado (Banco Central / Susep).
 
 ## Notas fiscais e impostos (código pronto, desligado)
@@ -211,8 +212,8 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
       visita 15%, ingresso 8% mín. R$ 1,99 (Sympla 10% mín. R$ 2,50), plano de empresa R$ 89 acima de
       R$ 1.800 (iFood R$ 110–150), lives: criador 70% (TikTok ~50%), antecipado 63%. Proteção R$ 0,99 fixa.
 - [x] Termo de Adesão v15 com as novas taxas (app e servidor).
-- [ ] Ligar no servidor: ORDER_FEE_PCT=10 e FOOD_FEE_PCT=11 quando sair da fase de testes.
-- [ ] Tela "Por que o Realys é mais barato" usando `comparativo()` de src/taxas.js.
+- [ ] Ligar no servidor: ORDER_FEE_PCT=10 e FOOD_FEE_PCT=10 quando sair da fase de testes.
+- [x] Tela "Por que o Re@lys é mais barato" (Perfil › Nossas taxas), usando `comparativo()` de src/taxas.js.
 - [ ] Rever a tabela a cada 6 meses (o mercado muda: Shopee e Mercado Livre mudaram em 2026).
 
 ## Tele grátis e verificação de entregadores (novembro de 2026)
@@ -346,6 +347,7 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
       cobrança do fechamento pelo Re@lys com desconto automático da taxa, login próprio de cada
       funcionário (hoje o perfil é criado dentro da empresa, no mesmo aparelho), permissões valendo
       por pessoa, chamada de voz real (hoje é demonstração visual) e o cliente tocar no catálogo para comprar.
-- [ ] Incluir no termo da empresa a responsabilidade pelos funcionários e a taxa por fechamento do CRM.
+- [x] Termo da empresa v3 (funcionários de atendimento, biometria, atendimento direcionado e fechamentos) e Termo de Adesão v18 (item 16-k: taxa sobre negócios fechados pelo CRM). Advogado revisar.
 - [ ] Notificação com o app fechado: precisa da biblioteca de notificações, de uma conta Firebase
       (Google) do Re@lys e do servidor enviando os avisos. Ainda não instalado.
+- [x] Food: atalhos Tudo, Pratos, Lanches, Pizza, Japonesa, Padaria, Café & Doces, Saudável e Bar & Drinks, filtrando as lojas pelos produtos de cada tipo.

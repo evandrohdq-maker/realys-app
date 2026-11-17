@@ -1,6 +1,6 @@
 // Termo de adesão do Re@lys. Aceito no primeiro acesso (cadastro). Quando o texto mudar, a versão muda,
 // e quem já aceitou é convidado a aceitar de novo.
-export const TERMO_ADESAO_VERSAO = '2026-11-adesao-v17';
+export const TERMO_ADESAO_VERSAO = '2026-11-adesao-v18';
 
 // Itens 1 a 13 tratam da conta e da biometria; 14 em diante, das regras de cada serviço, das taxas,
 // da Lotus e do conteúdo. Texto a ser revisado por advogado antes do lançamento oficial.
@@ -71,7 +71,7 @@ export const TERMO_ADESAO = {
     },
     {
       titulo: '16. Taxas do Re@lys',
-      texto: 'Todas as taxas são mostradas antes de você confirmar. (a) Pedidos de lojas: 10% sobre o valor de cada venda, no Shop e no Food, pagos pela loja, já com o pagamento online incluído; o cliente não paga a mais por isso. (b) Taxa de proteção: R$ 0,99 por pedido de produtos, paga pelo cliente, com o mesmo valor a qualquer hora. (c) Contratação de serviços: o prestador define a taxa de visita e o Re@lys fica com 15% dela; o valor final do serviço é combinado entre cliente e prestador. (d) Corridas e entregas: o Re@lys fica com 18% do valor da corrida. (e) Presentes: 10% do valor do presente. (f) Ingressos: 8% do valor de cada ingresso, no mínimo R$ 1,99, pagos pelo produtor, que pode repassar ao comprador. (g) Plano da loja: R$ 49,90 por mês ou plano anual por 75% do valor de doze mensalidades (R$ 449,10); a contratação só é pedida quando a loja aceita o primeiro pedido pelo Re@lys, e o primeiro mês é gratuito. (h) Saque de presentes, conforme o item 21. (i) Boosts, anúncios e a assinatura Date+, pelo preço mostrado na tela. (j) Serviços prestados pelo governo (SUS, UPAs, UBSs, hospitais públicos, SAMU, Bombeiros, Defesa Civil e polícia) não têm nenhuma taxa do Re@lys. O Re@lys pode rever as taxas; a mudança vale só para o que for contratado depois do aviso.',
+      texto: 'Todas as taxas são mostradas antes de você confirmar. (a) Pedidos de lojas: 10% sobre o valor de cada venda, no Shop e no Food, pagos pela loja, já com o pagamento online incluído; o cliente não paga a mais por isso. (b) Taxa de proteção: R$ 0,99 por pedido de produtos, paga pelo cliente, com o mesmo valor a qualquer hora. (c) Contratação de serviços: o prestador define a taxa de visita e o Re@lys fica com 15% dela; o valor final do serviço é combinado entre cliente e prestador. (d) Corridas e entregas: o Re@lys fica com 18% do valor da corrida. (e) Presentes: 10% do valor do presente. (f) Ingressos: 8% do valor de cada ingresso, no mínimo R$ 1,99, pagos pelo produtor, que pode repassar ao comprador. (g) Plano da loja: R$ 49,90 por mês ou plano anual por 75% do valor de doze mensalidades (R$ 449,10); a contratação só é pedida quando a loja aceita o primeiro pedido pelo Re@lys, e o primeiro mês é gratuito. (h) Saque de presentes, conforme o item 21. (i) Boosts, anúncios e a assinatura Date+, pelo preço mostrado na tela. (j) Serviços prestados pelo governo (SUS, UPAs, UBSs, hospitais públicos, SAMU, Bombeiros, Defesa Civil e polícia) não têm nenhuma taxa do Re@lys. (k) Negócios fechados pelo atendimento do Re@lys (Clientes/CRM): quando uma loja, um prestador, um professor ou um atendimento online marca o negócio como fechado, o fechamento fica registrado e o Re@lys recebe a sua taxa sobre o valor fechado, a mesma do tipo de negócio (10% para lojas; a taxa de serviço para serviços, aulas e atendimento online). Imóveis e veículos pagam por plano ou por conversa liberada, sem taxa no fechamento. O Re@lys pode rever as taxas; a mudança vale só para o que for contratado depois do aviso.',
     },
     {
       titulo: '17. Preços das corridas e faixa justa dos serviços',
@@ -146,7 +146,7 @@ export const TERMO_ADESAO = {
 
 // Termo da empresa prestadora. A empresa aceita este termo antes de colocar qualquer colaborador para prestar serviço
 // pelo Re@lys. Quando o texto mudar, a versão muda.
-export const TERMO_EMPRESA_VERSAO = '2026-11-empresa-v2';
+export const TERMO_EMPRESA_VERSAO = '2026-11-empresa-v3';
 
 export const TERMO_EMPRESA = {
   versao: TERMO_EMPRESA_VERSAO,
@@ -163,7 +163,7 @@ export const TERMO_EMPRESA = {
     },
     {
       titulo: '3. Cadastro dos colaboradores',
-      texto: 'A empresa cadastra cada colaborador com dados verdadeiros e vincula-o à sua estrutura. Só presta serviço pelo Re@lys o colaborador cadastrado e vinculado à empresa.',
+      texto: 'A empresa cadastra cada colaborador com dados verdadeiros e vincula-o à sua estrutura. Só presta serviço pelo Re@lys o colaborador cadastrado e vinculado à empresa. Isso vale também para os funcionários de atendimento (equipe do CRM): o perfil de cada um é criado pelo responsável da empresa, que escolhe a classe (função) e o que ele pode fazer, e só passa a atender depois de cadastrar a própria biometria. A empresa responde pelos atendimentos, propostas e fechamentos feitos pelos seus funcionários e deve desligar no Re@lys quem deixar a empresa.',
     },
     {
       titulo: '4. Verificação facial dos colaboradores',
@@ -188,6 +188,10 @@ export const TERMO_EMPRESA = {
     {
       titulo: '9. Suspensão',
       texto: 'O Re@lys pode suspender temporariamente um colaborador, ou a própria empresa, quando houver descumprimento deste termo, verificação facial recusada ou documentação vencida, até a regularização.',
+    },
+    {
+      titulo: '9-A. Atendimento direcionado e fechamentos',
+      texto: 'O Re@lys distribui os clientes que chamam a empresa entre os funcionários de atendimento, conforme as regras que a empresa escolher (origem do cliente, classe, disponibilidade). Cada atendimento guarda as mensagens, as etapas e a data de cada etapa. Quando a empresa marca um negócio como fechado, o fechamento fica registrado no Re@lys com o valor e a taxa prevista no Termo de Adesão. A empresa não deve combinar fora do Re@lys o pagamento de um negócio iniciado pela plataforma para evitar a taxa; se isso for constatado, o Re@lys pode cobrar a taxa devida e aplicar as medidas da seção 9.',
     },
     {
       titulo: '10. Alterações',

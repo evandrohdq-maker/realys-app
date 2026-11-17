@@ -946,6 +946,8 @@ function baseReducer(state, a) {
       return state.user ? { ...state, user: { ...state.user, verified: true }, bioGate: null } : state;
     case 'SET_UNVERIFIED': // o servidor disse que a biometria ainda não foi aprovada
       return state.user && state.user.verified !== false ? { ...state, user: { ...state.user, verified: false } } : state;
+    case 'SET_BIG_TEXT': // Perfil › Letras maiores (modo acessível)
+      return { ...state, bigText: !!a.on };
     case 'BIO_GATE':
       return { ...state, bioGate: Date.now() };
     case 'BIO_GATE_CLOSE':

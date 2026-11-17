@@ -20,6 +20,9 @@ import { PeopleSearchModal } from '../components/People';
 import { UnverifiedBanner, isVerified } from '../components/BioGate';
 import ThemeArt from '../components/ThemeArt';
 import SupportCenter from '../components/SupportCenter';
+import TaxasModal from '../components/TaxasModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BIG_TEXT_KEY } from '../responsive';
 import WalletScreen from './WalletScreen';
 import BiometriaScreen from './BiometriaScreen';
 import DemoScreen from './DemoScreen';
@@ -62,7 +65,14 @@ export default function ProfileScreen({ navigate, explore }) {
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [focus, setFocus] = useState(null); // aba aberta pelos números do topo
   const [depOpen, setDepOpen] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(false); // Ajuda e suporte // página com todos os depoimentos
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [taxasOpen, setTaxasOpen] = useState(false);
+  // Modo acessível: letras maiores no app todo (fica guardado no celular).
+  const toggleBigText = () => {
+    const on = !state.bigText;
+    AsyncStorage.setItem(BIG_TEXT_KEY, on ? '1' : '0').catch(() => {});
+    dispatch({ type: 'SET_BIG_TEXT', on });
+  }; // Ajuda e suporte // página com todos os depoimentos
   const insets = useSafeAreaInsets();
   const scrollRef = React.useRef(null);
   const socialY = React.useRef(0);
@@ -379,6 +389,8 @@ export default function ProfileScreen({ navigate, explore }) {
         </Item>
         <Item open={open} onToggle={toggle} icon="document-text-outline" title="Contratos e receitas" sub="Assinatura online e cópia para cada parte" onPress={() => dispatch({ type: 'OPEN_DOCS' })} />
         <Item open={open} onToggle={toggle} icon="headset-outline" title="Ajuda e suporte" sub="Dúvidas e chamados" onPress={() => setHelpOpen(true)} />
+        <Item open={open} onToggle={toggle} icon="text-outline" title="Letras maiores" sub={state.bigText ? 'Ligado · toque para desligar' : 'Desligado · toque para ligar'} onPress={toggleBigText} />
+        <Item open={open} onToggle={toggle} icon="pricetags-outline" title="Nossas taxas" sub="Re@lys × mercado" onPress={() => setTaxasOpen(true)} />
         <Item open={open} onToggle={toggle} icon="sparkles-outline" title="Novidades do app" sub="Demonstração do que tem de novo" onPress={() => setDemoOpen(true)} />
         <Item open={open} onToggle={toggle} icon="cloud-download-outline" title="Verificar atualizações" sub={VERSION_LABEL} onPress={() => setChecking(true)} />
         <Item open={open} onToggle={toggle} icon="people-outline" title="Trocar usuário" sub="Celular compartilhado (ex.: da empresa)" onPress={switchUser} />
@@ -400,6 +412,7 @@ export default function ProfileScreen({ navigate, explore }) {
 
       {checking ? <UpdateChecker manual onDone={() => setChecking(false)} /> : null}
       <SupportCenter visible={helpOpen} onClose={() => setHelpOpen(false)} />
+      <TaxasModal visible={taxasOpen} onClose={() => setTaxasOpen(false)} />
       <WalletScreen visible={walletOpen} onClose={() => setWalletOpen(false)} />
       <ProfileEditor visible={editing} onClose={() => setEditing(false)} />
       <ProfilePreviewModal visible={previewing} onClose={() => setPreviewing(false)} />
