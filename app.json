@@ -2,6 +2,7 @@
   "expo": {
     "name": "Re@lys",
     "slug": "realys",
+    "scheme": "realys",
     "version": "0.7.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",

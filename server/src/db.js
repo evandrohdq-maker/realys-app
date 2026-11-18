@@ -533,6 +533,21 @@ const MIGRATIONS = [
   `
   ALTER TABLE lives ADD COLUMN source TEXT NOT NULL DEFAULT 'camera';
   `,
+  // 15: convites de chamada por link (Arena): quem não tem o app baixa, se cadastra e entra na sala
+  `
+  CREATE TABLE call_invites (
+    code TEXT PRIMARY KEY,
+    host_id TEXT NOT NULL REFERENCES users(id),
+    sid TEXT NOT NULL,
+    cid TEXT NOT NULL,
+    server_name TEXT NOT NULL DEFAULT '',
+    room_name TEXT NOT NULL DEFAULT '',
+    uses INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL
+  );
+  CREATE INDEX call_invites_host ON call_invites(host_id, created_at);
+  `,
 ];
 
 export function openDb(file) {

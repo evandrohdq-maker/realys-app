@@ -351,3 +351,25 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
 - [ ] Notificação com o app fechado: precisa da biblioteca de notificações, de uma conta Firebase
       (Google) do Re@lys e do servidor enviando os avisos. Ainda não instalado.
 - [x] Food: atalhos Tudo, Pratos, Lanches, Pizza, Japonesa, Padaria, Café & Doces, Saudável e Bar & Drinks, filtrando as lojas pelos produtos de cada tipo.
+
+## Depoimentos, prévia de perfil e convite para chamada na Arena — novembro de 2026
+
+- [x] Perfil de amigo: botão "Deixar depoimento para…" logo abaixo de Mensagem e Presente.
+- [x] Depoimentos: no feed da Community, "Deixar depoimento" e "Pesquisar depoimentos" (por nome ou
+      @usuário, digitando ou por voz). Ao escrever, a escolha do contato tem pesquisa; quem ainda não é
+      amigo aparece para ver a prévia e adicionar.
+- [x] Tocar no nome ou na foto de alguém (stories, Reels, feed, depoimentos, mensagens, Arena, pesquisa):
+      se for amigo, abre o perfil completo; se não for, abre uma prévia (quem é, posts, depoimentos e o
+      botão de adicionar). Empresa abre a página da empresa.
+- [x] Arena Gamer: segurar o nome de alguém (membros, jogando agora, sala de voz) abre "Convidar para
+      chamada": chamar para a sala de voz em que você está, para outra sala ou chamada particular.
+      Também nas opções da pessoa.
+- [x] Arena: o botão de adicionar (👤+) convida amigos do Re@lys para a sala e tem "Enviar link por fora
+      do app". O link abre uma página do Re@lys (servidor › /c/CÓDIGO) com "entrar na chamada" e
+      "baixar o Re@lys" + os passos do cadastro. Depois do login ou do cadastro, o app leva direto para a
+      sala. O convite vale 24 h (servidor › routes/convites.js).
+- [ ] Depende do servidor no ar: colocar PUBLIC_URL no .env (endereço com https) para o link do convite.
+      Sem servidor, o link só funciona entre quem já tem o app.
+- [ ] Quando o domínio estiver definido: ligar os App Links do Android (o link https abrir o app direto,
+      sem passar pela página). Hoje a página tem o botão "Já tenho o Re@lys: entrar na chamada".
+- [ ] Voz real da Arena entre celulares (hoje a sala de voz e o "aceitou o convite" são demonstração).

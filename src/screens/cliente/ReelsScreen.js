@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text } from '../../responsive';
 import { ReelsFeed } from '../../components/Reels';
-import { SHOP_CLIPS, FOOD_CLIPS, MERCADO_CLIPS, SERVICE_CLIPS, NEGOCIO_CLIPS } from '../../adsData';
+import { SHOP_CLIPS, FOOD_CLIPS, MERCADO_CLIPS, SERVICE_CLIPS, NEGOCIO_CLIPS, COMMUNITY_CLIPS } from '../../adsData';
 import { useStore } from '../../store';
 
 const TABS = [
@@ -29,7 +29,7 @@ export default function ReelsScreen() {
   const food = useMemo(() => [...FOOD_CLIPS, ...MERCADO_CLIPS].map((c) => ({ ...c, kind: 'food' })), []);
   const { state } = useStore();
   const mine = state.myReels || [];
-  const reels = tab === 'shop' ? shop : tab === 'food' ? food : tab === 'servicos' ? SERVICE_CLIPS : tab === 'negocios' ? NEGOCIO_CLIPS : [...mine, ...mix(shop, food, SERVICE_CLIPS, NEGOCIO_CLIPS)];
+  const reels = tab === 'shop' ? shop : tab === 'food' ? food : tab === 'servicos' ? SERVICE_CLIPS : tab === 'negocios' ? NEGOCIO_CLIPS : [...mine, ...mix(shop, COMMUNITY_CLIPS, food, SERVICE_CLIPS, NEGOCIO_CLIPS)];
   return (
     <View style={{ flex: 1, backgroundColor: '#000' }}>
       {/* key: trocar o filtro recomeça do primeiro Reel */}

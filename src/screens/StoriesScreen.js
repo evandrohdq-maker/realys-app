@@ -14,12 +14,14 @@ import { StoryViewer, StoryComposer } from './cliente/home/Stories';
 import { CommunityHub, CommunityExtras, TopTabs, COMMUNITY_TOP, COMMUNITY_TOP_KEYS } from './cliente/home/HomeScreen';
 import { useBack } from '../back';
 import { TestimonialComposer } from '../components/SocialProfile';
+import { useOpenPerson, resolvePerson } from '../openPerson';
 
 // Página Community (botão "Community" na barra de baixo): stories e comunidade.
 // Em cima, a faixa de bolinhas como no Instagram; embaixo, a Comunidade: feed único de posts e
 // depoimentos (curtir, comentar, compartilhar), mensagens, contatos e live.
 export default function StoriesScreen({ navigate, explore, onTop }) {
   const { state, dispatch } = useStore();
+  const openPerson = useOpenPerson();
   const [view, setView] = useState(null); // { groups, start, mine }
   const [composing, setComposing] = useState(false);
   const [adding, setAdding] = useState(false); // menu do +
@@ -132,6 +134,14 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
         onSeen={(id) => id !== 'mine' && dispatch({ type: 'STORY_SEEN', id })}
         onReply={reply}
         onCta={cta}
+        // Tocar no nome de quem postou: pessoa abre por cima do story (prévia ou perfil, se for amigo);
+        // empresa fecha o story e abre a página dela.
+        onProfile={(g) => {
+          const who = { id: g.contactId, name: g.name };
+          // Empresa sem página própria no app (ex.: evento): leva para a oferta do story.
+          if (g.business && g.ctaTo && !resolvePerson(state, who).kind) return cta(g);
+          openPerson(who, { onLeave: () => setView(null) });
+        }}
       />
       <AddSheet
         visible={adding}

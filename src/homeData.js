@@ -275,8 +275,12 @@ export const stories = [
     items: [{ id: 's6a', image: storyPhoto('realys-st-balada'), caption: 'Sexta tem DJ convidado. Lista VIP pelo app!', time: 'há 4 h' }],
   },
   {
-    id: 's7', contactId: 'st-thais', name: 'Thais Personal', avatar: photo('realys-u-thais', 200, 200),
+    id: 's7', contactId: 'u20', name: 'Mariana Castro', avatar: photo('realys-u-mariana', 200, 200),
     items: [{ id: 's7a', image: storyPhoto('realys-st-treino'), caption: 'Treino de hoje concluído 💪', time: 'há 5 h' }],
+  },
+  {
+    id: 's8', contactId: 'u16', name: 'Camila Duarte', avatar: photo('realys-u-camila', 200, 200),
+    items: [{ id: 's8a', image: storyPhoto('realys-st-look'), caption: 'Look do dia pra sexta ✨', time: 'há 6 h' }],
   },
 ];
 

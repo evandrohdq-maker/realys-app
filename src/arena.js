@@ -171,3 +171,28 @@ export function arenaRoom(v) {
 }
 // Servidor do streamer: aquele em que ele é dono ou membro (para o botão da live).
 export const arenaServerOf = (name) => servers.find((s) => s.members.some((x) => x.name === name && x.role === 'dono')) || servers.find((s) => s.members.some((x) => x.name === name)) || null;
+
+// Convidado aceitou a chamada (na demonstração, alguns segundos depois do convite): entra na sala.
+// Com o servidor no ar, quem entra é a própria pessoa, pelo celular dela.
+export function arenaGuestJoins(sid, cid, name) {
+  servers = servers.map((s) => {
+    const here = s.id === sid;
+    const channels = s.channels.map((c) => (c.kind !== 'voice' ? c : { ...c, inVoice: here && c.id === cid ? [...dropMe(c.inVoice, name), name] : dropMe(c.inVoice, name) }));
+    const members = here && !s.members.some((x) => x.name === name) ? [...s.members, { name, role: 'membro', status: 'online', game: null }] : s.members;
+    return { ...s, channels, members };
+  });
+  emit();
+}
+
+// Chamada particular com uma pessoa: cria uma sala de voz só de vocês dois no servidor e eu entro nela.
+export function arenaPrivateCall(sid, me, name) {
+  const first = String(name).split(' ')[0];
+  const s = servers.find((x) => x.id === sid);
+  const existing = s && s.channels.find((c) => c.kind === 'voice' && c.privateWith === name);
+  const cid = existing ? existing.id : 'pv' + Date.now();
+  if (!existing) {
+    servers = servers.map((x) => (x.id !== sid ? x : { ...x, channels: [...x.channels, { id: cid, kind: 'voice', name: `🔒 Você e ${first}`, inVoice: [], privateWith: name }] }));
+  }
+  joinArenaVoice(sid, cid, me);
+  return cid;
+}

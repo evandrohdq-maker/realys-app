@@ -14,6 +14,8 @@ import { listings } from '../homeData';
 import { colors, brl } from '../theme';
 import { Photo, ProductThumb } from './ui';
 import { CLIP_POINTS, shortNum } from '../adsData';
+import { useOpenPerson } from '../openPerson';
+import { memberById, memberByName } from '../people';
 
 // expo-video só existe no APK novo: sem ele, os Reels mostram a capa (não fecham o app).
 let EV = null;
@@ -97,8 +99,15 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
   const prov = reel.providerId ? state.providers.find((x) => x.id === reel.providerId) : null;
   const ad = reel.listingId ? listings.find((l) => l.id === reel.listingId) : null;
   const owner = reel.user || (prov && prov.name) || (ad && ad.who) || s.name;
+  const openPerson = useOpenPerson();
+  // Reel de pessoa: foto e nome abrem a prévia do perfil (ou o perfil, se for amigo) por cima do Reel.
+  const userM = reel.user ? (reel.userId && memberById(reel.userId)) || memberByName(reel.user) : null;
+  const openUser = () => {
+    setPaused(true);
+    openPerson({ id: reel.userId, name: reel.user }, { onLeave: onClose });
+  };
   const openOwner = () => {
-    if (reel.user) return;
+    if (reel.user) return openUser();
     onClose && onClose();
     if (prov) return dispatch({ type: 'OPEN_PROVIDER', id: prov.id });
     if (ad) return dispatch({ type: 'NAV_REQUEST', go: { tab: 'bens', kind: ad.kind } });
@@ -198,9 +207,13 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
       {/* Lado direito */}
       <View style={[styles.side, { bottom: 150 + (p || prov || ad ? 0 : -60) }]}>
         {reel.user ? (
-          <View style={styles.avatar} accessibilityLabel={`Reel de ${reel.user}`}>
-            <Text style={{ fontSize: 20, fontWeight: '800', color: colors.primaryDark }}>{String(reel.user).charAt(0).toUpperCase()}</Text>
-          </View>
+          <TouchableOpacity style={styles.avatar} onPress={openUser} accessibilityLabel={`Ver perfil de ${reel.user}`}>
+            {userM && userM.photo ? (
+              <Photo uri={userM.photo} style={{ width: '100%', height: '100%', borderRadius: 999 }} fallback="🙂" />
+            ) : (
+              <Text style={{ fontSize: 20, fontWeight: '800', color: colors.primaryDark }}>{String(reel.user).charAt(0).toUpperCase()}</Text>
+            )}
+          </TouchableOpacity>
         ) : (
           <TouchableOpacity style={styles.avatar} onPress={openOwner} accessibilityLabel={`Abrir ${owner}`}>
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontSize: 22 }}>{prov ? '🛠️' : ad ? '🏷️' : s.logo || '🏪'}</Text>
@@ -230,10 +243,10 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
       {/* Embaixo: loja, título e produto */}
       <View style={styles.bottom}>
         {reel.user ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={styles.store}>{reel.user}</Text>
+          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start' }} onPress={openUser} accessibilityLabel={`Ver perfil de ${reel.user}`}>
+            <Text numberOfLines={1} style={styles.store}>{reel.user}</Text>
             <Ionicons name="shield-checkmark" size={13} color="#F5C331" style={{ marginLeft: 5 }} />
-          </View>
+          </TouchableOpacity>
         ) : (
           <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={openOwner}>
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.store}>{owner}</Text>
@@ -382,7 +395,7 @@ const styles = StyleSheet.create({
   pauseIcon: { position: 'absolute', top: '45%', alignSelf: 'center', width: 90, height: 90, borderRadius: 45, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' },
   bigHeart: { position: 'absolute', top: '38%', alignSelf: 'center' },
   side: { position: 'absolute', right: 10, alignItems: 'center' },
-  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#fff', borderWidth: 2, borderColor: '#F5C331', alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
+  avatar: { width: 46, height: 46, borderRadius: 23, overflow: 'hidden', backgroundColor: '#fff', borderWidth: 2, borderColor: '#F5C331', alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
   sideBtn: { alignItems: 'center', marginBottom: 18 },
   sideText: { color: '#fff', fontSize: 12, fontWeight: '700', marginTop: 2 },
   bottom: { position: 'absolute', left: 14, right: 74, bottom: 22 },

@@ -18,7 +18,7 @@ import { LaunchStrip } from '../../../components/Launches';
 import { SHOP_SECTORS, SHOP_SECTOR_KEYS } from '../../../shopSectorsData';
 import { askPix } from '../../../components/PixPay';
 import { useBack } from '../../../back';
-import { TestimonialCard } from '../../../components/SocialProfile';
+import { TestimonialCard, TestimonialTools } from '../../../components/SocialProfile';
 import { ShopHero, CircleShortcuts, ShopProductCard, ShopGrid, StoreRow, CategoryPicker } from '../../../components/ShopKit';
 import { SegTabs, SpotlightCarousel, ClipStrip, PromoSector } from '../../../components/AdKit';
 import { SearchBar } from '../../../components/Search';
@@ -643,6 +643,7 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
   const [openCmt, setOpenCmt] = useState(null);
   const [cmtText, setCmtText] = useState('');
   const [shared, setShared] = useState({});
+  const [depSearch, setDepSearch] = useState(false); // pesquisando nos depoimentos: o feed dá lugar aos resultados
   const ads = useMemo(() => state.posts.filter((p) => p.sponsored), [state.posts]);
   const testimonials = state.testimonials.filter((t) => t.status === 'aprovado');
   const pendingMine = state.testimonials.filter((t) => t.to === 'me' && t.status === 'pendente').length;
@@ -712,7 +713,9 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
             </View>
           ) : null}
 
-          {feed.map((it, idx) =>
+          <TestimonialTools onSearching={setDepSearch} />
+
+          {(depSearch ? [] : feed).map((it, idx) =>
             it.type === 'dep' ? (
               <TestimonialCard key={it.t.id} t={it.t} />
             ) : it.type === 'post' ? (

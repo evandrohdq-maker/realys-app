@@ -34,6 +34,11 @@ export function loadConfig(overrides = {}) {
     accessTokenMinutes: num(env.ACCESS_TOKEN_MINUTES, 60),
     sessionDays: num(env.SESSION_DAYS, 180), // "continuar conectado": o aparelho fica logado
     corsOrigin: env.CORS_ORIGIN || '*',
+    // Endereço público do Re@lys (ex.: https://api.realys.com.br). Usado nos links de convite para chamada.
+    // Vazio: o servidor usa o endereço pelo qual foi chamado.
+    publicUrl: (env.PUBLIC_URL || '').replace(/\/$/, ''),
+    // Onde baixar o APK (página de convite para quem ainda não tem o app).
+    apkUrl: env.APK_URL || 'https://github.com/evandrohdq-maker/realys-app/releases/latest',
     maxUploadMb: num(env.MAX_UPLOAD_MB, 60),
     // Fase de testes: depósito entra na hora como "depósito de teste" (sem Pix de verdade).
     // Desligado, o depósito fica pendente até o administrador confirmar.

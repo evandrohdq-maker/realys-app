@@ -14,8 +14,9 @@ import { useStore } from '../../store';
 import { colors } from '../../theme';
 import { moderateText } from '../../moderation';
 import { useBack } from '../../back';
-import { useArena, arenaPref } from '../../arena';
+import { useArena, arenaPref, joinArenaVoice } from '../../arena';
 import ArenaUserSheet from '../../components/ArenaUserSheet';
+import { CallPersonSheet, InviteSheet } from '../../components/ArenaCallInvite';
 
 const D = { bg: '#F7F5EF', rail: '#EDE8DA', card: '#FFFFFF', text: '#1B1B1F', muted: '#7A7468', gold: '#B8860B', online: '#2FB463', idle: '#E0A92B', dnd: '#E5484D' };
 const ROLE = { dono: { label: 'Dono', color: '#B8860B' }, mod: { label: 'Moderador', color: '#3B82F6' }, membro: { label: 'Membro', color: '#1B1B1F' } };
@@ -65,10 +66,22 @@ export default function ArenaScreen({ explore }) {
       setSid(explore.server);
       setCid(null);
     }
+    // Veio de um link de convite: entra direto na sala de voz.
+    if (explore && explore.tab === 'arena' && explore.voice) {
+      const s = servers.find((x) => x.id === explore.server);
+      const c = s && s.channels.find((x) => x.id === explore.voice && x.kind === 'voice');
+      if (!c) return Alert.alert('Chamada não encontrada', 'A sala desse convite foi fechada ou ainda não chegou ao seu celular. Peça um link novo para quem te chamou.');
+      joinArenaVoice(s.id, c.id, me);
+      Alert.alert('Você entrou na chamada 🎧', `${c.name} · ${s.name}${explore.host ? `\nConvite de ${explore.host}` : ''}`);
+    }
   }, [explore]);
   const [mic, setMic] = useState(true);
   const [userOpen, setUserOpen] = useState(null); // pessoa com as opções abertas (silenciar, volume, bloquear…)
   const openUser = (name) => name && name !== me && setUserOpen(name);
+  // Segurar o nome de alguém: convidar para chamada. O botão 👤+ convida amigos e manda o link por fora.
+  const [callFor, setCallFor] = useState(null);
+  const callUser = (name) => name && name !== me && setCallFor(name);
+  const [inviting, setInviting] = useState(false);
   const [deaf, setDeaf] = useState(false);
   const [members, setMembers] = useState(false);
   const [create, setCreate] = useState(null);
@@ -161,7 +174,7 @@ export default function ArenaScreen({ explore }) {
     update((s) => ({ ...s, channels: [...s.channels, newCh.kind === 'voice' ? { id: 'v' + Date.now(), kind: 'voice', name: newCh.name.trim(), inVoice: [] } : { id: 'c' + Date.now(), kind: 'text', name, msgs: [] }] }));
     setNewCh(null);
   };
-  const invite = () => Share.share({ message: `Entre no servidor ${sv.name} na Arena Gamer do Re@lys! Só gente real, verificada por biometria. 🎮` }).catch(() => {});
+  const invite = () => setInviting(true);
 
   const online = sv.members.filter((x) => x.status !== 'offline').length;
 
@@ -238,8 +251,10 @@ export default function ArenaScreen({ explore }) {
             </View>
           </TouchableOpacity>
         </Modal>
-        <MembersModal open={members} onClose={() => setMembers(false)} sv={sv} me={me} onUser={(n) => { setMembers(false); openUser(n); }} />
-        <ArenaUserSheet name={userOpen} sv={sv} me={me} myRole={myRole} onClose={() => setUserOpen(null)} onMention={(n) => setDraft((d) => `${d}${d && !d.endsWith(' ') ? ' ' : ''}@${n} `)} />
+        <MembersModal open={members} onClose={() => setMembers(false)} sv={sv} me={me} onUser={(n) => { setMembers(false); openUser(n); }} onCall={(n) => { setMembers(false); callUser(n); }} />
+        <ArenaUserSheet name={userOpen} sv={sv} me={me} myRole={myRole} onClose={() => setUserOpen(null)} onCall={(n) => { setUserOpen(null); callUser(n); }} onMention={(n) => setDraft((d) => `${d}${d && !d.endsWith(' ') ? ' ' : ''}@${n} `)} />
+        <CallPersonSheet name={callFor} sv={sv} me={me} onClose={() => setCallFor(null)} />
+        <InviteSheet open={inviting} sv={sv} me={me} onClose={() => setInviting(false)} />
       </KeyboardAvoidingView>
     );
   }
@@ -316,7 +331,7 @@ export default function ArenaScreen({ explore }) {
                   <Text style={st.chanCount}>{(c.inVoice || []).length ? `${(c.inVoice || []).length} na voz` : 'Entrar'}</Text>
                 </TouchableOpacity>
                 {(c.inVoice || []).map((n, k) => (
-                  <TouchableOpacity key={n} style={st.voiceUser} onPress={() => openUser(n)} activeOpacity={n === me ? 1 : 0.7} accessibilityLabel={n === me ? 'Você' : `Opções de ${n}`}>
+                  <TouchableOpacity key={n} style={st.voiceUser} onPress={() => openUser(n)} onLongPress={() => callUser(n)} activeOpacity={n === me ? 1 : 0.7} accessibilityLabel={n === me ? 'Você' : `Opções de ${n}. Segure para convidar para chamada`}>
                     <Avatar name={n} size={24} speaking={n !== me ? k % 2 === 0 && !deaf && !arenaPref(n).muted && !arenaPref(n).blocked : mic && inIt} />
                     <Text style={{ marginLeft: 8, color: D.text, flexShrink: 1 }} numberOfLines={1}>{n === me ? `${n} (você)` : n}</Text>
                     {n === me && !mic ? <Ionicons name="mic-off" size={14} color={D.dnd} style={{ marginLeft: 6 }} /> : null}
@@ -330,7 +345,7 @@ export default function ArenaScreen({ explore }) {
           })}
           <Text style={st.cat}>JOGANDO AGORA</Text>
           {sv.members.filter((x) => x.game && !arenaPref(x.name).blocked).map((x) => (
-            <TouchableOpacity key={x.name} style={st.playing} onPress={() => openUser(x.name)} activeOpacity={0.7}>
+            <TouchableOpacity key={x.name} style={st.playing} onPress={() => openUser(x.name)} onLongPress={() => callUser(x.name)} activeOpacity={0.7} accessibilityLabel={`${x.name}. Segure para convidar para chamada`}>
               <Avatar name={x.name} status={x.status} size={30} />
               <View style={{ marginLeft: 10 }}>
                 <Text style={{ fontWeight: '700', color: D.text }}>{x.name}</Text>
@@ -342,8 +357,10 @@ export default function ArenaScreen({ explore }) {
         {voice ? <VoiceBar ch={voiceCh} sv={voiceSv} mic={mic} deaf={deaf} setMic={setMic} setDeaf={setDeaf} leave={leaveVoice} /> : null}
       </View>
 
-      <MembersModal open={members} onClose={() => setMembers(false)} sv={sv} me={me} onUser={(n) => { setMembers(false); openUser(n); }} />
-        <ArenaUserSheet name={userOpen} sv={sv} me={me} myRole={myRole} onClose={() => setUserOpen(null)} onMention={(n) => setDraft((d) => `${d}${d && !d.endsWith(' ') ? ' ' : ''}@${n} `)} />
+      <MembersModal open={members} onClose={() => setMembers(false)} sv={sv} me={me} onUser={(n) => { setMembers(false); openUser(n); }} onCall={(n) => { setMembers(false); callUser(n); }} />
+        <ArenaUserSheet name={userOpen} sv={sv} me={me} myRole={myRole} onClose={() => setUserOpen(null)} onCall={(n) => { setUserOpen(null); callUser(n); }} onMention={(n) => setDraft((d) => `${d}${d && !d.endsWith(' ') ? ' ' : ''}@${n} `)} />
+        <CallPersonSheet name={callFor} sv={sv} me={me} onClose={() => setCallFor(null)} />
+        <InviteSheet open={inviting} sv={sv} me={me} onClose={() => setInviting(false)} />
 
       <Modal visible={!!create} transparent animationType="fade" onRequestClose={() => setCreate(null)}>
         <View style={st.backdrop}>
@@ -414,14 +431,14 @@ function VoiceBar({ ch, sv, mic, deaf, setMic, setDeaf, leave }) {
   );
 }
 
-function MembersModal({ open, onClose, sv, me, onUser }) {
+function MembersModal({ open, onClose, sv, me, onUser, onCall }) {
   const groups = ['dono', 'mod', 'membro'];
   return (
     <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)' }} activeOpacity={1} onPress={onClose} />
       <View style={st.sheet}>
         <Text style={st.dialogTitle}>Membros · {sv.name}</Text>
-        <Text style={{ color: D.muted, fontSize: 12, marginBottom: 4 }}>Toque numa pessoa para silenciar, ajustar o volume, ignorar, bloquear ou adicionar.</Text>
+        <Text style={{ color: D.muted, fontSize: 12, marginBottom: 4 }}>Toque numa pessoa para silenciar, ajustar o volume, ignorar, bloquear ou adicionar. Segure o nome para convidar para chamada.</Text>
         <ScrollView style={{ maxHeight: 420 }}>
           {groups.map((g) => {
             const list = sv.members.filter((x) => x.role === g);
@@ -430,7 +447,7 @@ function MembersModal({ open, onClose, sv, me, onUser }) {
               <View key={g}>
                 <Text style={st.cat}>{ROLE[g].label.toUpperCase()} — {list.length}</Text>
                 {list.map((x) => (
-                  <TouchableOpacity key={x.name} style={st.playing} onPress={() => x.name !== me && onUser && onUser(x.name)} activeOpacity={x.name === me ? 1 : 0.7} accessibilityLabel={`Opções de ${x.name}`}>
+                  <TouchableOpacity key={x.name} style={st.playing} onPress={() => x.name !== me && onUser && onUser(x.name)} onLongPress={() => x.name !== me && onCall && onCall(x.name)} activeOpacity={x.name === me ? 1 : 0.7} accessibilityLabel={`Opções de ${x.name}. Segure para convidar para chamada`}>
                     <Avatar name={x.name} status={x.status} size={34} />
                     <View style={{ marginLeft: 10, flex: 1 }}>
                       <Text style={{ fontWeight: '700', color: ROLE[g].color }}>{x.name} <Ionicons name="shield-checkmark" size={12} color={D.gold} /></Text>

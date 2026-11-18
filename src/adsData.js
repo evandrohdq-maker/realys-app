@@ -30,6 +30,13 @@ export const SHOP_CLIPS = [
   { id: 'clip-s4', storeId: 'e4', productId: 'p11', title: 'Carrega 50% em 20 min', views: 4100, likes: 388, photo: photo('realys-clip-carregador', 400, 640), video: require('../assets/reels/clip-s4.mp4'), poster: require('../assets/reels/clip-s4.jpg') },
 ];
 
+// Reels de pessoas da comunidade (não são anúncio). Tocar no nome abre a prévia do perfil
+// (ou o perfil completo, se for amigo).
+export const COMMUNITY_CLIPS = [
+  { id: 'clip-u1', user: 'Dona Cida', userId: 'u34', kind: 'user', title: 'Bolo de pote de vó, passo a passo 🍰', views: 6400, likes: 980, video: require('../assets/reels/clip-f3.mp4'), poster: require('../assets/reels/clip-f3.jpg') },
+  { id: 'clip-u2', user: 'Ana Paula', userId: 'u1', kind: 'user', title: 'Domingo de pizza em casa 🍕', views: 820, likes: 143, video: require('../assets/reels/clip-f1.mp4'), poster: require('../assets/reels/clip-f1.jpg') },
+];
+
 // Produtos patrocinados que entram na grade de destaques.
 export const SHOP_SPONSORED_PRODUCTS = ['p13', 'p9', 'p11'];
 

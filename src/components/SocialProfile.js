@@ -9,7 +9,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { useStore } from '../store';
 import { colors, soft } from '../theme';
 import { Photo, Empty } from './ui';
-import { members, memberById } from '../people';
+import { members, memberById, searchMembers } from '../people';
+import { listenOnce } from './Search';
 import { analyzeTestimonial, galleryOf } from '../testimonialsData';
 import { STORY_SAMPLE_PHOTOS } from '../homeData';
 import { StoryViewer } from '../screens/cliente/home/Stories';
@@ -18,6 +19,12 @@ import { canSee, LockedPanel, CreationsGrid, coverTone } from './ProfileStudio';
 import ThemeArt from './ThemeArt';
 
 const first = (name) => String(name || '').split(' ')[0];
+const norm = (v) => String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+// Amigos que batem com a pesquisa (nome, primeiro nome ou @usuário).
+const friendsMatching = (list, q) => {
+  const k = norm(q).replace(/^@/, '');
+  return list.filter((m) => norm(m.name).includes(k) || norm(m.handle).includes(k));
+};
 
 // "Ver como os outros veem": dentro da prévia, o meu perfil aparece como aparece para um visitante
 // ('todos' = qualquer pessoa; 'amigos' = um amigo). Fora da prévia o valor é null.
@@ -175,6 +182,7 @@ export function TestimonialComposer({ visible, onClose, toId }) {
   const [text, setText] = useState('');
   const [error, setError] = useState('');
   const [sent, setSent] = useState(null);
+  const [find, setFind] = useState(''); // pesquisar o contato para quem escrever
   const timer = useRef(null);
 
   useEffect(() => {
@@ -183,9 +191,13 @@ export function TestimonialComposer({ visible, onClose, toId }) {
     setText('');
     setError('');
     setSent(null);
+    setFind('');
   }, [visible, toId]);
 
   const friends = members.filter((m) => state.friends[m.id] === 'amigo');
+  const found = find.trim() ? friendsMatching(friends, find) : friends;
+  // Quem bate com a busca mas ainda não é amigo: aparece para adicionar (depoimento é só entre amigos).
+  const notFriends = find.trim().length >= 2 ? searchMembers(find).filter((m) => state.friends[m.id] !== 'amigo').slice(0, 4) : [];
   const target = to ? memberById(to) : null;
 
   const send = () => {
@@ -241,19 +253,83 @@ export function TestimonialComposer({ visible, onClose, toId }) {
                     </TouchableOpacity>
                   )}
                 </View>
-              ) : friends.length ? (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 6 }}>
-                  {friends.map((m) => (
-                    <TouchableOpacity key={m.id} style={styles.pick} onPress={() => setTo(m.id)} accessibilityLabel={`Escrever para ${m.name}`}>
-                      <Photo uri={m.photo} style={{ width: 58, height: 58, borderRadius: 29 }} fallback="🙂" />
-                      <Text numberOfLines={1} style={{ color: colors.text, fontSize: 12, fontWeight: '600', marginTop: 4 }}>
-                        {first(m.name)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
               ) : (
-                <Empty text="Adicione amigos para escrever depoimentos para eles." />
+                <>
+                  {/* Pesquisar contato: por nome ou @usuário, digitando ou falando */}
+                  <View style={styles.findBox}>
+                    <Ionicons name="search" size={17} color={colors.muted} />
+                    <TextInput
+                      value={find}
+                      onChangeText={setFind}
+                      placeholder="Pesquisar contato por nome ou @usuário"
+                      placeholderTextColor={colors.muted}
+                      style={styles.findInput}
+                      autoCapitalize="none"
+                      returnKeyType="search"
+                    />
+                    {find ? (
+                      <TouchableOpacity onPress={() => setFind('')} accessibilityLabel="Limpar pesquisa" style={{ padding: 4 }}>
+                        <Ionicons name="close-circle" size={17} color={colors.muted} />
+                      </TouchableOpacity>
+                    ) : null}
+                    <TouchableOpacity
+                      onPress={async () => {
+                        const said = await listenOnce('Para quem é o depoimento?');
+                        if (said) setFind(said);
+                      }}
+                      accessibilityLabel="Pesquisar contato por voz"
+                      style={{ padding: 4 }}
+                    >
+                      <Ionicons name="mic-outline" size={18} color={colors.primary} />
+                    </TouchableOpacity>
+                  </View>
+                  {!friends.length ? (
+                    <Empty text="Adicione amigos para escrever depoimentos para eles." />
+                  ) : found.length ? (
+                    find.trim() ? (
+                      found.map((m) => (
+                        <TouchableOpacity key={m.id} style={styles.findRow} onPress={() => setTo(m.id)} activeOpacity={0.85} accessibilityLabel={`Escrever para ${m.name}`}>
+                          <Photo uri={m.photo} style={{ width: 40, height: 40, borderRadius: 20 }} fallback="🙂" />
+                          <View style={{ flex: 1, marginLeft: 10 }}>
+                            <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>{m.name}</Text>
+                            <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>@{m.handle}</Text>
+                          </View>
+                          <Ionicons name="create-outline" size={18} color={colors.primary} />
+                        </TouchableOpacity>
+                      ))
+                    ) : (
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 6 }}>
+                        {friends.map((m) => (
+                          <TouchableOpacity key={m.id} style={styles.pick} onPress={() => setTo(m.id)} accessibilityLabel={`Escrever para ${m.name}`}>
+                            <Photo uri={m.photo} style={{ width: 58, height: 58, borderRadius: 29 }} fallback="🙂" />
+                            <Text numberOfLines={1} style={{ color: colors.text, fontSize: 12, fontWeight: '600', marginTop: 4 }}>
+                              {first(m.name)}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    )
+                  ) : (
+                    <Text style={styles.hint}>Nenhum amigo com "{find.trim()}".</Text>
+                  )}
+                  {notFriends.length ? (
+                    <>
+                      <Text style={[styles.hint, { marginTop: 6 }]}>Ainda não são amigos (depoimento é só entre amigos):</Text>
+                      {notFriends.map((m) => (
+                        <TouchableOpacity key={m.id} style={[styles.findRow, { opacity: 0.85 }]} onPress={() => dispatch({ type: 'OPEN_PROFILE', id: m.id })} activeOpacity={0.85} accessibilityLabel={`Ver prévia de ${m.name}`}>
+                          <Photo uri={m.photo} style={{ width: 40, height: 40, borderRadius: 20 }} fallback="🙂" />
+                          <View style={{ flex: 1, marginLeft: 10 }}>
+                            <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>{m.name}</Text>
+                            <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>
+                              {state.friends[m.id] === 'enviado' ? 'Pedido de amizade enviado' : 'Toque para ver e adicionar'}
+                            </Text>
+                          </View>
+                          <Ionicons name="person-add-outline" size={18} color={colors.muted} />
+                        </TouchableOpacity>
+                      ))}
+                    </>
+                  ) : null}
+                </>
               )}
 
               <Text style={[styles.label, { marginTop: 14 }]}>O que você quer dizer {target ? `sobre ${first(target.name)}` : ''}?</Text>
@@ -327,6 +403,113 @@ export function TestimonialFeed() {
         <TestimonialCard key={t.id} t={t} />
       ))}
       <TestimonialComposer visible={writing} onClose={() => setWriting(false)} />
+    </View>
+  );
+}
+
+// Ferramentas de depoimento no feed da Community: deixar um depoimento e pesquisar contatos nos
+// depoimentos (quem escreveu ou quem recebeu). Enquanto pesquisa, o feed dá lugar aos resultados.
+export function TestimonialTools({ onSearching }) {
+  const { state, dispatch } = useStore();
+  const person = usePerson();
+  const [writing, setWriting] = useState(false);
+  const [writeTo, setWriteTo] = useState(null);
+  const [open, setOpen] = useState(false); // caixa de pesquisa aberta
+  const [q, setQ] = useState('');
+  useEffect(() => {
+    onSearching && onSearching(open);
+  }, [open]);
+  const k = norm(q).replace(/^@/, '');
+  const hideMine = (state.privacy || {}).testimonials === false;
+  const all = state.testimonials.filter((t) => t.status === 'aprovado' && !(hideMine && t.to === 'me'));
+  const hit = (id) => {
+    const p = person(id);
+    return norm(p.name).includes(k) || norm(p.handle).includes(k);
+  };
+  const list = k ? all.filter((t) => hit(t.from) || hit(t.to)) : [];
+  // Pessoas encontradas: amigos (para escrever) e quem aparece nos depoimentos.
+  const ids = new Set();
+  list.forEach((t) => [t.from, t.to].forEach((id) => id !== 'me' && hit(id) && ids.add(id)));
+  members.filter((m) => state.friends[m.id] === 'amigo').forEach((m) => k && hit(m.id) && ids.add(m.id));
+  const people = [...ids].map((id) => memberById(id)).filter(Boolean).slice(0, 8);
+  const write = (id) => {
+    setWriteTo(id || null);
+    setWriting(true);
+  };
+  const close = () => {
+    setOpen(false);
+    setQ('');
+  };
+
+  return (
+    <View>
+      {open ? (
+        <View style={styles.findBox}>
+          <Ionicons name="search" size={17} color={colors.muted} />
+          <TextInput
+            value={q}
+            onChangeText={setQ}
+            autoFocus
+            placeholder="Pesquisar contato nos depoimentos"
+            placeholderTextColor={colors.muted}
+            style={styles.findInput}
+            autoCapitalize="none"
+            returnKeyType="search"
+          />
+          <TouchableOpacity
+            onPress={async () => {
+              const said = await listenOnce('Quem você procura nos depoimentos?');
+              if (said) setQ(said);
+            }}
+            accessibilityLabel="Pesquisar por voz"
+            style={{ padding: 4 }}
+          >
+            <Ionicons name="mic-outline" size={18} color={colors.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={close} accessibilityLabel="Fechar pesquisa" style={{ padding: 4 }}>
+            <Ionicons name="close" size={19} color={colors.muted} />
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.toolsRow}>
+          <TouchableOpacity style={styles.toolBtn} onPress={() => write(null)} activeOpacity={0.85} accessibilityLabel="Deixar depoimento">
+            <Ionicons name="chatbox-ellipses-outline" size={17} color={colors.primary} />
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.toolTxt}>Deixar depoimento</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.toolBtn, { marginLeft: 8 }]} onPress={() => setOpen(true)} activeOpacity={0.85} accessibilityLabel="Pesquisar contatos nos depoimentos">
+            <Ionicons name="search-outline" size={17} color={colors.primary} />
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.toolTxt}>Pesquisar depoimentos</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {open && k ? (
+        <View>
+          {people.map((m) => {
+            const friend = state.friends[m.id] === 'amigo';
+            return (
+              <View key={m.id} style={styles.findRow}>
+                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }} onPress={() => dispatch({ type: 'OPEN_PROFILE', id: m.id })} activeOpacity={0.85} accessibilityLabel={`Perfil de ${m.name}`}>
+                  <Photo uri={m.photo} style={{ width: 40, height: 40, borderRadius: 20 }} fallback="🙂" />
+                  <View style={{ flex: 1, marginLeft: 10 }}>
+                    <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>{m.name}</Text>
+                    <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>
+                      {all.filter((t) => t.to === m.id).length} depoimento(s) · {friend ? 'amigo' : `@${m.handle}`}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+                {friend ? (
+                  <TouchableOpacity onPress={() => write(m.id)} style={{ padding: 6 }} accessibilityLabel={`Deixar depoimento para ${m.name}`}>
+                    <Ionicons name="create-outline" size={19} color={colors.primary} />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            );
+          })}
+          {list.length ? list.map((t) => <TestimonialCard key={t.id} t={t} />) : <Empty text={`Nenhum depoimento com "${q.trim()}".`} />}
+        </View>
+      ) : null}
+      <TestimonialComposer visible={writing} onClose={() => setWriting(false)} toId={writeTo} />
     </View>
   );
 }
@@ -913,6 +1096,12 @@ const styles = StyleSheet.create({
   modalTitle: { color: colors.text, fontWeight: '800', fontSize: 18 },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
   label: { color: colors.text, fontWeight: '700', marginBottom: 8 },
+  findBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingHorizontal: 10, minHeight: 44, marginBottom: 8 },
+  findInput: { flex: 1, color: colors.text, fontSize: 14, marginLeft: 6, paddingVertical: 8 },
+  findRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, padding: 9, marginBottom: 6, ...soft },
+  toolsRow: { flexDirection: 'row', marginBottom: 10 },
+  toolBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 40, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, paddingHorizontal: 10 },
+  toolTxt: { color: colors.text, fontWeight: '700', fontSize: 13, marginLeft: 6 },
   toRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, padding: 10, ...soft },
   pick: { width: 72, alignItems: 'center', marginRight: 6 },
   area: { minHeight: 150, textAlignVertical: 'top', backgroundColor: colors.card, borderRadius: 14, padding: 12, color: colors.text, fontSize: 15, lineHeight: 21, borderWidth: 1, borderColor: colors.border },

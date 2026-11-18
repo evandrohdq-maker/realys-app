@@ -69,6 +69,7 @@ import { stripWake } from './src/wakeMatch';
 import { speakSoft, prepareVoice } from './src/voice';
 import { loadModel } from './src/lm/lotusLM';
 import { UserProfileModal, PeopleSearchModal } from './src/components/People';
+import { listenInviteLinks, savePendingInvite, takePendingInvite, parseInviteUrl, resolveInvite } from './src/callInvite';
 import { CompanyProfileModal } from './src/components/CompanyProfile';
 import GiftSheet from './src/components/GiftSheet';
 import CartSheet, { CartIcon } from './src/components/CartSheet';
@@ -184,8 +185,27 @@ const TABS = {
 // Símbolo de cada perfil no botãozinho de troca do cabeçalho.
 const ROLE_ICONS = { cliente: 'person', prestador: 'construct', empresa: 'business', fornecedor: 'cube' };
 
-function Shell() {
+function Shell({ inviteTick }) {
   const { state, dispatch } = useStore();
+  // Convite de chamada (link recebido por fora do app): depois de entrar ou se cadastrar, vai direto
+  // para a sala de voz da Arena (src/callInvite.js).
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const url = await takePendingInvite();
+      const inv = parseInviteUrl(url);
+      if (!inv || !alive) return;
+      try {
+        const r = await resolveInvite(inv);
+        if (alive) dispatch({ type: 'NAV_REQUEST', go: { tab: 'arena', server: r.sid, voice: r.cid, host: r.host || null } });
+      } catch (e) {
+        Alert.alert('Convite de chamada', e.message || 'Não deu para abrir o convite. Peça um link novo.');
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [inviteTick]);
   // Conta sem biometria usa só o perfil de usuário (modo social).
   const verified = isVerified(state);
   useServerBio();
@@ -742,6 +762,19 @@ function Shell() {
 
 function Root() {
   const { state, dispatch } = useStore();
+  // Link de convite para chamada abriu o app: guarda e, com a conta aberta, o Shell leva para a chamada.
+  const [inviteTick, setInviteTick] = useState(0);
+  const userRef = useRef(null);
+  userRef.current = state.user;
+  useEffect(
+    () =>
+      listenInviteLinks(async (url) => {
+        await savePendingInvite(url);
+        setInviteTick((n) => n + 1);
+        if (!userRef.current) Alert.alert('Convite para chamada 🎧', 'Entre na sua conta ou faça o cadastro. Assim que terminar, você vai direto para a chamada.');
+      }),
+    []
+  );
   // Modo acessível (letras maiores): lido do celular ao abrir; vale antes de desenhar as telas.
   useEffect(() => {
     AsyncStorage.getItem(BIG_TEXT_KEY)
@@ -759,7 +792,7 @@ function Root() {
           <ActivityIndicator color={colors.primary} />
         </View>
       ) : state.user ? (
-        <Shell key={state.user.name + tk} />
+        <Shell key={state.user.name + tk} inviteTick={inviteTick} />
       ) : (
         <LoginScreen key={'login' + tk} />
       )}

@@ -7,14 +7,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../../theme';
 import { Photo } from '../../../components/ui';
 import { STORY_BACKGROUNDS, STORY_SAMPLE_PHOTOS } from '../../../homeData';
+import { useStore } from '../../../store';
 
 const STORY_MS = 5000; // tempo de cada story na tela
 const TICK = 50;
 
 // Tela cheia do story: barrinhas de progresso, toque à direita avança, à esquerda volta,
 // segurar pausa. Dá para responder (vai para Mensagens) e, nos patrocinados, abrir a oferta.
-export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, onCta, isMine }) {
+export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, onCta, isMine, onProfile }) {
   const insets = useSafeAreaInsets();
+  const { state } = useStore();
+  // Prévia ou perfil aberto por cima (tocou no nome): o story espera parado.
+  const covered = !!onProfile && !!(state.viewProfile || state.viewCompany);
   const [gi, setGi] = useState(0);
   const [ii, setIi] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -64,10 +68,10 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
   };
 
   useEffect(() => {
-    if (!visible || paused || typing) return;
+    if (!visible || paused || typing || covered) return;
     const t = setInterval(() => setProgress((p) => Math.min(1, p + TICK / STORY_MS)), TICK);
     return () => clearInterval(t);
-  }, [visible, paused, typing, gi, ii]);
+  }, [visible, paused, typing, covered, gi, ii]);
 
   // Terminou o tempo do story: passa para o próximo.
   useEffect(() => {
@@ -117,19 +121,28 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
             ))}
           </View>
           <View style={styles.header}>
-            {isMine && gi === 0 && group.mine ? (
-              <View style={[styles.headAvatar, { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }]}>
-                <Text style={{ color: '#fff', fontWeight: '800' }}>{group.name[0]}</Text>
+            {/* Tocar na foto ou no nome: prévia do perfil (ou o perfil, se for amigo). */}
+            <TouchableOpacity
+              style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
+              activeOpacity={0.8}
+              disabled={!onProfile || !!group.mine}
+              onPress={() => onProfile && onProfile(group)}
+              accessibilityLabel={`Ver perfil de ${group.name}`}
+            >
+              {isMine && gi === 0 && group.mine ? (
+                <View style={[styles.headAvatar, { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }]}>
+                  <Text style={{ color: '#fff', fontWeight: '800' }}>{group.name[0]}</Text>
+                </View>
+              ) : (
+                <Photo uri={group.avatar} style={styles.headAvatar} fallback="🙂" />
+              )}
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={styles.headName} numberOfLines={1}>
+                  {group.name} <Ionicons name="shield-checkmark" size={12} color={colors.gold} />
+                </Text>
+                <Text style={styles.headTime}>{group.sponsored ? 'Patrocinado' : item.time}</Text>
               </View>
-            ) : (
-              <Photo uri={group.avatar} style={styles.headAvatar} fallback="🙂" />
-            )}
-            <View style={{ flex: 1, marginLeft: 10 }}>
-              <Text style={styles.headName}>
-                {group.name} <Ionicons name="shield-checkmark" size={12} color={colors.gold} />
-              </Text>
-              <Text style={styles.headTime}>{group.sponsored ? 'Patrocinado' : item.time}</Text>
-            </View>
+            </TouchableOpacity>
             {paused ? <Ionicons name="pause" size={18} color="#fff" style={{ marginRight: 10 }} /> : null}
             <TouchableOpacity style={styles.close} onPress={onClose} accessibilityLabel="Fechar story">
               <Ionicons name="close" size={24} color="#fff" />

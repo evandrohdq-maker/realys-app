@@ -1,5 +1,5 @@
 // Arena: opções de uma pessoa, como no Discord.
-// Volume só dela, silenciar a voz dela, ignorar, bloquear, adicionar amigo, mencionar, apelido,
+// Volume só dela, silenciar a voz dela, ignorar, bloquear, adicionar amigo, convidar para chamada, mencionar, apelido,
 // denunciar e, para dono ou moderador, tirar da voz e expulsar do servidor.
 // Tudo vale só para mim e fica salvo no celular (src/arena.js › arenaPref).
 import React, { useEffect, useState } from 'react';
@@ -28,7 +28,7 @@ function Row({ icon, label, sub, onPress, color = D.text, right }) {
 }
 const Check = ({ on }) => <Ionicons name={on ? 'checkbox' : 'square-outline'} size={21} color={on ? D.gold : D.muted} />;
 
-export default function ArenaUserSheet({ name, sv, me, myRole, onClose, onMention }) {
+export default function ArenaUserSheet({ name, sv, me, myRole, onClose, onMention, onCall }) {
   useArena(); // redesenha quando as opções mudam
   const { state, dispatch } = useStore();
   const [note, setNote] = useState('');
@@ -126,6 +126,7 @@ export default function ArenaUserSheet({ name, sv, me, myRole, onClose, onMentio
             sub={friend === 'enviado' ? 'Aguardando a pessoa aceitar' : null}
             onPress={addFriend}
           />
+          {onCall && !pf.blocked ? <Row icon="call-outline" label="Convidar para chamada" sub="Para a sua sala de voz ou numa chamada particular" color={D.green} onPress={() => onCall(name)} /> : null}
           <Row icon="at-outline" label="Mencionar" sub={`Escreve @${first} na conversa`} onPress={() => { onMention && onMention(name); onClose(); }} />
           {person ? <Row icon="person-circle-outline" label="Ver perfil" onPress={() => { onClose(); dispatch({ type: 'OPEN_PROFILE', id: person.id }); }} /> : null}
 

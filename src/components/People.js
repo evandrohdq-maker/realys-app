@@ -12,7 +12,7 @@ import { Photo, Empty } from './ui';
 import { members, memberById, postsOf, searchMembers } from '../people';
 import { ChatModal } from '../screens/cliente/home/Social';
 import { listenOnce, GlobalResults } from './Search';
-import { ProfileSocial } from './SocialProfile';
+import { ProfileSocial, TestimonialComposer, TestimonialCard } from './SocialProfile';
 import { memberTarget } from './GiftSheet';
 import { SocialBadge } from './SocialClass';
 import { CLASSES } from '../socialClasses';
@@ -84,7 +84,13 @@ export function UserProfileModal() {
   const { state, dispatch } = useStore();
   const insets = useSafeAreaInsets();
   const [chat, setChat] = useState(null);
-  useEffect(() => setChat(null), [state.viewProfile]);
+  const [full, setFull] = useState(false); // quem não é amigo vê a prévia; "Ver perfil completo" abre o resto (se for público)
+  const [writing, setWriting] = useState(false); // deixar depoimento
+  useEffect(() => {
+    setChat(null);
+    setFull(false);
+    setWriting(false);
+  }, [state.viewProfile]);
   const m = state.viewProfile ? memberById(state.viewProfile) : null;
   if (!m) return null;
   const st = state.friends[m.id];
@@ -98,6 +104,23 @@ export function UserProfileModal() {
     if (!conv) dispatch({ type: 'UPDATE_CONVS', fn: (cs) => [{ id: 'm' + Date.now(), contactId: m.id, unread: 0, messages: [], extra: contact }, ...cs] });
     setChat(contact);
   };
+
+  // Não é amigo: abre a prévia por cima da tela (foto, quem é, posts e depoimentos), com o botão de adicionar.
+  if (st !== 'amigo' && !full) {
+    return (
+      <>
+        <ProfilePeek m={m} onClose={close} onMessage={openChat} onFull={privacyOf(m.id).exposed && privacyOf(m.id).social === 'todos' ? () => setFull(true) : null} />
+        <ChatModal
+          contact={chat}
+          visible={!!chat}
+          messages={(state.conversations.find((c) => c.contactId === m.id) || {}).messages || []}
+          onClose={() => setChat(null)}
+          onSend={(msg) => dispatch({ type: 'UPDATE_CONVS', fn: (cs) => cs.map((c) => (c.contactId === m.id ? { ...c, messages: [...c.messages, msg] } : c)) })}
+          onVideo={() => Alert.alert('Chamada de vídeo', `Ligando para ${m.name} pela Re@lys.`)}
+        />
+      </>
+    );
+  }
 
   return (
     <Modal visible animationType="slide" onRequestClose={close}>
@@ -148,6 +171,13 @@ export function UserProfileModal() {
               <Ionicons name="gift-outline" size={18} color={colors.primary} />
             </TouchableOpacity>
           </View>
+          {/* Deixar depoimento: só entre amigos (o dono do perfil aprova antes de aparecer). */}
+          {st === 'amigo' ? (
+            <TouchableOpacity style={styles.depBtn} onPress={() => setWriting(true)} activeOpacity={0.85} accessibilityLabel={`Deixar depoimento para ${m.name}`}>
+              <Ionicons name="chatbox-ellipses-outline" size={18} color={colors.primary} />
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700', marginLeft: 6 }}>Deixar depoimento para {m.name.split(' ')[0]}</Text>
+            </TouchableOpacity>
+          ) : null}
 
           {/* Páginas assinadas por esta pessoa (as anônimas não aparecem aqui: o dono fica em sigilo). */}
           {pagesOfOwner(state, m.id).length ? (
@@ -202,6 +232,102 @@ export function UserProfileModal() {
         onSend={(msg) => dispatch({ type: 'UPDATE_CONVS', fn: (cs) => cs.map((c) => (c.contactId === m.id ? { ...c, messages: [...c.messages, msg] } : c)) })}
         onVideo={() => Alert.alert('Chamada de vídeo', `Ligando para ${m.name} pela Re@lys.`)}
       />
+      <TestimonialComposer visible={writing} onClose={() => setWriting(false)} toId={m.id} />
+    </Modal>
+  );
+}
+
+// Prévia do perfil de quem ainda não é amigo: abre de baixo para cima, por cima de qualquer tela
+// (story, Reel, feed, Arena). Mostra quem é, alguns posts e depoimentos e o botão de adicionar.
+// O perfil completo fica para os amigos (ou para quem deixou o perfil aberto para todos).
+export function ProfilePeek({ m, onClose, onMessage, onFull }) {
+  const { state } = useStore();
+  const insets = useSafeAreaInsets();
+  const st = state.friends[m.id];
+  const pv = privacyOf(m.id);
+  const showSocial = pv.exposed && pv.social === 'todos';
+  const posts = showSocial ? postsOf(m).slice(0, 3) : [];
+  const deps = state.testimonials.filter((t) => t.to === m.id && t.status === 'aprovado');
+  const firstName = m.name.split(' ')[0];
+  return (
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+      <TouchableOpacity style={styles.peekDim} activeOpacity={1} onPress={onClose} accessibilityLabel="Fechar prévia" />
+      <View style={[styles.peekSheet, { paddingBottom: 16 + insets.bottom }]}>
+        <View style={styles.peekGrab} />
+        <ScrollView style={{ maxHeight: 560 }} contentContainerStyle={{ paddingBottom: 6 }} showsVerticalScrollIndicator={false}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={styles.peekRing}>
+              <Photo uri={m.photo} style={styles.peekAvatar} fallback="🙂" />
+            </View>
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={styles.peekName} numberOfLines={1}>
+                {m.name} <Ionicons name="shield-checkmark" size={15} color={colors.primary} />
+              </Text>
+              <Text style={styles.handle} numberOfLines={1}>@{m.handle} · {m.city}</Text>
+              <SocialBadge social={m.social} size="sm" style={{ marginTop: 4 }} />
+            </View>
+            <TouchableOpacity onPress={onClose} style={styles.peekClose} accessibilityLabel="Fechar prévia">
+              <Ionicons name="close" size={20} color={colors.muted} />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.peekTag}>PRÉVIA DO PERFIL</Text>
+          {showSocial ? <Text style={styles.bio}>{m.bio}</Text> : null}
+
+          <View style={[styles.stats, { marginTop: 10 }]}>
+            <Stat n={m.friends} label="amigos" />
+            <Stat n={m.mutual} label="em comum" />
+            <Stat n={deps.length} label="depoimentos" />
+          </View>
+
+          <LiveNowBadge hostType="usuario" hostId={m.id} />
+          {st === 'recebido' ? <Text style={styles.ask}>{firstName} quer ser seu amigo no Re@lys.</Text> : null}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
+            <View style={{ flex: 1 }}>
+              <FriendButton member={m} />
+            </View>
+            {onMessage ? (
+              <TouchableOpacity style={[styles.msgBtn, { paddingHorizontal: 12 }]} onPress={onMessage} accessibilityLabel={`Mensagem para ${m.name}`}>
+                <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.primary} />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+
+          {posts.length ? (
+            <>
+              <Text style={styles.section}>Publicações</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {posts.map((p) => (
+                  <View key={p.id} style={styles.peekPost}>
+                    {p.image ? <Photo uri={p.image} style={styles.peekPostImg} /> : null}
+                    <Text numberOfLines={p.image ? 2 : 5} style={{ color: colors.text, fontSize: 12.5, lineHeight: 17, marginTop: p.image ? 6 : 0 }}>{p.text}</Text>
+                    <Text style={{ color: colors.muted, fontSize: 11, marginTop: 4 }}>{p.time}</Text>
+                  </View>
+                ))}
+              </ScrollView>
+            </>
+          ) : null}
+
+          {deps.length ? (
+            <>
+              <Text style={styles.section}>Depoimentos</Text>
+              {deps.slice(0, 2).map((t) => (
+                <TestimonialCard key={t.id} t={t} hideTarget />
+              ))}
+            </>
+          ) : null}
+
+          {onFull ? (
+            <TouchableOpacity style={styles.peekFull} onPress={onFull} activeOpacity={0.85} accessibilityLabel={`Ver o perfil completo de ${m.name}`}>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '800' }}>Ver perfil completo</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+            </TouchableOpacity>
+          ) : (
+            <Text style={styles.tip}>
+              <Ionicons name="lock-closed-outline" size={12} color={colors.muted} /> O perfil completo de {firstName} fica aberto para os amigos. Adicione e espere {firstName} aceitar.
+            </Text>
+          )}
+        </ScrollView>
+      </View>
     </Modal>
   );
 }
@@ -347,6 +473,18 @@ export function PersonRow({ m, onOpen }) {
 }
 
 const styles = StyleSheet.create({
+  depBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.card, borderRadius: 12, paddingVertical: 11, paddingHorizontal: 14, marginTop: 8 },
+  peekDim: { flex: 1, backgroundColor: 'rgba(20,18,14,0.35)' },
+  peekSheet: { backgroundColor: colors.bg, borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 16, paddingTop: 8 },
+  peekGrab: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: 12 },
+  peekRing: { width: 70, height: 70, borderRadius: 35, borderWidth: 2.5, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
+  peekAvatar: { width: 62, height: 62, borderRadius: 31 },
+  peekName: { color: colors.text, fontSize: 18, fontWeight: '800' },
+  peekClose: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginLeft: 6 },
+  peekTag: { color: colors.muted, fontSize: 10, fontWeight: '800', letterSpacing: 1, marginTop: 12 },
+  peekPost: { width: 150, backgroundColor: colors.card, borderRadius: 14, padding: 8, marginRight: 8, ...soft },
+  peekPostImg: { width: '100%', height: 90, borderRadius: 10 },
+  peekFull: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: colors.primary, borderRadius: 12, paddingVertical: 11, marginTop: 14 },
   pageRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, padding: 8, marginBottom: 8, borderWidth: 1, borderColor: colors.border },
   pageThumb: { width: 54, height: 40, borderRadius: 8 },
   classChip: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 999, paddingVertical: 7, paddingHorizontal: 12, marginRight: 8, backgroundColor: colors.card },
