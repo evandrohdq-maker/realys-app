@@ -403,6 +403,9 @@ export const rideRequests = [
 // ---------- Administração (demonstração) ----------
 // Na versão real, o login de administrador fica no servidor, com senha criptografada e verificação em duas etapas.
 export const ADMIN_LOGIN = { user: 'admin', password: 'Re@lys@2026' };
+// Analista: abaixo do administrador. Vê e analisa todo o painel (números, mercado, sistema, moderação,
+// cadastros, suporte), mas não aprova, bloqueia, remove nem muda nada.
+export const ANALYST_LOGIN = { user: 'analista', password: 'Vista#Realys7429' };
 
 export const platformStats = {
   users: 12840,

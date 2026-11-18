@@ -1,3 +1,4 @@
+import { AnalystBanner } from './AdminScreens';
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal, Share, Alert, Pressable } from 'react-native';
 import { Text, TextInput } from '../../responsive';
@@ -168,6 +169,7 @@ export function AdminSystem({ openArea }) {
 
   return (
     <Screen>
+      <AnalystBanner />
       <Title sub="Todas as telas do Re@lys, a situação de cada uma e as suas anotações">Mapa do sistema</Title>
 
       <View style={styles.statusRow}>

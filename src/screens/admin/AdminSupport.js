@@ -1,7 +1,9 @@
 // Administrador › Suporte: a fila de chamados dos usuários. Quem está esperando vem primeiro, e os
 // assuntos urgentes (pagamento, conta, biometria) entram na frente.
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { useStore } from '../../store';
+import { AnalystBanner } from './AdminScreens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +21,8 @@ const FILTERS = [
 
 export default function AdminSupport() {
   const insets = useSafeAreaInsets();
+  const { state } = useStore();
+  const readOnly = !!(state.user && state.user.readOnly);
   useSupport();
   const sum = supportSummary();
   const [filter, setFilter] = useState('aberto');
@@ -29,6 +33,7 @@ export default function AdminSupport() {
 
   return (
     <Screen>
+      <AnalystBanner />
       <Title sub="Chamados dos usuários. Os urgentes entram na frente da fila.">Suporte</Title>
       <View style={st.kpis}>
         {[
@@ -71,7 +76,7 @@ export default function AdminSupport() {
             </TouchableOpacity>
             <Text style={{ color: colors.text, fontWeight: '800', fontSize: 18 }}>{open ? `Chamado nº ${open.n}` : ''}</Text>
           </View>
-          {open ? <TicketThread ticket={open} bottom={insets.bottom} asTeam quick={QUICK_REPLIES} onSend={(v) => teamReply(open.id, v)} /> : null}
+          {open ? <TicketThread ticket={open} bottom={insets.bottom} asTeam quick={QUICK_REPLIES} onSend={(v) => (readOnly ? Alert.alert('Acesso de analista', 'Você pode ler os chamados, mas responder é com a equipe de suporte.') : teamReply(open.id, v))} /> : null}
         </KeyboardAvoidingView>
       </Modal>
     </Screen>

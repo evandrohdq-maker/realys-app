@@ -15,7 +15,9 @@ function CentralSeguranca() {
   if (!on) return null;
   const list = (state.centralAlerts || []).filter((x) => x.status === 'aberto' || x.status === 'em_acompanhamento');
   const act = (x, acao) =>
-    api('POST', `/admin/alertas/${x.id}/${acao}`, {})
+    state.user && state.user.readOnly
+      ? Alert.alert('Acesso de analista', 'Atender ou marcar chamada falsa é só com o administrador.')
+      : api('POST', `/admin/alertas/${x.id}/${acao}`, {})
       .then(() => dispatch({ type: 'CENTRAL_SET', id: x.id, status: acao === 'falso' ? 'falso' : 'atendido' }))
       .catch((e) => Alert.alert('Não deu certo', (e && e.message) || 'Tente de novo.'));
   return (
@@ -147,6 +149,18 @@ function CrmClosings() {
   );
 }
 
+// Faixa do acesso de analista: deixa claro que é só para ver e analisar.
+export function AnalystBanner() {
+  const { state } = useStore();
+  if (!(state.user && state.user.readOnly)) return null;
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF6DD', borderRadius: 12, padding: 10, marginBottom: 10, borderWidth: 1, borderColor: '#E9D49A' }}>
+      <Ionicons name="eye-outline" size={18} color="#8A6A12" />
+      <Text style={{ color: '#5C4A12', fontSize: 12.5, marginLeft: 8, flex: 1 }}>Acesso de analista: você vê e analisa todo o painel, mas não aprova, bloqueia nem muda nada.</Text>
+    </View>
+  );
+}
+
 export function AdminOverview() {
   const { state, dispatch } = useStore();
   const openReports = state.reports.filter((r) => r.status === 'aberta').length;
@@ -159,6 +173,7 @@ export function AdminOverview() {
   const giftSplit = splitGiftFees(giftFeesMonth);
   return (
     <Screen>
+      <AnalystBanner />
       <Title sub="Controle geral da plataforma Re@lys">Administração</Title>
       <CrmClosings />
       <HireNotices />
@@ -374,6 +389,7 @@ export function AdminModeration() {
   const list = state.reports.filter((r) => (filter === 'aberta' ? r.status === 'aberta' : r.status !== 'aberta'));
   return (
     <Screen>
+      <AnalystBanner />
       <Title sub="Denúncias de usuários e alertas da IA verificadora">Moderação</Title>
       <Row style={{ marginBottom: 12 }}>
         <Chip label="Abertas" active={filter === 'aberta'} onPress={() => setFilter('aberta')} />
@@ -425,6 +441,7 @@ export function AdminSignups() {
   const { state, dispatch } = useStore();
   return (
     <Screen>
+      <AnalystBanner />
       <Title sub="Biometria + consulta de CNPJ/MEI antes de liberar">Cadastros</Title>
       {state.signups.map((g) => (
         <Card key={g.id}>

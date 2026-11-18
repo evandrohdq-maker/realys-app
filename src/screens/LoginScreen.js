@@ -3,7 +3,7 @@ import { View, StyleSheet, Alert, ScrollView, TouchableOpacity, KeyboardAvoiding
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
-import { ADMIN_LOGIN } from '../data';
+import { ADMIN_LOGIN, ANALYST_LOGIN } from '../data';
 import { colors } from '../theme';
 import {
   onlyDigits,
@@ -31,6 +31,7 @@ function detect(value) {
   const d = onlyDigits(v);
   const numeric = v.length > 0 && /^[\d.\-\/\s]+$/.test(v);
   if (v.toLowerCase() === ADMIN_LOGIN.user) return { kind: 'admin' };
+  if (v.toLowerCase() === ANALYST_LOGIN.user) return { kind: 'analista' };
   if (numeric && d.length === 14) return { kind: 'cnpj', doc: formatCnpj(d) };
   if (numeric && d.length === 11) return { kind: 'cpf', doc: formatCpf(d) };
   if (numeric) return { kind: 'incompleto' };
@@ -99,6 +100,7 @@ export default function LoginScreen() {
     cnpj: 'CNPJ reconhecido · acesso de empresa',
     usuario: 'Usuário',
     admin: 'Acesso do administrador',
+    analista: 'Acesso de analista (só visualização)',
   }[info.kind];
 
   const login = async (user, loginText, keep) => {
@@ -121,6 +123,14 @@ export default function LoginScreen() {
       return dispatch({
         type: 'LOGIN',
         user: { name: 'Administrador', roles: ['admin', 'cliente', 'empresa', 'prestador', 'fornecedor'], cnpj: '12.345.678/0001-90' },
+      });
+    }
+    if (info.kind === 'analista') {
+      if (password !== ANALYST_LOGIN.password) return Alert.alert('Acesso negado', 'Senha incorreta.');
+      // Analista: vê tudo o que o administrador vê, sem poder mudar nada. Também não fica salvo no aparelho.
+      return dispatch({
+        type: 'LOGIN',
+        user: { name: 'Analista', roles: ['admin', 'cliente', 'empresa', 'prestador', 'fornecedor'], readOnly: true, cnpj: '12.345.678/0001-90' },
       });
     }
     setBusy(true);
@@ -278,7 +288,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            {info.kind !== 'admin' ? (
+            {info.kind !== 'admin' && info.kind !== 'analista' ? (
               <TouchableOpacity style={styles.check} onPress={() => setRemember(!remember)} activeOpacity={0.8}>
                 <Ionicons name={remember ? 'checkbox' : 'square-outline'} size={22} color={remember ? colors.primary : colors.muted} />
                 <View style={{ flex: 1, marginLeft: 8 }}>
@@ -289,8 +299,8 @@ export default function LoginScreen() {
             ) : null}
 
             <TouchableOpacity style={[styles.btn, busy && { opacity: 0.6 }]} onPress={enter} disabled={busy} activeOpacity={0.85}>
-              <Ionicons name={info.kind === 'admin' ? 'log-in-outline' : 'finger-print'} size={20} color={colors.onPrimary} />
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.btnText}>{busy ? 'Verificando…' : info.kind === 'admin' ? 'Entrar' : 'Entrar com biometria'}</Text>
+              <Ionicons name={info.kind === 'admin' || info.kind === 'analista' ? 'log-in-outline' : 'finger-print'} size={20} color={colors.onPrimary} />
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.btnText}>{busy ? 'Verificando…' : info.kind === 'admin' || info.kind === 'analista' ? 'Entrar' : 'Entrar com biometria'}</Text>
             </TouchableOpacity>
 
             {saved.length ? (

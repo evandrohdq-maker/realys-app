@@ -1,6 +1,7 @@
 // Administrador › Mercado: levantamento que a Lotus monta sozinha com o que empresas e clientes
 // publicam (preços por setor, diferenças de preço, serviços, reputação, assuntos dos clientes),
 // o que ela acabou de aprender, o que foi descartado como informação falsa e as regras de uso.
+import { AnalystBanner } from './AdminScreens';
 import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text } from '../../responsive';
@@ -37,6 +38,7 @@ export default function AdminMarket() {
 
   return (
     <Screen>
+      <AnalystBanner />
       <Title sub="Levantamento que a Lotus faz sozinha com tudo que é publicado no Re@lys">Mercado</Title>
 
       <View style={styles.hero}>

@@ -374,7 +374,14 @@ const NEEDS_BIO = new Set([
 export const needsBio = (type) => NEEDS_BIO.has(type);
 
 const DEFAULT_CHAT_LISTS = [{ id: 'familia', name: 'Família' }, { id: 'trabalho', name: 'Trabalho' }, { id: 'clientes', name: 'Clientes' }];
+// Ações do painel do administrador que o analista (acesso só de leitura) não pode fazer.
+export const ANALYST_BLOCKED = new Set([
+  'CENTRAL_SET', 'PANIC_REAL', 'PANIC_FALSE', 'CRED_SET', 'RESOLVE_REPORT', 'UNBLOCK', 'REVIEW_SIGNUP',
+  'TOGGLE_NOTE', 'DELETE_NOTE',
+]);
+
 function reducer(state, a) {
+  if (state.user && state.user.readOnly && ANALYST_BLOCKED.has(a.type)) return state;
   // (A primeira página é gratuita e faz parte do perfil social: essa a conta sem biometria pode criar.)
   if (state.user && state.user.verified === false && NEEDS_BIO.has(a.type) && !(a.type === 'PAGE_CREATE' && pagePrice(state) === 0)) return { ...state, bioGate: Date.now() };
   const next = baseReducer(state, a);
@@ -1930,7 +1937,13 @@ export function StoreProvider({ children }) {
     SecureStore.setItemAsync(susKey, JSON.stringify({ sus: state.sus, bookings: state.susBookings })).catch(() => {});
   }, [state.sus, state.susBookings]);
   // Moderação: texto público ou privado passa pelas regras antes de entrar (racismo, ódio, menores, nudez).
+  // Acesso de analista: vê todo o painel do administrador, mas não muda nada.
+  const readOnly = useRef(false);
+  readOnly.current = !!(state.user && state.user.readOnly);
   const guarded = React.useCallback((a) => {
+    if (readOnly.current && a && ANALYST_BLOCKED.has(a.type)) {
+      return Alert.alert('Acesso de analista', 'Você pode ver e analisar todo o painel, mas aprovar, bloquear, remover ou mudar alguma coisa é só com o administrador.');
+    }
     const m = moderateAction(a);
     if (m.ok) return dispatch(a);
     dispatch({ type: 'MOD_BLOCK', kind: m.kind, action: a.type });
