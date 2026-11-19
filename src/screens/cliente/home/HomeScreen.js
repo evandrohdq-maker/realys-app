@@ -23,7 +23,8 @@ import { LaunchStrip } from '../../../components/Launches';
 import { SHOP_SECTORS, SHOP_SECTOR_KEYS } from '../../../shopSectorsData';
 import { askPix } from '../../../components/PixPay';
 import { useBack } from '../../../back';
-import { TestimonialCard } from '../../../components/SocialProfile';
+import { TestimonialCard, DepCenter } from '../../../components/SocialProfile';
+import NotifList, { buildNotifs, unseenNotifs } from '../../../components/Notifications';
 import { ShopHero, CircleShortcuts, ShopProductCard, ShopGrid, StoreRow, CategoryPicker } from '../../../components/ShopKit';
 import { SegTabs, SpotlightCarousel, ClipStrip, PromoSector } from '../../../components/AdKit';
 import { SearchBar } from '../../../components/Search';
@@ -642,6 +643,12 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
     if (store) dispatch({ type: 'OPEN_COMPANY', id: store.id });
   };
   const requests = members.filter((m) => state.friends[m.id] === 'recebido');
+  const [depOpen, setDepOpen] = useState(false);
+  const notifCount = unseenNotifs(state);
+  // Abriu o sininho: o que está na lista passa a contar como visto (o pontinho some na próxima vez).
+  useEffect(() => {
+    if (seg === 'notifs') dispatch({ type: 'NOTIF_SEEN', ids: buildNotifs(state).map((x) => x.id) });
+  }, [seg === 'notifs' ? notifCount : -1]);
   const friends = members
     .filter((m) => state.friends[m.id] === 'amigo')
     .map((m) => ({ ...(contacts.find((c) => c.id === m.id) || { status: 'amigo no Re@lys' }), id: m.id, name: m.name, photo: m.photo }));
@@ -688,21 +695,23 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
         {seg !== 'posts' ? (
           <TouchableOpacity onPress={() => setSeg('posts')} style={styles.cornerBack} hitSlop={6} accessibilityLabel="Voltar para o feed">
             <Ionicons name="chevron-back" size={15} color={colors.menu} />
-            <Text style={styles.cornerBackTxt}>{seg === 'msgs' ? 'Mensagens' : 'Contatos'}</Text>
+            <Text style={styles.cornerBackTxt}>{seg === 'msgs' ? 'Mensagens' : seg === 'notifs' ? 'Notificações' : 'Contatos'}</Text>
           </TouchableOpacity>
         ) : <View style={{ flex: 1 }} />}
         {[
           ['msgs', 'chatbubbles-outline', 'Mensagens'],
           ['contatos', 'people-outline', 'Contatos'],
+          ['notifs', 'notifications-outline', 'Notificações'],
         ].map(([k, icon, label]) => {
           const on = seg === k;
-          const unread = k === 'msgs' ? convs.reduce((n, c) => n + c.unread, 0) : 0;
+          // Mensagens: não lidas · Contatos: pedidos de amizade · Sininho: notificações novas.
+          const unread = k === 'msgs' ? convs.reduce((n, c) => n + c.unread, 0) : k === 'contatos' ? requests.length : on ? 0 : notifCount;
           return (
             <TouchableOpacity key={k} onPress={() => setSeg(on ? 'posts' : k)} style={[styles.cornerBtn, on && styles.cornerOn]} hitSlop={6} accessibilityLabel={on ? 'Voltar para o feed' : label}>
               <Ionicons name={on ? icon.replace('-outline', '') : icon} size={19} color={on ? colors.primary : colors.menu} />
               {unread ? (
                 <View style={styles.cornerBadge}>
-                  <Text style={{ color: colors.onPrimary, fontSize: 9, fontWeight: '800' }}>{unread}</Text>
+                  <Text style={{ color: colors.onPrimary, fontSize: 9, fontWeight: '800' }}>{unread > 9 ? '9+' : unread}</Text>
                 </View>
               ) : null}
             </TouchableOpacity>
@@ -710,6 +719,11 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
         })}
       </View>
 
+
+      {seg === 'notifs' ? (
+        <NotifList onDep={() => setDepOpen(true)} onGo={(go) => dispatch({ type: 'NAV_REQUEST', go })} />
+      ) : null}
+      <DepCenter visible={depOpen} onClose={() => setDepOpen(false)} />
 
       {seg === 'posts' ? (
         <View>
