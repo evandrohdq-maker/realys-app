@@ -11,9 +11,10 @@ import { stopRadio, checkUrl } from '../../../radio';
 import { useRadioNow } from '../../../components/RadioKit';
 import { moderateText } from '../../../moderation';
 import { isVerified } from '../../../components/BioGate';
+import { Photo } from '../../../components/ui';
 import {
   useMusic, allTracks, trackById, publishTrack, removeTrack, registerSale, createPlaylist, removePlaylist, togglePlaylistTrack,
-  subscribePlan, cancelPlan, planInfo, playTrack, startTrack, setAdHook, artistGets, MUSIC_FEE_PCT, MUSIC_PLAN_PRICE, MUSIC_PLAN_FREE_MONTHS, MUSIC_GENRES, ADS_EVERY,
+  subscribePlan, cancelPlan, planInfo, playTrack, startTrack, setAdHook, openArtist, artistGets, MUSIC_FEE_PCT, MUSIC_PLAN_PRICE, MUSIC_PLAN_FREE_MONTHS, MUSIC_GENRES, ADS_EVERY,
 } from '../../../music';
 
 const SEGS = [
@@ -89,12 +90,23 @@ export default function MusicTab() {
     const own = !!bought[t.id] || t.mine;
     return (
       <View style={st.row}>
-        <TouchableOpacity style={[st.cover, on && { backgroundColor: colors.text }]} onPress={() => play(t, list)} accessibilityLabel={on ? `Parar ${t.title}` : `Ouvir ${t.title}`}>
-          {on ? <Ionicons name="pause" size={20} color="#fff" /> : <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontSize: 22 }}>{t.emoji}</Text>}
+        <TouchableOpacity style={[st.cover, { overflow: 'hidden' }, on && { backgroundColor: colors.text }]} onPress={() => play(t, list)} accessibilityLabel={on ? `Parar ${t.title}` : `Ouvir ${t.title}`}>
+          {/* Capa do CD/da música */}
+          {t.cover ? <Photo uri={t.cover} style={StyleSheet.absoluteFill} fallback={t.emoji} /> : null}
+          {on ? (
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }]}>
+              <Ionicons name="pause" size={20} color="#fff" />
+            </View>
+          ) : t.cover ? null : (
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontSize: 22 }}>{t.emoji}</Text>
+          )}
         </TouchableOpacity>
         <TouchableOpacity style={{ flex: 1, marginLeft: 10 }} onPress={() => play(t, list)} activeOpacity={0.8}>
           <Text style={{ color: on ? colors.primary : colors.text, fontWeight: '800' }} numberOfLines={1}>{t.title}</Text>
-          <Text style={{ color: colors.muted, fontSize: 12.5 }} numberOfLines={1}>{t.artist} · {t.genre}{t.plays ? ` · ${short(t.plays)} plays` : ''}</Text>
+          <Text style={{ color: colors.muted, fontSize: 12.5 }} numberOfLines={1}>
+            {/* Tocar no nome do artista abre o perfil dele */}
+            <Text onPress={() => openArtist(t.artist)} style={{ color: colors.primaryDark, fontWeight: '700' }}>{t.artist}</Text> · {t.genre}{t.plays ? ` · ${short(t.plays)} plays` : ''}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity style={st.iconBtn} onPress={() => setPickFor(t)} accessibilityLabel="Adicionar a uma playlist">
           <Ionicons name="add-circle-outline" size={22} color={colors.menu} />

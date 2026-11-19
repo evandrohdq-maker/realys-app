@@ -96,7 +96,8 @@ import PipManager from './src/components/PipManager';
 import { minimizeApp, playingKind } from './src/pip';
 import { ProductSheetHost } from './src/components/ProductSheet';
 import RadiosScreen from './src/screens/cliente/RadiosScreen';
-import { RadioHost } from './src/components/RadioKit';
+import { RadioHost, RadioMiniBar } from './src/components/RadioKit';
+import { ArtistSheetHost } from './src/components/ArtistSheet';
 import { TvFloat, LiveFloat } from './src/components/FloatPlayers';
 import { BioGateModal, LockedScreen, canOpenTab, isVerified, useServerBio } from './src/components/BioGate';
 import HRScreen from './src/screens/empresa/HRScreen';
@@ -586,8 +587,10 @@ function Shell({ inviteTick }) {
 
       {/* Rádio tocando: barrinha em qualquer tela (o player é um só no app). */}
       <BioGateModal />
-      {/* Rádio/música: dentro do app não aparece barrinha; o play/parar fica na página das rádios.
-          O mini player (capa) só aparece quando o app é minimizado (janelinha). */}
+      {/* Rádio ao vivo: sem barrinha dentro do app (o play/parar fica na página das rádios; a capa
+          aparece só ao minimizar). Músicas: mini player com a capa e o botão do perfil do artista. */}
+      <RadioMiniBar bottom={88 + insets.bottom} />
+      <ArtistSheetHost />
       {/* TV da aba Stream e live minimizada: janelinhas flutuantes (segure e arraste). */}
       <TvFloat bottom={150 + insets.bottom} />
       {/* Perfil de rádio/TV (abre ao tocar no nome) e a janelinha por cima dos outros apps. */}

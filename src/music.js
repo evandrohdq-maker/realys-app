@@ -29,7 +29,7 @@ const SEED = [
   { id: 'mu6', title: 'Quebrada de Ouro', artist: 'MC Tavin', genre: 'Rap', emoji: '🎤', price: 1.99, plays: 41500, url: T(6), example: true },
   { id: 'mu7', title: 'Neon Sul', artist: 'DJ Karu', genre: 'Eletrônica', emoji: '🎧', price: 3.99, plays: 12900, url: T(7), example: true },
   { id: 'mu8', title: 'Domingo no Quintal', artist: 'Grupo Sem Pressa', genre: 'Pagode', emoji: '🥁', price: 2.49, plays: 15300, url: T(8), example: true },
-];
+].map((t) => ({ ...t, cover: `https://picsum.photos/seed/realys-cd-${t.id}/400/400` })); // capa do CD/da música
 
 const KEY = 'realys.music.v1';
 let data = { mine: [], playlists: [], plan: null, sales: 0, earned: 0, heard: 0 };
@@ -68,8 +68,8 @@ export const allTracks = () => [...data.mine, ...SEED];
 export const trackById = (id) => allTracks().find((t) => t.id === id) || null;
 
 // ---------- Artista ----------
-export function publishTrack({ title, artist, genre, price, url, emoji }) {
-  const t = { id: 'my' + Date.now(), title, artist, genre, emoji: emoji || '🎵', price: r2(price), plays: 0, url: String(url).trim(), mine: true };
+export function publishTrack({ title, artist, genre, price, url, emoji, cover }) {
+  const t = { id: 'my' + Date.now(), title, artist, genre, emoji: emoji || '🎵', cover: cover || null, price: r2(price), plays: 0, url: String(url).trim(), mine: true };
   set({ mine: [t, ...data.mine] });
   return t;
 }
@@ -110,7 +110,27 @@ export function countPlay() {
 let queue = [];
 let adHook = null; // a tela de Músicas mostra a propaganda (quando está aberta)
 export const setAdHook = (fn) => (adHook = fn);
-const toRadio = (t) => ({ id: t.id, name: t.title, url: t.url, emoji: t.emoji, track: true, artist: t.artist });
+// A capa do CD/da música vai junto: aparece no mini player, na janelinha e na barra de notificações.
+const toRadio = (t) => ({ id: t.id, name: t.title, url: t.url, emoji: t.emoji, logo: t.cover || null, track: true, artist: t.artist });
+
+// ---------- Perfil do artista ----------
+// Tocar no nome do artista (mini player, lista de músicas) abre a página dele com as músicas.
+export const artistTracks = (name) => allTracks().filter((t) => t.artist === name);
+let artistOpen = null;
+const asubs = new Set();
+export const openArtist = (name) => {
+  artistOpen = name || null;
+  asubs.forEach((fn) => fn(artistOpen));
+};
+export const closeArtist = () => openArtist(null);
+export function useArtistOpen() {
+  const [a, setA] = useState(artistOpen);
+  useEffect(() => {
+    asubs.add(setA);
+    return () => asubs.delete(setA);
+  }, []);
+  return a;
+}
 export const startTrack = (t) => playRadio(toRadio(t));
 // Toca a faixa (com a propaganda antes, quando é a vez dela e a tela de Músicas está aberta).
 export function playTrack(t, list) {

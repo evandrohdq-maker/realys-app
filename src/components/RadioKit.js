@@ -8,6 +8,7 @@ import Floating from './Floating';
 import { radioNow, onRadioNow, setRadioNow, playRadio, stopRadio, resolveStream, loadRadios, radioOf, onRadios, radioEnded } from '../radio';
 import { stationCat, openStation } from '../streamCats';
 import { minimizeApp } from '../pip';
+import { openArtist } from '../music';
 
 loadRadios(); // rádios indexadas guardadas no celular
 
@@ -199,30 +200,37 @@ export function RadioCard({ radio, dark, noOpen }) {
   );
 }
 
-// Barrinha "tocando agora" em qualquer tela. É flutuante: segure e arraste para mudar de lugar.
-// (Rádio é só som: ao sair do app ela continua tocando, com o controle na barra de notificações.)
+// Mini player das MÚSICAS (playlist, galeria, artista) em qualquer tela. Rádio ao vivo não tem
+// barrinha dentro do app: o play/parar fica na página das rádios e a capa aparece só ao minimizar.
+// Mostra a capa do CD/da música; tocar na capa, no nome ou no botão do artista abre o perfil dele.
+// É flutuante: segure e arraste para mudar de lugar.
 export function RadioMiniBar({ bottom }) {
   const n = useRadioNow();
-  if (!n.radio || n.status === 'parado') return null;
+  if (!n.radio || n.status === 'parado' || !n.radio.track) return null;
+  const artist = () => n.radio.artist && openArtist(n.radio.artist);
   return (
     <Floating place={{ left: 12, right: 84, bottom }} style={st.mini}>
-      <StationLogo s={n.radio} size={36} radius={10} />
-      <TouchableOpacity style={{ flex: 1, marginLeft: 8 }} onPress={() => !n.radio.track && openStation('radio', n.radio.id)} activeOpacity={0.8} accessibilityLabel={`Abrir o perfil de ${n.radio.name}`}>
-        <Text style={st.miniName} numberOfLines={1}>{n.radio.name}</Text>
-        <Text style={st.miniStatus} numberOfLines={1}>{n.status === 'carregando' ? 'Conectando…' : n.status === 'erro' ? 'Não foi possível tocar' : n.radio.track ? n.radio.artist || 'Tocando' : 'Tocando ao vivo'}</Text>
+      <TouchableOpacity onPress={artist} activeOpacity={0.8} accessibilityLabel={`Abrir o perfil de ${n.radio.artist || 'artista'}`}>
+        <StationLogo s={n.radio} size={40} radius={8} />
       </TouchableOpacity>
-      {n.status === 'tocando' ? <Bars on /> : null}
-      {n.radio.track ? (
-        <TouchableOpacity onPress={radioEnded} style={st.miniBtn} accessibilityLabel="Próxima música">
-          <Ionicons name="play-skip-forward" size={16} color="#fff" />
+      <TouchableOpacity style={{ flex: 1, marginLeft: 8 }} onPress={artist} activeOpacity={0.8}>
+        <Text style={st.miniName} numberOfLines={1}>{n.radio.name}</Text>
+        <Text style={st.miniStatus} numberOfLines={1}>{n.status === 'carregando' ? 'Conectando…' : n.status === 'erro' ? 'Não foi possível tocar' : n.radio.artist || 'Tocando'}</Text>
+      </TouchableOpacity>
+      {n.radio.artist ? (
+        <TouchableOpacity onPress={artist} style={st.miniBtn} hitSlop={6} accessibilityLabel="Perfil do artista">
+          <Ionicons name="person-circle-outline" size={18} color="#fff" />
         </TouchableOpacity>
       ) : null}
-      {/* Minimizar: o Re@lys sai da frente e a capa fica numa janelinha; o som continua. */}
+      <TouchableOpacity onPress={radioEnded} style={st.miniBtn} hitSlop={6} accessibilityLabel="Próxima música">
+        <Ionicons name="play-skip-forward" size={16} color="#fff" />
+      </TouchableOpacity>
+      {/* Minimizar: o Re@lys sai da frente e a capa fica numa janelinha; a música continua. */}
       <TouchableOpacity onPress={() => minimizeApp('radio')} style={st.miniBtn} hitSlop={6} accessibilityLabel="Minimizar: continuar ouvindo com a tela livre">
         <Ionicons name="remove" size={18} color="#fff" />
       </TouchableOpacity>
-      {/* Fechar: encerra o som. */}
-      <TouchableOpacity onPress={stopRadio} style={[st.miniBtn, st.miniClose]} hitSlop={8} accessibilityLabel={n.radio.track ? 'Fechar a música' : 'Fechar a rádio'}>
+      {/* Fechar: encerra a música. */}
+      <TouchableOpacity onPress={stopRadio} style={[st.miniBtn, st.miniClose]} hitSlop={8} accessibilityLabel="Fechar a música">
         <Ionicons name="close" size={18} color="#fff" />
       </TouchableOpacity>
     </Floating>
