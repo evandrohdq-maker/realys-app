@@ -252,14 +252,16 @@ export function RadioHeadChip({ top, left = 62 }) {
   const { state, dispatch } = useStore();
   if (!n.radio || n.status === 'parado') return null;
   const track = !!n.radio.track;
-  // Música à venda que a pessoa ainda não tem: um "+" pequenininho de comprar, um toque e já compra.
+  // Música à venda que a pessoa ainda não tem: o "+" pequenininho só põe no carrinho.
+  // A compra é confirmada depois, no carrinho (lá dá para ouvir a música mais uma vez).
   const t = track ? trackById(n.radio.id) : null;
   const forSale = !!(t && t.price && !t.mine && !(state.boughtMedia || {})[t.id]);
+  const inCart = !!(t && (state.musicCart || []).some((x) => x.id === t.id));
   const buy = () => {
     if (!isVerified(state)) return dispatch({ type: 'BIO_GATE' });
-    if (state.wallet < t.price) return Alert.alert('Saldo insuficiente', `"${t.title}" custa ${brl(t.price)}. Coloque saldo na carteira e toque no + de novo.`);
-    dispatch({ type: 'BUY_MEDIA', id: t.id, price: t.price });
-    const msg = `Comprada: "${t.title}" por ${brl(t.price)} · ${brl(artistGets(t.price))} vão para ${t.artist}`;
+    if (inCart) return dispatch({ type: 'OPEN_CART' });
+    dispatch({ type: 'ADD_MUSIC_CART', track: { id: t.id, price: t.price, title: t.title, artist: t.artist } });
+    const msg = `"${t.title}" foi para o carrinho · confirme a compra lá`;
     if (Platform.OS === 'android') ToastAndroid.show(msg, ToastAndroid.SHORT);
   };
   const open = () => (track ? n.radio.artist && openArtist(n.radio.artist) : openStation('radio', n.radio.id));
@@ -280,9 +282,9 @@ export function RadioHeadChip({ top, left = 62 }) {
         )}
       </TouchableOpacity>
       {forSale ? (
-        <TouchableOpacity onPress={buy} hitSlop={8} style={st.chipBuy} accessibilityLabel={`Comprar ${t.title} por ${brl(t.price)}`}>
+        <TouchableOpacity onPress={buy} hitSlop={8} style={st.chipBuy} accessibilityLabel={inCart ? `${t.title} já está no carrinho. Abrir carrinho` : `Pôr ${t.title} no carrinho, ${brl(t.price)}`}>
           <Ionicons name="cart" size={11} color="#0E0E10" />
-          <Ionicons name="add" size={10} color="#0E0E10" style={{ marginLeft: -1 }} />
+          <Ionicons name={inCart ? 'checkmark' : 'add'} size={10} color="#0E0E10" style={{ marginLeft: -1 }} />
         </TouchableOpacity>
       ) : null}
       {track ? (

@@ -6,6 +6,7 @@ import { View, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, cartTotal, storeOf } from '../../store';
+import MusicCart from '../../components/MusicCart';
 import { SegTabs } from '../../components/AdKit';
 import { ProductThumb } from '../../components/ui';
 import { promoDiscount } from '../../rewards';
@@ -158,7 +159,10 @@ function ServiceOrder({ r, onTrack }) {
 function CartTab({ onPaid }) {
   const { state, dispatch } = useStore();
   const lines = state.cart.map((c) => ({ ...c, p: state.products.find((x) => x.id === c.productId) })).filter((l) => l.p);
-  if (!lines.length) return <Empty text="Seu carrinho está vazio. Adicione produtos no Shop, no Food ou pela Lotus." />;
+  const songs = (state.musicCart || []).length;
+  if (!lines.length && !songs) return <Empty text="Seu carrinho está vazio. Adicione produtos no Shop, no Food ou pela Lotus." />;
+  // Só músicas no carrinho: confirma a compra delas (com a ouvida extra), sem taxa de produto.
+  if (!lines.length) return <MusicCart onDone={() => onPaid(false)} />;
   const promo = promoDiscount(state, lines.map((l) => ({ ...l, product: l.p })));
   const protection = protectionFee(state);
   const total = +(cartTotal(state) - promo.off + protection).toFixed(2);
@@ -176,6 +180,7 @@ function CartTab({ onPaid }) {
   };
   return (
     <View>
+      <MusicCart />
       {lines.map(({ p, qty }) => (
         <Card key={p.id}>
           <Row>
@@ -319,7 +324,7 @@ export default function OrdersScreen({ navigate, explore }) {
   const buys = state.orders.filter((o) => !isFood(o));
   const tickets = state.tickets || [];
   const venueOrders = state.venueOrders || [];
-  const cartCount = state.cart.reduce((n, c) => n + c.qty, 0);
+  const cartCount = state.cart.reduce((n, c) => n + c.qty, 0) + (state.musicCart || []).length;
   const [seg, setSeg] = useState(cartCount ? 'carrinho' : 'compras');
   // Aguardando retorno: chamados e pedidos que o cliente fez e ainda esperam a resposta do outro lado.
   const waiting = [

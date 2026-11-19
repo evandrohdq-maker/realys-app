@@ -254,6 +254,9 @@ const initialState = {
   creations: [],
   mediaPlan: false, // Plano Artista Pro ativo
   boughtMedia: {}, // faixas e obras compradas pelo cliente
+  // Músicas no carrinho (o "+" do player só adiciona; a compra é confirmada no carrinho).
+  // ouviu: o cliente já usou a única ouvida extra que o carrinho dá antes de comprar.
+  musicCart: [], // [{ id, price, title, artist, ouviu }]
   tickets: [], // passagens de transporte público
   notes: [], // anotações do administrador sobre o que mudar em cada tela (ficam salvas no celular)
   // RH: vagas de outras empresas, vagas da minha empresa (com candidatos) e candidaturas do cliente.
@@ -368,7 +371,7 @@ function giftPointsPatch(state, amount, desc) {
 // Conta sem biometria (modo social): estas ações são compra, contratação, anúncio ou carteira e
 // não são aceitas. Em vez de executar, o app abre a janela "falta só a biometria".
 const NEEDS_BIO = new Set([
-  'ADD_TO_CART', 'OPEN_CART', 'CHECKOUT', 'ADD_COMBO', 'COLLECT_COUPON', 'SECTOR_ORDER', 'BUY_TICKET', 'BUY_MEDIA', 'MEDIA_UPLOAD', 'MEDIA_PLAN',
+  'ADD_TO_CART', 'OPEN_CART', 'CHECKOUT', 'ADD_COMBO', 'COLLECT_COUPON', 'SECTOR_ORDER', 'BUY_TICKET', 'BUY_MEDIA', 'ADD_MUSIC_CART', 'CHECKOUT_MUSIC', 'MEDIA_UPLOAD', 'MEDIA_PLAN',
   'VENUE_RESERVE', 'VENUE_ORDER', 'REQUEST_RIDE', 'VISIT_REQUEST', 'ONLINE_BOOK', 'REVERSE_POST', 'REVERSE_ACCEPT', 'GROUP_JOIN', 'SUB_START', 'SUS_BOOK', 'DOC_SIGN',
   'NEG_REQUEST', 'NEG_PLAN', 'NEG_AD_CREATE', 'NEG_LEAD_UNLOCK', 'DESAPEGO_ADD', 'DESAPEGO_BUY', 'APPLY_JOB', 'PAGE_CREATE', 'REDEEM_POINTS', 'INTEL_PLAN',
   'OPEN_GIFT', 'SEND_GIFT', 'SEND_LIVE_GIFT', 'CONVERT_LIVE_CREDITS', 'GIFT_CASHOUT', 'WALLET_DEPOSIT', 'WALLET_WITHDRAW', 'DATE_SUBSCRIBE', 'SET_HIGHLIGHT',
@@ -838,6 +841,44 @@ function baseReducer(state, a) {
       return { ...state, companyReviews: { ...state.companyReviews, [a.id]: [a.review, ...(state.companyReviews[a.id] || [])] } };
     case 'BUY_MEDIA':
       return { ...state, wallet: +(state.wallet - a.price).toFixed(2), boughtMedia: { ...state.boughtMedia, [a.id]: true } };
+    // Música no carrinho: o "+" do player só adiciona; quem já tem ou já pôs no carrinho não duplica.
+    case 'ADD_MUSIC_CART': {
+      const mc = state.musicCart || [];
+      if ((state.boughtMedia || {})[a.track.id] || mc.some((x) => x.id === a.track.id)) return state;
+      const { id, price, title, artist } = a.track;
+      return { ...state, musicCart: [...mc, { id, price, title, artist, ouviu: false }] };
+    }
+    case 'REMOVE_MUSIC_CART':
+      return { ...state, musicCart: (state.musicCart || []).filter((x) => x.id !== a.id) };
+    // No carrinho dá para ouvir a música mais uma vez (uma só) antes de confirmar.
+    case 'MUSIC_CART_REPLAY':
+      return { ...state, musicCart: (state.musicCart || []).map((x) => (x.id === a.id ? { ...x, ouviu: true } : x)) };
+    // Confirmar a compra das músicas do carrinho: sai do saldo, libera o download e fica no registro de Pedidos.
+    case 'CHECKOUT_MUSIC': {
+      const mc = (state.musicCart || []).filter((x) => !(state.boughtMedia || {})[x.id]);
+      const total = +mc.reduce((n, x) => n + x.price, 0).toFixed(2);
+      if (!mc.length || total > state.wallet) return state;
+      const bought = { ...state.boughtMedia };
+      mc.forEach((x) => (bought[x.id] = true));
+      return {
+        ...state,
+        wallet: +(state.wallet - total).toFixed(2),
+        boughtMedia: bought,
+        musicCart: [],
+        orders: [
+          {
+            id: newId('o'),
+            at: Date.now(),
+            items: mc.map((x) => ({ name: `🎵 ${x.title} · ${x.artist}`, qty: 1, price: x.price })),
+            total,
+            status: 'Entregue',
+            store: [...new Set(mc.map((x) => x.artist))].join(', '),
+            music: true,
+          },
+          ...state.orders,
+        ],
+      };
+    }
     // Artista/empresa sobe um arquivo: paga o servidor e a despesa entra no fluxo de caixa.
     case 'MEDIA_UPLOAD':
       return {

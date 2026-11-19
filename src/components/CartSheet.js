@@ -17,6 +17,7 @@ import { GuaranteeSeal } from './Guarantee';
 import { protectionFee, PROTECTION_TEXT } from '../guarantee';
 import { teleDoCarrinho } from '../teleGratis';
 import { isFoodStore } from '../data';
+import MusicCart, { musicCartCount } from './MusicCart';
 
 const NIGHT = '#0B1124';
 
@@ -35,6 +36,8 @@ export default function CartSheet({ onOrders }) {
   const fromGift = Math.min(state.giftCredits || 0, total);
   const fromWallet = total - fromGift;
   const count = lines.reduce((n, l) => n + l.qty, 0);
+  const songs = musicCartCount(state);
+  const allCount = count + songs;
 
   const pay = () => {
     const avail = state.wallet + (state.giftCredits || 0);
@@ -65,18 +68,22 @@ export default function CartSheet({ onOrders }) {
             </View>
             <View style={{ flex: 1, marginLeft: 10 }}>
               <Text style={styles.title}>Seu carrinho</Text>
-              <Text style={styles.sub}>{count ? `${count} ${count === 1 ? 'item' : 'itens'}` : 'Vazio'}</Text>
+              <Text style={styles.sub}>{allCount ? `${allCount} ${allCount === 1 ? 'item' : 'itens'}` : 'Vazio'}</Text>
             </View>
             <TouchableOpacity onPress={close} style={styles.closeBtn} accessibilityLabel="Fechar">
               <Ionicons name="close" size={20} color={colors.text} />
             </TouchableOpacity>
           </View>
 
+          {/* Músicas do player: confirma a compra aqui, e dá para ouvir cada uma mais uma vez. */}
+          <MusicCart />
           {!lines.length ? (
+            songs ? null : (
             <View style={{ alignItems: 'center', paddingVertical: 28 }}>
               <Ionicons name="bag-outline" size={34} color={colors.muted} />
               <Text style={[styles.sub, { marginTop: 8, textAlign: 'center' }]}>Nada no carrinho ainda.{'\n'}Adicione produtos na Loja, no Food ou pela Lotus.</Text>
             </View>
+            )
           ) : (
             <>
               <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
@@ -168,7 +175,7 @@ export default function CartSheet({ onOrders }) {
 // Ícone discreto do topo: só aparece quando há itens no carrinho.
 export function CartIcon({ style }) {
   const { state, dispatch } = useStore();
-  const count = state.cart.reduce((n, c) => n + c.qty, 0);
+  const count = state.cart.reduce((n, c) => n + c.qty, 0) + musicCartCount(state);
   if (!count) return null;
   return (
     <TouchableOpacity onPress={() => dispatch({ type: 'OPEN_CART' })} style={style} accessibilityLabel={`Abrir carrinho, ${count} itens`}>
