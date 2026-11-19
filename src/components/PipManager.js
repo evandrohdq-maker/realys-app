@@ -6,7 +6,7 @@
 // (a live volta em tela cheia); fechar no X para o que estava tocando.
 import React, { useEffect, useRef } from 'react';
 import { AppState, useWindowDimensions } from 'react-native';
-import { setAutoPip, usePipState, setPipState, pipState, onNativePip, isInPipNow, liveOpenNow } from '../pip';
+import { setAutoPip, usePipState, setPipState, pipState, onNativePip, isInPipNow, liveOpenNow, setPlayingKind, watchTask, smallWindow } from '../pip';
 import { useRadioNow, RadioPipView } from './RadioKit';
 import { useTvNow } from './FloatPlayers';
 import { useStore } from '../store';
@@ -14,6 +14,7 @@ import { stopRadio } from '../radio';
 import { stopTv } from '../tv';
 import { hardStopRadio } from './RadioKit';
 import { hardStopTv } from './FloatPlayers';
+import { PipLayer } from '../pipModal';
 
 export default function PipManager() {
   const { state, dispatch } = useStore();
@@ -29,8 +30,11 @@ export default function PipManager() {
   st.current = { dispatch, liveMini: state.liveMini };
 
   // Liga a janelinha automática só quando há algo tocando, no formato do player.
+  // Também avisa o "minimizar" do que está tocando e liga o vigia que encerra o som ao fechar o app.
   useEffect(() => {
     setAutoPip(!!kind, kind || 'radio');
+    setPlayingKind(kind);
+    if (kind) watchTask(true);
   }, [kind]);
 
   useEffect(() => {
@@ -65,7 +69,9 @@ export default function PipManager() {
           reopenLive.current = true;
           l.minimize();
         }
-      } else if (pipState()) {
+      } else if (pipState() && !isInPipNow()) {
+        // Só sai do modo janelinha quando o app voltou de verdade (alguns Android "acordam" o app
+        // dentro da janelinha; aí ele continua mostrando só o player).
         leave(false);
       }
     });
@@ -76,10 +82,18 @@ export default function PipManager() {
   }, []);
 
   // Plano B (sem o aviso do Android): a janela ficou pequena e o Android diz que é a janelinha.
+  // Janela pequena = janelinha (também quando o aviso não chega, ex.: 2ª vez pelo botão do meio).
+  // Janela grande de novo e o Android diz que saiu: volta ao app normal.
   useEffect(() => {
-    if (win.width < 500 && win.height < 500 && isInPipNow()) setPipState(true);
+    if (smallWindow(win)) setPipState(true);
+    else if (pipState() && !isInPipNow()) setPipState(false);
   }, [win.width, win.height]);
 
   if (!inPip || kind !== 'radio') return null;
-  return <RadioPipView />;
+  // A capa da rádio numa janela própria: fica por cima de qualquer página aberta.
+  return (
+    <PipLayer>
+      <RadioPipView />
+    </PipLayer>
+  );
 }

@@ -13,7 +13,7 @@ import { Photo } from './ui';
 import { useStore } from '../store';
 import { tvNow, onTvNow, stopTv } from '../tv';
 import { onRadioNow } from '../radio';
-import { usePipState, enterPip, pipOk } from '../pip';
+import { usePipState, minimizeApp } from '../pip';
 import { LiveStage } from './LiveVideo';
 import { LiveModal } from '../screens/cliente/home/Social';
 
@@ -104,9 +104,8 @@ export function TvFloat({ bottom = 150 }) {
   const w = Math.round(big ? win.width - 24 : Math.min(260, win.width * 0.62));
   const h = Math.round((w * 9) / 16);
   // Janelinha por cima dos outros apps: só o vídeo do canal (src/pip.js).
-  const pip = () => {
-    if (!pipOk() || !enterPip('tv')) Alert.alert('Janela fora do app', 'Este celular não liberou a janelinha para o Re@lys. O som do canal continua tocando quando você sai do app.');
-  };
+  // Minimizar: o Re@lys sai da frente e o vídeo fica numa janelinha; o som continua.
+  const pip = () => minimizeApp('tv');
   return (
     <Floating full={inPip} place={{ right: 12, bottom }} style={[st.tv, { width: w, height: h }]}>
       {EV ? (
@@ -126,8 +125,8 @@ export function TvFloat({ bottom = 150 }) {
       {inPip ? null : <View style={st.top}>
         <Ionicons name="move" size={13} color="rgba(255,255,255,0.75)" />
         <Text style={st.name} numberOfLines={1}>{ch.name}</Text>
-        <TouchableOpacity onPress={pip} style={st.btn} hitSlop={6} accessibilityLabel="Continuar assistindo fora do app, numa janela">
-          <Ionicons name="browsers-outline" size={15} color="#fff" />
+        <TouchableOpacity onPress={pip} style={st.btn} hitSlop={6} accessibilityLabel="Minimizar: continuar assistindo com a tela livre">
+          <Ionicons name="remove" size={17} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setBig((v) => !v)} style={st.btn} hitSlop={6} accessibilityLabel={big ? 'Diminuir a janela' : 'Aumentar a janela'}>
           <Ionicons name={big ? 'contract' : 'expand'} size={15} color="#fff" />
@@ -170,9 +169,9 @@ export function LiveFloat({ bottom = 150 }) {
               <Ionicons name="close" size={15} color="#fff" />
             </TouchableOpacity>
           )}
-          {inPip || !pipOk() ? null : (
-            <TouchableOpacity onPress={() => enterPip('live')} style={[st.btn, st.liveClose, { top: 34 }]} hitSlop={8} accessibilityLabel="Ver a live numa janelinha por cima dos outros apps">
-              <Ionicons name="browsers-outline" size={13} color="#fff" />
+          {inPip ? null : (
+            <TouchableOpacity onPress={() => minimizeApp('live')} style={[st.btn, st.liveClose, { top: 34 }]} hitSlop={8} accessibilityLabel="Minimizar: continuar vendo a live com a tela livre">
+              <Ionicons name="remove" size={15} color="#fff" />
             </TouchableOpacity>
           )}
         </Floating>

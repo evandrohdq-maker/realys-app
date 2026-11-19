@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Floating from './Floating';
 import { radioNow, onRadioNow, setRadioNow, playRadio, stopRadio, resolveStream, loadRadios, radioOf, onRadios, radioEnded } from '../radio';
 import { stationCat, openStation } from '../streamCats';
-import { pipOk, enterPip } from '../pip';
+import { minimizeApp } from '../pip';
 
 loadRadios(); // rádios indexadas guardadas no celular
 
@@ -211,17 +211,17 @@ export function RadioMiniBar({ bottom }) {
         <Text style={st.miniName} numberOfLines={1}>{n.radio.name}</Text>
         <Text style={st.miniStatus} numberOfLines={1}>{n.status === 'carregando' ? 'Conectando…' : n.status === 'erro' ? 'Não foi possível tocar' : n.radio.track ? n.radio.artist || 'Tocando' : 'Tocando ao vivo'}</Text>
       </TouchableOpacity>
-      {pipOk() ? (
-        <TouchableOpacity onPress={enterPip} style={st.miniBtn} accessibilityLabel="Continuar ouvindo numa janelinha por cima dos outros apps">
-          <Ionicons name="browsers-outline" size={15} color="#fff" />
-        </TouchableOpacity>
-      ) : null}
       {n.status === 'tocando' ? <Bars on /> : null}
       {n.radio.track ? (
         <TouchableOpacity onPress={radioEnded} style={st.miniBtn} accessibilityLabel="Próxima música">
           <Ionicons name="play-skip-forward" size={16} color="#fff" />
         </TouchableOpacity>
       ) : null}
+      {/* Minimizar: o Re@lys sai da frente e a capa fica numa janelinha; o som continua. */}
+      <TouchableOpacity onPress={() => minimizeApp('radio')} style={st.miniBtn} hitSlop={6} accessibilityLabel="Minimizar: continuar ouvindo com a tela livre">
+        <Ionicons name="remove" size={18} color="#fff" />
+      </TouchableOpacity>
+      {/* Fechar: encerra o som. */}
       <TouchableOpacity onPress={stopRadio} style={[st.miniBtn, st.miniClose]} hitSlop={8} accessibilityLabel={n.radio.track ? 'Fechar a música' : 'Fechar a rádio'}>
         <Ionicons name="close" size={18} color="#fff" />
       </TouchableOpacity>

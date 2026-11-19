@@ -5,6 +5,7 @@
 // O próprio Android põe nela os botões de abrir em tela cheia e de fechar, e deixa arrastar.
 // Precisa do APK novo (módulo nativo RealysUpdater); sem ele, nada muda.
 import { useEffect, useState } from 'react';
+import { useWindowDimensions } from 'react-native';
 
 let N = null;
 try {
@@ -40,11 +41,31 @@ export function onPipState(fn) {
   subs.add(fn);
   return () => subs.delete(fn);
 }
+// A janela do app encolhida (as duas medidas pequenas) só acontece na janelinha. Isso vale
+// mesmo se o aviso do Android se perder (ex.: segunda vez que minimiza pelo botão do meio):
+// nas três formas de minimizar aparece só a capa/vídeo do que está tocando, nunca o app inteiro.
+export const smallWindow = (w) => !!w && w.width < 500 && w.height < 500;
 export function usePipState() {
   const [v, setV] = useState(inPip);
+  const win = useWindowDimensions();
   useEffect(() => onPipState(setV), []);
-  return v;
+  return v || smallWindow(win);
 }
+
+// ---------- Minimizar o Re@lys ----------
+// O que está tocando agora (o PipManager atualiza): 'radio' | 'tv' | 'live' | null.
+let playing = null;
+export const setPlayingKind = (k) => (playing = k);
+export const playingKind = () => playing;
+// Botão minimizar do player e voltar 2x: com algo tocando vira a janelinha do player (capa da
+// rádio, vídeo da TV ou da live); sem nada tocando, o app só sai da frente. O som continua.
+// Fechar o app (arrastar para fora dos apps abertos) é que encerra o som (TaskWatcherService).
+export function minimizeApp(kind = playing) {
+  const shape = PIP_SHAPE[kind] || PIP_SHAPE.radio;
+  if (kind) setPipState(true); // já mostra só o player enquanto a janelinha abre
+  return call('minimize', !!kind, ...shape);
+}
+export const watchTask = (on) => call('watchTask', !!on);
 
 // O Android avisa na hora em que entra e sai da janelinha.
 // closed = a pessoa fechou a janelinha no X (o Android confere e avisa).

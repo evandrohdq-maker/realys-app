@@ -1,3 +1,4 @@
+import './src/pipModal'; // janelinha: só o player por cima (antes de qualquer tela)
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, TouchableOpacity, StyleSheet, Platform, Alert, BackHandler, ToastAndroid, ActivityIndicator, Image } from 'react-native';
@@ -92,6 +93,7 @@ import SalasScreen from './src/screens/empresa/SalasScreen';
 import { ScreenShareBar } from './src/components/ScreenShareKit';
 import { StationProfileHost } from './src/components/StationProfile';
 import PipManager from './src/components/PipManager';
+import { minimizeApp, playingKind } from './src/pip';
 import { ProductSheetHost } from './src/components/ProductSheet';
 import RadiosScreen from './src/screens/cliente/RadiosScreen';
 import { RadioHost, RadioMiniBar } from './src/components/RadioKit';
@@ -372,9 +374,16 @@ function Shell({ inviteTick }) {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
       if (goBackRef.current()) return true;
       const now = Date.now();
-      if (now - lastBack.current < 2000) return false; // segundo toque: sai do app
+      if (now - lastBack.current < 2000) {
+        // Segundo toque: MINIMIZA o Re@lys (não fecha). Com rádio, TV ou live tocando, vira a
+        // janelinha com a capa/vídeo e o som continua. Fechar de verdade = arrastar o app para
+        // fora na tela de apps abertos, e aí o som para.
+        lastBack.current = 0;
+        if (!minimizeApp()) return false; // APK antigo, sem o módulo: comportamento de antes
+        return true;
+      }
       lastBack.current = now;
-      if (Platform.OS === 'android') ToastAndroid.show('Toque em voltar de novo para sair do Re@lys', ToastAndroid.SHORT);
+      if (Platform.OS === 'android') ToastAndroid.show(playingKind() ? 'Toque em voltar de novo para minimizar (o som continua)' : 'Toque em voltar de novo para minimizar o Re@lys', ToastAndroid.SHORT);
       return true;
     });
     return () => sub.remove();

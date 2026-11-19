@@ -170,6 +170,46 @@ class RealysUpdaterModule : Module() {
       }
     }
 
+    // Minimizar o Re@lys (botão minimizar do player e voltar 2x): o app vai para segundo plano
+    // e o som continua. Com algo tocando e janelinha liberada, vira a janelinha do player;
+    // sem janelinha, o app só sai da frente (o som segue, com o controle na barra de notificações).
+    Function("minimize") { pip: Boolean, w: Int, h: Int ->
+      hookPip()
+      val act = appContext.currentActivity
+      if (act == null) {
+        false
+      } else {
+        act.runOnUiThread {
+          var done = false
+          if (pip && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            act.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+            done = try {
+              act.enterPictureInPictureMode(PictureInPictureParams.Builder().setAspectRatio(Rational(w, h)).build())
+            } catch (e: Throwable) {
+              false
+            }
+          }
+          if (!done) {
+            try {
+              act.moveTaskToBack(true)
+            } catch (e: Throwable) {}
+          }
+        }
+        true
+      }
+    }
+
+    // Liga o "vigia" que encerra o som quando a pessoa fecha o app (TaskWatcherService).
+    Function("watchTask") { on: Boolean ->
+      try {
+        val i = Intent(context, TaskWatcherService::class.java)
+        if (on) context.startService(i) else context.stopService(i)
+        true
+      } catch (e: Throwable) {
+        false
+      }
+    }
+
     Function("isInPip") {
       val act = appContext.currentActivity
       act != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && act.isInPictureInPictureMode
