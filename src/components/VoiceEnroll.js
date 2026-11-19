@@ -5,6 +5,7 @@
 //   - 3 extras opcionais: mais variedade de sons (números, perguntas, saudação), para ela
 //     conhecer melhor a voz do titular desde o começo.
 import React, { useEffect, useRef, useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import { Modal, View, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -272,7 +273,7 @@ export default function VoiceEnroll({ visible, onClose, onDone, userName }) {
   const total = step === 'gravar' && i >= REQUIRED ? PHRASES.length : REQUIRED;
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={cancel} statusBarTranslucent>
+    <Modal visible={visible} animationType="slide" onRequestClose={cancel} statusBarTranslucent><KeyboardLift style={{ flex: 1 }}>
       <View style={[st.wrap, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 16 }]}>
         <View style={st.top}>
           <Text style={st.title}>Voz do titular</Text>
@@ -351,7 +352,7 @@ export default function VoiceEnroll({ visible, onClose, onDone, userName }) {
           </View>
         )}
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

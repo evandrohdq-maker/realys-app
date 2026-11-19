@@ -1,4 +1,5 @@
 import { privacyOf } from '../studioData';
+import { KeyboardLift } from '../keyboard';
 import { LiveNowBadge } from './LiveBits';
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert } from 'react-native';
@@ -126,7 +127,7 @@ export function UserProfileModal() {
   }
 
   return (
-    <Modal visible animationType="slide" onRequestClose={close}>
+    <Modal visible animationType="slide" onRequestClose={close}><KeyboardLift style={{ flex: 1 }}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
         <Photo uri={`https://picsum.photos/seed/realys-cover-${m.id}/900/400`} style={{ width: '100%', height: 150 }} />
         <TouchableOpacity onPress={close} style={[styles.back, { top: insets.top + 10 }]} accessibilityLabel="Voltar">
@@ -237,7 +238,7 @@ export function UserProfileModal() {
         onVideo={() => Alert.alert('Chamada de vídeo', `Ligando para ${m.name} pela Re@lys.`)}
       />
       <TestimonialComposer visible={writing} onClose={() => setWriting(false)} toId={m.id} />
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
@@ -255,7 +256,7 @@ export function ProfilePeek({ m, onClose, onMessage, onFull }) {
   const firstName = m.name.split(' ')[0];
   const [list, setList] = useState(null); // número tocado: amigos | comum | mural
   return (
-    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <TouchableOpacity style={styles.peekDim} activeOpacity={1} onPress={onClose} accessibilityLabel="Fechar prévia" />
       <View style={[styles.peekSheet, { paddingBottom: 16 + insets.bottom }]}>
         <View style={styles.peekGrab} />
@@ -333,7 +334,7 @@ export function ProfilePeek({ m, onClose, onMessage, onFull }) {
           )}
         </ScrollView>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
@@ -365,7 +366,7 @@ export function PeopleListModal({ visible, title, people = [], total, onClose })
   if (!visible) return null;
   const n = total != null ? total : people.length;
   return (
-    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <TouchableOpacity style={styles.peekDim} activeOpacity={1} onPress={onClose} accessibilityLabel="Fechar" />
       <View style={[styles.peekSheet, { paddingBottom: 16 + insets.bottom }]}>
         <View style={styles.peekGrab} />
@@ -392,7 +393,7 @@ export function PeopleListModal({ visible, title, people = [], total, onClose })
           {n > people.length ? <Text style={styles.tip}>e mais {(n - people.length).toLocaleString('pt-BR')} pessoa(s) · a lista completa vem com o servidor</Text> : null}
         </ScrollView>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
@@ -416,7 +417,7 @@ export function StatListModal({ m, kind, onClose }) {
   };
   const people = kind === 'amigos' ? all : mutual;
   return (
-    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <TouchableOpacity style={styles.peekDim} activeOpacity={1} onPress={onClose} accessibilityLabel="Fechar" />
       <View style={[styles.peekSheet, { paddingBottom: 16 + insets.bottom }]}>
         <View style={styles.peekGrab} />
@@ -476,7 +477,7 @@ export function StatListModal({ m, kind, onClose }) {
         </ScrollView>
         )}
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
@@ -498,7 +499,7 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
   const open = (m) => dispatch({ type: 'OPEN_PROFILE', id: m.id });
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
         <View style={[styles.searchHead, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity onPress={onClose} style={styles.iconBtn} accessibilityLabel="Fechar busca">
@@ -588,7 +589,7 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
           )}
         </ScrollView>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

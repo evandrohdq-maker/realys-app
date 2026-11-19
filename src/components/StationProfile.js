@@ -2,6 +2,7 @@
 // Capa, logo, categoria, seguidores, botão de ouvir/assistir, link para divulgar e os posts da estação.
 // A dona da estação (empresa com CNPJ) publica no feed com o link para os ouvintes tocarem na hora.
 import { usePipState } from '../pip';
+import { KeyboardLift } from '../keyboard';
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Image, Share, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -94,7 +95,7 @@ function StationProfile({ kind, id }) {
   };
 
   return (
-    <Modal visible animationType="slide" onRequestClose={closeStation}>
+    <Modal visible animationType="slide" onRequestClose={closeStation}><KeyboardLift style={{ flex: 1 }}>
       <ScrollView style={{ flex: 1, backgroundColor: '#fff' }} contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
         {/* Capa: a imagem da estação ou a cor da categoria */}
         <View style={[st.cover, { backgroundColor: cat.tint, paddingTop: insets.top }]}>
@@ -171,7 +172,7 @@ function StationProfile({ kind, id }) {
           </View>
         )) : <Text style={st.empty}>{mine ? 'Publique o primeiro post e chame os ouvintes.' : 'Nenhuma publicação ainda.'}</Text>}
       </ScrollView>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

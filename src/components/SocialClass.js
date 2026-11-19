@@ -1,5 +1,6 @@
 // Selo do perfil social (ex.: 🎮 Gamer · Streamer) e o questionário que define o perfil no cadastro.
 import React, { useMemo, useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import { View, TouchableOpacity, Modal, ScrollView, StyleSheet } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -158,7 +159,7 @@ export function ClassPicker({ visible, current, onClose, onPick }) {
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(current ? current.cls : null);
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <View style={styles.backdrop}>
         <View style={[styles.sheet, { paddingBottom: 16 + insets.bottom }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
@@ -197,7 +198,7 @@ export function ClassPicker({ visible, current, onClose, onPick }) {
           </ScrollView>
         </View>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
@@ -210,7 +211,7 @@ export function ProfileQuizModal({ visible, initial, onClose, onSave }) {
   }, [visible]);
   const result = v.manual && v.social ? v.social : classifyProfile(`${v.about || ''} ${v.work || ''}`, v.hobbies || []);
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: 16, paddingTop: 16 + insets.top, paddingBottom: 40 + insets.bottom }} keyboardShouldPersistTaps="handled">
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
           <TouchableOpacity onPress={onClose} accessibilityLabel="Voltar" style={{ marginRight: 10 }}>
@@ -224,7 +225,7 @@ export function ProfileQuizModal({ visible, initial, onClose, onSave }) {
           <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 15, marginLeft: 8 }}>Salvar perfil</Text>
         </TouchableOpacity>
       </ScrollView>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

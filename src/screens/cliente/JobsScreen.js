@@ -4,6 +4,7 @@
 // - Candidatura rápida com um toque, vagas salvas e o andamento de cada candidatura
 //   (enviada → vista → entrevista → resultado), com o mesmo status que a empresa marca no RH.
 import React, { useState, useEffect, useMemo } from 'react';
+import { KeyboardLift } from '../../keyboard';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Modal, Switch } from 'react-native';
 import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -201,7 +202,7 @@ export default function JobsScreen({ explore }) {
       </View>
 
       {/* Detalhe da vaga */}
-      <Modal visible={!!job} animationType="slide" transparent onRequestClose={() => setOpen(null)}>
+      <Modal visible={!!job} animationType="slide" transparent onRequestClose={() => setOpen(null)}><KeyboardLift style={{ flex: 1 }}>
         <View style={styles.backdrop}>
           <View style={styles.sheet}>
             {job ? (
@@ -291,7 +292,7 @@ export default function JobsScreen({ explore }) {
             ) : null}
           </View>
         </View>
-      </Modal>
+      </KeyboardLift></Modal>
 
       <ResumeEditor visible={editing} onClose={() => setEditing(false)} />
     </Screen>
@@ -387,7 +388,7 @@ function ResumeEditor({ visible, onClose }) {
   };
   const skills = Array.from(new Set([...(r.skills || []), ...SKILL_SUGGESTIONS]));
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
           <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
@@ -443,7 +444,7 @@ function ResumeEditor({ visible, onClose }) {
           </ScrollView>
         </View>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

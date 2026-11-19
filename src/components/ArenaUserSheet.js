@@ -3,6 +3,7 @@
 // denunciar e, para dono ou moderador, tirar da voz e expulsar do servidor.
 // Tudo vale só para mim e fica salvo no celular (src/arena.js › arenaPref).
 import React, { useEffect, useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import { View, StyleSheet, TouchableOpacity, Modal, Alert, ScrollView } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -73,7 +74,7 @@ export default function ArenaUserSheet({ name, sv, me, myRole, onClose, onMentio
     ]);
 
   return (
-    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)' }} activeOpacity={1} onPress={onClose} />
       <View style={st.sheet}>
         <ScrollView style={{ maxHeight: 540 }} keyboardShouldPersistTaps="handled">
@@ -145,7 +146,7 @@ export default function ArenaUserSheet({ name, sv, me, myRole, onClose, onMentio
           <Row icon="ban-outline" label={pf.blocked ? 'Desbloquear' : 'Bloquear'} color={D.red} onPress={block} />
         </ScrollView>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

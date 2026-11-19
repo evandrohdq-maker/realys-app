@@ -2,8 +2,9 @@
 // to = { id, name, kind: 'pessoa' | 'prestador', photo, role } · asCompany = a empresa presenteia um cliente.
 // Sem "to", a pessoa escolhe para quem: amigos e pessoas, prestadores (ou clientes, se for empresa).
 import React, { useEffect, useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import { giftPoints } from '../rewards';
-import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -69,7 +70,7 @@ export default function GiftSheet() {
 
   return (
     <Modal visible animationType="slide" transparent onRequestClose={close} statusBarTranslucent>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
+      <KeyboardLift behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
         <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={close} />
         <View style={[styles.sheet, { paddingBottom: 16 + insets.bottom }]}>
           <View style={styles.grip} />
@@ -170,7 +171,7 @@ export default function GiftSheet() {
             <Text style={[styles.sub, { textAlign: 'center', marginTop: 8 }]}>Seu saldo: {brl(state.wallet)}</Text>
           </ScrollView>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardLift>
     </Modal>
   );
 }

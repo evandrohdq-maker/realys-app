@@ -8,6 +8,7 @@
 // Feed leve: carrega aos poucos ao arrastar para baixo, solta da memória o que já passou
 // e puxar para baixo no topo atualiza (traz o que é novo para cima).
 import React, { useMemo, useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import { View, StyleSheet, TouchableOpacity, FlatList, Modal, ScrollView, RefreshControl, Alert } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -208,7 +209,7 @@ function MuralCard({ it, th, mine, onEdit }) {
 function Sheet({ visible, onClose, title, children }) {
   const insets = useSafeAreaInsets();
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <TouchableOpacity style={st.shade} activeOpacity={1} onPress={onClose} />
       <View style={[st.sheet, { paddingBottom: 16 + insets.bottom }]}>
         <View style={st.sheetHead}>
@@ -219,7 +220,7 @@ function Sheet({ visible, onClose, title, children }) {
         </View>
         {children}
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

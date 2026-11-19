@@ -1,9 +1,10 @@
 // Pedido de visita (cliente) e cartão de acompanhamento da visita.
 // Regras em src/serviceVisits.js.
 import React, { useEffect, useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import { GuaranteeButton } from './Guarantee';
 import { visitCovered } from '../guarantee';
-import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -57,7 +58,7 @@ export function VisitRequestSheet({ provider: p, visible, onClose, address = '',
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
+      <KeyboardLift behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
         <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onClose} />
         <View style={[styles.sheet, { paddingBottom: 16 + insets.bottom }]}>
           <View style={styles.grip} />
@@ -105,7 +106,7 @@ export function VisitRequestSheet({ provider: p, visible, onClose, address = '',
             <Text style={styles.saldo}>Saldo Re@lys: {brl(state.wallet)}</Text>
           </ScrollView>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardLift>
     </Modal>
   );
 }

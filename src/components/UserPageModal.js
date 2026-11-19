@@ -1,7 +1,8 @@
 // Página de usuário aberta por cima de qualquer tela (pela aba Páginas, pela busca ou pela Lotus).
 // dispatch({ type: 'OPEN_USER_PAGE', id })
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, Switch, KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardLift } from '../keyboard';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, Switch, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -69,7 +70,7 @@ function PageEditor({ pg, visible, onClose }) {
   );
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardLift style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={[st.edHead, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity onPress={onClose} style={st.edClose} accessibilityLabel="Cancelar">
             <Ionicons name="close" size={20} color={colors.text} />
@@ -142,7 +143,7 @@ function PageEditor({ pg, visible, onClose }) {
             ))}
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardLift>
     </Modal>
   );
 }
@@ -217,7 +218,7 @@ export default function UserPageModal() {
 
   const flat = th.layout !== 'cartoes'; // blog e revista: texto corrido, sem cartão
   return (
-    <Modal visible animationType="slide" onRequestClose={close} statusBarTranslucent>
+    <Modal visible animationType="slide" onRequestClose={close} statusBarTranslucent><KeyboardLift style={{ flex: 1 }}>
       <View style={[st.wrap, { paddingTop: insets.top, paddingBottom: insets.bottom, backgroundColor: T.bg }]}>
         {T.art ? <ThemeArt theme={T.art} /> : null}
         <ScrollView keyboardShouldPersistTaps="handled">
@@ -329,7 +330,7 @@ export default function UserPageModal() {
         </ScrollView>
       </View>
       <PageEditor pg={mine ? pg : null} visible={mine && editing} onClose={() => setEditing(false)} />
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

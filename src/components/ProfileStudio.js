@@ -4,6 +4,7 @@
 //    escolhe onde aparece: no Social, no Portfólio e/ou na parte Empresarial (página do CNPJ).
 // Também: editar o perfil e o "modo invisível" (não expor o perfil para ninguém).
 import ThemeArt, { FUTURE_THEMES } from './ThemeArt';
+import { KeyboardLift } from '../keyboard';
 import React, { useEffect, useRef, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, Modal, ScrollView, Switch, Alert, Animated, Easing } from 'react-native';
 import { Text, TextInput } from '../responsive';
@@ -171,7 +172,7 @@ export function ProfileEditor({ visible, onClose }) {
     onClose();
   };
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
         <View style={styles.modalHead}>
           <TouchableOpacity onPress={onClose} style={styles.iconBtn} accessibilityLabel="Cancelar">
@@ -259,7 +260,7 @@ export function ProfileEditor({ visible, onClose }) {
           <PrivacyPanel />
         </ScrollView>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
@@ -331,7 +332,7 @@ function CreationComposer({ visible, kind, onClose }) {
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={() => onClose(false)}>
+    <Modal visible={visible} animationType="slide" onRequestClose={() => onClose(false)}><KeyboardLift style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
         <View style={styles.modalHead}>
           <TouchableOpacity onPress={() => onClose(false)} style={styles.iconBtn} accessibilityLabel="Cancelar">
@@ -382,7 +383,7 @@ function CreationComposer({ visible, kind, onClose }) {
           })}
         </ScrollView>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

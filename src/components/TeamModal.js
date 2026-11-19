@@ -3,6 +3,7 @@
 // Quem cria os perfis é o empresário: a empresa responde por eles e cada um precisa da biometria
 // cadastrada para poder atender.
 import React, { useEffect, useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Switch, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, TextInput } from '../responsive';
@@ -44,7 +45,7 @@ export default function TeamModal({ visible, onClose }) {
   const back = () => (member ? setMemberId(null) : role ? setRoleId(null) : adding ? setAdding(false) : onClose());
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={back}>
+    <Modal visible={visible} animationType="slide" onRequestClose={back}><KeyboardLift style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
         <Head title={member ? member.name : role ? `Classe: ${role.name}` : adding ? 'Novo funcionário' : 'Equipe'} onBack={back} />
         {member ? (
@@ -105,7 +106,7 @@ export default function TeamModal({ visible, onClose }) {
           </ScrollView>
         )}
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

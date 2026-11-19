@@ -2,6 +2,7 @@
 // Fluxo: termo -> scan do rosto (câmera centralizada) -> foto do documento e seus dados -> análise no servidor.
 // A decisão é sempre do servidor: o app só captura, envia e mostra o resultado.
 import React, { useEffect, useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import { Modal, View, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, Alert } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import * as ImagePicker from 'expo-image-picker';
@@ -104,7 +105,7 @@ export default function BiometriaScreen({ visible, onClose }) {
   const podeEnviar = status === 'pendente' || status === 'recusado' || status === 'sem_consentimento' || status === 'revogado';
 
   return (
-    <Modal visible={!!visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={!!visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <View style={styles.wrap}>
         <View style={styles.top}>
           <Text style={styles.title}>Biometria facial</Text>
@@ -172,7 +173,7 @@ export default function BiometriaScreen({ visible, onClose }) {
       </View>
       <ScanFacial visible={step === 'scan'} title="Scan do rosto" onFrames={scanFeito} onClose={() => setStep('inicio')} />
       <TermoAdesaoModal visible={termoOpen} onClose={() => setTermoOpen(false)} />
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

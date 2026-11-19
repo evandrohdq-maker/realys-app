@@ -1,4 +1,5 @@
 import { AnalystBanner } from './AdminScreens';
+import { KeyboardLift } from '../../keyboard';
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal, Share, Alert, Pressable } from 'react-native';
 import { Text, TextInput } from '../../responsive';
@@ -117,7 +118,7 @@ export function NoteModal({ visible, where, onClose }) {
     onClose();
   };
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.noteCard} onPress={() => {}}>
           <Text style={styles.noteTitle}>Anotar mudança</Text>
@@ -144,7 +145,7 @@ export function NoteModal({ visible, where, onClose }) {
           </View>
         </Pressable>
       </Pressable>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

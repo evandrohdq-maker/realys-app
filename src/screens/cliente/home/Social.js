@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { KeyboardLift } from '../../../keyboard';
 import { moderateText, antiDesvio } from '../../../moderation';
 import { usePrivateScreen } from '../../../privacyGuard';
 import { registerLive } from '../../../pip';
 import { giftPoints } from '../../../rewards';
 import GiftIcon from '../../../components/GiftIcon';
-import { View, StyleSheet, Modal, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, Animated, Easing } from 'react-native';
+import { View, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform, Alert, Animated, Easing } from 'react-native';
 import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -74,7 +75,7 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardLift style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={[styles.chatHead, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity onPress={onClose} style={styles.iconBtn} accessibilityLabel="Voltar">
             <Ionicons name="arrow-back" size={20} color={colors.text} />
@@ -121,7 +122,7 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
         </ScrollView>
 
         {/* Prévia de quem não tem perfil aberto no Re@lys (ex.: anunciante): adicionar aos contatos. */}
-        <Modal visible={peek} transparent animationType="fade" onRequestClose={() => setPeek(false)}>
+        <Modal visible={peek} transparent animationType="fade" onRequestClose={() => setPeek(false)}><KeyboardLift style={{ flex: 1 }}>
           <TouchableOpacity style={styles.peekBack} activeOpacity={1} onPress={() => setPeek(false)}>
             <View style={styles.peekCard}>
               <Photo uri={contact.photo} style={styles.peekAvatar} fallback="🙂" />
@@ -138,7 +139,7 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
-        </Modal>
+        </KeyboardLift></Modal>
 
         <View style={[styles.composer, { paddingBottom: 10 + insets.bottom }]}>
           <TextInput
@@ -154,7 +155,7 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
             <Ionicons name="send" size={18} color={colors.onPrimary} />
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardLift>
       <VideoCallModal audio contact={contact} visible={voice} onClose={() => setVoice(false)} />
     </Modal>
   );
@@ -201,7 +202,7 @@ export function VideoCallModal({ contact, visible, onClose, audio = false, onEnd
 
   if (!contact) return null;
   return (
-    <Modal visible={visible} animationType="fade" onRequestClose={hang}>
+    <Modal visible={visible} animationType="fade" onRequestClose={hang}><KeyboardLift style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: '#03050A' }}>
         {audio ? null : <Photo uri={contact.photo ? contact.photo.replace('200/200', '800/1400') : null} style={StyleSheet.absoluteFill} fallback="🙂" />}
         <View style={[StyleSheet.absoluteFill, { backgroundColor: connected ? 'rgba(3,5,10,0.15)' : 'rgba(3,5,10,0.7)' }]} />
@@ -245,7 +246,7 @@ export function VideoCallModal({ contact, visible, onClose, audio = false, onEnd
           </TouchableOpacity>
         </View>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
@@ -402,7 +403,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={close}>
+    <Modal visible={visible} animationType="slide" onRequestClose={close}><KeyboardLift style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: '#03050A' }}>
         {live ? <Photo uri={live.photo ? live.photo.replace('800/500', '800/1400') : null} style={StyleSheet.absoluteFill} fallback="🎥" /> : null}
         {mine ? (
@@ -689,7 +690,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
           </View>
         ) : null}
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

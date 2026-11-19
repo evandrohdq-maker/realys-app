@@ -2,7 +2,8 @@
 // Início: a pessoa escreve a dúvida e a Lotus responde na hora; abaixo, as perguntas frequentes e os
 // chamados dela. Se a Lotus não resolver, um toque abre o chamado para a equipe.
 import React, { useRef, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardLift } from '../keyboard';
+import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -56,7 +57,7 @@ export default function SupportCenter({ visible, onClose }) {
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={() => (ticket ? setTicketId(null) : close())}>
-      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardLift style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={st.head}>
           <TouchableOpacity onPress={() => (ticket ? setTicketId(null) : close())} style={st.back} accessibilityLabel="Voltar">
             <Ionicons name="chevron-back" size={24} color={colors.text} />
@@ -159,7 +160,7 @@ export default function SupportCenter({ visible, onClose }) {
             <Text style={st.note}>O atendimento do Re@lys é só por mensagem, aqui no app. {guest ? 'Volte a esta tela para ver a resposta do seu chamado.' : 'Em caso de perigo, use o SOS no Perfil: o suporte não substitui a polícia nem o SAMU.'}</Text>
           </ScrollView>
         )}
-      </KeyboardAvoidingView>
+      </KeyboardLift>
     </Modal>
   );
 }

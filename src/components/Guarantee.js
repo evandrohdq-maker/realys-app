@@ -1,5 +1,6 @@
 // Garantia Re@lys na tela: selo, botão "Tive um problema", janela para abrir o caso e acompanhamento.
 import React, { useEffect, useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import { View, StyleSheet, TouchableOpacity, Modal, Alert, ScrollView } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -119,7 +120,7 @@ export function GuaranteeButton({ kind, refId, title, amount, giftPart, delivere
         <Text numberOfLines={1} style={styles.btnText}>Tive um problema</Text>
         {deliveredAt ? <Text numberOfLines={1} style={[styles.btnSub, { flexShrink: 1 }]}> · {daysLeft(deliveredAt)} dias de garantia</Text> : null}
       </TouchableOpacity>
-      <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)} statusBarTranslucent>
+      <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)} statusBarTranslucent><KeyboardLift style={{ flex: 1 }}>
         <View style={styles.back}>
           <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setOpen(false)} />
           <View style={[styles.sheet, { paddingBottom: 16 + insets.bottom }]}>
@@ -156,7 +157,7 @@ export function GuaranteeButton({ kind, refId, title, amount, giftPart, delivere
             </ScrollView>
           </View>
         </View>
-      </Modal>
+      </KeyboardLift></Modal>
     </>
   );
 }

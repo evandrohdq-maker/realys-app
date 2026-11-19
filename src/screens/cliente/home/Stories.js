@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { KeyboardLift } from '../../../keyboard';
 import { PHOTO_RULE } from '../../../moderation';
-import { View, StyleSheet, Modal, TouchableOpacity, ScrollView, Pressable, KeyboardAvoidingView, Platform, Image, Alert } from 'react-native';
+import { View, StyleSheet, Modal, TouchableOpacity, ScrollView, Pressable, Platform, Image, Alert } from 'react-native';
 import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -92,7 +93,7 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
 
   return (
     <Modal visible={visible} animationType="fade" onRequestClose={onClose} statusBarTranslucent>
-      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#000' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardLift style={{ flex: 1, backgroundColor: '#000' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {item.image ? (
           <Photo uri={item.image} style={StyleSheet.absoluteFill} fallback="🌅" />
         ) : (
@@ -182,7 +183,7 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
             </View>
           )}
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardLift>
     </Modal>
   );
 }
@@ -212,7 +213,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: image ? '#000' : bg }}>
         {image ? <Image source={{ uri: image }} style={StyleSheet.absoluteFill} /> : null}
         <View style={[styles.composerTop, { paddingTop: insets.top + 10 }]}>
@@ -260,7 +261,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
           <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, marginTop: 8 }}>Fica no ar por 24 horas, só para pessoas verificadas.</Text>
         </View>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

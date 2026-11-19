@@ -1,7 +1,8 @@
 // Agenda do prestador: próximos trabalhos, calendário do mês, trabalhos já feitos e horário de trabalho.
 // Regras e datas em src/agenda.js. As visitas aceitas pelo Re@lys entram sozinhas.
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Linking, KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardLift } from '../../keyboard';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Linking, Platform } from 'react-native';
 import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -597,7 +598,7 @@ function JobSheet({ item, now, onClose, onEdit }) {
     : 'Marcar como concluído';
 
   return (
-    <Modal visible transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
+    <Modal visible transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent><KeyboardLift style={{ flex: 1 }}>
       <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
       <View style={[styles.sheet, { paddingBottom: 18 + insets.bottom }]}>
         <View style={styles.grip} />
@@ -642,7 +643,7 @@ function JobSheet({ item, now, onClose, onEdit }) {
           <Button variant="light" title="Remarcar" onPress={() => { dispatch({ type: 'AGENDA_UPDATE', id: item.id, patch: { status: 'agendado' } }); onEdit({ ...item, status: 'agendado' }); }} />
         ) : null}
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
@@ -743,7 +744,7 @@ function FormSheet({ form, items, onClose }) {
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
       <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardLift behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={[styles.sheet, { maxHeight: '88%', paddingBottom: 14 + insets.bottom }]}>
           <View style={styles.grip} />
           <Row style={{ justifyContent: 'space-between', marginBottom: 10 }}>
@@ -855,7 +856,7 @@ function FormSheet({ form, items, onClose }) {
             <Button title={editing ? 'Salvar alterações' : block ? 'Bloquear horário' : 'Agendar'} onPress={save} />
           </ScrollView>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardLift>
     </Modal>
   );
 }

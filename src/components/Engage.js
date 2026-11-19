@@ -1,5 +1,6 @@
 // Peças de engajamento entre os lados (dados e regras em src/engage.js).
 import React, { useEffect, useRef, useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Animated, Modal } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { useBack } from '../back';
@@ -516,7 +517,7 @@ export function LotusNudges() {
           ))}
         </Row>
       ) : null}
-      <Modal visible={all} transparent animationType="slide" onRequestClose={() => setAll(false)}>
+      <Modal visible={all} transparent animationType="slide" onRequestClose={() => setAll(false)}><KeyboardLift style={{ flex: 1 }}>
         <View style={styles.nudgeBackdrop}>
           <View style={styles.nudgeSheet}>
             <Row style={{ alignItems: 'center', marginBottom: 6 }}>
@@ -547,7 +548,7 @@ export function LotusNudges() {
             </ScrollView>
           </View>
         </View>
-      </Modal>
+      </KeyboardLift></Modal>
     </View>
   );
 }

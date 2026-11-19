@@ -2,6 +2,7 @@
 // a pessoa criar), fixar no topo, não lidas e arquivar.
 // Tocar abre a conversa. Segurar abre as opções: listas, fixar, arquivar.
 import React, { useMemo, useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Pressable, Alert } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -150,7 +151,7 @@ export default function ConvList({ convs, contactOf, onChat }) {
       )}
 
       {/* Opções da conversa */}
-      <Modal visible={!!menu} transparent animationType="slide" onRequestClose={() => setMenu(null)}>
+      <Modal visible={!!menu} transparent animationType="slide" onRequestClose={() => setMenu(null)}><KeyboardLift style={{ flex: 1 }}>
         <Pressable style={st.scrim} onPress={() => setMenu(null)} />
         {menu ? (
           <View style={st.sheet}>
@@ -185,10 +186,10 @@ export default function ConvList({ convs, contactOf, onChat }) {
             </TouchableOpacity>
           </View>
         ) : null}
-      </Modal>
+      </KeyboardLift></Modal>
 
       {/* Nova lista */}
-      <Modal visible={creating} transparent animationType="fade" onRequestClose={() => setCreating(false)}>
+      <Modal visible={creating} transparent animationType="fade" onRequestClose={() => setCreating(false)}><KeyboardLift style={{ flex: 1 }}>
         <View style={[st.scrim, { justifyContent: 'center', padding: 22 }]}>
           <View style={st.box}>
             <Text style={st.sheetTitle}>Nova lista</Text>
@@ -204,7 +205,7 @@ export default function ConvList({ convs, contactOf, onChat }) {
             </View>
           </View>
         </View>
-      </Modal>
+      </KeyboardLift></Modal>
     </View>
   );
 }

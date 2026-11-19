@@ -3,6 +3,7 @@
 // onde a empresa atua e os segmentos de cada área, onde atende, vitrine, produtos,
 // depoimentos de quem comprou, vídeos de propaganda e conteúdos.
 import { addOrChoose, openProduct } from './ProductSheet';
+import { KeyboardLift } from '../keyboard';
 import React, { useState, useEffect, useRef } from 'react';
 import { OriginSeal, InstallSuggest } from './Engage';
 import { LiveNowBadge } from './LiveBits';
@@ -143,7 +144,7 @@ function Gallery({ photos }) {
           </TouchableOpacity>
         ))}
       </View>
-      <Modal visible={!!open} transparent animationType="fade" onRequestClose={() => setOpen(null)}>
+      <Modal visible={!!open} transparent animationType="fade" onRequestClose={() => setOpen(null)}><KeyboardLift style={{ flex: 1 }}>
         <TouchableOpacity style={styles.viewer} activeOpacity={1} onPress={() => setOpen(null)}>
           {open ? (
             <>
@@ -152,7 +153,7 @@ function Gallery({ photos }) {
             </>
           ) : null}
         </TouchableOpacity>
-      </Modal>
+      </KeyboardLift></Modal>
     </>
   );
 }
@@ -380,7 +381,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
   const focus = state.viewProduct ? products.find((x) => x.id === state.viewProduct) : null;
 
   return (
-    <Modal visible animationType="slide" onRequestClose={close}>
+    <Modal visible animationType="slide" onRequestClose={close}><KeyboardLift style={{ flex: 1 }}>
       <ScrollView ref={pageScroll} style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
         {focus ? (
           <View style={{ paddingTop: insets.top + 10, paddingHorizontal: 16 }}>
@@ -614,7 +615,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
       </ScrollView>
       {/* Seguidores da empresa (na demonstração, membros do Re@lys; o servidor traz a lista real). */}
       <PeopleListModal visible={followersOpen} title={`Seguidores de ${p.name}`} people={members.slice(0, 12)} total={p.followers + (following ? 1 : 0)} onClose={() => setFollowersOpen(false)} />
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

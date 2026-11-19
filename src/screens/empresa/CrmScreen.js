@@ -2,7 +2,8 @@
 // Em cima, os números do funil. No meio, as etapas. Embaixo, os atendimentos da etapa escolhida.
 // Tocar num atendimento abre tudo: etapas, conversa, valor, notas e a linha do tempo.
 import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardLift } from '../../keyboard';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -308,7 +309,7 @@ function LeadCapture({ board }) {
           </TouchableOpacity>
         </View>
       ))}
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}><KeyboardLift style={{ flex: 1 }}>
         <View style={{ flex: 1, backgroundColor: 'rgba(20,18,14,0.45)', justifyContent: 'center', padding: 20 }}>
           <View style={{ backgroundColor: colors.card, borderRadius: 20, padding: 18 }}>
             <Text style={{ color: colors.text, fontWeight: '800', fontSize: 17 }}>Campanha de leads</Text>
@@ -333,7 +334,7 @@ function LeadCapture({ board }) {
             </View>
           </View>
         </View>
-      </Modal>
+      </KeyboardLift></Modal>
     </View>
   );
 }
@@ -347,7 +348,7 @@ function AddModal({ open, onClose, onCreated, board }) {
     onCreated(id);
   };
   return (
-    <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: 'rgba(20,18,14,0.45)', justifyContent: 'center', padding: 20 }}>
         <View style={{ backgroundColor: colors.card, borderRadius: 20, padding: 18 }}>
           <Text style={{ color: colors.text, fontWeight: '800', fontSize: 17 }}>Novo atendimento</Text>
@@ -372,7 +373,7 @@ function AddModal({ open, onClose, onCreated, board }) {
           </View>
         </View>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

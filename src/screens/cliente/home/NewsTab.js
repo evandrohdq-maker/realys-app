@@ -2,6 +2,7 @@
 // Alertas oficiais primeiro (Defesa Civil, INMET, Cemaden), com "o que fazer", ligar e "Estou seguro".
 // Depois relatos de moradores (moderados), lives de noticiário e as notícias por assunto.
 import React, { useState } from 'react';
+import { KeyboardLift } from '../../../keyboard';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Share } from 'react-native';
 import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -289,7 +290,7 @@ function ReportSheet({ visible, onClose }) {
     Alert.alert('Relato enviado', 'A moderação confere antes de mostrar para os vizinhos. Em perigo, ligue 199 (Defesa Civil) ou 193 (Bombeiros).');
   };
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent><KeyboardLift style={{ flex: 1 }}>
       <View style={styles.back}>
         <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onClose} />
         <View style={[styles.sheet, { paddingBottom: 16 + insets.bottom }]}>
@@ -302,7 +303,7 @@ function ReportSheet({ visible, onClose }) {
           </TouchableOpacity>
         </View>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
@@ -310,7 +311,7 @@ function Article({ n, onClose }) {
   const insets = useSafeAreaInsets();
   if (!n) return null;
   return (
-    <Modal visible animationType="slide" onRequestClose={onClose}>
+    <Modal visible animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
         <Photo uri={n.photo} style={{ width: '100%', height: 240 }} fallback="📰" />
         <TouchableOpacity onPress={onClose} style={[styles.close, { top: insets.top + 10 }]} accessibilityLabel="Voltar">
@@ -333,7 +334,7 @@ function Article({ n, onClose }) {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

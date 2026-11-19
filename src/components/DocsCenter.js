@@ -1,6 +1,7 @@
 // Tela de contratos e receitas (abre pelo Perfil, pelo painel do prestador ou pela Lotus:
 // "Lotus, fazer um contrato de aluguel", "Lotus, receita para Maria: dipirona 500 mg...").
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import { Modal, View, TouchableOpacity, ScrollView, StyleSheet, Alert, ActivityIndicator, Linking } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -40,7 +41,7 @@ export default function DocsCenter() {
   const back = () => (mode === 'lista' ? close() : (setMode('lista'), setViewId(null)));
 
   return (
-    <Modal visible={!!open} animationType="slide" onRequestClose={back} statusBarTranslucent>
+    <Modal visible={!!open} animationType="slide" onRequestClose={back} statusBarTranslucent><KeyboardLift style={{ flex: 1 }}>
       <View style={[st.wrap, { paddingTop: insets.top + 10, paddingBottom: insets.bottom + 10 }]}>
         <View style={st.top}>
           <TouchableOpacity onPress={back} accessibilityLabel="Voltar">
@@ -54,7 +55,7 @@ export default function DocsCenter() {
         {mode === 'receita' ? <NewPrescription draft={open && open.draft} onDone={show} /> : null}
         {mode === 'ver' && doc ? <DocView doc={doc} /> : null}
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

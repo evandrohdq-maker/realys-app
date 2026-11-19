@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { KeyboardLift } from '../../keyboard';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Switch, Alert, Dimensions, Image } from 'react-native';
 import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -685,7 +686,7 @@ function CrossMap({ people, onOpen }) {
 function MatchModal({ p, onClose, onChat }) {
   if (!p) return null;
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible transparent animationType="fade" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <View style={styles.backdrop}>
         <View style={styles.matchBox}>
           <Text style={{ fontSize: 44 }}>💘</Text>
@@ -701,7 +702,7 @@ function MatchModal({ p, onClose, onChat }) {
           </TouchableOpacity>
         </View>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
@@ -907,7 +908,7 @@ function ProfileEditor({ visible, onClose }) {
   };
   const me = { ...myDateProfile(state), bio: bio.trim(), job: job.trim(), details, tags: interests, age: verifiedAge(state) || ageNum || '', photo: album[0] ? album[0].uri : null, photos: album.length ? album.map((x) => x.uri) : [null] };
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
         <View style={[styles.modalHead, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity onPress={onClose} style={styles.iconBtn} accessibilityLabel="Voltar">
@@ -1047,7 +1048,7 @@ function ProfileEditor({ visible, onClose }) {
         </ScrollView>
         <PersonModal p={preview ? me : null} preview onClose={() => setPreview(false)} />
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
@@ -1063,7 +1064,7 @@ function PersonModal({ p, liked, charmed, matched, preview, onClose, onLike, onP
   const det = PROFILE_FIELDS.filter((f) => p.details && p.details[f.key]);
   const photos = p.photos || [p.photo];
   return (
-    <Modal visible animationType="slide" onRequestClose={onClose}>
+    <Modal visible animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
         <View>
           <ScrollView
@@ -1173,7 +1174,7 @@ function PersonModal({ p, liked, charmed, matched, preview, onClose, onLike, onP
           )}
         </View>
       </ScrollView>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
@@ -1191,7 +1192,7 @@ function SafetyCard() {
 function TermsModal({ visible, onClose }) {
   const insets = useSafeAreaInsets();
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
         <View style={styles.termsHead}>
           <View style={{ flex: 1 }}>
@@ -1217,7 +1218,7 @@ function TermsModal({ visible, onClose }) {
           <Button title="Fechar" onPress={onClose} />
         </ScrollView>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

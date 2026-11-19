@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Alert, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, BackHandler } from 'react-native';
+import { KeyboardLift } from '../keyboard';
+import { View, StyleSheet, Alert, ScrollView, TouchableOpacity, Platform, BackHandler } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
@@ -193,7 +194,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardLift style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled">
         <View style={styles.brandBlock}>
           <View style={styles.mark}>
@@ -334,7 +335,7 @@ export default function LoginScreen() {
         }}
         onClose={() => setPendente(null)}
       />
-    </KeyboardAvoidingView>
+    </KeyboardLift>
   );
 }
 

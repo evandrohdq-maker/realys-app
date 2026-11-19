@@ -1,7 +1,8 @@
 // Atendimento do CRM aberto: etapas, conversa (com mensagens prontas, catálogo e chamadas),
 // qualificação passo a passo, tarefas, responsável, valor, fechamento e linha do tempo.
 import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardLift } from '../keyboard';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -124,7 +125,7 @@ export default function CrmLead({ lead, onClose }) {
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardLift style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={st.head}>
           <TouchableOpacity onPress={onClose} style={st.back} accessibilityLabel="Voltar">
             <Ionicons name="chevron-back" size={24} color={colors.text} />
@@ -403,7 +404,7 @@ export default function CrmLead({ lead, onClose }) {
         <VideoCallModal audio={call === 'voz'} contact={contact} visible={!!call} onClose={() => setCall(null)} onEnd={(secs) => crmCallLog(lead.id, call === 'voz' ? 'voz' : 'video', secs)} />
 
         {/* Escolher os produtos do catálogo */}
-        <Modal visible={catalog} transparent animationType="slide" onRequestClose={() => setCatalog(false)}>
+        <Modal visible={catalog} transparent animationType="slide" onRequestClose={() => setCatalog(false)}><KeyboardLift style={{ flex: 1 }}>
           <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(20,18,14,0.4)' }} activeOpacity={1} onPress={() => setCatalog(false)} />
           <View style={st.sheet}>
             <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>Enviar catálogo</Text>
@@ -429,10 +430,10 @@ export default function CrmLead({ lead, onClose }) {
               </TouchableOpacity>
             </View>
           </View>
-        </Modal>
+        </KeyboardLift></Modal>
 
         {/* Orçamento do prestador */}
-        <Modal visible={!!quote} transparent animationType="slide" onRequestClose={() => setQuote(null)}>
+        <Modal visible={!!quote} transparent animationType="slide" onRequestClose={() => setQuote(null)}><KeyboardLift style={{ flex: 1 }}>
           <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(20,18,14,0.4)' }} activeOpacity={1} onPress={() => setQuote(null)} />
           <View style={st.sheet}>
             <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>Enviar orçamento</Text>
@@ -458,10 +459,10 @@ export default function CrmLead({ lead, onClose }) {
               </TouchableOpacity>
             </View>
           </View>
-        </Modal>
+        </KeyboardLift></Modal>
 
         {/* Passar o atendimento para outro funcionário */}
-        <Modal visible={assign} transparent animationType="slide" onRequestClose={() => setAssign(false)}>
+        <Modal visible={assign} transparent animationType="slide" onRequestClose={() => setAssign(false)}><KeyboardLift style={{ flex: 1 }}>
           <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(20,18,14,0.4)' }} activeOpacity={1} onPress={() => setAssign(false)} />
           <View style={st.sheet}>
             <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>Direcionar o atendimento</Text>
@@ -481,8 +482,8 @@ export default function CrmLead({ lead, onClose }) {
               </TouchableOpacity>
             </ScrollView>
           </View>
-        </Modal>
-      </KeyboardAvoidingView>
+        </KeyboardLift></Modal>
+      </KeyboardLift>
     </Modal>
   );
 }

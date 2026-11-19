@@ -3,6 +3,7 @@
 // segurança do Re@lys e, quando houver convênio, vai direto para o profissional mais perto
 // (policial na ativa, socorrista, ambulância). Ver PENDENCIAS.md (Polícia Inteligente).
 import React, { useEffect, useRef, useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import { Modal, View, TouchableOpacity, ScrollView, Switch, StyleSheet, Linking, Share } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -49,7 +50,7 @@ export default function LotusSOS() {
 function Shell({ title, onClose, children, quickExit }) {
   const insets = useSafeAreaInsets();
   return (
-    <Modal visible animationType="slide" onRequestClose={onClose}>
+    <Modal visible animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <View style={[st.wrap, { paddingTop: insets.top + 8 }]}>
         <View style={st.top}>
           <Text style={st.title}>{title}</Text>
@@ -60,7 +61,7 @@ function Shell({ title, onClose, children, quickExit }) {
         </View>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 30 + insets.bottom }}>{children}</ScrollView>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

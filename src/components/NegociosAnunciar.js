@@ -2,8 +2,9 @@
 // Também o painel "Meus anúncios", com os interessados e o botão de liberar a conversa.
 // Regras e valores em src/negocios.js e src/taxas.js.
 import CrmScreen from '../screens/empresa/CrmScreen';
+import { KeyboardLift } from '../keyboard';
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, Platform } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -62,7 +63,7 @@ export function AnunciarSheet({ visible, onClose, kinds, kindLabel }) {
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardLift style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={[st.head, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity onPress={onClose} style={st.close} accessibilityLabel="Fechar">
             <Ionicons name="close" size={20} color={colors.text} />
@@ -124,7 +125,7 @@ export function AnunciarSheet({ visible, onClose, kinds, kindLabel }) {
           </TouchableOpacity>
           <Text style={st.note}>{covered ? `Coberto pelo seu plano ${plan.nome}.` : 'Publicar é grátis.'} Na demonstração, as fotos e a análise do anúncio ficam para quando o servidor estiver no ar.</Text>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardLift>
     </Modal>
   );
 }
@@ -160,7 +161,7 @@ export function MyAds({ kinds, kindLabel, onChat }) {
           <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', fontSize: 12.5, marginLeft: 5 }}>Clientes</Text>
         </TouchableOpacity>
       </View>
-      <Modal visible={crm} animationType="slide" onRequestClose={() => setCrm(false)}>
+      <Modal visible={crm} animationType="slide" onRequestClose={() => setCrm(false)}><KeyboardLift style={{ flex: 1 }}>
         <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: 36 }}>
           <TouchableOpacity onPress={() => setCrm(false)} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8 }} accessibilityLabel="Voltar">
             <Ionicons name="chevron-back" size={22} color={colors.text} />
@@ -168,7 +169,7 @@ export function MyAds({ kinds, kindLabel, onChat }) {
           </TouchableOpacity>
           <CrmScreen board={board} />
         </View>
-      </Modal>
+      </KeyboardLift></Modal>
       {ads.map((ad) => {
         const leads = (state.negLeads || []).filter((l) => l.adId === ad.id);
         const cost = custoLiberar(planId, ad.kind);

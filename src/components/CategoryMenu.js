@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, TouchableOpacity, StyleSheet, Modal, ScrollView, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardLift } from '../keyboard';
+import { View, TouchableOpacity, StyleSheet, Modal, ScrollView, Pressable, Platform } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -594,13 +595,13 @@ export default function CategoryMenu({ visible, onClose, onPick, roles = [], act
   }
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={back} statusBarTranslucent>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
+      <KeyboardLift behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
         <View style={[styles.sheet, { paddingBottom: 12 + insets.bottom }]}>
           <View style={styles.grip} />
           {body}
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardLift>
     </Modal>
   );
 }

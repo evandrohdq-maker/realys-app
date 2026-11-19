@@ -1,7 +1,8 @@
 // Janela de avaliação: abre sozinha quando o pedido é entregue ou o serviço é concluído
 // (e também pelo botão "Avaliar"). dispatch({ type: 'OPEN_RATE', kind, refId }).
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardLift } from '../keyboard';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -67,7 +68,7 @@ export default function RateSheet() {
 
   return (
     <Modal visible transparent animationType="slide" onRequestClose={close} statusBarTranslucent>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
+      <KeyboardLift behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
         <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={close} />
         <View style={[styles.sheet, { paddingBottom: 16 + insets.bottom }]}>
           <View style={styles.grip} />
@@ -149,7 +150,7 @@ export default function RateSheet() {
             </TouchableOpacity>
           </ScrollView>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardLift>
     </Modal>
   );
 }

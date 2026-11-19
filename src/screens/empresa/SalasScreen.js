@@ -4,6 +4,7 @@
 //   2. Recepção de uma empresa: o cliente entra na fila; a empresa vê a fila e chama; salas da equipe e canais.
 //   3. Sala de atendimento: voz, câmera, mostrar a tela, catálogo, proposta e contrato, com o CRM andando junto.
 import React, { useEffect, useRef, useState } from 'react';
+import { KeyboardLift } from '../../keyboard';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Share } from 'react-native';
 import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -102,7 +103,7 @@ export default function SalasScreen({ explore }) {
       {closed.length ? <Text style={st.section}>FECHADAS AGORA</Text> : null}
       {closed.map((s) => <SalaCard key={s.id} s={s} onPress={() => setSid(s.id)} />)}
 
-      <Modal visible={!!creating} transparent animationType="fade" onRequestClose={() => setCreating(null)}>
+      <Modal visible={!!creating} transparent animationType="fade" onRequestClose={() => setCreating(null)}><KeyboardLift style={{ flex: 1 }}>
         <View style={st.backdrop}>
           <View style={st.dialog}>
             <Text style={st.dTitle}>Recepção da empresa</Text>
@@ -133,7 +134,7 @@ export default function SalasScreen({ explore }) {
             </View>
           </View>
         </View>
-      </Modal>
+      </KeyboardLift></Modal>
     </ScrollView>
   );
 }
@@ -302,7 +303,7 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom }) {
         <Text style={st.foot}>Todos aqui são verificados por biometria. Pagamento e contrato só pelo Re@lys, com a Garantia Re@lys.</Text>
       </ScrollView>
 
-      <Modal visible={!!asking} transparent animationType="slide" onRequestClose={() => setAsking(null)}>
+      <Modal visible={!!asking} transparent animationType="slide" onRequestClose={() => setAsking(null)}><KeyboardLift style={{ flex: 1 }}>
         <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)' }} activeOpacity={1} onPress={() => setAsking(null)} />
         <View style={st.sheet}>
           <Text style={st.dTitle}>Do que você precisa?</Text>
@@ -318,7 +319,7 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom }) {
             <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }} numberOfLines={1}>Entrar na fila</Text>
           </TouchableOpacity>
         </View>
-      </Modal>
+      </KeyboardLift></Modal>
     </View>
   );
 }
@@ -474,7 +475,7 @@ function Room({ sid, rid, me, isCompany, onLeave, onBack }) {
       </View>
 
       <ScreenViewer tela={watching} onClose={() => setWatching(null)} />
-      <Modal visible={!!prop} transparent animationType="slide" onRequestClose={() => setProp(null)}>
+      <Modal visible={!!prop} transparent animationType="slide" onRequestClose={() => setProp(null)}><KeyboardLift style={{ flex: 1 }}>
         <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)' }} activeOpacity={1} onPress={() => setProp(null)} />
         <View style={st.sheet}>
           <Text style={st.dTitle}>Enviar proposta</Text>
@@ -492,7 +493,7 @@ function Room({ sid, rid, me, isCompany, onLeave, onBack }) {
             <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }} numberOfLines={1}>Enviar na sala</Text>
           </TouchableOpacity>
         </View>
-      </Modal>
+      </KeyboardLift></Modal>
     </View>
   );
 }

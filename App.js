@@ -106,6 +106,7 @@ import { TechScreen, AgroScreen } from './src/screens/cliente/TechAgroScreen';
 import { ElectronicsScreen, FashionScreen, HomeGoodsScreen, AppliancesScreen, FurnitureScreen, VariousScreen, EXTRA_SECTOR_KEYS, SECTOR_SCREENS } from './src/screens/cliente/ShopSectorScreen';
 import { SHOP_SECTORS } from './src/shopSectorsData';
 import SwipePages from './src/components/SwipePages';
+import { KeyboardLift } from './src/keyboard';
 
 // Cada perfil enxerga abas diferentes dentro do MESMO app.
 const TABS = {
@@ -558,7 +559,8 @@ function Shell({ inviteTick }) {
 
   return (
     <BackProvider value={backStack}>
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+    {/* Toda a tela sobe junto com o teclado: dá para ver o que está digitando (src/keyboard.js). */}
+    <KeyboardLift style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         {/* Só a logo (o R dentro do @), sem fundo dourado e sem o nome escrito: a palavra Re@lys fica só na entrada do app. */}
         <View style={{ flexDirection: 'row', alignItems: 'center' }} accessibilityLabel="Re@lys">
@@ -827,7 +829,7 @@ function Shell({ inviteTick }) {
         }}
       />
       {isAdmin ? <NoteModal visible={noting} where={where} onClose={() => setNoting(false)} /> : null}
-    </View>
+    </KeyboardLift>
     </BackProvider>
   );
 }

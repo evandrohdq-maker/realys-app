@@ -4,6 +4,7 @@
 // - Banco de talentos: pessoas abertas a propostas perto da empresa, para convidar para a vaga.
 // - Nova vaga com benefícios, habilidades, "aceita sem experiência" e destaque.
 import React, { useState } from 'react';
+import { KeyboardLift } from '../../keyboard';
 import { View, StyleSheet, TouchableOpacity, Alert, ScrollView, Modal, Switch } from 'react-native';
 import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -202,7 +203,7 @@ export default function HRScreen() {
       </View>
 
       {/* Currículo do candidato */}
-      <Modal visible={!!cv} animationType="slide" transparent onRequestClose={() => setCv(null)}>
+      <Modal visible={!!cv} animationType="slide" transparent onRequestClose={() => setCv(null)}><KeyboardLift style={{ flex: 1 }}>
         <View style={styles.backdrop}>
           <View style={styles.sheet}>
             {cv ? (
@@ -256,10 +257,10 @@ export default function HRScreen() {
             ) : null}
           </View>
         </View>
-      </Modal>
+      </KeyboardLift></Modal>
 
       {/* Marcar entrevista */}
-      <Modal visible={!!meet} animationType="fade" transparent onRequestClose={() => setMeet(null)}>
+      <Modal visible={!!meet} animationType="fade" transparent onRequestClose={() => setMeet(null)}><KeyboardLift style={{ flex: 1 }}>
         <View style={[styles.backdrop, { justifyContent: 'center', padding: 20 }]}>
           {meet ? (
             <View style={[styles.sheet, { borderRadius: 24 }]}>
@@ -298,10 +299,10 @@ export default function HRScreen() {
             </View>
           ) : null}
         </View>
-      </Modal>
+      </KeyboardLift></Modal>
 
       {/* Banco de talentos */}
-      <Modal visible={talents} animationType="slide" transparent onRequestClose={() => setTalents(false)}>
+      <Modal visible={talents} animationType="slide" transparent onRequestClose={() => setTalents(false)}><KeyboardLift style={{ flex: 1 }}>
         <View style={styles.backdrop}>
           <View style={styles.sheet}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -331,10 +332,10 @@ export default function HRScreen() {
             </ScrollView>
           </View>
         </View>
-      </Modal>
+      </KeyboardLift></Modal>
 
       {/* Nova vaga */}
-      <Modal visible={!!form} animationType="slide" transparent onRequestClose={() => setForm(null)}>
+      <Modal visible={!!form} animationType="slide" transparent onRequestClose={() => setForm(null)}><KeyboardLift style={{ flex: 1 }}>
         <View style={styles.backdrop}>
           <View style={styles.sheet}>
             {form ? (
@@ -398,7 +399,7 @@ export default function HRScreen() {
             ) : null}
           </View>
         </View>
-      </Modal>
+      </KeyboardLift></Modal>
     </Screen>
   );
 }

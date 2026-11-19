@@ -1,7 +1,8 @@
 // Parte social do perfil: depoimentos (estilo Orkut), galeria de fotos, galeria de vídeos e destaques de stories.
 // Usado no perfil dos outros membros, no "Meu perfil" e no feed abaixo dos stories.
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, Share, Image, KeyboardAvoidingView, Platform, useWindowDimensions } from 'react-native';
+import { KeyboardLift } from '../keyboard';
+import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, Share, Image, Platform, useWindowDimensions } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -215,7 +216,7 @@ export function TestimonialComposer({ visible, onClose, toId }) {
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardLift style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={[styles.modalHead, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity onPress={onClose} style={styles.iconBtn} accessibilityLabel="Fechar">
             <Ionicons name="close" size={20} color={colors.text} />
@@ -368,7 +369,7 @@ export function TestimonialComposer({ visible, onClose, toId }) {
             </>
           )}
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardLift>
     </Modal>
   );
 }
@@ -537,7 +538,7 @@ export function DepCenter({ visible, onClose }) {
   const sentLabel = (t) => (t.status === 'aprovado' || t.status === 'oculto' ? ['Aceito', colors.success] : ['Aguardando aprovação', colors.primaryDark]);
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
         <View style={styles.depHead}>
           <Text style={styles.depTitle}>Dep</Text>
@@ -595,7 +596,7 @@ export function DepCenter({ visible, onClose }) {
           )}
         </ScrollView>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
@@ -812,7 +813,7 @@ function HighlightComposer({ visible, onClose }) {
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
         <View style={[styles.modalHead, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity onPress={onClose} style={styles.iconBtn} accessibilityLabel="Fechar">
@@ -852,7 +853,7 @@ function HighlightComposer({ visible, onClose }) {
           </View>
         </ScrollView>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
@@ -971,7 +972,7 @@ function MediaViewer({ items, index, kind, onClose }) {
   const go = (d) => setI((x) => Math.max(0, Math.min(items.length - 1, x + d)));
   const src = kind === 'videos' ? it.thumb : it.uri;
   return (
-    <Modal visible animationType="fade" onRequestClose={onClose} statusBarTranslucent>
+    <Modal visible animationType="fade" onRequestClose={onClose} statusBarTranslucent><KeyboardLift style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center' }}>
         {src ? (
           <Image source={{ uri: src }} style={{ width: '100%', height: kind === 'videos' ? 260 : '75%' }} resizeMode="contain" />
@@ -1004,7 +1005,7 @@ function MediaViewer({ items, index, kind, onClose }) {
           </TouchableOpacity>
         </View>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
@@ -1024,7 +1025,7 @@ export function ProfilePreviewModal({ visible, onClose }) {
   const prof = state.myProfile || {};
   const priv = state.privacy || {};
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
         <View style={[styles.pvHead, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity onPress={onClose} style={styles.pvClose} accessibilityLabel="Fechar a prévia">
@@ -1067,7 +1068,7 @@ export function ProfilePreviewModal({ visible, onClose }) {
           <Text style={{ color: colors.muted, fontSize: 11.5, textAlign: 'center', marginTop: 16 }}>Isto é só uma prévia. Para mudar o que aparece, use "Quem vê o meu perfil" e o botão de mostrar depoimentos.</Text>
         </ScrollView>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

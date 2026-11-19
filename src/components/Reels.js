@@ -3,9 +3,10 @@
 // Embaixo: loja verificada, título e o produto com o botão Comprar (Shop) ou Pedir (Food).
 // Assistiu até o fim, ganha pontos Re@lys (uma vez por Reel).
 import { addOrChoose, openProduct } from './ProductSheet';
+import { KeyboardLift } from '../keyboard';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
-  View, StyleSheet, TouchableOpacity, FlatList, Modal, Animated, Alert, Share, Image, KeyboardAvoidingView, Platform, Pressable, AppState,
+  View, StyleSheet, TouchableOpacity, FlatList, Modal, Animated, Alert, Share, Image, Platform, Pressable, AppState,
 } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -290,7 +291,7 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
 
       <Modal visible={!!comments} transparent animationType="slide" onRequestClose={() => setComments(null)}>
         <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' }} onPress={() => setComments(null)} />
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.sheet}>
+        <KeyboardLift behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.sheet}>
           <View style={styles.grab} />
           <Text style={styles.sheetTitle}>Comentários</Text>
           {list.map((c, i) => (
@@ -308,7 +309,7 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
               <Ionicons name="arrow-up" size={18} color="#fff" />
             </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
+        </KeyboardLift>
       </Modal>
     </View>
   );
@@ -380,13 +381,13 @@ export function ReelsViewer({ reels, index, onClose }) {
   const insets = useSafeAreaInsets();
   const visible = index !== null && index !== undefined;
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose} statusBarTranslucent>
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose} statusBarTranslucent><KeyboardLift style={{ flex: 1 }}>
       {visible ? <ReelsFeed reels={reels} start={index} onClose={onClose} /> : null}
       <TouchableOpacity onPress={onClose} style={[styles.close, { top: insets.top + 10 }]} accessibilityLabel="Fechar Reels">
         <Ionicons name="chevron-down" size={28} color="#fff" />
       </TouchableOpacity>
       <Text style={[styles.brandTop, { top: insets.top + 14 }]}>Reels</Text>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

@@ -1,6 +1,7 @@
 // Pedir orçamento: o cliente escreve o que precisa e o pedido chega como contato novo (lead)
 // no CRM da empresa (aba Clientes). É a porta de entrada dos leads pela página da empresa.
 import React, { useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import { View, TouchableOpacity, Modal, Alert } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { useStore } from '../store';
@@ -23,7 +24,7 @@ export function useLeadAsk(company) {
     Alert.alert('Pedido enviado ✅', `${company ? company.name : 'A empresa'} recebeu o seu pedido e responde pelo chat do Re@lys.`);
   };
   const modal = (
-    <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+    <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}><KeyboardLift style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: 'rgba(20,18,14,0.5)', justifyContent: 'center', padding: 20 }}>
         <View style={{ backgroundColor: '#FFFFFF', borderRadius: 20, padding: 18 }}>
           <Text style={{ color: colors.text, fontWeight: '800', fontSize: 17 }}>Pedir orçamento</Text>
@@ -39,7 +40,7 @@ export function useLeadAsk(company) {
           </View>
         </View>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
   return { ask: () => setOpen(true), modal };
 }

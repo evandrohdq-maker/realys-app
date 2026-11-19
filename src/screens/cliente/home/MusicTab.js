@@ -2,6 +2,7 @@
 // playlists do ouvinte, plano Premium sem propaganda (3 meses grátis) e a área do artista.
 // Toca pelo mesmo player das rádios: a barrinha continua em qualquer tela e na notificação do celular.
 import React, { useEffect, useState } from 'react';
+import { KeyboardLift } from '../../../keyboard';
 import { View, StyleSheet, TouchableOpacity, Alert, Modal, ScrollView } from 'react-native';
 import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -286,7 +287,7 @@ export default function MusicTab() {
       {seg === 'artista' ? <ArtistArea /> : null}
 
       {/* Escolher a playlist da música */}
-      <Modal visible={!!pickFor} transparent animationType="slide" onRequestClose={() => setPickFor(null)}>
+      <Modal visible={!!pickFor} transparent animationType="slide" onRequestClose={() => setPickFor(null)}><KeyboardLift style={{ flex: 1 }}>
         <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(20,18,14,0.4)' }} activeOpacity={1} onPress={() => setPickFor(null)} />
         <View style={st.sheet}>
           <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }} numberOfLines={1}>Adicionar "{pickFor ? pickFor.title : ''}"</Text>
@@ -307,10 +308,10 @@ export default function MusicTab() {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      </KeyboardLift></Modal>
 
       {/* Propaganda entre as músicas (só para quem ouve grátis) */}
-      <Modal visible={!!ad} transparent animationType="fade" onRequestClose={() => {}}>
+      <Modal visible={!!ad} transparent animationType="fade" onRequestClose={() => {}}><KeyboardLift style={{ flex: 1 }}>
         <View style={{ flex: 1, backgroundColor: 'rgba(20,18,14,0.75)', justifyContent: 'center', padding: 24 }}>
           <View style={{ backgroundColor: colors.card, borderRadius: 22, padding: 20, alignItems: 'center' }}>
             <Text style={{ color: colors.muted, fontWeight: '800', fontSize: 11, letterSpacing: 1 }}>PROPAGANDA</Text>
@@ -323,7 +324,7 @@ export default function MusicTab() {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      </KeyboardLift></Modal>
     </View>
   );
 }

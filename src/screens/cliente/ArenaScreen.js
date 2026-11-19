@@ -5,8 +5,9 @@
 // - Mensagens passam pela moderação do Re@lys; perfis são de pessoas reais (biometria).
 // Na demonstração, as conversas ficam no celular; com o servidor no ar, chegam para todos.
 import React, { useEffect, useRef, useState } from 'react';
+import { KeyboardLift } from '../../keyboard';
 import {
-  View, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Share, Animated, KeyboardAvoidingView, Platform,
+  View, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Share, Animated, Platform,
 } from 'react-native';
 import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -197,7 +198,7 @@ export default function ArenaScreen({ explore }) {
   // ---------- Conversa de um canal de texto ----------
   if (ch) {
     return (
-      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: D.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardLift enabled={false} style={{ flex: 1, backgroundColor: D.bg }}>
         <View style={st.chatHead}>
           <TouchableOpacity onPress={() => setCid(null)} style={{ padding: 4 }} accessibilityLabel="Voltar para os canais">
             <Ionicons name="arrow-back" size={22} color={D.text} />
@@ -258,7 +259,7 @@ export default function ArenaScreen({ explore }) {
           </TouchableOpacity>
         </View>
         {voice ? <VoiceBar ch={voiceCh} sv={voiceSv} mic={mic} deaf={deaf} setMic={setMic} setDeaf={setDeaf} leave={leaveVoice} screen={sharingHere} onScreen={toggleScreen} /> : null}
-        <Modal visible={!!react} transparent animationType="fade" onRequestClose={() => setReact(null)}>
+        <Modal visible={!!react} transparent animationType="fade" onRequestClose={() => setReact(null)}><KeyboardLift style={{ flex: 1 }}>
           <TouchableOpacity style={st.backdrop} activeOpacity={1} onPress={() => setReact(null)}>
             <View style={st.reactBox}>
               {['👍', '🔥', '😂', '❤️', '🎮', '🏆'].map((e) => (
@@ -266,12 +267,12 @@ export default function ArenaScreen({ explore }) {
               ))}
             </View>
           </TouchableOpacity>
-        </Modal>
+        </KeyboardLift></Modal>
         <MembersModal open={members} onClose={() => setMembers(false)} sv={sv} me={me} onUser={(n) => { setMembers(false); openUser(n); }} onCall={(n) => { setMembers(false); callUser(n); }} />
         <ArenaUserSheet name={userOpen} sv={sv} me={me} myRole={myRole} onClose={() => setUserOpen(null)} onCall={(n) => { setUserOpen(null); callUser(n); }} onMention={(n) => setDraft((d) => `${d}${d && !d.endsWith(' ') ? ' ' : ''}@${n} `)} />
         <CallPersonSheet name={callFor} sv={sv} me={me} onClose={() => setCallFor(null)} />
         <InviteSheet open={inviting} sv={sv} me={me} onClose={() => setInviting(false)} />
-      </KeyboardAvoidingView>
+      </KeyboardLift>
     );
   }
 
@@ -384,7 +385,7 @@ export default function ArenaScreen({ explore }) {
         <ScreenViewer tela={watching} onClose={() => setWatching(null)} />
         <InviteSheet open={inviting} sv={sv} me={me} onClose={() => setInviting(false)} />
 
-      <Modal visible={!!create} transparent animationType="fade" onRequestClose={() => setCreate(null)}>
+      <Modal visible={!!create} transparent animationType="fade" onRequestClose={() => setCreate(null)}><KeyboardLift style={{ flex: 1 }}>
         <View style={st.backdrop}>
           <View style={st.dialog}>
             <Text style={st.dialogTitle}>Criar servidor</Text>
@@ -403,9 +404,9 @@ export default function ArenaScreen({ explore }) {
             </View>
           </View>
         </View>
-      </Modal>
+      </KeyboardLift></Modal>
 
-      <Modal visible={!!newCh} transparent animationType="fade" onRequestClose={() => setNewCh(null)}>
+      <Modal visible={!!newCh} transparent animationType="fade" onRequestClose={() => setNewCh(null)}><KeyboardLift style={{ flex: 1 }}>
         <View style={st.backdrop}>
           <View style={st.dialog}>
             <Text style={st.dialogTitle}>{newCh && newCh.kind === 'voice' ? 'Novo canal de voz' : 'Novo canal de texto'}</Text>
@@ -416,7 +417,7 @@ export default function ArenaScreen({ explore }) {
             </View>
           </View>
         </View>
-      </Modal>
+      </KeyboardLift></Modal>
     </View>
   );
 }
@@ -462,7 +463,7 @@ function VoiceBar({ ch, sv, mic, deaf, setMic, setDeaf, leave, screen, onScreen 
 function MembersModal({ open, onClose, sv, me, onUser, onCall }) {
   const groups = ['dono', 'mod', 'membro'];
   return (
-    <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)' }} activeOpacity={1} onPress={onClose} />
       <View style={st.sheet}>
         <Text style={st.dialogTitle}>Membros · {sv.name}</Text>
@@ -489,7 +490,7 @@ function MembersModal({ open, onClose, sv, me, onUser, onCall }) {
           })}
         </ScrollView>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

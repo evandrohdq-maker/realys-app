@@ -3,6 +3,7 @@
 // confirma que recebeu (QR Code na entrega). Sem pagamento por fora, sem golpe.
 // Texto passa pela moderação; foto segue a regra de nudez; anúncio com nome real (biometria).
 import React, { useState } from 'react';
+import { KeyboardLift } from '../../keyboard';
 import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, Image } from 'react-native';
 import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -91,7 +92,7 @@ function ItemModal({ x, me, onClose, onBuy, onRemove }) {
   if (!x) return null;
   const own = x.seller === me;
   return (
-    <Modal visible animationType="slide" onRequestClose={onClose}>
+    <Modal visible animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingBottom: 30 + insets.bottom }}>
         <Photo uri={x.photo} style={{ width: '100%', height: 300 }} fallback="📦" />
         <TouchableOpacity onPress={onClose} style={[st.close, { top: insets.top + 10 }]} accessibilityLabel="Fechar">
@@ -119,7 +120,7 @@ function ItemModal({ x, me, onClose, onBuy, onRemove }) {
           <Text style={{ color: colors.muted, fontSize: 12, marginTop: 10 }}>Pagou pelo Re@lys, está protegido. Pagamento por fora não tem garantia.</Text>
         </View>
       </ScrollView>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
@@ -155,7 +156,7 @@ function SellModal({ visible, onClose }) {
     else go();
   };
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: 16, paddingTop: insets.top + 12, paddingBottom: 30 + insets.bottom }}>
         <Row style={{ justifyContent: 'space-between', marginBottom: 12 }}>
           <Text style={{ fontSize: 20, fontWeight: '800', color: colors.text }}>Anunciar desapego</Text>
@@ -193,7 +194,7 @@ function SellModal({ visible, onClose }) {
           <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.buyText}>Publicar</Text>
         </TouchableOpacity>
       </ScrollView>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

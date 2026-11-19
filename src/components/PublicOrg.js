@@ -1,6 +1,7 @@
 // Perfil de serviço público (Bombeiros, Defesa Civil, SAMU, hospital público, UPA, UBS) e o cartão do
 // SUS do cidadão. Abre pelo SOS, pela busca ou pela Lotus ("Lotus, abre o perfil dos bombeiros").
 import React, { useEffect, useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import { Modal, View, TouchableOpacity, ScrollView, StyleSheet, Alert, Switch } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -40,7 +41,7 @@ export function PublicOrgModal() {
   const tabs = TABS.filter(([key]) => (key === 'agendar' ? org.slots && org.slots.length : true));
 
   return (
-    <Modal visible animationType="slide" onRequestClose={close} statusBarTranslucent>
+    <Modal visible animationType="slide" onRequestClose={close} statusBarTranslucent><KeyboardLift style={{ flex: 1 }}>
       <View style={[st.wrap, { paddingTop: insets.top + 8, paddingBottom: insets.bottom }]}>
         <View style={st.top}>
           <TouchableOpacity onPress={close} accessibilityLabel="Fechar">
@@ -75,7 +76,7 @@ export function PublicOrgModal() {
           {tab === 'painel' ? <OrgPanel org={org} /> : null}
         </ScrollView>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

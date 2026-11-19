@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import { PHOTO_RULE } from '../moderation';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Pressable, Image, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Pressable, Image, Alert, Platform } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -211,7 +212,7 @@ function AddSheet({ visible, onClose, onPick }) {
     ['dep', 'Depoimento', 'Fala bem de um amigo: vai pro perfil dele', 'chatbox-ellipses-outline'],
   ];
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={[styles.sheet, { paddingBottom: 18 + insets.bottom }]} onPress={() => {}}>
           <Text style={styles.sheetTitle}>Criar</Text>
@@ -229,7 +230,7 @@ function AddSheet({ visible, onClose, onPick }) {
           ))}
         </Pressable>
       </Pressable>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
@@ -256,7 +257,7 @@ function PostComposer({ visible, onClose, onPublish }) {
   const ok = text.trim() || image;
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardLift style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={[styles.postHead, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity onPress={onClose} style={styles.closeBtn} accessibilityLabel="Cancelar">
             <Ionicons name="close" size={20} color={colors.text} />
@@ -295,7 +296,7 @@ function PostComposer({ visible, onClose, onPublish }) {
           <Text style={{ color: colors.muted, fontSize: 11, marginTop: 10 }}>Só pessoas verificadas por biometria veem e comentam.</Text>
           <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6 }}>{PHOTO_RULE}</Text>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardLift>
     </Modal>
   );
 }
@@ -327,7 +328,7 @@ export function ReelComposer({ visible, onClose, onPublish }) {
   const ok = !!video;
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardLift style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={[styles.postHead, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity onPress={onClose} style={styles.closeBtn} accessibilityLabel="Cancelar">
             <Ionicons name="close" size={20} color={colors.text} />
@@ -359,7 +360,7 @@ export function ReelComposer({ visible, onClose, onPublish }) {
           <Text style={{ color: colors.muted, fontSize: 11, marginTop: 10 }}>Só pessoas verificadas por biometria veem e comentam.</Text>
           <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6 }}>{PHOTO_RULE}</Text>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardLift>
     </Modal>
   );
 }

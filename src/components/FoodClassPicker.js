@@ -2,6 +2,7 @@
 // profissionais: primeiro a classe (Pizzaria, Lanches, Bar…), depois a subclasse (Pizza salgada…),
 // com quantas lojas têm o item. Filtra a lista de restaurantes e bares da aba Food.
 import React, { useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import { View, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -52,7 +53,7 @@ export default function FoodClassPicker({ selected, counts, onPick, title = 'O q
         <Ionicons name="ellipsis-vertical" size={20} color={colors.primary} style={{ paddingHorizontal: 6 }} />
       </TouchableOpacity>
 
-      <Modal visible={open} transparent animationType="slide" onRequestClose={() => (cls || q ? (setCls(null), setQ('')) : close())} statusBarTranslucent>
+      <Modal visible={open} transparent animationType="slide" onRequestClose={() => (cls || q ? (setCls(null), setQ('')) : close())} statusBarTranslucent><KeyboardLift style={{ flex: 1 }}>
         <View style={styles.back}>
           <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={close} />
           <View style={[styles.sheet, { paddingBottom: 16 + insets.bottom }]}>
@@ -121,7 +122,7 @@ export default function FoodClassPicker({ selected, counts, onPick, title = 'O q
             </ScrollView>
           </View>
         </View>
-      </Modal>
+      </KeyboardLift></Modal>
     </>
   );
 }

@@ -3,6 +3,7 @@
 // Quem reservou mesa já está nela; quem não reservou pode dizer a mesa ou retirar no balcão.
 // Abre com dispatch({ type: 'OPEN_VENUE' }). Na demonstração dá para ver o painel do caixa.
 import { askPix } from './PixPay';
+import { KeyboardLift } from '../keyboard';
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Text, TextInput } from '../responsive';
@@ -67,7 +68,7 @@ export default function VenueSheet() {
   };
 
   return (
-    <Modal visible transparent animationType="slide" onRequestClose={close} statusBarTranslucent>
+    <Modal visible transparent animationType="slide" onRequestClose={close} statusBarTranslucent><KeyboardLift style={{ flex: 1 }}>
       <View style={styles.backdrop}>
         <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={close} />
         <View style={[styles.sheet, { paddingBottom: 14 + insets.bottom }]}>
@@ -210,7 +211,7 @@ export default function VenueSheet() {
           </TouchableOpacity>
         </View>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 

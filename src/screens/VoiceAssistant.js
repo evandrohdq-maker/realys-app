@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { KeyboardLift } from '../keyboard';
 import {
-  View, Modal, TouchableOpacity, StyleSheet, ScrollView, Platform, KeyboardAvoidingView, Animated, Easing, Pressable, Dimensions, AppState,
+  View, Modal, TouchableOpacity, StyleSheet, ScrollView, Platform, Animated, Easing, Pressable, Dimensions, AppState,
 } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -1513,7 +1514,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
 
   return (
     <Modal visible={visible} animationType="none" transparent onRequestClose={() => (preview ? setPreview(null) : close())} statusBarTranslucent>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
+      <KeyboardLift behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
         <Pressable style={{ flex: 1 }} onPress={close} />
         <Animated.View style={[styles.sheet, compact && styles.sheetTall, { backgroundColor: skyBg(sky), paddingBottom: 16 + insets.bottom, opacity: enter, transform: [{ translateY }] }]}>
           <StarField active={visible} sky={sky} south={!weather || weather.south !== false} />
@@ -1768,7 +1769,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
           to={{ x: win.width - 122, y: 48 }}
           color={MOODS[mood].mid}
         />
-      </KeyboardAvoidingView>
+      </KeyboardLift>
       <FaceCheck
         visible={!!faceAsk}
         purpose="compra"

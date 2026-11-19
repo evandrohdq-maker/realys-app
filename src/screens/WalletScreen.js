@@ -2,8 +2,9 @@
 // e o balanço do mês com gastos por categoria e um limite de gastos definido pelo usuário.
 // Vale para qualquer conta: o usuário que consome e o prestador que recebe pelos serviços.
 import React, { useMemo, useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import GiftIcon from '../components/GiftIcon';
-import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Pressable, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Pressable, Alert, Platform } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -128,7 +129,7 @@ export default function WalletScreen({ visible, onClose }) {
   const list = inPeriod.filter((t) => filter === 'todos' || t.kind === filter).sort((a, b) => b.ts - a.ts);
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
         <View style={[styles.head, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity onPress={onClose} style={styles.iconBtn} accessibilityLabel="Voltar">
@@ -408,7 +409,7 @@ export default function WalletScreen({ visible, onClose }) {
 
         <ActionSheet kind={action} onClose={() => setAction(null)} wallet={state.wallet} limit={state.spendLimit} dispatch={dispatch} />
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
@@ -474,7 +475,7 @@ function ActionSheet({ kind, onClose, wallet, limit, dispatch }) {
   const title = kind === 'saque' ? 'Sacar' : kind === 'limite' ? 'Limite de gastos do mês' : 'Depositar';
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={reset}>
-      <KeyboardAvoidingView style={styles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardLift style={styles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={[styles.sheet, { paddingBottom: 20 + insets.bottom }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
             <Text style={[styles.title, { flex: 1 }]}>{title}</Text>
@@ -535,7 +536,7 @@ function ActionSheet({ kind, onClose, wallet, limit, dispatch }) {
             </>
           )}
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardLift>
     </Modal>
   );
 }

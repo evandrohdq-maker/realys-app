@@ -3,6 +3,7 @@
 // Resposta de segurança: parece assinado ("Contrato confirmado com sucesso, parabéns"), mas a
 // assinatura não vale e a segurança é acionada em silêncio.
 import React, { useEffect, useRef, useState } from 'react';
+import { KeyboardLift } from '../keyboard';
 import { Modal, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -56,7 +57,7 @@ export default function SecurityQuestion({ secq, visible, onResult, onCancel }) 
 
   if (!secq) return null;
   return (
-    <Modal visible={!!visible} transparent animationType="fade" onRequestClose={onCancel}>
+    <Modal visible={!!visible} transparent animationType="fade" onRequestClose={onCancel}><KeyboardLift style={{ flex: 1 }}>
       <View style={st.back}>
         <View style={st.card}>
           <Text style={st.kicker}>Confirmação</Text>
@@ -76,7 +77,7 @@ export default function SecurityQuestion({ secq, visible, onResult, onCancel }) 
           </View>
         </View>
       </View>
-    </Modal>
+    </KeyboardLift></Modal>
   );
 }
 
