@@ -601,7 +601,7 @@ function Shell({ inviteTick }) {
             )}
             {canSwap ? (
               <View style={styles.swapBadge}>
-                <Ionicons name={ROLE_ICONS[state.activeRole] || 'person'} size={8} color="#fff" />
+                <Ionicons name={ROLE_ICONS[state.activeRole] || 'person'} size={9} color={colors.gold} />
               </View>
             ) : null}
           </TouchableOpacity>
@@ -939,7 +939,7 @@ const styles = StyleSheet.create({
   // Botãozinho de troca de perfil: anel fino dourado com o símbolo do perfil em uso e as setinhas de troca.
   swapBtn: { width: 36, height: 40, alignItems: 'center', justifyContent: 'center', marginRight: 2 },
   swapRing: { width: 30, height: 30, borderRadius: 15, borderWidth: 1.5, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card },
-  swapBadge: { position: 'absolute', right: 2, bottom: 3, width: 14, height: 14, borderRadius: 7, backgroundColor: colors.primary, borderWidth: 1.5, borderColor: colors.bg, alignItems: 'center', justifyContent: 'center' },
+  swapBadge: { position: 'absolute', right: 1, bottom: 2, width: 16, height: 16, borderRadius: 8, backgroundColor: '#0B0B0D', borderWidth: 1.5, borderColor: colors.bg, alignItems: 'center', justifyContent: 'center' },
   rolePillText: { color: colors.text, fontWeight: '700', fontSize: 12, marginLeft: 4 },
   tabIcon: { width: 44, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   tabIconOn: { backgroundColor: colors.gold },
