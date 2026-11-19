@@ -356,7 +356,8 @@ const norm = (t) =>
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '');
 
-export default function CategoryMenu({ visible, onClose, onPick, roles = [], activeRole, onRole }) {
+// embedded: o menu entra dentro de outra tela (o ⋮ do Perfil), sem a janela própria.
+export default function CategoryMenu({ visible, onClose, onPick, roles = [], activeRole, onRole, embedded = false }) {
   const insets = useSafeAreaInsets();
   const [cat, setCat] = useState(null);
   const [mega, setMega] = useState(null);
@@ -401,12 +402,8 @@ export default function CategoryMenu({ visible, onClose, onPick, roles = [], act
   // Voltar: da classe para a classe maior, da classe maior para o começo.
   const back = () => (cat ? setCat(null) : mega ? setMega(null) : onClose());
 
-  return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={back} statusBarTranslucent>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
-        <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={[styles.sheet, { paddingBottom: 12 + insets.bottom }]}>
-          <View style={styles.grip} />
+  const body = (
+    <>
           {!cat ? (
             <>
               <View style={styles.head}>
@@ -414,9 +411,11 @@ export default function CategoryMenu({ visible, onClose, onPick, roles = [], act
                   <Text style={styles.title}>Explorar Re@lys</Text>
                   <Text style={styles.hint}>Tudo do app em um lugar</Text>
                 </View>
-                <TouchableOpacity onPress={onClose} style={styles.iconBtn} accessibilityLabel="Fechar">
-                  <Ionicons name="close" size={20} color={colors.text} />
-                </TouchableOpacity>
+                {embedded ? null : (
+                  <TouchableOpacity onPress={onClose} style={styles.iconBtn} accessibilityLabel="Fechar">
+                    <Ionicons name="close" size={20} color={colors.text} />
+                  </TouchableOpacity>
+                )}
               </View>
 
               <View style={styles.search}>
@@ -587,6 +586,19 @@ export default function CategoryMenu({ visible, onClose, onPick, roles = [], act
               </ScrollView>
             </>
           )}
+    </>
+  );
+  if (embedded) {
+    // Dentro do Perfil: o voltar do celular desfaz um passo (classe → classe maior → começo).
+    return <View style={{ flex: 1 }}>{body}</View>;
+  }
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={back} statusBarTranslucent>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
+        <Pressable style={{ flex: 1 }} onPress={onClose} />
+        <View style={[styles.sheet, { paddingBottom: 12 + insets.bottom }]}>
+          <View style={styles.grip} />
+          {body}
         </View>
       </KeyboardAvoidingView>
     </Modal>

@@ -418,7 +418,8 @@ function Shell({ inviteTick }) {
   const Comp = canOpenTab(state, current.key) ? current.Comp : LockedScreen;
   // Menus: todo perfil tem o menu numa linha só, no rodapé. A empresa tem dois menus: 4 botões no
   // alto da tela (logo abaixo do cabeçalho) e 4 no rodapé.
-  const shownTabs = tabs.filter((t) => !t.hidden);
+  // Perfil não fica na barra: o botão dele está no cabeçalho (no lugar do antigo ⋮).
+  const shownTabs = tabs.filter((t) => !t.hidden && t.key !== 'perfil');
   const splitMenu = verified && state.activeRole === 'empresa' && shownTabs.length > 4;
   const half = Math.ceil(shownTabs.length / 2);
   const topMenu = splitMenu ? shownTabs.slice(0, half) : [];
@@ -559,12 +560,17 @@ function Shell({ inviteTick }) {
           <TouchableOpacity onPress={() => setSearching(true)} style={styles.iconBtn} accessibilityLabel="Buscar pessoas na rede Re@lys">
             <Ionicons name="search-outline" size={21} color={colors.text} />
           </TouchableOpacity>
+          {/* Perfil: subiu para o lugar do ⋮ (o ⋮ agora fica dentro do Perfil, com Minha conta e Explorar). */}
           <TouchableOpacity
-            onPress={() => setMenu(true)}
-            style={[styles.iconBtn, menu && styles.iconBtnOn]}
-            accessibilityLabel="Abrir menu: perfis de acesso e categorias"
+            onPress={() => pick({ tab: 'perfil' })}
+            style={[styles.iconBtn, current.key === 'perfil' && styles.iconBtnOn]}
+            accessibilityLabel="Abrir meu perfil"
           >
-            <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
+            {state.myProfile && state.myProfile.photo ? (
+              <Image source={{ uri: state.myProfile.photo }} style={[styles.headAvatar, current.key === 'perfil' && { borderColor: colors.gold }]} />
+            ) : (
+              <Ionicons name={current.key === 'perfil' ? 'person-circle' : 'person-circle-outline'} size={25} color={current.key === 'perfil' ? colors.primary : colors.text} />
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -857,6 +863,7 @@ const styles = StyleSheet.create({
   // Ícones do topo soltos, sem caixinha (visual clean).
   iconBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginLeft: 2 },
   iconBtnOn: { backgroundColor: colors.primaryLight },
+  headAvatar: { width: 28, height: 28, borderRadius: 14, borderWidth: 1.5, borderColor: colors.border },
   subHeader: {
     flexDirection: 'row',
     alignItems: 'center',

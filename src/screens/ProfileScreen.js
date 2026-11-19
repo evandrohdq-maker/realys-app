@@ -31,21 +31,26 @@ import { Photo } from '../components/ui';
 import { myPages, MAX_PAGES } from '../userPages';
 import Credentials from '../components/Credentials';
 import { SocialBadge, ProfileQuizModal } from '../components/SocialClass';
+import CategoryMenu from '../components/CategoryMenu';
 
 const ROLE_ICON = { cliente: '🛍️', empresa: '🏪', prestador: '🛵', fornecedor: '🚚', admin: '🛡️' };
 
-// Linha de "Mais opções": abre o painel embaixo (ou vai para outra tela, com onPress).
+// Opção do menu ⋮ do Perfil (aba "Minha conta"): quadrinho com o ícone num círculo colorido.
+// Abre o painel logo abaixo, na largura toda (ou vai para outra tela, com onPress).
+const TILE_TINTS = ['#B8860B', '#6C5CE7', '#0E8BC9', '#1E9E63', '#D9468F', '#E4572E', '#0D9488', '#55607A'];
+const tintFor = (t) => TILE_TINTS[[...String(t)].reduce((a, c) => a + c.charCodeAt(0), 0) % TILE_TINTS.length];
 function Item({ k, icon, title, sub, onPress, children, danger, open, onToggle }) {
   const isOpen = open === k;
+  const tint = danger ? colors.danger : tintFor(title);
   return (
-    // Menu em duas grades, uma ao lado da outra: cada opção é um quadrinho de meia largura.
-    // A opção aberta mostra o conteúdo logo abaixo, na largura toda.
     <>
-      <View style={styles.item}>
+      <View style={[styles.item, isOpen && { borderColor: tint }]}>
         <TouchableOpacity style={styles.itemRow} onPress={onPress || (() => onToggle(k))} activeOpacity={0.8} accessibilityLabel={title}>
-          <Ionicons name={isOpen ? icon.replace('-outline', '') : icon} size={19} color={danger ? colors.danger : isOpen ? colors.primary : colors.menu} />
-          <View style={{ flex: 1, marginLeft: 8 }}>
-            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.itemTitle, danger && { color: colors.danger }, isOpen && { color: colors.primary }]}>{title}</Text>
+          <View style={[styles.itemIcon, { backgroundColor: tint + '1A' }]}>
+            <Ionicons name={isOpen ? icon.replace('-outline', '') : icon} size={18} color={tint} />
+          </View>
+          <View style={{ flex: 1, marginLeft: 9 }}>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.itemTitle, danger && { color: colors.danger }]}>{title}</Text>
             {sub ? <Text style={styles.itemSub} numberOfLines={1}>{sub}</Text> : null}
           </View>
         </TouchableOpacity>
@@ -67,6 +72,13 @@ export default function ProfileScreen({ navigate, explore }) {
   const [depOpen, setDepOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [taxasOpen, setTaxasOpen] = useState(false);
+  // Menu ⋮ do Perfil: "Minha conta" (as antigas Mais opções) + "Explorar" (o antigo ⋮ do cabeçalho).
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuSeg, setMenuSeg] = useState('conta');
+  const nav = (go) => {
+    setMenuOpen(false);
+    navigate && navigate(go);
+  };
   // Modo acessível: letras maiores no app todo (fica guardado no celular).
   const toggleBigText = () => {
     const on = !state.bigText;
@@ -151,6 +163,10 @@ export default function ProfileScreen({ navigate, explore }) {
         <View style={styles.coverEdit}>
           <Ionicons name="image-outline" size={13} color="#FFFFFF" />
         </View>
+        {/* ⋮ do Perfil: tudo do app e da conta, organizado num lugar só (abre só ao tocar). */}
+        <TouchableOpacity onPress={() => setMenuOpen(true)} style={styles.dots} hitSlop={10} accessibilityLabel="Abrir menu: minha conta e explorar o Re@lys">
+          <Ionicons name="ellipsis-vertical" size={18} color="#FFFFFF" />
+        </TouchableOpacity>
       </TouchableOpacity>
       <View style={styles.head}>
         <TouchableOpacity onPress={() => setEditing(true)} activeOpacity={0.85} accessibilityLabel="Trocar foto e editar perfil" style={{ marginTop: -58 }}>
@@ -252,8 +268,32 @@ export default function ProfileScreen({ navigate, explore }) {
         </View>
       </Modal>
 
-      {/* Todo o resto fica guardado aqui, sem poluir o perfil. */}
-      <Text style={styles.moreTitle}>Mais opções</Text>
+      {/* Menu ⋮ do Perfil: duas partes, Minha conta e Explorar o Re@lys. */}
+      <Modal visible={menuOpen} animationType="slide" onRequestClose={() => setMenuOpen(false)}>
+        <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
+          <View style={styles.menuHead}>
+            <Text style={styles.menuTitle}>Menu</Text>
+            <TouchableOpacity onPress={() => setMenuOpen(false)} style={styles.menuClose} accessibilityLabel="Fechar o menu">
+              <Ionicons name="close" size={20} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.seg}>
+            {[['conta', 'Minha conta', 'person-circle-outline'], ['explorar', 'Explorar', 'compass-outline']].map(([k, label, icon]) => {
+              const on = menuSeg === k;
+              return (
+                <TouchableOpacity key={k} onPress={() => setMenuSeg(k)} style={[styles.segBtn, on && styles.segOn]} accessibilityLabel={label}>
+                  <Ionicons name={on ? icon.replace('-outline', '') : icon} size={16} color={on ? colors.text : colors.menu} />
+                  <Text numberOfLines={1} style={[styles.segTxt, on && { color: colors.text }]}>{label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          {menuSeg === 'explorar' ? (
+            <View style={{ flex: 1, paddingHorizontal: 16, paddingBottom: insets.bottom }}>
+              <CategoryMenu embedded visible onClose={() => setMenuOpen(false)} onPick={nav} />
+            </View>
+          ) : (
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 30 + insets.bottom }} keyboardShouldPersistTaps="handled">
       <View style={styles.moreBox}>
         <Item open={open} onToggle={toggle} k="score" icon="ribbon-outline" title="Score Re@lys" sub="Sua reputação em todos os perfis">
           <ScoreCard />
@@ -266,9 +306,9 @@ export default function ProfileScreen({ navigate, explore }) {
             <StudioPanel />
           </Item>
         ) : (
-          <Item open={open} onToggle={toggle} icon="megaphone-outline" title="Anúncios e propaganda" sub="Espaços de anúncio e reels de anúncio" onPress={() => navigate && navigate({ tab: 'anuncie' })} />
+          <Item open={open} onToggle={toggle} icon="megaphone-outline" title="Anúncios e propaganda" sub="Espaços de anúncio e reels de anúncio" onPress={() => nav({ tab: 'anuncie' })} />
         )}
-        <Item open={open} onToggle={toggle} icon="albums-outline" title={`Minhas páginas · ${myPages(state).length}/${MAX_PAGES}`} sub="Assinadas ou anônimas" onPress={() => navigate && navigate({ tab: 'paginas', seg: 'minhas' })} />
+        <Item open={open} onToggle={toggle} icon="albums-outline" title={`Minhas páginas · ${myPages(state).length}/${MAX_PAGES}`} sub="Assinadas ou anônimas" onPress={() => nav({ tab: 'paginas', seg: 'minhas' })} />
         <Item open={open} onToggle={toggle} k="privacidade" icon="lock-closed-outline" title="Quem vê meu perfil" sub={`Social: ${audienceLabel(priv.social).toLowerCase()} · Portfólio: ${audienceLabel(priv.portfolio).toLowerCase()}`}>
           <PrivacyPanel />
         </Item>
@@ -382,20 +422,24 @@ export default function ProfileScreen({ navigate, explore }) {
             </View>
           </View>
         </Item>
-        <Item open={open} onToggle={toggle} icon="scan-outline" title="Biometria facial" sub="Cadastro e conferência do seu rosto" onPress={() => setBioOpen(true)} />
+        <Item open={open} onToggle={toggle} icon="scan-outline" title="Biometria facial" sub="Cadastro e conferência do seu rosto" onPress={() => (setMenuOpen(false), setBioOpen(true))} />
         <Item open={open} onToggle={toggle} k="documentos" icon="card-outline" title="Documentos" sub="Cartão do SUS e carteira profissional">
           <SusCard />
           <Credentials />
         </Item>
-        <Item open={open} onToggle={toggle} icon="document-text-outline" title="Contratos e receitas" sub="Assinatura online e cópia para cada parte" onPress={() => dispatch({ type: 'OPEN_DOCS' })} />
-        <Item open={open} onToggle={toggle} icon="headset-outline" title="Ajuda e suporte" sub="Dúvidas e chamados" onPress={() => setHelpOpen(true)} />
+        <Item open={open} onToggle={toggle} icon="document-text-outline" title="Contratos e receitas" sub="Assinatura online e cópia para cada parte" onPress={() => (setMenuOpen(false), dispatch({ type: 'OPEN_DOCS' }))} />
+        <Item open={open} onToggle={toggle} icon="headset-outline" title="Ajuda e suporte" sub="Dúvidas e chamados" onPress={() => (setMenuOpen(false), setHelpOpen(true))} />
         <Item open={open} onToggle={toggle} icon="text-outline" title="Letras maiores" sub={state.bigText ? 'Ligado · toque para desligar' : 'Desligado · toque para ligar'} onPress={toggleBigText} />
-        <Item open={open} onToggle={toggle} icon="pricetags-outline" title="Nossas taxas" sub="Re@lys × mercado" onPress={() => setTaxasOpen(true)} />
-        <Item open={open} onToggle={toggle} icon="sparkles-outline" title="Novidades do app" sub="Demonstração do que tem de novo" onPress={() => setDemoOpen(true)} />
-        <Item open={open} onToggle={toggle} icon="cloud-download-outline" title="Verificar atualizações" sub={VERSION_LABEL} onPress={() => setChecking(true)} />
+        <Item open={open} onToggle={toggle} icon="pricetags-outline" title="Nossas taxas" sub="Re@lys × mercado" onPress={() => (setMenuOpen(false), setTaxasOpen(true))} />
+        <Item open={open} onToggle={toggle} icon="sparkles-outline" title="Novidades do app" sub="Demonstração do que tem de novo" onPress={() => (setMenuOpen(false), setDemoOpen(true))} />
+        <Item open={open} onToggle={toggle} icon="cloud-download-outline" title="Verificar atualizações" sub={VERSION_LABEL} onPress={() => (setMenuOpen(false), setChecking(true))} />
         <Item open={open} onToggle={toggle} icon="people-outline" title="Trocar usuário" sub="Celular compartilhado (ex.: da empresa)" onPress={switchUser} />
         <Item open={open} onToggle={toggle} icon="log-out-outline" title="Sair" onPress={logout} danger />
       </View>
+      </ScrollView>
+          )}
+        </View>
+      </Modal>
 
       <VoiceEnroll
         userName={state.user && state.user.name}
@@ -441,7 +485,7 @@ const styles = StyleSheet.create({
   coverEdit: { position: 'absolute', left: 12, top: 12, width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(20,18,14,0.45)', alignItems: 'center', justifyContent: 'center' },
   bannerGlow: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(255,240,190,0.25)' },
   bannerText: { color: 'rgba(255,255,255,0.92)', fontWeight: '800', fontSize: 13, letterSpacing: 0.3 },
-  verifiedPill: { position: 'absolute', right: 12, top: 12, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(20,18,14,0.5)', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4 },
+  verifiedPill: { position: 'absolute', right: 12, bottom: 12, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(20,18,14,0.5)', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4 },
   head: { alignItems: 'center', paddingBottom: 6 },
   avatarRing: { padding: 4, borderRadius: 60, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.border, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
   avatar: { width: 104, height: 104, borderRadius: 52 },
@@ -456,14 +500,23 @@ const styles = StyleSheet.create({
   stat: { flex: 1, alignItems: 'center' },
   statN: { color: colors.text, fontWeight: '800', fontSize: 19 },
   statL: { color: colors.muted, fontSize: 11, marginTop: 1 },
+  // Menu ⋮ do Perfil
+  dots: { position: 'absolute', right: 10, top: 10, width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(20,18,14,0.45)', alignItems: 'center', justifyContent: 'center' },
+  menuHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 6 },
+  menuTitle: { color: colors.text, fontWeight: '900', fontSize: 24 },
+  menuClose: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
+  seg: { flexDirection: 'row', marginHorizontal: 16, marginBottom: 14, borderRadius: 14, backgroundColor: colors.cardAlt, padding: 4 },
+  segBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 38, borderRadius: 11 },
+  segOn: { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  segTxt: { color: colors.menu, fontWeight: '800', fontSize: 13.5, marginLeft: 6 },
   moreTitle: { color: colors.text, fontWeight: '800', fontSize: 16, marginTop: 18, marginBottom: 8 },
-  moreBox: { backgroundColor: '#FFFFFF', borderRadius: 18, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', flexDirection: 'row', flexWrap: 'wrap' },
-  item: { width: '50%', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
-  itemRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 10, minHeight: 50 },
-  itemIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
-  itemTitle: { color: colors.text, fontWeight: '700', fontSize: 13 },
-  itemSub: { color: colors.muted, fontSize: 10.5, marginTop: 1 },
-  itemBody: { width: '100%', paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  moreBox: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  item: { width: '48.5%', backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: colors.border, marginBottom: 10 },
+  itemRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 11, minHeight: 62 },
+  itemIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  itemTitle: { color: colors.text, fontWeight: '800', fontSize: 13 },
+  itemSub: { color: colors.muted, fontSize: 10.5, marginTop: 2 },
+  itemBody: { width: '100%', backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 10 },
   roleChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18, borderWidth: 1, borderColor: colors.border, marginRight: 8, marginBottom: 8, backgroundColor: '#FFFFFF' },
   roleChipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   privPill: { flexDirection: 'row', alignItems: 'center', minHeight: 30, paddingHorizontal: 11, borderRadius: 19, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card },
