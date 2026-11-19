@@ -424,13 +424,15 @@ function Shell({ inviteTick }) {
   // Perfil não fica na barra: o botão dele está no cabeçalho (no lugar do antigo ⋮).
   const shownTabs = tabs.filter((t) => !t.hidden && t.key !== 'perfil');
   const splitMenu = verified && state.activeRole === 'empresa' && shownTabs.length > 4;
-  const half = Math.ceil(shownTabs.length / 2);
-  const topMenu = splitMenu ? shownTabs.slice(0, half) : [];
-  const bottomMenu = splitMenu ? shownTabs.slice(half) : shownTabs;
-  const renderTab = (t) => {
+  // Empresa: em cima ficam Negócios, RH e Página (só o ícone, sem caixa e sem fundo);
+  // embaixo, Painel, Clientes, Estoque e Caixa.
+  const EMPRESA_TOP = ['negocios', 'rh', 'pagina'];
+  const topMenu = splitMenu ? shownTabs.filter((t) => EMPRESA_TOP.includes(t.key)) : [];
+  const bottomMenu = splitMenu ? shownTabs.filter((t) => !EMPRESA_TOP.includes(t.key)) : shownTabs;
+  const renderTab = (t, iconOnly) => {
     const on = t.key === current.key;
     return (
-      <TouchableOpacity key={t.key} style={styles.tab} onPress={() => {
+      <TouchableOpacity key={t.key} style={styles.tab} accessibilityLabel={t.label} onPress={() => {
         // Prestador/fornecedor tocando em Community: entra no modo usuário, com as abas de baixo do app
         // (Shop, Negócios, Food, Serviços, Pedidos). O botãozinho de troca do cabeçalho traz de volta.
         if (t.key === 'stories' && canSwap && state.activeRole !== 'cliente') {
@@ -443,9 +445,10 @@ function Shell({ inviteTick }) {
       }}>
         {/* Aba ativa: sem fundo, só o ícone e o nome em dourado */}
         <View style={styles.tabIcon}>
-          <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={21} color={on ? colors.primary : colors.menu} />
+          {/* Menu de cima da empresa: ícone pequeno e suave (contorno fino), dourado quando ativo */}
+          <Ionicons name={on && !iconOnly ? t.icon.replace('-outline', '') : t.icon} size={iconOnly ? 17 : 21} color={on ? colors.primary : iconOnly ? colors.muted : colors.menu} style={iconOnly && !on ? { opacity: 0.75 } : null} />
         </View>
-        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.tabLabel, on && { color: colors.primary, fontWeight: '800' }]}>{t.label}</Text>
+        {iconOnly ? null : <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.tabLabel, on && { color: colors.primary, fontWeight: '800' }]}>{t.label}</Text>}
       </TouchableOpacity>
     );
   };
@@ -591,7 +594,7 @@ function Shell({ inviteTick }) {
       {/* Página inicial com arrastar para os lados (qualquer perfil):
           puxar para a direita → Reels, puxar para a esquerda → Perfil. De lá, o gesto contrário volta. */}
       {/* Empresa: primeiro menu, no alto da tela */}
-      {topMenu.length ? <View style={styles.topMenu}>{topMenu.map(renderTab)}</View> : null}
+      {topMenu.length ? <View style={styles.topMenu}>{topMenu.map((t) => renderTab(t, true))}</View> : null}
       <SwipePages onLeft={swipe.left} onRight={swipe.right}>
         <Comp goTo={setTab} openVoice={() => setVoice(true)} explore={explore} openArea={openArea} navigate={pick} onTop={setCommTop} />
       </SwipePages>
@@ -641,7 +644,7 @@ function Shell({ inviteTick }) {
         </View>
       ) : null}
 
-      <View style={[styles.tabbar, { paddingBottom: 10 + insets.bottom }]}>{bottomMenu.map(renderTab)}</View>
+      <View style={[styles.tabbar, { paddingBottom: 10 + insets.bottom }]}>{bottomMenu.map((t) => renderTab(t))}</View>
 
       <VoiceAssistant
         visible={voice}
@@ -900,7 +903,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -3 },
   },
   tab: { flex: 1, alignItems: 'center', paddingHorizontal: 2 },
-  topMenu: { flexDirection: 'row', backgroundColor: colors.card, paddingTop: 6, paddingBottom: 8, paddingHorizontal: 6, borderBottomWidth: 1, borderBottomColor: colors.border },
+  // Menu de cima da empresa: só os ícones, sem caixa e sem fundo.
+  topMenu: { flexDirection: 'row', paddingTop: 2, paddingBottom: 6, paddingHorizontal: 40 },
   rolePill: { flexDirection: 'row', alignItems: 'center', minHeight: 30, paddingHorizontal: 10, borderRadius: 15, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card, marginRight: 6 },
   // Botãozinho de troca de perfil: anel fino dourado com o símbolo do perfil em uso e as setinhas de troca.
   swapBtn: { width: 36, height: 40, alignItems: 'center', justifyContent: 'center', marginRight: 2 },
