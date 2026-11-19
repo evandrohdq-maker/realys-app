@@ -14,7 +14,6 @@ import { stopRadio } from '../radio';
 import { stopTv } from '../tv';
 import { hardStopRadio } from './RadioKit';
 import { hardStopTv } from './FloatPlayers';
-import { PipLayer } from '../pipModal';
 
 export default function PipManager() {
   const { state, dispatch } = useStore();
@@ -90,10 +89,6 @@ export default function PipManager() {
   }, [win.width, win.height]);
 
   if (!inPip || kind !== 'radio') return null;
-  // A capa da rádio numa janela própria: fica por cima de qualquer página aberta.
-  return (
-    <PipLayer>
-      <RadioPipView />
-    </PipLayer>
-  );
+  // A capa da rádio na tela principal (as páginas abertas por cima se escondem na janelinha).
+  return <RadioPipView />;
 }

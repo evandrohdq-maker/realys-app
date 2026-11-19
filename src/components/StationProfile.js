@@ -1,6 +1,7 @@
 // Perfil de uma rádio ou TV do Re@lys (abre ao tocar no nome ou na logo em qualquer lugar do app).
 // Capa, logo, categoria, seguidores, botão de ouvir/assistir, link para divulgar e os posts da estação.
 // A dona da estação (empresa com CNPJ) publica no feed com o link para os ouvintes tocarem na hora.
+import { usePipState } from '../pip';
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Image, Share, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -58,7 +59,8 @@ export function StationPostPlayer({ station }) {
 export function StationProfileHost() {
   const [open, setOpen] = useState(stationOpen());
   useEffect(() => onStationOpen(setOpen), []);
-  if (!open) return null;
+  const inPip = usePipState();
+  if (!open || inPip) return null; // na janelinha aparece só o player
   return <StationProfile kind={open.kind} id={open.id} />;
 }
 
