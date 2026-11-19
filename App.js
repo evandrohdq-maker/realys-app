@@ -97,7 +97,7 @@ import { minimizeApp, playingKind } from './src/pip';
 import { openProfileMenu } from './src/profileMenu';
 import { ProductSheetHost } from './src/components/ProductSheet';
 import RadiosScreen from './src/screens/cliente/RadiosScreen';
-import { RadioHost, RadioMiniBar } from './src/components/RadioKit';
+import { RadioHost, RadioHeadChip } from './src/components/RadioKit';
 import { ArtistSheetHost } from './src/components/ArtistSheet';
 import { TvFloat, LiveFloat } from './src/components/FloatPlayers';
 import { BioGateModal, LockedScreen, canOpenTab, isVerified, useServerBio } from './src/components/BioGate';
@@ -599,7 +599,9 @@ function Shell({ inviteTick }) {
       <BioGateModal />
       {/* Rádio ao vivo: sem barrinha dentro do app (o play/parar fica na página das rádios; a capa
           aparece só ao minimizar). Músicas: mini player com a capa e o botão do perfil do artista. */}
-      <RadioMiniBar bottom={88 + insets.bottom} />
+      {/* Rádio e músicas: playerzinho pequeno ao lado da logo do Re@lys (pretinho com borda dourada),
+          com fechar, próxima música e o artista. A capa grande aparece só ao minimizar o app. */}
+      <RadioHeadChip top={insets.top + 12} />
       <ArtistSheetHost />
       {/* TV da aba Stream e live minimizada: janelinhas flutuantes (segure e arraste). */}
       <TvFloat bottom={150 + insets.bottom} />

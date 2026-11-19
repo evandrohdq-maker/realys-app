@@ -240,6 +240,43 @@ export function RadioMiniBar({ bottom }) {
   );
 }
 
+// Playerzinho bem pequeno ao lado da logo do Re@lys: pretinho com borda dourada e um pedacinho
+// da logo da rádio ou da capa da música. Segure e arraste para levar a outro lugar.
+//  - Rádio ao vivo: tocar na logo abre a rádio; X para o som.
+//  - Música: tocar na capa abre o perfil do artista; ⏭ passa para a próxima; X fecha a música.
+export function RadioHeadChip({ top, left = 62 }) {
+  const n = useRadioNow();
+  if (!n.radio || n.status === 'parado') return null;
+  const track = !!n.radio.track;
+  const open = () => (track ? n.radio.artist && openArtist(n.radio.artist) : openStation('radio', n.radio.id));
+  return (
+    <Floating place={{ left, top }} style={st.chip}>
+      <TouchableOpacity onPress={open} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center' }} accessibilityLabel={track ? `${n.radio.name}, de ${n.radio.artist}. Ver o artista` : `${n.radio.name} tocando. Abrir a rádio`}>
+        <View style={[st.chipLogo, track && { borderRadius: 6 }]}>
+          <StationLogo s={n.radio} size={24} radius={track ? 6 : 12} />
+        </View>
+        {n.status === 'tocando' ? (
+          <View style={{ transform: [{ scale: 0.55 }], marginHorizontal: -4 }}>
+            <Bars on />
+          </View>
+        ) : n.status === 'carregando' ? (
+          <ActivityIndicator size="small" color={GOLD} style={{ marginHorizontal: 4, transform: [{ scale: 0.7 }] }} />
+        ) : (
+          <Ionicons name="alert-circle" size={14} color="#E5484D" style={{ marginHorizontal: 4 }} />
+        )}
+      </TouchableOpacity>
+      {track ? (
+        <TouchableOpacity onPress={radioEnded} hitSlop={8} style={st.chipX} accessibilityLabel="Próxima música">
+          <Ionicons name="play-skip-forward" size={12} color={GOLD} />
+        </TouchableOpacity>
+      ) : null}
+      <TouchableOpacity onPress={stopRadio} hitSlop={8} style={st.chipX} accessibilityLabel={track ? 'Fechar a música' : `Parar ${n.radio.name}`}>
+        <Ionicons name="close" size={13} color={GOLD} />
+      </TouchableOpacity>
+    </Floating>
+  );
+}
+
 // Dentro da janelinha (app minimizado): só a logo grande, o nome e o AO VIVO, como no YouTube.
 export function RadioPipView() {
   const n = useRadioNow();
@@ -259,7 +296,11 @@ export function RadioPipView() {
   );
 }
 
+const GOLD = '#F5C331';
 const st = StyleSheet.create({
+  chip: { flexDirection: 'row', alignItems: 'center', height: 32, paddingLeft: 3, paddingRight: 4, borderRadius: 16, backgroundColor: '#0E0E10', borderWidth: 1.5, borderColor: GOLD, elevation: 6 },
+  chipLogo: { width: 24, height: 24, borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(245,195,49,0.6)' },
+  chipX: { width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginLeft: 3 },
   featured: { color: '#B8860B', fontWeight: '800', fontSize: 11 },
   miniClose: { backgroundColor: 'rgba(229,72,77,0.9)', width: 32, height: 32, borderRadius: 16 },
   pip: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, elevation: 99, backgroundColor: '#111114', flexDirection: 'row', alignItems: 'center', padding: 10 },
