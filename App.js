@@ -336,8 +336,17 @@ function Shell({ inviteTick }) {
   if (WORK_ROLES.includes(state.activeRole)) lastWork.current = state.activeRole;
   const canSwap = verified && state.user.roles.includes('cliente') && workRoles.length > 0 && state.activeRole !== 'admin';
   const swapTarget = state.activeRole === 'cliente' ? lastWork.current || workRoles[0] : 'cliente';
-  // Segurou o botão do Perfil: troca de perfil e avisa para qual foi.
-  const swapHold = () => swapProfile();
+  // Botão do Perfil (toque normal, sem segurar): fora do Perfil, abre o Perfil;
+  // já no Perfil, cada novo toque troca para o próximo perfil da conta
+  // (usuário → empresa / prestador / fornecedor → usuário…) e continua no Perfil.
+  const profileCycle = ['cliente', ...WORK_ROLES.filter((r) => workRoles.includes(r))];
+  const nextProfile = profileCycle[(profileCycle.indexOf(state.activeRole) + 1) % profileCycle.length];
+  const tapProfile = () => {
+    if (current.key !== 'perfil' || !canSwap) return pick({ tab: 'perfil' });
+    setCameFromEmpresa(false);
+    if (Platform.OS === 'android') ToastAndroid.show(`Perfil ${ROLE_LABELS[nextProfile].toLowerCase()}`, ToastAndroid.SHORT);
+    switchRole(nextProfile, 'perfil');
+  };
   // ⋮ do cabeçalho: o Menu mora no Perfil. Fora dele, passa pelo Perfil e volta ao fechar.
   const openMenuAnywhere = () => {
     if (current.key === 'perfil') return openProfileMenu();
@@ -567,14 +576,12 @@ function Shell({ inviteTick }) {
           <TouchableOpacity onPress={() => setSearching(true)} style={styles.iconBtn} accessibilityLabel="Buscar pessoas na rede Re@lys">
             <Ionicons name="search-outline" size={21} color={colors.text} />
           </TouchableOpacity>
-          {/* Fotinha do perfil: toque abre o Perfil; segurar 1 segundo troca de perfil
-              (usuário ⇄ prestador/empresa). O selinho mostra o perfil em uso. */}
+          {/* Fotinha do perfil: toque abre o Perfil; no Perfil, tocar de novo troca de perfil
+              (usuário → empresa/prestador/fornecedor → usuário). O selinho mostra o perfil em uso. */}
           <TouchableOpacity
-            onPress={() => pick({ tab: 'perfil' })}
-            onLongPress={canSwap ? swapHold : undefined}
-            delayLongPress={1000}
+            onPress={tapProfile}
             style={[styles.iconBtn, current.key === 'perfil' && styles.iconBtnOn]}
-            accessibilityLabel={'Abrir meu perfil' + (canSwap ? `. Segure para trocar para ${ROLE_LABELS[swapTarget]}` : '')}
+            accessibilityLabel={current.key === 'perfil' && canSwap ? `Trocar para o perfil ${ROLE_LABELS[nextProfile]}` : 'Abrir meu perfil'}
           >
             {state.myProfile && state.myProfile.photo ? (
               <Image source={{ uri: state.myProfile.photo }} style={[styles.headAvatar, current.key === 'perfil' && { borderColor: colors.gold }]} />
