@@ -1,14 +1,17 @@
 // Player das rádios: o RadioHost toca (um só no app inteiro), o RadioCard aparece na página
 // da rádio e no diretório, e a barrinha embaixo mostra o que está tocando em qualquer tela.
 import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Animated, ActivityIndicator, Image } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Animated, ActivityIndicator, Image, Alert, Platform, ToastAndroid } from 'react-native';
 import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import Floating from './Floating';
 import { radioNow, onRadioNow, setRadioNow, playRadio, stopRadio, resolveStream, loadRadios, radioOf, onRadios, radioEnded } from '../radio';
 import { stationCat, openStation } from '../streamCats';
 import { minimizeApp } from '../pip';
-import { openArtist } from '../music';
+import { openArtist, trackById, artistGets } from '../music';
+import { useStore } from '../store';
+import { brl } from '../theme';
+import { isVerified } from './BioGate';
 
 loadRadios(); // rádios indexadas guardadas no celular
 
@@ -246,8 +249,19 @@ export function RadioMiniBar({ bottom }) {
 //  - Música: tocar na capa abre o perfil do artista; ⏭ passa para a próxima; X fecha a música.
 export function RadioHeadChip({ top, left = 62 }) {
   const n = useRadioNow();
+  const { state, dispatch } = useStore();
   if (!n.radio || n.status === 'parado') return null;
   const track = !!n.radio.track;
+  // Música à venda que a pessoa ainda não tem: um "+" pequenininho de comprar, um toque e já compra.
+  const t = track ? trackById(n.radio.id) : null;
+  const forSale = !!(t && t.price && !t.mine && !(state.boughtMedia || {})[t.id]);
+  const buy = () => {
+    if (!isVerified(state)) return dispatch({ type: 'BIO_GATE' });
+    if (state.wallet < t.price) return Alert.alert('Saldo insuficiente', `"${t.title}" custa ${brl(t.price)}. Coloque saldo na carteira e toque no + de novo.`);
+    dispatch({ type: 'BUY_MEDIA', id: t.id, price: t.price });
+    const msg = `Comprada: "${t.title}" por ${brl(t.price)} · ${brl(artistGets(t.price))} vão para ${t.artist}`;
+    if (Platform.OS === 'android') ToastAndroid.show(msg, ToastAndroid.SHORT);
+  };
   const open = () => (track ? n.radio.artist && openArtist(n.radio.artist) : openStation('radio', n.radio.id));
   return (
     <Floating place={{ left, top }} style={st.chip}>
@@ -265,6 +279,12 @@ export function RadioHeadChip({ top, left = 62 }) {
           <Ionicons name="alert-circle" size={14} color="#E5484D" style={{ marginHorizontal: 4 }} />
         )}
       </TouchableOpacity>
+      {forSale ? (
+        <TouchableOpacity onPress={buy} hitSlop={8} style={st.chipBuy} accessibilityLabel={`Comprar ${t.title} por ${brl(t.price)}`}>
+          <Ionicons name="cart" size={11} color="#0E0E10" />
+          <Ionicons name="add" size={10} color="#0E0E10" style={{ marginLeft: -1 }} />
+        </TouchableOpacity>
+      ) : null}
       {track ? (
         <TouchableOpacity onPress={radioEnded} hitSlop={8} style={st.chipX} accessibilityLabel="Próxima música">
           <Ionicons name="play-skip-forward" size={12} color={GOLD} />
@@ -300,6 +320,7 @@ const GOLD = '#F5C331';
 const st = StyleSheet.create({
   chip: { flexDirection: 'row', alignItems: 'center', height: 32, paddingLeft: 3, paddingRight: 4, borderRadius: 16, backgroundColor: '#0E0E10', borderWidth: 1.5, borderColor: GOLD, elevation: 6 },
   chipLogo: { width: 24, height: 24, borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(245,195,49,0.6)' },
+  chipBuy: { flexDirection: 'row', alignItems: 'center', height: 20, paddingHorizontal: 5, borderRadius: 10, backgroundColor: GOLD, marginLeft: 3 },
   chipX: { width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginLeft: 3 },
   featured: { color: '#B8860B', fontWeight: '800', fontSize: 11 },
   miniClose: { backgroundColor: 'rgba(229,72,77,0.9)', width: 32, height: 32, borderRadius: 16 },
