@@ -33,6 +33,8 @@ import Credentials from '../components/Credentials';
 import { SocialBadge, ProfileQuizModal } from '../components/SocialClass';
 import CategoryMenu from '../components/CategoryMenu';
 import { onProfileMenu } from '../profileMenu';
+import { MY_COMPANY_ID } from '../data';
+import { profileById } from '../components/CompanyProfile';
 
 const ROLE_ICON = { cliente: '🛍️', empresa: '🏪', prestador: '🛵', fornecedor: '🚚', admin: '🛡️' };
 
@@ -58,6 +60,81 @@ function Item({ k, icon, title, sub, onPress, children, danger, open, onToggle }
       </View>
       {!onPress && isOpen ? <View style={styles.itemBody}>{children}</View> : null}
     </>
+  );
+}
+
+const WORK_ROLES = ['empresa', 'prestador', 'fornecedor'];
+// Atalhos do cartão de trabalho: levam às abas do painel de cada classe.
+const WORK_LINKS = {
+  empresa: [
+    ['painel', 'Painel', 'speedometer-outline'],
+    ['pagina', 'Loja e vitrine', 'storefront-outline'],
+    ['estoque', 'Estoque', 'file-tray-stacked-outline'],
+    ['caixa', 'Caixa', 'wallet-outline'],
+    ['clientes', 'Clientes', 'chatbubbles-outline'],
+    ['rh', 'Equipe', 'people-outline'],
+  ],
+  prestador: [
+    ['prestar', 'Trabalhar', 'navigate-circle-outline'],
+    ['agenda', 'Agenda', 'calendar-outline'],
+    ['clientes', 'Clientes', 'chatbubbles-outline'],
+    ['paginas', 'Minha página', 'albums-outline'],
+  ],
+  fornecedor: [
+    ['propostas', 'Propostas', 'cube-outline'],
+    ['inicio', 'Feed', 'home-outline'],
+  ],
+};
+const WORK_TITLE = { empresa: 'Perfil empresarial', prestador: 'Perfil profissional', fornecedor: 'Perfil de fornecedor' };
+
+// Cartão do perfil de trabalho: nome da empresa (ou do profissional), CNPJ, nota e atalhos do painel.
+// Nada de foto pessoal, amigos ou depoimentos sociais: isso fica no perfil social.
+function WorkHead({ role, navigate }) {
+  const { state } = useStore();
+  const u = state.user;
+  const company = role === 'empresa' ? profileById(state, MY_COMPANY_ID) : null;
+  const prov = role === 'prestador' ? state.myProvider : null;
+  const name = company ? company.name : prov && prov.name ? prov.name : u.name;
+  const sub = company ? [company.category, company.city].filter(Boolean).join(' · ') : prov ? [prov.service || prov.profession, prov.vehicle].filter(Boolean).join(' · ') : u.cnpj ? 'Fornecedor' : '';
+  const rating = company ? company.rating : prov ? prov.rating : null;
+  const go = (tab) => navigate && navigate({ tab });
+  return (
+    <View>
+      <View style={[styles.banner, { backgroundColor: colors.cardAlt }]}>
+        {company && company.cover ? <Photo uri={company.cover} style={styles.bannerImg} /> : null}
+        <View style={styles.verifiedPill}>
+          <Ionicons name="shield-checkmark" size={13} color="#FFFFFF" />
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 11, marginLeft: 4 }}>{WORK_TITLE[role]}</Text>
+        </View>
+      </View>
+      <View style={styles.head}>
+        <View style={[styles.avatarRing, { marginTop: -46 }]}>
+          <View style={[styles.workLogo, { backgroundColor: colors.card }]}>
+            {company && company.logo ? (
+              <Text style={{ fontSize: 40 }}>{company.logo}</Text>
+            ) : (
+              <Ionicons name={role === 'empresa' ? 'business' : role === 'prestador' ? 'construct' : 'cube'} size={36} color={colors.text} />
+            )}
+          </View>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, paddingHorizontal: 12 }}>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={styles.name}>{name}</Text>
+          <Ionicons name="checkmark-circle" size={18} color={colors.accent} style={{ marginLeft: 5 }} />
+        </View>
+        {sub ? <Text style={styles.handle} numberOfLines={1}>{sub}</Text> : null}
+        <Text style={styles.handle} numberOfLines={1}>
+          {[u.cnpj && role !== 'prestador' ? 'CNPJ ' + u.cnpj : null, rating ? `★ ${String(rating).replace('.', ',')}` : null].filter(Boolean).join(' · ')}
+        </Text>
+        <View style={styles.workGrid}>
+          {(WORK_LINKS[role] || []).map(([tab, label, icon]) => (
+            <TouchableOpacity key={tab} onPress={() => go(tab)} style={styles.workBtn} activeOpacity={0.8} accessibilityLabel={label}>
+              <Ionicons name={icon} size={20} color={colors.text} />
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.workBtnTxt}>{label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -166,12 +243,18 @@ export default function ProfileScreen({ navigate, explore }) {
   const [open, setOpen] = useState(null);
   const toggle = (k) => setOpen((o) => (o === k ? null : k));
   const roleOn = (r) => state.activeRole === r;
+  // Empresa, prestador e fornecedor: o Perfil mostra o cartão de trabalho, não o perfil social.
+  const work = WORK_ROLES.includes(state.activeRole);
 
   return (
     <Screen scrollRef={scrollRef}>
       {/* Cabeçalho: foto, nome verificado, @ e profissão, perfil social e bio. */}
       {/* Conta sem biometria: aviso para completar o cadastro */}
       <UnverifiedBanner />
+      {work ? (
+        <WorkHead role={state.activeRole} navigate={navigate} />
+      ) : (
+      <>
       {/* Capa de fundo: a foto que a pessoa escolheu ou um tom suave. Tocar abre o editor. */}
       <TouchableOpacity activeOpacity={0.9} onPress={() => setEditing(true)} style={[styles.banner, { backgroundColor: coverTone(prof.coverTone).color }]} accessibilityLabel="Trocar a capa de fundo">
         {!prof.cover && coverTone(prof.coverTone).art ? <ThemeArt theme={coverTone(prof.coverTone).art} /> : null}
@@ -255,6 +338,8 @@ export default function ProfileScreen({ navigate, explore }) {
           </TouchableOpacity>
         </View>
       </View>
+      </>
+      )}
 
       {/* Carteira: o saldo só aparece aqui no Perfil. */}
       <TouchableOpacity onPress={() => setWalletOpen(true)} activeOpacity={0.88} style={styles.wallet} accessibilityLabel="Abrir minha carteira">
@@ -265,9 +350,12 @@ export default function ProfileScreen({ navigate, explore }) {
       </TouchableOpacity>
 
       {/* O que os amigos veem: destaques, fotos, vídeos e depoimentos aceitos. */}
-      <View onLayout={(e) => (socialY.current = e.nativeEvent.layout.y)}>
-        <ProfileSocial ownerId="me" focus={focus} />
-      </View>
+      {/* Perfil de trabalho não mostra a vida social (fotos, amigos, depoimentos): isso fica no perfil social. */}
+      {work ? null : (
+        <View onLayout={(e) => (socialY.current = e.nativeEvent.layout.y)}>
+          <ProfileSocial ownerId="me" focus={focus} />
+        </View>
+      )}
 
       {/* Dep: tudo de depoimentos (relatório de recebidos e enviados, deixar, pesquisar e aprovar).
           Abre pelo número "Dep" lá em cima (saiu da página inicial). */}
@@ -314,9 +402,11 @@ export default function ProfileScreen({ navigate, explore }) {
           <Item open={open} onToggle={toggle} icon="megaphone-outline" title="Anúncios e propaganda" sub="Espaços de anúncio e reels de anúncio" onPress={() => nav({ tab: 'anuncie' })} />
         )}
         <Item open={open} onToggle={toggle} icon="albums-outline" title={`Minhas páginas · ${myPages(state).length}/${MAX_PAGES}`} sub="Assinadas ou anônimas" onPress={() => nav({ tab: 'paginas', seg: 'minhas' })} />
+        {work ? null : (
         <Item open={open} onToggle={toggle} k="privacidade" icon="lock-closed-outline" title="Quem vê meu perfil" sub={`Social: ${audienceLabel(priv.social).toLowerCase()} · Portfólio: ${audienceLabel(priv.portfolio).toLowerCase()}`}>
           <PrivacyPanel />
         </Item>
+        )}
         {u.roles.length > 1 && isVerified(state) ? (
           <Item open={open} onToggle={toggle} k="perfis" icon="swap-horizontal-outline" title="Usar o app como" sub={ROLE_LABELS[state.activeRole]}>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
@@ -494,6 +584,10 @@ const styles = StyleSheet.create({
   head: { alignItems: 'center', paddingBottom: 6 },
   avatarRing: { padding: 4, borderRadius: 60, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.border, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
   avatar: { width: 104, height: 104, borderRadius: 52 },
+  workLogo: { width: 88, height: 88, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  workGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignSelf: 'stretch', marginTop: 14 },
+  workBtn: { width: '31.5%', alignItems: 'center', justifyContent: 'center', minHeight: 62, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: '#FFFFFF', marginBottom: 8, paddingHorizontal: 4 },
+  workBtnTxt: { color: colors.text, fontWeight: '700', fontSize: 12, marginTop: 4 },
   quiet: { position: 'absolute', top: 10, width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
   quietSos: { color: colors.danger, fontWeight: '800', fontSize: 8.5, letterSpacing: 0.3 },
   name: { color: colors.text, fontWeight: '800', fontSize: 23 },
