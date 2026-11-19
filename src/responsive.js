@@ -8,6 +8,7 @@
 //  4. Títulos e números grandes são contidos, para o app ficar limpo e caber em qualquer celular.
 import React from 'react';
 import { Text as RNText, TextInput as RNTextInput, StyleSheet, Dimensions } from 'react-native';
+import { useScreenSharePause } from './screenShare';
 
 // Até quanto a letra do sistema pode aumentar o texto do app (1 = tamanho normal).
 export const MAX_FONT_SCALE = 1.1;
@@ -57,6 +58,19 @@ export const Text = React.forwardRef(function Text({ style, ...rest }, ref) {
   return <RNText maxFontSizeMultiplier={MAX_FONT_SCALE} {...rest} ref={ref} style={[SHRINK, fit(style, rest.children)]} />;
 });
 
-export const TextInput = React.forwardRef(function TextInput({ style, ...rest }, ref) {
-  return <RNTextInput maxFontSizeMultiplier={MAX_FONT_SCALE} {...rest} ref={ref} style={fit(style)} />;
+// Campo de senha (secureTextEntry) ou marcado como sensitive: enquanto está em foco, a tela compartilhada
+// pausa sozinha (src/screenShare.js). Ninguém precisa lembrar de pausar.
+export const TextInput = React.forwardRef(function TextInput({ style, sensitive, onFocus, onBlur, ...rest }, ref) {
+  const [focused, setFocused] = React.useState(false);
+  useScreenSharePause(focused && !!(rest.secureTextEntry || sensitive), 'senha');
+  return (
+    <RNTextInput
+      maxFontSizeMultiplier={MAX_FONT_SCALE}
+      {...rest}
+      onFocus={(e) => (setFocused(true), onFocus && onFocus(e))}
+      onBlur={(e) => (setFocused(false), onBlur && onBlur(e))}
+      ref={ref}
+      style={fit(style)}
+    />
+  );
 });

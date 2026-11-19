@@ -11,6 +11,19 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] **Servidor do app** (contas, carteira, pedidos): `server/deploy/setup-ubuntu.sh`.
 - [ ] **Domínios**: `api.` e `video.` apontando para as VPS.
 
+## Compartilhar a tela (Arena Gamer e Salas de Negócios) — testar no primeiro APK com o servidor
+
+- [ ] **Minimizar o Re@lys com a tela sendo transmitida**: o jogo (ou qualquer app) tem que continuar indo
+      para a sala e para a live. As permissões FOREGROUND_SERVICE_MEDIA_PROJECTION já estão no app.json; se
+      no Android 14+ a transmissão parar ao minimizar, falta o serviço em primeiro plano do tipo
+      mediaProjection (ex.: biblioteca notifee) antes de pedir a tela.
+- [ ] **Live + sala ao mesmo tempo**: a captura é uma só (src/video.js) e vai para os dois. Conferir o
+      uso de internet do celular (dois envios de vídeo, ~2 a 5 Mbps no total).
+- [ ] Pausa automática: carteira, Pix, login, biometria, conversas privadas e qualquer campo de senha
+      do Re@lys já pausam. Senhas de OUTROS apps: o Android 15+ esconde sozinho e os apps de banco ficam
+      pretos na transmissão; conferir em Android 12–14.
+- [ ] Rever com advogado as regras de vídeo ao vivo (ECA Digital, ANPD: caso Discord, ago/2026).
+
 ## Quando contratar o servidor (fase de testes, 10 a 20 usuários)
 
 - [ ] **Hospedar o Realys num servidor na nuvem**, para as pessoas acessarem de verdade.

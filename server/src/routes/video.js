@@ -101,7 +101,70 @@ export default function videoRoutes(r, { db, cfg, hub, publicUser, userById }) {
     return ice;
   };
 
-  r.get('/video/status', () => ({ on: on(), calls: true, turn: !!(cfg.turnUrl && cfg.turnSecret) }), { auth: false });
+  r.get('/video/status', () => ({ on: on(), calls: true, screens: on(), turn: !!(cfg.turnUrl && cfg.turnSecret) }), { auth: false });
+
+  // ---------- Compartilhar a tela numa sala (Arena Gamer e Salas de Negócios) ----------
+  // Quem compartilha manda UMA imagem da tela para o servidor de vídeo (WHIP, caminho tela/<id>) e só
+  // as pessoas da sala recebem (WHEP). Diferente da live: não é público. Cada pessoa que assiste tem que
+  // estar na lista que o dono mandou; o passe é conferido pelo MediaMTX e o dono pode tirar alguém na hora.
+  // Fica na memória do servidor: se o servidor reiniciar, o compartilhamento cai e a pessoa liga de novo.
+  const telas = new Map(); // id -> { id, host, sala, viewers:Set, at }
+  const MAX_VER = 25;
+  const telaOf = (id) => {
+    const t = telas.get(id);
+    if (!t) fail(404, 'O compartilhamento de tela foi encerrado.');
+    return t;
+  };
+  const telaEnd = (t) => {
+    telas.delete(t.id);
+    for (const v of t.viewers) hub.send(v, 'tela-off', { id: t.id, sala: t.sala });
+  };
+  const viewerIds = (list, me) => {
+    const ids = Array.isArray(list) ? [...new Set(list.map((x) => String(x || '').slice(0, 64)).filter((x) => x && x !== me))] : [];
+    if (ids.length > MAX_VER) fail(400, `A tela pode ser mostrada para até ${MAX_VER} pessoas. Para mais gente, abra uma live.`);
+    return ids.filter((id) => userById(id));
+  };
+
+  r.post('/salas/tela', ({ body, user }) => {
+    if (!on()) off();
+    const sala = str(body.sala, 'a sala', { max: 120 });
+    if (!sala) fail(400, 'Em qual sala você vai mostrar a tela?');
+    // Uma tela por pessoa: abrir outra encerra a anterior.
+    for (const t of telas.values()) if (t.host === user.id) telaEnd(t);
+    const t = { id: newId('tela'), host: user.id, sala, viewers: new Set(viewerIds(body.para, user.id)), at: now() };
+    telas.set(t.id, t);
+    const from = publicUser(userById(user.id));
+    for (const v of t.viewers) hub.send(v, 'tela-on', { id: t.id, sala, from });
+    const token = sign(cfg.videoSecret, { act: 'publish', path: `tela/${t.id}`, uid: user.id, exp: now() + 6 * 3600 * 1000 });
+    return { id: t.id, whip: `${base()}/tela/${t.id}/whip`, token, iceServers: iceFor(user.id), quality: '720p' };
+  });
+
+  // O dono atualiza quem está na sala (alguém entrou ou saiu da voz).
+  r.post('/salas/tela/:id/para', ({ params, body, user }) => {
+    const t = telaOf(params.id);
+    if (t.host !== user.id) fail(403, 'Só quem está mostrando a tela muda quem assiste.');
+    const next = new Set(viewerIds(body.para, user.id));
+    const from = publicUser(userById(user.id));
+    for (const v of t.viewers) if (!next.has(v)) hub.send(v, 'tela-off', { id: t.id, sala: t.sala });
+    for (const v of next) if (!t.viewers.has(v)) hub.send(v, 'tela-on', { id: t.id, sala: t.sala, from });
+    t.viewers = next;
+    return { ok: true, viewers: next.size };
+  });
+
+  r.get('/salas/tela/:id/watch', ({ params, user }) => {
+    if (!on()) off();
+    const t = telaOf(params.id);
+    if (t.host !== user.id && !t.viewers.has(user.id)) fail(403, 'Só quem está na sala vê essa tela.');
+    const token = sign(cfg.videoSecret, { act: 'read', path: `tela/${t.id}`, uid: user.id, exp: now() + 3 * 3600 * 1000 });
+    return { whep: `${base()}/tela/${t.id}/whep`, token, iceServers: iceFor(user.id) };
+  });
+
+  r.post('/salas/tela/:id/end', ({ params, user }) => {
+    const t = telaOf(params.id);
+    if (t.host !== user.id) fail(403, 'Só quem está mostrando a tela pode parar.');
+    telaEnd(t);
+    return { ok: true };
+  });
 
   const liveOf = (id) => {
     const l = db.prepare('SELECT * FROM lives WHERE id = ?').get(id);
@@ -142,9 +205,19 @@ export default function videoRoutes(r, { db, cfg, hub, publicUser, userById }) {
       const action = String(b.action || '');
       if (action === 'publish') {
         if (p.act !== 'publish') fail(401, 'Esse passe é só para assistir.');
-        const l = db.prepare('SELECT host_id, status FROM lives WHERE id = ?').get(path.replace(/^live\//, ''));
-        if (!l || l.status !== 'ao_vivo' || l.host_id !== p.uid) fail(401, 'A live não está aberta.');
+        if (path.startsWith('tela/')) {
+          const t = telas.get(path.slice(5));
+          if (!t || t.host !== p.uid) fail(401, 'O compartilhamento de tela já foi encerrado.');
+        } else {
+          const l = db.prepare('SELECT host_id, status FROM lives WHERE id = ?').get(path.replace(/^live\//, ''));
+          if (!l || l.status !== 'ao_vivo' || l.host_id !== p.uid) fail(401, 'A live não está aberta.');
+        }
       } else if (!['read', 'playback'].includes(action) || !['read', 'publish'].includes(p.act)) fail(401, 'Ação não permitida.');
+      // Tela de sala: quem assiste precisa continuar convidado (o dono pode tirar a pessoa a qualquer hora).
+      if (action !== 'publish' && path.startsWith('tela/')) {
+        const t = telas.get(path.slice(5));
+        if (!t || (t.host !== p.uid && !t.viewers.has(p.uid))) fail(401, 'Você não está mais nessa sala.');
+      }
       return { ok: true };
     },
     { auth: false }

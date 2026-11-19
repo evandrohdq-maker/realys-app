@@ -14,6 +14,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { File } from 'expo-file-system';
 import * as Speech from 'expo-speech';
 import { colors } from '../theme';
+import { useScreenSharePause } from '../screenShare';
 
 let FaceDetection = null;
 try { FaceDetection = require('@react-native-ml-kit/face-detection').default; } catch (e) { FaceDetection = null; }
@@ -51,6 +52,7 @@ function avaliar(face, img, etapa) {
 }
 
 export default function ScanFacial({ visible, title = 'Scan facial', onFrames, onClose }) {
+  useScreenSharePause(!!visible, 'biometria');
   const [permission, requestPermission] = useCameraPermissions();
   const cam = useRef(null);
   const ativo = useRef(false);

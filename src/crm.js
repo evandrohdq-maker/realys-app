@@ -14,7 +14,7 @@ export const CRM_STAGES = [
   { key: 'fechado', label: 'Venda fechada', short: 'Fechada', icon: 'checkmark-circle-outline', hint: 'Vendido. Hora de entregar bem.' },
 ];
 export const CRM_LOST = { key: 'perdido', label: 'Não fechou', short: 'Não fechou', icon: 'close-circle-outline' };
-export const CRM_ORIGINS = ['Shop', 'Food', 'Reels', 'Anúncio', 'Página', 'Campanha', 'Chamado', 'Indicação'];
+export const CRM_ORIGINS = ['Shop', 'Food', 'Reels', 'Anúncio', 'Página', 'Campanha', 'Chamado', 'Indicação', 'Sala ao vivo'];
 export const CRM_LOST_REASONS = ['Achou caro', 'Comprou em outro lugar', 'Parou de responder', 'Sem estoque', 'Desistiu'];
 // Quadros: cada tipo de negócio tem o seu CRM, com os nomes das etapas do jeito que ele trabalha.
 // As chaves das etapas são as mesmas; só o nome muda.

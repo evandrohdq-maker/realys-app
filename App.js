@@ -88,6 +88,8 @@ import JobsScreen from './src/screens/cliente/JobsScreen';
 import DesapegoScreen from './src/screens/cliente/DesapegoScreen';
 import ReelsScreen from './src/screens/cliente/ReelsScreen';
 import ArenaScreen from './src/screens/cliente/ArenaScreen';
+import SalasScreen from './src/screens/empresa/SalasScreen';
+import { ScreenShareBar } from './src/components/ScreenShareKit';
 import RadiosScreen from './src/screens/cliente/RadiosScreen';
 import { RadioHost, RadioMiniBar } from './src/components/RadioKit';
 import { TvFloat, LiveFloat } from './src/components/FloatPlayers';
@@ -135,6 +137,8 @@ const TABS = {
     { key: 'paginas', label: 'Páginas', icon: 'albums-outline', Comp: PagesScreen, hidden: true },
     { key: 'desapego', label: 'Desapego', icon: 'pricetags-outline', Comp: DesapegoScreen, hidden: true },
     { key: 'arena', label: 'Arena Gamer', icon: 'game-controller-outline', Comp: ArenaScreen, hidden: true },
+    // Salas de Negócios: atendimento ao vivo e reuniões das empresas (separado da Arena Gamer).
+    { key: 'salas', label: 'Salas de Negócios', icon: 'headset-outline', Comp: SalasScreen, hidden: true },
     { key: 'radios', label: 'Rádios', icon: 'radio-outline', Comp: RadiosScreen, hidden: true },
     { key: 'tecnologia', label: 'Tecnologia', icon: 'hardware-chip-outline', Comp: TechScreen, hidden: true },
     { key: 'agro', label: 'Agro', icon: 'leaf-outline', Comp: AgroScreen, hidden: true },
@@ -160,6 +164,8 @@ const TABS = {
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
     // Anúncios e propaganda da empresa (abre pelo Painel › Divulgação).
     { key: 'anuncie', label: 'Anuncie', icon: 'megaphone-outline', Comp: AnuncieScreen, hidden: true },
+    // Salas de Negócios: recepção ao vivo, atendimento com tela compartilhada e reuniões da equipe (Painel).
+    { key: 'salas', label: 'Salas de Negócios', icon: 'headset-outline', Comp: SalasScreen, hidden: true },
     // Community para a empresa ver o feed sem trocar de perfil (quando a conta não tem perfil de usuário).
     { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen, hidden: true },
   ],
@@ -172,6 +178,7 @@ const TABS = {
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
     { key: 'vagas', label: 'Empregos', icon: 'briefcase-outline', Comp: JobsScreen, hidden: true },
     { key: 'paginas', label: 'Páginas', icon: 'albums-outline', Comp: PagesScreen, hidden: true },
+    { key: 'salas', label: 'Salas de Negócios', icon: 'headset-outline', Comp: SalasScreen, hidden: true },
   ],
   fornecedor: [
     { key: 'propostas', label: 'Propostas', icon: 'cube-outline', Comp: SupplierScreen },
@@ -549,6 +556,8 @@ function Shell({ inviteTick }) {
         </View>
       </View>
       {/* Faixa de avisos: só aparece quando há algo (comanda do evento, mãos livres). */}
+      {/* Mostrando a tela (sala ou live): aviso fixo com o botão Parar, em qualquer aba. */}
+      <ScreenShareBar />
       <View style={styles.subHeader}>
         <AlertPill />
         <VenuePill style={[styles.idPill, { marginRight: 6 }]} textStyle={styles.idText} />

@@ -105,3 +105,27 @@ test('sem servidor de vídeo contratado: avisa e o app segue na demonstração',
   assert.equal(r.status, 503);
   assert.equal(r.data.code, 'video_off');
 });
+
+test('tela na sala: só os convidados assistem; o dono tira alguém e o passe para de valer', async () => {
+  await signup(base, 'Gamer', '390.533.447-05', 'gamer_tela');
+  await signup(base, 'Colega', '935.411.347-80', 'colega_tela');
+  await signup(base, 'Intruso', '153.509.460-56', 'intruso_tela');
+  const pub = await api(base, 'POST', '/salas/tela', { who: 'Gamer', body: { sala: 'arena:sv-realys:v1', para: [S.Colega.id] } });
+  assert.equal(pub.status, 200, JSON.stringify(pub.data));
+  assert.equal(pub.data.whip, `https://video.teste/tela/${pub.data.id}/whip`);
+  const auth = (token, action) => api(base, 'POST', `/video/auth?k=${SECRET}`, { body: { token, path: `tela/${pub.data.id}`, action } });
+  assert.equal((await auth(pub.data.token, 'publish')).status, 200);
+
+  const ver = await api(base, 'GET', `/salas/tela/${pub.data.id}/watch`, { who: 'Colega' });
+  assert.equal(ver.status, 200);
+  assert.equal((await auth(ver.data.token, 'read')).status, 200);
+  assert.equal((await api(base, 'GET', `/salas/tela/${pub.data.id}/watch`, { who: 'Intruso' })).status, 403);
+  // Só o dono muda quem assiste ou para.
+  assert.equal((await api(base, 'POST', `/salas/tela/${pub.data.id}/para`, { who: 'Colega', body: { para: [] } })).status, 403);
+  assert.equal((await api(base, 'POST', `/salas/tela/${pub.data.id}/para`, { who: 'Gamer', body: { para: [] } })).status, 200);
+  assert.equal((await auth(ver.data.token, 'read')).status, 401); // tirado da sala: o passe antigo não abre mais
+  assert.equal((await api(base, 'POST', `/salas/tela/${pub.data.id}/end`, { who: 'Gamer' })).status, 200);
+  assert.equal((await auth(pub.data.token, 'publish')).status, 401);
+  // Sem servidor de vídeo: avisa e o app fica na demonstração.
+  assert.equal((await api(offBase, 'POST', '/salas/tela', { who: undefined, body: { sala: 'x' } })).status, 401);
+});

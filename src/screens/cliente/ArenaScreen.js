@@ -17,6 +17,8 @@ import { useBack } from '../../back';
 import { useArena, arenaPref, joinArenaVoice } from '../../arena';
 import ArenaUserSheet from '../../components/ArenaUserSheet';
 import { CallPersonSheet, InviteSheet } from '../../components/ArenaCallInvite';
+import { useScreenShare, startScreenShare, stopScreenShare } from '../../screenShare';
+import { ScreenViewer } from '../../components/ScreenShareKit';
 
 const D = { bg: '#F7F5EF', rail: '#EDE8DA', card: '#FFFFFF', text: '#1B1B1F', muted: '#7A7468', gold: '#B8860B', online: '#2FB463', idle: '#E0A92B', dnd: '#E5484D' };
 const ROLE = { dono: { label: 'Dono', color: '#B8860B' }, mod: { label: 'Moderador', color: '#3B82F6' }, membro: { label: 'Membro', color: '#1B1B1F' } };
@@ -76,6 +78,19 @@ export default function ArenaScreen({ explore }) {
     }
   }, [explore]);
   const [mic, setMic] = useState(true);
+  // Compartilhar a tela na sala de voz (como o Go Live do Discord, só para quem está na sala).
+  const share = useScreenShare();
+  const [watching, setWatching] = useState(null); // { by, id?, demo }
+  const salaKey = (v) => (v ? `arena:${v.sid}:${v.cid}` : null);
+  const sharingHere = !!(share && voice && share.sala === salaKey(voice));
+  const toggleScreen = async () => {
+    if (sharingHere) return stopScreenShare();
+    try {
+      await startScreenShare({ sala: salaKey(voice), label: voiceCh ? voiceCh.name : 'Arena', para: [] });
+    } catch (e) {
+      Alert.alert('Tela não compartilhada', e.message);
+    }
+  };
   const [userOpen, setUserOpen] = useState(null); // pessoa com as opções abertas (silenciar, volume, bloquear…)
   const openUser = (name) => name && name !== me && setUserOpen(name);
   // Segurar o nome de alguém: convidar para chamada. O botão 👤+ convida amigos e manda o link por fora.
@@ -142,6 +157,7 @@ export default function ArenaScreen({ explore }) {
   };
   const leaveVoice = () => {
     if (!voice) return;
+    if (sharingHere) stopScreenShare();
     setServers((list) => list.map((s) => ({ ...s, channels: s.channels.map((x) => (x.kind === 'voice' ? { ...x, inVoice: (x.inVoice || []).filter((n) => n !== me) } : x)) })));
     setVoice(null);
   };
@@ -241,7 +257,7 @@ export default function ArenaScreen({ explore }) {
             <Ionicons name="send" size={17} color="#fff" />
           </TouchableOpacity>
         </View>
-        {voice ? <VoiceBar ch={voiceCh} sv={voiceSv} mic={mic} deaf={deaf} setMic={setMic} setDeaf={setDeaf} leave={leaveVoice} /> : null}
+        {voice ? <VoiceBar ch={voiceCh} sv={voiceSv} mic={mic} deaf={deaf} setMic={setMic} setDeaf={setDeaf} leave={leaveVoice} screen={sharingHere} onScreen={toggleScreen} /> : null}
         <Modal visible={!!react} transparent animationType="fade" onRequestClose={() => setReact(null)}>
           <TouchableOpacity style={st.backdrop} activeOpacity={1} onPress={() => setReact(null)}>
             <View style={st.reactBox}>
@@ -334,6 +350,11 @@ export default function ArenaScreen({ explore }) {
                   <TouchableOpacity key={n} style={st.voiceUser} onPress={() => openUser(n)} onLongPress={() => callUser(n)} activeOpacity={n === me ? 1 : 0.7} accessibilityLabel={n === me ? 'Você' : `Opções de ${n}. Segure para convidar para chamada`}>
                     <Avatar name={n} size={24} speaking={n !== me ? k % 2 === 0 && !deaf && !arenaPref(n).muted && !arenaPref(n).blocked : mic && inIt} />
                     <Text style={{ marginLeft: 8, color: D.text, flexShrink: 1 }} numberOfLines={1}>{n === me ? `${n} (você)` : n}</Text>
+                    {(n === me && inIt && sharingHere) || (n !== me && c.screen === n) ? (
+                      <TouchableOpacity onPress={() => n !== me && setWatching({ by: n, demo: true })} style={st.liveTag} accessibilityLabel={n === me ? 'Você está mostrando a tela' : `Ver a tela de ${n}`}>
+                        <Text numberOfLines={1} style={st.liveTagText}>{n === me ? 'AO VIVO' : 'VER TELA'}</Text>
+                      </TouchableOpacity>
+                    ) : null}
                     {n === me && !mic ? <Ionicons name="mic-off" size={14} color={D.dnd} style={{ marginLeft: 6 }} /> : null}
                     {n === me && deaf ? <Ionicons name="volume-mute" size={14} color={D.dnd} style={{ marginLeft: 4 }} /> : null}
                     {n !== me && (arenaPref(n).muted || arenaPref(n).blocked) ? <Ionicons name="volume-mute" size={14} color={D.dnd} style={{ marginLeft: 6 }} /> : null}
@@ -354,12 +375,13 @@ export default function ArenaScreen({ explore }) {
             </TouchableOpacity>
           ))}
         </ScrollView>
-        {voice ? <VoiceBar ch={voiceCh} sv={voiceSv} mic={mic} deaf={deaf} setMic={setMic} setDeaf={setDeaf} leave={leaveVoice} /> : null}
+        {voice ? <VoiceBar ch={voiceCh} sv={voiceSv} mic={mic} deaf={deaf} setMic={setMic} setDeaf={setDeaf} leave={leaveVoice} screen={sharingHere} onScreen={toggleScreen} /> : null}
       </View>
 
       <MembersModal open={members} onClose={() => setMembers(false)} sv={sv} me={me} onUser={(n) => { setMembers(false); openUser(n); }} onCall={(n) => { setMembers(false); callUser(n); }} />
         <ArenaUserSheet name={userOpen} sv={sv} me={me} myRole={myRole} onClose={() => setUserOpen(null)} onCall={(n) => { setUserOpen(null); callUser(n); }} onMention={(n) => setDraft((d) => `${d}${d && !d.endsWith(' ') ? ' ' : ''}@${n} `)} />
         <CallPersonSheet name={callFor} sv={sv} me={me} onClose={() => setCallFor(null)} />
+        <ScreenViewer tela={watching} onClose={() => setWatching(null)} />
         <InviteSheet open={inviting} sv={sv} me={me} onClose={() => setInviting(false)} />
 
       <Modal visible={!!create} transparent animationType="fade" onRequestClose={() => setCreate(null)}>
@@ -399,7 +421,7 @@ export default function ArenaScreen({ explore }) {
   );
 }
 
-function VoiceBar({ ch, sv, mic, deaf, setMic, setDeaf, leave }) {
+function VoiceBar({ ch, sv, mic, deaf, setMic, setDeaf, leave, screen, onScreen }) {
   if (!ch) return null;
   return (
     <View style={st.voiceBar}>
@@ -420,6 +442,12 @@ function VoiceBar({ ch, sv, mic, deaf, setMic, setDeaf, leave }) {
           <Ionicons name={deaf ? 'volume-mute' : 'headset'} size={19} color={deaf ? D.dnd : D.text} />
         </View>
         <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.vLabel, deaf && { color: D.dnd }]}>{deaf ? 'Áudio mudo' : 'Áudio'}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={onScreen} style={st.vCol} accessibilityLabel={screen ? 'Parar de mostrar a tela' : 'Mostrar minha tela para a sala'}>
+        <View style={[st.vBtn, screen && { backgroundColor: '#E6F6EC' }]}>
+          <Ionicons name={screen ? 'tv' : 'tv-outline'} size={19} color={screen ? D.online : D.text} />
+        </View>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.vLabel, screen && { color: D.online }]}>{screen ? 'Na tela' : 'Tela'}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={leave} style={st.vCol} accessibilityLabel="Sair da voz">
         <View style={[st.vBtn, { backgroundColor: D.dnd }]}>
@@ -466,6 +494,8 @@ function MembersModal({ open, onClose, sv, me, onUser, onCall }) {
 }
 
 const st = StyleSheet.create({
+  liveTag: { marginLeft: 8, backgroundColor: '#E5484D', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
+  liveTagText: { color: '#fff', fontSize: 10, fontWeight: '800' },
   rail: { width: 68, flexGrow: 0, backgroundColor: D.rail },
   railItem: { width: 68, alignItems: 'center', marginBottom: 8, justifyContent: 'center' },
   railPill: { position: 'absolute', left: 0, width: 4, height: 36, borderTopRightRadius: 4, borderBottomRightRadius: 4, backgroundColor: D.text },

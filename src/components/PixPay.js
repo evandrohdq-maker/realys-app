@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { colors, brl } from '../theme';
+import { useScreenSharePause } from '../screenShare';
 
 // Compra sem saldo suficiente: em vez de "saldo insuficiente", abre uma janela com QR Code Pix.
 // Duas opções: pagar o valor inteiro no Pix, ou usar o saldo que já tem na plataforma e pagar só o
@@ -72,6 +73,7 @@ export function PixPayHost() {
   const [req, setReq] = useState(null);
   const [mode, setMode] = useState(null); // 'tudo' | 'saldo'
   const [busy, setBusy] = useState(false);
+  useScreenSharePause(!!req, 'pix');
   useEffect(() => {
     listener = (r) => {
       setReq(r);

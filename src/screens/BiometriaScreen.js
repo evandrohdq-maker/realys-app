@@ -10,6 +10,7 @@ import { api, uploadMedia } from '../api';
 import ScanFacial from '../components/ScanFacial';
 import TermoAdesaoModal from '../components/TermoAdesaoModal';
 import { colors, soft } from '../theme';
+import { useScreenSharePause } from '../screenShare';
 
 // Tem que ser igual a CONSENT_VERSION no servidor (server/src/biometria/service.js).
 const CONSENT_VERSION = '2026-11-v1';
@@ -35,6 +36,7 @@ const STATUS_TEXT = {
 const DATA_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 export default function BiometriaScreen({ visible, onClose }) {
+  useScreenSharePause(!!visible, 'biometria');
   const [info, setInfo] = useState(null);
   const [step, setStep] = useState('inicio'); // inicio | scan | doc | enviando
   const [scan, setScan] = useState(null); // { videos, photos } em base64

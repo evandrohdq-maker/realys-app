@@ -257,6 +257,15 @@ export const CATEGORIES = [
     ],
   },
   {
+    key: 'salas',
+    title: 'Salas de Negócios',
+    hint: 'Atendimento ao vivo com empresas: voz, vídeo e tela',
+    icon: 'headset-outline',
+    subs: [
+      { label: 'Empresas atendendo agora', hint: 'Imobiliárias, suporte técnico, revendas…', icon: 'business-outline', go: { tab: 'salas' } },
+    ],
+  },
+  {
     key: 'social',
     title: 'Comunidade e lives',
     hint: 'Posts, mensagens, vídeo e lives',

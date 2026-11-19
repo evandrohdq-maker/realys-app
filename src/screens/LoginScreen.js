@@ -24,6 +24,7 @@ import SignupForm from './SignupForm';
 import ScanFacial from '../components/ScanFacial';
 import SupportCenter from '../components/SupportCenter';
 import { authStyles } from './authStyles';
+import { useScreenSharePause } from '../screenShare';
 
 // Um campo só: usuário, CPF ou CNPJ. O tipo de acesso vem da própria conta.
 function detect(value) {
@@ -51,6 +52,7 @@ function demoUser(value, info) {
 const KIND_ICON = { empresa: 'business-outline', fornecedor: 'cube-outline', cliente: 'person-outline' };
 
 export default function LoginScreen() {
+  useScreenSharePause(true, 'login');
   const [pendente, setPendente] = useState(null); // conta de aparelho novo: aguarda o reconhecimento facial
   const { dispatch } = useStore();
   const [mode, setMode] = useState('entrar'); // entrar | cadastro

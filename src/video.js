@@ -47,20 +47,72 @@ export async function openCamera({ front = true, quality = '720p', audioOnly = f
 // transmissão?" e mostra o aviso fixo na barra de notificações enquanto a tela está sendo transmitida.
 // O som do jogo não é capturado direto: vai pelo microfone (a voz do streamer e o que sai do alto-falante).
 export const screenOk = () => !!(RTC && RTC.mediaDevices && RTC.mediaDevices.getDisplayMedia);
-export async function openScreen() {
+
+// Uma captura de tela só para o app inteiro: a live ("transmitir como gamer") e a sala da equipe
+// (Arena ou Salas de Negócios) usam a MESMA captura. O Android só pergunta uma vez e nada briga.
+// Cada uso pega a captura e devolve quando termina; ela só para quando ninguém mais usa.
+let shared = null; // { stream, users }
+export async function acquireScreen() {
   if (!screenOk()) throw new Error('Este celular não permite transmitir a tela.');
-  let screen;
-  try {
-    screen = await RTC.mediaDevices.getDisplayMedia({ video: true });
-  } catch (e) {
-    throw new Error('Você não liberou a transmissão da tela.');
+  const alive = shared && shared.stream.getVideoTracks().some((t) => t.readyState !== 'ended');
+  if (!alive) {
+    let stream;
+    try {
+      stream = await RTC.mediaDevices.getDisplayMedia({ video: true });
+    } catch (e) {
+      throw new Error('Você não liberou a transmissão da tela.');
+    }
+    shared = { stream, users: 0, clones: [], paused: false };
   }
+  shared.users += 1;
+  // Cada uso recebe uma cópia da trilha (live e sala andam separadas e uma pode parar sem derrubar a outra).
+  const orig = shared.stream.getVideoTracks()[0];
+  const track = orig.clone ? orig.clone() : orig;
+  if (track !== orig) shared.clones.push(track);
+  track.enabled = !shared.paused;
+  return track;
+}
+// Pausa automática (senha, carteira, Pix...): vale para tudo que usa a tela, live e salas juntas.
+export function setScreenPaused(paused) {
+  if (!shared) return;
+  shared.paused = paused;
+  [shared.stream.getVideoTracks()[0], ...shared.clones].forEach((t) => {
+    try {
+      t.enabled = !paused;
+    } catch (e) {}
+  });
+}
+export function releaseScreen(track) {
+  try {
+    if (track && shared && track !== shared.stream.getVideoTracks()[0]) {
+      track.stop();
+      shared.clones = shared.clones.filter((t) => t !== track);
+    }
+  } catch (e) {}
+  if (!shared) return;
+  shared.users -= 1;
+  if (shared.users <= 0) {
+    try {
+      shared.stream.getTracks().forEach((t) => t.stop());
+    } catch (e) {}
+    shared = null;
+  }
+}
+export const screenInUse = () => !!(shared && shared.users > 0);
+
+// Tela do celular + microfone (lives de jogos). O Android pede a permissão "Iniciar gravação ou
+// transmissão?" e mostra o aviso fixo na barra de notificações enquanto a tela está sendo transmitida.
+// Minimizar o Re@lys não para a transmissão: o jogo (ou o que estiver na tela) continua indo.
+// O som do jogo não é capturado direto: vai pelo microfone (a voz do streamer e o que sai do alto-falante).
+export async function openScreen() {
+  const video = await acquireScreen();
   let mic = null;
   try {
     mic = await RTC.mediaDevices.getUserMedia({ audio: true, video: false });
   } catch (e) {}
-  const tracks = [...screen.getVideoTracks(), ...(mic ? mic.getAudioTracks() : [])];
-  return new RTC.MediaStream(tracks);
+  const stream = new RTC.MediaStream([video, ...(mic ? mic.getAudioTracks() : [])]);
+  stream._screenTrack = video;
+  return stream;
 }
 
 // Espera o celular juntar os caminhos de rede (no máximo 2,5 s) antes de mandar a oferta.
@@ -99,7 +151,10 @@ const closeAll = (pc, stream, resource, token) => {
     if (resource) fetch(resource, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
   } catch (e) {}
   try {
-    stream && stream.getTracks().forEach((t) => t.stop());
+    if (stream && stream._screenTrack) {
+      stream.getAudioTracks().forEach((t) => t.stop());
+      releaseScreen(stream._screenTrack);
+    } else stream && stream.getTracks().forEach((t) => t.stop());
   } catch (e) {}
   try {
     pc && pc.close();

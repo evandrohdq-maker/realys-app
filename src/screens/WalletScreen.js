@@ -13,6 +13,7 @@ import { GIFT_FEE_PCT, LIVE_CONVERT_MIN, liveGiftOf, cashoutQuote, CASHOUT_MIN_P
 import { POINTS_PER_RATING, POINTS_COMMENT_BONUS, POINT_RULES } from '../rewards';
 import { BoostOffers, MyBoosts } from '../components/Boost';
 import { levelOf, nextLevel, ORDERS_FOR_BONUS, BONUS, STAMPS_FOR_REWARD, STAMP_BACK_PCT, initialLoyalty } from '../loyalty';
+import { useScreenSharePause } from '../screenShare';
 
 const KIND = {
   deposito: { label: 'Depósito', icon: 'arrow-down-circle', color: colors.success, sign: '+' },
@@ -85,6 +86,7 @@ function GiftCashout() {
 }
 
 export default function WalletScreen({ visible, onClose }) {
+  useScreenSharePause(!!visible, 'carteira'); // tela compartilhada pausa sozinha com a carteira aberta
   const { state, dispatch } = useStore();
   const insets = useSafeAreaInsets();
   const [period, setPeriod] = useState('mes');
