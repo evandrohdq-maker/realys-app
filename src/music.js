@@ -97,6 +97,38 @@ export function planInfo(at = Date.now()) {
   return { on: true, free: at < freeUntil, freeUntil };
 }
 
+// ---------- Ouvir offline (pacote especial do Premium) ----------
+// Diferente da compra: a comprada é do cliente para sempre (pode baixar). A offline fica guardada
+// protegida dentro do Re@lys, só toca no app e só enquanto o Premium estiver pago. Cancelou ou
+// parou de pagar: as offline ficam bloqueadas (voltam ao assinar de novo). Para conferir o plano,
+// o app precisa entrar na internet pelo menos 1 vez a cada 30 dias. Os plays offline contam para
+// o artista e sobem quando a internet volta.
+// Na demonstração só marca as músicas; os áudios de verdade são baixados quando estiverem no servidor.
+export const OFFLINE_CHECK_DAYS = 30;
+export const markOnline = () => set({ lastOnline: Date.now() });
+export function offlineInfo(at = Date.now()) {
+  const saved = data.offline || {};
+  const count = Object.keys(saved).filter((id) => trackById(id)).length;
+  if (!planInfo(at).on) return { allowed: false, reason: 'plano', count };
+  if (data.lastOnline && at - data.lastOnline > OFFLINE_CHECK_DAYS * 86400000) return { allowed: false, reason: 'internet', count };
+  return { allowed: true, count };
+}
+export const isOffline = (id) => !!(data.offline || {})[id];
+export function toggleOffline(id) {
+  const saved = { ...(data.offline || {}) };
+  if (saved[id]) delete saved[id];
+  else if (planInfo().on) saved[id] = Date.now();
+  set({ offline: saved });
+}
+// Salva a playlist inteira para ouvir offline.
+export function savePlaylistOffline(pl) {
+  if (!planInfo().on) return;
+  const saved = { ...(data.offline || {}) };
+  pl.tracks.forEach((id) => (saved[id] = saved[id] || Date.now()));
+  set({ offline: saved });
+}
+export const offlineTracks = () => Object.keys(data.offline || {}).map(trackById).filter(Boolean);
+
 // Músicas compradas tocam sem propaganda e não entram na conta (a tela de Músicas informa quais são).
 let owned = {};
 export const setOwnedTracks = (map) => (owned = map || {});

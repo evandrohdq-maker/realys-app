@@ -23,8 +23,14 @@ export const TAXAS = {
   // Espaços de publicidade (preços por pacote em src/rewards.js › POINT_SHOP).
   publicidade: { valor: 14.9, unidade: 'R$ por dia para aparecer em primeiro nas buscas (story R$ 9,90; banner da vitrine R$ 39,90)', quemPaga: 'anunciante', mercado: 'iFood Anúncios: orçamento mínimo de R$ 25 por dia, cobrado por clique', argumento: 'R$ 14,90 por dia, preço fechado, sem leilão e sem surpresa' },
   // Músicas (Stream › Músicas): o artista vende a faixa e o Re@lys fica com uma parte. Ouvir é grátis, com propaganda.
-  musicaVenda: { pct: 20, unidade: '% sobre a venda de cada música', quemPaga: 'artista (descontado da venda)', mercado: 'lojas de música digital: cerca de 30%', argumento: '80% da venda fica com o artista' },
-  musicaPremium: { valor: 9.9, gratisMeses: 3, unidade: 'R$ por mês, sem propaganda (3 primeiros meses grátis)', quemPaga: 'ouvinte', mercado: 'streaming de música: R$ 21,90 por mês', argumento: 'menos da metade e 3 meses grátis' },
+  // Base de mercado (nov/2026): Bandcamp fica com 15% da venda digital, mais 4 a 7% de taxa de pagamento;
+  // lojas de app como a iTunes ficam com cerca de 30% e vendem a faixa por R$ 1,90 a R$ 2,90.
+  // Re@lys: 12% (o artista fica com 88%) e preço sugerido um pouco abaixo da iTunes.
+  musicaVenda: { pct: 12, precoSugerido: 1.79, precoMinimo: 0.99, unidade: '% sobre a venda de cada música', quemPaga: 'artista (descontado da venda)', mercado: 'Bandcamp: 15% mais taxa de pagamento; lojas de app: cerca de 30%; faixa a R$ 1,90 a R$ 2,90', argumento: '88% da venda fica com o artista, e a faixa sai a partir de R$ 1,79' },
+  // Base de mercado (Spotify Brasil, nov/2026): Individual R$ 23,90, Universitário R$ 12,90, Duo R$ 31,90,
+  // Família R$ 40,90, com 3 meses grátis para quem nunca assinou. Re@lys: um pouco abaixo, guardando margem
+  // para pagar os artistas pelas reproduções, o ECAD e os impostos. Inclui ouvir offline.
+  musicaPremium: { valor: 19.9, gratisMeses: 3, planos: { individual: 19.9, universitario: 10.9, duo: 27.9, familia: 35.9 }, unidade: 'R$ por mês, sem propaganda e com músicas offline (3 primeiros meses grátis)', quemPaga: 'ouvinte', mercado: 'Spotify Premium: R$ 23,90 por mês (Universitário R$ 12,90, Duo R$ 31,90, Família R$ 40,90)', argumento: 'R$ 19,90 por mês, R$ 4 a menos que o Spotify, com 3 meses grátis e offline incluído' },
   // Páginas de usuário (estilo blog): mensalidade por página (src/userPages.js › PAGE_PRICE).
   paginaUsuario: { valor: 14.9, unidade: 'R$ por mês por página, da segunda em diante (a primeira é gratuita)', quemPaga: 'usuário dono da página', mercado: 'construtores de site e blog cobram mensalidade por site, sem público incluído', argumento: 'R$ 14,90 por mês com página personalizável e o público verificado do Re@lys' },
   destaquePrestador: { valor: 49.9, unidade: 'R$ por mês', mercado: 'GetNinjas: pacotes a partir de R$ 149', argumento: 'destaque o mês inteiro por R$ 49,90' },

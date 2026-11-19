@@ -14,13 +14,14 @@ import { isVerified } from '../../../components/BioGate';
 import { Photo } from '../../../components/ui';
 import {
   useMusic, allTracks, trackById, publishTrack, removeTrack, registerSale, createPlaylist, removePlaylist, togglePlaylistTrack,
-  subscribePlan, cancelPlan, planInfo, playTrack, startTrack, setAdHook, setOwnedTracks, openArtist, artistGets, MUSIC_FEE_PCT, MUSIC_PLAN_PRICE, MUSIC_PLAN_FREE_MONTHS, MUSIC_GENRES, ADS_EVERY,
+  subscribePlan, cancelPlan, planInfo, playTrack, startTrack, setAdHook, setOwnedTracks, offlineInfo, isOffline, toggleOffline, savePlaylistOffline, offlineTracks, markOnline, OFFLINE_CHECK_DAYS, openArtist, artistGets, MUSIC_FEE_PCT, MUSIC_PLAN_PRICE, MUSIC_PLAN_FREE_MONTHS, MUSIC_GENRES, ADS_EVERY,
 } from '../../../music';
 
 const SEGS = [
   ['galeria', 'Galeria'],
   ['playlists', 'Playlists'],
   ['compradas', 'Compradas'],
+  ['offline', 'Offline'],
   ['artista', 'Sou artista'],
 ];
 const short = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace('.0', '').replace('.', ',')} mil` : String(n));
@@ -60,6 +61,16 @@ export default function MusicTab() {
   const start = startTrack;
   // Compradas tocam sem propaganda (também nas playlists do ouvinte).
   useEffect(() => { setOwnedTracks(bought); }, [bought]);
+  // Abriu as Músicas com internet: confere o plano (o offline vale por 30 dias sem conectar).
+  useEffect(() => { markOnline(); }, []);
+  const off = offlineInfo();
+  const offList = offlineTracks();
+  // Offline é do Premium: sem o plano, convida a assinar.
+  const askPremium = () =>
+    Alert.alert('Ouvir offline é do Premium', `Com o Premium você guarda músicas e playlists no app para ouvir sem internet. ${MUSIC_PLAN_FREE_MONTHS} meses grátis, depois ${brl(MUSIC_PLAN_PRICE)} por mês.`, [
+      { text: 'Agora não', style: 'cancel' },
+      { text: 'Começar grátis', onPress: subscribePlan },
+    ]);
   // Com esta tela aberta, a propaganda aparece aqui (também quando a música troca sozinha).
   useEffect(() => {
     setAdHook((t) => {
@@ -113,6 +124,11 @@ export default function MusicTab() {
             <Text onPress={() => openArtist(t.artist)} style={{ color: colors.primaryDark, fontWeight: '700' }}>{t.artist}</Text> · {t.genre}{t.plays ? ` · ${short(t.plays)} plays` : ''}
           </Text>
         </TouchableOpacity>
+        {!own ? (
+          <TouchableOpacity style={st.iconBtn} onPress={() => (plan.on ? toggleOffline(t.id) : askPremium())} accessibilityLabel={isOffline(t.id) ? `Tirar ${t.title} do offline` : `Guardar ${t.title} para ouvir offline`}>
+            <Ionicons name={isOffline(t.id) ? 'cloud-done' : 'cloud-download-outline'} size={20} color={isOffline(t.id) && plan.on ? colors.primary : colors.menu} />
+          </TouchableOpacity>
+        ) : null}
         <TouchableOpacity style={st.iconBtn} onPress={() => setPickFor(t)} accessibilityLabel="Adicionar a uma playlist">
           <Ionicons name="add-circle-outline" size={22} color={colors.menu} />
         </TouchableOpacity>
@@ -207,6 +223,12 @@ export default function MusicTab() {
                 </TouchableOpacity>
               } />
             ))}
+            {pl.tracks.length ? (
+              <TouchableOpacity style={st.offBtn} onPress={() => (plan.on ? savePlaylistOffline(pl) : askPremium())} accessibilityLabel="Guardar a playlist para ouvir offline">
+                <Ionicons name={plan.on && pl.tracks.every(isOffline) ? 'cloud-done' : 'cloud-download-outline'} size={16} color={colors.text} />
+                <Text numberOfLines={1} style={st.pillText}>{plan.on && pl.tracks.every(isOffline) ? 'Playlist offline' : 'Ouvir offline'}</Text>
+              </TouchableOpacity>
+            ) : null}
             {!pl.tracks.length ? <Text style={st.empty}>Playlist vazia. Na Galeria, toque no + de uma música para colocar aqui.</Text> : null}
             <TouchableOpacity style={{ paddingVertical: 14, alignItems: 'center' }} onPress={() => Alert.alert('Apagar a playlist?', pl.name, [{ text: 'Voltar', style: 'cancel' }, { text: 'Apagar', style: 'destructive', onPress: () => { removePlaylist(pl.id); setOpenPl(null); } }])}>
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '700' }}>Apagar playlist</Text>
@@ -239,6 +261,25 @@ export default function MusicTab() {
         <>
           {mineBought.map((t) => <Row key={t.id} t={t} list={mineBought} />)}
           {!mineBought.length ? <Text style={st.empty}>Você ainda não comprou músicas. As compradas ficam aqui para baixar e ouvir sem propaganda.</Text> : null}
+        </>
+      ) : null}
+
+      {seg === 'offline' ? (
+        <>
+          {plan.on && off.allowed ? (
+            <Text style={st.note}>Guardadas no app para ouvir sem internet, enquanto o Premium estiver ativo. Abra o app com internet pelo menos 1 vez a cada {OFFLINE_CHECK_DAYS} dias.</Text>
+          ) : (
+            <TouchableOpacity style={st.offLock} onPress={plan.on ? undefined : askPremium} activeOpacity={0.85}>
+              <Ionicons name="lock-closed-outline" size={18} color={colors.text} />
+              <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13, flex: 1, marginLeft: 8 }}>
+                {!plan.on
+                  ? offList.length ? 'Suas músicas offline estão bloqueadas. Assine o Premium de novo para voltar a ouvir sem internet.' : 'Ouvir offline é do Premium. Toque para começar grátis.'
+                  : `Conecte à internet para conferir o seu plano e liberar as músicas offline.`}
+              </Text>
+            </TouchableOpacity>
+          )}
+          {offList.map((t) => <Row key={t.id} t={t} list={offList} />)}
+          {!offList.length ? <Text style={st.empty}>Nenhuma música offline. Na Galeria ou numa playlist, toque na nuvem para guardar.</Text> : null}
         </>
       ) : null}
 
@@ -291,7 +332,7 @@ export default function MusicTab() {
 function ArtistArea() {
   const { state } = useStore();
   const m = useMusic();
-  const [f, setF] = useState({ title: '', genre: MUSIC_GENRES[0], price: '2,99', url: '' });
+  const [f, setF] = useState({ title: '', genre: MUSIC_GENRES[0], price: '1,79', url: '' });
   const price = Number(String(f.price).replace(',', '.')) || 0;
   const publish = () => {
     if (!f.title.trim()) return Alert.alert('Falta o nome', 'Escreva o nome da música.');
@@ -366,6 +407,8 @@ const st = StyleSheet.create({
   chipText: { color: colors.text, fontWeight: '700', fontSize: 12.5 },
   row: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 16, padding: 10, marginBottom: 8, ...soft },
   cover: { width: 46, height: 46, borderRadius: 12, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
+  offBtn: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', minHeight: 32, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card, marginBottom: 8 },
+  offLock: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 12, backgroundColor: colors.cardAlt, marginBottom: 10 },
   iconBtn: { width: 34, height: 40, alignItems: 'center', justifyContent: 'center' },
   pill: { flexDirection: 'row', alignItems: 'center', minHeight: 32, paddingHorizontal: 10, borderRadius: 16, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card, marginLeft: 2 },
   pillText: { color: colors.text, fontWeight: '800', fontSize: 12.5, marginLeft: 2 },
