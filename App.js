@@ -94,6 +94,7 @@ import { ScreenShareBar } from './src/components/ScreenShareKit';
 import { StationProfileHost } from './src/components/StationProfile';
 import PipManager from './src/components/PipManager';
 import { minimizeApp, playingKind } from './src/pip';
+import { openProfileMenu } from './src/profileMenu';
 import { ProductSheetHost } from './src/components/ProductSheet';
 import RadiosScreen from './src/screens/cliente/RadiosScreen';
 import { RadioHost, RadioMiniBar } from './src/components/RadioKit';
@@ -560,18 +561,21 @@ function Shell({ inviteTick }) {
           <TouchableOpacity onPress={() => setSearching(true)} style={styles.iconBtn} accessibilityLabel="Buscar pessoas na rede Re@lys">
             <Ionicons name="search-outline" size={21} color={colors.text} />
           </TouchableOpacity>
-          {/* Perfil: subiu para o lugar do ⋮ (o ⋮ agora fica dentro do Perfil, com Minha conta e Explorar). */}
-          <TouchableOpacity
-            onPress={() => pick({ tab: 'perfil' })}
-            style={[styles.iconBtn, current.key === 'perfil' && styles.iconBtnOn]}
-            accessibilityLabel="Abrir meu perfil"
-          >
-            {state.myProfile && state.myProfile.photo ? (
-              <Image source={{ uri: state.myProfile.photo }} style={[styles.headAvatar, current.key === 'perfil' && { borderColor: colors.gold }]} />
-            ) : (
-              <Ionicons name={current.key === 'perfil' ? 'person-circle' : 'person-circle-outline'} size={25} color={current.key === 'perfil' ? colors.primary : colors.text} />
-            )}
-          </TouchableOpacity>
+          {/* Perfil: subiu para o lugar do ⋮. Já dentro do Perfil, no mesmo lugar fica o ⋮,
+              que abre o Menu do Perfil (Minha conta + Explorar). */}
+          {current.key === 'perfil' ? (
+            <TouchableOpacity onPress={openProfileMenu} style={styles.iconBtn} accessibilityLabel="Abrir menu: minha conta e explorar o Re@lys">
+              <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity onPress={() => pick({ tab: 'perfil' })} style={styles.iconBtn} accessibilityLabel="Abrir meu perfil">
+              {state.myProfile && state.myProfile.photo ? (
+                <Image source={{ uri: state.myProfile.photo }} style={styles.headAvatar} />
+              ) : (
+                <Ionicons name="person-circle-outline" size={25} color={colors.text} />
+              )}
+            </TouchableOpacity>
+          )}
         </View>
       </View>
       {/* Faixa de avisos: só aparece quando há algo (comanda do evento, mãos livres). */}

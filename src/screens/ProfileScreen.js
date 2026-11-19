@@ -32,6 +32,7 @@ import { myPages, MAX_PAGES } from '../userPages';
 import Credentials from '../components/Credentials';
 import { SocialBadge, ProfileQuizModal } from '../components/SocialClass';
 import CategoryMenu from '../components/CategoryMenu';
+import { onProfileMenu } from '../profileMenu';
 
 const ROLE_ICON = { cliente: '🛍️', empresa: '🏪', prestador: '🛵', fornecedor: '🚚', admin: '🛡️' };
 
@@ -75,6 +76,8 @@ export default function ProfileScreen({ navigate, explore }) {
   // Menu ⋮ do Perfil: "Minha conta" (as antigas Mais opções) + "Explorar" (o antigo ⋮ do cabeçalho).
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuSeg, setMenuSeg] = useState('conta');
+  // O ⋮ fica no cabeçalho do app (no lugar da fotinha do perfil) e abre este menu.
+  useEffect(() => onProfileMenu(() => setMenuOpen(true)), []);
   const nav = (go) => {
     setMenuOpen(false);
     navigate && navigate(go);
@@ -163,10 +166,6 @@ export default function ProfileScreen({ navigate, explore }) {
         <View style={styles.coverEdit}>
           <Ionicons name="image-outline" size={13} color="#FFFFFF" />
         </View>
-        {/* ⋮ do Perfil: tudo do app e da conta, organizado num lugar só (abre só ao tocar). */}
-        <TouchableOpacity onPress={() => setMenuOpen(true)} style={styles.dots} hitSlop={10} accessibilityLabel="Abrir menu: minha conta e explorar o Re@lys">
-          <Ionicons name="ellipsis-vertical" size={18} color="#FFFFFF" />
-        </TouchableOpacity>
       </TouchableOpacity>
       <View style={styles.head}>
         <TouchableOpacity onPress={() => setEditing(true)} activeOpacity={0.85} accessibilityLabel="Trocar foto e editar perfil" style={{ marginTop: -58 }}>
@@ -485,7 +484,7 @@ const styles = StyleSheet.create({
   coverEdit: { position: 'absolute', left: 12, top: 12, width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(20,18,14,0.45)', alignItems: 'center', justifyContent: 'center' },
   bannerGlow: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(255,240,190,0.25)' },
   bannerText: { color: 'rgba(255,255,255,0.92)', fontWeight: '800', fontSize: 13, letterSpacing: 0.3 },
-  verifiedPill: { position: 'absolute', right: 12, bottom: 12, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(20,18,14,0.5)', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4 },
+  verifiedPill: { position: 'absolute', right: 12, top: 12, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(20,18,14,0.5)', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4 },
   head: { alignItems: 'center', paddingBottom: 6 },
   avatarRing: { padding: 4, borderRadius: 60, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.border, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
   avatar: { width: 104, height: 104, borderRadius: 52 },
