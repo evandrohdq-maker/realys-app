@@ -339,12 +339,14 @@ function Shell({ inviteTick }) {
   // Botão do Perfil (toque normal, sem segurar): fora do Perfil, abre o Perfil;
   // já no Perfil, cada novo toque troca para o próximo perfil da conta
   // (usuário → empresa / prestador / fornecedor → usuário…) e continua no Perfil.
+  // Só entram os perfis que a conta tem: quem é só empresa + usuário alterna entre os dois.
   const profileCycle = ['cliente', ...WORK_ROLES.filter((r) => workRoles.includes(r))];
   const nextProfile = profileCycle[(profileCycle.indexOf(state.activeRole) + 1) % profileCycle.length];
   const tapProfile = () => {
     if (current.key !== 'perfil' || !canSwap) return pick({ tab: 'perfil' });
+    // Sem aviso: o selinho ao lado da foto já mostra o perfil em uso
+    // (bonequinho = usuário, prédio = empresa, ferramenta = prestador, caixa = fornecedor).
     setCameFromEmpresa(false);
-    if (Platform.OS === 'android') ToastAndroid.show(`Perfil ${ROLE_LABELS[nextProfile].toLowerCase()}`, ToastAndroid.SHORT);
     switchRole(nextProfile, 'perfil');
   };
   // ⋮ do cabeçalho: o Menu mora no Perfil. Fora dele, passa pelo Perfil e volta ao fechar.
