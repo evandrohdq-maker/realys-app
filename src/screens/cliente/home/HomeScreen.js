@@ -23,7 +23,7 @@ import { LaunchStrip } from '../../../components/Launches';
 import { SHOP_SECTORS, SHOP_SECTOR_KEYS } from '../../../shopSectorsData';
 import { askPix } from '../../../components/PixPay';
 import { useBack } from '../../../back';
-import { TestimonialCard, DepCenter } from '../../../components/SocialProfile';
+import { TestimonialCard } from '../../../components/SocialProfile';
 import { ShopHero, CircleShortcuts, ShopProductCard, ShopGrid, StoreRow, CategoryPicker } from '../../../components/ShopKit';
 import { SegTabs, SpotlightCarousel, ClipStrip, PromoSector } from '../../../components/AdKit';
 import { SearchBar } from '../../../components/Search';
@@ -652,7 +652,6 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
   const [openCmt, setOpenCmt] = useState(null);
   const [cmtText, setCmtText] = useState('');
   const [shared, setShared] = useState({});
-  const [depOpen, setDepOpen] = useState(false); // DEP: central de depoimentos (relatório, escrever, aprovar)
   const ads = useMemo(() => state.posts.filter((p) => p.sponsored), [state.posts]);
   const testimonials = state.testimonials.filter((t) => t.status === 'aprovado');
   const pendingMine = state.testimonials.filter((t) => t.to === 'me' && t.status === 'pendente').length;
@@ -683,36 +682,34 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
   return (
     <Screen>
       {top}
-      {/* Feed, Mensagens, Contatos e DEP: mesmo modelo dos botões do topo (ícone em cima, nome embaixo, centralizados).
-          A Live fica só no topo, ao lado do Stream (em vermelho). DEP abre tudo de depoimentos. */}
-      <View style={[styles.topTabs, { paddingHorizontal: 0, paddingTop: 0, paddingBottom: 0, marginBottom: 12 }]}>
+      {/* Mensagens e Contatos: dois simbolozinhos no cantinho (sem o botão Feed: o feed é o que abre
+          pelo botão Community). Tocar de novo no símbolo aceso volta para o feed. */}
+      <View style={styles.corner}>
+        {seg !== 'posts' ? (
+          <TouchableOpacity onPress={() => setSeg('posts')} style={styles.cornerBack} hitSlop={6} accessibilityLabel="Voltar para o feed">
+            <Ionicons name="chevron-back" size={15} color={colors.menu} />
+            <Text style={styles.cornerBackTxt}>{seg === 'msgs' ? 'Mensagens' : 'Contatos'}</Text>
+          </TouchableOpacity>
+        ) : <View style={{ flex: 1 }} />}
         {[
-          ['posts', 'Feed', 'newspaper-outline'],
-          ['msgs', 'Mensagens', 'mail-outline'],
-          ['contatos', 'Contatos', 'person-add-outline'],
-          ['dep', 'DEP', 'chatbox-ellipses-outline'],
-        ].map(([k, label, icon]) => {
-          const on = k === seg;
-          const unread = k === 'msgs' ? convs.reduce((s, c) => s + c.unread, 0) : k === 'dep' ? pendingMine : 0;
+          ['msgs', 'chatbubbles-outline', 'Mensagens'],
+          ['contatos', 'people-outline', 'Contatos'],
+        ].map(([k, icon, label]) => {
+          const on = seg === k;
+          const unread = k === 'msgs' ? convs.reduce((n, c) => n + c.unread, 0) : 0;
           return (
-            <TouchableOpacity key={k} style={[styles.topTab, on && styles.topTabOn]} onPress={() => (k === 'dep' ? setDepOpen(true) : setSeg(k))} accessibilityLabel={k === 'dep' ? 'Depoimentos: enviados, recebidos e para aprovar' : label}>
-              <View>
-                <Ionicons name={on ? icon.replace('-outline', '') : icon} size={19} color={on ? colors.text : colors.menu} />
-                {unread ? (
-                  <View style={[styles.unread, { position: 'absolute', top: -6, right: -14, marginLeft: 0 }]}>
-                    <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '700' }}>{unread}</Text>
-                  </View>
-                ) : null}
-              </View>
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.topTabText, on && { color: colors.text, fontWeight: '800' }]}>
-                {label}
-              </Text>
+            <TouchableOpacity key={k} onPress={() => setSeg(on ? 'posts' : k)} style={[styles.cornerBtn, on && styles.cornerOn]} hitSlop={6} accessibilityLabel={on ? 'Voltar para o feed' : label}>
+              <Ionicons name={on ? icon.replace('-outline', '') : icon} size={19} color={on ? colors.primary : colors.menu} />
+              {unread ? (
+                <View style={styles.cornerBadge}>
+                  <Text style={{ color: colors.onPrimary, fontSize: 9, fontWeight: '800' }}>{unread}</Text>
+                </View>
+              ) : null}
             </TouchableOpacity>
           );
         })}
       </View>
 
-      <DepCenter visible={depOpen} onClose={() => setDepOpen(false)} />
 
       {seg === 'posts' ? (
         <View>
@@ -893,6 +890,13 @@ function SectionHead({ title, action, onAction }) {
 }
 
 const styles = StyleSheet.create({
+  // Cantinho da Community: Mensagens e Contatos só com o símbolo.
+  corner: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, minHeight: 34 },
+  cornerBtn: { width: 36, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', marginLeft: 4 },
+  cornerOn: { backgroundColor: colors.primaryLight },
+  cornerBadge: { position: 'absolute', top: 1, right: 1, minWidth: 16, height: 16, borderRadius: 8, paddingHorizontal: 3, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  cornerBack: { flex: 1, flexDirection: 'row', alignItems: 'center' },
+  cornerBackTxt: { color: colors.text, fontWeight: '800', fontSize: 15, marginLeft: 2 },
   // Abas do topo clean: sem caixinhas; a ativa ganha uma pílula clarinha e o ícone dourado.
   topTabs: {
     flexDirection: 'row',

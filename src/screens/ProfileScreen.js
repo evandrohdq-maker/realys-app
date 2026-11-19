@@ -15,7 +15,7 @@ import { Screen, Title, Card, Row, Button, Badge } from '../components/ui';
 import UpdateChecker from '../components/UpdateChecker';
 import { VERSION_LABEL } from '../updates';
 import { getSavedUsers, forgetUser } from '../accounts';
-import { ProfileSocial, ProfilePreviewModal, TestimonialsTab } from '../components/SocialProfile';
+import { ProfileSocial, ProfilePreviewModal, TestimonialsTab, DepCenter } from '../components/SocialProfile';
 import { PeopleSearchModal } from '../components/People';
 import { UnverifiedBanner, isVerified } from '../components/BioGate';
 import ThemeArt from '../components/ThemeArt';
@@ -225,14 +225,14 @@ export default function ProfileScreen({ navigate, explore }) {
           {[
             [Object.values(state.friends || {}).filter((v) => v === 'amigo').length, 'Amigos'],
             [((state.myGallery && state.myGallery.photos) || []).length + ((state.myGallery && state.myGallery.videos) || []).length, 'Fotos e vídeos'],
-            [(state.testimonials || []).filter((t) => t.to === 'me' && t.status === 'aprovado').length, 'Depoimentos'],
+            [(state.testimonials || []).filter((t) => t.to === 'me' && t.status === 'aprovado').length, 'Dep'],
           ].map(([n, label]) => (
             <TouchableOpacity
               key={label}
               style={styles.stat}
               activeOpacity={0.7}
               accessibilityLabel={`${n} ${label}`}
-              onPress={() => (label === 'Amigos' ? setFriendsOpen(true) : label === 'Depoimentos' ? setDepOpen(true) : goPhotos())}
+              onPress={() => (label === 'Amigos' ? setFriendsOpen(true) : label === 'Dep' ? setDepOpen(true) : goPhotos())}
             >
               <Text style={styles.statN}>{n}</Text>
               <Text style={styles.statL}>{label}</Text>
@@ -269,20 +269,9 @@ export default function ProfileScreen({ navigate, explore }) {
         <ProfileSocial ownerId="me" focus={focus} />
       </View>
 
-      {/* Página com todos os depoimentos (abre pelo número "Depoimentos" lá em cima) */}
-      <Modal visible={depOpen} animationType="slide" onRequestClose={() => setDepOpen(false)}>
-        <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10 }}>
-            <TouchableOpacity onPress={() => setDepOpen(false)} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }} accessibilityLabel="Voltar">
-              <Ionicons name="chevron-back" size={24} color={colors.text} />
-            </TouchableOpacity>
-            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 18, marginLeft: 4 }}>Depoimentos</Text>
-          </View>
-          <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 30 + insets.bottom }} keyboardShouldPersistTaps="handled">
-            <TestimonialsTab ownerId="me" />
-          </ScrollView>
-        </View>
-      </Modal>
+      {/* Dep: tudo de depoimentos (relatório de recebidos e enviados, deixar, pesquisar e aprovar).
+          Abre pelo número "Dep" lá em cima (saiu da página inicial). */}
+      <DepCenter visible={depOpen} onClose={() => setDepOpen(false)} />
 
       {/* Menu ⋮ do Perfil: duas partes, Minha conta e Explorar o Re@lys. */}
       <Modal visible={menuOpen} animationType="slide" onRequestClose={closeMenu}>

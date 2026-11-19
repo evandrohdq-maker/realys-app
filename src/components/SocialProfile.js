@@ -516,7 +516,7 @@ export function TestimonialTools({ onSearching }) {
 }
 
 // ───────────────────────── DEP: central de depoimentos ─────────────────────────
-// Um botão só ("DEP", no menu da Community) reúne tudo de depoimentos:
+// Um botão só ("Dep", no Perfil) reúne tudo de depoimentos:
 // relatório (recebidos e enviados), deixar depoimento, pesquisar, aprovar os que chegaram e
 // acompanhar os que a pessoa mandou. Quem tem o depoimento recusado não é avisado: para quem
 // enviou, ele continua como "aguardando".
@@ -540,7 +540,7 @@ export function DepCenter({ visible, onClose }) {
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
         <View style={styles.depHead}>
-          <Text style={styles.depTitle}>DEP</Text>
+          <Text style={styles.depTitle}>Dep</Text>
           <TouchableOpacity onPress={onClose} style={{ padding: 6 }} hitSlop={8} accessibilityLabel="Fechar depoimentos">
             <Ionicons name="close" size={24} color={colors.text} />
           </TouchableOpacity>
@@ -1099,7 +1099,7 @@ export function ProfileSocial({ ownerId, postsSlot, postsCount, ownerName, focus
           { key: 'photos', label: 'Fotos', icon: 'images-outline', n: g.photos.length },
           { key: 'videos', label: 'Vídeos', icon: 'videocam-outline', n: g.videos.length },
           ...(socialCreations.length || mine ? [{ key: 'criacoes', label: 'Criações', icon: 'sparkles-outline', n: socialCreations.length }] : []),
-          ...(showDep ? [{ key: 'dep', label: 'Depoimentos', icon: 'chatbox-ellipses-outline', n: nTest, alert: nPending }] : []),
+          ...(showDep ? [{ key: 'dep', label: 'Dep', icon: 'chatbox-ellipses-outline', n: nTest, alert: nPending }] : []),
         ]
       : []),
     ...(showPortfolio && (portfolio.length || mine) ? [{ key: 'portfolio', label: 'Portfólio', icon: 'briefcase-outline', n: portfolio.length }] : []),

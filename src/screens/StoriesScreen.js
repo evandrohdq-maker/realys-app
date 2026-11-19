@@ -73,6 +73,8 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
     });
   };
 
+  const menuBar = <TopTabs items={COMMUNITY_TOP.filter((t) => t.key !== 'comunidade' && !t.hidden)} value={top} onChange={(k) => (k === top ? setKick((n) => n + 1) : setTop(k))} />;
+
   const cta = (g) => {
     setView(null);
     if (g.ctaTo && navigate) navigate({ tab: 'home', ...g.ctaTo });
@@ -80,7 +82,9 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <TopTabs items={COMMUNITY_TOP.filter((t) => t.key !== 'comunidade' && !t.hidden)} value={top} onChange={(k) => (k === top ? setKick((n) => n + 1) : setTop(k))} />
+      {/* No feed, as bolinhas dos stories vêm primeiro e o menu (News, Eventos, Stream, Lives) logo abaixo.
+          Nas outras sub-abas, o menu fica no topo. */}
+      {top === 'comunidade' ? null : menuBar}
       {/* Tocar de novo no mesmo botão volta ao topo da página (a tela é remontada no início). */}
       <CommunityExtras key={kick} top={top} explore={explore} navigate={navigate} />
       {top === 'comunidade' ? (
@@ -88,7 +92,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
         explore={explore}
         top={
           <View>
-        {/* Faixa de bolinhas */}
+        {/* Faixa de bolinhas (no alto da Community) */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={styles.strip}>
           {/* Primeiro da faixa: a sua foto com o "+". Abre publicação, Reel, story ou depoimento. */}
           <TouchableOpacity style={styles.item} onPress={() => setAdding(true)} activeOpacity={0.85} accessibilityLabel="Adicionar conteúdo">
@@ -119,7 +123,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
             );
           })}
         </ScrollView>
-
+        <View style={{ marginHorizontal: -16 }}>{menuBar}</View>
           </View>
         }
       />
