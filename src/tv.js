@@ -9,12 +9,12 @@ const KEY = 'realys.tvs';
 const SEED = [
   {
     id: 'tv-exemplo-1', name: 'Canal Demonstração 1', city: 'Sinal de teste', genre: 'Animação', emoji: '📺',
-    url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', example: true,
+    url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', example: true, cat: 'filmes',
     desc: 'Canal de exemplo: mostra como fica uma TV indexada no Re@lys.',
   },
   {
     id: 'tv-exemplo-2', name: 'Canal Demonstração 2', city: 'Sinal de teste', genre: 'Barras de teste', emoji: '🎬',
-    url: 'https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8', example: true,
+    url: 'https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8', example: true, cat: 'local',
     desc: 'Canal de exemplo com sinal de teste.',
   },
 ];
@@ -38,6 +38,7 @@ export async function loadTvs() {
 const save = () => AsyncStorage.setItem(KEY, JSON.stringify(tvs.filter((t) => !t.example))).catch(() => {});
 
 export const allTvs = () => tvs;
+export const tvById = (id) => tvs.find((t) => t.id === id) || null;
 export const tvOf = (storeId) => tvs.find((t) => t.storeId === storeId) || null;
 export function onTvs(fn) {
   subs.add(fn);

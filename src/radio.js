@@ -7,13 +7,19 @@ const KEY = 'realys.radios';
 
 // Rádios de exemplo para a demonstração (streams públicos de rádios na internet).
 const SEED = [
+  // Rádio principal do Re@lys (destaque no topo do Stream).
+  {
+    id: 'rd-skyplus', name: 'Sky Plus', city: 'Rádio online', genre: 'Rádio online', cat: 'comunitaria', emoji: '📻',
+    logo: require('../assets/radios/skyplus.jpg'), featured: true, verified: true,
+    url: 'https://stm1.voxpainel.com.br:7004/stream', desc: 'A rádio principal do Re@lys. Ao vivo 24 horas.',
+  },
   {
     id: 'rd-exemplo-1', name: 'Groove Salad (SomaFM)', city: 'San Francisco, EUA', genre: 'Eletrônica ambiente', emoji: '🎧',
-    url: 'https://ice1.somafm.com/groovesalad-128-mp3', example: true, desc: 'Rádio de exemplo: mostra como fica uma rádio indexada no Re@lys.',
+    url: 'https://ice1.somafm.com/groovesalad-128-mp3', example: true, cat: 'eletronica', desc: 'Rádio de exemplo: mostra como fica uma rádio indexada no Re@lys.',
   },
   {
     id: 'rd-exemplo-2', name: 'Bossa Beyond (SomaFM)', city: 'San Francisco, EUA', genre: 'Bossa nova e MPB', emoji: '🎷',
-    url: 'https://ice2.somafm.com/bossa-128-mp3', example: true, desc: 'Rádio de exemplo com bossa nova.',
+    url: 'https://ice2.somafm.com/bossa-128-mp3', example: true, cat: 'mpb', desc: 'Rádio de exemplo com bossa nova.',
   },
 ];
 
@@ -33,9 +39,10 @@ export async function loadRadios() {
   emit();
   return radios;
 }
-const save = () => AsyncStorage.setItem(KEY, JSON.stringify(radios.filter((r) => !r.example))).catch(() => {});
+const save = () => AsyncStorage.setItem(KEY, JSON.stringify(radios.filter((r) => !r.example && !SEED.some((x) => x.id === r.id)))).catch(() => {});
 
-export const allRadios = () => radios;
+export const allRadios = () => [...radios].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+export const radioById = (id) => radios.find((r) => r.id === id) || null;
 export const radioOf = (storeId) => radios.find((r) => r.storeId === storeId) || null;
 export function onRadios(fn) {
   subs.add(fn);
@@ -98,3 +105,19 @@ export const stopRadio = () => setRadioNow({ status: 'parado', error: null, req:
 let endedHandler = null;
 export const setOnEnded = (fn) => (endedHandler = fn);
 export const radioEnded = () => endedHandler && endedHandler(radioNow().radio);
+
+// ---------- Seguir estações (rádios e TVs) ----------
+// Quem segue vê os posts da estação no feed e recebe o aviso quando ela entra ao vivo (com o servidor).
+const FKEY = 'realys.stations.following';
+let following = {};
+AsyncStorage.getItem(FKEY).then((raw) => raw && ((following = { ...JSON.parse(raw), ...following }), emit())).catch(() => {});
+export const isFollowing = (id) => !!following[id];
+export function toggleFollow(id) {
+  following = { ...following, [id]: !following[id] };
+  if (!following[id]) delete following[id];
+  AsyncStorage.setItem(FKEY, JSON.stringify(following)).catch(() => {});
+  emit();
+  return !!following[id];
+}
+// Link para divulgar a estação fora do app (abre o perfil dela no Re@lys).
+export const stationLink = (s, kind = 'radio') => `https://realys.app/${kind}/${s.id}`;

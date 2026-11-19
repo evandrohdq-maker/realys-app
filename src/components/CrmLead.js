@@ -10,6 +10,7 @@ import { useStore } from '../store';
 import { MY_COMPANY_ID } from '../data';
 import { VideoCallModal } from '../screens/cliente/home/Social';
 import { useTeam, memberOf, roleOf } from '../team';
+import { antiDesvio } from '../moderation';
 import {
   crmStages, crmBoard, CRM_ORIGINS, CRM_LOST_REASONS, CRM_TEMPLATES, QUAL_STEPS, stageOf, stageIndex, qualDone, crmTemp, crmFee,
   crmMove, crmSend, crmUpdate, crmRemove, crmQual, crmTaskAdd, crmTaskToggle, crmTaskRemove, crmReceive, crmSendCatalog, crmCallLog, crmAssign, crmPaid,
@@ -63,6 +64,9 @@ export default function CrmLead({ lead, onClose }) {
   const send = (t) => {
     const v = (t || text).trim();
     if (!v) return;
+    // Anti-desvio: telefone, Pix e "por fora" não saem pela conversa. O fechamento é pelo Re@lys.
+    const ad = antiDesvio(v);
+    if (!ad.ok) return Alert.alert('Fica tudo no Re@lys 🔒', `${ad.why}\n\nUse a proposta ou o fechamento aqui no CRM.`);
     crmSend(lead.id, v);
     setText('');
     setTimeout(() => scroll.current && scroll.current.scrollToEnd({ animated: true }), 60);

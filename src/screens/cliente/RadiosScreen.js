@@ -8,6 +8,7 @@ import { useStore } from '../../store';
 import { colors } from '../../theme';
 import { Screen, Title } from '../../components/ui';
 import { RadioCard } from '../../components/RadioKit';
+import { StationFormExtras } from '../../components/StationKit';
 import { allRadios, loadRadios, onRadios, saveRadio, removeRadio, checkUrl, radioOf, playRadio } from '../../radio';
 import { MY_COMPANY_ID } from '../../data';
 import { moderateText } from '../../moderation';
@@ -42,7 +43,7 @@ export default function RadiosScreen() {
     if (!mod.ok) return Alert.alert('Não foi possível salvar', mod.why);
     saveRadio({ ...form, name: form.name.trim(), genre: form.genre.trim(), city: form.city.trim() });
     setForm(null);
-    Alert.alert('Rádio indexada ✅', 'Sua rádio já toca na página da sua empresa e no diretório de Rádios do Re@lys.');
+    Alert.alert('Rádio indexada ✅', 'Sua rádio ganhou perfil próprio e já toca no Stream, na página da sua empresa e na janelinha por cima dos outros apps. No perfil dela você publica o link para os ouvintes.');
   };
 
   return (
@@ -70,7 +71,8 @@ export default function RadiosScreen() {
           <TextInput value={form.genre} onChangeText={(t) => setForm({ ...form, genre: t })} style={st.field} placeholder="Ex.: Sertanejo, notícias, gospel" placeholderTextColor={colors.muted} maxLength={40} />
           <Text style={st.label}>Cidade</Text>
           <TextInput value={form.city} onChangeText={(t) => setForm({ ...form, city: t })} style={st.field} placeholderTextColor={colors.muted} maxLength={40} />
-          <Text style={st.label}>Ícone</Text>
+          <StationFormExtras kind="radio" form={form} setForm={setForm} />
+          <Text style={st.label}>Ícone (sem logo)</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
             {EMOJIS.map((e) => (
               <TouchableOpacity key={e} onPress={() => setForm({ ...form, emoji: e })} style={[st.emoji, form.emoji === e && { borderColor: colors.primary }]}>

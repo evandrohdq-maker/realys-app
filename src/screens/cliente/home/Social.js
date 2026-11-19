@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { moderateText } from '../../../moderation';
+import { moderateText, antiDesvio } from '../../../moderation';
 import { usePrivateScreen } from '../../../privacyGuard';
 import { giftPoints } from '../../../rewards';
 import GiftIcon from '../../../components/GiftIcon';
@@ -42,6 +42,9 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
   // ou a página da empresa. A conversa continua aberta por baixo: voltar do perfil volta para cá.
   const openContact = () => {
     if (state.viewProfile === contact.id) return onClose(); // a conversa foi aberta pelo próprio perfil
+    // Prestador de serviço: só a prévia do perfil de trabalho (sem adicionar).
+    const pv = (state.providers || []).find((x) => x.id === contact.id || x.name === contact.name);
+    if (pv) return dispatch({ type: 'PREVIEW_PROVIDER', id: pv.id });
     if (members.some((m) => m.id === contact.id)) return dispatch({ type: 'OPEN_PROFILE', id: contact.id });
     const co =
       artists.find((a) => a.id === contact.id || a.name === contact.name) ||
@@ -54,6 +57,13 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
   const send = () => {
     const t = text.trim();
     if (!t) return;
+    // Anti-desvio: com empresa, prestador ou quem ainda não aceitou o contato, nada de telefone,
+    // Pix ou "por fora". Entre amigos que aceitaram o contato, a conversa é livre.
+    const business = (state.providers || []).some((x) => x.id === contact.id || x.name === contact.name) || (state.stores || []).some((x) => x.id === contact.id || x.name === contact.name) || contact.business;
+    if (business || friendSt !== 'amigo') {
+      const ad = antiDesvio(t);
+      if (!ad.ok) return Alert.alert('Fica tudo no Re@lys 🔒', ad.why);
+    }
     onSend({ from: 'me', text: t, time: now() });
     setText('');
     // Resposta automática só para a demonstração parecer viva.

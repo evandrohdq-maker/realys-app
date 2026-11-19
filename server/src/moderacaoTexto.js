@@ -53,3 +53,25 @@ export function moderateText(text, where = 'publico') {
 
 // Regra mostrada a quem publica foto ou vídeo.
 export const PHOTO_RULE = 'Sem nudez e sem partes íntimas à mostra. Biquíni, maiô e sunga pode. Nada com criança em situação íntima. Publicações fora da regra são removidas e a conta pode ser suspensa.';
+
+// ---------- Anti-desvio: o cliente não sai do Re@lys pela caixa de conversa ----------
+// Venda e contratação de serviço só pelo Re@lys (com a Garantia e a taxa da plataforma).
+// Em conversa de negócio (empresa, prestador, rádio, sala de atendimento, CRM) e em conversa com quem
+// ainda não aceitou o contato, não passam: telefone, e-mail, @ de outra rede, link de WhatsApp/Telegram,
+// chave Pix e combinados de pagar "por fora". Entre amigos que aceitaram o contato, a conversa é livre.
+const RAW_DIGITS = (t) => String(t || '').replace(/[^\d]/g, ' ');
+const DESVIO = [
+  { kind: 'telefone', test: (raw) => /(\+?55[\s.-]?)?\(?\d{2}\)?[\s.-]?9?\s?\d{4}[\s.-]?\d{4}/.test(raw) || RAW_DIGITS(raw).split(/\s+/).some((d) => d.length >= 10 && d.length <= 13) },
+  { kind: 'email', test: (raw) => /[\w.+-]+@[\w-]+\.[\w.]{2,}/i.test(raw) },
+  { kind: 'link', test: (raw) => /(wa\.me|whatsapp\.com|api\.whatsapp|t\.me\/|telegram\.me|chat\.whatsapp|instagram\.com|facebook\.com|m\.me\/|tiktok\.com|linktr\.ee)/i.test(raw) },
+  { kind: 'rede', test: (raw, t) => /(^|\s)@[a-z0-9_.]{3,}/i.test(raw) && /\b(insta|instagram|face|tiktok|me segue|segue la|perfil)\b/.test(t) },
+  { kind: 'fora', test: (raw, t) => /\b(whats|whatsapp|wpp|zap|zapzap|telegram|telegran|insta|direct|dm)\b/.test(t) && /\b(me chama|chama no|manda no|fala no|me add|me adiciona|passa teu|passa seu|me passa|meu numero|teu numero|seu numero|contato|la no|pelo|no)\b/.test(t) },
+  { kind: 'pagamento', test: (raw, t) => /\b(por fora|fora do app|fora do aplicativo|fora da plataforma|sem a taxa|sem taxa do app|direto comigo|paga direto|pagar direto|deposita na minha conta|transfere pra mim|faz um pix|manda um pix|chave pix|minha chave|meu pix|pix pra mim|pix direto|dinheiro na mao|em especie)\b/.test(t) },
+];
+export const DESVIO_MSG = 'Para a sua segurança, contatos e pagamentos ficam dentro do Re@lys. Assim vale a Garantia Re@lys: se der problema, o dinheiro volta. Combine e pague pelo app (proposta, pedido ou chamado).';
+export function antiDesvio(text) {
+  const raw = String(text || '');
+  const t = norm(raw);
+  const hit = DESVIO.find((d) => d.test(raw, t));
+  return hit ? { ok: false, kind: 'desvio', what: hit.kind, why: DESVIO_MSG } : { ok: true };
+}

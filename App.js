@@ -90,6 +90,8 @@ import ReelsScreen from './src/screens/cliente/ReelsScreen';
 import ArenaScreen from './src/screens/cliente/ArenaScreen';
 import SalasScreen from './src/screens/empresa/SalasScreen';
 import { ScreenShareBar } from './src/components/ScreenShareKit';
+import { StationProfileHost } from './src/components/StationProfile';
+import PipManager from './src/components/PipManager';
 import RadiosScreen from './src/screens/cliente/RadiosScreen';
 import { RadioHost, RadioMiniBar } from './src/components/RadioKit';
 import { TvFloat, LiveFloat } from './src/components/FloatPlayers';
@@ -577,6 +579,9 @@ function Shell({ inviteTick }) {
       <RadioMiniBar bottom={88 + insets.bottom} />
       {/* TV da aba Stream e live minimizada: janelinhas flutuantes (segure e arraste). */}
       <TvFloat bottom={150 + insets.bottom} />
+      {/* Perfil de rádio/TV (abre ao tocar no nome) e a janelinha por cima dos outros apps. */}
+      <StationProfileHost />
+      <PipManager />
       <LiveFloat bottom={150 + insets.bottom} />
       <TouchableOpacity
         style={[styles.fab, { bottom: 84 + insets.bottom }]}

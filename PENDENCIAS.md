@@ -15,14 +15,23 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 
 - [ ] **Minimizar o Re@lys com a tela sendo transmitida**: o jogo (ou qualquer app) tem que continuar indo
       para a sala e para a live. As permissões FOREGROUND_SERVICE_MEDIA_PROJECTION já estão no app.json; se
-      no Android 14+ a transmissão parar ao minimizar, falta o serviço em primeiro plano do tipo
-      mediaProjection (ex.: biblioteca notifee) antes de pedir a tela.
+      no Android 14+ a transmissão parar ao minimizar, conferir o serviço em primeiro plano do react-native-webrtc
+      (já é ligado pelo módulo RealysUpdater, enableMediaProjectionService).
 - [ ] **Live + sala ao mesmo tempo**: a captura é uma só (src/video.js) e vai para os dois. Conferir o
       uso de internet do celular (dois envios de vídeo, ~2 a 5 Mbps no total).
 - [ ] Pausa automática: carteira, Pix, login, biometria, conversas privadas e qualquer campo de senha
       do Re@lys já pausam. Senhas de OUTROS apps: o Android 15+ esconde sozinho e os apps de banco ficam
       pretos na transmissão; conferir em Android 12–14.
 - [ ] Rever com advogado as regras de vídeo ao vivo (ECA Digital, ANPD: caso Discord, ago/2026).
+
+## Rádios e TVs (Stream)
+
+- [ ] **Sky Plus** (rádio principal, https://stm1.voxpainel.com.br:7004/stream): confirmar no celular que
+      toca e a categoria dela (hoje está em "Comunitária e local"; trocar se for outro estilo).
+- [ ] **Janelinha por cima dos outros apps (rádio)**: Android 12+ abre sozinho ao sair do app; testar no
+      primeiro APK novo. Nos Android 8 a 11 abre pelo botão de janela do player.
+- [ ] Com o servidor: subir logo e capa das rádios/TVs (uploadMedia) junto com o cadastro; hoje ficam no celular.
+- [ ] Seguir estação: com o servidor, avisar os seguidores quando a rádio/TV publicar ou entrar ao vivo.
 
 ## Quando contratar o servidor (fase de testes, 10 a 20 usuários)
 

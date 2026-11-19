@@ -9,7 +9,7 @@ import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
 import { useBack } from '../../back';
-import { moderateText } from '../../moderation';
+import { moderateText, antiDesvio } from '../../moderation';
 import {
   useSalas, salaOf, roomOf, salaKey, SALA_TIPOS, ACOES, enterQueue, leaveQueue, queuePos, callFromQueue,
   joinRoom, leaveRoom, roomPost, roomAccept, roomScreen, channelPost, createSala, createMeeting, meetingLink,
@@ -381,6 +381,8 @@ function Room({ sid, rid, me, isCompany, onLeave, onBack }) {
     if (!txt) return;
     const mod = moderateText ? moderateText(txt) : { ok: true };
     if (mod && mod.ok === false) return Alert.alert('Mensagem não enviada', mod.why || 'A mensagem não segue as regras do Re@lys.');
+    const ad = antiDesvio(txt);
+    if (!ad.ok) return Alert.alert('Fica tudo no Re@lys 🔒', `${ad.why}\n\nNa sala, use os botões Proposta e Contrato.`);
     roomPost(sid, rid, { kind: 'msg', who: me, text: txt });
     setDraft('');
   };

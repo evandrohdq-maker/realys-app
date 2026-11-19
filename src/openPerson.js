@@ -3,6 +3,8 @@
 //  - pessoa da rede → abre o perfil (src/components/People.js › UserProfileModal). Se for amigo, abre o
 //    perfil completo; se não for, abre só a prévia, com o botão de adicionar.
 //  - empresa ou artista → abre a página da empresa.
+//  - prestador de serviço → abre só a PRÉVIA do perfil de trabalho (sem adicionar, sem contato direto:
+//    serviço só se contrata pelo Re@lys).
 //  - eu mesmo → vai para a aba Perfil.
 import { Alert } from 'react-native';
 import { useStore } from './store';
@@ -15,6 +17,8 @@ const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toL
 export function resolvePerson(state, { id, name } = {}) {
   const myName = state.user && state.user.name;
   if (id === 'me' || (name && myName && norm(name) === norm(myName))) return { kind: 'me' };
+  const pv = (state.providers || []).find((x) => (id && x.id === id) || (name && norm(x.name) === norm(name)));
+  if (pv) return { kind: 'provider', id: pv.id };
   const m = (id && memberById(id)) || (name && memberByName(name));
   if (m) return { kind: 'member', id: m.id };
   const co =
@@ -28,6 +32,7 @@ export function useOpenPerson() {
   const { state, dispatch } = useStore();
   return (who, { onLeave } = {}) => {
     const r = resolvePerson(state, who);
+    if (r.kind === 'provider') return dispatch({ type: 'PREVIEW_PROVIDER', id: r.id }), true;
     if (r.kind === 'member') return dispatch({ type: 'OPEN_PROFILE', id: r.id }), true;
     if (r.kind === 'company') {
       onLeave && onLeave();

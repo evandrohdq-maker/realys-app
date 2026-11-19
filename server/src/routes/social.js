@@ -1,5 +1,5 @@
 // Parte social: perfis, amizades, posts, stories, depoimentos (como no Orkut), mensagens e denúncias.
-import { moderateText } from '../moderacaoTexto.js';
+import { moderateText, antiDesvio } from '../moderacaoTexto.js';
 import { fail, newId, now, str, oneOf } from '../http.js';
 
 const pair = (a, b) => (a < b ? [a, b] : [b, a]);
@@ -146,6 +146,21 @@ export default function socialRoutes(r, { db, hub, userById, publicUser }) {
     // Conversa privada: o conteúdo é das duas pessoas, mas racismo, ódio e sexual com menores nunca passam.
     const mm = moderateText(msg.text, 'privado');
     if (!mm.ok) fail(422, mm.why, mm.kind);
+    // Anti-desvio: negócio (empresa ou prestador de um dos lados) ou contato ainda não aceito.
+    const amigos = !!db.prepare(`SELECT 1 FROM friends WHERE status = 'amigos' AND ((a_id = ? AND b_id = ?) OR (a_id = ? AND b_id = ?))`).get(user.id, to.id, to.id, user.id);
+    const negocio = (u) => u.kind === 'empresa' || !!db.prepare('SELECT 1 FROM providers WHERE user_id = ?').get(u.id);
+    const vende = negocio(user);
+    if (!amigos || vende || negocio(to)) {
+      const ad = antiDesvio(msg.text);
+      if (!ad.ok) fail(422, ad.why, 'desvio');
+    }
+    // Quem vende (empresa ou prestador) só manda UMA mensagem para quem ainda não aceitou o contato:
+    // é o pedido de contato. A conversa abre quando a pessoa responde ou aceita a amizade.
+    if (vende && !amigos) {
+      const respondeu = db.prepare('SELECT 1 FROM messages WHERE from_id = ? AND to_id = ? LIMIT 1').get(to.id, user.id);
+      const jaPediu = db.prepare('SELECT 1 FROM messages WHERE from_id = ? AND to_id = ? LIMIT 1').get(user.id, to.id);
+      if (!respondeu && jaPediu) fail(403, 'Aguarde a pessoa aceitar o contato. Até lá, só vai o primeiro pedido de contato.', 'contato_pendente');
+    }
     db.prepare('INSERT INTO messages (id, from_id, to_id, text, created_at) VALUES (?,?,?,?,?)').run(id, user.id, to.id, msg.text, msg.at);
     hub.send(to.id, 'message', { ...msg, fromName: user.name });
     return msg;

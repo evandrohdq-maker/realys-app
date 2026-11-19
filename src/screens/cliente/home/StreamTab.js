@@ -8,8 +8,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, soft } from '../../../theme';
 import { Screen } from '../../../components/ui';
 import { SegTabs } from '../../../components/AdKit';
-import { RadioCard } from '../../../components/RadioKit';
-import { allRadios, loadRadios, onRadios, stopRadio } from '../../../radio';
+import { RadioCard, StationLogo, useRadioNow } from '../../../components/RadioKit';
+import { CatChips, StationFormExtras, FeaturedStation } from '../../../components/StationKit';
+import { stationCat, catsOf, openStation } from '../../../streamCats';
+import { allRadios, loadRadios, onRadios, stopRadio, playRadio } from '../../../radio';
 import { allTvs, loadTvs, onTvs, saveTv, removeTv, checkTvUrl, playTv, stopTv } from '../../../tv';
 import { useTvNow } from '../../../components/FloatPlayers';
 import { moderateText } from '../../../moderation';
@@ -54,26 +56,52 @@ function OwnBar({ icon, title, sub, onPress }) {
   );
 }
 
+// Conta quantas estações há em cada categoria (para os chips).
+const countBy = (kind, list) => list.reduce((o, x) => ((o[stationCat(kind, x).key] = (o[stationCat(kind, x).key] || 0) + 1), o), {});
+
 function RadioList({ navigate }) {
   const [list, setList] = useState(allRadios());
   const [q, setQ] = useState('');
+  const [cat, setCat] = useState('todas');
+  const now = useRadioNow();
   useEffect(() => {
     loadRadios().then(() => setList(allRadios()));
     return onRadios(() => setList(allRadios()));
   }, []);
   const term = q.trim().toLowerCase();
-  const shown = list.filter((r) => !term || `${r.name} ${r.genre} ${r.city}`.toLowerCase().includes(term));
+  const featured = list.find((r) => r.featured);
+  const featOn = !!(featured && now.radio && now.radio.id === featured.id && now.status !== 'parado');
+  const match = (r) => !term || `${r.name} ${r.genre} ${r.city} ${stationCat('radio', r).label}`.toLowerCase().includes(term);
+  const shown = list.filter((r) => match(r) && (cat === 'todas' || stationCat('radio', r).key === cat));
+  const catInfo = cat !== 'todas' ? catsOf('radio').find((c) => c.key === cat) : null;
+  // "Todas": separadas por categoria, cada uma com o seu título.
+  const groups = cat === 'todas' && !term ? catsOf('radio').map((c) => ({ c, items: shown.filter((r) => stationCat('radio', r).key === c.key && !r.featured) })).filter((g) => g.items.length) : null;
   return (
     <View>
+      {featured && cat === 'todas' && !term ? (
+        <FeaturedStation s={featured} on={featOn} onPlay={() => (featOn ? stopRadio() : (stopTv(), playRadio(featured)))} />
+      ) : null}
       <SearchBox value={q} onChange={setQ} placeholder="Buscar rádio, estilo ou cidade" />
-      {shown.map((r) => (
-        <RadioCard key={r.id} radio={r} />
-      ))}
-      {!shown.length ? <Text style={st.empty}>Nenhuma rádio encontrada.</Text> : null}
+      <CatChips kind="radio" value={cat} onChange={setCat} counts={countBy('radio', list)} />
+      {groups
+        ? groups.map((g) => (
+            <View key={g.c.key}>
+              <TouchableOpacity style={st.groupHead} onPress={() => setCat(g.c.key)} accessibilityLabel={`Ver todas de ${g.c.label}`}>
+                <Text style={{ fontSize: 15 }}>{g.c.emoji}</Text>
+                <Text style={st.groupTitle} numberOfLines={1}>{g.c.label}</Text>
+                <Ionicons name="chevron-forward" size={15} color={colors.muted} />
+              </TouchableOpacity>
+              {g.items.map((r) => <RadioCard key={r.id} radio={r} />)}
+            </View>
+          ))
+        : shown.map((r) => <RadioCard key={r.id} radio={r} />)}
+      {!shown.length ? (
+        <Text style={st.empty}>{catInfo ? `Ainda não tem rádio ${catInfo.label.toLowerCase()} no Re@lys. Tem uma? Indexe a sua e seja a primeira.` : 'Nenhuma rádio encontrada.'}</Text>
+      ) : null}
       <OwnBar
         icon="radio-outline"
         title="Tem uma rádio? Indexe a sua"
-        sub="Cole a URL do streaming e ela toca aqui e na página da sua empresa"
+        sub="Link do streaming, logo e categoria: ela ganha perfil e toca no app todo"
         onPress={() => navigate && navigate({ tab: 'radios' })}
       />
     </View>
@@ -86,12 +114,14 @@ function TvList() {
   // Canal no ar: o vídeo fica na janela flutuante do app (FloatPlayers), não nesta tela.
   const on = useTvNow().channel;
   const [form, setForm] = useState(null);
+  const [cat, setCat] = useState('todas');
   useEffect(() => {
     loadTvs().then(() => setList(allTvs()));
     return onTvs(() => setList(allTvs()));
   }, []);
   const term = q.trim().toLowerCase();
-  const shown = list.filter((t) => !term || `${t.name} ${t.genre} ${t.city}`.toLowerCase().includes(term));
+  const shown = list.filter((t) => (!term || `${t.name} ${t.genre} ${t.city} ${stationCat('tv', t).label}`.toLowerCase().includes(term)) && (cat === 'todas' || stationCat('tv', t).key === cat));
+  const tvCat = cat !== 'todas' ? catsOf('tv').find((c) => c.key === cat) : null;
   const mine = list.find((t) => t.storeId === MY_COMPANY_ID) || null;
 
   const watch = (t) => {
@@ -127,29 +157,30 @@ function TvList() {
       ) : null}
 
       <SearchBox value={q} onChange={setQ} placeholder="Buscar canal, estilo ou cidade" />
+      <CatChips kind="tv" value={cat} onChange={setCat} counts={countBy('tv', list)} />
       {shown.map((t) => {
         const playing = on && on.id === t.id;
         return (
           <TouchableOpacity key={t.id} style={[st.card, playing && st.cardOn]} onPress={() => watch(t)} activeOpacity={0.85} accessibilityLabel={playing ? `Fechar ${t.name}` : `Assistir ${t.name}`}>
-            <View style={st.logo}>
-              <Text style={{ fontSize: 28 }}>{t.emoji || '📺'}</Text>
-            </View>
-            <View style={{ flex: 1, marginLeft: 12 }}>
+            <TouchableOpacity onPress={() => openStation('tv', t.id)} accessibilityLabel={`Abrir o perfil de ${t.name}`}>
+              <StationLogo s={t} kind="tv" size={56} />
+            </TouchableOpacity>
+            <TouchableOpacity style={{ flex: 1, marginLeft: 12 }} onPress={() => openStation('tv', t.id)} activeOpacity={0.8}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <View style={st.dot} />
                 <Text style={st.live}>AO VIVO</Text>
                 {t.example ? <Text style={st.example}>  · exemplo</Text> : null}
               </View>
               <Text style={st.name} numberOfLines={1}>{t.name}</Text>
-              <Text style={st.meta} numberOfLines={1}>{[t.genre, t.city].filter(Boolean).join(' · ')}</Text>
-            </View>
+              <Text style={st.meta} numberOfLines={1}>{[stationCat('tv', t).label, t.city].filter(Boolean).join(' · ')}</Text>
+            </TouchableOpacity>
             <View style={st.play}>
               <Ionicons name={playing ? 'stop' : 'play'} size={22} color="#fff" style={playing ? null : { marginLeft: 3 }} />
             </View>
           </TouchableOpacity>
         );
       })}
-      {!shown.length ? <Text style={st.empty}>Nenhum canal encontrado.</Text> : null}
+      {!shown.length ? <Text style={st.empty}>{tvCat ? `Ainda não tem canal de ${tvCat.label.toLowerCase()} no Re@lys. Tem um? Indexe o seu.` : 'Nenhum canal encontrado.'}</Text> : null}
 
       <OwnBar
         icon="tv-outline"
@@ -170,7 +201,8 @@ function TvList() {
           <TextInput value={form.genre} onChangeText={(v) => setForm({ ...form, genre: v })} style={st.field} placeholder="Ex.: Notícias, esportes, gospel" placeholderTextColor={colors.muted} maxLength={40} />
           <Text style={st.label}>Cidade</Text>
           <TextInput value={form.city} onChangeText={(v) => setForm({ ...form, city: v })} style={st.field} placeholderTextColor={colors.muted} maxLength={40} />
-          <Text style={st.label}>Ícone</Text>
+          <StationFormExtras kind="tv" form={form} setForm={setForm} />
+          <Text style={st.label}>Ícone (sem logo)</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
             {TV_EMOJIS.map((e) => (
               <TouchableOpacity key={e} onPress={() => setForm({ ...form, emoji: e })} style={[st.emoji, form.emoji === e && { borderColor: colors.primary }]}>
@@ -210,7 +242,9 @@ const st = StyleSheet.create({
   own: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, borderRadius: 16, padding: 14, marginTop: 6, marginBottom: 14 },
   ownText: { color: '#fff', fontWeight: '800', fontSize: 15 },
   ownSub: { color: 'rgba(255,255,255,0.85)', fontSize: 12, marginTop: 2 },
-  empty: { color: colors.muted, textAlign: 'center', marginVertical: 20 },
+  empty: { color: colors.muted, textAlign: 'center', marginVertical: 20, paddingHorizontal: 12 },
+  groupHead: { flexDirection: 'row', alignItems: 'center', marginTop: 8, marginBottom: 8 },
+  groupTitle: { flex: 1, color: colors.text, fontWeight: '800', fontSize: 15, marginLeft: 6 },
 
   nowBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 18, padding: 12, marginBottom: 14, ...soft },
   screen: { width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000' },

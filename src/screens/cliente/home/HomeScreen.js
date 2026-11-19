@@ -11,6 +11,11 @@ import { ChatModal, VideoCallModal, LiveModal } from './Social';
 import LivesTab from './LivesTab';
 import NewsTab from './NewsTab';
 import StreamTab from './StreamTab';
+import { StationLogo } from '../../../components/RadioKit';
+import { StationPostPlayer } from '../../../components/StationProfile';
+import { openStation } from '../../../streamCats';
+import { radioById } from '../../../radio';
+import { tvById } from '../../../tv';
 import ConvList from '../../../components/ConvList';
 import { members, memberByName } from '../../../people';
 import { PeopleSearchModal, PersonRow } from '../../../components/People';
@@ -626,6 +631,9 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
   const [searching, setSearching] = useState(false);
   // Tocar em quem postou abre o perfil da pessoa (com o botão de amizade).
   const openAuthor = (name) => {
+    // Prestador de serviço: só a prévia do perfil de trabalho (sem adicionar).
+    const pv = (state.providers || []).find((x) => x.name === name);
+    if (pv) return dispatch({ type: 'PREVIEW_PROVIDER', id: pv.id });
     const m = memberByName(name);
     if (m) return dispatch({ type: 'OPEN_PROFILE', id: m.id });
     // Post de empresa: abre a página pública da empresa.
@@ -723,10 +731,12 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
                 <TouchableOpacity
                   style={{ flexDirection: 'row', alignItems: 'center' }}
                   activeOpacity={0.7}
-                  onPress={() => openAuthor(it.p.author)}
+                  onPress={() => (it.p.station ? openStation(it.p.station.kind, it.p.station.id) : openAuthor(it.p.author))}
                   accessibilityLabel={`Ver perfil de ${it.p.author}`}
                 >
-                  {memberByName(it.p.author) ? (
+                  {it.p.station ? (
+                    <StationLogo s={(it.p.station.kind === 'tv' ? tvById : radioById)(it.p.station.id) || { emoji: '📻' }} kind={it.p.station.kind} size={40} radius={20} />
+                  ) : memberByName(it.p.author) ? (
                     <Photo uri={memberByName(it.p.author).photo} style={[styles.avatar, { padding: 0 }]} fallback="🙂" />
                   ) : (
                     <View style={styles.avatar}>
@@ -748,6 +758,7 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
                 ) : null}
                 <Text style={{ color: colors.text, marginTop: 10, lineHeight: 20 }}>{it.p.text}</Text>
                 {it.p.image ? <Photo uri={it.p.image} style={styles.postImg} /> : null}
+                {it.p.station ? <StationPostPlayer station={it.p.station} /> : null}
                 <View style={{ flexDirection: 'row', marginTop: 10 }}>
                   <TouchableOpacity style={styles.postAct} onPress={() => setLiked({ ...liked, [it.p.id]: !liked[it.p.id] })} accessibilityLabel="Curtir">
                     <Ionicons name={liked[it.p.id] ? 'heart' : 'heart-outline'} size={18} color={liked[it.p.id] ? '#FF5A7A' : colors.muted} />

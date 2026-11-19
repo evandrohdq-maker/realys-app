@@ -1,6 +1,9 @@
 package expo.modules.realysupdater
 
 import android.app.PendingIntent
+import android.app.PictureInPictureParams
+import android.content.pm.PackageManager
+import android.util.Rational
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
@@ -60,6 +63,56 @@ class RealysUpdaterModule : Module() {
         am.dispatchMediaKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY, 0))
         am.dispatchMediaKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PLAY, 0))
       }
+    }
+
+    // ---------- Janelinha por cima dos outros apps (picture-in-picture), como no YouTube ----------
+    // Usada pela rádio (mostra a logo): o Re@lys inteiro vira uma janelinha no canto da tela, que a
+    // pessoa arrasta, fecha no X ou toca para voltar. A TV usa a do próprio player de vídeo.
+    Function("canPip") {
+      Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+        context.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+    }
+
+    // Android 12+: sair do app (botão início) já abre a janelinha sozinho enquanto estiver ligado.
+    Function("setAutoPip") { enabled: Boolean, w: Int, h: Int ->
+      val act = appContext.currentActivity
+      if (act != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        act.runOnUiThread {
+          try {
+            val b = PictureInPictureParams.Builder().setAspectRatio(Rational(w, h))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+              b.setAutoEnterEnabled(enabled)
+              b.setSeamlessResizeEnabled(false)
+            }
+            act.setPictureInPictureParams(b.build())
+          } catch (e: Throwable) {
+            // celular sem suporte: a rádio continua tocando com o controle na barra de notificações
+          }
+        }
+        true
+      } else {
+        false
+      }
+    }
+
+    // Abre a janelinha agora (botão do player).
+    Function("enterPip") { w: Int, h: Int ->
+      val act = appContext.currentActivity
+      if (act != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        act.runOnUiThread {
+          try {
+            act.enterPictureInPictureMode(PictureInPictureParams.Builder().setAspectRatio(Rational(w, h)).build())
+          } catch (e: Throwable) {}
+        }
+        true
+      } else {
+        false
+      }
+    }
+
+    Function("isInPip") {
+      val act = appContext.currentActivity
+      act != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && act.isInPictureInPictureMode
     }
 
     // true no Android 12 ou mais novo: dá para atualizar sem a tela de confirmação.
