@@ -1,8 +1,18 @@
-// O ⋮ do cabeçalho, quando a pessoa já está no Perfil, abre o Menu do Perfil (Minha conta + Explorar).
-// O cabeçalho (App.js) chama openProfileMenu(); a tela do Perfil escuta com onProfileMenu.
+// O ⋮ do cabeçalho (canto direito, em qualquer tela) abre o Menu (Minha conta + Explorar),
+// que mora na tela do Perfil. Se a pessoa não está no Perfil, o app passa por ele e, ao fechar
+// o menu sem escolher nada, volta para a tela em que ela estava (returnTo).
 const subs = new Set();
-export const openProfileMenu = () => subs.forEach((fn) => fn());
+let pending = null;
+export function openProfileMenu(opts = {}) {
+  if (subs.size) subs.forEach((fn) => fn(opts));
+  else pending = opts; // o Perfil ainda vai montar: ele abre o menu assim que aparecer
+}
 export function onProfileMenu(fn) {
   subs.add(fn);
+  if (pending) {
+    const p = pending;
+    pending = null;
+    setTimeout(() => fn(p), 0);
+  }
   return () => subs.delete(fn);
 }

@@ -76,9 +76,26 @@ export default function ProfileScreen({ navigate, explore }) {
   // Menu ⋮ do Perfil: "Minha conta" (as antigas Mais opções) + "Explorar" (o antigo ⋮ do cabeçalho).
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuSeg, setMenuSeg] = useState('conta');
-  // O ⋮ fica no cabeçalho do app (no lugar da fotinha do perfil) e abre este menu.
-  useEffect(() => onProfileMenu(() => setMenuOpen(true)), []);
+  // O ⋮ fica no canto direito do cabeçalho do app e abre este menu (de qualquer tela).
+  const returnTo = React.useRef(null);
+  useEffect(
+    () =>
+      onProfileMenu((o) => {
+        returnTo.current = (o && o.returnTo) || null;
+        setMenuSeg('conta');
+        setMenuOpen(true);
+      }),
+    [],
+  );
+  // Fechou sem escolher nada (X ou voltar): volta para a tela de onde o ⋮ foi aberto.
+  const closeMenu = () => {
+    setMenuOpen(false);
+    const back = returnTo.current;
+    returnTo.current = null;
+    if (back && navigate) navigate({ tab: back });
+  };
   const nav = (go) => {
+    returnTo.current = null;
     setMenuOpen(false);
     navigate && navigate(go);
   };
@@ -268,11 +285,11 @@ export default function ProfileScreen({ navigate, explore }) {
       </Modal>
 
       {/* Menu ⋮ do Perfil: duas partes, Minha conta e Explorar o Re@lys. */}
-      <Modal visible={menuOpen} animationType="slide" onRequestClose={() => setMenuOpen(false)}>
+      <Modal visible={menuOpen} animationType="slide" onRequestClose={closeMenu}>
         <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
           <View style={styles.menuHead}>
             <Text style={styles.menuTitle}>Menu</Text>
-            <TouchableOpacity onPress={() => setMenuOpen(false)} style={styles.menuClose} accessibilityLabel="Fechar o menu">
+            <TouchableOpacity onPress={closeMenu} style={styles.menuClose} accessibilityLabel="Fechar o menu">
               <Ionicons name="close" size={20} color={colors.text} />
             </TouchableOpacity>
           </View>
@@ -289,7 +306,7 @@ export default function ProfileScreen({ navigate, explore }) {
           </View>
           {menuSeg === 'explorar' ? (
             <View style={{ flex: 1, paddingHorizontal: 16, paddingBottom: insets.bottom }}>
-              <CategoryMenu embedded visible onClose={() => setMenuOpen(false)} onPick={nav} />
+              <CategoryMenu embedded visible onClose={closeMenu} onPick={nav} />
             </View>
           ) : (
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 30 + insets.bottom }} keyboardShouldPersistTaps="handled">

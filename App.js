@@ -338,6 +338,13 @@ function Shell({ inviteTick }) {
   const swapTarget = state.activeRole === 'cliente' ? lastWork.current || workRoles[0] : 'cliente';
   // Segurou o botão do Perfil: troca de perfil e avisa para qual foi.
   const swapHold = () => swapProfile();
+  // ⋮ do cabeçalho: o Menu mora no Perfil. Fora dele, passa pelo Perfil e volta ao fechar.
+  const openMenuAnywhere = () => {
+    if (current.key === 'perfil') return openProfileMenu();
+    const from = current.key;
+    pick({ tab: 'perfil' });
+    openProfileMenu({ returnTo: from });
+  };
   const swapProfile = () => {
     setCameFromEmpresa(false);
     if (Platform.OS === 'android') ToastAndroid.show(`Modo ${ROLE_LABELS[swapTarget].toLowerCase()}`, ToastAndroid.SHORT);
@@ -559,27 +566,29 @@ function Shell({ inviteTick }) {
           <TouchableOpacity onPress={() => setSearching(true)} style={styles.iconBtn} accessibilityLabel="Buscar pessoas na rede Re@lys">
             <Ionicons name="search-outline" size={21} color={colors.text} />
           </TouchableOpacity>
-          {/* Toque: abre o Perfil (dentro do Perfil vira o ⋮ do menu).
-              Segurar 1 segundo: troca de perfil (usuário ⇄ prestador/empresa). O selinho mostra o perfil em uso. */}
+          {/* Fotinha do perfil: toque abre o Perfil; segurar 1 segundo troca de perfil
+              (usuário ⇄ prestador/empresa). O selinho mostra o perfil em uso. */}
           <TouchableOpacity
-            onPress={current.key === 'perfil' ? openProfileMenu : () => pick({ tab: 'perfil' })}
+            onPress={() => pick({ tab: 'perfil' })}
             onLongPress={canSwap ? swapHold : undefined}
             delayLongPress={1000}
-            style={styles.iconBtn}
-            accessibilityLabel={(current.key === 'perfil' ? 'Abrir menu: minha conta e explorar o Re@lys' : 'Abrir meu perfil') + (canSwap ? `. Segure para trocar para ${ROLE_LABELS[swapTarget]}` : '')}
+            style={[styles.iconBtn, current.key === 'perfil' && styles.iconBtnOn]}
+            accessibilityLabel={'Abrir meu perfil' + (canSwap ? `. Segure para trocar para ${ROLE_LABELS[swapTarget]}` : '')}
           >
-            {current.key === 'perfil' ? (
-              <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
-            ) : state.myProfile && state.myProfile.photo ? (
-              <Image source={{ uri: state.myProfile.photo }} style={styles.headAvatar} />
+            {state.myProfile && state.myProfile.photo ? (
+              <Image source={{ uri: state.myProfile.photo }} style={[styles.headAvatar, current.key === 'perfil' && { borderColor: colors.gold }]} />
             ) : (
-              <Ionicons name="person-circle-outline" size={25} color={colors.text} />
+              <Ionicons name={current.key === 'perfil' ? 'person-circle' : 'person-circle-outline'} size={25} color={current.key === 'perfil' ? colors.primary : colors.text} />
             )}
             {canSwap ? (
               <View style={styles.swapBadge}>
                 <Ionicons name={ROLE_ICONS[state.activeRole] || 'person'} size={8} color="#fff" />
               </View>
             ) : null}
+          </TouchableOpacity>
+          {/* ⋮ no canto direito, em qualquer tela: Menu com Minha conta e Explorar. */}
+          <TouchableOpacity onPress={openMenuAnywhere} style={styles.iconBtn} accessibilityLabel="Abrir menu: minha conta e explorar o Re@lys">
+            <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
           </TouchableOpacity>
         </View>
       </View>
