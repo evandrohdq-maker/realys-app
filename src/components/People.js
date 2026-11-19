@@ -16,6 +16,7 @@ import { ProfileSocial, TestimonialComposer, TestimonialCard } from './SocialPro
 import { memberTarget } from './GiftSheet';
 import { SocialBadge } from './SocialClass';
 import { CLASSES } from '../socialClasses';
+import { MuralTab, MuralPeek, useMuralItems } from './Mural';
 
 // Botão de amizade: Adicionar → Solicitação enviada → Amigos (ou Aceitar / Recusar quando pediram para você).
 export function FriendButton({ member, compact }) {
@@ -241,7 +242,7 @@ export function UserProfileModal() {
 }
 
 // Prévia do perfil de quem ainda não é amigo: abre de baixo para cima, por cima de qualquer tela
-// (story, Reel, feed, Arena). Mostra quem é, alguns posts e depoimentos e o botão de adicionar.
+// (story, Reel, feed, Arena). Mostra quem é, amigos em comum, alguns posts, o mural e o botão de adicionar.
 // O perfil completo fica para os amigos (ou para quem deixou o perfil aberto para todos).
 export function ProfilePeek({ m, onClose, onMessage, onFull }) {
   const { state } = useStore();
@@ -250,9 +251,9 @@ export function ProfilePeek({ m, onClose, onMessage, onFull }) {
   const pv = privacyOf(m.id);
   const showSocial = pv.exposed && pv.social === 'todos';
   const posts = showSocial ? postsOf(m).slice(0, 3) : [];
-  const deps = state.testimonials.filter((t) => t.to === m.id && t.status === 'aprovado');
+  const mural = useMuralItems(m.id).items;
   const firstName = m.name.split(' ')[0];
-  const [list, setList] = useState(null); // número tocado: amigos | comum | depoimentos
+  const [list, setList] = useState(null); // número tocado: amigos | comum | mural
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={styles.peekDim} activeOpacity={1} onPress={onClose} accessibilityLabel="Fechar prévia" />
@@ -280,7 +281,7 @@ export function ProfilePeek({ m, onClose, onMessage, onFull }) {
           <View style={[styles.stats, { marginTop: 10 }]}>
             <Stat n={m.friends} label="amigos" onPress={() => setList('amigos')} />
             <Stat n={m.mutual} label="em comum" onPress={() => setList('comum')} />
-            <Stat n={deps.length} label="depoimentos" onPress={() => setList('depoimentos')} />
+            <Stat n={showSocial ? mural.length : 0} label="mural" onPress={() => setList('mural')} />
           </View>
           <StatListModal m={list ? m : null} kind={list} onClose={() => setList(null)} />
 
@@ -312,12 +313,11 @@ export function ProfilePeek({ m, onClose, onMessage, onFull }) {
             </>
           ) : null}
 
-          {deps.length ? (
+          {/* Mural da pessoa (no lugar dos depoimentos): só se ela deixou a vida social aberta para todos. */}
+          {showSocial ? (
             <>
-              <Text style={styles.section}>Depoimentos</Text>
-              {deps.slice(0, 2).map((t) => (
-                <TestimonialCard key={t.id} t={t} hideTarget />
-              ))}
+              <Text style={styles.section}>Mural</Text>
+              <MuralPeek ownerId={m.id} ownerName={m.name} onMore={() => setList('mural')} />
             </>
           ) : null}
 
@@ -399,6 +399,7 @@ export function PeopleListModal({ visible, title, people = [], total, onClose })
 export function StatListModal({ m, kind, onClose }) {
   const { state, dispatch } = useStore();
   const insets = useSafeAreaInsets();
+  const muralCount = useMuralItems(m ? m.id : 'none').items.length;
   if (!m || !kind) return null;
   const first = m.name.split(' ')[0];
   const { all, mutual } = friendsOfMember(m, state.friends);
@@ -407,8 +408,8 @@ export function StatListModal({ m, kind, onClose }) {
   const canSeeFriends = isFriend || (pv.exposed && pv.social === 'todos');
   const deps = state.testimonials.filter((t) => t.to === m.id && t.status === 'aprovado');
   const posts = postsOf(m);
-  const total = kind === 'amigos' ? m.friends + (isFriend ? 1 : 0) : kind === 'comum' ? mutual.length : kind === 'posts' ? posts.length : deps.length;
-  const title = kind === 'amigos' ? `Amigos de ${first}` : kind === 'comum' ? `Amigos em comum com ${first}` : kind === 'posts' ? `Posts de ${first}` : `Depoimentos de ${first}`;
+  const total = kind === 'amigos' ? m.friends + (isFriend ? 1 : 0) : kind === 'comum' ? mutual.length : kind === 'posts' ? posts.length : kind === 'mural' ? (canSeeFriends ? muralCount : 0) : deps.length;
+  const title = kind === 'amigos' ? `Amigos de ${first}` : kind === 'comum' ? `Amigos em comum com ${first}` : kind === 'posts' ? `Posts de ${first}` : kind === 'mural' ? `Mural de ${first}` : `Depoimentos de ${first}`;
   const openPerson = (id) => {
     onClose();
     dispatch({ type: 'OPEN_PROFILE', id });
@@ -428,6 +429,13 @@ export function StatListModal({ m, kind, onClose }) {
             <Ionicons name="close" size={20} color={colors.muted} />
           </TouchableOpacity>
         </View>
+        {kind === 'mural' ? (
+          canSeeFriends ? (
+            <MuralTab ownerId={m.id} ownerName={m.name} mine={false} />
+          ) : (
+            <Empty text={`O mural de ${first} fica aberto só para os amigos. Adicione e espere ${first} aceitar.`} />
+          )
+        ) : (
         <ScrollView style={{ maxHeight: 520 }} showsVerticalScrollIndicator={false}>
           {kind === 'amigos' || kind === 'comum' ? (
             kind === 'amigos' && !canSeeFriends ? (
@@ -466,6 +474,7 @@ export function StatListModal({ m, kind, onClose }) {
               : <Empty text={`${first} ainda não publicou nada.`} />
             : null}
         </ScrollView>
+        )}
       </View>
     </Modal>
   );

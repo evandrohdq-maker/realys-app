@@ -44,7 +44,7 @@ function sampleMural(ownerId) {
 }
 
 // Tudo o que aparece no mural, já na ordem: fixados primeiro, depois do mais novo para o mais velho.
-function useMuralItems(ownerId) {
+export function useMuralItems(ownerId) {
   const { state } = useStore();
   const own = ownerId === 'me';
   const base = own ? state.mural || { theme: 'aurora', items: [] } : sampleMural(ownerId);
@@ -127,6 +127,32 @@ export function MuralTab({ ownerId, ownerName, mine }) {
           <EditSheet it={editing} onClose={() => setEditing(null)} />
         </>
       ) : null}
+    </View>
+  );
+}
+
+// Mural na prévia do perfil (quem ainda não é amigo): os primeiros cartões do mural da pessoa,
+// no tema dela, sem rolagem própria. Serve para quem está pensando em adicionar ver como ela é.
+export function MuralPeek({ ownerId, ownerName, limit = 3, onMore }) {
+  const { theme, items } = useMuralItems(ownerId);
+  const th = futureTheme(theme) || FUTURE_THEMES[1];
+  return (
+    <View style={[st.peekWall, { backgroundColor: th.to }]}>
+      <ThemeArt theme={th.key} />
+      <View style={{ padding: 12 }}>
+        <Text style={[st.wallTitle, { color: th.text }]}>Mural de {first(ownerName)}</Text>
+        {items.length ? (
+          items.slice(0, limit).map((it) => <MuralCard key={it.id} it={it} th={th} mine={false} />)
+        ) : (
+          <Text style={{ color: th.muted, textAlign: 'center', marginVertical: 14 }}>Nada no mural ainda.</Text>
+        )}
+        {onMore && items.length > limit ? (
+          <TouchableOpacity onPress={onMore} activeOpacity={0.85} style={st.peekMore} accessibilityLabel={`Ver o mural inteiro de ${ownerName}`}>
+            <Text numberOfLines={1} style={{ color: th.accent, fontWeight: '800' }}>Ver mural inteiro</Text>
+            <Ionicons name="chevron-forward" size={15} color={th.accent} />
+          </TouchableOpacity>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -314,6 +340,8 @@ const st = StyleSheet.create({
   tool: { flex: 1, alignItems: 'center', paddingVertical: 6 },
   toolTxt: { color: colors.text, fontSize: 12, fontWeight: '700', marginTop: 3 },
   wall: { height: 520, borderRadius: 20, overflow: 'hidden' },
+  peekWall: { borderRadius: 18, overflow: 'hidden' },
+  peekMore: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
   wallTitle: { fontWeight: '900', fontSize: 16, marginBottom: 10, letterSpacing: 0.3 },
   card: { borderRadius: 16, padding: 12, marginBottom: 10, borderWidth: 1 },
   cardBig: { padding: 16 },
