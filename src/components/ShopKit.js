@@ -1,3 +1,4 @@
+import { openProduct } from './ProductSheet';
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { Text } from '../responsive';
@@ -136,8 +137,10 @@ export function ShopProductCard({ p, storeName, onAdd, style, sponsored, onPress
   // dark: visual da Vitrine (botão azul-noite com letra dourada, patrocinado com borda dourada).
   return (
     <View style={[styles.prod, sponsored && (dark ? styles.prodSpGold : styles.prodSp), style]}>
-      <TouchableOpacity activeOpacity={onPress ? 0.85 : 1} onPress={onPress} disabled={!onPress}>
+      {/* Foto e nome: abrem a tela do produto (fotos, vídeo, opções e ficha). */}
+      <TouchableOpacity activeOpacity={0.85} onPress={onPress || (() => openProduct(p))} accessibilityLabel={`Ver ${p.name}`}>
         <ProductThumb product={p} size={86} />
+        {p.video ? <View style={styles.vBadge}><Ionicons name="play" size={10} color="#fff" /></View> : null}
       </TouchableOpacity>
       {sponsored ? (
         <View style={[styles.spTag, dark && { backgroundColor: NIGHT }]}>
@@ -145,13 +148,24 @@ export function ShopProductCard({ p, storeName, onAdd, style, sponsored, onPress
         </View>
       ) : null}
       {p.launch ? <Text style={styles.launch}>LANÇAMENTO</Text> : null}
-      <Text numberOfLines={2} style={styles.prodName}>
+      <Text numberOfLines={2} style={styles.prodName} onPress={() => openProduct(p)}>
         {p.name}
       </Text>
+      {/* Cores disponíveis e "últimas unidades": chamam o olho na vitrine. */}
+      {(() => {
+        const cores = ((p.options || []).find((g) => g.values.some((v) => v.hex)) || { values: [] }).values.filter((v) => v.hex).slice(0, 5);
+        const left = p.stock;
+        return (
+          <View style={{ flexDirection: 'row', alignItems: 'center', minHeight: 4 }}>
+            {cores.map((v) => <View key={v.label} style={[styles.cDot, { backgroundColor: v.hex }]} />)}
+            {left != null && left > 0 && left <= 10 ? <Text style={styles.lowStock} numberOfLines={1}>{cores.length ? ' · ' : ''}Últimas {left}</Text> : null}
+          </View>
+        );
+      })()}
       {storeName ? <Text style={styles.prodStore}>{storeName}</Text> : null}
       <Text style={styles.prodPrice}>{brl(p.price)}</Text>
       {p.stock === undefined || p.stock > 0 ? (
-        <TouchableOpacity style={[styles.addBtn, dark && { backgroundColor: NIGHT }]} onPress={onAdd} accessibilityLabel={`Adicionar ${p.name} ao carrinho`}>
+        <TouchableOpacity style={[styles.addBtn, dark && { backgroundColor: NIGHT }]} onPress={() => (p.options && p.options.length ? openProduct(p) : onAdd && onAdd())} accessibilityLabel={`Adicionar ${p.name} ao carrinho`}>
           <Ionicons name="add" size={16} color={dark ? GOLD : colors.onPrimary} />
           <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.addText, dark && { color: GOLD }]}>Carrinho</Text>
         </TouchableOpacity>
@@ -191,6 +205,9 @@ export function StoreRow({ s, onPress, extra }) {
 }
 
 const styles = StyleSheet.create({
+  vBadge: { position: 'absolute', right: 4, bottom: 4, width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' },
+  cDot: { width: 10, height: 10, borderRadius: 5, marginRight: 3, borderWidth: 1, borderColor: 'rgba(0,0,0,0.15)', marginTop: 3 },
+  lowStock: { color: '#C77D12', fontSize: 10.5, fontWeight: '800', marginTop: 3 },
   hero: {
     flexDirection: 'row',
     alignItems: 'center',

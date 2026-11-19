@@ -447,10 +447,14 @@ function baseReducer(state, a) {
       return { ...state, liked: { ...state.liked, [a.id]: !state.liked[a.id] } };
 
     case 'ADD_TO_CART': {
-      const found = state.cart.find((c) => c.productId === a.productId);
+      // options: o que o cliente escolheu (cor, metragem, tamanho…). Mesma escolha soma; outra escolha é outro item.
+      const optKey = a.options ? JSON.stringify(a.options) : '';
+      const same = (c) => c.productId === a.productId && (c.options ? JSON.stringify(c.options) : '') === optKey;
+      const found = state.cart.find(same);
+      const qty = Math.max(1, a.qty || 1);
       const cart = found
-        ? state.cart.map((c) => (c.productId === a.productId ? { ...c, qty: c.qty + 1 } : c))
-        : [...state.cart, { productId: a.productId, qty: 1 }];
+        ? state.cart.map((c) => (same(c) ? { ...c, qty: c.qty + qty } : c))
+        : [...state.cart, { productId: a.productId, qty, ...(a.options ? { options: a.options } : {}) }];
       return { ...state, cart };
     }
     case 'REMOVE_FROM_CART':

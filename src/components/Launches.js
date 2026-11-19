@@ -1,3 +1,4 @@
+import { addOrChoose, openProduct } from './ProductSheet';
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Text } from '../responsive';
@@ -18,7 +19,7 @@ export function LaunchStrip({ title = '🚀 Lançamentos das lojas', only }) {
   const list = launchesOf(state, only);
   if (!list.length) return null;
   const add = (p) => {
-    dispatch({ type: 'ADD_TO_CART', productId: p.id });
+    if (!addOrChoose(dispatch, p)) return;
     Alert.alert('No carrinho 🛍️', `${p.name} foi para o seu carrinho.`);
   };
   return (

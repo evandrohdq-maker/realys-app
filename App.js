@@ -92,6 +92,7 @@ import SalasScreen from './src/screens/empresa/SalasScreen';
 import { ScreenShareBar } from './src/components/ScreenShareKit';
 import { StationProfileHost } from './src/components/StationProfile';
 import PipManager from './src/components/PipManager';
+import { ProductSheetHost } from './src/components/ProductSheet';
 import RadiosScreen from './src/screens/cliente/RadiosScreen';
 import { RadioHost, RadioMiniBar } from './src/components/RadioKit';
 import { TvFloat, LiveFloat } from './src/components/FloatPlayers';
@@ -581,6 +582,8 @@ function Shell({ inviteTick }) {
       <TvFloat bottom={150 + insets.bottom} />
       {/* Perfil de rádio/TV (abre ao tocar no nome) e a janelinha por cima dos outros apps. */}
       <StationProfileHost />
+      {/* Tela do produto (fotos, vídeo de 5 s, opções e ficha), aberta de qualquer vitrine. */}
+      <ProductSheetHost />
       <PipManager />
       <LiveFloat bottom={150 + insets.bottom} />
       <TouchableOpacity

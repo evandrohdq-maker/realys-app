@@ -2,6 +2,7 @@
 // Toque pausa, toque duplo curte. Do lado: loja, curtir, comentar, enviar e som.
 // Embaixo: loja verificada, título e o produto com o botão Comprar (Shop) ou Pedir (Food).
 // Assistiu até o fim, ganha pontos Re@lys (uma vez por Reel).
+import { addOrChoose, openProduct } from './ProductSheet';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View, StyleSheet, TouchableOpacity, FlatList, Modal, Animated, Alert, Share, Image, KeyboardAvoidingView, Platform, Pressable, AppState,
@@ -167,7 +168,7 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
   const add = () => {
     if (!p) return;
     dispatch({ type: 'AD_EVENT', id: reel.id, ev: 'taps' });
-    dispatch({ type: 'ADD_TO_CART', productId: p.id });
+    if (!addOrChoose(dispatch, p)) return onClose && onClose();
     Alert.alert(food ? 'Pedido no carrinho 🍽️' : 'No carrinho 🛍️', `${p.name} · ${brl(p.price)}`, [
       { text: 'Continuar vendo' },
       { text: 'Ver carrinho', onPress: () => { onClose && onClose(); dispatch({ type: 'OPEN_CART' }); } },

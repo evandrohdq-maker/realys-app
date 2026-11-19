@@ -1,3 +1,4 @@
+import { addOrChoose, openProduct } from '../../components/ProductSheet';
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Text } from '../../responsive';
@@ -84,8 +85,7 @@ export default function FeedScreen({ goTo }) {
                     small
                     title="Comprar"
                     onPress={() => {
-                      dispatch({ type: 'ADD_TO_CART', productId: product.id });
-                      goTo('loja');
+                      if (addOrChoose(dispatch, product)) goTo('loja');
                     }}
                   />
                 </View>

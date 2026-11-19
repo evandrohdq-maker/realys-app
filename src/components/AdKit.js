@@ -1,3 +1,4 @@
+import { addOrChoose, openProduct } from './ProductSheet';
 import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Animated, Easing, useWindowDimensions, Alert, Share, Image } from 'react-native';
 import { Text } from '../responsive';
@@ -231,7 +232,7 @@ function ClipPlayer({ clips, index, onIndex, onClose, food }) {
   const add = () => {
     if (!p) return;
     dispatch({ type: 'AD_EVENT', id: c.id, ev: 'taps' });
-    dispatch({ type: 'ADD_TO_CART', productId: p.id });
+    if (!addOrChoose(dispatch, p)) return onClose && onClose(); // tem opções: abre a tela do produto
     Alert.alert(food ? 'Pedido no carrinho 🍽️' : 'No carrinho 🛍️', `${p.name} · ${brl(p.price)}`, [
       { text: 'Continuar vendo' },
       { text: 'Ver carrinho', onPress: () => { onClose(); dispatch({ type: 'OPEN_CART' }); } },
@@ -334,7 +335,7 @@ export function PromoSector({ flash, coupons, combos, food, onOpenStore }) {
   const nameOf = (id) => (storeOf(state, id) || {}).name || '';
 
   const add = (p) => {
-    dispatch({ type: 'ADD_TO_CART', productId: p.id });
+    if (!addOrChoose(dispatch, p)) return;
     Alert.alert(food ? 'Pedido no carrinho 🍽️' : 'No carrinho 🛍️', `${p.name} entrou com o preço da oferta.`, [
       { text: 'Continuar' },
       { text: 'Ver carrinho', onPress: () => dispatch({ type: 'OPEN_CART' }) },

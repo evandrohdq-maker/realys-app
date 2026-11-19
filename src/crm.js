@@ -361,6 +361,20 @@ export function crmSendCatalog(id, items, storeName) {
     ...(l.stage === 'novo' ? { stage: 'conversa', history: [...l.history, { stage: 'conversa', at, cycle: l.cycle || 1 }] } : {}),
   }));
 }
+// Orçamento do prestador (o "catálogo" de quem vende serviço): visita + serviços com valor.
+// Vai na conversa e o atendimento passa para "Orçamento enviado" com o valor total.
+export function crmSendQuote(id, items, title = 'Orçamento') {
+  const at = Date.now();
+  const total = items.reduce((t, it) => t + (it.price || 0), 0);
+  patch(id, (l) => ({
+    ...l,
+    unread: 0,
+    value: total,
+    stage: l.stage === 'fechado' ? l.stage : 'proposta',
+    history: l.stage === 'proposta' || l.stage === 'fechado' ? l.history : [...l.history, { stage: 'proposta', at, cycle: l.cycle || 1 }],
+    messages: [...l.messages, { from: 'me', kind: 'quote', text: title, items, total, at, time: hhmm(at) }],
+  }));
+}
 // Registro de chamada (voz ou vídeo) na conversa.
 export function crmCallLog(id, kind, secs) {
   const at = Date.now();

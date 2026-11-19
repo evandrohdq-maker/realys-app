@@ -58,9 +58,10 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
     const t = text.trim();
     if (!t) return;
     // Anti-desvio: com empresa, prestador ou quem ainda não aceitou o contato, nada de telefone,
-    // Pix ou "por fora". Entre amigos que aceitaram o contato, a conversa é livre.
+    // Pix ou "por fora" (vale até entre amigos, se um dos dois vende). Entre amigos comuns, a conversa é livre.
     const business = (state.providers || []).some((x) => x.id === contact.id || x.name === contact.name) || (state.stores || []).some((x) => x.id === contact.id || x.name === contact.name) || contact.business;
-    if (business || friendSt !== 'amigo') {
+    const iSell = !!state.myProvider || (state.user && (state.user.roles || []).some((r) => r === 'empresa' || r === 'prestador' || r === 'fornecedor'));
+    if (business || iSell || friendSt !== 'amigo') {
       const ad = antiDesvio(t);
       if (!ad.ok) return Alert.alert('Fica tudo no Re@lys 🔒', ad.why);
     }

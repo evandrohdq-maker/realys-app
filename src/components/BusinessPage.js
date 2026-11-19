@@ -2,6 +2,7 @@
 // estrutura e dados da empresa): visual futurista (fundo noturno, brilho dourado e azul, anel em órbita),
 // onde a empresa atua e os segmentos de cada área, onde atende, vitrine, produtos,
 // depoimentos de quem comprou, vídeos de propaganda e conteúdos.
+import { addOrChoose, openProduct } from './ProductSheet';
 import React, { useState, useEffect, useRef } from 'react';
 import { OriginSeal, InstallSuggest } from './Engage';
 import { LiveNowBadge } from './LiveBits';
@@ -362,7 +363,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
     ...(media.length ? [['midia', 'Músicas', 'musical-notes-outline']] : []),
   ];
   const add = (id) => {
-    dispatch({ type: 'ADD_TO_CART', productId: id });
+    if (!addOrChoose(dispatch, state.products.find((x) => x.id === id))) return;
     Alert.alert('No carrinho', 'Produto adicionado. Finalize na aba Loja.');
   };
 

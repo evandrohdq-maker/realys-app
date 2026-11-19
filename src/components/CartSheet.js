@@ -1,6 +1,7 @@
 // Carrinho em janela compacta: abre por cima de qualquer tela, sem ocupar espaço no visual do app.
 // Abre pelo ícone discreto no topo (só aparece quando há itens), pela barra da loja ou pedindo
 // à Lotus ("abre meu carrinho"). dispatch({ type: 'OPEN_CART' }).
+import { optionsLabel } from '../productOptions';
 import React from 'react';
 import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Text } from '../responsive';
@@ -79,8 +80,8 @@ export default function CartSheet({ onOrders }) {
           ) : (
             <>
               <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
-                {lines.map(({ p, qty }) => (
-                  <View key={p.id} style={styles.line}>
+                {lines.map(({ p, qty, options }, li) => (
+                  <View key={p.id + li} style={styles.line}>
                     {/* Tocar no produto leva à página da loja que vende, para ver mais produtos dela. */}
                     <TouchableOpacity
                       style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
@@ -94,6 +95,7 @@ export default function CartSheet({ onOrders }) {
                       <ProductThumb product={p} size={46} />
                       <View style={{ flex: 1, marginLeft: 10 }}>
                         <Text style={styles.name} numberOfLines={1}>{p.name}</Text>
+                        {options ? <Text style={{ color: '#7A7468', fontSize: 11.5 }} numberOfLines={1}>{optionsLabel(options)}</Text> : null}
                         <Text style={styles.sub} numberOfLines={1}>
                           {(storeOf(state, p.storeId) || {}).name} · <Text style={{ color: colors.primary, fontWeight: '700' }}>ver loja ›</Text>
                         </Text>

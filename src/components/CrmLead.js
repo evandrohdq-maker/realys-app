@@ -13,7 +13,7 @@ import { useTeam, memberOf, roleOf } from '../team';
 import { antiDesvio } from '../moderation';
 import {
   crmStages, crmBoard, CRM_ORIGINS, CRM_LOST_REASONS, CRM_TEMPLATES, QUAL_STEPS, stageOf, stageIndex, qualDone, crmTemp, crmFee,
-  crmMove, crmSend, crmUpdate, crmRemove, crmQual, crmTaskAdd, crmTaskToggle, crmTaskRemove, crmReceive, crmSendCatalog, crmCallLog, crmAssign, crmPaid,
+  crmMove, crmSend, crmUpdate, crmRemove, crmQual, crmTaskAdd, crmTaskToggle, crmTaskRemove, crmReceive, crmSendCatalog, crmSendQuote, crmCallLog, crmAssign, crmPaid,
 } from '../crm';
 
 const dateTime = (t) => new Date(t).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
@@ -33,6 +33,21 @@ export default function CrmLead({ lead, onClose }) {
   const [task, setTask] = useState('');
   const [call, setCall] = useState(null); // 'voz' | 'video'
   const [catalog, setCatalog] = useState(false);
+  // Orçamento (prestador, aulas, online): visita + serviços do cadastro, com o valor de cada um.
+  const [quote, setQuote] = useState(null); // [{ name, price: '80,00', on }]
+  const openQuote = () => {
+    const pv = state.myProvider || {};
+    const unit = pv.priceUnit || 'visita';
+    const base = [{ name: `Visita técnica`, price: '', on: true }, ...(pv.functions || ['Serviço']).map((f) => ({ name: f, price: pv.price ? String(pv.price).replace('.', ',') : '', on: false }))];
+    setQuote(base.map((x, i) => (i === 1 && pv.price ? { ...x, name: `${x.name} (por ${unit})`, on: true } : x)));
+  };
+  const num = (v) => parseFloat(String(v || '').replace(/\./g, '').replace(',', '.')) || 0;
+  const sendQuote = () => {
+    const items = quote.filter((x) => x.on && x.name.trim() && num(x.price) > 0).map((x, i) => ({ id: 'q' + i, name: x.name.trim(), price: num(x.price) }));
+    if (!items.length) return Alert.alert('Falta o valor', 'Marque pelo menos um item com valor.');
+    crmSendQuote(lead.id, items, 'Orçamento');
+    setQuote(null);
+  };
   const [picked, setPicked] = useState([]);
   const [assign, setAssign] = useState(false);
   const scroll = useRef(null);
@@ -163,6 +178,25 @@ export default function CrmLead({ lead, onClose }) {
               {lead.messages.map((m, i) =>
                 m.from === 'system' ? (
                   <Text key={i} style={st.system}>{m.text}</Text>
+                ) : m.kind === 'quote' ? (
+                  <View key={i} style={[st.bubble, st.mine, { width: '82%' }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                      <Ionicons name="document-text-outline" size={15} color={colors.text} />
+                      <Text style={{ color: colors.text, fontWeight: '800', marginLeft: 6 }}>{m.text}</Text>
+                    </View>
+                    {m.items.map((it) => (
+                      <View key={it.id} style={st.catRow}>
+                        <Text style={{ color: colors.text, flex: 1 }} numberOfLines={2}>{it.name}</Text>
+                        <Text style={{ color: colors.text, fontWeight: '800' }}>{brl(it.price)}</Text>
+                      </View>
+                    ))}
+                    <View style={[st.catRow, { borderBottomWidth: 0 }]}>
+                      <Text style={{ color: colors.text, flex: 1, fontWeight: '800' }}>Total</Text>
+                      <Text style={{ color: colors.text, fontWeight: '800' }}>{brl(m.total)}</Text>
+                    </View>
+                    <Text style={{ color: colors.muted, fontSize: 11.5, marginTop: 4 }}>O cliente aceita e paga pelo Re@lys, com a Garantia.</Text>
+                    <Text style={st.time}>{m.time}</Text>
+                  </View>
                 ) : m.kind === 'catalog' ? (
                   <View key={i} style={[st.bubble, st.mine, { width: '82%' }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
@@ -194,6 +228,12 @@ export default function CrmLead({ lead, onClose }) {
                   <TouchableOpacity style={[st.chip, { borderColor: colors.primary }]} onPress={() => setCatalog(true)} accessibilityLabel="Enviar catálogo">
                     <Ionicons name="pricetags-outline" size={14} color={colors.text} />
                     <Text numberOfLines={1} style={[st.chipText, { marginLeft: 4 }]}>Enviar catálogo</Text>
+                  </TouchableOpacity>
+                ) : null}
+                {board !== 'empresa' && board !== 'imoveis' && board !== 'veiculos' ? (
+                  <TouchableOpacity style={[st.chip, { borderColor: colors.primary }]} onPress={openQuote} accessibilityLabel="Enviar orçamento">
+                    <Ionicons name="document-text-outline" size={14} color={colors.text} />
+                    <Text numberOfLines={1} style={[st.chipText, { marginLeft: 4 }]}>Enviar orçamento</Text>
                   </TouchableOpacity>
                 ) : null}
                 {(CRM_TEMPLATES[lead.stage] || []).map((t) => (
@@ -386,6 +426,35 @@ export default function CrmLead({ lead, onClose }) {
               </TouchableOpacity>
               <TouchableOpacity style={[st.advance, { marginRight: 0 }, !picked.length && { opacity: 0.5 }]} disabled={!picked.length} onPress={sendCatalog}>
                 <Text numberOfLines={1} style={{ color: '#fff', fontWeight: '800', fontSize: 13 }}>Enviar {picked.length || ''}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Orçamento do prestador */}
+        <Modal visible={!!quote} transparent animationType="slide" onRequestClose={() => setQuote(null)}>
+          <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(20,18,14,0.4)' }} activeOpacity={1} onPress={() => setQuote(null)} />
+          <View style={st.sheet}>
+            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>Enviar orçamento</Text>
+            <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 2 }}>Marque o que entra e o valor de cada item. O cliente recebe na conversa e paga pelo Re@lys.</Text>
+            <ScrollView style={{ maxHeight: 330, marginTop: 8 }} keyboardShouldPersistTaps="handled">
+              {(quote || []).map((x, qi) => (
+                <View key={qi} style={[st.pick, { alignItems: 'center' }]}>
+                  <TouchableOpacity onPress={() => setQuote(quote.map((y, j) => (j === qi ? { ...y, on: !y.on } : y)))} hitSlop={6}>
+                    <Ionicons name={x.on ? 'checkbox' : 'square-outline'} size={21} color={x.on ? colors.primary : colors.muted} />
+                  </TouchableOpacity>
+                  <TextInput value={x.name} onChangeText={(t) => setQuote(quote.map((y, j) => (j === qi ? { ...y, name: t } : y)))} style={{ flex: 1, marginLeft: 8, color: colors.text, paddingVertical: 4 }} maxLength={60} />
+                  <TextInput value={x.price} onChangeText={(t) => setQuote(quote.map((y, j) => (j === qi ? { ...y, price: t.replace(/[^0-9,.]/g, ''), on: true } : y)))} placeholder="R$" placeholderTextColor={colors.muted} keyboardType="decimal-pad" style={{ width: 84, textAlign: 'right', color: colors.text, fontWeight: '800', paddingVertical: 4 }} />
+                </View>
+              ))}
+              <TouchableOpacity onPress={() => setQuote([...(quote || []), { name: 'Outro serviço', price: '', on: true }])} style={{ paddingVertical: 8 }}>
+                <Text style={{ color: colors.primaryDark || colors.primary, fontWeight: '800' }}>+ incluir item</Text>
+              </TouchableOpacity>
+            </ScrollView>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
+              <Text style={{ flex: 1, color: colors.text, fontWeight: '800' }}>Total {brl((quote || []).filter((x) => x.on).reduce((t, x) => t + num(x.price), 0))}</Text>
+              <TouchableOpacity style={[st.advance, { marginRight: 0 }]} onPress={sendQuote}>
+                <Text numberOfLines={1} style={{ color: '#fff', fontWeight: '800', fontSize: 13 }}>Enviar orçamento</Text>
               </TouchableOpacity>
             </View>
           </View>

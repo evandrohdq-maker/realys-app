@@ -150,6 +150,7 @@ export default function socialRoutes(r, { db, hub, userById, publicUser }) {
     const amigos = !!db.prepare(`SELECT 1 FROM friends WHERE status = 'amigos' AND ((a_id = ? AND b_id = ?) OR (a_id = ? AND b_id = ?))`).get(user.id, to.id, to.id, user.id);
     const negocio = (u) => u.kind === 'empresa' || !!db.prepare('SELECT 1 FROM providers WHERE user_id = ?').get(u.id);
     const vende = negocio(user);
+    // Vale até entre amigos quando um dos dois é empresa ou prestador (virar amigo não libera o número).
     if (!amigos || vende || negocio(to)) {
       const ad = antiDesvio(msg.text);
       if (!ad.ok) fail(422, ad.why, 'desvio');

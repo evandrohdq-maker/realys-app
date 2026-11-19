@@ -1,3 +1,5 @@
+import { addOrChoose, openProduct } from '../../components/ProductSheet';
+import { optionsLabel } from '../../productOptions';
 import { askPix } from '../../components/PixPay';
 import React, { useState, useMemo, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
@@ -87,7 +89,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
   useBack(showCart, () => setShowCart(false));
   useBack(!!food && seg !== 'cardapio' && !openStore, () => setSeg('cardapio'));
 
-  const add = (id) => dispatch({ type: 'ADD_TO_CART', productId: id });
+  const add = (id) => addOrChoose(dispatch, state.products.find((x) => x.id === id));
   // Toque no anúncio da vitrine do Food: abre o cardápio ou já põe o prato no carrinho.
   const openAd = (ad) => {
     const p = state.products.find((x) => x.id === ad.productId);
@@ -174,15 +176,16 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
         </TouchableOpacity>
         <Text style={styles.h1}>Seu carrinho</Text>
         {state.cart.length === 0 ? <Empty text="Carrinho vazio." /> : null}
-        {state.cart.map((c) => {
+        {state.cart.map((c, ci) => {
           const p = state.products.find((x) => x.id === c.productId);
           return (
-            <Card key={c.productId}>
+            <Card key={c.productId + ci}>
               <Row>
                 <ProductThumb product={p} size={52} />
                 <View style={{ flex: 1, marginLeft: 10 }}>
                   <Text style={{ fontWeight: '700', color: colors.text }}>{p.name}</Text>
                   <Text style={{ color: colors.muted, fontSize: 12 }}>{storeOf(state, p.storeId).name}</Text>
+                  {c.options ? <Text style={{ color: colors.muted, fontSize: 12 }}>{optionsLabel(c.options)}</Text> : null}
                   <Text style={{ color: colors.primary, fontWeight: '700' }}>
                     {c.qty} × {brl(p.price)}
                   </Text>

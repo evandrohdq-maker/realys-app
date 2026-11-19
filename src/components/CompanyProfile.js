@@ -1,3 +1,4 @@
+import { addOrChoose, openProduct } from './ProductSheet';
 import React, { useState, useEffect } from 'react';
 import { LiveNowBadge } from './LiveBits';
 import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert } from 'react-native';
@@ -158,7 +159,7 @@ export function CompanyProfileModal() {
     ? [['musica', 'Músicas'], ['video', 'Vídeos'], ['obra', 'Obras']]
     : [['produtos', 'Produtos'], ['conteudo', 'Conteúdos'], ['midia', 'Vídeos e músicas']];
   const add = (id) => {
-    dispatch({ type: 'ADD_TO_CART', productId: id });
+    if (!addOrChoose(dispatch, state.products.find((x) => x.id === id))) return;
     Alert.alert('No carrinho', 'Produto adicionado. Finalize na aba Loja.');
   };
 
