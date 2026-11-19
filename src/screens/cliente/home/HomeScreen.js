@@ -589,8 +589,10 @@ export function CommunityHub({ top, explore }) {
   const [videoWith, setVideoWith] = useState(null);
   const [live, setLive] = useState(null);
   useBack(seg !== 'posts', () => setSeg('posts'));
+  // Tocar em Community no rodapé (ou ir para a Community por outro caminho) sempre volta para o feed,
+  // saindo de Mensagens, Contatos ou Notificações; só abre outra parte quando ela vem pedida (seg).
   useEffect(() => {
-    if (explore && explore.tab === 'stories' && explore.seg) setSeg(explore.seg);
+    if (explore && explore.tab === 'stories') setSeg(explore.seg || 'posts');
   }, [explore]);
   const contactOf = (id) => contacts.find((c) => c.id === id) || (convs.find((c) => c.contactId === id) || {}).extra;
   const openChat = (contact) => {

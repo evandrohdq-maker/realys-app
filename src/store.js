@@ -257,7 +257,6 @@ const initialState = {
   // Músicas no carrinho (o "+" do player só adiciona; a compra é confirmada no carrinho).
   // ouviu: o cliente já usou a única ouvida extra que o carrinho dá antes de comprar.
   notifSeen: {}, // notificações já vistas no sininho da Community: { id: true }
-  navReq: null, // pedido de navegação vindo de um componente (ex.: tocar numa notificação): { tab, seg, at }
   musicCart: [], // [{ id, price, title, artist, ouviu }]
   tickets: [], // passagens de transporte público
   notes: [], // anotações do administrador sobre o que mudar em cada tela (ficam salvas no celular)
@@ -856,8 +855,6 @@ function baseReducer(state, a) {
       a.ids.forEach((id) => { if (!seen[id]) { seen[id] = true; changed = true; } });
       return changed ? { ...state, notifSeen: seen } : state;
     }
-    case 'NAV_REQUEST':
-      return { ...state, navReq: { ...a.go, at: Date.now() } };
     case 'REMOVE_MUSIC_CART':
       return { ...state, musicCart: (state.musicCart || []).filter((x) => x.id !== a.id) };
     // No carrinho dá para ouvir a música mais uma vez (uma só) antes de confirmar.

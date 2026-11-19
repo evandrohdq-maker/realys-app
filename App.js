@@ -519,10 +519,6 @@ function Shell({ inviteTick }) {
     }
     switchRole(role, go.tab);
   };
-  // Navegação pedida por um componente (ex.: tocar numa notificação do sininho).
-  useEffect(() => {
-    if (state.navReq) pick(state.navReq);
-  }, [state.navReq && state.navReq.at]);
 
 
   // Componentes (carrinho, cartões de aviso...) pedem para ir a uma área: dispatch({ type: 'NAV_REQUEST', go }).
