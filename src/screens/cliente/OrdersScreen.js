@@ -325,6 +325,7 @@ export default function OrdersScreen({ navigate, explore }) {
   const tickets = state.tickets || [];
   const venueOrders = state.venueOrders || [];
   const cartCount = state.cart.reduce((n, c) => n + c.qty, 0) + (state.musicCart || []).length;
+  const cartSubtotal = +(cartTotal(state) + (state.musicCart || []).reduce((n, x) => n + x.price, 0)).toFixed(2);
   const [seg, setSeg] = useState(cartCount ? 'carrinho' : 'compras');
   // Aguardando retorno: chamados e pedidos que o cliente fez e ainda esperam a resposta do outro lado.
   const waiting = [
@@ -382,6 +383,29 @@ export default function OrdersScreen({ navigate, explore }) {
         ))}
       </View>
       {view === 'despesas' ? <Expenses rows={expenses} /> : null}
+      {/* Carrinho em destaque: tudo que ainda não foi pago aparece aqui em cima, para revisar e confirmar. */}
+      {view !== 'despesas' && cartCount ? (
+        <TouchableOpacity
+          onPress={() => { setView('andamento'); setSeg('carrinho'); }}
+          activeOpacity={0.85}
+          style={[styles.cartBar, seg === 'carrinho' && styles.cartBarOn]}
+          accessibilityLabel={`Seu carrinho: ${cartCount} ${cartCount === 1 ? 'item' : 'itens'}, ${brl(cartSubtotal)}. Revisar e confirmar`}
+        >
+          <View style={styles.cartBarIcon}>
+            <Ionicons name="bag-handle" size={20} color="#0B1124" />
+            <View style={styles.cartBarBadge}>
+              <Text numberOfLines={1} style={styles.cartBarBadgeText}>{cartCount > 9 ? '9+' : cartCount}</Text>
+            </View>
+          </View>
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <Text numberOfLines={1} style={styles.cartBarTitle}>Seu carrinho · {brl(cartSubtotal)}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={styles.cartBarSub}>
+              {seg === 'carrinho' ? 'Revise abaixo e confirme a compra' : `${cartCount} ${cartCount === 1 ? 'item esperando' : 'itens esperando'} você confirmar`}
+            </Text>
+          </View>
+          <Ionicons name={seg === 'carrinho' ? 'chevron-down' : 'chevron-forward'} size={20} color="#0B1124" />
+        </TouchableOpacity>
+      ) : null}
       {view !== 'despesas' ? <SegTabs items={SEGS} value={seg} onChange={setSeg} rows={2} /> : null}
       {view === 'despesas' ? null : (
       <>
@@ -572,6 +596,13 @@ export default function OrdersScreen({ navigate, explore }) {
 }
 
 const styles = StyleSheet.create({
+  cartBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5C331', borderRadius: 18, paddingVertical: 12, paddingHorizontal: 14, marginBottom: 10, shadowColor: '#B8860B', shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 5 },
+  cartBarOn: { borderWidth: 2, borderColor: '#0B1124' },
+  cartBarIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.55)', alignItems: 'center', justifyContent: 'center' },
+  cartBarBadge: { position: 'absolute', top: -3, right: -4, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#0B1124', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  cartBarBadgeText: { color: '#F5C331', fontSize: 10, fontWeight: '800' },
+  cartBarTitle: { color: '#0B1124', fontWeight: '800', fontSize: 15.5 },
+  cartBarSub: { color: '#3A3220', fontWeight: '600', fontSize: 12.5, marginTop: 1 },
   trackBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5C331', borderRadius: 12, paddingVertical: 10, marginTop: 10 },
   trackText: { color: '#0B1124', fontWeight: '800', marginLeft: 6 },
   trackLive: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#16A34A', marginLeft: 8 },

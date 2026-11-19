@@ -59,13 +59,19 @@ export default function MusicCart({ onDone }) {
     <View style={st.box}>
       <View style={st.head}>
         <Ionicons name="musical-notes" size={16} color={colors.primary} />
-        <Text style={st.title}>Músicas</Text>
+        <Text style={st.title}>{items.some((x) => x.kind === 'obra') ? 'Músicas e obras' : 'Músicas'}</Text>
         <Text style={st.hint} numberOfLines={1}>ouça mais uma vez antes de comprar</Text>
       </View>
       {items.map((x) => {
         const on = playingId === x.id;
+        const canPlay = !!trackById(x.id);
         return (
           <View key={x.id} style={st.line}>
+            {!canPlay ? (
+              <View style={[st.play, { backgroundColor: colors.cardAlt }]}>
+                <Ionicons name={x.kind === 'obra' ? 'color-palette-outline' : 'musical-note'} size={15} color={colors.text} />
+              </View>
+            ) : (
             <TouchableOpacity
               onPress={() => listen(x)}
               style={[st.play, x.ouviu && !on && { opacity: 0.4 }]}
@@ -73,9 +79,10 @@ export default function MusicCart({ onDone }) {
             >
               <Ionicons name={on ? 'pause' : 'play'} size={15} color={NIGHT} />
             </TouchableOpacity>
+            )}
             <View style={{ flex: 1, marginLeft: 10 }}>
               <Text style={st.name} numberOfLines={1}>{x.title}</Text>
-              <Text style={st.sub} numberOfLines={1}>{x.artist} · {on ? 'tocando' : x.ouviu ? 'já ouviu de novo' : 'pode ouvir mais 1 vez'}</Text>
+              <Text style={st.sub} numberOfLines={1}>{x.artist} · {!canPlay ? (x.kind === 'obra' ? 'obra' : 'faixa') : on ? 'tocando' : x.ouviu ? 'já ouviu de novo' : 'pode ouvir mais 1 vez'}</Text>
             </View>
             <Text style={st.price}>{brl(x.price)}</Text>
             <TouchableOpacity onPress={() => dispatch({ type: 'REMOVE_MUSIC_CART', id: x.id })} style={st.del} hitSlop={6} accessibilityLabel={`Tirar ${x.title} do carrinho`}>

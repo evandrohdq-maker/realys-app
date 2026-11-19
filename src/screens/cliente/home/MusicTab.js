@@ -71,13 +71,16 @@ export default function MusicTab() {
     if (playingId === t.id) return stopRadio();
     playTrack(t, list);
   };
+  // Preço da música: só põe no carrinho (nada de compra num toque). A compra é confirmada no carrinho.
+  const inCart = (t) => (state.musicCart || []).some((x) => x.id === t.id);
   const buy = (t) => {
     if (bought[t.id]) return;
     if (!isVerified(state)) return dispatch({ type: 'BIO_GATE' });
-    if (state.wallet < t.price) return Alert.alert('Saldo insuficiente', `Esta música custa ${brl(t.price)}. Coloque saldo na carteira e tente de novo.`);
-    Alert.alert(`Comprar "${t.title}"`, `${brl(t.price)} do seu saldo. A música fica sua: dá para baixar e ouvir sem propaganda e sem internet. ${brl(artistGets(t.price))} vão direto para ${t.artist}.`, [
-      { text: 'Agora não', style: 'cancel' },
-      { text: `Comprar por ${brl(t.price)}`, onPress: () => dispatch({ type: 'BUY_MEDIA', id: t.id, price: t.price }) },
+    if (inCart(t)) return dispatch({ type: 'OPEN_CART' });
+    dispatch({ type: 'ADD_MUSIC_CART', track: { id: t.id, price: t.price, title: t.title, artist: t.artist } });
+    Alert.alert('No carrinho 🛒', `"${t.title}" foi para o carrinho. Confirme a compra lá; antes dá para ouvir mais uma vez.`, [
+      { text: 'Continuar ouvindo', style: 'cancel' },
+      { text: 'Ver carrinho', onPress: () => dispatch({ type: 'OPEN_CART' }) },
     ]);
   };
   const download = (t) => {
@@ -118,8 +121,9 @@ export default function MusicTab() {
               <Text numberOfLines={1} style={st.pillText}>{downloaded[t.id] ? 'Baixada' : 'Baixar'}</Text>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity style={st.pill} onPress={() => buy(t)} accessibilityLabel={`Comprar ${t.title} por ${brl(t.price)}`}>
-              <Text numberOfLines={1} style={st.pillText}>{brl(t.price)}</Text>
+            <TouchableOpacity style={st.pill} onPress={() => buy(t)} accessibilityLabel={inCart(t) ? `${t.title} está no carrinho. Abrir carrinho` : `Pôr ${t.title} no carrinho, ${brl(t.price)}`}>
+              <Ionicons name={inCart(t) ? 'cart' : 'cart-outline'} size={13} color={colors.text} />
+              <Text numberOfLines={1} style={st.pillText}>{inCart(t) ? 'No carrinho' : brl(t.price)}</Text>
             </TouchableOpacity>
           ))}
       </View>

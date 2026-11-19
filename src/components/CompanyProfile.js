@@ -12,6 +12,7 @@ import { Photo, ProductThumb, Badge, Row } from './ui';
 import { ShopProductCard } from './ShopKit';
 import { artists, artMedia, companyPages } from '../extraData';
 import { MY_COMPANY_ID } from '../data';
+import { isVerified } from './BioGate';
 import { BusinessPageModal } from './BusinessPage';
 
 const count = (n) => (n >= 1000 ? (n / 1000).toFixed(1).replace('.', ',').replace(',0', '') + ' mil' : String(n));
@@ -63,17 +64,16 @@ export function MediaList({ items, showOwner }) {
     if (m.kind === 'obra') return;
     setPlaying(playing === m.id ? null : m.id);
   };
+  // Preço da faixa/obra: só põe no carrinho. A compra é confirmada no carrinho, nunca num toque só.
+  const inCart = (m) => (state.musicCart || []).some((x) => x.id === m.id);
   const buy = (m) => {
-    if (m.price > state.wallet) return Alert.alert('Saldo insuficiente', 'Adicione saldo Re@lys para comprar.');
-    Alert.alert(m.kind === 'obra' ? 'Comprar obra' : 'Comprar faixa', `${m.title} por ${brl(m.price)} com saldo Re@lys?`, [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Comprar',
-        onPress: () => {
-          dispatch({ type: 'BUY_MEDIA', id: m.id, price: m.price });
-          Alert.alert('Compra feita ✅', m.kind === 'obra' ? 'O artista vai combinar a entrega com você pelo chat.' : 'A faixa completa já está liberada e pode ser baixada em MP3.');
-        },
-      },
+    if (!isVerified(state)) return dispatch({ type: 'BIO_GATE' });
+    if (inCart(m)) return dispatch({ type: 'OPEN_CART' });
+    const owner = artists.find((a) => a.id === m.ownerId);
+    dispatch({ type: 'ADD_MUSIC_CART', track: { id: m.id, price: m.price, title: m.title, artist: owner ? owner.name : 'Artista', kind: m.kind } });
+    Alert.alert('No carrinho 🛒', `"${m.title}" foi para o carrinho. Confirme a compra lá.`, [
+      { text: 'Continuar', style: 'cancel' },
+      { text: 'Ver carrinho', onPress: () => dispatch({ type: 'OPEN_CART' }) },
     ]);
   };
 
@@ -125,7 +125,7 @@ export function MediaList({ items, showOwner }) {
             </View>
             {m.price && !owned(m) ? (
               <TouchableOpacity style={styles.buy} onPress={() => buy(m)}>
-                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.buyText}>{brl(m.price)}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.buyText}>{inCart(m) ? '🛒 No carrinho' : brl(m.price)}</Text>
               </TouchableOpacity>
             ) : m.kind === 'musica' ? (
               <Ionicons name="download-outline" size={20} color={colors.primary} style={{ marginLeft: 8 }} />

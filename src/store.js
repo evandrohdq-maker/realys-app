@@ -845,8 +845,8 @@ function baseReducer(state, a) {
     case 'ADD_MUSIC_CART': {
       const mc = state.musicCart || [];
       if ((state.boughtMedia || {})[a.track.id] || mc.some((x) => x.id === a.track.id)) return state;
-      const { id, price, title, artist } = a.track;
-      return { ...state, musicCart: [...mc, { id, price, title, artist, ouviu: false }] };
+      const { id, price, title, artist, kind } = a.track;
+      return { ...state, musicCart: [...mc, { id, price, title, artist, ...(kind ? { kind } : {}), ouviu: false }] };
     }
     case 'REMOVE_MUSIC_CART':
       return { ...state, musicCart: (state.musicCart || []).filter((x) => x.id !== a.id) };
@@ -869,7 +869,7 @@ function baseReducer(state, a) {
           {
             id: newId('o'),
             at: Date.now(),
-            items: mc.map((x) => ({ name: `🎵 ${x.title} · ${x.artist}`, qty: 1, price: x.price })),
+            items: mc.map((x) => ({ name: `${x.kind === 'obra' ? '🎨' : '🎵'} ${x.title} · ${x.artist}`, qty: 1, price: x.price })),
             total,
             status: 'Entregue',
             store: [...new Set(mc.map((x) => x.artist))].join(', '),
