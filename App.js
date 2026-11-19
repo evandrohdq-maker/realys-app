@@ -342,12 +342,18 @@ function Shell({ inviteTick }) {
   // Só entram os perfis que a conta tem: quem é só empresa + usuário alterna entre os dois.
   const profileCycle = ['cliente', ...WORK_ROLES.filter((r) => workRoles.includes(r))];
   const nextProfile = profileCycle[(profileCycle.indexOf(state.activeRole) + 1) % profileCycle.length];
+  // Perfil social e perfil de trabalho são coisas diferentes: ao trocar para empresa, prestador ou
+  // fornecedor, abre o PAINEL daquela classe (a 1ª aba dela: Painel, Trabalhar, Propostas), não o
+  // perfil social de novo. Lá dentro ficam a Página/loja, vitrine, mural etc. da classe.
+  // No painel de trabalho, tocar no símbolo de novo troca para o próximo perfil (ou volta ao social).
+  const isWork = WORK_ROLES.includes(state.activeRole);
   const tapProfile = () => {
-    if (current.key !== 'perfil' || !canSwap) return pick({ tab: 'perfil' });
+    if (!canSwap) return isWork ? setTab(TABS[state.activeRole][0].key) : pick({ tab: 'perfil' });
+    if (!isWork && current.key !== 'perfil') return pick({ tab: 'perfil' });
     // Sem aviso: o selinho ao lado da foto já mostra o perfil em uso
     // (bonequinho = usuário, prédio = empresa, ferramenta = prestador, caixa = fornecedor).
     setCameFromEmpresa(false);
-    switchRole(nextProfile, 'perfil');
+    switchRole(nextProfile, nextProfile === 'cliente' ? 'perfil' : undefined);
   };
   // ⋮ do cabeçalho: o Menu mora no Perfil. Fora dele, passa pelo Perfil e volta ao fechar.
   const openMenuAnywhere = () => {
@@ -578,12 +584,12 @@ function Shell({ inviteTick }) {
           <TouchableOpacity onPress={() => setSearching(true)} style={styles.iconBtn} accessibilityLabel="Buscar pessoas na rede Re@lys">
             <Ionicons name="search-outline" size={21} color={colors.text} />
           </TouchableOpacity>
-          {/* Fotinha do perfil: toque abre o Perfil; no Perfil, tocar de novo troca de perfil
-              (usuário → empresa/prestador/fornecedor → usuário). O selinho mostra o perfil em uso. */}
+          {/* Fotinha do perfil: toque abre o Perfil social; no Perfil, tocar de novo abre o PAINEL do perfil de trabalho
+              (empresa → Painel, prestador → Trabalhar, fornecedor → Propostas); no painel, toca de novo para voltar ao social. */}
           <TouchableOpacity
             onPress={tapProfile}
             style={[styles.iconBtn, current.key === 'perfil' && styles.iconBtnOn]}
-            accessibilityLabel={current.key === 'perfil' && canSwap ? `Trocar para o perfil ${ROLE_LABELS[nextProfile]}` : 'Abrir meu perfil'}
+            accessibilityLabel={canSwap && (isWork || current.key === 'perfil') ? (nextProfile === 'cliente' ? 'Voltar para o meu perfil social' : `Abrir o painel ${ROLE_LABELS[nextProfile]}`) : 'Abrir meu perfil'}
           >
             {state.myProfile && state.myProfile.photo ? (
               <Image source={{ uri: state.myProfile.photo }} style={[styles.headAvatar, current.key === 'perfil' && { borderColor: colors.gold }]} />
