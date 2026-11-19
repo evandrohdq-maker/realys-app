@@ -19,6 +19,8 @@ import { Photo, Empty } from './ui';
 import ThemeArt, { FUTURE_THEMES, futureTheme } from './ThemeArt';
 import { memberById } from '../people';
 import { galleryOf } from '../testimonialsData';
+import * as ImagePicker from 'expo-image-picker';
+import { getDevicePoint, addressOf } from '../geo';
 
 const PAGE = 6; // cartões por vez: o resto chega ao arrastar
 const NOTE_COLORS = ['#FFF3C4', '#DDF4FF', '#FFE1EC', '#E3FBE6', '#EDE4FF', '#FFFFFF'];
@@ -199,6 +201,12 @@ function MuralCard({ it, th, mine, onEdit }) {
         <>
           <Photo uri={it.uri} style={[st.img, { marginTop: 4 }, it.big && { height: 260 }]} />
           {it.text ? <Text style={[st.cardText, { color: ink }]}>{it.text}</Text> : null}
+          {it.place ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+              <Ionicons name="location-outline" size={13} color={sub} />
+              <Text numberOfLines={1} style={[st.by, { color: sub, marginTop: 0, marginLeft: 3, flex: 1 }]}>{it.place}</Text>
+            </View>
+          ) : null}
         </>
       ) : null}
       {note ? <Text style={[st.cardText, { color: ink }, it.big && { fontSize: 19, fontWeight: '700' }]}>{it.text}</Text> : null}
@@ -253,13 +261,71 @@ function Picker({ kind, onClose, onPick, current }) {
   const { state, dispatch } = useStore();
   const posts = state.communityPosts || [];
   const photos = (state.myGallery && state.myGallery.photos) || [];
+  // Foto: primeiro escolhe, depois escreve a descrição e marca o local antes de pôr no mural.
+  const [chosen, setChosen] = useState(null);
+  const [desc, setDesc] = useState('');
+  const [place, setPlace] = useState('');
+  const [locating, setLocating] = useState(false);
+  const reset = () => (setChosen(null), setDesc(''), setPlace(''));
+  const close = () => (reset(), onClose());
   const pick = (item) => {
     onPick(item);
-    onClose();
+    close();
+  };
+  const fromPhone = async (camera) => {
+    try {
+      const perm = camera ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) return Alert.alert('Permissão', camera ? 'Permita a câmera para tirar a foto.' : 'Permita o acesso às fotos do celular.');
+      const opts = { mediaTypes: ['images'], quality: 0.85, allowsEditing: true };
+      const r = camera ? await ImagePicker.launchCameraAsync(opts) : await ImagePicker.launchImageLibraryAsync(opts);
+      if (!r.canceled && r.assets && r.assets[0]) setChosen(r.assets[0].uri);
+    } catch (e) {}
+  };
+  // Local aproximado (bairro e cidade), nunca o endereço exato da pessoa.
+  const locate = async () => {
+    setLocating(true);
+    const p = await getDevicePoint();
+    const full = p ? await addressOf(p) : null;
+    setLocating(false);
+    if (!full) return Alert.alert('Localização', 'Não deu para achar onde você está. Escreva o local.');
+    setPlace(full.split(' · ').slice(-2).join(' · '));
   };
   return (
-    <Sheet visible={!!kind} onClose={onClose} title={kind === 'post' ? 'Fixar um post que você curtiu' : kind === 'foto' ? 'Escolha uma foto da galeria' : 'Tema do mural'}>
-      <ScrollView style={{ maxHeight: 420 }}>
+    <Sheet visible={!!kind} onClose={close} title={kind === 'post' ? 'Fixar um post que você curtiu' : kind === 'foto' ? (chosen ? 'Sua foto no mural' : 'Escolha uma foto') : 'Tema do mural'}>
+      <ScrollView style={{ maxHeight: 460 }} keyboardShouldPersistTaps="handled">
+        {kind === 'foto' && chosen ? (
+          <View>
+            <Photo uri={chosen} style={{ width: '100%', height: 210, borderRadius: 14 }} />
+            <TextInput value={desc} onChangeText={setDesc} placeholder="Escreva uma descrição…" placeholderTextColor={colors.muted} multiline maxLength={300} style={[st.input, { minHeight: 70, backgroundColor: '#FFFFFF', marginTop: 10, borderWidth: 1, borderColor: colors.border }]} />
+            <View style={st.placeRow}>
+              <Ionicons name="location-outline" size={17} color={colors.primary} />
+              <TextInput value={place} onChangeText={setPlace} placeholder="Local (ex.: Passo Fundo - RS)" placeholderTextColor={colors.muted} maxLength={80} style={st.placeInput} />
+              <TouchableOpacity onPress={locate} disabled={locating} hitSlop={8} accessibilityLabel="Usar onde estou">
+                <Text numberOfLines={1} style={{ color: colors.primary, fontWeight: '800', fontSize: 12 }}>{locating ? 'Buscando…' : 'Onde estou'}</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ flexDirection: 'row' }}>
+              <TouchableOpacity style={[st.btn, { flex: 1, marginRight: 8, backgroundColor: colors.cardAlt }]} onPress={reset}>
+                <Text style={[st.btnTxt, { color: colors.text }]}>Trocar foto</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[st.btn, { flex: 1 }]} onPress={() => pick({ type: 'foto', uri: chosen, text: desc.trim(), place: place.trim() })}>
+                <Text style={st.btnTxt}>Pôr no mural</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : null}
+        {kind === 'foto' && !chosen ? (
+          <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+            <TouchableOpacity style={[st.newPhoto, { marginRight: 8 }]} onPress={() => fromPhone(true)} accessibilityLabel="Tirar foto agora">
+              <Ionicons name="camera-outline" size={18} color={colors.primary} />
+              <Text numberOfLines={1} style={st.newPhotoTxt}>Câmera</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={st.newPhoto} onPress={() => fromPhone(false)} accessibilityLabel="Escolher do celular">
+              <Ionicons name="images-outline" size={18} color={colors.primary} />
+              <Text numberOfLines={1} style={st.newPhotoTxt}>Do celular</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
         {kind === 'post'
           ? posts.length
             ? posts.map((p) => (
@@ -274,13 +340,13 @@ function Picker({ kind, onClose, onPick, current }) {
               ))
             : <Empty text="Nenhum post na Community ainda." />
           : null}
-        {kind === 'foto' ? (
+        {kind === 'foto' && !chosen ? (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
             {photos.length ? photos.map((f) => (
-              <TouchableOpacity key={f.id} onPress={() => pick({ type: 'foto', uri: f.uri })} style={{ width: '32%', marginBottom: 8 }}>
+              <TouchableOpacity key={f.id} onPress={() => setChosen(f.uri)} style={{ width: '32%', marginBottom: 8 }}>
                 <Photo uri={f.uri} style={{ width: '100%', aspectRatio: 1, borderRadius: 10 }} />
               </TouchableOpacity>
-            )) : <Empty text="Adicione fotos na sua galeria primeiro." />}
+            )) : <Empty text="Sua galeria está vazia: use a câmera ou uma foto do celular." />}
           </View>
         ) : null}
         {kind === 'tema' ? (
@@ -360,6 +426,10 @@ const st = StyleSheet.create({
   swatchOn: { borderWidth: 3, borderColor: colors.gold },
   btn: { marginTop: 14, minHeight: 48, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   btnTxt: { color: colors.onPrimary, fontWeight: '800' },
+  placeRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10, borderRadius: 14, borderWidth: 1, borderColor: colors.border, backgroundColor: '#FFFFFF', paddingHorizontal: 10, minHeight: 46 },
+  placeInput: { flex: 1, color: '#1B1B1F', fontSize: 14, marginHorizontal: 8, paddingVertical: 8 },
+  newPhoto: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 44, borderRadius: 14, borderWidth: 1, borderColor: colors.border, backgroundColor: '#FFFFFF' },
+  newPhotoTxt: { color: colors.text, fontWeight: '700', fontSize: 13, marginLeft: 6 },
   pickRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)' },
   themeBox: { width: '48%', height: 70, borderRadius: 14, overflow: 'hidden', marginBottom: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
   opt: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)' },

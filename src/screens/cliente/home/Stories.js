@@ -9,6 +9,25 @@ import { colors } from '../../../theme';
 import { Photo } from '../../../components/ui';
 import { STORY_BACKGROUNDS, STORY_SAMPLE_PHOTOS } from '../../../homeData';
 import { useStore } from '../../../store';
+import * as ImagePicker from 'expo-image-picker';
+import { STORY_EFFECTS, effectStyle, STORY_VIDEO_MAX_S } from '../../../storyEffects';
+
+let EV = null;
+try {
+  EV = require('expo-video');
+} catch (e) {}
+
+// Vídeo do story: toca uma vez, com som, e para quando o story pausa.
+function StoryVideo({ uri, paused, style, loop }) {
+  const player = EV.useVideoPlayer({ uri }, (p) => {
+    p.loop = !!loop;
+  });
+  useEffect(() => {
+    if (paused) player.pause();
+    else player.play();
+  }, [paused]);
+  return <EV.VideoView player={player} style={style} contentFit="cover" nativeControls={false} surfaceType="textureView" allowsFullscreen={false} allowsPictureInPicture={false} />;
+}
 
 const STORY_MS = 5000; // tempo de cada story na tela
 const TICK = 50;
@@ -41,6 +60,9 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
 
   pos.current = { gi, ii };
   const group = groups[gi];
+  // Foto e texto ficam 5 s; vídeo fica o tempo dele (até 30 s).
+  const cur = group ? group.items[Math.min(ii, group.items.length - 1)] : null;
+  const dur = cur && cur.video ? Math.min(STORY_VIDEO_MAX_S, cur.secs || STORY_VIDEO_MAX_S) * 1000 : STORY_MS;
 
   useEffect(() => {
     if (visible && group) onSeen && onSeen(group.id);
@@ -70,9 +92,9 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
 
   useEffect(() => {
     if (!visible || paused || typing || covered) return;
-    const t = setInterval(() => setProgress((p) => Math.min(1, p + TICK / STORY_MS)), TICK);
+    const t = setInterval(() => setProgress((p) => Math.min(1, p + TICK / dur)), TICK);
     return () => clearInterval(t);
-  }, [visible, paused, typing, covered, gi, ii]);
+  }, [visible, paused, typing, covered, gi, ii, dur]);
 
   // Terminou o tempo do story: passa para o próximo.
   useEffect(() => {
@@ -94,14 +116,18 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
   return (
     <Modal visible={visible} animationType="fade" onRequestClose={onClose} statusBarTranslucent>
       <KeyboardLift style={{ flex: 1, backgroundColor: '#000' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        {item.image ? (
-          <Photo uri={item.image} style={StyleSheet.absoluteFill} fallback="🌅" />
+        {item.video && EV ? (
+          <StoryVideo key={item.id} uri={item.video} paused={paused || typing || covered} style={[StyleSheet.absoluteFill, effectStyle(item.effect)]} />
+        ) : item.image ? (
+          <View style={[StyleSheet.absoluteFill, effectStyle(item.effect)]}>
+            <Photo uri={item.image} style={StyleSheet.absoluteFill} fallback="🌅" />
+          </View>
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: item.bg || colors.primary, alignItems: 'center', justifyContent: 'center', padding: 30 }]}>
             <Text style={styles.textStory}>{item.text}</Text>
           </View>
         )}
-        {item.image && item.text ? (
+        {(item.image || item.video) && item.text ? (
           <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', padding: 30 }]} pointerEvents="none">
             <Text style={[styles.textStory, styles.textOnPhoto]}>{item.text}</Text>
           </View>
@@ -188,77 +214,151 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
   );
 }
 
-// Criar o próprio story: texto sobre uma cor ou sobre uma foto de exemplo.
+// Criar o próprio story: texto sobre uma cor, ou foto/vídeo curto (até 30 s) da câmera ou da galeria,
+// com efeitos de imagem (luz, contraste, cor) para melhorar a qualidade.
 export function StoryComposer({ visible, onClose, onPublish }) {
   const insets = useSafeAreaInsets();
   const [text, setText] = useState('');
   const [bg, setBg] = useState(STORY_BACKGROUNDS[0]);
-  const [image, setImage] = useState(null);
+  const [media, setMedia] = useState(null); // { kind: 'image' | 'video', uri, secs }
+  const [effect, setEffect] = useState('original');
+  const [writing, setWriting] = useState(false);
 
   useEffect(() => {
     if (!visible) return;
     setText('');
     setBg(STORY_BACKGROUNDS[0]);
-    setImage(null);
+    setMedia(null);
+    setEffect('original');
+    setWriting(false);
   }, [visible]);
 
+  const take = async (how) => {
+    try {
+      const camera = how !== 'galeria';
+      const perm = camera ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) return Alert.alert('Permissão', camera ? 'Permita a câmera para fazer o story.' : 'Permita o acesso às fotos e vídeos do celular.');
+      const opts = {
+        mediaTypes: how === 'foto' ? ['images'] : how === 'video' ? ['videos'] : ['images', 'videos'],
+        quality: 0.9,
+        videoMaxDuration: STORY_VIDEO_MAX_S,
+      };
+      const r = camera ? await ImagePicker.launchCameraAsync(opts) : await ImagePicker.launchImageLibraryAsync(opts);
+      if (r.canceled || !r.assets || !r.assets[0]) return;
+      const a = r.assets[0];
+      if (a.type === 'video') {
+        const secs = a.duration ? Math.round(a.duration / 1000) : 0;
+        if (secs > STORY_VIDEO_MAX_S) return Alert.alert('Vídeo longo', `O story aceita vídeo de até ${STORY_VIDEO_MAX_S} segundos. Este tem ${secs} s.`);
+        setMedia({ kind: 'video', uri: a.uri, secs: secs || STORY_VIDEO_MAX_S });
+      } else setMedia({ kind: 'image', uri: a.uri });
+      setEffect('auto'); // já abre com o ajuste automático; a pessoa troca se quiser
+    } catch (e) {
+      Alert.alert('Story', 'Não deu para abrir a câmera ou a galeria.');
+    }
+  };
+
+  const ready = !!(text.trim() || media);
   const publish = () => {
-    if (!text.trim() && !image) return;
-    const go = () => onPublish({ id: 'me' + Date.now(), text: text.trim(), bg, image, time: 'agora', views: 0 });
-    if (!image) return go();
-    Alert.alert('Antes de publicar a foto', PHOTO_RULE, [
+    if (!ready) return;
+    const item = { id: 'me' + Date.now(), text: text.trim(), bg, time: 'agora', views: 0 };
+    if (media && media.kind === 'image') Object.assign(item, { image: media.uri, effect });
+    if (media && media.kind === 'video') Object.assign(item, { video: media.uri, secs: media.secs, effect });
+    const go = () => onPublish(item);
+    if (!media) return go();
+    Alert.alert('Antes de publicar', PHOTO_RULE, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Está dentro da regra', onPress: go },
     ]);
   };
 
+  const fx = effectStyle(effect);
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
-      <View style={{ flex: 1, backgroundColor: image ? '#000' : bg }}>
-        {image ? <Image source={{ uri: image }} style={StyleSheet.absoluteFill} /> : null}
+      <View style={{ flex: 1, backgroundColor: media ? '#000' : bg }}>
+        {media && media.kind === 'video' && EV ? <StoryVideo key={media.uri} uri={media.uri} loop paused={false} style={[StyleSheet.absoluteFill, fx]} /> : null}
+        {media && media.kind === 'image' ? <Image source={{ uri: media.uri }} style={[StyleSheet.absoluteFill, fx]} /> : null}
         <View style={[styles.composerTop, { paddingTop: insets.top + 10 }]}>
-          <TouchableOpacity style={styles.close} onPress={onClose} accessibilityLabel="Cancelar">
-            <Ionicons name="close" size={24} color="#fff" />
+          <TouchableOpacity style={styles.close} onPress={media ? () => setMedia(null) : onClose} accessibilityLabel={media ? 'Tirar a foto ou o vídeo' : 'Cancelar'}>
+            <Ionicons name={media ? 'arrow-back' : 'close'} size={24} color="#fff" />
           </TouchableOpacity>
           <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>Novo story</Text>
-          <TouchableOpacity style={[styles.publish, !(text.trim() || image) && { opacity: 0.5 }]} onPress={publish}>
+          <TouchableOpacity style={[styles.publish, !ready && { opacity: 0.5 }]} onPress={publish}>
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '800' }}>Publicar</Text>
           </TouchableOpacity>
         </View>
 
         <View style={{ flex: 1, justifyContent: 'center', padding: 24 }}>
-          <TextInput
-            style={[styles.textStory, image && styles.textOnPhoto, { minHeight: 120 }]}
-            placeholder="Conte o que você está vivendo…"
-            placeholderTextColor="rgba(255,255,255,0.75)"
-            value={text}
-            onChangeText={setText}
-            multiline
-            autoFocus
-          />
+          {media && !writing && !text ? (
+            <TouchableOpacity onPress={() => setWriting(true)} style={styles.addText} accessibilityLabel="Escrever no story">
+              <Ionicons name="text-outline" size={16} color="#fff" />
+              <Text numberOfLines={1} style={{ color: '#fff', fontWeight: '700', marginLeft: 6 }}>Escrever</Text>
+            </TouchableOpacity>
+          ) : (
+            <TextInput
+              style={[styles.textStory, media && styles.textOnPhoto, { minHeight: 120 }]}
+              placeholder="Conte o que você está vivendo…"
+              placeholderTextColor="rgba(255,255,255,0.75)"
+              value={text}
+              onChangeText={setText}
+              multiline
+              autoFocus={!media || writing}
+            />
+          )}
         </View>
 
         <View style={[styles.palette, { paddingBottom: insets.bottom + 16 }]}>
-          <Text style={{ color: '#fff', fontWeight: '700', marginBottom: 8 }}>Fundo</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {STORY_BACKGROUNDS.map((c) => (
-              <TouchableOpacity
-                key={c}
-                style={[styles.swatch, { backgroundColor: c }, !image && bg === c && styles.swatchOn]}
-                onPress={() => {
-                  setBg(c);
-                  setImage(null);
-                }}
-                accessibilityLabel="Cor de fundo"
-              />
-            ))}
-            {STORY_SAMPLE_PHOTOS.map((u) => (
-              <TouchableOpacity key={u} onPress={() => setImage(u)} accessibilityLabel="Foto de fundo">
-                <Image source={{ uri: u }} style={[styles.swatch, image === u && styles.swatchOn]} />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-          <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, marginTop: 8 }}>Fica no ar por 24 horas, só para pessoas verificadas.</Text>
+          {media ? (
+            <>
+              <Text style={{ color: '#fff', fontWeight: '700', marginBottom: 8 }}>Efeitos</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                {STORY_EFFECTS.map((e) => {
+                  const on = effect === e.key;
+                  return (
+                    <TouchableOpacity key={e.key} onPress={() => setEffect(e.key)} style={styles.fxItem} accessibilityLabel={`Efeito ${e.label}`}>
+                      <View style={[styles.fxThumb, on && styles.fxThumbOn]}>
+                        {media.kind === 'image' ? (
+                          <Image source={{ uri: media.uri }} style={[styles.fxImg, effectStyle(e.key)]} />
+                        ) : (
+                          <Ionicons name={e.icon} size={20} color="#fff" />
+                        )}
+                      </View>
+                      <Text numberOfLines={1} style={[styles.fxLabel, on && { color: colors.gold }]}>{e.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+              <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, marginTop: 8 }}>
+                {media.kind === 'video' ? `Vídeo de ${media.secs} s · ` : ''}Fica no ar por 24 horas, só para pessoas verificadas.
+              </Text>
+            </>
+          ) : (
+            <>
+              <View style={{ flexDirection: 'row', marginBottom: 12 }}>
+                {[
+                  ['foto', 'camera-outline', 'Foto'],
+                  ['video', 'videocam-outline', `Vídeo ${STORY_VIDEO_MAX_S}s`],
+                  ['galeria', 'images-outline', 'Galeria'],
+                ].map(([k, icon, label]) => (
+                  <TouchableOpacity key={k} onPress={() => take(k)} style={styles.capBtn} accessibilityLabel={label}>
+                    <Ionicons name={icon} size={22} color="#fff" />
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '700', fontSize: 12, marginTop: 3 }}>{label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <Text style={{ color: '#fff', fontWeight: '700', marginBottom: 8 }}>Fundo</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                {STORY_BACKGROUNDS.map((c) => (
+                  <TouchableOpacity key={c} style={[styles.swatch, { backgroundColor: c }, bg === c && styles.swatchOn]} onPress={() => setBg(c)} accessibilityLabel="Cor de fundo" />
+                ))}
+                {STORY_SAMPLE_PHOTOS.map((u) => (
+                  <TouchableOpacity key={u} onPress={() => (setMedia({ kind: 'image', uri: u }), setEffect('original'))} accessibilityLabel="Foto de fundo">
+                    <Image source={{ uri: u }} style={styles.swatch} />
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, marginTop: 8 }}>Fica no ar por 24 horas, só para pessoas verificadas.</Text>
+            </>
+          )}
         </View>
       </View>
     </KeyboardLift></Modal>
@@ -302,4 +402,11 @@ const styles = StyleSheet.create({
   palette: { paddingHorizontal: 16, paddingTop: 12, backgroundColor: 'rgba(0,0,0,0.25)' },
   swatch: { width: 40, height: 40, borderRadius: 20, marginRight: 10, borderWidth: 2, borderColor: 'rgba(255,255,255,0.6)' },
   swatchOn: { borderColor: '#fff', borderWidth: 3, transform: [{ scale: 1.1 }] },
+  capBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 58, marginHorizontal: 4, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.55)', backgroundColor: 'rgba(0,0,0,0.2)' },
+  addText: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', paddingHorizontal: 14, minHeight: 38, borderRadius: 19, backgroundColor: 'rgba(0,0,0,0.35)' },
+  fxItem: { alignItems: 'center', marginRight: 10, width: 62 },
+  fxThumb: { width: 54, height: 54, borderRadius: 14, overflow: 'hidden', borderWidth: 2, borderColor: 'rgba(255,255,255,0.5)', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.3)' },
+  fxThumbOn: { borderColor: colors.gold, borderWidth: 3 },
+  fxImg: { width: '100%', height: '100%' },
+  fxLabel: { color: '#fff', fontSize: 11, fontWeight: '700', marginTop: 4 },
 });

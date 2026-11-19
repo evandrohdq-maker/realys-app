@@ -198,7 +198,7 @@ const TABS = {
 };
 
 // Símbolo de cada perfil no botãozinho de troca do cabeçalho.
-const ROLE_ICONS = { cliente: 'person', prestador: 'construct', empresa: 'business', fornecedor: 'cube' };
+const ROLE_ICONS = { cliente: 'person', prestador: 'construct', empresa: 'business', fornecedor: 'cube', admin: 'shield-checkmark' };
 
 function Shell({ inviteTick }) {
   const { state, dispatch } = useStore();
@@ -335,19 +335,20 @@ function Shell({ inviteTick }) {
   const workRoles = state.user.roles.filter((r) => WORK_ROLES.includes(r));
   const lastWork = useRef(WORK_ROLES.includes(state.activeRole) ? state.activeRole : workRoles[0]);
   if (WORK_ROLES.includes(state.activeRole)) lastWork.current = state.activeRole;
-  const canSwap = verified && state.user.roles.includes('cliente') && workRoles.length > 0 && state.activeRole !== 'admin';
+  // Administrador também troca de perfil pelo símbolo: admin → usuário → empresa → prestador → fornecedor → admin.
+  const canSwap = verified && state.user.roles.includes('cliente') && (workRoles.length > 0 || isAdmin);
   const swapTarget = state.activeRole === 'cliente' ? lastWork.current || workRoles[0] : 'cliente';
   // Botão do Perfil (toque normal, sem segurar): fora do Perfil, abre o Perfil;
   // já no Perfil, cada novo toque troca para o próximo perfil da conta
   // (usuário → empresa / prestador / fornecedor → usuário…) e continua no Perfil.
   // Só entram os perfis que a conta tem: quem é só empresa + usuário alterna entre os dois.
-  const profileCycle = ['cliente', ...WORK_ROLES.filter((r) => workRoles.includes(r))];
+  const profileCycle = ['cliente', ...WORK_ROLES.filter((r) => workRoles.includes(r)), ...(isAdmin ? ['admin'] : [])];
   const nextProfile = profileCycle[(profileCycle.indexOf(state.activeRole) + 1) % profileCycle.length];
   // Perfil social e perfil de trabalho são coisas diferentes: ao trocar para empresa, prestador ou
   // fornecedor, abre o PAINEL daquela classe (a 1ª aba dela: Painel, Trabalhar, Propostas), não o
   // perfil social de novo. Lá dentro ficam a Página/loja, vitrine, mural etc. da classe.
   // No painel de trabalho, tocar no símbolo de novo troca para o próximo perfil (ou volta ao social).
-  const isWork = WORK_ROLES.includes(state.activeRole);
+  const isWork = WORK_ROLES.includes(state.activeRole) || state.activeRole === 'admin';
   const tapProfile = () => {
     if (!canSwap) return isWork ? setTab(TABS[state.activeRole][0].key) : pick({ tab: 'perfil' });
     if (!isWork && current.key !== 'perfil') return pick({ tab: 'perfil' });
