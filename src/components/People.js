@@ -86,10 +86,12 @@ export function UserProfileModal() {
   const [chat, setChat] = useState(null);
   const [full, setFull] = useState(false); // quem não é amigo vê a prévia; "Ver perfil completo" abre o resto (se for público)
   const [writing, setWriting] = useState(false); // deixar depoimento
+  const [list, setList] = useState(null); // número tocado: amigos | comum | posts | depoimentos
   useEffect(() => {
     setChat(null);
     setFull(false);
     setWriting(false);
+    setList(null);
   }, [state.viewProfile]);
   const m = state.viewProfile ? memberById(state.viewProfile) : null;
   if (!m) return null;
@@ -143,11 +145,12 @@ export function UserProfileModal() {
           {privacyOf(m.id).exposed ? <Text style={styles.bio}>{m.bio}</Text> : null}
 
           <View style={styles.stats}>
-            <Stat n={friendsCount} label="amigos" />
-            <Stat n={m.mutual} label="em comum" />
-            <Stat n={posts.length} label="posts" />
-            <Stat n={state.testimonials.filter((t) => t.to === m.id && t.status === 'aprovado').length} label="depoimentos" />
+            <Stat n={friendsCount} label="amigos" onPress={() => setList('amigos')} />
+            <Stat n={m.mutual} label="em comum" onPress={() => setList('comum')} />
+            <Stat n={posts.length} label="posts" onPress={() => setList('posts')} />
+            <Stat n={state.testimonials.filter((t) => t.to === m.id && t.status === 'aprovado').length} label="depoimentos" onPress={() => setList('depoimentos')} />
           </View>
+          <StatListModal m={list ? m : null} kind={list} onClose={() => setList(null)} />
 
           <LiveNowBadge hostType="usuario" hostId={m.id} />
           {st === 'recebido' ? <Text style={styles.ask}>{m.name.split(' ')[0]} quer ser seu amigo no Re@lys.</Text> : null}
@@ -249,6 +252,7 @@ export function ProfilePeek({ m, onClose, onMessage, onFull }) {
   const posts = showSocial ? postsOf(m).slice(0, 3) : [];
   const deps = state.testimonials.filter((t) => t.to === m.id && t.status === 'aprovado');
   const firstName = m.name.split(' ')[0];
+  const [list, setList] = useState(null); // número tocado: amigos | comum | depoimentos
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={styles.peekDim} activeOpacity={1} onPress={onClose} accessibilityLabel="Fechar prévia" />
@@ -274,10 +278,11 @@ export function ProfilePeek({ m, onClose, onMessage, onFull }) {
           {showSocial ? <Text style={styles.bio}>{m.bio}</Text> : null}
 
           <View style={[styles.stats, { marginTop: 10 }]}>
-            <Stat n={m.friends} label="amigos" />
-            <Stat n={m.mutual} label="em comum" />
-            <Stat n={deps.length} label="depoimentos" />
+            <Stat n={m.friends} label="amigos" onPress={() => setList('amigos')} />
+            <Stat n={m.mutual} label="em comum" onPress={() => setList('comum')} />
+            <Stat n={deps.length} label="depoimentos" onPress={() => setList('depoimentos')} />
           </View>
+          <StatListModal m={list ? m : null} kind={list} onClose={() => setList(null)} />
 
           <LiveNowBadge hostType="usuario" hostId={m.id} />
           {st === 'recebido' ? <Text style={styles.ask}>{firstName} quer ser seu amigo no Re@lys.</Text> : null}
@@ -332,12 +337,137 @@ export function ProfilePeek({ m, onClose, onMessage, onFull }) {
   );
 }
 
-function Stat({ n, label }) {
+// Número do perfil (amigos, em comum, posts, depoimentos): tocar abre a lista do que tem dentro.
+function Stat({ n, label, onPress }) {
   return (
-    <View style={{ flex: 1, alignItems: 'center' }}>
+    <TouchableOpacity style={{ flex: 1, alignItems: 'center' }} onPress={onPress} disabled={!onPress} activeOpacity={0.7} accessibilityLabel={`Ver ${label}: ${n}`}>
       <Text style={{ color: colors.text, fontWeight: '800', fontSize: 18 }}>{n.toLocaleString('pt-BR')}</Text>
       <Text style={{ color: colors.muted, fontSize: 12 }}>{label}</Text>
-    </View>
+    </TouchableOpacity>
+  );
+}
+
+// ---------- O que tem dentro de cada número do perfil ----------
+// Amigos e em comum: na demonstração, saem dos membros do Re@lys (o servidor traz a lista real).
+const hashOf = (t) => [...String(t)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+function friendsOfMember(m, myFriends) {
+  const others = members.filter((x) => x.id !== m.id);
+  // Em comum: meus amigos primeiro, depois os outros, na mesma ordem sempre (sem "piscar").
+  const sorted = [...others].sort((a, b) => (myFriends[b.id] === 'amigo' ? 1 : 0) - (myFriends[a.id] === 'amigo' ? 1 : 0) || hashOf(m.id + a.id) - hashOf(m.id + b.id));
+  const mutual = sorted.slice(0, Math.min(m.mutual || 0, sorted.length));
+  return { all: sorted, mutual };
+}
+
+// Lista simples de pessoas (ex.: seguidores de uma empresa): tocar abre o perfil.
+export function PeopleListModal({ visible, title, people = [], total, onClose }) {
+  const { state, dispatch } = useStore();
+  const insets = useSafeAreaInsets();
+  if (!visible) return null;
+  const n = total != null ? total : people.length;
+  return (
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+      <TouchableOpacity style={styles.peekDim} activeOpacity={1} onPress={onClose} accessibilityLabel="Fechar" />
+      <View style={[styles.peekSheet, { paddingBottom: 16 + insets.bottom }]}>
+        <View style={styles.peekGrab} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 17 }} numberOfLines={1}>{title}</Text>
+            <Text style={{ color: colors.muted, fontSize: 12 }}>{n.toLocaleString('pt-BR')} no total</Text>
+          </View>
+          <TouchableOpacity onPress={onClose} style={styles.peekClose} accessibilityLabel="Fechar">
+            <Ionicons name="close" size={20} color={colors.muted} />
+          </TouchableOpacity>
+        </View>
+        <ScrollView style={{ maxHeight: 520 }} showsVerticalScrollIndicator={false}>
+          {people.map((x) => (
+            <TouchableOpacity key={x.id} style={styles.listRow} onPress={() => (onClose(), dispatch({ type: 'OPEN_PROFILE', id: x.id }))} activeOpacity={0.85} accessibilityLabel={`Abrir o perfil de ${x.name}`}>
+              <Photo uri={x.photo} style={{ width: 44, height: 44, borderRadius: 22 }} fallback="🙂" />
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>{x.name}</Text>
+                <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>{state.friends[x.id] === 'amigo' ? 'Seu amigo' : `@${x.handle} · ${x.city}`}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+            </TouchableOpacity>
+          ))}
+          {n > people.length ? <Text style={styles.tip}>e mais {(n - people.length).toLocaleString('pt-BR')} pessoa(s) · a lista completa vem com o servidor</Text> : null}
+        </ScrollView>
+      </View>
+    </Modal>
+  );
+}
+
+export function StatListModal({ m, kind, onClose }) {
+  const { state, dispatch } = useStore();
+  const insets = useSafeAreaInsets();
+  if (!m || !kind) return null;
+  const first = m.name.split(' ')[0];
+  const { all, mutual } = friendsOfMember(m, state.friends);
+  const pv = privacyOf(m.id);
+  const isFriend = state.friends[m.id] === 'amigo';
+  const canSeeFriends = isFriend || (pv.exposed && pv.social === 'todos');
+  const deps = state.testimonials.filter((t) => t.to === m.id && t.status === 'aprovado');
+  const posts = postsOf(m);
+  const total = kind === 'amigos' ? m.friends + (isFriend ? 1 : 0) : kind === 'comum' ? mutual.length : kind === 'posts' ? posts.length : deps.length;
+  const title = kind === 'amigos' ? `Amigos de ${first}` : kind === 'comum' ? `Amigos em comum com ${first}` : kind === 'posts' ? `Posts de ${first}` : `Depoimentos de ${first}`;
+  const openPerson = (id) => {
+    onClose();
+    dispatch({ type: 'OPEN_PROFILE', id });
+  };
+  const people = kind === 'amigos' ? all : mutual;
+  return (
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+      <TouchableOpacity style={styles.peekDim} activeOpacity={1} onPress={onClose} accessibilityLabel="Fechar" />
+      <View style={[styles.peekSheet, { paddingBottom: 16 + insets.bottom }]}>
+        <View style={styles.peekGrab} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 17 }} numberOfLines={1}>{title}</Text>
+            <Text style={{ color: colors.muted, fontSize: 12 }}>{total.toLocaleString('pt-BR')} no total</Text>
+          </View>
+          <TouchableOpacity onPress={onClose} style={styles.peekClose} accessibilityLabel="Fechar">
+            <Ionicons name="close" size={20} color={colors.muted} />
+          </TouchableOpacity>
+        </View>
+        <ScrollView style={{ maxHeight: 520 }} showsVerticalScrollIndicator={false}>
+          {kind === 'amigos' || kind === 'comum' ? (
+            kind === 'amigos' && !canSeeFriends ? (
+              <Empty text={`A lista de amigos de ${first} fica aberta só para os amigos. Você ainda pode ver os amigos em comum.`} />
+            ) : people.length ? (
+              <>
+                {people.map((x) => {
+                  const mine = state.friends[x.id] === 'amigo';
+                  return (
+                    <TouchableOpacity key={x.id} style={styles.listRow} onPress={() => openPerson(x.id)} activeOpacity={0.85} accessibilityLabel={`Abrir o perfil de ${x.name}`}>
+                      <Photo uri={x.photo} style={{ width: 44, height: 44, borderRadius: 22 }} fallback="🙂" />
+                      <View style={{ flex: 1, marginLeft: 10 }}>
+                        <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>{x.name}</Text>
+                        <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>{mine ? 'Seu amigo' : `@${x.handle} · ${x.city}`}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+                    </TouchableOpacity>
+                  );
+                })}
+                {total > people.length ? <Text style={styles.tip}>e mais {(total - people.length).toLocaleString('pt-BR')} pessoa(s) · a lista completa vem com o servidor</Text> : null}
+              </>
+            ) : (
+              <Empty text={kind === 'comum' ? `Vocês ainda não têm amigos em comum.` : `${first} ainda não tem amigos no Re@lys.`} />
+            )
+          ) : null}
+          {kind === 'depoimentos' ? (deps.length ? deps.map((t) => <TestimonialCard key={t.id} t={t} hideTarget />) : <Empty text={`${first} ainda não tem depoimentos expostos.`} />) : null}
+          {kind === 'posts'
+            ? posts.length
+              ? posts.map((p) => (
+                  <View key={p.id} style={styles.post}>
+                    <Text style={{ color: colors.muted, fontSize: 11 }}>{p.time}</Text>
+                    <Text style={{ color: colors.text, marginTop: 4, lineHeight: 20 }}>{p.text}</Text>
+                    {p.image ? <Photo uri={p.image} style={styles.postImg} /> : null}
+                  </View>
+                ))
+              : <Empty text={`${first} ainda não publicou nada.`} />
+            : null}
+        </ScrollView>
+      </View>
+    </Modal>
   );
 }
 
@@ -504,6 +634,7 @@ const styles = StyleSheet.create({
   msgBtn: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.card, borderRadius: 12, paddingVertical: 11, paddingHorizontal: 14, marginLeft: 8 },
   section: { color: colors.text, fontWeight: '700', fontSize: 16, marginTop: 18, marginBottom: 8 },
   post: { backgroundColor: colors.card, borderRadius: 16, padding: 12, marginBottom: 10, ...soft },
+  listRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 9, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   postImg: { width: '100%', height: 200, borderRadius: 12, marginTop: 8 },
   meta: { color: colors.muted, fontSize: 12, marginLeft: 4 },
   searchHead: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.border },

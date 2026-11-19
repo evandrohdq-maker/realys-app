@@ -18,7 +18,8 @@ import { ShopProductCard } from './ShopKit';
 import LotusFocus from './LotusFocus';
 import { MY_COMPANY_ID } from '../data';
 import { useLeadAsk } from './LeadAsk';
-import { memberById } from '../people';
+import { memberById, members } from '../people';
+import { PeopleListModal } from './People';
 import { businessOf, showcaseOf, sectorByKey, roleByKey, SERVE_MODES, ratingOf, GALLERY_TYPES } from '../companyBusiness';
 
 const NIGHT = '#0B1124';
@@ -333,6 +334,14 @@ export function BusinessPageModal({ p, media, MediaList }) {
   const { state, dispatch } = useStore();
   const insets = useSafeAreaInsets();
   const [tab, setTab] = useState('vitrine');
+  const [followersOpen, setFollowersOpen] = useState(false);
+  const pageScroll = useRef(null);
+  const tabsY = useRef(0);
+  // Abre a guia e rola a página até ela.
+  const showTab = (k) => {
+    setTab(k);
+    setTimeout(() => pageScroll.current && pageScroll.current.scrollTo({ y: Math.max(0, tabsY.current - 8), animated: true }), 60);
+  };
   const [writing, setWriting] = useState(false);
   const lead = useLeadAsk(p);
   useEffect(() => {
@@ -372,7 +381,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
 
   return (
     <Modal visible animationType="slide" onRequestClose={close}>
-      <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
+      <ScrollView ref={pageScroll} style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
         {focus ? (
           <View style={{ paddingTop: insets.top + 10, paddingHorizontal: 16 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
@@ -433,10 +442,18 @@ export function BusinessPageModal({ p, media, MediaList }) {
                 [String(reviews.length), 'depoimentos'],
                 [b.since ? String(b.since) : String(products.length), b.since ? 'desde' : 'produtos'],
               ].map(([v, l], i) => (
-                <View key={l} style={[styles.stat, i > 0 && styles.statSep]}>
+                // Tocar no número abre o que tem dentro: seguidores, depoimentos (nota) e produtos.
+                <TouchableOpacity
+                  key={l}
+                  style={[styles.stat, i > 0 && styles.statSep]}
+                  activeOpacity={0.7}
+                  disabled={l === 'desde'}
+                  onPress={() => (l === 'seguidores' ? setFollowersOpen(true) : showTab(l === 'produtos' ? 'produtos' : 'depoimentos'))}
+                  accessibilityLabel={`Ver ${l}`}
+                >
                   <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={styles.statValue}>{v}</Text>
                   <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={styles.statLabel}>{l}</Text>
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
 
@@ -508,7 +525,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
         </View>
 
         {/* Guias */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsBar} contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 10 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsBar} onLayout={(e) => (tabsY.current = e.nativeEvent.layout.y)} contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 10 }}>
           {tabs.map(([k, label, icon]) => {
             const on = tab === k;
             return (
@@ -595,6 +612,8 @@ export function BusinessPageModal({ p, media, MediaList }) {
           {tab === 'midia' && MediaList ? <MediaList items={media} /> : null}
         </View>
       </ScrollView>
+      {/* Seguidores da empresa (na demonstração, membros do Re@lys; o servidor traz a lista real). */}
+      <PeopleListModal visible={followersOpen} title={`Seguidores de ${p.name}`} people={members.slice(0, 12)} total={p.followers + (following ? 1 : 0)} onClose={() => setFollowersOpen(false)} />
     </Modal>
   );
 }
