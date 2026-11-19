@@ -23,7 +23,7 @@ import { LaunchStrip } from '../../../components/Launches';
 import { SHOP_SECTORS, SHOP_SECTOR_KEYS } from '../../../shopSectorsData';
 import { askPix } from '../../../components/PixPay';
 import { useBack } from '../../../back';
-import { TestimonialCard, TestimonialTools } from '../../../components/SocialProfile';
+import { TestimonialCard, DepCenter } from '../../../components/SocialProfile';
 import { ShopHero, CircleShortcuts, ShopProductCard, ShopGrid, StoreRow, CategoryPicker } from '../../../components/ShopKit';
 import { SegTabs, SpotlightCarousel, ClipStrip, PromoSector } from '../../../components/AdKit';
 import { SearchBar } from '../../../components/Search';
@@ -49,7 +49,7 @@ export const COMMUNITY_TOP = [
   { key: 'eventos', label: 'Eventos', icon: 'sparkles-outline' },
   // Stream: rádios e TV online (entrou no lugar dos botões Promoções e Anúncios).
   { key: 'stream', label: 'Stream', icon: 'tv-outline' },
-  { key: 'lives', label: 'Lives', icon: 'radio-outline' },
+  { key: 'lives', label: 'Lives', icon: 'radio-outline', red: true }, // em vermelho, como AO VIVO
   // Sem botão no topo: continuam abrindo pelo menu ⋮, pela busca e pela Lotus.
   { key: 'promo', label: 'Promoções', icon: 'pricetags-outline', hidden: true },
   { key: 'anuncios', label: 'Anúncios', icon: 'megaphone-outline', hidden: true },
@@ -61,10 +61,11 @@ export function TopTabs({ items, value, onChange }) {
     <View style={styles.topTabs}>
       {items.map((t) => {
         const on = t.key === value;
+        const red = t.red ? '#E5484D' : null; // Lives: vermelhinho, como o AO VIVO
         return (
           <TouchableOpacity key={t.key} style={[styles.topTab, on && styles.topTabOn]} onPress={() => onChange(t.key)} accessibilityLabel={t.label}>
-            <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={19} color={on ? colors.text : colors.menu} />
-            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.topTabText, on && { color: colors.text, fontWeight: '800' }]}>
+            <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={19} color={red || (on ? colors.text : colors.menu)} />
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.topTabText, red && { color: red }, on && { color: red || colors.text, fontWeight: '800' }]}>
               {t.label}
             </Text>
           </TouchableOpacity>
@@ -651,7 +652,7 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
   const [openCmt, setOpenCmt] = useState(null);
   const [cmtText, setCmtText] = useState('');
   const [shared, setShared] = useState({});
-  const [depSearch, setDepSearch] = useState(false); // pesquisando nos depoimentos: o feed dá lugar aos resultados
+  const [depOpen, setDepOpen] = useState(false); // DEP: central de depoimentos (relatório, escrever, aprovar)
   const ads = useMemo(() => state.posts.filter((p) => p.sponsored), [state.posts]);
   const testimonials = state.testimonials.filter((t) => t.status === 'aprovado');
   const pendingMine = state.testimonials.filter((t) => t.to === 'me' && t.status === 'pendente').length;
@@ -682,20 +683,21 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
   return (
     <Screen>
       {top}
-      {/* Feed, Mensagens, Contatos e Live: mesmo modelo dos botões do topo (ícone em cima, nome embaixo, centralizados). */}
+      {/* Feed, Mensagens, Contatos e DEP: mesmo modelo dos botões do topo (ícone em cima, nome embaixo, centralizados).
+          A Live fica só no topo, ao lado do Stream (em vermelho). DEP abre tudo de depoimentos. */}
       <View style={[styles.topTabs, { paddingHorizontal: 0, paddingTop: 0, paddingBottom: 0, marginBottom: 12 }]}>
         {[
           ['posts', 'Feed', 'newspaper-outline'],
           ['msgs', 'Mensagens', 'mail-outline'],
           ['contatos', 'Contatos', 'person-add-outline'],
-          ['live', 'Live', 'radio-outline'],
+          ['dep', 'DEP', 'chatbox-ellipses-outline'],
         ].map(([k, label, icon]) => {
           const on = k === seg;
-          const unread = k === 'msgs' ? convs.reduce((s, c) => s + c.unread, 0) : 0;
+          const unread = k === 'msgs' ? convs.reduce((s, c) => s + c.unread, 0) : k === 'dep' ? pendingMine : 0;
           return (
-            <TouchableOpacity key={k} style={[styles.topTab, on && styles.topTabOn]} onPress={() => (k === 'live' ? onGoLive() : setSeg(k))} accessibilityLabel={k === 'live' ? 'Abrir live' : label}>
+            <TouchableOpacity key={k} style={[styles.topTab, on && styles.topTabOn]} onPress={() => (k === 'dep' ? setDepOpen(true) : setSeg(k))} accessibilityLabel={k === 'dep' ? 'Depoimentos: enviados, recebidos e para aprovar' : label}>
               <View>
-                <Ionicons name={on ? icon.replace('-outline', '') : icon} size={19} color={k === 'live' ? '#FF3B5C' : on ? colors.text : colors.menu} />
+                <Ionicons name={on ? icon.replace('-outline', '') : icon} size={19} color={on ? colors.text : colors.menu} />
                 {unread ? (
                   <View style={[styles.unread, { position: 'absolute', top: -6, right: -14, marginLeft: 0 }]}>
                     <Text style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '700' }}>{unread}</Text>
@@ -710,20 +712,11 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
         })}
       </View>
 
+      <DepCenter visible={depOpen} onClose={() => setDepOpen(false)} />
+
       {seg === 'posts' ? (
         <View>
-          {pendingMine ? (
-            <View style={styles.pendingBanner}>
-              <Ionicons name="mail-unread-outline" size={18} color={colors.primaryDark} />
-              <Text style={{ color: colors.primaryDark, fontWeight: '700', marginLeft: 8, flex: 1, fontSize: 13 }}>
-                Você tem {pendingMine} depoimento{pendingMine > 1 ? 's' : ''} esperando aprovação. Veja em Perfil › Depoimentos.
-              </Text>
-            </View>
-          ) : null}
-
-          <TestimonialTools onSearching={setDepSearch} />
-
-          {(depSearch ? [] : feed).map((it, idx) =>
+          {feed.map((it, idx) =>
             it.type === 'dep' ? (
               <TestimonialCard key={it.t.id} t={it.t} />
             ) : it.type === 'post' ? (

@@ -514,6 +514,90 @@ export function TestimonialTools({ onSearching }) {
   );
 }
 
+// ───────────────────────── DEP: central de depoimentos ─────────────────────────
+// Um botão só ("DEP", no menu da Community) reúne tudo de depoimentos:
+// relatório (recebidos e enviados), deixar depoimento, pesquisar, aprovar os que chegaram e
+// acompanhar os que a pessoa mandou. Quem tem o depoimento recusado não é avisado: para quem
+// enviou, ele continua como "aguardando".
+export function DepCenter({ visible, onClose }) {
+  const { state } = useStore();
+  const person = usePerson();
+  const insets = useSafeAreaInsets();
+  const [tab, setTab] = useState('recebidos');
+  const [searching, setSearching] = useState(false);
+  const all = state.testimonials;
+  const rec = all.filter((t) => t.to === 'me');
+  const env = all.filter((t) => t.from === 'me');
+  const count = (list, st) => list.filter((t) => (Array.isArray(st) ? st.includes(t.status) : t.status === st)).length;
+  const report = [
+    { k: 'recebidos', label: 'Recebidos', total: rec.length, lines: [['Expostos', count(rec, 'aprovado')], ['Para aprovar', count(rec, 'pendente')], ['Recusados / tirados', count(rec, ['recusado', 'oculto'])]] },
+    { k: 'enviados', label: 'Enviados', total: env.length, lines: [['Aceitos', count(env, ['aprovado', 'oculto'])], ['Aguardando', count(env, ['pendente', 'recusado'])]] },
+  ];
+  const sentLabel = (t) => (t.status === 'aprovado' || t.status === 'oculto' ? ['Aceito', colors.success] : ['Aguardando aprovação', colors.primaryDark]);
+
+  return (
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
+        <View style={styles.depHead}>
+          <Text style={styles.depTitle}>DEP</Text>
+          <TouchableOpacity onPress={onClose} style={{ padding: 6 }} hitSlop={8} accessibilityLabel="Fechar depoimentos">
+            <Ionicons name="close" size={24} color={colors.text} />
+          </TouchableOpacity>
+        </View>
+        <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 30 + insets.bottom }} keyboardShouldPersistTaps="handled">
+          {/* Relatório: tocar num lado abre a lista dele */}
+          <View style={{ flexDirection: 'row', marginBottom: 12 }}>
+            {report.map((r, i) => {
+              const on = tab === r.k;
+              return (
+                <TouchableOpacity key={r.k} style={[styles.depBox, i ? { marginLeft: 10 } : null, on && styles.depBoxOn]} onPress={() => setTab(r.k)} activeOpacity={0.85} accessibilityLabel={`${r.label}: ${r.total}`}>
+                  <Text style={styles.depNum}>{r.total}</Text>
+                  <Text numberOfLines={1} style={[styles.depLabel, on && { color: colors.primaryDark }]}>{r.label}</Text>
+                  {r.lines.map(([l, v]) => (
+                    <View key={l} style={styles.depLine}>
+                      <Text numberOfLines={1} style={styles.depLineTxt}>{l}</Text>
+                      <Text style={[styles.depLineTxt, { fontWeight: '800', color: colors.text }]}>{v}</Text>
+                    </View>
+                  ))}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* Deixar depoimento e pesquisar */}
+          <TestimonialTools onSearching={setSearching} />
+
+          {searching ? null : tab === 'recebidos' ? (
+            <TestimonialsTab ownerId="me" />
+          ) : env.length ? (
+            env.map((t) => {
+              const to = person(t.to);
+              const [lab, tone] = sentLabel(t);
+              return (
+                <View key={t.id} style={styles.tCard}>
+                  <View style={styles.tHead}>
+                    <Avatar person={to} size={40} />
+                    <View style={{ flex: 1, marginLeft: 10 }}>
+                      <Text style={styles.tWho} numberOfLines={1}>Para {to.name}</Text>
+                      <Text style={styles.tTime}>{t.time}</Text>
+                    </View>
+                    <Text style={{ color: tone, fontSize: 11, fontWeight: '800' }}>{lab}</Text>
+                  </View>
+                  <View style={styles.quote}>
+                    <Text style={styles.quoteText}>{t.text}</Text>
+                  </View>
+                </View>
+              );
+            })
+          ) : (
+            <Empty text="Você ainda não enviou depoimentos. Toque em Deixar depoimento para escrever para um amigo." />
+          )}
+        </ScrollView>
+      </View>
+    </Modal>
+  );
+}
+
 // Aba de depoimentos dentro de um perfil.
 export function TestimonialsTab({ ownerId }) {
   const { state, dispatch } = useStore();
@@ -1058,6 +1142,14 @@ export function ProfileSocial({ ownerId, postsSlot, postsCount, ownerName, focus
 }
 
 const styles = StyleSheet.create({
+  depHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10 },
+  depTitle: { color: colors.text, fontSize: 22, fontWeight: '900', letterSpacing: 1.5 },
+  depBox: { flex: 1, backgroundColor: colors.card, borderRadius: 16, padding: 12, borderWidth: 1.5, borderColor: 'transparent', ...soft },
+  depBoxOn: { borderColor: colors.gold },
+  depNum: { color: colors.text, fontSize: 24, fontWeight: '900' },
+  depLabel: { color: colors.muted, fontWeight: '800', fontSize: 13, marginBottom: 6 },
+  depLine: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 },
+  depLineTxt: { color: colors.muted, fontSize: 11.5, flexShrink: 1 },
   showRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: colors.border },
   switch: { width: 42, height: 24, borderRadius: 12, backgroundColor: colors.borderStrong, padding: 2, marginLeft: 8 },
   switchOn: { backgroundColor: colors.primary },
