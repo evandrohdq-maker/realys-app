@@ -75,14 +75,19 @@ const REST = 3; // quadro de repouso (entreaberta)
 //  - compacta: quando a Lotus mostra opções (prestadores, produtos, botões), a flor encolhe
 //    para a lista ter espaço na tela.
 const COMPACT = 0.46;
-export function stageScale(compact) {
+// Ao lado: com prestadores e resultados na tela, a mesma flor (com luz, raios e pólen) fica pequena
+// numa coluna à esquerda e a lista aparece ao lado, deixando o céu à mostra.
+const SIDE = 0.4;
+export const SIDE_W = 104; // largura da coluna da flor pequena
+export function stageScale(compact, side) {
+  if (side) return SIDE;
   if (compact) return COMPACT;
   const h = Dimensions.get('window').height;
   return Math.min(1, Math.max(0.7, h / 780));
 }
 
-export default function LotusFlower({ phase, level, onPress, visible = true, mood = 'padrao', compact = false }) {
-  const k = stageScale(compact);
+export default function LotusFlower({ phase, level, onPress, visible = true, mood = 'padrao', compact = false, side = false }) {
+  const k = stageScale(compact, side);
   const set = FRAMES[mood] || FRAMES.padrao;
   const active = phase === 'listening' || phase === 'speaking' || phase === 'thinking';
   const [frame, setFrame] = useState({ kind: 'bloom', i: 0 });
@@ -207,8 +212,8 @@ export default function LotusFlower({ phase, level, onPress, visible = true, moo
   // Todos os quadros ficam empilhados e só o atual aparece: troca sem piscar.
   const all = [...set.bloom.map((src, i) => ['bloom', i, src]), ...set.idle.map((src, i) => ['idle', i, src])];
   return (
-    <View style={[styles.stage, { height: Math.round(STAGE * k) }]} pointerEvents="box-none">
-      <View style={[styles.center, { transform: [{ translateX: NUDGE_X }, { translateY: NUDGE_Y * k }, { scale: k }] }]} pointerEvents="box-none">
+    <View style={[styles.stage, { height: Math.round(STAGE * k) }, side && { alignSelf: 'center', width: SIDE_W }]} pointerEvents="box-none">
+      <View style={[styles.center, { transform: [{ translateX: NUDGE_X }, { translateY: side ? 0 : NUDGE_Y * k }, { scale: k }] }]} pointerEvents="box-none">
         {/* A luz e os raios são maiores que a flor e passam por cima do cabeçalho da caixa.
             Ficam dentro de uma View que não recebe toques, senão roubavam o toque do botão
             fechar (no Android a Image ignora pointerEvents). */}

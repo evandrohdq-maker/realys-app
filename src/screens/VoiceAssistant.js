@@ -13,7 +13,7 @@ import { colors, brl, soft } from '../theme';
 import { ServiceCallCard } from './cliente/ServicesScreen';
 import { Photo } from '../components/ui';
 import ProviderPreview from '../components/ProviderPreview';
-import LotusFlower, { FlyingPetal, MOODS } from '../components/LotusFlower';
+import LotusFlower, { FlyingPetal, MOODS, SIDE_W } from '../components/LotusFlower';
 import StarField, { skyBg } from '../components/StarField';
 import { getWeather, skyOf, weatherIcon } from '../weather';
 import { searchAll, contentReply, CONTENT_WORDS } from '../search';
@@ -1547,6 +1547,18 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
             </View>
           </View>
 
+          {/* Com resultados na tela: a flor fica pequena à esquerda e a lista ao lado (o céu aparece mais). */}
+          {compact ? paused && phase !== 'speaking' ? (
+            <View style={styles.pauseRow}>
+              <Text style={styles.pauseHint}>Diga "continua" ou faça outro pedido sobre o mesmo assunto</Text>
+              <TouchableOpacity onPress={() => resume(false)} style={styles.pauseBtn} accessibilityLabel="Continuar a fala da Lotus">
+                <Ionicons name="play" size={14} color={colors.onPrimary} />
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.pauseBtnText}>Continuar</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null : null}
+          <View style={compact ? styles.sideRow : styles.stack}>
+            <View style={compact ? styles.sideCol : null}>
           <LotusFlower
             phase={phase}
             level={level}
@@ -1557,13 +1569,14 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
             visible={visible}
             mood={mood}
             compact={compact}
+            side={compact}
           />
           <View style={styles.statusRow}>
             <View style={[styles.statusDot, { backgroundColor: phase === 'listening' ? '#60A5FA' : phase === 'idle' ? 'rgba(255,255,255,0.4)' : colors.gold }]} />
-            <Text style={styles.status}>{PHASE_TEXT[phase]}</Text>
+            <Text style={[styles.status, compact && styles.statusSide]} numberOfLines={2}>{PHASE_TEXT[phase]}</Text>
           </View>
           {phase === 'speaking' && ear && ear !== 'wait' ? (
-            <Text style={styles.earHint} numberOfLines={1}>
+            <Text style={[styles.earHint, compact && styles.earHintSide]} numberOfLines={compact ? 3 : 1}>
               {ear === 'on' ? (earHeard ? `🎙 ouvindo: “${earHeard}”` : '🎙 diga “Lotus” para interromper') : 'toque na flor para interromper'}
             </Text>
           ) : null}
@@ -1573,7 +1586,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
               {partial || (last && phase !== 'listening' ? splitSentences(last.reply)[0] : tratoOf() ? openLine(tratoOf(), state.user && state.user.name) : '“Me leva pro Agro”')}
             </Text>
           )}
-          {paused && phase !== 'speaking' ? (
+          {!compact ? paused && phase !== 'speaking' ? (
             <View style={styles.pauseRow}>
               <Text style={styles.pauseHint}>Diga "continua" ou faça outro pedido sobre o mesmo assunto</Text>
               <TouchableOpacity onPress={() => resume(false)} style={styles.pauseBtn} accessibilityLabel="Continuar a fala da Lotus">
@@ -1581,9 +1594,9 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
                 <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.pauseBtnText}>Continuar</Text>
               </TouchableOpacity>
             </View>
-          ) : null}
-
-          <ScrollView ref={answersRef} style={{ flex: 1, marginTop: 10 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          ) : null : null}
+            </View>
+          <ScrollView ref={answersRef} style={{ flex: 1, marginTop: compact ? 0 : 10 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             {!history.length ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingVertical: 4 }}>
                 {EXAMPLES.map((e, i) => (
@@ -1646,12 +1659,12 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
                         onPress={() => setPreview(p)}
                         accessibilityLabel={`Ver prévia do perfil de ${p.name}`}
                       >
-                        <Photo uri={p.photo} style={styles.pPhoto} fallback="🧑" />
+                        <Photo uri={p.photo} style={[styles.pPhoto, compact && styles.photoSide]} fallback="🧑" />
                         <View style={{ flex: 1, marginLeft: 10 }}>
-                          <Text style={styles.itemTitle}>
+                          <Text style={styles.itemTitle} numberOfLines={1}>
                             {p.name} · <Text style={{ color: colors.primary, fontWeight: '700' }}>★ {p.rating}</Text>
                           </Text>
-                          <Text style={styles.itemSub}>
+                          <Text style={styles.itemSub} numberOfLines={compact ? 2 : undefined}>
                             {p.distanceKm.toFixed(1)} km · {p.functions.join(', ')}
                           </Text>
                           <Text style={styles.itemPrice}>{priceText(p)}</Text>
@@ -1682,7 +1695,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
                           } else if (r.go && onNavigate) onNavigate(r.go);
                         }}
                       >
-                        <Photo uri={r.photo} style={styles.rPhoto} fallback={r.icon || '🔎'} />
+                        <Photo uri={r.photo} style={[styles.rPhoto, compact && styles.photoSide]} fallback={r.icon || '🔎'} />
                         <View style={{ flex: 1, marginLeft: 10 }}>
                           <Text style={styles.itemTag}>
                             {r.section}{r.sponsored ? ' · Patrocinado' : ''}
@@ -1738,6 +1751,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
               </FadeItem>
             ))}
           </ScrollView>
+          </View>
 
           <View style={styles.inputBar}>
             <Ionicons name="sparkles-outline" size={18} color={colors.gold} style={{ marginLeft: 4 }} />
@@ -1765,7 +1779,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
         {/* Sai da flor (no meio da caixa) e voa até a sacola, no topo do app */}
         <FlyingPetal
           trigger={fly}
-          from={{ x: win.width / 2, y: win.height * 0.16 + 130 }}
+          from={compact ? { x: 18 + SIDE_W / 2, y: win.height * 0.07 + 110 } : { x: win.width / 2, y: win.height * 0.16 + 130 }}
           to={{ x: win.width - 122, y: 48 }}
           color={MOODS[mood].mid}
         />
@@ -1859,7 +1873,14 @@ const styles = StyleSheet.create({
   sense: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: 'rgba(147,197,253,0.14)', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, marginBottom: 6 },
   senseTxt: { color: '#93C5FD', fontSize: 11, fontWeight: '700', marginLeft: 4 },
 
-  item: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 10, marginBottom: 6, ...soft },
+  // Cartões de vidro: brancos mas translúcidos, para o céu (sol, chuva, noite) aparecer por trás.
+  item: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.84)', borderRadius: 16, padding: 10, marginBottom: 6, ...soft },
+  photoSide: { width: 40, height: 40, borderRadius: 12 },
+  statusSide: { fontSize: 10, letterSpacing: 0.6, textAlign: 'center', flexShrink: 1 },
+  earHintSide: { fontSize: 10, paddingHorizontal: 0 },
+  stack: { flex: 1 },
+  sideRow: { flex: 1, flexDirection: 'row', marginTop: 6 },
+  sideCol: { width: SIDE_W, marginLeft: -8, marginRight: 6, alignItems: 'center' },
   itemTag: { color: colors.accent, fontSize: 10, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
   itemTitle: { color: colors.text, fontWeight: '700', fontSize: 15 },
   itemSub: { color: colors.muted, fontSize: 12 },
