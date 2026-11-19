@@ -90,9 +90,12 @@ function Host() {
       if (e && e.isPlaying) setRadioNow({ status: 'tocando', error: null });
     });
     // A música chegou ao fim: passa para a próxima da fila (rádio ao vivo não termina).
+    // Fechar a música (X) para tudo: o player avisa "terminou" ao ser esvaziado, e isso não pode
+    // virar "passar para a próxima". Só passa sozinho quando a faixa termina de verdade, tocando.
     const c = player.addListener('playToEnd', () => {
-      const r = radioNow().radio;
-      if (r && r.track) radioEnded();
+      const now = radioNow();
+      if (now.status !== 'tocando' || Date.now() - (now.req || 0) < 1500) return;
+      if (now.radio && now.radio.track) radioEnded();
     });
     return () => (a.remove(), b.remove(), c.remove());
   }, [player]);

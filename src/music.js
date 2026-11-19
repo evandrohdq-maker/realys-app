@@ -8,7 +8,7 @@
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TAXAS } from './taxas';
-import { playRadio, stopRadio, setOnEnded } from './radio';
+import { playRadio, stopRadio, setOnEnded, radioNow } from './radio';
 
 export const MUSIC_FEE_PCT = TAXAS.musicaVenda.pct; // % do Re@lys sobre cada venda
 export const MUSIC_PLAN_PRICE = TAXAS.musicaPremium.valor;
@@ -142,6 +142,7 @@ export function playTrack(t, list) {
   startTrack(t);
 }
 export function nextTrack(current) {
+  if (radioNow().status === 'parado') return; // fechou a música: não passa para a próxima
   const ids = queue.filter((id) => trackById(id));
   if (!ids.length) return;
   const i = ids.indexOf(current && current.id);
