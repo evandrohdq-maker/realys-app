@@ -14,7 +14,7 @@ import { isVerified } from '../../../components/BioGate';
 import { Photo } from '../../../components/ui';
 import {
   useMusic, allTracks, trackById, publishTrack, removeTrack, registerSale, createPlaylist, removePlaylist, togglePlaylistTrack,
-  subscribePlan, cancelPlan, planInfo, playTrack, startTrack, setAdHook, openArtist, artistGets, MUSIC_FEE_PCT, MUSIC_PLAN_PRICE, MUSIC_PLAN_FREE_MONTHS, MUSIC_GENRES, ADS_EVERY,
+  subscribePlan, cancelPlan, planInfo, playTrack, startTrack, setAdHook, setOwnedTracks, openArtist, artistGets, MUSIC_FEE_PCT, MUSIC_PLAN_PRICE, MUSIC_PLAN_FREE_MONTHS, MUSIC_GENRES, ADS_EVERY,
 } from '../../../music';
 
 const SEGS = [
@@ -58,6 +58,8 @@ export default function MusicTab() {
   }, [ad, left]);
 
   const start = startTrack;
+  // Compradas tocam sem propaganda (também nas playlists do ouvinte).
+  useEffect(() => { setOwnedTracks(bought); }, [bought]);
   // Com esta tela aberta, a propaganda aparece aqui (também quando a música troca sozinha).
   useEffect(() => {
     setAdHook((t) => {

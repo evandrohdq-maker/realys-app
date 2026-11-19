@@ -97,11 +97,21 @@ export function planInfo(at = Date.now()) {
   return { on: true, free: at < freeUntil, freeUntil };
 }
 
-// Conta as músicas ouvidas e diz se agora é hora da propaganda (só para quem não tem o plano).
-export function countPlay() {
+// Músicas compradas tocam sem propaganda e não entram na conta (a tela de Músicas informa quais são).
+let owned = {};
+export const setOwnedTracks = (map) => (owned = map || {});
+// Propaganda que ficou devendo (a vez dela chegou com a tela de Músicas fechada): entra na próxima chance.
+let adDue = false;
+
+// Conta as músicas ouvidas (Galeria, playlists do ouvinte, qualquer fila) e diz se agora é hora da
+// propaganda: uma a cada 3 músicas, só para quem não tem o plano.
+export function countPlay(t) {
+  if (planInfo().on) return (adDue = false);
+  if (t && (owned[t.id] || t.mine)) return false;
   const heard = data.heard + 1;
   set({ heard });
-  return !planInfo().on && heard % ADS_EVERY === 0;
+  if (heard % ADS_EVERY === 0) adDue = true;
+  return adDue;
 }
 
 // ---------- Tocar e passar para a próxima sozinho ----------
@@ -135,7 +145,8 @@ export const startTrack = (t) => playRadio(toRadio(t));
 // Toca a faixa (com a propaganda antes, quando é a vez dela e a tela de Músicas está aberta).
 export function playTrack(t, list) {
   if (list && list.length) queue = list.map((x) => x.id);
-  if (countPlay() && adHook) {
+  if (countPlay(t) && adHook) {
+    adDue = false;
     stopRadio();
     return adHook(t);
   }
