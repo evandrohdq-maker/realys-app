@@ -12,6 +12,8 @@ import { useTvNow } from './FloatPlayers';
 import { useStore } from '../store';
 import { stopRadio } from '../radio';
 import { stopTv } from '../tv';
+import { hardStopRadio } from './RadioKit';
+import { hardStopTv } from './FloatPlayers';
 
 export default function PipManager() {
   const { state, dispatch } = useStore();
@@ -35,7 +37,10 @@ export default function PipManager() {
     const leave = (closed) => {
       setPipState(false);
       if (closed) {
-        // Fechou a janelinha no X: para tudo (nada fica tocando escondido).
+        // Fechou a janelinha no X: para tudo (nada fica tocando escondido). Primeiro direto no
+        // player (não espera a tela redesenhar, que fica parada com o app em segundo plano).
+        hardStopRadio();
+        hardStopTv();
         stopRadio();
         stopTv();
         st.current.dispatch({ type: 'LIVE_MINI_CLOSE' });
@@ -46,10 +51,11 @@ export default function PipManager() {
         reopenLive.current = false;
       }
     };
-    const offNative = onNativePip((on) => {
+    const offNative = onNativePip((on, closed) => {
       if (on) return setPipState(true);
-      // Saiu da janelinha: voltou para o app (ativo) ou fechou no X (fica em segundo plano).
-      setTimeout(() => leave(AppState.currentState !== 'active'), 700);
+      // Fechou no X: o Android avisa (closed) e o som para na hora, mesmo com o app em segundo plano.
+      if (closed) return leave(true);
+      setPipState(false);
     });
     const sub = AppState.addEventListener('change', (s) => {
       if (s !== 'active') {

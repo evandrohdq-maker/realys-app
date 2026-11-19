@@ -54,6 +54,18 @@ export function StationLogo({ s, kind = 'radio', size = 58, radius = 16 }) {
   );
 }
 
+// Parar na hora, direto no player (fechar a janelinha com o app em segundo plano).
+let livePlayer = null;
+export function hardStopRadio() {
+  try {
+    if (livePlayer) {
+      livePlayer.pause();
+      livePlayer.showNowPlayingNotification = false;
+      livePlayer.staysActiveInBackground = false;
+    }
+  } catch (e) {}
+}
+
 function Host() {
   const n = useRadioNow();
   const player = EV.useVideoPlayer(null, (p) => {
@@ -61,6 +73,12 @@ function Host() {
     p.showNowPlayingNotification = true; // controle na barra de notificações
   });
   const last = useRef(null);
+  useEffect(() => {
+    livePlayer = player;
+    return () => {
+      if (livePlayer === player) livePlayer = null;
+    };
+  }, [player]);
   useEffect(() => {
     const a = player.addListener('statusChange', (e) => {
       const s = e && e.status;

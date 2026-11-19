@@ -29,6 +29,18 @@ export function useTvNow() {
   return n;
 }
 
+// Parar o canal na hora, direto no player (fechar a janelinha com o app em segundo plano).
+let tvPlayer = null;
+export function hardStopTv() {
+  try {
+    if (tvPlayer) {
+      tvPlayer.pause();
+      tvPlayer.showNowPlayingNotification = false;
+      tvPlayer.staysActiveInBackground = false;
+    }
+  } catch (e) {}
+}
+
 // O vídeo do canal. Trocar de canal remonta o player (key = id do canal).
 function TvVideo({ channel, viewRef, ctl, onPlaying, onFail }) {
   const player = EV.useVideoPlayer({ uri: channel.url, metadata: { title: channel.name, artist: 'TV no Re@lys' } }, (p) => {
@@ -40,6 +52,12 @@ function TvVideo({ channel, viewRef, ctl, onPlaying, onFail }) {
     const a = player.addListener('statusChange', (e) => e && e.status === 'error' && onFail());
     const b = player.addListener('playingChange', (e) => onPlaying(!!(e && e.isPlaying)));
     return () => (a.remove(), b.remove());
+  }, [player]);
+  useEffect(() => {
+    tvPlayer = player;
+    return () => {
+      if (tvPlayer === player) tvPlayer = null;
+    };
   }, [player]);
   // Pausar e continuar pelo botão da janela.
   useEffect(() => {

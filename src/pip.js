@@ -47,9 +47,10 @@ export function usePipState() {
 }
 
 // O Android avisa na hora em que entra e sai da janelinha.
+// closed = a pessoa fechou a janelinha no X (o Android confere e avisa).
 export function onNativePip(fn) {
   if (!N || !N.addListener) return () => {};
-  const sub = N.addListener('onPipChange', (e) => fn(!!(e && e.inPip)));
+  const sub = N.addListener('onPipChange', (e) => fn(!!(e && e.inPip), !!(e && e.closed)));
   return () => sub && sub.remove && sub.remove();
 }
 

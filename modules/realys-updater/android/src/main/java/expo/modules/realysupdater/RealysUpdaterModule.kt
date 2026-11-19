@@ -45,8 +45,26 @@ class RealysUpdaterModule : Module() {
               false
             }
             try {
-              sendEvent("onPipChange", mapOf("inPip" to inPip))
+              sendEvent("onPipChange", mapOf("inPip" to inPip, "closed" to false))
             } catch (e: Throwable) {}
+            // Saiu da janelinha: tocou para abrir (o app volta) ou fechou no X (o app fica parado).
+            // Confere aqui no Android, sem depender do app, e avisa "fechou" para parar o som.
+            if (!inPip) {
+              android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                val resumed = try {
+                  val lc = act.javaClass.getMethod("getLifecycle").invoke(act)
+                  val state = lc.javaClass.getMethod("getCurrentState").invoke(lc)
+                  state.toString() == "RESUMED"
+                } catch (e: Throwable) {
+                  act.hasWindowFocus()
+                }
+                if (!resumed) {
+                  try {
+                    sendEvent("onPipChange", mapOf("inPip" to false, "closed" to true))
+                  } catch (e: Throwable) {}
+                }
+              }, 600)
+            }
             null
           }
           "hashCode" -> System.identityHashCode(self)
