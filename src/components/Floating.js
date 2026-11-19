@@ -9,7 +9,8 @@ const HOLD_MS = 300; // tempo segurando para "pegar" a janela
 const EDGE = 8; // distância mínima das bordas da tela
 
 // place: posição inicial ({ left | right, top | bottom }). O resto do estilo vem em `style`.
-export default function Floating({ place, style, children, bottomGap = 0 }) {
+// full: ocupa a tela inteira (dentro da janelinha por cima dos outros apps), sem arrastar.
+export default function Floating({ place, style, children, bottomGap = 0, full = false }) {
   const win = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const pos = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
@@ -63,6 +64,8 @@ export default function Floating({ place, style, children, bottomGap = 0 }) {
     [],
   );
 
+  if (full)
+    return <Animated.View style={[style, { position: 'absolute', top: 0, left: 0, width: win.width, height: win.height, borderRadius: 0, borderWidth: 0, zIndex: 9999, elevation: 99 }]}>{children}</Animated.View>;
   return (
     <Animated.View
       {...pan.panHandlers}

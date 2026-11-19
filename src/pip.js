@@ -1,10 +1,10 @@
 // Janelinha por cima dos outros apps (picture-in-picture do Android), como no YouTube Premium.
-// Rádio tocando: ao sair do Re@lys (botão início), o app vira uma janelinha no canto com a logo da
-// rádio. Dá para arrastar, tocar para voltar e fechar no X (fechar a janelinha para a rádio).
-// A TV usa a janelinha do próprio player de vídeo (src/components/FloatPlayers.js).
+// Dentro da janelinha aparece SÓ o player que a pessoa está usando, nunca o app inteiro:
+//   - rádio: a logo, o nome e o AO VIVO;   - TV: o vídeo do canal;   - live: o vídeo da live.
+// A janelinha abre sozinha ao sair do Re@lys (Android 12+) ou pelo botão de janela do player.
+// O próprio Android põe nela os botões de abrir em tela cheia e de fechar, e deixa arrastar.
 // Precisa do APK novo (módulo nativo RealysUpdater); sem ele, nada muda.
-import { useEffect, useRef, useState } from 'react';
-import { AppState, useWindowDimensions } from 'react-native';
+import { useEffect, useState } from 'react';
 
 let N = null;
 try {
@@ -20,29 +20,46 @@ const call = (fn, ...a) => {
   }
 };
 
+// Formato da janelinha: TV e rádio deitadas (16:9), live em pé (9:16).
+export const PIP_SHAPE = { tv: [16, 9], radio: [16, 9], live: [9, 16] };
 export const pipOk = () => !!call('canPip');
-export const setAutoPip = (on) => call('setAutoPip', !!on, 16, 9);
-export const enterPip = () => call('enterPip', 16, 9);
-const isInPip = () => !!call('isInPip');
+export const setAutoPip = (on, kind = 'radio') => call('setAutoPip', !!on, ...(PIP_SHAPE[kind] || PIP_SHAPE.radio));
+export const enterPip = (kind = 'radio') => call('enterPip', ...(PIP_SHAPE[kind] || PIP_SHAPE.radio));
+export const isInPipNow = () => !!call('isInPip');
 
-// O app está dentro da janelinha agora? A janela do Android fica bem pequena: confere com o nativo.
-// onClosed: a pessoa fechou a janelinha no X (o app sai da janelinha e não volta para a frente).
-export function usePip(onClosed) {
-  const win = useWindowDimensions();
-  const [inPip, setInPip] = useState(false);
-  const was = useRef(false);
-  const closed = useRef(onClosed);
-  closed.current = onClosed;
-  useEffect(() => {
-    const now = win.width < 420 && win.height < 420 ? isInPip() || win.width < 300 : false;
-    if (was.current && !now) {
-      // Saiu da janelinha: tocou para abrir (volta ativo) ou fechou no X (fica em segundo plano).
-      setTimeout(() => {
-        if (AppState.currentState !== 'active') closed.current && closed.current();
-      }, 600);
-    }
-    was.current = now;
-    setInPip(now);
-  }, [win.width, win.height]);
-  return inPip;
+// ---------- Estado único "estou na janelinha" ----------
+let inPip = false;
+const subs = new Set();
+export const pipState = () => inPip;
+export function setPipState(v) {
+  if (v === inPip) return;
+  inPip = v;
+  subs.forEach((fn) => fn(v));
 }
+export function onPipState(fn) {
+  subs.add(fn);
+  return () => subs.delete(fn);
+}
+export function usePipState() {
+  const [v, setV] = useState(inPip);
+  useEffect(() => onPipState(setV), []);
+  return v;
+}
+
+// O Android avisa na hora em que entra e sai da janelinha.
+export function onNativePip(fn) {
+  if (!N || !N.addListener) return () => {};
+  const sub = N.addListener('onPipChange', (e) => fn(!!(e && e.inPip)));
+  return () => sub && sub.remove && sub.remove();
+}
+
+// ---------- Live aberta em tela cheia ----------
+// A tela da live se registra aqui; ao sair do app, ela vira a janelinha da live (LiveFloat).
+let liveHere = null; // { minimize }
+export const registerLive = (h) => {
+  liveHere = h;
+  return () => {
+    if (liveHere === h) liveHere = null;
+  };
+};
+export const liveOpenNow = () => liveHere;

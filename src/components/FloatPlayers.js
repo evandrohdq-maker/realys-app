@@ -13,6 +13,7 @@ import { Photo } from './ui';
 import { useStore } from '../store';
 import { tvNow, onTvNow, stopTv } from '../tv';
 import { onRadioNow } from '../radio';
+import { usePipState, enterPip, pipOk } from '../pip';
 import { LiveStage } from './LiveVideo';
 import { LiveModal } from '../screens/cliente/home/Social';
 
@@ -54,8 +55,7 @@ function TvVideo({ channel, viewRef, ctl, onPlaying, onFail }) {
       style={StyleSheet.absoluteFill}
       contentFit="contain"
       nativeControls={false}
-      allowsPictureInPicture
-      startsPictureInPictureAutomatically
+      allowsPictureInPicture={false}
     />
   );
 }
@@ -81,19 +81,16 @@ export function TvFloat({ bottom = 150 }) {
       }),
     [],
   );
+  const inPip = usePipState();
   if (!ch) return null;
   const w = Math.round(big ? win.width - 24 : Math.min(260, win.width * 0.62));
   const h = Math.round((w * 9) / 16);
+  // Janelinha por cima dos outros apps: só o vídeo do canal (src/pip.js).
   const pip = () => {
-    try {
-      if (!view.current || !view.current.startPictureInPicture) throw new Error('sem pip');
-      view.current.startPictureInPicture();
-    } catch (e) {
-      Alert.alert('Janela fora do app', 'Este celular não liberou a janela flutuante para o Re@lys. O som do canal continua tocando quando você sai do app.');
-    }
+    if (!pipOk() || !enterPip('tv')) Alert.alert('Janela fora do app', 'Este celular não liberou a janelinha para o Re@lys. O som do canal continua tocando quando você sai do app.');
   };
   return (
-    <Floating place={{ right: 12, bottom }} style={[st.tv, { width: w, height: h }]}>
+    <Floating full={inPip} place={{ right: 12, bottom }} style={[st.tv, { width: w, height: h }]}>
       {EV ? (
         <TvVideo key={ch.id} channel={ch} viewRef={view} ctl={ctl} onPlaying={setPlaying} onFail={() => setFailed(true)} />
       ) : (
@@ -107,8 +104,8 @@ export function TvFloat({ bottom = 150 }) {
           <Text style={st.msg}>Não consegui abrir o sinal deste canal agora.</Text>
         </View>
       ) : null}
-      {/* Em cima: nome do canal e os botões da janela */}
-      <View style={st.top}>
+      {/* Em cima: nome do canal e os botões da janela (na janelinha do Android, os botões são dele) */}
+      {inPip ? null : <View style={st.top}>
         <Ionicons name="move" size={13} color="rgba(255,255,255,0.75)" />
         <Text style={st.name} numberOfLines={1}>{ch.name}</Text>
         <TouchableOpacity onPress={pip} style={st.btn} hitSlop={6} accessibilityLabel="Continuar assistindo fora do app, numa janela">
@@ -120,8 +117,8 @@ export function TvFloat({ bottom = 150 }) {
         <TouchableOpacity onPress={stopTv} style={st.btn} hitSlop={6} accessibilityLabel="Fechar o canal">
           <Ionicons name="close" size={16} color="#fff" />
         </TouchableOpacity>
-      </View>
-      {EV && !failed ? (
+      </View>}
+      {EV && !failed && !inPip ? (
         <TouchableOpacity onPress={() => ctl.current && ctl.current.toggle()} style={st.play} hitSlop={8} accessibilityLabel={playing ? 'Pausar' : 'Continuar'}>
           <Ionicons name={playing ? 'pause' : 'play'} size={16} color="#fff" />
         </TouchableOpacity>
@@ -135,23 +132,31 @@ export function LiveFloat({ bottom = 150 }) {
   const { state, dispatch } = useStore();
   const l = state.liveMini;
   const open = state.liveOpen;
+  const inPip = usePipState();
   return (
     <>
       {l ? (
-        <Floating place={{ left: 12, bottom }} style={st.live}>
+        <Floating full={inPip} place={{ left: 12, bottom }} style={st.live}>
           <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={0.9} onPress={() => dispatch({ type: 'LIVE_REOPEN' })} accessibilityLabel={`Abrir a live de ${l.host}`}>
             <Photo uri={l.photo} style={StyleSheet.absoluteFill} fallback="🎥" />
             {/* Live de verdade (servidor de vídeo): o vídeo continua na janelinha. */}
             <LiveStage liveId={l.real ? l.id : null} mine={false} onAir viewScreen={l.source === 'tela'} />
-            <View style={st.liveShade} />
+            {inPip ? null : <View style={st.liveShade} />}
             <View style={st.liveTag}>
               <Text style={st.liveTagText}>AO VIVO</Text>
             </View>
-            <Text style={st.liveHost} numberOfLines={2}>{l.host}</Text>
+            {inPip ? null : <Text style={st.liveHost} numberOfLines={2}>{l.host}</Text>}
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => dispatch({ type: 'LIVE_MINI_CLOSE' })} style={[st.btn, st.liveClose]} hitSlop={8} accessibilityLabel="Fechar a live">
-            <Ionicons name="close" size={15} color="#fff" />
-          </TouchableOpacity>
+          {inPip ? null : (
+            <TouchableOpacity onPress={() => dispatch({ type: 'LIVE_MINI_CLOSE' })} style={[st.btn, st.liveClose]} hitSlop={8} accessibilityLabel="Fechar a live">
+              <Ionicons name="close" size={15} color="#fff" />
+            </TouchableOpacity>
+          )}
+          {inPip || !pipOk() ? null : (
+            <TouchableOpacity onPress={() => enterPip('live')} style={[st.btn, st.liveClose, { top: 34 }]} hitSlop={8} accessibilityLabel="Ver a live numa janelinha por cima dos outros apps">
+              <Ionicons name="browsers-outline" size={13} color="#fff" />
+            </TouchableOpacity>
+          )}
         </Floating>
       ) : null}
       {open ? <LiveModal live={open} mine={false} visible onClose={() => dispatch({ type: 'LIVE_OPEN_CLOSE' })} userName={state.user ? state.user.name : 'Você'} /> : null}

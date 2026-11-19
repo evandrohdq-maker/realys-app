@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { moderateText, antiDesvio } from '../../../moderation';
 import { usePrivateScreen } from '../../../privacyGuard';
+import { registerLive } from '../../../pip';
 import { giftPoints } from '../../../rewards';
 import GiftIcon from '../../../components/GiftIcon';
 import { View, StyleSheet, Modal, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, Animated, Easing } from 'react-native';
@@ -274,6 +275,14 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
   const [burst, setBurst] = useState(null);
   const burstAnim = useRef(new Animated.Value(0)).current;
   const { state, dispatch } = useStore();
+  // Live de outra pessoa aberta em tela cheia: ao sair do app, ela vira o player da janelinha
+  // por cima dos outros apps (src/pip.js, PipManager), e volta em tela cheia ao tocar nela.
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => {
+    if (!visible || mine || !live) return;
+    return registerLive({ minimize: () => (closeRef.current && closeRef.current(), dispatch({ type: 'LIVE_MINIMIZE', live })) });
+  }, [visible, mine, live && live.id]);
   const showBurst = (g, q, who) => {
     setBurst({ gift: g, emoji: g.emoji, text: `${who} enviou ${g.name}${q > 1 ? ` x${q}` : ''}`, at: Date.now() });
     burstAnim.setValue(0);

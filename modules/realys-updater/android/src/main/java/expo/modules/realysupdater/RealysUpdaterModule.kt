@@ -26,9 +26,47 @@ class RealysUpdaterModule : Module() {
   private val context: Context
     get() = requireNotNull(appContext.reactContext) { "Contexto do app indisponível" }
 
+  // Ouve a entrada e a saída da janelinha sem depender de versão de biblioteca: o Android chama o
+  // ouvinte (Consumer do androidx) que é ligado aqui por reflexão. Sem suporte, nada acontece.
+  private var pipHooked = false
+  private fun hookPip() {
+    if (pipHooked) return
+    val act = appContext.currentActivity ?: return
+    try {
+      val consumerCls = Class.forName("androidx.core.util.Consumer")
+      var self: Any? = null
+      val handler = java.lang.reflect.InvocationHandler { _, method, args ->
+        when (method.name) {
+          "accept" -> {
+            val info = args?.getOrNull(0)
+            val inPip = try {
+              info?.javaClass?.getMethod("isInPictureInPictureMode")?.invoke(info) as? Boolean ?: false
+            } catch (e: Throwable) {
+              false
+            }
+            try {
+              sendEvent("onPipChange", mapOf("inPip" to inPip))
+            } catch (e: Throwable) {}
+            null
+          }
+          "hashCode" -> System.identityHashCode(self)
+          "equals" -> (args?.getOrNull(0) === self)
+          "toString" -> "RealysPipListener"
+          else -> null
+        }
+      }
+      val proxy = java.lang.reflect.Proxy.newProxyInstance(consumerCls.classLoader, arrayOf(consumerCls), handler)
+      self = proxy
+      act.javaClass.getMethod("addOnPictureInPictureModeChangedListener", consumerCls).invoke(act, proxy)
+      pipHooked = true
+    } catch (e: Throwable) {
+      // Android ou biblioteca sem o ouvinte: o app usa o plano B (confere ao voltar para o app).
+    }
+  }
+
   override fun definition() = ModuleDefinition {
     Name("RealysUpdater")
-    Events("onInstallStatus")
+    Events("onInstallStatus", "onPipChange")
 
     OnCreate {
       InstallResultReceiver.listener = { status, message ->
@@ -46,6 +84,8 @@ class RealysUpdaterModule : Module() {
       }
     }
     OnDestroy { InstallResultReceiver.listener = null }
+    // Avisa o app quando entra e sai da janelinha (picture-in-picture), para ele mostrar só o player.
+    OnActivityEntersForeground { hookPip() }
 
     // Música de outro app (Spotify, YouTube Music, rádio…) tocando agora?
     // A Lotus usa isso para não pausar a música: com música tocando, o "abrir Lotus" fica desligado.
@@ -75,6 +115,7 @@ class RealysUpdaterModule : Module() {
 
     // Android 12+: sair do app (botão início) já abre a janelinha sozinho enquanto estiver ligado.
     Function("setAutoPip") { enabled: Boolean, w: Int, h: Int ->
+      hookPip()
       val act = appContext.currentActivity
       if (act != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         act.runOnUiThread {
@@ -97,6 +138,7 @@ class RealysUpdaterModule : Module() {
 
     // Abre a janelinha agora (botão do player).
     Function("enterPip") { w: Int, h: Int ->
+      hookPip()
       val act = appContext.currentActivity
       if (act != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         act.runOnUiThread {
