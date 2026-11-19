@@ -336,6 +336,8 @@ function Shell({ inviteTick }) {
   if (WORK_ROLES.includes(state.activeRole)) lastWork.current = state.activeRole;
   const canSwap = verified && state.user.roles.includes('cliente') && workRoles.length > 0 && state.activeRole !== 'admin';
   const swapTarget = state.activeRole === 'cliente' ? lastWork.current || workRoles[0] : 'cliente';
+  // Segurou o botão do Perfil: troca de perfil e avisa para qual foi.
+  const swapHold = () => swapProfile();
   const swapProfile = () => {
     setCameFromEmpresa(false);
     if (Platform.OS === 'android') ToastAndroid.show(`Modo ${ROLE_LABELS[swapTarget].toLowerCase()}`, ToastAndroid.SHORT);
@@ -535,16 +537,8 @@ function Shell({ inviteTick }) {
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {/* Troca de perfil: um símbolo só, pequeno. Mostra o perfil em uso; tocar troca trabalho ⇄ usuário. */}
-          {canSwap ? (
-            <TouchableOpacity onPress={swapProfile} style={styles.swapBtn} activeOpacity={0.8} accessibilityLabel={`Trocar para o modo ${ROLE_LABELS[swapTarget]}`}>
-              <View style={styles.swapRing}>
-                <Ionicons name={ROLE_ICONS[state.activeRole] || 'person'} size={15} color={colors.primary} />
-              </View>
-              <View style={styles.swapBadge}>
-                <Ionicons name="sync" size={9} color="#fff" />
-              </View>
-            </TouchableOpacity>
-          ) : state.activeRole === 'empresa' ? (
+          {/* A troca de perfil (usuário ⇄ trabalho) agora fica no botão do Perfil: segurar troca. */}
+          {canSwap ? null : state.activeRole === 'empresa' ? (
             /* Empresa sem perfil de usuário: entra só no feed da Community. */
             <TouchableOpacity onPress={goCommunity} style={styles.rolePill} accessibilityLabel="Entrar na Community: ver o feed e usar os serviços">
               <Ionicons name="people-circle-outline" size={16} color={colors.text} />
@@ -561,21 +555,28 @@ function Shell({ inviteTick }) {
           <TouchableOpacity onPress={() => setSearching(true)} style={styles.iconBtn} accessibilityLabel="Buscar pessoas na rede Re@lys">
             <Ionicons name="search-outline" size={21} color={colors.text} />
           </TouchableOpacity>
-          {/* Perfil: subiu para o lugar do ⋮. Já dentro do Perfil, no mesmo lugar fica o ⋮,
-              que abre o Menu do Perfil (Minha conta + Explorar). */}
-          {current.key === 'perfil' ? (
-            <TouchableOpacity onPress={openProfileMenu} style={styles.iconBtn} accessibilityLabel="Abrir menu: minha conta e explorar o Re@lys">
+          {/* Toque: abre o Perfil (dentro do Perfil vira o ⋮ do menu).
+              Segurar 1 segundo: troca de perfil (usuário ⇄ prestador/empresa). O selinho mostra o perfil em uso. */}
+          <TouchableOpacity
+            onPress={current.key === 'perfil' ? openProfileMenu : () => pick({ tab: 'perfil' })}
+            onLongPress={canSwap ? swapHold : undefined}
+            delayLongPress={1000}
+            style={styles.iconBtn}
+            accessibilityLabel={(current.key === 'perfil' ? 'Abrir menu: minha conta e explorar o Re@lys' : 'Abrir meu perfil') + (canSwap ? `. Segure para trocar para ${ROLE_LABELS[swapTarget]}` : '')}
+          >
+            {current.key === 'perfil' ? (
               <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity onPress={() => pick({ tab: 'perfil' })} style={styles.iconBtn} accessibilityLabel="Abrir meu perfil">
-              {state.myProfile && state.myProfile.photo ? (
-                <Image source={{ uri: state.myProfile.photo }} style={styles.headAvatar} />
-              ) : (
-                <Ionicons name="person-circle-outline" size={25} color={colors.text} />
-              )}
-            </TouchableOpacity>
-          )}
+            ) : state.myProfile && state.myProfile.photo ? (
+              <Image source={{ uri: state.myProfile.photo }} style={styles.headAvatar} />
+            ) : (
+              <Ionicons name="person-circle-outline" size={25} color={colors.text} />
+            )}
+            {canSwap ? (
+              <View style={styles.swapBadge}>
+                <Ionicons name={ROLE_ICONS[state.activeRole] || 'person'} size={8} color="#fff" />
+              </View>
+            ) : null}
+          </TouchableOpacity>
         </View>
       </View>
       {/* Faixa de avisos: só aparece quando há algo (comanda do evento, mãos livres). */}
@@ -904,7 +905,7 @@ const styles = StyleSheet.create({
   // Botãozinho de troca de perfil: anel fino dourado com o símbolo do perfil em uso e as setinhas de troca.
   swapBtn: { width: 36, height: 40, alignItems: 'center', justifyContent: 'center', marginRight: 2 },
   swapRing: { width: 30, height: 30, borderRadius: 15, borderWidth: 1.5, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card },
-  swapBadge: { position: 'absolute', right: 1, bottom: 5, width: 14, height: 14, borderRadius: 7, backgroundColor: colors.primary, borderWidth: 1.5, borderColor: colors.bg, alignItems: 'center', justifyContent: 'center' },
+  swapBadge: { position: 'absolute', right: 2, bottom: 3, width: 14, height: 14, borderRadius: 7, backgroundColor: colors.primary, borderWidth: 1.5, borderColor: colors.bg, alignItems: 'center', justifyContent: 'center' },
   rolePillText: { color: colors.text, fontWeight: '700', fontSize: 12, marginLeft: 4 },
   tabIcon: { width: 44, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   tabIconOn: { backgroundColor: colors.gold },
