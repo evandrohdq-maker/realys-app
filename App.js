@@ -445,10 +445,11 @@ function Shell({ inviteTick }) {
       }}>
         {/* Aba ativa: sem fundo, só o ícone e o nome em dourado */}
         <View style={styles.tabIcon}>
-          {/* Menu de cima da empresa: ícone pequeno e suave (contorno fino), dourado quando ativo */}
-          <Ionicons name={on && !iconOnly ? t.icon.replace('-outline', '') : t.icon} size={iconOnly ? 17 : 21} color={on ? colors.primary : iconOnly ? colors.muted : colors.menu} style={iconOnly && !on ? { opacity: 0.75 } : null} />
+          {/* Menu de cima da empresa: no modelo das abas do topo da Community (News, Stream, Lives),
+              ícone pequeno com o nome embaixo, sem caixa e sem fundo. */}
+          <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={iconOnly ? 19 : 21} color={on ? colors.primary : colors.menu} />
         </View>
-        {iconOnly ? null : <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.tabLabel, on && { color: colors.primary, fontWeight: '800' }]}>{t.label}</Text>}
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.tabLabel, iconOnly && styles.topLabel, on && { color: iconOnly ? colors.text : colors.primary, fontWeight: '800' }]}>{t.label}</Text>
       </TouchableOpacity>
     );
   };
@@ -904,7 +905,8 @@ const styles = StyleSheet.create({
   },
   tab: { flex: 1, alignItems: 'center', paddingHorizontal: 2 },
   // Menu de cima da empresa: só os ícones, sem caixa e sem fundo.
-  topMenu: { flexDirection: 'row', paddingTop: 2, paddingBottom: 6, paddingHorizontal: 40 },
+  topMenu: { flexDirection: 'row', justifyContent: 'center', paddingTop: 4, paddingBottom: 8, paddingHorizontal: 48 },
+  topLabel: { fontSize: 11, fontWeight: '700', marginTop: 3 },
   rolePill: { flexDirection: 'row', alignItems: 'center', minHeight: 30, paddingHorizontal: 10, borderRadius: 15, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card, marginRight: 6 },
   // Botãozinho de troca de perfil: anel fino dourado com o símbolo do perfil em uso e as setinhas de troca.
   swapBtn: { width: 36, height: 40, alignItems: 'center', justifyContent: 'center', marginRight: 2 },
