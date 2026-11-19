@@ -14,7 +14,7 @@ import { isVerified } from '../../../components/BioGate';
 import { Photo } from '../../../components/ui';
 import {
   useMusic, allTracks, trackById, publishTrack, removeTrack, registerSale, createPlaylist, removePlaylist, togglePlaylistTrack,
-  subscribePlan, cancelPlan, planInfo, playTrack, startTrack, setAdHook, setOwnedTracks, offlineInfo, isOffline, toggleOffline, savePlaylistOffline, offlineTracks, markOnline, OFFLINE_CHECK_DAYS, openArtist, artistGets, MUSIC_FEE_PCT, MUSIC_PLAN_PRICE, MUSIC_PLAN_FREE_MONTHS, MUSIC_GENRES, ADS_EVERY,
+  subscribePlan, cancelPlan, planInfo, playTrack, startTrack, setAdHook, setOwnedTracks, offlineInfo, isOffline, toggleOffline, savePlaylistOffline, offlineTracks, markOnline, OFFLINE_CHECK_DAYS, openArtist, artistGets, priceFor, MUSIC_FEE, MUSIC_ARTIST_MIN, MUSIC_ARTIST_SUGGESTED, MUSIC_PLAN_PRICE, MUSIC_PLAN_FREE_MONTHS, MUSIC_GENRES, ADS_EVERY,
 } from '../../../music';
 
 const SEGS = [
@@ -332,18 +332,20 @@ export default function MusicTab() {
 function ArtistArea() {
   const { state } = useStore();
   const m = useMusic();
-  const [f, setF] = useState({ title: '', genre: MUSIC_GENRES[0], price: '1,79', url: '' });
-  const price = Number(String(f.price).replace(',', '.')) || 0;
+  const [f, setF] = useState({ title: '', genre: MUSIC_GENRES[0], price: String(MUSIC_ARTIST_SUGGESTED.toFixed(2)).replace('.', ','), url: '' });
+  // O artista digita quanto quer receber; o cliente paga isso + R$ 0,99 do Re@lys.
+  const mine = Number(String(f.price).replace(',', '.')) || 0;
+  const price = priceFor(mine);
   const publish = () => {
     if (!f.title.trim()) return Alert.alert('Falta o nome', 'Escreva o nome da música.');
     const mod = moderateText(f.title);
     if (mod && mod.ok === false) return Alert.alert('Nome não aceito', 'O nome da música não passou na moderação do Re@lys.');
     const bad = checkUrl(f.url);
     if (bad) return Alert.alert('Confira o endereço do áudio', bad);
-    if (price < 0.99) return Alert.alert('Preço', 'O preço mínimo de uma música é R$ 0,99.');
+    if (mine < MUSIC_ARTIST_MIN) return Alert.alert('Valor', `O mínimo para você receber é ${brl(MUSIC_ARTIST_MIN)} por música.`);
     publishTrack({ title: f.title.trim(), artist: state.user.name, genre: f.genre, price, url: f.url });
     setF({ title: '', genre: f.genre, price: f.price, url: '' });
-    Alert.alert('Música publicada ✅', `Ela já está na Galeria para todo mundo ouvir. A cada venda, você recebe ${brl(artistGets(price))}.`);
+    Alert.alert('Música publicada ✅', `Ela já está na Galeria para todo mundo ouvir. A cada venda, você recebe ${brl(mine)} e o cliente paga ${brl(price)}.`);
   };
   return (
     <View>
@@ -351,7 +353,7 @@ function ArtistArea() {
         <Ionicons name="cash-outline" size={18} color={colors.text} />
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={{ color: colors.text, fontWeight: '800', fontSize: 13.5 }}>{m.sales} venda{m.sales === 1 ? '' : 's'} · {brl(m.earned)} para você</Text>
-          <Text style={{ color: colors.muted, fontSize: 12 }}>Você fica com {100 - MUSIC_FEE_PCT}% de cada venda. O Re@lys fica com {MUSIC_FEE_PCT}%.</Text>
+          <Text style={{ color: colors.muted, fontSize: 12 }}>Você recebe 100% do seu valor. O Re@lys soma só {brl(MUSIC_FEE)} por download.</Text>
         </View>
       </View>
       <Text style={st.h}>Publicar música</Text>
@@ -365,9 +367,9 @@ function ArtistArea() {
       </ScrollView>
       <TextInput value={f.url} onChangeText={(t) => setF({ ...f, url: t })} placeholder="Endereço do áudio (link do MP3)" placeholderTextColor={colors.muted} autoCapitalize="none" keyboardType="url" style={[st.field, { marginTop: 0 }]} />
       <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-        <Text style={{ color: colors.text, fontWeight: '700' }}>Preço R$</Text>
+        <Text style={{ color: colors.text, fontWeight: '700' }}>Você recebe R$</Text>
         <TextInput value={f.price} onChangeText={(t) => setF({ ...f, price: t })} keyboardType="decimal-pad" maxLength={6} style={[st.field, { width: 84, marginTop: 0, marginLeft: 8, textAlign: 'center' }]} />
-        <Text style={{ color: colors.muted, fontSize: 12.5, marginLeft: 10, flex: 1 }}>Você recebe {brl(artistGets(price))} por venda.</Text>
+        <Text style={{ color: colors.muted, fontSize: 12.5, marginLeft: 10, flex: 1 }}>O cliente paga {brl(price)}.</Text>
       </View>
       <TouchableOpacity style={[st.create, { marginLeft: 0, marginTop: 12, minHeight: 46 }]} onPress={publish} accessibilityLabel="Publicar música">
         <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Publicar e pôr à venda</Text>

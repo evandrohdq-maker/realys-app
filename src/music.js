@@ -1,6 +1,6 @@
 // Músicas no Re@lys (Stream › Músicas), no estilo dos apps de música:
 // - Galeria: tudo que os artistas publicam fica disponível para ouvir de graça, com propaganda.
-// - O artista põe as músicas à venda; o Re@lys fica com uma porcentagem da venda (src/taxas.js).
+// - O artista põe as músicas à venda: ele diz quanto quer receber e o Re@lys soma R$ 0,99 por download (src/taxas.js).
 // - Baixar: só quem comprou a música do artista.
 // - Playlists: o ouvinte monta e guarda as suas.
 // - Plano Premium: sem propaganda; os 3 primeiros meses são gratuitos.
@@ -10,13 +10,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TAXAS } from './taxas';
 import { playRadio, stopRadio, setOnEnded, radioNow } from './radio';
 
-export const MUSIC_FEE_PCT = TAXAS.musicaVenda.pct; // % do Re@lys sobre cada venda
+export const MUSIC_FEE = TAXAS.musicaVenda.valor; // R$ 0,99 do Re@lys por download, somado ao valor do artista
+export const MUSIC_ARTIST_MIN = TAXAS.musicaVenda.artistaMinimo;
+export const MUSIC_ARTIST_SUGGESTED = TAXAS.musicaVenda.artistaSugerido;
 export const MUSIC_PLAN_PRICE = TAXAS.musicaPremium.valor;
 export const MUSIC_PLAN_FREE_MONTHS = TAXAS.musicaPremium.gratisMeses;
 export const ADS_EVERY = 3; // sem o plano: uma propaganda a cada 3 músicas
 export const MUSIC_GENRES = ['Sertanejo', 'Gospel', 'MPB', 'Rock', 'Pop', 'Rap', 'Eletrônica', 'Pagode', 'Forró', 'Instrumental'];
 const r2 = (n) => Math.round(n * 100) / 100;
-export const artistGets = (price) => r2(price * (1 - MUSIC_FEE_PCT / 100));
+// Preço da música = o que o artista quer receber + R$ 0,99 do Re@lys.
+export const priceFor = (artistValue) => r2(artistValue + MUSIC_FEE);
+export const artistGets = (price) => r2(Math.max(0, price - MUSIC_FEE));
 
 const T = (n) => `https://www.soundhelix.com/examples/mp3/SoundHelix-Song-${n}.mp3`;
 // Faixas de exemplo (artistas inventados; o áudio é de teste).

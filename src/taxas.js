@@ -25,8 +25,9 @@ export const TAXAS = {
   // Músicas (Stream › Músicas): o artista vende a faixa e o Re@lys fica com uma parte. Ouvir é grátis, com propaganda.
   // Base de mercado (nov/2026): Bandcamp fica com 15% da venda digital, mais 4 a 7% de taxa de pagamento;
   // lojas de app como a iTunes ficam com cerca de 30% e vendem a faixa por R$ 1,90 a R$ 2,90.
-  // Re@lys: 12% (o artista fica com 88%) e preço sugerido um pouco abaixo da iTunes.
-  musicaVenda: { pct: 12, precoSugerido: 1.79, precoMinimo: 0.99, unidade: '% sobre a venda de cada música', quemPaga: 'artista (descontado da venda)', mercado: 'Bandcamp: 15% mais taxa de pagamento; lojas de app: cerca de 30%; faixa a R$ 1,90 a R$ 2,90', argumento: '88% da venda fica com o artista, e a faixa sai a partir de R$ 1,79' },
+  // Re@lys: R$ 0,99 fixo por download, somado ao que o artista quer receber (o artista recebe 100% do valor dele).
+  // Sugestão: artista R$ 0,90 + R$ 0,99 = R$ 1,89 para o cliente, um pouco abaixo da iTunes (R$ 1,90).
+  musicaVenda: { valor: 0.99, artistaSugerido: 0.9, artistaMinimo: 0.5, unidade: 'R$ por download, somado ao valor do artista', quemPaga: 'cliente (somado ao preço da música)', mercado: 'Bandcamp: 15% mais taxa de pagamento; lojas de app: cerca de 30%; faixa a R$ 1,90 a R$ 2,90', argumento: 'o artista recebe 100% do valor dele; o Re@lys cobra só R$ 0,99 por download, e a faixa sai a partir de R$ 1,49' },
   // Base de mercado (Spotify Brasil, nov/2026): Individual R$ 23,90, Universitário R$ 12,90, Duo R$ 31,90,
   // Família R$ 40,90, com 3 meses grátis para quem nunca assinou. Re@lys: um pouco abaixo, guardando margem
   // para pagar os artistas pelas reproduções, o ECAD e os impostos. Inclui ouvir offline.
