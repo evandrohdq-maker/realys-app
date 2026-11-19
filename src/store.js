@@ -128,6 +128,9 @@ const initialState = {
   ],
   testimonials: initialTestimonials, // depoimentos (pendente → aprovado/recusado/oculto)
   tLiked: {}, // depoimentos que o usuário curtiu
+  // Mural do perfil (linha do tempo montada pelo usuário): tema + recados, posts fixados e fotos.
+  // Os depoimentos aceitos entram sozinhos (não ficam guardados aqui).
+  mural: { theme: 'aurora', items: [{ id: 'm-boas-vindas', type: 'recado', text: 'Bem-vindo ao meu mural no Re@lys! ✨', color: '#FFF3C4', at: Date.now() - 7200e3, time: 'há 2 h', pinned: true }] },
   myGallery: myInitialGallery, // fotos, vídeos e destaques do próprio perfil
   // Encontros: só funciona depois que a pessoa aceita os termos e informa um status disponível.
   encontros: {
@@ -850,7 +853,7 @@ function baseReducer(state, a) {
     case 'SET_PRIVACY':
       return { ...state, privacy: { ...state.privacy, ...a.privacy } };
     case 'LOAD_PROFILE':
-      return { ...state, chatLists: a.data.chatLists || state.chatLists, chatMeta: a.data.chatMeta || state.chatMeta, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, userPages: a.data.myUserPages ? [...a.data.myUserPages, ...(state.userPages || []).filter((p) => p.ownerId !== 'me')] : state.userPages, followingPages: a.data.followingPages || state.followingPages, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind };
+      return { ...state, chatLists: a.data.chatLists || state.chatLists, chatMeta: a.data.chatMeta || state.chatMeta, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, userPages: a.data.myUserPages ? [...a.data.myUserPages, ...(state.userPages || []).filter((p) => p.ownerId !== 'me')] : state.userPages, followingPages: a.data.followingPages || state.followingPages, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind, mural: a.data.mural || state.mural };
     case 'ADD_CREATION':
       return { ...state, creations: [a.item, ...state.creations] };
     case 'UPDATE_CREATION':
@@ -1036,6 +1039,18 @@ function baseReducer(state, a) {
           ...state.testimonials,
         ],
       };
+    case 'MURAL_ADD': {
+      const m = state.mural || { theme: 'aurora', items: [] };
+      // O mesmo post não entra duas vezes.
+      if (a.item.postId && m.items.some((x) => x.postId === a.item.postId)) return state;
+      return { ...state, mural: { ...m, items: [a.item, ...m.items] } };
+    }
+    case 'MURAL_UPDATE':
+      return { ...state, mural: { ...state.mural, items: state.mural.items.map((x) => (x.id === a.id ? { ...x, ...a.patch } : x)) } };
+    case 'MURAL_REMOVE':
+      return { ...state, mural: { ...state.mural, items: state.mural.items.filter((x) => x.id !== a.id) } };
+    case 'MURAL_THEME':
+      return { ...state, mural: { ...state.mural, theme: a.theme } };
     case 'T_RESPOND': // aprovado | recusado | oculto (tirado do perfil)
       return { ...state, testimonials: state.testimonials.map((t) => (t.id === a.id ? { ...t, status: a.status, time: a.status === 'aprovado' && t.from === 'me' ? 'agora' : t.time } : t)) };
     case 'T_APPROVE_LAST_FROM_ME': {
@@ -1923,8 +1938,8 @@ export function StoreProvider({ children }) {
   }, [profileKey]);
   useEffect(() => {
     if (!profileKey || profileLoaded.current !== profileKey) return;
-    AsyncStorage.setItem(profileKey, JSON.stringify({ chatLists: state.chatLists, chatMeta: state.chatMeta, myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myUserPages: (state.userPages || []).filter((p) => p.ownerId === 'me'), followingPages: state.followingPages, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, agendaRemind: state.agendaRemind })).catch(() => {});
-  }, [state.chatLists, state.chatMeta, state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
+    AsyncStorage.setItem(profileKey, JSON.stringify({ chatLists: state.chatLists, chatMeta: state.chatMeta, myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myUserPages: (state.userPages || []).filter((p) => p.ownerId === 'me'), followingPages: state.followingPages, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, agendaRemind: state.agendaRemind, mural: state.mural })).catch(() => {});
+  }, [state.mural, state.chatLists, state.chatMeta, state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
   // Cartão do SUS e agendamentos: dado de saúde, guardado no cofre criptografado do Android, por conta.
   const susKey = state.user ? `realys_sus_${String(state.user.id || state.user.cpf || state.user.cnpj || state.user.name).replace(/[^A-Za-z0-9._-]/g, '_')}` : null;
   const susLoaded = useRef(null);

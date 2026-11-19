@@ -17,6 +17,7 @@ import { StoryViewer } from '../screens/cliente/home/Stories';
 import { privacyOf, creationsOf } from '../studioData';
 import { canSee, LockedPanel, CreationsGrid, coverTone } from './ProfileStudio';
 import ThemeArt from './ThemeArt';
+import { MuralTab } from './Mural';
 
 const first = (name) => String(name || '').split(' ')[0];
 const norm = (v) => String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
@@ -1093,6 +1094,8 @@ export function ProfileSocial({ ownerId, postsSlot, postsCount, ownerName, focus
     ...(showSocial && postsSlot ? [{ key: 'posts', label: 'Posts', icon: 'grid-outline', n: postsCount }] : []),
     ...(showSocial
       ? [
+          // Mural: a linha do tempo que a pessoa monta (recados, posts curtidos, fotos e depoimentos).
+          { key: 'mural', label: 'Mural', icon: 'albums-outline' },
           { key: 'photos', label: 'Fotos', icon: 'images-outline', n: g.photos.length },
           { key: 'videos', label: 'Vídeos', icon: 'videocam-outline', n: g.videos.length },
           ...(socialCreations.length || mine ? [{ key: 'criacoes', label: 'Criações', icon: 'sparkles-outline', n: socialCreations.length }] : []),
@@ -1137,6 +1140,7 @@ export function ProfileSocial({ ownerId, postsSlot, postsCount, ownerName, focus
       {current === 'criacoes' ? <CreationsGrid items={socialCreations} emptyText="Crie no Estúdio (aqui no Perfil) e marque Social para aparecer aqui." /> : null}
       {current === 'portfolio' ? <CreationsGrid items={portfolio} emptyText="Crie no Estúdio e marque Portfólio para montar sua vitrine de trabalhos." /> : null}
       {current === 'dep' ? <TestimonialsTab ownerId={ownerId} /> : null}
+      {current === 'mural' ? <MuralTab ownerId={ownerId} ownerName={ownerName} mine={mine} /> : null}
     </View>
   );
 }

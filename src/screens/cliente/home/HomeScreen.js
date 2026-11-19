@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Share } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Share, Platform, ToastAndroid } from 'react-native';
 import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf } from '../../../store';
@@ -767,6 +767,17 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
                   >
                     <Ionicons name="chatbubble-outline" size={17} color={colors.muted} />
                     <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.postActText}>{it.p.comments + (cmts[it.p.id] || []).length}</Text>
+                  </TouchableOpacity>
+                  {/* Fixar no mural do meu perfil (posts que curti) */}
+                  <TouchableOpacity
+                    style={styles.postAct}
+                    onPress={() => {
+                      dispatch({ type: 'MURAL_ADD', item: { id: 'm' + Date.now(), at: Date.now(), time: 'agora', type: 'post', postId: it.p.id, author: it.p.author, text: it.p.text, image: it.p.image } });
+                      if (Platform.OS === 'android') ToastAndroid.show('Fixado no seu mural', ToastAndroid.SHORT);
+                    }}
+                    accessibilityLabel="Fixar no meu mural"
+                  >
+                    <Ionicons name={(state.mural && state.mural.items.some((x) => x.postId === it.p.id)) ? 'albums' : 'albums-outline'} size={17} color={colors.muted} />
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.postAct} onPress={() => sharePost(it.p)} accessibilityLabel="Compartilhar">
                     <Ionicons name="share-social-outline" size={17} color={colors.muted} />
