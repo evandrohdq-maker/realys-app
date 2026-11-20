@@ -63,7 +63,7 @@ export const CLASSES = [
     color: '#E0548C',
     words: ['criador', 'criadora', 'conteúdo', 'conteudo', 'criador de conteúdo', 'canal', 'vídeos', 'videos', 'gravo', 'edito', 'edição', 'roteiro', 'publico', 'posto', 'inscritos', 'digital', 'podcast', 'podcaster', 'youtuber', 'tiktoker', 'videomaker', 'streamer'],
     subs: [
-      { id: 'youtuber', label: 'YouTuber e vlogger', words: ['youtube', 'youtuber', 'canal no youtube', 'vlog', 'vlogueiro', 'vlogueira', 'vídeo longo'] },
+      { id: 'youtuber', label: 'Canal de vídeos e vlogger', words: ['youtube', 'youtuber', 'canal no youtube', 'vlog', 'vlogueiro', 'vlogueira', 'vídeo longo'] },
       { id: 'curtos', label: 'Vídeos curtos', words: ['tiktok', 'reels', 'shorts', 'vídeo curto', 'videos curtos', 'trend', 'trends', 'dancinha'] },
       { id: 'lives', label: 'Lives', words: ['lives', 'ao vivo', 'faço lives', 'live todo dia', 'transmissão ao vivo'] },
       { id: 'podcaster', label: 'Podcaster', words: ['podcast', 'podcaster', 'videocast', 'entrevista', 'episódio'] },

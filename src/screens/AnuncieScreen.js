@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, soft } from '../theme';
 import { Screen, Title } from '../components/ui';
 import { BoostOffers, MyBoosts } from '../components/Boost';
-import { TAXAS } from '../taxas';
+import { TAXAS, mercadoPublico } from '../taxas';
 
 const PONTOS = [
   ['people-outline', 'Só gente de verdade vê', 'Todo mundo no Re@lys passou pela biometria: sem perfil falso, sem robô.'],
@@ -29,7 +29,7 @@ export default function AnuncieScreen() {
             </View>
           </View>
         ))}
-        <Text style={st.compare}>No mercado: {TAXAS.publicidade.mercado}.</Text>
+        <Text style={st.compare}>No mercado: {mercadoPublico('publicidade')}.</Text>
       </View>
       <Text style={st.h}>Escolha o espaço</Text>
       <BoostOffers targets={['anuncio', 'produto', 'post', 'live']} />

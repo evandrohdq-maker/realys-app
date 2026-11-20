@@ -13,34 +13,34 @@ const SEED = [
   {
     id: 'sv-realys', name: 'Re@lys Gamers', emoji: '🎮', tint: '#B8860B',
     members: [
-      { name: 'Diego Ramos', role: 'dono', status: 'online', game: 'EA FC 26' },
-      { name: 'Ana Souza', role: 'mod', status: 'online', game: 'Valorant' },
+      { name: 'Diego Ramos', role: 'dono', status: 'online', game: 'Futebol virtual' },
+      { name: 'Ana Souza', role: 'mod', status: 'online', game: 'Tiro tático' },
       { name: 'Lucas Prado', role: 'membro', status: 'idle', game: null },
-      { name: 'Bia Lima', role: 'membro', status: 'online', game: 'Free Fire' },
-      { name: 'Rafa Gomes', role: 'membro', status: 'dnd', game: 'Minecraft' },
+      { name: 'Bia Lima', role: 'membro', status: 'online', game: 'Battle royale' },
+      { name: 'Rafa Gomes', role: 'membro', status: 'dnd', game: 'Mundo aberto' },
     ],
     channels: [
       { id: 'c1', kind: 'text', name: 'geral', msgs: [
         { who: 'Diego Ramos', text: 'Bem-vindos à Arena do Re@lys! Aqui só tem gente real, sem fake. 🎮', at: m(180) },
         { who: 'Ana Souza', text: 'Regras no #regras. Respeito acima de tudo.', at: m(170) },
-        { who: 'Bia Lima', text: 'Alguém pra uma ranqueada de Free Fire hoje à noite?', at: m(12) },
+        { who: 'Bia Lima', text: 'Alguém pra uma ranqueada de battle royale hoje à noite?', at: m(12) },
       ] },
       { id: 'c2', kind: 'text', name: 'procurando-time', msgs: [
-        { who: 'Lucas Prado', text: 'Procuro duo pra Valorant, sou Ouro 2. Jogo à noite.', at: m(60) },
+        { who: 'Lucas Prado', text: 'Procuro duo pro tiro tático, sou Ouro 2. Jogo à noite.', at: m(60) },
         { who: 'Ana Souza', text: '@Lucas Prado bora, chama na voz às 21h', at: m(45) },
       ] },
       { id: 'c3', kind: 'text', name: 'clipes', msgs: [{ who: 'Rafa Gomes', text: 'Olha essa jogada que fiz ontem 😂 (clipe nas minhas lives)', at: m(300) }] },
-      { id: 'c4', kind: 'text', name: 'torneios', msgs: [{ who: 'Diego Ramos', text: '🏆 Torneio de EA FC sábado 15h. Inscrição pelo Re@lys, prêmio em moeda Re@lys.', at: m(600) }] },
+      { id: 'c4', kind: 'text', name: 'torneios', msgs: [{ who: 'Diego Ramos', text: '🏆 Torneio de futebol virtual sábado 15h. Inscrição pelo Re@lys, prêmio em moeda Re@lys.', at: m(600) }] },
       { id: 'c5', kind: 'text', name: 'regras', msgs: [{ who: 'Ana Souza', text: '1. Respeito. 2. Sem golpe nem venda por fora: troca e venda só com a Garantia Re@lys. 3. Sem fake news. 4. Proibido para menores de 18.', at: m(2000) }] },
       { id: 'v1', kind: 'voice', name: 'Squad', inVoice: ['Bia Lima', 'Diego Ramos'], screen: 'Bia Lima' },
       { id: 'v2', kind: 'voice', name: 'Sala de espera', inVoice: [] },
     ],
   },
   {
-    id: 'sv-ff', name: 'Free Fire BR', emoji: '🔥', tint: '#E8590C',
+    id: 'sv-ff', name: 'Battle Royale BR', emoji: '🔥', tint: '#E8590C',
     members: [
-      { name: 'Bia Lima', role: 'dono', status: 'online', game: 'Free Fire' },
-      { name: 'Kauã Silva', role: 'membro', status: 'online', game: 'Free Fire' },
+      { name: 'Bia Lima', role: 'dono', status: 'online', game: 'Battle royale' },
+      { name: 'Kauã Silva', role: 'membro', status: 'online', game: 'Battle royale' },
       { name: 'Duda Reis', role: 'membro', status: 'idle', game: null },
     ],
     channels: [
@@ -50,10 +50,10 @@ const SEED = [
     ],
   },
   {
-    id: 'sv-mine', name: 'Construtores Minecraft', emoji: '⛏️', tint: '#2F9E44',
+    id: 'sv-mine', name: 'Construtores de Mundos', emoji: '⛏️', tint: '#2F9E44',
     members: [
-      { name: 'Rafa Gomes', role: 'dono', status: 'dnd', game: 'Minecraft' },
-      { name: 'Teo Martins', role: 'mod', status: 'online', game: 'Minecraft' },
+      { name: 'Rafa Gomes', role: 'dono', status: 'dnd', game: 'Mundo aberto' },
+      { name: 'Teo Martins', role: 'mod', status: 'online', game: 'Mundo aberto' },
     ],
     channels: [
       { id: 'c1', kind: 'text', name: 'geral', msgs: [{ who: 'Teo Martins', text: 'Servidor de sobrevivência aberto hoje até meia-noite.', at: m(90) }] },
@@ -62,8 +62,8 @@ const SEED = [
     ],
   },
   {
-    id: 'sv-fc', name: 'EA FC Brasil', emoji: '⚽', tint: '#1C7ED6',
-    members: [{ name: 'Diego Ramos', role: 'dono', status: 'online', game: 'EA FC 26' }],
+    id: 'sv-fc', name: 'Futebol Virtual BR', emoji: '⚽', tint: '#1C7ED6',
+    members: [{ name: 'Diego Ramos', role: 'dono', status: 'online', game: 'Futebol virtual' }],
     channels: [
       { id: 'c1', kind: 'text', name: 'geral', msgs: [] },
       { id: 'c2', kind: 'text', name: 'ultimate-team', msgs: [] },

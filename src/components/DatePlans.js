@@ -102,18 +102,17 @@ export function DatePlansModal({ visible, onClose, reason }) {
             </TouchableOpacity>
           ) : null}
 
+          {/* Comparação sem nome de marca: só a faixa de preço dos outros apps (a lista com os nomes fica no painel do administrador). */}
           <Text style={st.h}>Compare com os outros apps (por mês)</Text>
           <View style={st.cmpRow}>
             <Text style={[st.cmpName, { color: ROSE, fontWeight: '800' }]}>Re@lys Date+</Text>
             <Text style={[st.cmpVal, { color: ROSE, fontWeight: '800' }]}>{brl(14.9)}</Text>
           </View>
-          {DATE_COMPETITORS.map((c) => (
-            <View key={c.name} style={st.cmpRow}>
-              <Text style={st.cmpName}>{c.name}</Text>
-              <Text style={st.cmpVal}>{brl(c.mes)}</Text>
-            </View>
-          ))}
-          <Text style={st.note}>Preço cheio de tabela nas lojas do Brasil em 2026; pode variar por idade e promoção.</Text>
+          <View style={st.cmpRow}>
+            <Text style={st.cmpName}>Outros apps de relacionamento</Text>
+            <Text style={st.cmpVal}>{`${brl(Math.min(...DATE_COMPETITORS.map((c) => c.mes)))} a ${brl(Math.max(...DATE_COMPETITORS.map((c) => c.mes)))}`}</Text>
+          </View>
+          <Text style={st.note}>Faixa de preço cheio de tabela nas lojas do Brasil em 2026; pode variar por idade e promoção.</Text>
           <Text style={st.note}>Chamada de vídeo só com quem já é crush e está online. A chamada não toca nem faz bip: chega como convite na tela.</Text>
         </ScrollView>
       </View>

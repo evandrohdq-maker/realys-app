@@ -126,6 +126,17 @@ test('lives: live de jogo transmite a tela do celular', async () => {
   assert.equal(other.source, 'camera');
 });
 
+test('lives: pausa da tela ao abrir o jogo e segmentos do app', async () => {
+  const live = await ok('POST', '/lives', { who: 'ana', body: { cat: 'agro', title: 'Leilão de gado', source: 'tela' } });
+  assert.equal(live.cat, 'agro');
+  assert.equal(live.paused, null);
+  assert.equal((await ok('POST', `/lives/${live.id}/pause`, { who: 'ana', body: { paused: true, motivo: 'abrindo' } })).paused, 'abrindo');
+  assert.equal((await ok('GET', `/lives/${live.id}`, { who: 'beto' })).paused, 'abrindo');
+  assert.equal((await api('POST', `/lives/${live.id}/pause`, { who: 'beto', body: { paused: false } })).status, 404);
+  assert.equal((await ok('POST', `/lives/${live.id}/pause`, { who: 'ana', body: { paused: false } })).paused, null);
+  assert.ok((await ok('GET', '/lives?cat=agro', { who: 'beto' })).some((l) => l.id === live.id));
+});
+
 test('lives: presente ao vivo vira crédito de live e depois moeda Realys', async () => {
   const live = await ok('POST', '/lives', { who: 'pizza', body: { hostType: 'empresa', cat: 'compras', title: 'Pizza na pedra' } });
   assert.equal(live.host, 'Pizzaria da Praça');

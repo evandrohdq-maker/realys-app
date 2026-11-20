@@ -85,7 +85,7 @@ export function ProfileQuiz({ value, onChange }) {
       <TextInput
         style={styles.area}
         multiline
-        placeholder="Ex.: Jogo Free Fire todo dia e faço live na Twitch. Também gravo vídeos curtos."
+        placeholder="Ex.: Jogo battle royale todo dia e faço live. Também gravo vídeos curtos."
         placeholderTextColor={colors.muted}
         value={v.about || ''}
         onChangeText={(t) => set({ about: t })}

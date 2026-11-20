@@ -5,7 +5,7 @@ import { usePrivateScreen } from '../../../privacyGuard';
 import { registerLive } from '../../../pip';
 import { giftPoints } from '../../../rewards';
 import GiftIcon from '../../../components/GiftIcon';
-import { View, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform, Alert, Animated, Easing, PanResponder, Dimensions } from 'react-native';
+import { View, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform, Alert, Animated, Easing, PanResponder, Dimensions, AppState } from 'react-native';
 import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,7 +19,8 @@ import { LIVE_CATS, hostOptions, defaultHost, catOf, subOf, HOST_TYPES, missionI
 import { members } from '../../../people';
 import { artists } from '../../../extraData';
 import { LiveStage, openRealLive, endRealLive, realLivesOf } from '../../../components/LiveVideo';
-import { serverOn } from '../../../api';
+import { serverOn, api, connectEvents } from '../../../api';
+import { setOpeningCurtain, onScreenPauseChange } from '../../../screenShare';
 import { webrtcOk } from '../../../video';
 import { useArena, arenaVoiceRooms, arenaRoom, arenaServerOf, joinArenaVoice, leaveArenaVoice } from '../../../arena';
 
@@ -357,6 +358,11 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
   const [realId, setRealId] = useState(null);
   // Fonte da live: câmera ou a tela do celular (lives de jogos).
   const [source, setSource] = useState('camera');
+  // Cortina ao abrir o jogo: tempo (s) que a tela fica escondida depois de sair do Re@lys,
+  // para a tela inicial e os aplicativos do celular não aparecerem na live.
+  const [curtainSecs, setCurtainSecs] = useState(10);
+  const [myPause, setMyPause] = useState(null); // 'abrindo' | motivo de segurança | null
+  const [remotePause, setRemotePause] = useState(null); // quem assiste: a tela do streamer está pausada
   // Jogar com o time: sala de voz da Arena Gamer em que entro ao abrir a live (sem precisar de outro app).
   const arena = useArena();
   const [team, setTeam] = useState(null); // { sid, cid }
@@ -458,6 +464,42 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
       clearInterval(c);
     };
   }, [visible, onAir, realId]);
+
+  // Live de jogo (tela): com o Re@lys aberto a tela fica escondida; ao sair, espera o tempo da cortina
+  // (passar pela tela inicial e abrir o jogo) e só então libera. Voltou ao Re@lys: esconde de novo.
+  const screenLive = !!(visible && mine && onAir && source === 'tela');
+  useEffect(() => {
+    if (!screenLive) return;
+    let timer = null;
+    setOpeningCurtain(AppState.currentState === 'active');
+    const sub = AppState.addEventListener('change', (st) => {
+      clearTimeout(timer);
+      if (st === 'active') setOpeningCurtain(true);
+      else timer = setTimeout(() => setOpeningCurtain(false), curtainSecs * 1000);
+    });
+    const off = onScreenPauseChange((by) => setMyPause(by));
+    return () => {
+      clearTimeout(timer);
+      sub.remove();
+      off();
+      setOpeningCurtain(false);
+      setMyPause(null);
+    };
+  }, [screenLive, curtainSecs]);
+  // Com o servidor no ar: avisa quem está assistindo (aparece "abrindo o jogo, já volta" no lugar da tela).
+  useEffect(() => {
+    if (!screenLive || !realId) return;
+    api('POST', `/lives/${realId}/pause`, { paused: !!myPause, motivo: myPause === 'abrindo' ? 'abrindo' : 'seguranca' }).catch(() => {});
+  }, [screenLive, realId, myPause]);
+  // Quem assiste uma live de verdade: recebe a pausa na hora.
+  useEffect(() => {
+    if (!visible || mine || !live || !live.real) return setRemotePause(null);
+    setRemotePause(live.paused || null);
+    if (!serverOn()) return;
+    return connectEvents((e) => {
+      if (e && e.type === 'live-pausa' && e.data && e.data.liveId === live.id) setRemotePause(e.data.paused || null);
+    });
+  }, [visible, mine, live && live.id]);
 
   const gift = liveGiftOf(pick);
   const cost = liveGiftCost(gift, qty);
@@ -620,6 +662,19 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
                 O celular vai pedir para liberar a transmissão da tela. Depois é só abrir o jogo: quem assiste vê a sua tela e ouve você pelo microfone.
               </Text>
             ) : <View style={{ height: 6 }} />}
+            {source === 'tela' ? (
+              <View style={{ marginBottom: 10 }}>
+                <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 2 }}>Esconder a tela ao abrir o jogo</Text>
+                <Text style={{ color: colors.muted, fontSize: 11, marginBottom: 6 }}>Quem assiste não vê seus aplicativos nem a tela inicial: só o jogo. Enquanto o Re@lys estiver aberto, a tela também fica escondida.</Text>
+                <View style={{ flexDirection: 'row' }}>
+                  {[5, 10, 15].map((n) => (
+                    <TouchableOpacity key={n} style={[styles.typeChip, curtainSecs === n && styles.typeChipOn]} onPress={() => setCurtainSecs(n)} accessibilityLabel={`Esconder por ${n} segundos`}>
+                      <Text numberOfLines={1} style={{ color: curtainSecs === n ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700' }}>{n} s</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            ) : null}
             {cat === 'gamers' || source === 'tela' ? (
               <View style={{ marginBottom: 10 }}>
                 <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 2 }}>Jogar com o time</Text>
@@ -763,6 +818,22 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
                   </TouchableOpacity>
                 </>
               )}
+            </View>
+          </View>
+        ) : null}
+        {(mine && myPause) || (!mine && remotePause) ? (
+          <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: '30%', alignItems: 'center', paddingHorizontal: 24 }}>
+            <View style={{ alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 18, paddingHorizontal: 16, paddingVertical: 12 }}>
+              <Ionicons name={(mine ? myPause : remotePause) === 'abrindo' ? 'game-controller' : 'lock-closed'} size={26} color="#F5C331" />
+              <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14, marginTop: 6, textAlign: 'center' }}>
+                {mine
+                  ? myPause === 'abrindo'
+                    ? `Tela escondida para quem assiste. Abra o jogo: ela volta ${curtainSecs} s depois de você sair do Re@lys.`
+                    : 'Tela pausada por segurança para quem assiste.'
+                  : remotePause === 'abrindo'
+                  ? 'Abrindo o jogo… já volta!'
+                  : 'Tela pausada por segurança. Já volta!'}
+              </Text>
             </View>
           </View>
         ) : null}

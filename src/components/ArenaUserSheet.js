@@ -132,7 +132,7 @@ export default function ArenaUserSheet({ name, sv, me, myRole, onClose, onMentio
           {person ? <Row icon="person-circle-outline" label="Ver perfil" onPress={() => { onClose(); dispatch({ type: 'OPEN_PROFILE', id: person.id }); }} /> : null}
 
           <Text style={st.label}>Apelido ou nota (só você vê)</Text>
-          <TextInput value={note} onChangeText={setNote} onEndEditing={() => set({ note: note.trim() })} onSubmitEditing={() => set({ note: note.trim() })} placeholder="Ex.: duo do Valorant" placeholderTextColor={D.muted} maxLength={40} style={st.input} />
+          <TextInput value={note} onChangeText={setNote} onEndEditing={() => set({ note: note.trim() })} onSubmitEditing={() => set({ note: note.trim() })} placeholder="Ex.: duo da ranqueada" placeholderTextColor={D.muted} maxLength={40} style={st.input} />
 
           {canMod ? (
             <>

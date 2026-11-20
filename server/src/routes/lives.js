@@ -6,11 +6,16 @@ import { tx } from '../db.js';
 
 // Mesmos presentes do app (src/gifts.js), em centavos.
 export const LIVE_GIFTS = { rosa: 100, coracao: 200, aplauso: 500, estrela: 1000, coroa: 5000, foguete: 10000, diamante: 30000, lotus: 50000 };
-const CATS = ['gamers', 'artistas', 'cursos', 'faculdades', 'tecnologia', 'noticias', 'podcasts', 'compras', 'noite', 'comunidade'];
+// Mesmos segmentos do app (src/liveData.js): o "puxar para cima" vai para a próxima live do mesmo segmento.
+const CATS = ['gamers', 'artistas', 'compras', 'esportes', 'saude', 'fe', 'cursos', 'faculdades', 'tecnologia', 'agro', 'negocios', 'culinaria', 'beleza', 'arte', 'humor', 'podcasts', 'noticias', 'noite', 'comunidade'];
+// Pausa da tela (live de jogo): 'abrindo' = o streamer está saindo do Re@lys e abrindo o jogo (a tela
+// inicial do celular não aparece); 'seguranca' = senha, carteira, Pix etc. Fica na memória, como a plateia.
+const PAUSE_MOTIVOS = ['abrindo', 'seguranca'];
 const HOSTS = ['usuario', 'empresa', 'artista', 'prestador', 'fornecedor'];
 
 export default function livesRoutes(r, { db, wallet, hub, fiscal }) {
-  const view = (l) => ({ id: l.id, hostId: l.host_id, hostType: l.host_type, host: l.host_name, cat: l.cat, title: l.title, source: l.source || 'camera', status: l.status, giftsTotal: toReais(l.gifts_total), startedAt: l.started_at, endedAt: l.ended_at, viewers: viewersOf(l.id) });
+  const paused = new Map(); // liveId -> motivo
+  const view = (l) => ({ paused: paused.get(l.id) || null, id: l.id, hostId: l.host_id, hostType: l.host_type, host: l.host_name, cat: l.cat, title: l.title, source: l.source || 'camera', status: l.status, giftsTotal: toReais(l.gifts_total), startedAt: l.started_at, endedAt: l.ended_at, viewers: viewersOf(l.id) });
   const watching = new Map(); // liveId -> Map<userId, lastSeen>
   const viewersOf = (id) => {
     const m = watching.get(id);
@@ -93,7 +98,20 @@ export default function livesRoutes(r, { db, wallet, hub, fiscal }) {
     if (!l) fail(404, 'Live não encontrada.');
     db.prepare(`UPDATE lives SET status = 'encerrada', ended_at = ? WHERE id = ?`).run(now(), l.id);
     watching.delete(l.id);
+    paused.delete(l.id);
     return view(db.prepare('SELECT * FROM lives WHERE id = ?').get(l.id));
+  });
+
+  // Quem transmite a tela avisa a pausa (abrindo o jogo / segurança) e quem está assistindo recebe na hora.
+  r.post('/lives/:id/pause', ({ params, body, user }) => {
+    const l = db.prepare(`SELECT * FROM lives WHERE id = ? AND host_id = ? AND status = 'ao_vivo'`).get(params.id, user.id);
+    if (!l) fail(404, 'Live não encontrada.');
+    const motivo = body.paused ? (PAUSE_MOTIVOS.includes(body.motivo) ? body.motivo : 'seguranca') : null;
+    if (motivo) paused.set(l.id, motivo);
+    else paused.delete(l.id);
+    viewersOf(l.id);
+    for (const u of (watching.get(l.id) || new Map()).keys()) hub.send(u, 'live-pausa', { liveId: l.id, paused: motivo });
+    return view(l);
   });
 
   // Presente na live: sai do saldo de quem assiste (valor + taxa) e vira crédito de live de quem transmite.

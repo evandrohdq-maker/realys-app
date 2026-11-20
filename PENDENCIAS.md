@@ -11,7 +11,7 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] **Servidor do app** (contas, carteira, pedidos): `server/deploy/setup-ubuntu.sh`.
 - [ ] **Domínios**: `api.` e `video.` apontando para as VPS.
 
-## Compartilhar a tela (Arena Gamer e Salas de Negócios) — testar no primeiro APK com o servidor
+## Compartilhar a tela (Arena Gamer e Hub de Negócios) — testar no primeiro APK com o servidor
 
 - [ ] **Minimizar o Re@lys com a tela sendo transmitida**: o jogo (ou qualquer app) tem que continuar indo
       para a sala e para a live. As permissões FOREGROUND_SERVICE_MEDIA_PROJECTION já estão no app.json; se
@@ -237,6 +237,12 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
 - [ ] Ligar no servidor: ORDER_FEE_PCT=10 e FOOD_FEE_PCT=10 quando sair da fase de testes.
 - [x] Tela "Por que o Re@lys é mais barato" (Perfil › Nossas taxas), usando `comparativo()` de src/taxas.js.
 - [ ] Rever a tabela a cada 6 meses (o mercado muda: Shopee e Mercado Livre mudaram em 2026).
+
+## Marcas e comparativos (novembro de 2026)
+- Nas telas do usuário não aparece nome de concorrente: as comparações dizem "apps de delivery", "portais de imóveis", "outros apps de relacionamento" (src/taxas.js › MERCADO_PUBLICO). Os nomes das empresas ficam só no painel do administrador e nas notas internas.
+- Nada de "estilo Discord", "como o Instagram" etc. nos textos do app; nomes de jogos nos exemplos da demonstração trocados por gêneros (battle royale, futebol virtual...).
+- Antes de qualquer campanha de divulgação com comparação de preços: revisar com advogado (CONAR e Código de Defesa do Consumidor) e atualizar os valores (revisão a cada 6 meses).
+- Live de jogo: "Esconder a tela ao abrir o jogo" (5, 10 ou 15 s). Com o servidor, quem assiste vê "Abrindo o jogo… já volta!" (POST /lives/:id/pause). Testar no primeiro APK com o servidor.
 
 ## Tele grátis e verificação de entregadores (novembro de 2026)
 

@@ -30,7 +30,7 @@ const subs = new Set();
 const emit = () => subs.forEach((fn) => fn());
 
 export const screenShare = () => share;
-export const PAUSE_LABEL = { carteira: 'Carteira aberta', pix: 'Pagamento por Pix', chat: 'Conversa privada', chamada: 'Chamada privada', senha: 'Digitando senha', login: 'Entrando na conta', biometria: 'Biometria', dados: 'Dados pessoais' };
+export const PAUSE_LABEL = { abrindo: 'Abrindo o jogo', carteira: 'Carteira aberta', pix: 'Pagamento por Pix', chat: 'Conversa privada', chamada: 'Chamada privada', senha: 'Digitando senha', login: 'Entrando na conta', biometria: 'Biometria', dados: 'Dados pessoais' };
 
 // Enquanto estou transmitindo e há uma tela privada aberta, o Android também deixa o Re@lys preto na
 // captura (FLAG_SECURE): mesmo que algo falhe na pausa, a senha não aparece para ninguém.
@@ -40,8 +40,24 @@ const secure = (on) => {
   secured = on;
   (on ? ScreenCapture.preventScreenCaptureAsync('tela-compartilhada') : ScreenCapture.allowScreenCaptureAsync('tela-compartilhada')).catch(() => {});
 };
+const pauseSubs = new Set();
+// Quem precisa saber da pausa (a live avisa o servidor, e o servidor avisa quem está assistindo).
+export function onScreenPauseChange(fn) {
+  pauseSubs.add(fn);
+  return () => pauseSubs.delete(fn);
+}
+let lastPause = null;
 const applyPause = () => {
   const paused = pauses.size > 0;
+  const by = paused ? (pauses.has('abrindo') && pauses.size === 1 ? 'abrindo' : [...pauses].filter((x) => x !== 'abrindo').pop() || 'abrindo') : null;
+  if (by !== lastPause) {
+    lastPause = by;
+    pauseSubs.forEach((fn) => {
+      try {
+        fn(by);
+      } catch (e) {}
+    });
+  }
   // Vale para a sala E para a live "transmitir como gamer" (as duas usam a mesma captura).
   setScreenPaused(paused);
   secure((!!share || screenInUse()) && paused);
@@ -129,6 +145,15 @@ export function useScreenSharePause(active, motivo = 'carteira') {
       applyPause();
     };
   }, [active, motivo]);
+}
+
+// Cortina da live de jogo: enquanto o Re@lys está aberto e por alguns segundos depois de sair dele
+// (o tempo de passar pela tela inicial e abrir o jogo), a tela não vai para quem assiste.
+// Assim ninguém vê os aplicativos e a tela inicial do celular; só o jogo.
+export function setOpeningCurtain(on) {
+  if (on) pauses.add('abrindo');
+  else pauses.delete('abrindo');
+  applyPause();
 }
 
 // A live de tela chama isso ao começar, para já entrar respeitando uma tela privada aberta.

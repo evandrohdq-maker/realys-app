@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { colors, soft, brl } from '../theme';
-import { TAXAS } from '../taxas';
+import { TAXAS, mercadoPublico } from '../taxas';
 import { NEG_PLANOS, negPlano, precoContato, custoLiberar, planoCobre, setorDoTipo, NEG_REEMBOLSO_HORAS } from '../negocios';
 import { moderateText } from '../moderation';
 
@@ -110,7 +110,7 @@ export function AnunciarSheet({ visible, onClose, kinds, kindLabel }) {
                 </View>
               );
             })}
-            <Text style={st.compare}>No mercado: {setor === 'imoveis' ? TAXAS.anuncioImobiliaria.mercado : TAXAS.contatoVeiculo.mercado}.</Text>
+            <Text style={st.compare}>No mercado: {setor === 'imoveis' ? mercadoPublico('anuncioImobiliaria') : mercadoPublico('contatoVeiculo')}.</Text>
           </View>
 
           <Text style={st.h}>Seu anúncio</Text>

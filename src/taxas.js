@@ -31,12 +31,38 @@ export const TAXAS = {
   // Base de mercado (Spotify Brasil, nov/2026): Individual R$ 23,90, Universitário R$ 12,90, Duo R$ 31,90,
   // Família R$ 40,90, com 3 meses grátis para quem nunca assinou. Re@lys: mesmo valor do Spotify (decisão de nov/2026), com margem
   // para pagar os artistas pelas reproduções, o ECAD e os impostos. Inclui ouvir offline.
-  musicaPremium: { valor: 23.9, gratisMeses: 3, planos: { individual: 23.9, universitario: 12.9, duo: 31.9, familia: 40.9 }, unidade: 'R$ por mês, sem propaganda e com músicas offline (3 primeiros meses grátis)', quemPaga: 'ouvinte', mercado: 'Spotify Premium: R$ 23,90 por mês (Universitário R$ 12,90, Duo R$ 31,90, Família R$ 40,90)', argumento: 'mesmo preço do Spotify, com 3 meses grátis, offline incluído e a compra da música direto do artista' },
+  musicaPremium: { valor: 23.9, gratisMeses: 3, planos: { individual: 23.9, universitario: 12.9, duo: 31.9, familia: 40.9 }, unidade: 'R$ por mês, sem propaganda e com músicas offline (3 primeiros meses grátis)', quemPaga: 'ouvinte', mercado: 'Spotify Premium: R$ 23,90 por mês (Universitário R$ 12,90, Duo R$ 31,90, Família R$ 40,90)', argumento: 'preço dos grandes apps de música, com 3 meses grátis, offline incluído e a compra da música direto do artista' },
   // Páginas de usuário (estilo blog): mensalidade por página (src/userPages.js › PAGE_PRICE).
   paginaUsuario: { valor: 14.9, unidade: 'R$ por mês por página, da segunda em diante (a primeira é gratuita)', quemPaga: 'usuário dono da página', mercado: 'construtores de site e blog cobram mensalidade por site, sem público incluído', argumento: 'R$ 14,90 por mês com página personalizável e o público verificado do Re@lys' },
   destaquePrestador: { valor: 49.9, unidade: 'R$ por mês', mercado: 'GetNinjas: pacotes a partir de R$ 149', argumento: 'destaque o mês inteiro por R$ 49,90' },
 };
 
-// Frase curta de cada taxa, para telas de "Por que o Re@lys é mais barato" e para a divulgação.
+// O que o USUÁRIO vê: a referência do mercado sem nome de marca (só "apps de delivery", "média do mercado"...).
+// Os nomes das empresas (campo `mercado` acima) ficam só para uso interno: painel do administrador e pesquisa.
+// Motivo: propaganda comparativa com nome de concorrente exige dados sempre atualizados e comprováveis
+// (CONAR e Código de Defesa do Consumidor); preço desatualizado com nome de marca pode dar problema.
+export const MERCADO_PUBLICO = {
+  protecao: 'apps de delivery cobram cerca de R$ 0,99 de dia e até R$ 1,99 à noite',
+  food: 'apps de delivery cobram em média 12% + taxa de pagamento online + mensalidade',
+  shop: 'marketplaces cobram de 10% a 20% + custo fixo por item',
+  corrida: 'apps de corrida ficam com 20% a 35% da corrida',
+  visita: 'sites de serviços cobram pacotes por contato, mesmo sem fechar o serviço',
+  ingresso: 'sites de ingresso cobram em média 10%, com mínimo de R$ 2,50',
+  presente: 'Pix entre pessoas é grátis, mas não tem garantia nem pontos',
+  live: 'em outras plataformas o criador fica com cerca de 50%',
+  planoEmpresa: 'apps de delivery cobram mensalidade de R$ 110 a R$ 150',
+  anuncioImobiliaria: 'portais de imóveis cobram a partir de R$ 499,90 por mês por 10 anúncios',
+  contatoImovel: 'portais de imóveis cobram plano mensal do proprietário, com ou sem interessado',
+  anuncioRevenda: 'portais de anúncio cobram de R$ 400 a R$ 1.000 por mês das revendas',
+  contatoVeiculo: 'portais de veículos cobram o anúncio antes de aparecer interessado',
+  publicidade: 'anúncios em apps de delivery pedem orçamento mínimo de R$ 25 por dia',
+  musicaVenda: 'lojas de música ficam com 15% a 30% da venda; faixa a R$ 1,90 a R$ 2,90',
+  musicaPremium: 'os grandes apps de música cobram cerca de R$ 23,90 por mês',
+  paginaUsuario: 'construtores de site e blog cobram mensalidade por site, sem público incluído',
+  destaquePrestador: 'sites de serviços cobram pacotes a partir de R$ 149',
+};
+export const mercadoPublico = (chave) => MERCADO_PUBLICO[chave] || null;
+
+// Frase curta de cada taxa, para telas de "Por que o Re@lys é mais barato" e para a divulgação (sem marcas).
 export const comparativo = () =>
-  Object.entries(TAXAS).map(([chave, t]) => ({ chave, realys: t.argumento, mercado: t.mercado }));
+  Object.entries(TAXAS).map(([chave, t]) => ({ chave, realys: t.argumento, mercado: MERCADO_PUBLICO[chave] || null }));

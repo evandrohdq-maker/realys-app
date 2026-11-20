@@ -80,7 +80,7 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
         }}
       />
 
-      {/* Arena Gamer (streamers) e Hub de Negócios (o "Discord das empresas": atendimento ao vivo,
+      {/* Arena Gamer (streamers) e Hub de Negócios (o chat de voz e texto das empresas: atendimento ao vivo,
           reuniões e salas com voz e tela), lado a lado e compactas. Em Gamers fica só a Arena Gamer;
           em Negócios, Compras e Agro, só o Hub de Negócios. */}
       {(() => {
