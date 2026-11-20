@@ -1,4 +1,4 @@
-// Arena Negócios: o "Discord das empresas" do Re@lys. Separado da Arena Gamer (que é dos streamers).
+// Hub de Negócios: o "Discord das empresas" do Re@lys. Separado da Arena Gamer (que é dos streamers).
 // Cada empresa tem uma Recepção ao vivo:
 //   - o cliente entra na fila dizendo o que precisa;
 //   - a empresa (ou um funcionário) chama o cliente para uma sala de atendimento;

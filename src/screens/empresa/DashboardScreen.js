@@ -41,11 +41,11 @@ export default function DashboardScreen({ goTo, navigate }) {
 
       <PlanoLojaCard />
 
-      {/* Arena Negócios: recepção ao vivo, atendimento com tela compartilhada e reuniões da equipe. */}
-      <TouchableOpacity onPress={() => (navigate ? navigate({ tab: 'salas' }) : goTo && goTo('salas'))} activeOpacity={0.85} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 18, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: colors.border }} accessibilityLabel="Abrir a Arena Negócios">
+      {/* Hub de Negócios: recepção ao vivo, atendimento com tela compartilhada e reuniões da equipe. */}
+      <TouchableOpacity onPress={() => (navigate ? navigate({ tab: 'salas' }) : goTo && goTo('salas'))} activeOpacity={0.85} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 18, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: colors.border }} accessibilityLabel="Abrir o Hub de Negócios">
         <Ionicons name="headset-outline" size={20} color={colors.text} />
         <View style={{ flex: 1, marginLeft: 8 }}>
-          <Text numberOfLines={1} style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>Arena Negócios</Text>
+          <Text numberOfLines={1} style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>Hub de Negócios</Text>
           <Text numberOfLines={2} style={{ color: colors.muted, fontSize: 13, marginTop: 2 }}>Fila de clientes ao vivo, atendimento com tela e reuniões da equipe.</Text>
         </View>
         <Ionicons name="chevron-forward" size={18} color={colors.muted} />

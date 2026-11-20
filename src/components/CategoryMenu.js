@@ -259,7 +259,7 @@ export const CATEGORIES = [
   },
   {
     key: 'salas',
-    title: 'Arena Negócios',
+    title: 'Hub de Negócios',
     hint: 'Atendimento ao vivo com empresas: voz, vídeo e tela',
     icon: 'headset-outline',
     subs: [

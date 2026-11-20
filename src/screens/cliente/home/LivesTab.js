@@ -80,9 +80,9 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
         }}
       />
 
-      {/* Arena Gamer (streamers) e Arena Negócios (o "Discord das empresas": atendimento ao vivo,
+      {/* Arena Gamer (streamers) e Hub de Negócios (o "Discord das empresas": atendimento ao vivo,
           reuniões e salas com voz e tela), lado a lado e compactas. Em Gamers fica só a Arena Gamer;
-          em Negócios, Compras e Agro, só a Arena Negócios. */}
+          em Negócios, Compras e Agro, só o Hub de Negócios. */}
       {(() => {
         const gamer = f === 'todas' || f === 'gamers';
         const neg = ['todas', 'negocios', 'compras', 'agro'].includes(f);
@@ -101,12 +101,12 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
               </TouchableOpacity>
             ) : null}
             {neg ? (
-              <TouchableOpacity style={styles.arenaTile} onPress={() => navigate && navigate({ tab: 'salas' })} activeOpacity={0.9} accessibilityLabel="Abrir a Arena Negócios">
+              <TouchableOpacity style={styles.arenaTile} onPress={() => navigate && navigate({ tab: 'salas' })} activeOpacity={0.9} accessibilityLabel="Abrir o Hub de Negócios">
                 <View style={[styles.arenaIcon, { backgroundColor: colors.gold }]}>
                   <Ionicons name="briefcase" size={16} color="#fff" />
                 </View>
                 <View style={{ flex: 1, marginLeft: 8 }}>
-                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={styles.arenaTitle}>Arena Negócios</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={styles.arenaTitle}>Hub de Negócios</Text>
                   <Text numberOfLines={1} style={styles.arenaHint}>Empresas atendendo</Text>
                 </View>
               </TouchableOpacity>
