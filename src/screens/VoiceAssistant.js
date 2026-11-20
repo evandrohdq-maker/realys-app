@@ -1511,13 +1511,27 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     if (answersRef.current) answersRef.current.scrollTo({ y: 0, animated: false });
   }, [lastAt]);
   const compact = !!(showHist || (last && (last.list || last.results || last.call || (last.pending && pending))));
+  // Com opções ao lado da flor, a caixa fica do tamanho do que mostra (sem sobra de céu vazio
+  // embaixo): mede o topo, a coluna da flor, a lista e a barra de digitar e soma. Se a lista for
+  // maior que a tela, para em 93% e rola. Sempre acima dos botões do celular (insets.bottom).
+  const [fit, setFit] = useState({ top: 0, side: 0, list: 0, bar: 0 });
+  const measure = (k) => (v) => {
+    const h = Math.ceil(v);
+    setFit((f) => (Math.abs((f[k] || 0) - h) < 2 ? f : { ...f, [k]: h }));
+  };
+  const maxH = Math.round(win.height * 0.93);
+  const fitH = fit.top && fit.side && fit.list && fit.bar
+    ? Math.min(maxH, 8 + fit.top + 6 + Math.max(fit.side, fit.list) + 8 + fit.bar + 16 + insets.bottom + 10)
+    : null;
+  const sheetSize = compact ? (fitH ? { height: fitH } : styles.sheetTall) : null;
 
   return (
     <Modal visible={visible} animationType="none" transparent onRequestClose={() => (preview ? setPreview(null) : close())} statusBarTranslucent>
       <KeyboardLift behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
         <Pressable style={{ flex: 1 }} onPress={close} />
-        <Animated.View style={[styles.sheet, compact && styles.sheetTall, { backgroundColor: skyBg(sky), paddingBottom: 16 + insets.bottom, opacity: enter, transform: [{ translateY }] }]}>
+        <Animated.View style={[styles.sheet, sheetSize, { backgroundColor: skyBg(sky), paddingBottom: 16 + insets.bottom, opacity: enter, transform: [{ translateY }] }]}>
           <StarField active={visible} sky={sky} south={!weather || weather.south !== false} />
+          <View onLayout={(e) => measure('top')(e.nativeEvent.layout.height)}>
           <View style={styles.grip} />
           <View style={styles.head}>
             <View>
@@ -1557,8 +1571,9 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
               </TouchableOpacity>
             </View>
           ) : null : null}
+          </View>
           <View style={compact ? styles.sideRow : styles.stack}>
-            <View style={compact ? styles.sideCol : null}>
+            <View style={compact ? styles.sideCol : null} onLayout={(e) => measure('side')(e.nativeEvent.layout.height)}>
           <LotusFlower
             phase={phase}
             level={level}
@@ -1596,7 +1611,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
             </View>
           ) : null : null}
             </View>
-          <ScrollView ref={answersRef} style={{ flex: 1, marginTop: compact ? 0 : 10 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <ScrollView ref={answersRef} style={{ flex: 1, marginTop: compact ? 0 : 10 }} onContentSizeChange={(w, h) => measure('list')(h)} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             {!history.length ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingVertical: 4 }}>
                 {EXAMPLES.map((e, i) => (
@@ -1753,7 +1768,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
           </ScrollView>
           </View>
 
-          <View style={styles.inputBar}>
+          <View style={styles.inputBar} onLayout={(e) => measure('bar')(e.nativeEvent.layout.height + 0)}>
             <Ionicons name="sparkles-outline" size={18} color={colors.gold} style={{ marginLeft: 4 }} />
             <TextInput
               placeholder="Digite ou fale com a Lotus"
