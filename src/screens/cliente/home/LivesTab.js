@@ -128,7 +128,13 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
       {cat ? (
         <>
           {/* Cabeçalho da classe */}
-          <View style={[styles.classHead, { borderColor: cat.tint + '40', backgroundColor: cat.tint + '10' }]}>
+          {/* Tocar no cartão abre a live em destaque da classe (a mais assistida); sem ninguém ao vivo, abre a sua. */}
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => (hero ? onWatch(hero) : onGoLive())}
+            style={[styles.classHead, { borderColor: cat.tint + '40', backgroundColor: cat.tint + '10' }]}
+            accessibilityLabel={hero ? `Assistir ${cat.title}: ${hero.title}` : `Abrir a primeira live de ${cat.title}`}
+          >
             <View style={[styles.classIcon, { backgroundColor: cat.tint }]}>
               <Ionicons name={cat.icon.replace('-outline', '')} size={24} color="#fff" />
             </View>
@@ -137,6 +143,7 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
               <Text style={styles.classHint}>{cat.hint}</Text>
               <Text style={[styles.classStats, { color: cat.tint }]}>
                 {inCat.length ? `${inCat.length} ao vivo · ${fmt(watching)} assistindo` : 'Ninguém ao vivo agora'}
+                {inCat.length ? <Text style={{ fontWeight: '800' }}>  ·  Assistir ›</Text> : null}
               </Text>
             </View>
             <TouchableOpacity
@@ -147,7 +154,7 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
               <Ionicons name={follows.includes(cat.key) ? 'notifications' : 'add'} size={14} color={follows.includes(cat.key) ? cat.tint : '#fff'} />
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: follows.includes(cat.key) ? cat.tint : '#fff', fontWeight: '800', fontSize: 12, marginLeft: 3 }}>{follows.includes(cat.key) ? 'Seguindo' : 'Seguir'}</Text>
             </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
 
           {/* Subclasses */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 12 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
