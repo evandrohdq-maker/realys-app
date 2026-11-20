@@ -303,7 +303,7 @@ export function FlyingPetal({ trigger, from, to, color = '#F29BBE' }) {
 // Botão flutuante da Lotus (canto inferior direito): só a flor dourada, sem
 // fundo, que funciona como microfone. Entreaberta e respirando devagar em repouso; abre inteira
 // quando o mãos livres está ouvindo o "abrir Lotus" ou a caixa de voz está aberta.
-export function LotusMic({ hearing, open }) {
+export function LotusMic({ hearing, open, size = 60 }) {
   const b = useRef(new Animated.Value(0)).current;
   const g = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -321,9 +321,9 @@ export function LotusMic({ hearing, open }) {
   }, [hearing, open]);
   const scale = Animated.add(b.interpolate({ inputRange: [0, 1], outputRange: [1, 1.06] }), g.interpolate({ inputRange: [0, 1], outputRange: [0, 0.06] }));
   return (
-    <View style={styles.micWrap} pointerEvents="none">
-      <Animated.Image source={FAB[0]} fadeDuration={0} resizeMode="contain" style={[styles.micFlower, { opacity: g.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }), transform: [{ scale }] }]} />
-      <Animated.Image source={FAB[1]} fadeDuration={0} resizeMode="contain" style={[styles.micFlower, { opacity: g, transform: [{ scale }] }]} />
+    <View style={[styles.micWrap, { width: size, height: size }]} pointerEvents="none">
+      <Animated.Image source={FAB[0]} fadeDuration={0} resizeMode="contain" style={[styles.micFlower, { width: size, height: size, opacity: g.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }), transform: [{ scale }] }]} />
+      <Animated.Image source={FAB[1]} fadeDuration={0} resizeMode="contain" style={[styles.micFlower, { width: size, height: size, opacity: g, transform: [{ scale }] }]} />
     </View>
   );
 }

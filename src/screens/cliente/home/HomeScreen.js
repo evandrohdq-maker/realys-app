@@ -691,35 +691,26 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
   return (
     <Screen>
       {top}
-      {/* Mensagens e Contatos: dois simbolozinhos no cantinho (sem o botão Feed: o feed é o que abre
-          pelo botão Community). Tocar de novo no símbolo aceso volta para o feed. */}
-      <View style={styles.corner}>
-        {seg !== 'posts' ? (
+      {/* Sino e balão de mensagens ficam no cabeçalho do app (App.js). Aqui, fora do feed, só a setinha de voltar
+          com o nome da parte; Contatos virou uma aba dentro de Mensagens (Conversas · Contatos). */}
+      {seg !== 'posts' ? (
+        <View style={styles.corner}>
           <TouchableOpacity onPress={() => setSeg('posts')} style={styles.cornerBack} hitSlop={6} accessibilityLabel="Voltar para o feed">
             <Ionicons name="chevron-back" size={15} color={colors.menu} />
-            <Text style={styles.cornerBackTxt}>{seg === 'msgs' ? 'Mensagens' : seg === 'notifs' ? 'Notificações' : 'Contatos'}</Text>
+            <Text style={styles.cornerBackTxt}>{seg === 'notifs' ? 'Notificações' : 'Mensagens'}</Text>
           </TouchableOpacity>
-        ) : <View style={{ flex: 1 }} />}
-        {[
-          ['msgs', 'chatbubbles-outline', 'Mensagens'],
-          ['contatos', 'people-outline', 'Contatos'],
-          ['notifs', 'notifications-outline', 'Notificações'],
-        ].map(([k, icon, label]) => {
-          const on = seg === k;
-          // Mensagens: não lidas · Contatos: pedidos de amizade · Sininho: notificações novas.
-          const unread = k === 'msgs' ? convs.reduce((n, c) => n + c.unread, 0) : k === 'contatos' ? requests.length : on ? 0 : notifCount;
-          return (
-            <TouchableOpacity key={k} onPress={() => setSeg(on ? 'posts' : k)} style={[styles.cornerBtn, on && styles.cornerOn]} hitSlop={6} accessibilityLabel={on ? 'Voltar para o feed' : label}>
-              <Ionicons name={on ? icon.replace('-outline', '') : icon} size={19} color={on ? colors.primary : colors.menu} />
-              {unread ? (
-                <View style={styles.cornerBadge}>
-                  <Text style={{ color: colors.onPrimary, fontSize: 9, fontWeight: '800' }}>{unread > 9 ? '9+' : unread}</Text>
-                </View>
-              ) : null}
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+        </View>
+      ) : null}
+      {seg === 'msgs' || seg === 'contatos' ? (
+        <SegTabs
+          items={[
+            { key: 'msgs', label: 'Conversas', icon: 'chatbubbles-outline', badge: convs.reduce((n, c) => n + c.unread, 0) || null },
+            { key: 'contatos', label: 'Contatos', icon: 'people-outline', badge: requests.length || null },
+          ]}
+          value={seg}
+          onChange={setSeg}
+        />
+      ) : null}
 
 
       {seg === 'notifs' ? (

@@ -7,6 +7,7 @@ import { BackProvider, createBackStack } from './src/back';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import { unseenNotifs } from './src/components/Notifications';
 import { StoreProvider, useStore } from './src/store';
 import { colors, brl, ROLE_LABELS, soft } from './src/theme';
 
@@ -588,6 +589,20 @@ function Shell({ inviteTick }) {
           <TouchableOpacity onPress={() => setSearching(true)} style={styles.iconBtn} accessibilityLabel="Buscar pessoas na rede Re@lys">
             <Ionicons name="search-outline" size={21} color={colors.text} />
           </TouchableOpacity>
+          {/* Sininho e mensagens no topo (opção 1): pequenos, sem fundo, só um pontinho dourado quando tem novidade.
+              Contatos fica dentro de Mensagens, como aba. */}
+          {canOpen('stories') ? (
+            <>
+              <TouchableOpacity onPress={() => pick({ tab: 'stories', seg: 'notifs' })} style={styles.iconBtn} accessibilityLabel="Notificações">
+                <Ionicons name="notifications-outline" size={21} color={colors.text} />
+                {unseenNotifs(state) ? <View style={styles.headDot} /> : null}
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => pick({ tab: 'stories', seg: 'msgs' })} style={styles.iconBtn} accessibilityLabel="Mensagens e contatos">
+                <Ionicons name="chatbubble-ellipses-outline" size={21} color={colors.text} />
+                {state.conversations.some((c) => c.unread) ? <View style={styles.headDot} /> : null}
+              </TouchableOpacity>
+            </>
+          ) : null}
           {/* Fotinha do perfil: toque abre o Perfil social; no Perfil, tocar de novo abre o PAINEL do perfil de trabalho
               (empresa → Painel, prestador → Trabalhar, fornecedor → Propostas); no painel, toca de novo para voltar ao social. */}
           <TouchableOpacity
@@ -653,7 +668,7 @@ function Shell({ inviteTick }) {
         accessibilityLabel="Falar com a Lotus"
       >
         {/* A Lotus é o microfone: só a flor dourada, sem fundo. */}
-        <LotusMic hearing={state.handsFree && hearing} open={voice} />
+        <LotusMic hearing={state.handsFree && hearing} open={voice} size={46} />
         {/* Mãos livres: só um pontinho discreto na flor (dourado = ouvindo "abrir Lotus"; cinza = música tocando, toque na flor). */}
         {state.handsFree ? <View style={[styles.earDot, { backgroundColor: hearing ? colors.primary : colors.muted, opacity: hearing ? 1 : 0.6 }]} /> : null}
       </TouchableOpacity>
@@ -904,6 +919,7 @@ const styles = StyleSheet.create({
   // Ícones do topo soltos, sem caixinha (visual clean).
   iconBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginLeft: 2 },
   iconBtnOn: { backgroundColor: colors.primaryLight },
+  headDot: { position: 'absolute', top: 9, right: 9, width: 8, height: 8, borderRadius: 4, backgroundColor: colors.gold, borderWidth: 1.5, borderColor: colors.bg },
   headAvatar: { width: 28, height: 28, borderRadius: 14, borderWidth: 1.5, borderColor: colors.border },
   subHeader: {
     flexDirection: 'row',
@@ -963,10 +979,10 @@ const styles = StyleSheet.create({
   // Botão da Lotus: só o desenho da flor, sem fundo, sem borda e sem sombra.
   fab: {
     position: 'absolute',
-    right: 14,
+    right: 16,
     bottom: 84,
-    width: 60,
-    height: 60,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
   },
