@@ -5,17 +5,17 @@ import { usePrivateScreen } from '../../../privacyGuard';
 import { registerLive } from '../../../pip';
 import { giftPoints } from '../../../rewards';
 import GiftIcon from '../../../components/GiftIcon';
-import { View, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform, Alert, Animated, Easing } from 'react-native';
+import { View, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform, Alert, Animated, Easing, PanResponder, Dimensions } from 'react-native';
 import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, brl, soft } from '../../../theme';
 import { LIVE_GIFTS, LIVE_GIFT_QTY, liveGiftCost, liveGiftOf } from '../../../gifts';
 import { Photo } from '../../../components/ui';
-import { liveComments } from '../../../homeData';
+import { liveComments, lives as LIVES } from '../../../homeData';
 import { useStore } from '../../../store';
 import { HostChip, useOpenHost } from '../../../components/HostChip';
-import { LIVE_CATS, hostOptions, defaultHost, catOf, subOf, HOST_TYPES, missionId, LIVE_MISSION_SECS, LIVE_MISSION_POINTS } from '../../../liveData';
+import { LIVE_CATS, hostOptions, defaultHost, catOf, subOf, HOST_TYPES, missionId, LIVE_MISSION_SECS, LIVE_MISSION_POINTS, liveScore } from '../../../liveData';
 import { members } from '../../../people';
 import { artists } from '../../../extraData';
 import { LiveStage, openRealLive, endRealLive } from '../../../components/LiveVideo';
@@ -259,8 +259,49 @@ function CallBtn({ icon, on, onPress, label }) {
 }
 
 // Assistir uma live ou abrir a sua própria (mine = true).
-export function LiveModal({ live, mine, visible, onClose, userName }) {
+// Ordem das lives ao puxar para cima: patrocinada primeiro, depois a mais assistida (igual à lista).
+const liveRank = (a, b) => (b.sponsored ? 1 : 0) - (a.sponsored ? 1 : 0) || liveScore(b) - liveScore(a);
+
+export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) {
   const insets = useSafeAreaInsets();
+  // Assistindo: puxar para cima passa para a próxima live do MESMO segmento (Gamers → próxima de Gamers);
+  // puxar para baixo volta para a anterior. A tela acompanha o dedo, como nos Reels.
+  const [live, setCurLive] = useState(liveProp);
+  useEffect(() => {
+    if (visible) setCurLive(liveProp);
+  }, [visible, liveProp && liveProp.id]);
+  const queue = !mine && live && live.cat ? LIVES.filter((l) => l.cat === live.cat && !l.mine).sort(liveRank) : [];
+  const [swipeHint, setSwipeHint] = useState(null);
+  const slide = useRef(new Animated.Value(0)).current;
+  const swipeRef = useRef(null);
+  swipeRef.current = (dir) => {
+    const H = Dimensions.get('window').height;
+    if (queue.length < 2) {
+      Animated.spring(slide, { toValue: 0, useNativeDriver: true }).start();
+      setSwipeHint(`Só tem esta live em ${catOf(live.cat).label} agora`);
+      setTimeout(() => setSwipeHint(null), 1800);
+      return;
+    }
+    const i = Math.max(0, queue.findIndex((l) => l.id === live.id));
+    const nx = queue[(i + (dir > 0 ? 1 : queue.length - 1)) % queue.length];
+    Animated.timing(slide, { toValue: dir > 0 ? -H : H, duration: 180, useNativeDriver: true }).start(() => {
+      setCurLive(nx);
+      slide.setValue(dir > 0 ? H : -H);
+      Animated.timing(slide, { toValue: 0, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+    });
+  };
+  const swipe = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (e, g) => Math.abs(g.dy) > 18 && Math.abs(g.dy) > Math.abs(g.dx) * 1.6,
+      onPanResponderMove: (e, g) => slide.setValue(g.dy * 0.6),
+      onPanResponderRelease: (e, g) => {
+        if (g.dy < -90 || g.vy < -0.8) swipeRef.current(1);
+        else if (g.dy > 90 || g.vy > 0.8) swipeRef.current(-1);
+        else Animated.spring(slide, { toValue: 0, useNativeDriver: true }).start();
+      },
+      onPanResponderTerminate: () => Animated.spring(slide, { toValue: 0, useNativeDriver: true }).start(),
+    })
+  ).current;
   const [title, setTitle] = useState('');
   const [onAir, setOnAir] = useState(!mine);
   const [viewers, setViewers] = useState(live ? live.viewers : 0);
@@ -334,7 +375,7 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
     setSource('camera');
     setTeam(null);
     setTeamMic(true);
-    setViewers(live ? live.viewers : 0);
+    setViewers(liveProp ? liveProp.viewers : 0);
     setSecs(0);
     setComments([]);
     setLiked(0);
@@ -342,7 +383,28 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
     setQty(1);
     setEarned(0);
     setBurst(null);
+    slide.setValue(0);
+    // Dica rápida ao abrir a live de outra pessoa: puxar para cima passa para a próxima do segmento.
+    if (!mine && liveProp && liveProp.cat) {
+      setSwipeHint(`Puxe para cima: próxima live de ${catOf(liveProp.cat).label}`);
+      const t = setTimeout(() => setSwipeHint(null), 2600);
+      return () => clearTimeout(t);
+    }
   }, [visible]);
+
+  // Trocou de live puxando para cima/baixo: plateia, comentários e presentes são os da live nova.
+  const lastLiveId = useRef(null);
+  useEffect(() => {
+    if (!visible || mine || !live) return;
+    if (lastLiveId.current && lastLiveId.current !== live.id) {
+      setViewers(live.viewers || 0);
+      setComments([]);
+      setLiked(0);
+      setTray(false);
+      setBurst(null);
+    }
+    lastLiveId.current = live.id;
+  }, [visible, live && live.id]);
 
   // Missão do dia: 3 minutos assistindo lives da classe dão pontos Re@lys (uma vez por dia e por classe).
   useEffect(() => {
@@ -403,8 +465,8 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={close}><KeyboardLift style={{ flex: 1 }}>
-      <View style={{ flex: 1, backgroundColor: '#03050A' }}>
+    <Modal visible={visible} animationType="slide" onRequestClose={close}><KeyboardLift style={{ flex: 1, backgroundColor: '#03050A' }}>
+      <Animated.View style={{ flex: 1, backgroundColor: '#03050A', transform: [{ translateY: slide }] }} {...(mine ? {} : swipe.panHandlers)}>
         {live ? <Photo uri={live.photo ? live.photo.replace('800/500', '800/1400') : null} style={StyleSheet.absoluteFill} fallback="🎥" /> : null}
         {mine ? (
           <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', backgroundColor: '#14120E' }]}>
@@ -689,7 +751,15 @@ export function LiveModal({ live, mine, visible, onClose, userName }) {
             </View>
           </View>
         ) : null}
-      </View>
+        {swipeHint ? (
+          <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: '45%', alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 8 }}>
+              <Ionicons name="chevron-up" size={16} color="#F5C331" />
+              <Text numberOfLines={1} style={{ color: '#fff', fontWeight: '700', fontSize: 13, marginLeft: 6 }}>{swipeHint}</Text>
+            </View>
+          </View>
+        ) : null}
+      </Animated.View>
     </KeyboardLift></Modal>
   );
 }
