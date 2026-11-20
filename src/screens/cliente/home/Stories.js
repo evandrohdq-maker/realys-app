@@ -12,6 +12,7 @@ import { useStore } from '../../../store';
 import * as ImagePicker from 'expo-image-picker';
 import { STORY_EFFECTS, effectStyle, STORY_VIDEO_MAX_S } from '../../../storyEffects';
 import { StoryMusicPlayer, MusicSticker, MusicPicker } from '../../../components/StoryMusic';
+import StoryCamera from '../../../components/StoryCamera';
 
 let EV = null;
 try {
@@ -235,6 +236,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
   const [writing, setWriting] = useState(false);
   const [music, setMusic] = useState(null); // música do story (galeria do Re@lys)
   const [picking, setPicking] = useState(false);
+  const [camera, setCamera] = useState(null); // 'foto' | 'video': câmera do Re@lys aberta
 
   useEffect(() => {
     if (!visible) return;
@@ -245,9 +247,12 @@ export function StoryComposer({ visible, onClose, onPublish }) {
     setWriting(false);
     setMusic(null);
     setPicking(false);
+    setCamera(null);
   }, [visible]);
 
   const take = async (how) => {
+    // Foto e vídeo pela câmera do Re@lys (sai igual à prévia, sem inverter, e com efeitos na hora).
+    if (how !== 'galeria') return setCamera(how);
     try {
       const camera = how !== 'galeria';
       const perm = camera ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -388,6 +393,17 @@ export function StoryComposer({ visible, onClose, onPublish }) {
           )}
         </View>
       </View>
+      <StoryCamera
+        visible={!!camera}
+        startMode={camera || 'foto'}
+        initialEffect={effect === 'original' ? 'auto' : effect}
+        onClose={() => setCamera(null)}
+        onDone={(m) => {
+          setCamera(null);
+          setMedia(m.kind === 'video' ? { kind: 'video', uri: m.uri, secs: m.secs } : { kind: 'image', uri: m.uri });
+          setEffect(m.effect || 'original');
+        }}
+      />
       <MusicPicker
         visible={picking}
         current={music}
