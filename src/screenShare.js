@@ -1,4 +1,4 @@
-// Compartilhar a tela do celular numa sala (Arena Gamer e Salas de Negócios).
+// Compartilhar a tela do celular numa sala (Arena Gamer e Arena Negócios).
 // O mesmo motor serve para as duas: cada tela decide onde fica o botão.
 //
 // Com o servidor e o servidor de vídeo no ar: a tela vai para o servidor de vídeo do Re@lys (WHIP) e só

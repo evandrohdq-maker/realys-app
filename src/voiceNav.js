@@ -133,7 +133,7 @@ export const NAV_TARGETS = [
   T('Vários', { tab: 'varios', group: 'todos' }, ['varios', 'diversos', 'outros']),
   T('Desapego', { tab: 'desapego' }, ['desapego', 'desapegos', 'usados', 'coisas usadas', 'vender usado', 'brecho']),
   T('Arena Gamer', { tab: 'arena' }, ['arena', 'arena gamer', 'discord', 'servidor de jogo', 'servidores gamer', 'canal de voz', 'chamar o squad', 'jogar com a galera']),
-  T('Salas de Negócios', { tab: 'salas' }, ['salas de negocios', 'sala de negocios', 'salas de atendimento', 'atendimento ao vivo', 'reuniao', 'reunioes', 'sala de reuniao', 'falar com a empresa', 'suporte tecnico ao vivo', 'visita virtual']),
+  T('Arena Negócios', { tab: 'salas' }, ['arena negocios', 'arena de negocios', 'negocios online', 'salas de negocios', 'sala de negocios', 'salas de atendimento', 'atendimento ao vivo', 'reuniao', 'reunioes', 'sala de reuniao', 'falar com a empresa', 'suporte tecnico ao vivo', 'visita virtual']),
   T('Stream', { tab: 'home', top: 'stream' }, ['stream', 'streaming', 'strim', 'estrim', 'radios e tv', 'radio e tv']),
   T('Rádios', { tab: 'home', top: 'stream', stream: 'radios' }, ['radio', 'radios', 'ouvir radio', 'ouvir a radio', 'ouvir uma radio', 'escutar radio', 'escutar a radio', 'radio ao vivo']),
   T('TV online', { tab: 'home', top: 'stream', stream: 'tv' }, ['tv online', 'tv ao vivo', 'televisao online', 'televisao ao vivo', 'canais de tv', 'canal de tv', 'assistir tv', 'assistir televisao']),

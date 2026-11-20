@@ -49,13 +49,13 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
 
   return (
     <Screen>
-      <TouchableOpacity style={styles.goLiveCard} onPress={onGoLive} activeOpacity={0.9}>
-        <View style={styles.goLiveIcon}>
-          <Ionicons name="radio" size={22} color="#fff" />
+      <TouchableOpacity style={[styles.goLiveCard, styles.goLiveSlim]} onPress={onGoLive} activeOpacity={0.9}>
+        <View style={[styles.goLiveIcon, styles.goLiveIconSlim]}>
+          <Ionicons name="radio" size={17} color="#fff" />
         </View>
-        <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>Abrir minha live</Text>
-          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Entra ao vivo agora: quem te segue recebe o aviso na hora</Text>
+        <View style={{ flex: 1, marginLeft: 10 }}>
+          <Text numberOfLines={1} style={{ color: colors.text, fontWeight: '700', fontSize: 14 }}>Abrir minha live</Text>
+          <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 11, marginTop: 1 }}>Quem te segue recebe o aviso na hora</Text>
         </View>
         <Ionicons name="chevron-forward" size={18} color={colors.muted} />
       </TouchableOpacity>
@@ -80,19 +80,40 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
         }}
       />
 
-      {/* Arena Gamer (estilo Discord): atalho visível nas Lives, em "Todas" e na classe Gamers. */}
-      {f === 'todas' || f === 'gamers' ? (
-        <TouchableOpacity style={styles.goLiveCard} onPress={() => navigate && navigate({ tab: 'arena' })} activeOpacity={0.9} accessibilityLabel="Abrir a Arena Gamer">
-          <View style={[styles.goLiveIcon, { backgroundColor: '#5865F2' }]}>
-            <Ionicons name="game-controller" size={22} color="#fff" />
+      {/* Arena Gamer (streamers) e Arena Negócios (o "Discord das empresas": atendimento ao vivo,
+          reuniões e salas com voz e tela), lado a lado e compactas. Em Gamers fica só a Arena Gamer;
+          em Negócios, Compras e Agro, só a Arena Negócios. */}
+      {(() => {
+        const gamer = f === 'todas' || f === 'gamers';
+        const neg = ['todas', 'negocios', 'compras', 'agro'].includes(f);
+        if (!gamer && !neg) return null;
+        return (
+          <View style={styles.arenaRow}>
+            {gamer ? (
+              <TouchableOpacity style={[styles.arenaTile, neg && { marginRight: 8 }]} onPress={() => navigate && navigate({ tab: 'arena' })} activeOpacity={0.9} accessibilityLabel="Abrir a Arena Gamer">
+                <View style={[styles.arenaIcon, { backgroundColor: '#5865F2' }]}>
+                  <Ionicons name="game-controller" size={16} color="#fff" />
+                </View>
+                <View style={{ flex: 1, marginLeft: 8 }}>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={styles.arenaTitle}>Arena Gamer</Text>
+                  <Text numberOfLines={1} style={styles.arenaHint}>Jogar com a galera</Text>
+                </View>
+              </TouchableOpacity>
+            ) : null}
+            {neg ? (
+              <TouchableOpacity style={styles.arenaTile} onPress={() => navigate && navigate({ tab: 'salas' })} activeOpacity={0.9} accessibilityLabel="Abrir a Arena Negócios">
+                <View style={[styles.arenaIcon, { backgroundColor: colors.gold }]}>
+                  <Ionicons name="briefcase" size={16} color="#fff" />
+                </View>
+                <View style={{ flex: 1, marginLeft: 8 }}>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={styles.arenaTitle}>Arena Negócios</Text>
+                  <Text numberOfLines={1} style={styles.arenaHint}>Empresas atendendo</Text>
+                </View>
+              </TouchableOpacity>
+            ) : null}
           </View>
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>Arena Gamer</Text>
-            <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Servidores de jogos com canais de texto e de voz, para jogar com a galera</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.muted} />
-        </TouchableOpacity>
-      ) : null}
+        );
+      })()}
 
       {real.length ? (
         <View style={{ marginBottom: 12 }}>
@@ -387,6 +408,13 @@ function SectionHead({ title, right, onRight }) {
 const styles = StyleSheet.create({
   goLiveCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,59,92,0.5)', padding: 12, marginBottom: 14 },
   goLiveIcon: { width: 44, height: 44, borderRadius: 15, backgroundColor: '#FF3B5C', alignItems: 'center', justifyContent: 'center' },
+  goLiveSlim: { paddingVertical: 8, borderRadius: 16, marginBottom: 10 },
+  goLiveIconSlim: { width: 34, height: 34, borderRadius: 11 },
+  arenaRow: { flexDirection: 'row', marginBottom: 12 },
+  arenaTile: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, borderWidth: 1, borderColor: colors.border, paddingVertical: 8, paddingHorizontal: 10 },
+  arenaIcon: { width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  arenaTitle: { color: colors.text, fontWeight: '800', fontSize: 13 },
+  arenaHint: { color: colors.muted, fontSize: 10, marginTop: 1 },
   chip: { flexDirection: 'row', alignItems: 'center', height: 36, paddingHorizontal: 12, borderRadius: 18, backgroundColor: colors.cardAlt, marginRight: 8 },
   chipOn: { backgroundColor: colors.primary },
   chipText: { color: colors.text, fontWeight: '600', fontSize: 12, marginLeft: 6 },

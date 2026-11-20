@@ -1,4 +1,4 @@
-// Salas de Negócios: atendimento ao vivo das empresas (separado da Arena Gamer).
+// Arena Negócios: atendimento ao vivo das empresas (separado da Arena Gamer).
 // Três telas:
 //   1. Lista de empresas com Recepção aberta (fila e quem está atendendo agora).
 //   2. Recepção de uma empresa: o cliente entra na fila; a empresa vê a fila e chama; salas da equipe e canais.
@@ -74,7 +74,7 @@ export default function SalasScreen({ explore }) {
   const closed = salas.filter((s) => !s.open);
   return (
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
-      <Text style={st.h1}>Salas de Negócios</Text>
+      <Text style={st.h1}>Arena Negócios</Text>
       <Text style={st.sub}>Atendimento ao vivo com quem é real: voz, vídeo e tela compartilhada, sem sair do Re@lys.</Text>
       {here ? (
         <TouchableOpacity style={st.backToRoom} onPress={() => { setSid(here.sid); setRid(here.rid); }} accessibilityLabel="Voltar para a sala em que você está">

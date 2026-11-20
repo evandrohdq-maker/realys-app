@@ -49,7 +49,7 @@ export async function openCamera({ front = true, quality = '720p', audioOnly = f
 export const screenOk = () => !!(RTC && RTC.mediaDevices && RTC.mediaDevices.getDisplayMedia);
 
 // Uma captura de tela só para o app inteiro: a live ("transmitir como gamer") e a sala da equipe
-// (Arena ou Salas de Negócios) usam a MESMA captura. O Android só pergunta uma vez e nada briga.
+// (Arena ou Arena Negócios) usam a MESMA captura. O Android só pergunta uma vez e nada briga.
 // Cada uso pega a captura e devolve quando termina; ela só para quando ninguém mais usa.
 let shared = null; // { stream, users }
 export async function acquireScreen() {
