@@ -336,18 +336,34 @@ export const providers = [
 ];
 
 export const suppliers = [
-  { id: 's1', name: 'Distribuidora Real Alimentos', city: 'Campinas - SP', rating: 4.8, logo: '🚚' },
-  { id: 's2', name: 'Atacadão do Café', city: 'Franca - SP', rating: 4.6, logo: '☕' },
+  {
+    id: 's1', name: 'Distribuidora Real Alimentos', city: 'Campinas - SP', rating: 4.8, logo: '🚚',
+    cover: photo('realys-distribuidora', 900, 500),
+    tagline: 'Alimentos de mercearia direto do produtor para a sua empresa',
+    about: 'Há 18 anos abastecendo mercados, restaurantes e padarias. Entrega própria em 24 h na região, nota fiscal em todas as vendas e preço de atacado de verdade.',
+    segments: ['Mercearia', 'Grãos', 'Laticínios', 'Óleos'],
+    perks: ['Entrega em 24 h', 'Frete grátis acima de R$ 800', 'Nota fiscal', 'Pagamento retido pelo Re@lys'],
+    since: 2008, deals: 1240,
+  },
+  {
+    id: 's2', name: 'Atacadão do Café', city: 'Franca - SP', rating: 4.6, logo: '☕',
+    cover: photo('realys-cafezal', 900, 500),
+    tagline: 'Café torrado da fazenda, lote fresco toda semana',
+    about: 'Torrefação própria no Sul de Minas. Atendemos cafeterias, padarias e mercados com torra média e escura.',
+    segments: ['Café', 'Cafeterias'],
+    perks: ['Torra da semana', 'Amostra grátis', 'Nota fiscal'],
+    since: 2014, deals: 610,
+  },
 ];
 
 // Catálogo atacado (B2B). Só empresas com CNPJ verificado veem estes preços.
 export const supplierItems = [
-  { id: 'si1', supplierId: 's1', name: 'Feijão Carioca - 1kg', unitPrice: 5.6, minQty: 30, tiers: [{ qty: 50, off: 5 }, { qty: 200, off: 10 }], emoji: '🫘' },
-  { id: 'si2', supplierId: 's1', name: 'Farinha de Trigo 1kg', unitPrice: 3.9, minQty: 20, tiers: [{ qty: 50, off: 5 }, { qty: 200, off: 12 }], emoji: '🌾', featured: true },
-  { id: 'si3', supplierId: 's1', name: 'Arroz Tipo 1 - 5kg', unitPrice: 19.5, minQty: 20, tiers: [{ qty: 100, off: 6 }], emoji: '🍚' },
-  { id: 'si4', supplierId: 's2', name: 'Café Torrado 500g', unitPrice: 12.2, minQty: 24, tiers: [{ qty: 96, off: 8 }], emoji: '☕', featured: true },
-  { id: 'si5', supplierId: 's1', name: 'Óleo de Soja 900ml', unitPrice: 6.8, minQty: 24, tiers: [{ qty: 120, off: 7 }], emoji: '🫗' },
-  { id: 'si6', supplierId: 's1', name: 'Queijo Muçarela (kg)', unitPrice: 32.9, minQty: 10, tiers: [{ qty: 40, off: 6 }], emoji: '🧀' },
+  { id: 'si1', supplierId: 's1', name: 'Feijão Carioca - 1kg', unitPrice: 5.6, minQty: 30, tiers: [{ qty: 50, off: 5 }, { qty: 200, off: 10 }], emoji: '🫘', photos: [photo('realys-feijao'), photo('realys-feijao2')], desc: 'Feijão carioca tipo 1, safra nova, fardo com 10 pacotes.', promo: { off: 12, until: 'sexta' } },
+  { id: 'si2', supplierId: 's1', name: 'Farinha de Trigo 1kg', unitPrice: 3.9, minQty: 20, tiers: [{ qty: 50, off: 5 }, { qty: 200, off: 12 }], emoji: '🌾', featured: true, photos: [photo('realys-farinha'), photo('realys-farinha2')], desc: 'Farinha de trigo tipo 1 para panificação e confeitaria.' },
+  { id: 'si3', supplierId: 's1', name: 'Arroz Tipo 1 - 5kg', unitPrice: 19.5, minQty: 20, tiers: [{ qty: 100, off: 6 }], emoji: '🍚', photos: [photo('realys-arroz')], desc: 'Arroz agulhinha tipo 1, fardo com 6 pacotes de 5 kg.' },
+  { id: 'si4', supplierId: 's2', name: 'Café Torrado 500g', unitPrice: 12.2, minQty: 24, tiers: [{ qty: 96, off: 8 }], emoji: '☕', featured: true, photos: [photo('realys-cafe'), photo('realys-cafe2')], desc: 'Torra média, moído na hora do pedido. Lote da semana.', promo: { off: 10, until: '7 dias' } },
+  { id: 'si5', supplierId: 's1', name: 'Óleo de Soja 900ml', unitPrice: 6.8, minQty: 24, tiers: [{ qty: 120, off: 7 }], emoji: '🫗', photos: [photo('realys-oleo')], desc: 'Óleo de soja refinado, caixa com 20 garrafas.' },
+  { id: 'si6', supplierId: 's1', name: 'Queijo Muçarela (kg)', unitPrice: 32.9, minQty: 10, tiers: [{ qty: 40, off: 6 }], emoji: '🧀', featured: true, photos: [photo('realys-mucarela'), photo('realys-mucarela2')], desc: 'Muçarela em peça para fatiar, ideal para pizzarias.' },
 ];
 
 // Propostas que o FORNECEDOR envia direto para as empresas (oferta ativa).

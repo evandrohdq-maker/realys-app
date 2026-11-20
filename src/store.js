@@ -4,6 +4,7 @@ import { DESAPEGO_DEMO } from './desapego';
 import { MANDADOS_DEMO } from './empresaDemo';
 import { Alert } from 'react-native';
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
+import { unitPriceOf } from './supplierShop';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { checkText, claimOf } from './lm/factCheck';
 import * as SecureStore from 'expo-secure-store';
@@ -281,7 +282,7 @@ const nfeNumber = (n) => String(n).padStart(6, '0');
 // Compra B2B fechada: o estoque da minha empresa sobe e a saída entra no financeiro.
 function applyPurchase(state, itemId, qty, discount) {
   const item = state.supplierItems.find((i) => i.id === itemId);
-  const total = qty * item.unitPrice * (1 - discount / 100);
+  const total = qty * unitPriceOf(item) * (1 - discount / 100);
   const existing = state.products.find((p) => p.storeId === D.MY_COMPANY_ID && p.name === item.name);
   const products = existing
     ? state.products.map((p) => (p.id === existing.id ? { ...p, stock: p.stock + qty } : p))
@@ -292,7 +293,7 @@ function applyPurchase(state, itemId, qty, discount) {
           storeId: D.MY_COMPANY_ID,
           name: item.name,
           price: +(item.unitPrice * 1.4).toFixed(2),
-          cost: item.unitPrice,
+          cost: unitPriceOf(item),
           stock: qty,
           minStock: 10,
           emoji: item.emoji,
@@ -636,6 +637,17 @@ function baseReducer(state, a) {
         ...state,
         supplierItems: [{ id: newId('si'), supplierId: D.MY_SUPPLIER_ID, tiers: [], featured: true, ...a.item }, ...state.supplierItems],
       };
+    // Editar produto (fotos, vídeo, preço, promoção…) e tirar do catálogo.
+    case 'SUPPLIER_EDIT_ITEM':
+      return { ...state, supplierItems: state.supplierItems.map((i) => (i.id === a.id ? { ...i, ...a.patch } : i)) };
+    case 'SUPPLIER_REMOVE_ITEM':
+      return { ...state, supplierItems: state.supplierItems.filter((i) => i.id !== a.id) };
+    // Vitrine do fornecedor: capa, frase e "sobre" da página que as empresas visitam.
+    case 'SUPPLIER_EDIT_PAGE':
+      return { ...state, suppliers: state.suppliers.map((s) => (s.id === D.MY_SUPPLIER_ID ? { ...s, ...a.patch } : s)) };
+    // Empresa abre a vitrine de um fornecedor (qualquer tela).
+    case 'OPEN_SUPPLIER':
+      return { ...state, openSupplierId: a.id || null };
     case 'SUPPLIER_SEND_OFFER':
       return {
         ...state,

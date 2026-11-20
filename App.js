@@ -96,6 +96,7 @@ import PipManager from './src/components/PipManager';
 import { minimizeApp, playingKind } from './src/pip';
 import { openProfileMenu } from './src/profileMenu';
 import { ProductSheetHost } from './src/components/ProductSheet';
+import { SupplierShowcaseHost } from './src/components/SupplierShowcase';
 import RadiosScreen from './src/screens/cliente/RadiosScreen';
 import { RadioHost, RadioHeadChip } from './src/components/RadioKit';
 import { ArtistSheetHost } from './src/components/ArtistSheet';
@@ -642,6 +643,7 @@ function Shell({ inviteTick }) {
       <StationProfileHost />
       {/* Tela do produto (fotos, vídeo de 5 s, opções e ficha), aberta de qualquer vitrine. */}
       <ProductSheetHost />
+      <SupplierShowcaseHost />
       <PipManager />
       <LiveFloat bottom={150 + insets.bottom} />
       <TouchableOpacity

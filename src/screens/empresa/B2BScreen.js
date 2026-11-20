@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { GroupBuys, ReversePost } from '../../components/Engage';
 import { LiveNowBadge } from '../../components/LiveBits';
-import { View, Alert, TouchableOpacity } from 'react-native';
+import { View, Alert, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { Text } from '../../responsive';
 import { useStore } from '../../store';
 import { MY_COMPANY_ID } from '../../data';
 import { colors, brl } from '../../theme';
-import { Screen, Title, Card, Row, Button, Input, Badge, Section } from '../../components/ui';
+import { Screen, Title, Card, Row, Button, Input, Badge, Section, Photo } from '../../components/ui';
+import { hasPromo, unitPriceOf, coverOf } from '../../supplierShop';
 
 export const STATUS_COLOR = {
   pendente: colors.accent,
@@ -25,7 +26,7 @@ export default function B2BScreen() {
   const [disc, setDisc] = useState('');
   const [counter, setCounter] = useState({});
   const offers = state.offers.filter((o) => o.companyId === MY_COMPANY_ID);
-  const catalog = [...state.supplierItems].sort((a, b) => !!b.featured - !!a.featured);
+  const catalog = [...state.supplierItems].sort((a, b) => hasPromo(b) - hasPromo(a) || !!b.featured - !!a.featured);
 
   const send = (item) => {
     const q = parseInt(qty, 10);
@@ -46,12 +47,39 @@ export default function B2BScreen() {
       {/* Fornecedores ao vivo: feira, degustação e preços de atacado */}
       {state.suppliers.map((sup) => <LiveNowBadge key={sup.id} hostType="fornecedor" hostId={sup.id} style={{ marginTop: 0, marginBottom: 8 }} />)}
 
+      {/* Vitrines dos fornecedores: cada um com a sua página, produtos em destaque e promoções */}
+      <Section title="Vitrines dos fornecedores">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -18 }} contentContainerStyle={{ paddingHorizontal: 18 }}>
+          {state.suppliers.map((sup) => {
+            const its = state.supplierItems.filter((i) => i.supplierId === sup.id);
+            const promos = its.filter(hasPromo).length;
+            return (
+              <TouchableOpacity key={sup.id} style={vs.card} activeOpacity={0.9} onPress={() => dispatch({ type: 'OPEN_SUPPLIER', id: sup.id })}>
+                <View>
+                  <Photo uri={sup.cover} style={vs.cover} fallback={sup.logo} />
+                  {promos ? <Text style={vs.promo}>🔥 {promos} {promos === 1 ? 'promoção' : 'promoções'}</Text> : null}
+                  <View style={vs.logo}><Text style={{ fontSize: 22 }}>{sup.logo}</Text></View>
+                </View>
+                <View style={{ padding: 10, paddingTop: 22 }}>
+                  <Text style={vs.name} numberOfLines={1}>{sup.name}</Text>
+                  <Text style={vs.sub} numberOfLines={2}>{sup.tagline || sup.city}</Text>
+                  <Row style={{ marginTop: 6, justifyContent: 'space-between' }}>
+                    <Text style={vs.meta} numberOfLines={1}>★ {sup.rating} · {its.length} produtos</Text>
+                    <Text style={vs.go} numberOfLines={1}>Ver vitrine ›</Text>
+                  </Row>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </Section>
+
       <Section title="Propostas de fornecedores">
         {!offers.length ? <Text style={{ color: colors.muted, marginBottom: 8 }}>Nenhuma proposta recebida.</Text> : null}
         {offers.map((o) => {
           const item = state.supplierItems.find((i) => i.id === o.itemId);
           const sup = state.suppliers.find((x) => x.id === item.supplierId);
-          const unit = item.unitPrice * (1 - o.discount / 100);
+          const unit = unitPriceOf(item) * (1 - o.discount / 100);
           return (
             <Card key={o.id} style={o.status === 'pendente' ? { borderColor: 'rgba(226,182,73,0.8)', borderWidth: 1.5 } : null}>
               <Row style={{ justifyContent: 'space-between' }}>
@@ -133,7 +161,11 @@ export default function B2BScreen() {
             <Card key={item.id}>
               <TouchableOpacity onPress={() => setOpen(open === item.id ? null : item.id)}>
                 <Row>
-                  <Text style={{ color: colors.text, fontSize: 30, marginRight: 10 }}>{item.emoji}</Text>
+                  {coverOf(item) ? (
+                    <Photo uri={coverOf(item)} style={{ width: 64, height: 64, borderRadius: 12, marginRight: 10 }} fallback={item.emoji} />
+                  ) : (
+                    <Text style={{ color: colors.text, fontSize: 30, marginRight: 10 }}>{item.emoji}</Text>
+                  )}
                   <View style={{ flex: 1 }}>
                     <Row>
                       <Text style={{ color: colors.text, fontWeight: '700', flexShrink: 1 }}>{item.name}</Text>
@@ -142,12 +174,18 @@ export default function B2BScreen() {
                           <Badge label="★ Destaque" color={colors.primary} />
                         </View>
                       ) : null}
+                      {hasPromo(item) ? (
+                        <View style={{ marginLeft: 6 }}>
+                          <Badge label={`🔥 -${item.promo.off}%`} color={colors.danger} />
+                        </View>
+                      ) : null}
                     </Row>
-                    <Text style={{ color: colors.muted, fontSize: 12 }}>
-                      {sup.logo} {sup.name} · <Text style={{ color: colors.accent, fontWeight: '700' }}>★ {sup.rating}</Text>
+                    <Text style={{ color: colors.muted, fontSize: 12 }} onPress={() => dispatch({ type: 'OPEN_SUPPLIER', id: sup.id })}>
+                      {sup.logo} <Text style={{ textDecorationLine: 'underline' }}>{sup.name}</Text> · <Text style={{ color: colors.accent, fontWeight: '700' }}>★ {sup.rating}</Text>
                     </Text>
-                    <Text style={{ color: colors.primary, fontWeight: '700' }}>
-                      {brl(item.unitPrice)} /un. · mín. {item.minQty}
+                    {hasPromo(item) ? <Text style={{ color: colors.muted, fontSize: 11, textDecorationLine: 'line-through' }}>{brl(item.unitPrice)}</Text> : null}
+                    <Text style={{ color: hasPromo(item) ? colors.danger : colors.primary, fontWeight: '700' }}>
+                      {brl(unitPriceOf(item))} /un. · mín. {item.minQty}
                     </Text>
                     <Text style={{ fontSize: 11, color: colors.muted }}>
                       {item.tiers.length ? '' : 'Preço único'}{item.tiers.map((t) => `${t.off}% acima de ${t.qty}`).join(' · ')}
@@ -177,7 +215,7 @@ export default function B2BScreen() {
       <Section title="Minhas propostas">
         {state.proposals.map((p) => {
           const item = state.supplierItems.find((i) => i.id === p.itemId);
-          const total = p.qty * item.unitPrice * (1 - (p.status === 'contraproposta' ? p.counter : p.discount) / 100);
+          const total = p.qty * unitPriceOf(item) * (1 - (p.status === 'contraproposta' ? p.counter : p.discount) / 100);
           return (
             <Card key={p.id}>
               <Row style={{ justifyContent: 'space-between' }}>
@@ -211,3 +249,14 @@ export default function B2BScreen() {
     </Screen>
   );
 }
+
+const vs = StyleSheet.create({
+  card: { width: 230, backgroundColor: colors.card, borderRadius: 18, overflow: 'hidden', marginRight: 10, borderWidth: 1, borderColor: 'rgba(245,195,49,0.6)' },
+  cover: { width: 230, height: 100 },
+  promo: { position: 'absolute', top: 8, right: 8, backgroundColor: colors.danger, color: '#fff', fontSize: 11, fontWeight: '800', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, overflow: 'hidden' },
+  logo: { position: 'absolute', left: 10, bottom: -18, width: 40, height: 40, borderRadius: 20, backgroundColor: '#fff', borderWidth: 2, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
+  name: { color: colors.text, fontWeight: '800', fontSize: 14 },
+  sub: { color: colors.muted, fontSize: 12, marginTop: 2, minHeight: 32 },
+  meta: { color: colors.muted, fontSize: 11, flexShrink: 1 },
+  go: { color: colors.primary, fontWeight: '800', fontSize: 12, marginLeft: 6 },
+});

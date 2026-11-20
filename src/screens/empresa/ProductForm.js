@@ -16,7 +16,7 @@ import { MAX_PRODUCT_PHOTOS, MAX_VIDEO_SEC, COLORS, suggestFor, groupFromSuggest
 const MAX_PHOTOS = MAX_PRODUCT_PHOTOS; // até 5 fotos por produto
 const GOLD = '#F5C331';
 
-async function pickPhotos(limit) {
+export async function pickPhotos(limit) {
   const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!perm.granted) {
     Alert.alert('Permissão necessária', 'Autorize o Re@lys a ver suas fotos para escolher as do produto.');
@@ -28,7 +28,7 @@ async function pickPhotos(limit) {
 }
 
 // Vídeo curto do produto (até 5 segundos): da galeria ou gravando na hora (a câmera para sozinha nos 5 s).
-async function pickVideo(fromCamera) {
+export async function pickVideo(fromCamera) {
   const perm = fromCamera ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!perm.granted) {
     Alert.alert('Permissão necessária', fromCamera ? 'Autorize a câmera para gravar o vídeo do produto.' : 'Autorize o Re@lys a ver seus vídeos.');
