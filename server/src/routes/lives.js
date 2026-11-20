@@ -42,8 +42,40 @@ export default function livesRoutes(r, { db, wallet, hub, fiscal }) {
     db.prepare('INSERT INTO lives (id, host_id, host_type, host_name, cat, title, source, status, started_at) VALUES (?,?,?,?,?,?,?,?,?)').run(
       id, user.id, hostType, company ? company.name : user.name, cat, str(body.title, 'o título', { max: 120 }), source, 'ao_vivo', now()
     );
-    return view(db.prepare('SELECT * FROM lives WHERE id = ?').get(id));
+    const live = view(db.prepare('SELECT * FROM lives WHERE id = ?').get(id));
+    // Avisa na hora quem favoritou este streamer e ligou o sininho.
+    for (const f of db.prepare('SELECT user_id FROM streamer_favs WHERE host_id = ? AND notify = 1 AND user_id != ?').all(user.id, user.id)) hub.send(f.user_id, 'live-favorito', live);
+    return live;
   }, { status: 201 });
+
+  // ---------- Streamers favoritos ----------
+  // Favoritar (coração) e receber aviso (sininho) são separados: notify diz se quer o aviso.
+  const hostOf = (id) => {
+    const h = db.prepare(`SELECT id FROM users WHERE id = ? AND kind != 'sistema'`).get(String(id || '').slice(0, 64));
+    if (!h) fail(404, 'Streamer não encontrado.');
+    return h.id;
+  };
+  r.put('/streamers/:id/favorito', ({ params, body, user }) => {
+    const hostId = hostOf(params.id);
+    if (hostId === user.id) fail(400, 'Você não pode favoritar você mesmo.');
+    const notify = body && body.notify ? 1 : 0;
+    db.prepare('INSERT INTO streamer_favs (user_id, host_id, notify, created_at) VALUES (?,?,?,?) ON CONFLICT(user_id, host_id) DO UPDATE SET notify = excluded.notify').run(user.id, hostId, notify, now());
+    return { hostId, favorito: true, notify: !!notify };
+  });
+  r.delete('/streamers/:id/favorito', ({ params, user }) => {
+    db.prepare('DELETE FROM streamer_favs WHERE user_id = ? AND host_id = ?').run(user.id, String(params.id || '').slice(0, 64));
+    return { hostId: params.id, favorito: false, notify: false };
+  });
+  // Meus streamers favoritos, com quem está ao vivo agora.
+  r.get('/streamers/favoritos', ({ user }) =>
+    db.prepare(`SELECT f.host_id, f.notify, u.name, (SELECT id FROM lives l WHERE l.host_id = f.host_id AND l.status = 'ao_vivo' LIMIT 1) AS live_id FROM streamer_favs f JOIN users u ON u.id = f.host_id WHERE f.user_id = ? ORDER BY f.created_at DESC`)
+      .all(user.id)
+      .map((f) => ({ hostId: f.host_id, name: f.name, notify: !!f.notify, liveId: f.live_id || null })));
+  // Para o streamer: quantas pessoas favoritaram e quantas recebem o aviso.
+  r.get('/streamers/me/fas', ({ user }) => {
+    const c = db.prepare('SELECT COUNT(*) AS total, COALESCE(SUM(notify), 0) AS avisos FROM streamer_favs WHERE host_id = ?').get(user.id);
+    return { favoritaram: c.total, recebemAviso: c.avisos };
+  });
 
   r.get('/lives/:id', ({ params, user }) => {
     const l = db.prepare('SELECT * FROM lives WHERE id = ?').get(params.id);

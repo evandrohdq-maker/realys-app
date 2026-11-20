@@ -47,22 +47,32 @@ const set = (patch) => {
   emit();
 };
 
+// Carrega o que está salvo (uma vez). Quem mexe nas playlists fora da aba Músicas
+// (ex.: o "+" do playerzinho) espera isto antes, para não apagar as playlists salvas.
+let loading = null;
+export function loadMusic() {
+  if (loading) return loading;
+  loaded = true;
+  loading = AsyncStorage.getItem(KEY)
+    .then((raw) => {
+      if (raw) {
+        const old = JSON.parse(raw);
+        // Playlist criada antes de terminar de carregar não se perde.
+        const fresh = data.playlists.filter((p) => !(old.playlists || []).some((o) => o.id === p.id));
+        data = { ...data, ...old, playlists: [...fresh, ...(old.playlists || [])] };
+        emit();
+      }
+    })
+    .catch(() => {});
+  return loading;
+}
+
 export function useMusic() {
   const [, tick] = useState(0);
   useEffect(() => {
     const fn = () => tick((n) => n + 1);
     subs.add(fn);
-    if (!loaded) {
-      loaded = true;
-      AsyncStorage.getItem(KEY)
-        .then((raw) => {
-          if (raw) {
-            data = { ...data, ...JSON.parse(raw) };
-            emit();
-          }
-        })
-        .catch(() => {});
-    }
+    if (!loaded) loadMusic();
     return () => subs.delete(fn);
   }, []);
   return data;

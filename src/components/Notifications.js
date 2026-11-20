@@ -8,6 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
 import { colors, brl } from '../theme';
 import { memberById } from '../people';
+import { wantsNotify, favLiveAlerts, streamerKey, useFavs } from '../favorites';
+import { lives as demoLives } from '../homeData';
 
 const DAY = 24 * 60 * 60 * 1000;
 const nameOf = (id) => (memberById(id) || {}).name || 'Alguém';
@@ -34,20 +36,33 @@ export function buildNotifs(state) {
   (state.walletTx || []).forEach((tx) => {
     if (tx.kind === 'recebido' && Date.now() - (tx.ts || 0) < 3 * DAY) out.push({ id: 'pix-' + tx.id, at: tx.ts, icon: 'wallet-outline', text: `Você recebeu ${brl(tx.amount)}`, sub: tx.desc || tx.cat || '' });
   });
+  // Streamers favoritos com o sininho ligado: avisa quando entram ao vivo.
+  const seenLive = {};
+  favLiveAlerts().forEach((l) => {
+    seenLive[streamerKey(l)] = true;
+    out.push({ id: 'favlive-' + l.id, at: l.at, icon: 'radio-outline', text: `${l.host} está ao vivo agora 🔴`, sub: l.title || 'Toque para assistir', go: { live: l } });
+  });
+  demoLives.forEach((l) => {
+    if (l.mine || seenLive[streamerKey(l)] || !wantsNotify(l)) return;
+    seenLive[streamerKey(l)] = true;
+    out.push({ id: 'favlive-' + l.id, icon: 'radio-outline', text: `${l.host} está ao vivo agora 🔴`, sub: l.title || 'Toque para assistir', go: { watch: l.id } });
+  });
   return out.sort((a, b) => (b.at || Date.now()) - (a.at || Date.now())).slice(0, 40);
 }
 
 export const unseenNotifs = (state) => buildNotifs(state).filter((n) => !(state.notifSeen || {})[n.id]).length;
 
 export default function NotifList({ onDep, onGo }) {
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
+  useFavs();
+  const go = (g) => (g.dep ? onDep() : g.live ? dispatch({ type: 'LIVE_OPEN', live: g.live }) : g.watch ? dispatch({ type: 'WATCH_LIVE', id: g.watch }) : onGo(g));
   const list = buildNotifs(state);
   const seen = state.notifSeen || {};
   if (!list.length) {
     return (
       <View style={st.empty}>
         <Ionicons name="notifications-outline" size={28} color={colors.muted} />
-        <Text style={st.emptyText}>Tudo em dia por aqui.{'\n'}Depoimentos, pedidos e chamados aparecem neste sininho.</Text>
+        <Text style={st.emptyText}>Tudo em dia por aqui.{'\n'}Depoimentos, pedidos, chamados e as lives dos seus streamers favoritos aparecem neste sininho.</Text>
       </View>
     );
   }
@@ -60,7 +75,7 @@ export default function NotifList({ onDep, onGo }) {
             key={n.id}
             style={st.row}
             activeOpacity={n.go ? 0.7 : 1}
-            onPress={() => (n.go ? (n.go.dep ? onDep() : onGo(n.go)) : null)}
+            onPress={() => (n.go ? go(n.go) : null)}
             accessibilityLabel={`${n.text}. ${n.sub || ''}`}
           >
             <View style={st.icon}>

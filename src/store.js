@@ -1034,6 +1034,8 @@ function baseReducer(state, a) {
       return { ...state, liveOpen: state.liveMini, liveMini: null };
     case 'LIVE_MINI_CLOSE':
       return { ...state, liveMini: null };
+    case 'LIVE_OPEN': // abrir uma live direto (ex.: aviso de streamer favorito)
+      return { ...state, liveOpen: a.live, watchLive: null };
     case 'LIVE_OPEN_CLOSE':
       return { ...state, liveOpen: null };
     case 'OPEN_PROVIDER':

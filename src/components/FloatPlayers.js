@@ -15,6 +15,7 @@ import { tvNow, onTvNow, stopTv } from '../tv';
 import { onRadioNow } from '../radio';
 import { usePipState, minimizeApp } from '../pip';
 import { LiveStage } from './LiveVideo';
+import { FavHeart, StreamerFav } from './FavKit';
 import { LiveModal } from '../screens/cliente/home/Social';
 
 // expo-video só existe no APK novo: sem ele, a janela avisa em vez de fechar o app.
@@ -125,6 +126,7 @@ export function TvFloat({ bottom = 150 }) {
       {inPip ? null : <View style={st.top}>
         <Ionicons name="move" size={13} color="rgba(255,255,255,0.75)" />
         <Text style={st.name} numberOfLines={1}>{ch.name}</Text>
+        <FavHeart kind="tv" item={ch} size={15} color="#fff" style={st.btn} hitSlop={6} />
         <TouchableOpacity onPress={pip} style={st.btn} hitSlop={6} accessibilityLabel="Minimizar: continuar assistindo com a tela livre">
           <Ionicons name="remove" size={17} color="#fff" />
         </TouchableOpacity>
@@ -170,6 +172,11 @@ export function LiveFloat({ bottom = 150 }) {
             </TouchableOpacity>
           )}
           {inPip ? null : (
+            <View style={st.liveFav}>
+              <StreamerFav live={l} size={14} color="#fff" />
+            </View>
+          )}
+          {inPip ? null : (
             <TouchableOpacity onPress={() => minimizeApp('live')} style={[st.btn, st.liveClose, { top: 34 }]} hitSlop={8} accessibilityLabel="Minimizar: continuar vendo a live com a tela livre">
               <Ionicons name="remove" size={15} color="#fff" />
             </TouchableOpacity>
@@ -195,4 +202,5 @@ const st = StyleSheet.create({
   liveTagText: { color: '#fff', fontSize: 8.5, fontWeight: '800', letterSpacing: 0.4 },
   liveHost: { position: 'absolute', left: 6, right: 6, bottom: 6, color: '#fff', fontWeight: '700', fontSize: 11 },
   liveClose: { position: 'absolute', right: 4, top: 4, marginLeft: 0 },
+  liveFav: { position: 'absolute', right: 4, top: 64, paddingHorizontal: 6, height: 26, borderRadius: 13, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
 });

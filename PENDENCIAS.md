@@ -372,6 +372,8 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
 - [x] Termo da empresa v3 (funcionários de atendimento, biometria, atendimento direcionado e fechamentos) e Termo de Adesão v18 (item 16-k: taxa sobre negócios fechados pelo CRM). Advogado revisar.
 - [ ] Notificação com o app fechado: precisa da biblioteca de notificações, de uma conta Firebase
       (Google) do Re@lys e do servidor enviando os avisos. Ainda não instalado.
+      O aviso de "streamer favorito entrou ao vivo" já sai do servidor (evento `live-favorito`) e
+      aparece com o app aberto; com o push instalado, é só mandar o mesmo aviso para quem ligou o sininho.
 - [x] Food: atalhos Tudo, Pratos, Lanches, Pizza, Japonesa, Padaria, Café & Doces, Saudável e Bar & Drinks, filtrando as lojas pelos produtos de cada tipo.
 
 ## Depoimentos, prévia de perfil e convite para chamada na Arena — novembro de 2026

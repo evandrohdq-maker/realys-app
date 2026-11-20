@@ -54,6 +54,8 @@ import TermoReaceite from './src/components/TermoReaceite';
 import AccountBlocked from './src/components/AccountBlocked';
 import LotusSOS from './src/components/LotusSOS';
 import SecurityEvents from './src/components/SecurityEvents';
+import { FavLiveAlerts } from './src/components/FavKit';
+import { useFavs } from './src/favorites';
 import { SoftAlertHost, installSoftAlert } from './src/components/SoftAlert';
 
 // Avisos no estilo do Re@lys no app inteiro (no lugar da caixa cinza do Android).
@@ -204,6 +206,7 @@ const ROLE_ICONS = { cliente: 'person', prestador: 'construct', empresa: 'busine
 
 function Shell({ inviteTick }) {
   const { state, dispatch } = useStore();
+  useFavs(); // a bolinha do sininho acende quando um streamer favorito entra ao vivo
   // Convite de chamada (link recebido por fora do app): depois de entrar ou se cadastrar, vai direto
   // para a sala de voz da Arena (src/callInvite.js).
   useEffect(() => {
@@ -722,6 +725,7 @@ function Shell({ inviteTick }) {
       <TermoReaceite />
       <LotusSOS />
       <SecurityEvents />
+      <FavLiveAlerts />
       <AccountBlocked />
       <WakeWordListener
         enabled={state.handsFree && (!voice || wakeCapture) && !menu && !noting && !searching && !state.docsOpen}

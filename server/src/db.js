@@ -548,6 +548,17 @@ const MIGRATIONS = [
   );
   CREATE INDEX call_invites_host ON call_invites(host_id, created_at);
   `,
+  // 16: streamers favoritos: quem favoritou e se quer o aviso quando ele entra ao vivo
+  `
+  CREATE TABLE streamer_favs (
+    user_id TEXT NOT NULL REFERENCES users(id),
+    host_id TEXT NOT NULL REFERENCES users(id),
+    notify INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (user_id, host_id)
+  );
+  CREATE INDEX streamer_favs_host ON streamer_favs(host_id, notify);
+  `,
 ];
 
 export function openDb(file) {

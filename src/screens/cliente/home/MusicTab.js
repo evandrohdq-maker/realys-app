@@ -13,6 +13,8 @@ import { useRadioNow } from '../../../components/RadioKit';
 import { moderateText } from '../../../moderation';
 import { isVerified } from '../../../components/BioGate';
 import { Photo } from '../../../components/ui';
+import { FavHeart } from '../../../components/FavKit';
+import { useFavs, favList } from '../../../favorites';
 import {
   useMusic, allTracks, trackById, publishTrack, removeTrack, registerSale, createPlaylist, removePlaylist, togglePlaylistTrack,
   subscribePlan, cancelPlan, planInfo, playTrack, startTrack, setAdHook, setOwnedTracks, offlineInfo, isOffline, toggleOffline, savePlaylistOffline, offlineTracks, markOnline, OFFLINE_CHECK_DAYS, openArtist, artistGets, priceFor, MUSIC_FEE, MUSIC_ARTIST_MIN, MUSIC_ARTIST_SUGGESTED, MUSIC_PLAN_PRICE, MUSIC_PLAN_FREE_MONTHS, MUSIC_GENRES, ADS_EVERY,
@@ -31,6 +33,7 @@ const AD_SECS = 5;
 export default function MusicTab() {
   const { state, dispatch } = useStore();
   const m = useMusic();
+  useFavs();
   const now = useRadioNow();
   const [seg, setSeg] = useState('galeria');
   const [q, setQ] = useState('');
@@ -130,6 +133,7 @@ export default function MusicTab() {
             <Ionicons name={isOffline(t.id) ? 'cloud-done' : 'cloud-download-outline'} size={20} color={isOffline(t.id) && plan.on ? colors.primary : colors.menu} />
           </TouchableOpacity>
         ) : null}
+        <FavHeart kind="music" item={t} size={20} style={st.iconBtn} />
         <TouchableOpacity style={st.iconBtn} onPress={() => setPickFor(t)} accessibilityLabel="Adicionar a uma playlist">
           <Ionicons name="add-circle-outline" size={22} color={colors.menu} />
         </TouchableOpacity>
@@ -152,7 +156,9 @@ export default function MusicTab() {
   const term = q.trim().toLowerCase();
   const gallery = tracks.filter((t) => (!genre || t.genre === genre) && (!term || `${t.title} ${t.artist} ${t.genre}`.toLowerCase().includes(term)));
   const mineBought = tracks.filter((t) => bought[t.id]);
-  const pl = openPl ? m.playlists.find((p) => p.id === openPl) : null;
+  // "Curtidas": as músicas do coração, como uma playlist automática.
+  const liked = favList('music').map((x) => x.id).filter((id) => trackById(id));
+  const pl = openPl === 'curtidas' ? { id: 'curtidas', name: '❤️ Curtidas', tracks: liked, auto: true } : openPl ? m.playlists.find((p) => p.id === openPl) : null;
 
   return (
     <View>
@@ -218,7 +224,7 @@ export default function MusicTab() {
               <Text style={{ color: colors.muted, fontSize: 12 }}>{pl.tracks.length} músicas</Text>
             </TouchableOpacity>
             {pl.tracks.map(trackById).filter(Boolean).map((t) => (
-              <Row key={t.id} t={t} list={pl.tracks.map(trackById).filter(Boolean)} extra={
+              <Row key={t.id} t={t} list={pl.tracks.map(trackById).filter(Boolean)} extra={pl.auto ? null :
                 <TouchableOpacity style={st.iconBtn} onPress={() => togglePlaylistTrack(pl.id, t.id)} accessibilityLabel="Tirar da playlist">
                   <Ionicons name="remove-circle-outline" size={22} color={colors.muted} />
                 </TouchableOpacity>
@@ -230,10 +236,10 @@ export default function MusicTab() {
                 <Text numberOfLines={1} style={st.pillText}>{plan.on && pl.tracks.every(isOffline) ? 'Playlist offline' : 'Ouvir offline'}</Text>
               </TouchableOpacity>
             ) : null}
-            {!pl.tracks.length ? <Text style={st.empty}>Playlist vazia. Na Galeria, toque no + de uma música para colocar aqui.</Text> : null}
-            <TouchableOpacity style={{ paddingVertical: 14, alignItems: 'center' }} onPress={() => Alert.alert('Apagar a playlist?', pl.name, [{ text: 'Voltar', style: 'cancel' }, { text: 'Apagar', style: 'destructive', onPress: () => { removePlaylist(pl.id); setOpenPl(null); } }])}>
+            {!pl.tracks.length ? <Text style={st.empty}>{pl.auto ? 'Nenhuma música curtida ainda. Toque no coração de uma música (na Galeria ou no playerzinho) e ela aparece aqui.' : 'Playlist vazia. Na Galeria ou no playerzinho, toque no + de uma música para colocar aqui.'}</Text> : null}
+            {pl.auto ? null : <TouchableOpacity style={{ paddingVertical: 14, alignItems: 'center' }} onPress={() => Alert.alert('Apagar a playlist?', pl.name, [{ text: 'Voltar', style: 'cancel' }, { text: 'Apagar', style: 'destructive', onPress: () => { removePlaylist(pl.id); setOpenPl(null); } }])}>
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '700' }}>Apagar playlist</Text>
-            </TouchableOpacity>
+            </TouchableOpacity>}
           </>
         ) : (
           <>
@@ -243,6 +249,14 @@ export default function MusicTab() {
                 <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Criar</Text>
               </TouchableOpacity>
             </View>
+            <TouchableOpacity style={st.row} onPress={() => setOpenPl('curtidas')} accessibilityLabel="Abrir as músicas curtidas">
+              <View style={[st.cover, { backgroundColor: '#FDE2E3' }]}><Ionicons name="heart" size={20} color="#E5484D" /></View>
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={{ color: colors.text, fontWeight: '800' }} numberOfLines={1}>Curtidas</Text>
+                <Text style={{ color: colors.muted, fontSize: 12.5 }}>{liked.length} músicas</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+            </TouchableOpacity>
             {m.playlists.map((p) => (
               <TouchableOpacity key={p.id} style={st.row} onPress={() => setOpenPl(p.id)} accessibilityLabel={`Abrir a playlist ${p.name}`}>
                 <View style={st.cover}><Ionicons name="musical-notes" size={20} color={colors.text} /></View>

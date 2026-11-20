@@ -12,6 +12,7 @@ import { openArtist, trackById, artistGets } from '../music';
 import { useStore } from '../store';
 import { brl } from '../theme';
 import { isVerified } from './BioGate';
+import { FavHeart, PlaylistPlus } from './FavKit';
 
 loadRadios(); // rádios indexadas guardadas no celular
 
@@ -199,6 +200,7 @@ export function RadioCard({ radio, dark, noOpen }) {
         {err ? <Text style={st.err}>{n.error}</Text> : null}
       </TouchableOpacity>
       {playing ? <Bars on /> : null}
+      <FavHeart kind="radio" item={radio} size={22} color={dark ? '#fff' : '#7A7468'} style={{ marginLeft: 8, padding: 4 }} />
       <TouchableOpacity onPress={toggle} style={st.play} accessibilityLabel={mine && !err ? `Parar ${radio.name}` : `Tocar ${radio.name}`}>
         {loading ? <ActivityIndicator color="#fff" /> : <Ionicons name={mine && !err ? 'stop' : 'play'} size={24} color="#fff" style={!(mine && !err) ? { marginLeft: 3 } : null} />}
       </TouchableOpacity>
@@ -214,6 +216,7 @@ export function RadioMiniBar({ bottom }) {
   const n = useRadioNow();
   if (!n.radio || n.status === 'parado' || !n.radio.track) return null;
   const artist = () => n.radio.artist && openArtist(n.radio.artist);
+  const miniTrack = trackById(n.radio.id) || { id: n.radio.id, title: n.radio.name, artist: n.radio.artist };
   return (
     <Floating place={{ left: 12, right: 84, bottom }} style={st.mini}>
       <TouchableOpacity onPress={artist} activeOpacity={0.8} accessibilityLabel={`Abrir o perfil de ${n.radio.artist || 'artista'}`}>
@@ -228,6 +231,8 @@ export function RadioMiniBar({ bottom }) {
           <Ionicons name="person-circle-outline" size={18} color="#fff" />
         </TouchableOpacity>
       ) : null}
+      <FavHeart kind="music" item={miniTrack} size={16} color="#fff" style={st.miniBtn} hitSlop={6} />
+      <PlaylistPlus track={miniTrack} size={18} color="#fff" style={st.miniBtn} hitSlop={6} />
       <TouchableOpacity onPress={radioEnded} style={st.miniBtn} hitSlop={6} accessibilityLabel="Próxima música">
         <Ionicons name="play-skip-forward" size={16} color="#fff" />
       </TouchableOpacity>
@@ -265,6 +270,7 @@ export function RadioHeadChip({ top, left = 62 }) {
     if (Platform.OS === 'android') ToastAndroid.show(msg, ToastAndroid.SHORT);
   };
   const open = () => (track ? n.radio.artist && openArtist(n.radio.artist) : openStation('radio', n.radio.id));
+  const favItem = track ? t || { id: n.radio.id, title: n.radio.name, artist: n.radio.artist, cover: typeof n.radio.logo === 'string' ? n.radio.logo : null } : n.radio;
   return (
     <Floating place={{ left, top }} style={st.chip}>
       <TouchableOpacity onPress={open} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center' }} accessibilityLabel={track ? `${n.radio.name}, de ${n.radio.artist}. Ver o artista` : `${n.radio.name} tocando. Abrir a rádio`}>
@@ -287,6 +293,9 @@ export function RadioHeadChip({ top, left = 62 }) {
           <Ionicons name={inCart ? 'checkmark' : 'add'} size={10} color="#0E0E10" style={{ marginLeft: -1 }} />
         </TouchableOpacity>
       ) : null}
+      {/* Favoritar (coração) e, na música, o "+" para pôr numa playlist. */}
+      <FavHeart kind={track ? 'music' : 'radio'} item={favItem} size={13} color={GOLD} style={st.chipX} hitSlop={6} />
+      {track ? <PlaylistPlus track={favItem} size={15} color={GOLD} style={st.chipX} hitSlop={6} /> : null}
       {track ? (
         <TouchableOpacity onPress={radioEnded} hitSlop={8} style={st.chipX} accessibilityLabel="Próxima música">
           <Ionicons name="play-skip-forward" size={12} color={GOLD} />

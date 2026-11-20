@@ -15,6 +15,8 @@ import { HostChip, useOpenHost } from '../../../components/HostChip';
 import { allLives } from '../../../components/LiveBits';
 import { shopSectorItems } from '../../../shopSectorsData';
 import { useRealLives } from '../../../components/LiveVideo';
+import { FavStrip } from '../../../components/FavKit';
+import { streamerKey, useFavs } from '../../../favorites';
 
 const fmt = (n) => Math.round(n).toLocaleString('pt-BR');
 const rank = (a, b) => (b.mine ? 1 : 0) - (a.mine ? 1 : 0) || (b.sponsored ? 1 : 0) - (a.sponsored ? 1 : 0) || liveScore(b) - liveScore(a);
@@ -22,6 +24,7 @@ const rank = (a, b) => (b.mine ? 1 : 0) - (a.mine ? 1 : 0) || (b.sponsored ? 1 :
 export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigate }) {
   const { state, dispatch } = useStore();
   const openHost = useOpenHost();
+  useFavs();
   const f = filter === 'aulas' ? 'cursos' : filter;
   const [subRaw, setSub] = useState('todas');
   useEffect(() => setSub('todas'), [f]);
@@ -56,6 +59,26 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
         </View>
         <Ionicons name="chevron-forward" size={18} color={colors.muted} />
       </TouchableOpacity>
+
+      {/* Streamers favoritos: quem está ao vivo ganha a bolinha AO VIVO; tocar assiste (ou abre o perfil). */}
+      <FavStrip
+        kinds={['streamer']}
+        title="Streamers favoritos"
+        onPick={(k, it) => {
+          const on = [...real, ...every].find((l) => streamerKey(l) === it.id);
+          if (on) return onWatch(on);
+          openHost(it);
+        }}
+        renderLogo={(k, it) => {
+          const on = [...real, ...every].some((l) => streamerKey(l) === it.id);
+          return (
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 24, fontWeight: '800', color: colors.primary }}>{String(it.host || '?').replace(/^(Profa?\.|Pra\.)\s*/, '').charAt(0)}</Text>
+              {on ? <Text style={{ fontSize: 8, fontWeight: '800', color: '#fff', backgroundColor: '#E5484D', borderRadius: 4, paddingHorizontal: 3, marginTop: 1 }}>AO VIVO</Text> : null}
+            </View>
+          );
+        }}
+      />
 
       {/* Arena Gamer (estilo Discord): atalho visível nas Lives, em "Todas" e na classe Gamers. */}
       {f === 'todas' || f === 'gamers' ? (

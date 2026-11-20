@@ -6,7 +6,7 @@ import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, soft } from '../../../theme';
-import { Screen } from '../../../components/ui';
+import { Screen, Photo } from '../../../components/ui';
 import { SegTabs } from '../../../components/AdKit';
 import { RadioCard, StationLogo, useRadioNow } from '../../../components/RadioKit';
 import { CatChips, StationFormExtras, FeaturedStation } from '../../../components/StationKit';
@@ -17,6 +17,11 @@ import { useTvNow } from '../../../components/FloatPlayers';
 import { moderateText } from '../../../moderation';
 import { MY_COMPANY_ID } from '../../../data';
 import MusicTab from './MusicTab';
+import { FavHeart, FavStrip } from '../../../components/FavKit';
+import { favList } from '../../../favorites';
+import { radioById } from '../../../radio';
+import { tvById } from '../../../tv';
+import { trackById, playTrack } from '../../../music';
 
 const SEGS = [
   { key: 'radios', label: 'Rádios', icon: 'radio-outline' },
@@ -29,9 +34,35 @@ export default function StreamTab({ seg, setSeg, navigate }) {
   return (
     <Screen>
       <SegTabs items={SEGS} value={seg} onChange={setSeg} />
+      <StreamFavs seg={seg} />
       {seg === 'tv' ? <TvList /> : seg === 'musicas' ? <MusicTab /> : <RadioList navigate={navigate} />}
     </Screen>
   );
+}
+
+// Favoritos no topo de cada aba do Stream: rádios nas Rádios, canais na TV, músicas nas Músicas.
+// Tocar já começa a tocar (um som só por vez).
+function StreamFavs({ seg }) {
+  const kind = seg === 'tv' ? 'tv' : seg === 'musicas' ? 'music' : 'radio';
+  const pick = (k, it) => {
+    if (k === 'radio') {
+      const r = radioById(it.id);
+      if (r) (stopTv(), playRadio(r));
+    } else if (k === 'tv') {
+      const t = tvById(it.id);
+      if (t) (stopRadio(), playTv(t));
+    } else {
+      const t = trackById(it.id);
+      if (t) (stopTv(), playTrack(t, favList('music').map((x) => trackById(x.id)).filter(Boolean)));
+    }
+  };
+  const logo = (k, it) => {
+    const s = k === 'radio' ? radioById(it.id) : k === 'tv' ? tvById(it.id) : null;
+    if (s) return <StationLogo s={s} kind={k} size={62} radius={31} />;
+    const t = k === 'music' ? trackById(it.id) : null;
+    return t && t.cover ? <Photo uri={t.cover} style={StyleSheet.absoluteFill} fallback={t.emoji} /> : <Text style={{ fontSize: 24 }}>{it.emoji || '⭐'}</Text>;
+  };
+  return <FavStrip kinds={[kind]} title={kind === 'music' ? 'Músicas favoritas' : kind === 'tv' ? 'Canais favoritos' : 'Rádios favoritas'} onPick={pick} renderLogo={logo} />;
 }
 
 function SearchBox({ value, onChange, placeholder }) {
@@ -174,6 +205,7 @@ function TvList() {
               <Text style={st.name} numberOfLines={1}>{t.name}</Text>
               <Text style={st.meta} numberOfLines={1}>{[stationCat('tv', t).label, t.city].filter(Boolean).join(' · ')}</Text>
             </TouchableOpacity>
+            <FavHeart kind="tv" item={t} size={22} color={colors.muted} style={{ marginLeft: 8, padding: 4 }} />
             <View style={st.play}>
               <Ionicons name={playing ? 'stop' : 'play'} size={22} color="#fff" style={playing ? null : { marginLeft: 3 }} />
             </View>
