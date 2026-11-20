@@ -651,9 +651,9 @@ function Shell({ inviteTick }) {
       <BioGateModal />
       {/* Rádio ao vivo: sem barrinha dentro do app (o play/parar fica na página das rádios; a capa
           aparece só ao minimizar). Músicas: mini player com a capa e o botão do perfil do artista. */}
-      {/* Rádio e músicas: playerzinho pequeno ao lado da logo do Re@lys (pretinho com borda dourada),
-          com fechar, próxima música e o artista. A capa grande aparece só ao minimizar o app. */}
-      <RadioHeadChip top={insets.top + 12} />
+      {/* Rádio e músicas: playerzinho pequeno logo abaixo do cabeçalho, no meio da tela (pretinho com
+          borda dourada), com fechar, próxima música e o artista. A capa grande aparece só ao minimizar o app. */}
+      <RadioHeadChip top={insets.top + 50} />
       <ArtistSheetHost />
       {/* TV da aba Stream e live minimizada: janelinhas flutuantes (segure e arraste). */}
       <TvFloat bottom={150 + insets.bottom} />
@@ -919,7 +919,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   brand: { color: colors.text, fontSize: 16, fontWeight: '700', letterSpacing: 3 },
-  logoImg: { width: 38, height: 38 },
+  // Logo um pouco maior e um pouquinho para a direita; a margem negativa mantém a altura do cabeçalho.
+  logoImg: { width: 46, height: 46, marginVertical: -3, marginLeft: 6 },
   // Ícones do topo soltos, sem caixinha (visual clean).
   iconBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginLeft: 2 },
   iconBtnOn: { backgroundColor: colors.primaryLight },

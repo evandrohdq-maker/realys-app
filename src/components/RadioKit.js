@@ -1,7 +1,7 @@
 // Player das rádios: o RadioHost toca (um só no app inteiro), o RadioCard aparece na página
 // da rádio e no diretório, e a barrinha embaixo mostra o que está tocando em qualquer tela.
 import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Animated, ActivityIndicator, Image, Alert, Platform, ToastAndroid } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Animated, ActivityIndicator, Image, Alert, Platform, ToastAndroid, useWindowDimensions } from 'react-native';
 import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import Floating from './Floating';
@@ -248,13 +248,16 @@ export function RadioMiniBar({ bottom }) {
   );
 }
 
-// Playerzinho bem pequeno ao lado da logo do Re@lys: pretinho com borda dourada e um pedacinho
-// da logo da rádio ou da capa da música. Segure e arraste para levar a outro lugar.
+// Playerzinho bem pequeno logo abaixo do cabeçalho, centralizado na tela: pretinho com borda dourada
+// e um pedacinho da logo da rádio ou da capa da música. Segure e arraste para levar a outro lugar.
 //  - Rádio ao vivo: tocar na logo abre a rádio; X para o som.
 //  - Música: tocar na capa abre o perfil do artista; ⏭ passa para a próxima; X fecha a música.
-export function RadioHeadChip({ top, left = 62 }) {
+export function RadioHeadChip({ top, left }) {
   const n = useRadioNow();
   const { state, dispatch } = useStore();
+  const win = useWindowDimensions();
+  // Largura do playerzinho (muda entre rádio e música) para abrir sempre no meio da tela.
+  const [w, setW] = useState(0);
   if (!n.radio || n.status === 'parado') return null;
   const track = !!n.radio.track;
   // Música à venda que a pessoa ainda não tem: o "+" pequenininho só põe no carrinho.
@@ -272,7 +275,8 @@ export function RadioHeadChip({ top, left = 62 }) {
   const open = () => (track ? n.radio.artist && openArtist(n.radio.artist) : openStation('radio', n.radio.id));
   const favItem = track ? t || { id: n.radio.id, title: n.radio.name, artist: n.radio.artist, cover: typeof n.radio.logo === 'string' ? n.radio.logo : null } : n.radio;
   return (
-    <Floating place={{ left, top }} style={st.chip}>
+    <Floating place={{ left: left != null ? left : Math.max(8, (win.width - (w || 150)) / 2), top }} style={st.chip}>
+      <View onLayout={(e) => setW(Math.round(e.nativeEvent.layout.width) + CHIP_PAD)} style={{ flexDirection: 'row', alignItems: 'center' }}>
       <TouchableOpacity onPress={open} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center' }} accessibilityLabel={track ? `${n.radio.name}, de ${n.radio.artist}. Ver o artista` : `${n.radio.name} tocando. Abrir a rádio`}>
         <View style={[st.chipLogo, track && { borderRadius: 6 }]}>
           <StationLogo s={n.radio} size={24} radius={track ? 6 : 12} />
@@ -304,6 +308,7 @@ export function RadioHeadChip({ top, left = 62 }) {
       <TouchableOpacity onPress={stopRadio} hitSlop={8} style={st.chipX} accessibilityLabel={track ? 'Fechar a música' : `Parar ${n.radio.name}`}>
         <Ionicons name="close" size={13} color={GOLD} />
       </TouchableOpacity>
+      </View>
     </Floating>
   );
 }
@@ -328,6 +333,8 @@ export function RadioPipView() {
 }
 
 const GOLD = '#F5C331';
+// Respiro do chip em volta do conteúdo: paddingLeft 3 + paddingRight 4 + borda 1,5 dos dois lados.
+const CHIP_PAD = 10;
 const st = StyleSheet.create({
   chip: { flexDirection: 'row', alignItems: 'center', height: 32, paddingLeft: 3, paddingRight: 4, borderRadius: 16, backgroundColor: '#0E0E10', borderWidth: 1.5, borderColor: GOLD, elevation: 6 },
   chipLogo: { width: 24, height: 24, borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(245,195,49,0.6)' },
