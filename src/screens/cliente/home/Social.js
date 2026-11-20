@@ -18,7 +18,7 @@ import { HostChip, useOpenHost } from '../../../components/HostChip';
 import { LIVE_CATS, hostOptions, defaultHost, catOf, subOf, HOST_TYPES, missionId, LIVE_MISSION_SECS, LIVE_MISSION_POINTS, liveScore } from '../../../liveData';
 import { members } from '../../../people';
 import { artists } from '../../../extraData';
-import { LiveStage, openRealLive, endRealLive } from '../../../components/LiveVideo';
+import { LiveStage, openRealLive, endRealLive, realLivesOf } from '../../../components/LiveVideo';
 import { serverOn } from '../../../api';
 import { webrtcOk } from '../../../video';
 import { useArena, arenaVoiceRooms, arenaRoom, arenaServerOf, joinArenaVoice, leaveArenaVoice } from '../../../arena';
@@ -270,7 +270,22 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
   useEffect(() => {
     if (visible) setCurLive(liveProp);
   }, [visible, liveProp && liveProp.id]);
-  const queue = !mine && live && live.cat ? LIVES.filter((l) => l.cat === live.cat && !l.mine).sort(liveRank) : [];
+  // Com o servidor no ar, as lives transmitidas de verdade no segmento vêm primeiro (atualiza a cada 20 s);
+  // depois as de exemplo. Sem servidor, só as de exemplo.
+  const { state: stQ } = useStore();
+  const [realQ, setRealQ] = useState([]);
+  const segCat = !mine && live ? live.cat : null;
+  useEffect(() => {
+    if (!visible || !segCat) return setRealQ([]);
+    let alive = true;
+    const load = () => realLivesOf(segCat).then((l) => alive && setRealQ(l));
+    load();
+    const t = setInterval(load, 20000);
+    return () => ((alive = false), clearInterval(t));
+  }, [visible, segCat]);
+  const queue = segCat
+    ? [...realQ.filter((l) => l.hostId !== (stQ.user && stQ.user.id)).sort(liveRank), ...LIVES.filter((l) => l.cat === segCat && !l.mine).sort(liveRank)]
+    : [];
   const [swipeHint, setSwipeHint] = useState(null);
   const slide = useRef(new Animated.Value(0)).current;
   const swipeRef = useRef(null);

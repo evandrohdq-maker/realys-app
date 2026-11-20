@@ -114,6 +114,18 @@ export function useRealLives(active = true) {
   return lives;
 }
 
+// Lives no ar de verdade de um segmento (para o "puxar para cima" ir para a próxima do mesmo segmento).
+// Sem servidor (demonstração): lista vazia e o app usa só as lives de exemplo.
+export async function realLivesOf(cat) {
+  if (!serverOn() || !cat) return [];
+  try {
+    const list = await api('GET', `/lives?cat=${encodeURIComponent(cat)}`);
+    return (list || []).map((l) => ({ ...l, real: true, photo: null, tag: 'Ao vivo', viewers: l.viewers || 0 }));
+  } catch (e) {
+    return [];
+  }
+}
+
 // Abre a live no servidor (para transmitir de verdade). Devolve o id ou null (modo demonstração).
 export async function openRealLive({ title, cat, hostType, source }) {
   if (!serverOn() || !webrtcOk()) return null;
