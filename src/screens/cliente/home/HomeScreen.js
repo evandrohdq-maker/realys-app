@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Share, Platform, ToastAndroid } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Share, Platform, ToastAndroid, Dimensions } from 'react-native';
 import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf } from '../../../store';
@@ -688,8 +688,27 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
     if (i % 2 === 1 && ads.length) feed.push({ type: 'ad', p: ads[Math.floor(i / 2) % ads.length] });
   }
 
+  // Post que passou na tela (rolando o feed) conta como visto: some a borda roxa do amigo
+  // na faixa de stories. Guarda onde cada post fica e confere quando a rolagem para.
+  const feedY = useRef(0);
+  const postPos = useRef({});
+  const scrollY = useRef(0);
+  const checkSeen = (y) => {
+    if (y != null) scrollY.current = y;
+    const h = Dimensions.get('window').height;
+    const top0 = scrollY.current, bottom0 = top0 + h * 0.85;
+    const ids = Object.keys(postPos.current).filter((id) => {
+      const p = postPos.current[id];
+      const mid = feedY.current + p.y + Math.min(p.h, h * 0.5) / 2;
+      return mid > top0 && mid < bottom0;
+    });
+    if (ids.length && scrollY.current > 0) dispatch({ type: 'POSTS_SEEN', ids });
+  };
+  const onFeedScroll = (e) => (scrollY.current = e.nativeEvent.contentOffset.y);
+  const onFeedEnd = (e) => checkSeen(e.nativeEvent.contentOffset.y);
+
   return (
-    <Screen>
+    <Screen onScroll={seg === 'posts' ? onFeedScroll : undefined} onScrollEnd={seg === 'posts' ? onFeedEnd : undefined}>
       {top}
       {/* Sino e balão de mensagens ficam no cabeçalho do app (App.js). Aqui, fora do feed, só a setinha de voltar
           com o nome da parte; Contatos virou uma aba dentro de Mensagens (Conversas · Contatos). */}
@@ -719,16 +738,26 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
       <DepCenter visible={depOpen} onClose={() => setDepOpen(false)} />
 
       {seg === 'posts' ? (
-        <View>
+        <View onLayout={(e) => (feedY.current = e.nativeEvent.layout.y)}>
           {feed.map((it, idx) =>
             it.type === 'dep' ? (
               <TestimonialCard key={it.t.id} t={it.t} />
             ) : it.type === 'post' ? (
-              <View key={it.p.id} style={styles.post}>
+              <View
+                key={it.p.id}
+                style={styles.post}
+                onLayout={(e) => {
+                  const { y, height } = e.nativeEvent.layout;
+                  postPos.current[it.p.id] = { y, h: height };
+                }}
+              >
                 <TouchableOpacity
                   style={{ flexDirection: 'row', alignItems: 'center' }}
                   activeOpacity={0.7}
-                  onPress={() => (it.p.station ? openStation(it.p.station.kind, it.p.station.id) : openAuthor(it.p.author))}
+                  onPress={() => {
+                    dispatch({ type: 'POSTS_SEEN', ids: [it.p.id] });
+                    it.p.station ? openStation(it.p.station.kind, it.p.station.id) : openAuthor(it.p.author);
+                  }}
                   accessibilityLabel={`Ver perfil de ${it.p.author}`}
                 >
                   {it.p.station ? (

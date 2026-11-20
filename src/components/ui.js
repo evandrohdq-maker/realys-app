@@ -3,10 +3,19 @@ import { View, TouchableOpacity, StyleSheet, ScrollView, Image, PixelRatio } fro
 import { Text, TextInput } from '../responsive';
 import { colors, soft } from '../theme';
 
-export function Screen({ children, scroll = true, scrollRef }) {
+export function Screen({ children, scroll = true, scrollRef, onScroll, onScrollEnd }) {
   if (!scroll) return <View style={styles.screen}>{children}</View>;
   return (
-    <ScrollView ref={scrollRef} style={styles.screenScroll} contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
+    <ScrollView
+      ref={scrollRef}
+      style={styles.screenScroll}
+      contentContainerStyle={styles.screen}
+      keyboardShouldPersistTaps="handled"
+      onScroll={onScroll}
+      scrollEventThrottle={onScroll ? 100 : undefined}
+      onMomentumScrollEnd={onScrollEnd}
+      onScrollEndDrag={onScrollEnd}
+    >
       {children}
     </ScrollView>
   );

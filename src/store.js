@@ -117,6 +117,7 @@ const initialState = {
   chatMeta: {}, // por contato: { lists: [idDaLista], pinned, archived }
   conversations: initialConversations, // Comunidade › Mensagens (também recebe respostas de stories)
   storySeen: {},
+  postSeen: {}, // posts da Community que já passaram na tela (some a borda roxa do amigo)
   friends: initialFriends, // amizades: { id: 'amigo' | 'enviado' | 'recebido' }
   viewProfile: null, // id do membro cujo perfil está aberto (abre por cima de qualquer tela)
   myStories: [], // stories que o próprio usuário publicou
@@ -1090,6 +1091,13 @@ function baseReducer(state, a) {
       return { ...state, conversations: state.conversations.map((c) => (c.contactId === a.contactId ? { ...c, unread: a.unread } : c)) };
     case 'UPDATE_CONVS':
       return { ...state, conversations: a.fn(state.conversations) };
+    case 'POSTS_SEEN': {
+      const ids = (a.ids || []).filter((id) => !(state.postSeen || {})[id]);
+      if (!ids.length) return state;
+      const ps = { ...(state.postSeen || {}) };
+      ids.forEach((id) => (ps[id] = true));
+      return { ...state, postSeen: ps };
+    }
     case 'STORY_SEEN':
       return state.storySeen[a.id] ? state : { ...state, storySeen: { ...state.storySeen, [a.id]: true } };
     // Depoimentos

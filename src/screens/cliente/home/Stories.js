@@ -11,6 +11,7 @@ import { STORY_BACKGROUNDS, STORY_SAMPLE_PHOTOS } from '../../../homeData';
 import { useStore } from '../../../store';
 import * as ImagePicker from 'expo-image-picker';
 import { STORY_EFFECTS, effectStyle, STORY_VIDEO_MAX_S } from '../../../storyEffects';
+import { StoryMusicPlayer, MusicSticker, MusicPicker } from '../../../components/StoryMusic';
 
 let EV = null;
 try {
@@ -18,10 +19,17 @@ try {
 } catch (e) {}
 
 // Vídeo do story: toca uma vez, com som, e para quando o story pausa.
-function StoryVideo({ uri, paused, style, loop }) {
+// Com música escolhida, o som do vídeo fica mudo (toca só a música).
+function StoryVideo({ uri, paused, style, loop, muted }) {
   const player = EV.useVideoPlayer({ uri }, (p) => {
     p.loop = !!loop;
+    p.muted = !!muted;
   });
+  useEffect(() => {
+    try {
+      player.muted = !!muted;
+    } catch (e) {}
+  }, [muted]);
   useEffect(() => {
     if (paused) player.pause();
     else player.play();
@@ -117,7 +125,7 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
     <Modal visible={visible} animationType="fade" onRequestClose={onClose} statusBarTranslucent>
       <KeyboardLift style={{ flex: 1, backgroundColor: '#000' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {item.video && EV ? (
-          <StoryVideo key={item.id} uri={item.video} paused={paused || typing || covered} style={[StyleSheet.absoluteFill, effectStyle(item.effect)]} />
+          <StoryVideo key={item.id} uri={item.video} muted={!!item.music} paused={paused || typing || covered} style={[StyleSheet.absoluteFill, effectStyle(item.effect)]} />
         ) : item.image ? (
           <View style={[StyleSheet.absoluteFill, effectStyle(item.effect)]}>
             <Photo uri={item.image} style={StyleSheet.absoluteFill} fallback="🌅" />
@@ -127,6 +135,7 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
             <Text style={styles.textStory}>{item.text}</Text>
           </View>
         )}
+        {visible && item.music ? <StoryMusicPlayer key={item.id} music={item.music} paused={paused || typing || covered} /> : null}
         {(item.image || item.video) && item.text ? (
           <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', padding: 30 }]} pointerEvents="none">
             <Text style={[styles.textStory, styles.textOnPhoto]}>{item.text}</Text>
@@ -175,6 +184,7 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
               <Ionicons name="close" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
+          {item.music ? <MusicSticker music={item.music} style={{ marginTop: 10, marginLeft: 4 }} /> : null}
         </View>
 
         <View style={[styles.bottom, { paddingBottom: insets.bottom + 12 }]} pointerEvents="box-none">
@@ -223,6 +233,8 @@ export function StoryComposer({ visible, onClose, onPublish }) {
   const [media, setMedia] = useState(null); // { kind: 'image' | 'video', uri, secs }
   const [effect, setEffect] = useState('original');
   const [writing, setWriting] = useState(false);
+  const [music, setMusic] = useState(null); // música do story (galeria do Re@lys)
+  const [picking, setPicking] = useState(false);
 
   useEffect(() => {
     if (!visible) return;
@@ -231,6 +243,8 @@ export function StoryComposer({ visible, onClose, onPublish }) {
     setMedia(null);
     setEffect('original');
     setWriting(false);
+    setMusic(null);
+    setPicking(false);
   }, [visible]);
 
   const take = async (how) => {
@@ -261,6 +275,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
   const publish = () => {
     if (!ready) return;
     const item = { id: 'me' + Date.now(), text: text.trim(), bg, time: 'agora', views: 0 };
+    if (music) item.music = music;
     if (media && media.kind === 'image') Object.assign(item, { image: media.uri, effect });
     if (media && media.kind === 'video') Object.assign(item, { video: media.uri, secs: media.secs, effect });
     const go = () => onPublish(item);
@@ -275,7 +290,8 @@ export function StoryComposer({ visible, onClose, onPublish }) {
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: media ? '#000' : bg }}>
-        {media && media.kind === 'video' && EV ? <StoryVideo key={media.uri} uri={media.uri} loop paused={false} style={[StyleSheet.absoluteFill, fx]} /> : null}
+        {media && media.kind === 'video' && EV ? <StoryVideo key={media.uri} uri={media.uri} loop muted={!!music} paused={false} style={[StyleSheet.absoluteFill, fx]} /> : null}
+        {visible && music && !picking ? <StoryMusicPlayer music={music} paused={false} /> : null}
         {media && media.kind === 'image' ? <Image source={{ uri: media.uri }} style={[StyleSheet.absoluteFill, fx]} /> : null}
         <View style={[styles.composerTop, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity style={styles.close} onPress={media ? () => setMedia(null) : onClose} accessibilityLabel={media ? 'Tirar a foto ou o vídeo' : 'Cancelar'}>
@@ -285,6 +301,17 @@ export function StoryComposer({ visible, onClose, onPublish }) {
           <TouchableOpacity style={[styles.publish, !ready && { opacity: 0.5 }]} onPress={publish}>
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '800' }}>Publicar</Text>
           </TouchableOpacity>
+        </View>
+        {/* Adicionar música: abre a galeria de músicas do Re@lys. Com música, mostra a figurinha (tocar troca). */}
+        <View style={{ paddingHorizontal: 14, marginTop: 12, flexDirection: 'row' }}>
+          {music ? (
+            <MusicSticker music={music} onPress={() => setPicking(true)} />
+          ) : (
+            <TouchableOpacity onPress={() => setPicking(true)} style={styles.addText} accessibilityLabel="Adicionar música ao story">
+              <Ionicons name="musical-notes-outline" size={16} color="#fff" />
+              <Text numberOfLines={1} style={{ color: '#fff', fontWeight: '700', marginLeft: 6 }}>Música</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={{ flex: 1, justifyContent: 'center', padding: 24 }}>
@@ -361,6 +388,13 @@ export function StoryComposer({ visible, onClose, onPublish }) {
           )}
         </View>
       </View>
+      <MusicPicker
+        visible={picking}
+        current={music}
+        onClose={() => setPicking(false)}
+        onPick={(m) => (setMusic(m), setPicking(false))}
+        onRemove={() => (setMusic(null), setPicking(false))}
+      />
     </KeyboardLift></Modal>
   );
 }

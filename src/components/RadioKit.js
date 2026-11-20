@@ -71,6 +71,24 @@ export function hardStopRadio() {
   } catch (e) {}
 }
 
+// Story com música: a rádio/música que estava tocando dá uma pausa enquanto o story toca
+// e volta sozinha quando ele fecha (como nos outros apps, um som de cada vez).
+let heldByStory = false;
+export function holdRadio(on) {
+  try {
+    if (!livePlayer) return;
+    if (on) {
+      if (livePlayer.playing) {
+        livePlayer.pause();
+        heldByStory = true;
+      }
+    } else if (heldByStory) {
+      heldByStory = false;
+      if (radioNow().status !== 'parado') livePlayer.play();
+    }
+  } catch (e) {}
+}
+
 function Host() {
   const n = useRadioNow();
   const player = EV.useVideoPlayer(null, (p) => {

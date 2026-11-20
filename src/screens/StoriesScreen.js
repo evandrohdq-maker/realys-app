@@ -49,6 +49,13 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
   const lastStory = state.myStories.length ? state.myStories[state.myStories.length - 1] : null;
   const myPhoto = (state.myProfile && state.myProfile.photo) || (lastStory && lastStory.image) || null;
 
+  // Amigo com post novo na Community (que ainda não passou na sua tela): borda roxa por fora da dourada.
+  const postSeen = state.postSeen || {};
+  const newPostBy = {};
+  (state.communityPosts || []).forEach((p) => {
+    if (!p || p.mine || p.author === userName || postSeen[p.id]) return;
+    newPostBy[p.author] = true;
+  });
   const fresh = stories.filter((g) => !seen[g.id]);
   const old = stories.filter((g) => seen[g.id]);
   const open = (g) => setView({ groups: stories, start: stories.indexOf(g), mine: false });
@@ -97,6 +104,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={styles.strip}>
           {/* Primeiro da faixa: a sua foto com o "+". Abre publicação, Reel, story ou depoimento. */}
           <TouchableOpacity style={styles.item} onPress={() => setAdding(true)} activeOpacity={0.85} accessibilityLabel="Adicionar conteúdo">
+            <View style={styles.outer}>
             <View style={[styles.ring, { borderColor: lastStory ? colors.gold : colors.border, borderWidth: lastStory ? 2.5 : 1.5 }]}>
               {myPhoto ? (
                 <Photo uri={myPhoto} style={styles.avatar} fallback="🙂" />
@@ -109,13 +117,16 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
                 <Ionicons name="add" size={14} color="#fff" />
               </View>
             </View>
+            </View>
           </TouchableOpacity>
           {[...fresh, ...old].map((g) => {
             const isSeen = !!seen[g.id];
             return (
               <TouchableOpacity key={g.id} style={styles.item} onPress={() => open(g)} activeOpacity={0.85} accessibilityLabel={`Story de ${g.name}`}>
-                <View style={[styles.ring, { borderColor: isSeen ? colors.border : g.sponsored ? colors.sponsored : colors.gold, borderWidth: isSeen ? 1.5 : 2.5 }]}>
-                  <Photo uri={g.avatar} style={styles.avatar} fallback="🙂" />
+                <View style={[styles.outer, !g.sponsored && newPostBy[g.name] && styles.outerNew]}>
+                  <View style={[styles.ring, { borderColor: isSeen ? colors.border : g.sponsored ? colors.sponsored : colors.gold, borderWidth: isSeen ? 1.5 : 2.5 }]}>
+                    <Photo uri={g.avatar} style={styles.avatar} fallback="🙂" />
+                  </View>
                 </View>
                 <Text numberOfLines={1} style={[styles.name, isSeen && { color: colors.muted }]}>
                   {g.name.split(' ')[0]}
@@ -431,8 +442,11 @@ const styles = StyleSheet.create({
   sub: { color: colors.muted, fontSize: 12, marginTop: 2 },
   newBtn: { flexDirection: 'row', alignItems: 'center', height: 38, paddingHorizontal: 14, borderRadius: 19, backgroundColor: colors.primary, marginLeft: 10 },
   strip: { paddingHorizontal: 12, paddingVertical: 14 },
-  item: { width: 76, alignItems: 'center', marginRight: 4 },
+  item: { width: 82, alignItems: 'center', marginRight: 2 },
   ring: { width: AV + 8, height: AV + 8, borderRadius: (AV + 8) / 2, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
+  // Borda de fora: transparente; fica roxa quando o amigo tem post novo (por fora da dourada do story).
+  outer: { width: AV + 16, height: AV + 16, borderRadius: (AV + 16) / 2, borderWidth: 2.5, borderColor: 'transparent', alignItems: 'center', justifyContent: 'center' },
+  outerNew: { borderColor: colors.violet },
   avatar: { width: AV, height: AV, borderRadius: AV / 2 },
   meAvatar: { width: AV, height: AV, borderRadius: AV / 2, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   plus: {
