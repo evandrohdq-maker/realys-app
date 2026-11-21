@@ -19,6 +19,9 @@ import { useScreenShare, startScreenShare, stopScreenShare } from '../../screenS
 import { ScreenViewer } from '../../components/ScreenShareKit';
 import { useCamShare, startCam, stopCam } from '../../camShare';
 import { crmBoard } from '../../crm';
+import { salaById, salaGente, setSalaCfg, salaKick } from '../../salas';
+import { cargoDe } from '../../salaPlanos';
+import { SalaConfig, SalaPainel, ModeracaoSheet, EntrarComId, SenhaSheet, tentaEntrar } from '../../components/SalaKit';
 
 const C = { bg: '#FFFFFF', soft: '#FAF7EF', line: '#EFE8D6', text: '#1B1B1F', muted: '#7A7468', gold: '#B8860B', green: '#2FB463', red: '#E5484D', amber: '#E0A92B' };
 const brl = (v) => `R$ ${Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -48,6 +51,12 @@ export default function SalasScreen({ explore }) {
   const [sid, setSid] = useState(null);
   const [rid, setRid] = useState(null);
   const [creating, setCreating] = useState(null);
+  const [cfgNew, setCfgNew] = useState(null);
+  const [idOpen, setIdOpen] = useState(false);
+  const findById = (id) => {
+    const s = salaById(id);
+    return s ? { nome: s.name, cfg: s.cfg, pessoas: salaGente(s).length, onOk: () => setSid(s.id) } : null;
+  };
   useEffect(() => {
     if (explore && explore.sala && salaOf(explore.sala)) setSid(explore.sala);
   }, [explore]);
@@ -69,10 +78,12 @@ export default function SalasScreen({ explore }) {
   }, [myQueue && myQueue.id]);
 
   if (sid && rid) return <Room sid={sid} rid={rid} me={me} isCompany={isCompany} onLeave={() => { leaveRoom(me); setRid(null); }} onBack={() => setRid(null)} />;
-  if (sid) return <Reception sid={sid} me={me} isCompany={isCompany} myQueue={myQueue} onBack={() => setSid(null)} onRoom={(r) => setRid(r)} />;
+  if (sid) return <Reception sid={sid} me={me} isCompany={isCompany} myQueue={myQueue} onBack={() => setSid(null)} onRoom={(r) => setRid(r)} cfgFirst={cfgNew === sid} onCfgDone={() => setCfgNew(null)} />;
 
-  const open = salas.filter((s) => s.open);
-  const closed = salas.filter((s) => !s.open);
+  // Sala escondida (Premium) não aparece na lista: só entra quem tem o ID.
+  const listadas = salas.filter((s) => !s.cfg || s.cfg.visivel !== false || s.mine);
+  const open = listadas.filter((s) => s.open);
+  const closed = listadas.filter((s) => !s.open);
   return (
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
       <Text style={st.h1}>Hub de Negócios</Text>
@@ -99,6 +110,11 @@ export default function SalasScreen({ explore }) {
           <Text style={{ marginLeft: 8, fontWeight: '800', color: C.text }} numberOfLines={1}>Abrir a recepção da minha empresa</Text>
         </TouchableOpacity>
       ) : null}
+      <TouchableOpacity style={st.create} onPress={() => setIdOpen(true)} accessibilityLabel="Entrar com ID">
+        <Ionicons name="key-outline" size={18} color={C.gold} />
+        <Text style={{ marginLeft: 8, fontWeight: '700', color: C.text }} numberOfLines={1}>Entrar com o ID da sala</Text>
+      </TouchableOpacity>
+      <EntrarComId open={idOpen} onClose={() => setIdOpen(false)} find={findById} me={me} />
       <Text style={st.section}>ATENDENDO AGORA</Text>
       {open.map((s) => <SalaCard key={s.id} s={s} onPress={() => setSid(s.id)} />)}
       {closed.length ? <Text style={st.section}>FECHADAS AGORA</Text> : null}
@@ -128,6 +144,8 @@ export default function SalasScreen({ explore }) {
                   const id = createSala({ name, tipo: creating.tipo, emoji: '💼', owner: me });
                   setCreating(null);
                   setSid(id);
+                  // Logo depois de abrir: senha, limite, exposta ou não, moderação e painel.
+                  setTimeout(() => setCfgNew(id), 250);
                 }}
               >
                 <Text style={{ color: '#fff', fontWeight: '800' }}>Abrir</Text>
@@ -166,9 +184,12 @@ function SalaCard({ s, onPress }) {
 }
 
 // ---------- Recepção ----------
-function Reception({ sid, me, isCompany, myQueue, onBack, onRoom }) {
+function Reception({ sid, me, isCompany, myQueue, onBack, onRoom, cfgFirst, onCfgDone }) {
   useSalas();
   const s = salaOf(sid);
+  const [cfgOpen, setCfgOpen] = useState(!!cfgFirst);
+  const [modOpen, setModOpen] = useState(false);
+  const [senhaAsk, setSenhaAsk] = useState(null);
   const t = SALA_TIPOS[s.tipo] || SALA_TIPOS.loja;
   // Empresa vê como dona (na demonstração, a empresa logada cuida da recepção que abrir).
   const owner = isCompany || s.mine;
@@ -214,8 +235,37 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom }) {
   const rooms = s.rooms.filter((r) => owner || (r.kind === 'atendimento' && r.people.includes(me)));
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <Head title={`${s.emoji} ${s.name}`} sub={`${t.label} · ${s.open ? 'Recepção aberta' : s.hours || 'Fechada agora'}`} onBack={onBack} />
+      <Head
+        title={`${s.emoji} ${s.name}${s.cfg && s.cfg.senha ? ' 🔒' : ''}`}
+        sub={`${t.label} · ${s.open ? 'Recepção aberta' : s.hours || 'Fechada agora'}${s.cfg ? ' · ' + s.cfg.id : ''}`}
+        onBack={onBack}
+        right={
+          owner && s.cfg ? (
+            <View style={{ flexDirection: 'row' }}>
+              <TouchableOpacity onPress={() => setModOpen(true)} style={{ padding: 6 }} accessibilityLabel="Moderação"><Ionicons name="shield-checkmark-outline" size={20} color={C.text} /></TouchableOpacity>
+              <TouchableOpacity onPress={() => setCfgOpen(true)} style={{ padding: 6 }} accessibilityLabel="Configurar sala"><Ionicons name="settings-outline" size={20} color={C.text} /></TouchableOpacity>
+            </View>
+          ) : null
+        }
+      />
+      {s.cfg ? (
+        <>
+          <SalaConfig open={cfgOpen} cfg={s.cfg} nome={s.name} onClose={() => { setCfgOpen(false); onCfgDone && onCfgDone(); }} onSave={(cfg) => { setSalaCfg(sid, cfg); setCfgOpen(false); onCfgDone && onCfgDone(); }} />
+          <ModeracaoSheet
+            open={modOpen}
+            onClose={() => setModOpen(false)}
+            cfg={s.cfg}
+            pessoas={salaGente(s)}
+            me={me}
+            fallbackCargo={(n) => (n === me || (s.team[0] && s.team[0].name === n) ? 'Admin' : s.team.some((x) => x.name === n) ? 'Moderador' : 'Membro')}
+            onCfg={(cfg) => setSalaCfg(sid, cfg)}
+            onKick={(n) => salaKick(sid, n)}
+          />
+          <SenhaSheet ask={senhaAsk} onClose={() => setSenhaAsk(null)} />
+        </>
+      ) : null}
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+        {s.cfg ? <SalaPainel cfg={s.cfg} nome={s.name} /> : null}
         <View style={st.teamRow}>
           {s.team.map((x) => (
             <View key={x.name} style={{ alignItems: 'center', marginRight: 14, width: 64 }}>
@@ -235,7 +285,7 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom }) {
               <TouchableOpacity onPress={leaveQueue} style={{ marginTop: 10 }}><Text style={{ color: C.red, fontWeight: '700' }}>Sair da fila</Text></TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity disabled={!s.open} style={[st.bigBtn, !s.open && { opacity: 0.5 }]} onPress={() => setAsking({ motivo: t.motivos[0], note: '' })} accessibilityLabel="Entrar na fila de atendimento">
+            <TouchableOpacity disabled={!s.open} style={[st.bigBtn, !s.open && { opacity: 0.5 }]} onPress={() => tentaEntrar({ cfg: s.cfg, pessoas: salaGente(s).length, me, nome: s.name, askSenha: setSenhaAsk, onOk: () => setAsking({ motivo: t.motivos[0], note: '' }) })} accessibilityLabel="Entrar na fila de atendimento">
               <Ionicons name="hand-right-outline" size={20} color="#fff" />
               <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15, marginLeft: 8 }} numberOfLines={1}>{s.open ? 'Quero ser atendido' : 'Fechada agora'}</Text>
             </TouchableOpacity>
@@ -521,7 +571,7 @@ function Ctl({ icon, label, on, danger, leave, onPress }) {
   );
 }
 
-function Head({ title, sub, onBack }) {
+function Head({ title, sub, onBack, right }) {
   return (
     <View style={st.head}>
       <TouchableOpacity onPress={onBack} style={{ padding: 4 }} accessibilityLabel="Voltar"><Ionicons name="arrow-back" size={22} color={C.text} /></TouchableOpacity>
@@ -529,6 +579,7 @@ function Head({ title, sub, onBack }) {
         <Text style={{ fontWeight: '800', color: C.text, fontSize: 16 }} numberOfLines={1}>{title}</Text>
         {sub ? <Text style={{ color: C.muted, fontSize: 12 }} numberOfLines={1}>{sub}</Text> : null}
       </View>
+      {right}
     </View>
   );
 }

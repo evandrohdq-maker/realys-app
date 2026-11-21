@@ -408,8 +408,8 @@ export default function PageScreen() {
                 </Row>
               </View>
               <TouchableOpacity onPress={() => toggleReview(rv)} style={[styles.expose, rv.shown && styles.exposeOn]}>
-                <Ionicons name={rv.shown ? 'eye' : 'eye-off-outline'} size={14} color={rv.shown ? '#FFFFFF' : colors.muted} />
-                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.exposeText, rv.shown && { color: '#FFFFFF' }]}>{rv.shown ? 'Exposto' : 'Oculto'}</Text>
+                <Ionicons name={rv.shown ? 'eye' : 'eye-off-outline'} size={14} color={rv.shown ? colors.success : colors.muted} />
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.exposeText, rv.shown && { color: colors.success, fontWeight: '800' }]}>{rv.shown ? 'Exposto' : 'Oculto'}</Text>
               </TouchableOpacity>
             </Row>
             <Text style={{ color: colors.text, marginTop: 8, lineHeight: 19 }}>“{rv.text}”</Text>
@@ -467,8 +467,8 @@ export default function PageScreen() {
                 const on = k === kind;
                 return (
                   <TouchableOpacity key={k} onPress={() => { setKind(k); setFile(null); }} style={[styles.kind, on && styles.kindOn]}>
-                    <Ionicons name={p.icon} size={18} color={on ? colors.onPrimary : colors.primary} />
-                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.kindText, on && { color: colors.onPrimary }]}>{p.label}</Text>
+                    <Ionicons name={p.icon} size={18} color={on ? colors.primaryDark : colors.muted} />
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.kindText, on && { color: colors.primaryDark, fontWeight: '800' }]}>{p.label}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -520,7 +520,7 @@ const styles = StyleSheet.create({
   h2Inline: { fontSize: 16, fontWeight: '700', color: colors.text, marginLeft: 8, flex: 1 },
   headIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
   kind: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 12, borderWidth: 1, borderColor: colors.border, marginHorizontal: 3 },
-  kindOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  kindOn: { backgroundColor: '#FFFFFF', borderColor: colors.primary },
   kindText: { fontSize: 11, fontWeight: '700', color: colors.primary, marginTop: 3 },
   file: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderStyle: 'dashed', borderColor: colors.primary, borderRadius: 12, padding: 12, marginBottom: 10 },
 
@@ -548,6 +548,6 @@ const styles = StyleSheet.create({
   prodRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
   order: { color: colors.primary, fontWeight: '800', marginRight: 8 },
   expose: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 9, paddingVertical: 5 },
-  exposeOn: { backgroundColor: colors.success, borderColor: colors.success },
+  exposeOn: { borderColor: colors.success },
   exposeText: { color: colors.muted, fontWeight: '700', fontSize: 11, marginLeft: 4 },
 });

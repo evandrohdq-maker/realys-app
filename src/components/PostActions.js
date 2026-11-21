@@ -61,7 +61,7 @@ export default function PostActions({ post, author }) {
             <View style={styles.inputRow}>
               <TextInput value={txt} onChangeText={setTxt} placeholder="Escreva um comentário" placeholderTextColor={colors.muted} style={styles.input} onSubmitEditing={send} returnKeyType="send" />
               <TouchableOpacity style={styles.send} onPress={send} accessibilityLabel="Enviar comentário">
-                <Ionicons name="send" size={16} color="#fff" />
+                <Ionicons name="send" size={16} color={colors.primaryDark} />
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
@@ -84,5 +84,5 @@ const styles = StyleSheet.create({
   empty: { color: colors.muted, paddingVertical: 14, textAlign: 'center' },
   inputRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12 },
   input: { flex: 1, backgroundColor: colors.bg, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10, color: colors.text },
-  send: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
+  send: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.borderStrong, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
 });

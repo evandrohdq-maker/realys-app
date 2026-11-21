@@ -21,6 +21,9 @@ import { CallPersonSheet, InviteSheet } from '../../components/ArenaCallInvite';
 import { useScreenShare, startScreenShare, stopScreenShare } from '../../screenShare';
 import { ScreenViewer } from '../../components/ScreenShareKit';
 import { useCamShare, startCam, stopCam } from '../../camShare';
+import { cfgPadrao, ehMod, cargoDe } from '../../salaPlanos';
+import { SalaConfig, SalaPainel, ModeracaoSheet, EntrarComId, SenhaSheet, tentaEntrar } from '../../components/SalaKit';
+import { arenaKick } from '../../arena';
 
 const D = { bg: '#F7F5EF', rail: '#EDE8DA', card: '#FFFFFF', text: '#1B1B1F', muted: '#7A7468', gold: '#B8860B', online: '#2FB463', idle: '#E0A92B', dnd: '#E5484D' };
 const ROLE = { dono: { label: 'Dono', color: '#B8860B' }, mod: { label: 'Moderador', color: '#3B82F6' }, membro: { label: 'Membro', color: '#1B1B1F' } };
@@ -119,6 +122,19 @@ export default function ArenaScreen({ explore }) {
   const scroll = useRef(null);
   useBack(!!cid, () => setCid(null));
 
+  // Toda sala (servidor) tem configuração: ID, senha, limite, exposta ou não, moderação, classes e painel.
+  useEffect(() => {
+    if (servers.some((s) => !s.cfg)) {
+      setServers((l) => l.map((s) => (s.cfg ? s : { ...s, cfg: cfgPadrao((s.members.find((x) => x.role === 'dono') || {}).name, 'gratis') })));
+    }
+  }, [servers]);
+  const [cfgOpen, setCfgOpen] = useState(false);
+  const [modOpen, setModOpen] = useState(false);
+  const [idOpen, setIdOpen] = useState(false);
+  const [senhaAsk, setSenhaAsk] = useState(null);
+  const oldCargo = (x) => (x && x.role === 'dono' ? 'Admin' : x && x.role === 'mod' ? 'Moderador' : 'Membro');
+  const visiveis = servers.filter((s) => !s.cfg || s.cfg.visivel !== false || s.members.some((x) => x.name === me));
+
   const sv = servers.find((s) => s.id === sid) || servers[0];
   const ch = cid ? sv.channels.find((c) => c.id === cid) : null;
   const iAmIn = (s) => s.members.some((x) => x.name === me);
@@ -126,13 +142,34 @@ export default function ArenaScreen({ explore }) {
   const update = (fn) => setServers((list) => list.map((s) => (s.id === sid ? fn(s) : s)));
 
   const join = () => update((s) => ({ ...s, members: [...s.members, { name: me, role: 'membro', status: 'online', game: null }] }));
+  // Entrar passa pela porta: banido, sala cheia e senha.
+  const gate = (then) => {
+    if (iAmIn(sv)) return then && then();
+    tentaEntrar({ cfg: sv.cfg, pessoas: sv.members.length, me, nome: sv.name, askSenha: setSenhaAsk, onOk: () => { join(); then && setTimeout(then, 0); } });
+  };
+  const fbCargo = (n) => oldCargo(sv.members.find((x) => x.name === n));
+  const souMod = sv.cfg ? ehMod({ ...sv.cfg, cargos: { ...(sv.cfg.cargos || {}), [me]: cargoDe(sv.cfg, me, fbCargo(me)) } }, me) : myRole === 'dono';
+  const souAdmin = sv.cfg ? cargoDe(sv.cfg, me, fbCargo(me)) === 'Admin' : myRole === 'dono';
+  const findById = (id) => {
+    const s = servers.find((x) => x.cfg && x.cfg.id === id);
+    if (!s) return null;
+    return {
+      nome: s.name, cfg: s.cfg, pessoas: s.members.length,
+      onOk: () => {
+        setServers((l) => l.map((x) => (x.id === s.id && !x.members.some((m) => m.name === me) ? { ...x, members: [...x.members, { name: me, role: 'membro', status: 'online', game: null }] } : x)));
+        setSid(s.id);
+        setCid(null);
+      },
+    };
+  };
 
   const send = () => {
     const t = draft.trim();
     if (!t) return;
     const mod = moderateText ? moderateText(t) : { ok: true };
     if (mod && mod.ok === false) return Alert.alert('Mensagem não enviada', mod.why || 'A mensagem não segue as regras do Realyz.');
-    if (!iAmIn(sv)) join();
+    if (!iAmIn(sv)) return gate();
+    if (sv.cfg && sv.cfg.moderada && (sv.cfg.silenciados || []).includes(me)) return Alert.alert('Você está silenciado', 'Um moderador desta sala silenciou você.');
     update((s) => ({ ...s, channels: s.channels.map((c) => (c.id === cid ? { ...c, msgs: [...c.msgs, { who: me, text: t, at: Date.now() }] } : c)) }));
     setDraft('');
     setTimeout(() => scroll.current && scroll.current.scrollToEnd({ animated: true }), 50);
@@ -156,6 +193,7 @@ export default function ArenaScreen({ explore }) {
 
   // Entrar e sair da voz: sai de uma sala ao entrar em outra.
   const toggleVoice = (c) => {
+    if (!iAmIn(sv)) return gate(() => toggleVoice(c));
     const leaving = voice && voice.sid === sid && voice.cid === c.id;
     setServers((list) => list.map((s) => ({
       ...s,
@@ -166,7 +204,6 @@ export default function ArenaScreen({ explore }) {
       }),
     })));
     setVoice(leaving ? null : { sid, cid: c.id });
-    if (!leaving && !iAmIn(sv)) join();
   };
   const leaveVoice = () => {
     if (!voice) return;
@@ -185,7 +222,7 @@ export default function ArenaScreen({ explore }) {
     if (mod && mod.ok === false) return Alert.alert('Nome não permitido', mod.why || 'Escolha outro nome.');
     const id = 'sv-' + Date.now();
     const s = {
-      id, name, emoji: create.emoji || '🎮', tint: D.gold,
+      id, name, emoji: create.emoji || '🎮', tint: D.gold, cfg: cfgPadrao(me),
       members: [{ name: me, role: 'dono', status: 'online', game: null }],
       channels: [
         { id: 'c1', kind: 'text', name: 'geral', msgs: [{ who: me, text: `Servidor ${name} criado! Convide a galera. 🎉`, at: Date.now() }] },
@@ -197,6 +234,8 @@ export default function ArenaScreen({ explore }) {
     setSid(id);
     setCid(null);
     setCreate(null);
+    // Logo depois de criar: senha, limite, exposta ou não, moderação (Premium) e painel (Empresarial).
+    setTimeout(() => setCfgOpen(true), 250);
   };
   const makeChannel = () => {
     const name = (newCh.name || '').trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9à-ú-]/g, '');
@@ -293,7 +332,7 @@ export default function ArenaScreen({ explore }) {
   return (
     <View style={{ flex: 1, flexDirection: 'row', backgroundColor: D.bg }}>
       <ScrollView style={st.rail} contentContainerStyle={{ alignItems: 'center', paddingVertical: 10 }} showsVerticalScrollIndicator={false}>
-        {servers.map((s) => {
+        {visiveis.map((s) => {
           const on = s.id === sid;
           return (
             <TouchableOpacity key={s.id} onPress={() => { setSid(s.id); setCid(null); }} style={st.railItem} accessibilityLabel={`Servidor ${s.name}`}>
@@ -309,12 +348,17 @@ export default function ArenaScreen({ explore }) {
             <Ionicons name="add" size={26} color={D.online} />
           </View>
         </TouchableOpacity>
+        <TouchableOpacity onPress={() => setIdOpen(true)} style={st.railItem} accessibilityLabel="Entrar com ID">
+          <View style={[st.railIcon, { backgroundColor: D.card }]}>
+            <Ionicons name="key-outline" size={22} color={D.gold} />
+          </View>
+        </TouchableOpacity>
       </ScrollView>
 
       <View style={{ flex: 1 }}>
         <View style={st.svHead}>
           <View style={{ flex: 1 }}>
-            <Text style={st.svName} numberOfLines={1}>{sv.emoji} {sv.name}</Text>
+            <Text style={st.svName} numberOfLines={1}>{sv.emoji} {sv.name}{sv.cfg && sv.cfg.senha ? ' 🔒' : ''}</Text>
             <Text style={{ color: D.muted, fontSize: 12 }}>
               <Text style={{ color: D.online }}>●</Text> {online} online · {sv.members.length} membros
             </Text>
@@ -325,10 +369,21 @@ export default function ArenaScreen({ explore }) {
           <TouchableOpacity onPress={() => setMembers(true)} style={st.headBtn} accessibilityLabel="Ver membros">
             <Ionicons name="people-outline" size={20} color={D.text} />
           </TouchableOpacity>
+          {sv.cfg && souMod ? (
+            <TouchableOpacity onPress={() => setModOpen(true)} style={st.headBtn} accessibilityLabel="Moderação">
+              <Ionicons name="shield-checkmark-outline" size={19} color={D.text} />
+            </TouchableOpacity>
+          ) : null}
+          {sv.cfg && souAdmin ? (
+            <TouchableOpacity onPress={() => setCfgOpen(true)} style={st.headBtn} accessibilityLabel="Configurar sala">
+              <Ionicons name="settings-outline" size={19} color={D.text} />
+            </TouchableOpacity>
+          ) : null}
         </View>
         <ScrollView contentContainerStyle={{ paddingBottom: voice ? 90 : 24 }}>
+          {sv.cfg ? <View style={{ paddingHorizontal: 10 }}><SalaPainel cfg={sv.cfg} nome={sv.name} /></View> : null}
           {!iAmIn(sv) ? (
-            <TouchableOpacity style={st.joinBtn} onPress={join}>
+            <TouchableOpacity style={st.joinBtn} onPress={() => gate()}>
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Entrar no servidor</Text>
             </TouchableOpacity>
           ) : null}
@@ -397,6 +452,19 @@ export default function ArenaScreen({ explore }) {
         <CallPersonSheet name={callFor} sv={sv} me={me} onClose={() => setCallFor(null)} />
         <ScreenViewer tela={watching} onClose={() => setWatching(null)} />
         <InviteSheet open={inviting} sv={sv} me={me} onClose={() => setInviting(false)} />
+        <SalaConfig open={cfgOpen} cfg={sv.cfg} nome={sv.name} onClose={() => setCfgOpen(false)} onSave={(cfg) => { update((s) => ({ ...s, cfg })); setCfgOpen(false); }} />
+        <ModeracaoSheet
+          open={modOpen}
+          onClose={() => setModOpen(false)}
+          cfg={sv.cfg}
+          pessoas={sv.members.map((x) => x.name)}
+          me={me}
+          fallbackCargo={fbCargo}
+          onCfg={(cfg) => update((s) => ({ ...s, cfg }))}
+          onKick={(n) => arenaKick(sv.id, n)}
+        />
+        <EntrarComId open={idOpen} onClose={() => setIdOpen(false)} find={findById} me={me} />
+        <SenhaSheet ask={senhaAsk} onClose={() => setSenhaAsk(null)} />
 
       <Modal visible={!!create} transparent animationType="fade" onRequestClose={() => setCreate(null)}><KeyboardLift style={{ flex: 1 }}>
         <View style={st.backdrop}>
