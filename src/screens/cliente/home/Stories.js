@@ -13,6 +13,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { STORY_EFFECTS, effectStyle, STORY_VIDEO_MAX_S } from '../../../storyEffects';
 import { StoryMusicPlayer, MusicSticker, MusicPicker } from '../../../components/StoryMusic';
 import StoryCamera from '../../../components/StoryCamera';
+import StoryEffectOverlay from '../../../components/StoryEffectOverlay';
 
 let EV = null;
 try {
@@ -126,10 +127,14 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
     <Modal visible={visible} animationType="fade" onRequestClose={onClose} statusBarTranslucent>
       <KeyboardLift style={{ flex: 1, backgroundColor: '#000' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {item.video && EV ? (
-          <StoryVideo key={item.id} uri={item.video} muted={!!item.music} paused={paused || typing || covered} style={[StyleSheet.absoluteFill, effectStyle(item.effect)]} />
+          <View style={StyleSheet.absoluteFill}>
+            <StoryVideo key={item.id} uri={item.video} muted={!!item.music} paused={paused || typing || covered} style={StyleSheet.absoluteFill} />
+            <StoryEffectOverlay effect={item.effect} />
+          </View>
         ) : item.image ? (
-          <View style={[StyleSheet.absoluteFill, effectStyle(item.effect)]}>
-            <Photo uri={item.image} style={StyleSheet.absoluteFill} fallback="🌅" />
+          <View style={StyleSheet.absoluteFill}>
+            <Photo uri={item.image} style={[StyleSheet.absoluteFill, effectStyle(item.effect)]} fallback="🌅" />
+            <StoryEffectOverlay effect={item.effect} onImage />
           </View>
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: item.bg || colors.primary, alignItems: 'center', justifyContent: 'center', padding: 30 }]}>
@@ -295,9 +300,9 @@ export function StoryComposer({ visible, onClose, onPublish }) {
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: media ? '#000' : bg }}>
-        {media && media.kind === 'video' && EV ? <StoryVideo key={media.uri} uri={media.uri} loop muted={!!music} paused={false} style={[StyleSheet.absoluteFill, fx]} /> : null}
+        {media && media.kind === 'video' && EV ? <View style={StyleSheet.absoluteFill}><StoryVideo key={media.uri} uri={media.uri} loop muted={!!music} paused={false} style={StyleSheet.absoluteFill} /><StoryEffectOverlay effect={effect} /></View> : null}
         {visible && music && !picking ? <StoryMusicPlayer music={music} paused={false} /> : null}
-        {media && media.kind === 'image' ? <Image source={{ uri: media.uri }} style={[StyleSheet.absoluteFill, fx]} /> : null}
+        {media && media.kind === 'image' ? <View style={StyleSheet.absoluteFill}><Image source={{ uri: media.uri }} style={[StyleSheet.absoluteFill, fx]} /><StoryEffectOverlay effect={effect} onImage /></View> : null}
         <View style={[styles.composerTop, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity style={styles.close} onPress={media ? () => setMedia(null) : onClose} accessibilityLabel={media ? 'Tirar a foto ou o vídeo' : 'Cancelar'}>
             <Ionicons name={media ? 'arrow-back' : 'close'} size={24} color="#fff" />
@@ -349,7 +354,10 @@ export function StoryComposer({ visible, onClose, onPublish }) {
                     <TouchableOpacity key={e.key} onPress={() => setEffect(e.key)} style={styles.fxItem} accessibilityLabel={`Efeito ${e.label}`}>
                       <View style={[styles.fxThumb, on && styles.fxThumbOn]}>
                         {media.kind === 'image' ? (
-                          <Image source={{ uri: media.uri }} style={[styles.fxImg, effectStyle(e.key)]} />
+                          <>
+                            <Image source={{ uri: media.uri }} style={[styles.fxImg, effectStyle(e.key)]} />
+                            <StoryEffectOverlay effect={e.key} onImage />
+                          </>
                         ) : (
                           <Ionicons name={e.icon} size={20} color="#fff" />
                         )}

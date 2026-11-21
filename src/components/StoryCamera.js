@@ -3,6 +3,9 @@
 //   fica espelhada igual à prévia (antes saía invertida, esquerda ↔ direita).
 // - Efeitos já na hora de bater a foto ou gravar: escolhe na faixa de baixo e o efeito
 //   vai junto para o story (dá para trocar depois, antes de publicar).
+// - Abre sempre na câmera da FRENTE (selfie); o botão de virar troca para a de trás.
+// - O efeito na câmera ao vivo é uma camada de cor por cima (o "filter" do React Native
+//   em cima da câmera deixava a tela preta ou cortada no meio, metade amarela).
 // - Foto: toque no botão. Vídeo: troque para "Vídeo" e toque para gravar e para parar (até 30 s).
 import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Modal, TouchableOpacity, ScrollView, Image, Alert, Animated } from 'react-native';
@@ -12,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { colors } from '../theme';
 import { STORY_EFFECTS, effectStyle, STORY_VIDEO_MAX_S } from '../storyEffects';
+import StoryEffectOverlay from './StoryEffectOverlay';
 
 // Amostra para as bolinhas de efeito (a câmera não dá miniatura ao vivo).
 const SAMPLE = 'https://picsum.photos/seed/realys-fx-amostra/200/200';
@@ -22,7 +26,7 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
   const [micPerm, askMic] = useMicrophonePermissions();
   const cam = useRef(null);
   const [mode, setMode] = useState(startMode); // 'foto' | 'video'
-  const [facing, setFacing] = useState('back');
+  const [facing, setFacing] = useState('front');
   const [flash, setFlash] = useState(false);
   const [effect, setEffect] = useState(initialEffect);
   const [ready, setReady] = useState(false);
@@ -31,6 +35,20 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
   const [secs, setSecs] = useState(0);
   const recStart = useRef(0);
   const pulse = useRef(new Animated.Value(1)).current;
+  const flipping = useRef(false);
+  const [camKey, setCamKey] = useState(0);
+
+  // Virar a câmera: espera a câmera atual soltar antes de abrir a outra
+  // (trocar direto deixava a tela preta em vários Android).
+  const flip = () => {
+    if (rec || busy || flipping.current) return;
+    flipping.current = true;
+    setReady(false);
+    setFlash(false);
+    setFacing((f) => (f === 'back' ? 'front' : 'back'));
+    setCamKey((k) => k + 1);
+    setTimeout(() => (flipping.current = false), 600);
+  };
 
   useEffect(() => {
     if (!visible) return;
@@ -40,6 +58,8 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
     setSecs(0);
     setBusy(false);
     setReady(false);
+    setFacing('front'); // sempre começa na câmera da frente
+    setFlash(false);
     (async () => {
       if (!camPerm || !camPerm.granted) {
         const r = await askCam();
@@ -64,7 +84,7 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
   }, [rec]);
 
   const shoot = async () => {
-    if (!cam.current || busy || !ready) return;
+    if (!cam.current || busy || !ready || flipping.current) return;
     if (mode === 'foto') {
       setBusy(true);
       try {
@@ -109,15 +129,14 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
     onClose();
   };
 
-  const fx = effectStyle(effect);
   const granted = camPerm && camPerm.granted;
   return (
     <Modal visible={visible} animationType="fade" onRequestClose={close} statusBarTranslucent>
       <View style={{ flex: 1, backgroundColor: '#000' }}>
         {visible && granted ? (
-          <View style={[StyleSheet.absoluteFill, fx]}>
+          <View style={StyleSheet.absoluteFill}>
             <CameraView
-              key={mode}
+              key={`${mode}-${facing}-${camKey}`}
               ref={cam}
               style={StyleSheet.absoluteFill}
               facing={facing}
@@ -126,7 +145,14 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
               enableTorch={flash && facing === 'back' && mode === 'video'}
               flash={flash && mode === 'foto' ? 'on' : 'off'}
               onCameraReady={() => setReady(true)}
+              onMountError={() => {
+                // Se a câmera de trás não abrir, volta para a da frente em vez de ficar na tela preta.
+                setReady(false);
+                if (facing === 'back') setFacing('front');
+                else Alert.alert('Câmera', 'Não deu para abrir a câmera. Feche e tente de novo.');
+              }}
             />
+            <StoryEffectOverlay effect={effect} />
           </View>
         ) : null}
 
@@ -147,7 +173,7 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
             <TouchableOpacity style={[st.round, { marginRight: 8 }]} onPress={() => setFlash((f) => !f)} disabled={facing === 'front'} accessibilityLabel={flash ? 'Desligar o flash' : 'Ligar o flash'}>
               <Ionicons name={flash && facing === 'back' ? 'flash' : 'flash-off'} size={20} color={facing === 'front' ? 'rgba(255,255,255,0.35)' : '#fff'} />
             </TouchableOpacity>
-            <TouchableOpacity style={st.round} onPress={() => !rec && setFacing((f) => (f === 'back' ? 'front' : 'back'))} accessibilityLabel="Virar a câmera">
+            <TouchableOpacity style={st.round} onPress={flip} accessibilityLabel="Virar a câmera">
               <Ionicons name="camera-reverse-outline" size={22} color="#fff" />
             </TouchableOpacity>
           </View>
@@ -163,6 +189,7 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
                   <TouchableOpacity key={e.key} onPress={() => setEffect(e.key)} style={st.fxItem} accessibilityLabel={`Efeito ${e.label}`}>
                     <View style={[st.fxThumb, on && st.fxThumbOn]}>
                       <Image source={{ uri: SAMPLE }} style={[st.fxImg, effectStyle(e.key)]} />
+                      <StoryEffectOverlay effect={e.key} onImage />
                     </View>
                     <Text numberOfLines={1} style={[st.fxLabel, on && { color: colors.gold }]}>{e.label}</Text>
                   </TouchableOpacity>
@@ -188,7 +215,7 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
                 ['foto', 'Foto'],
                 ['video', `Vídeo ${STORY_VIDEO_MAX_S}s`],
               ].map(([k, label]) => (
-                <TouchableOpacity key={k} onPress={() => (setReady(false), setMode(k))} style={st.modeBtn} accessibilityLabel={label}>
+                <TouchableOpacity key={k} onPress={() => mode !== k && (setReady(false), setMode(k))} style={st.modeBtn} accessibilityLabel={label}>
                   <Text numberOfLines={1} style={[st.modeText, mode === k && st.modeOn]}>{label}</Text>
                 </TouchableOpacity>
               ))}
