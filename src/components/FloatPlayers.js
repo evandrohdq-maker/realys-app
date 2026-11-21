@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Floating from './Floating';
 import { Photo } from './ui';
 import { useStore } from '../store';
-import { tvNow, onTvNow, stopTv } from '../tv';
+import { tvNow, onTvNow, stopTv, playTv, allTvs } from '../tv';
 import { onRadioNow } from '../radio';
 import { usePipState, minimizeApp, useVideoRotate } from '../pip';
 import { useBack } from '../back';
@@ -145,6 +145,22 @@ export function TvFloat({ bottom = 150 }) {
         {full ? null : <Ionicons name="move" size={13} color="rgba(255,255,255,0.75)" />}
         <Text style={[st.name, full && st.nameFull]} numberOfLines={1}>{ch.name}</Text>
         <FavHeart kind="tv" item={ch} size={15} color="#fff" style={st.btn} hitSlop={6} />
+        {/* Próximo canal (do mesmo tipo, se houver; senão o próximo da lista). */}
+        <TouchableOpacity
+          onPress={() => {
+            const list = allTvs();
+            const same = list.filter((t) => t.cat && t.cat === ch.cat);
+            const pool = same.length > 1 ? same : list;
+            if (pool.length < 2) return;
+            const i = Math.max(0, pool.findIndex((t) => t.id === ch.id));
+            playTv(pool[(i + 1) % pool.length]);
+          }}
+          style={st.btn}
+          hitSlop={6}
+          accessibilityLabel="Próximo canal"
+        >
+          <Ionicons name="play-skip-forward" size={14} color="#fff" />
+        </TouchableOpacity>
         <TouchableOpacity onPress={pip} style={st.btn} hitSlop={6} accessibilityLabel="Minimizar: continuar assistindo com a tela livre">
           <Ionicons name="remove" size={17} color="#fff" />
         </TouchableOpacity>

@@ -5,7 +5,7 @@
 // O próprio Android põe nela os botões de abrir em tela cheia e de fechar, e deixa arrastar.
 // Precisa do APK novo (módulo nativo RealysUpdater); sem ele, nada muda.
 import { useEffect, useState } from 'react';
-import { useWindowDimensions } from 'react-native';
+import { useWindowDimensions, Platform } from 'react-native';
 
 let N = null;
 try {
@@ -132,7 +132,9 @@ export function useVideoRotate(active) {
       applyOrientation();
     };
   }, [active]);
-  const land = win.width > win.height;
+  // No celular: deitou, tela cheia. No computador (site) a tela já é 'deitada': o player começa
+  // normal e só vai para a tela cheia quando a pessoa clica em expandir.
+  const land = Platform.OS !== 'web' && win.width > win.height;
   const full = !!active && !inPipNow && (land || forced);
   useEffect(() => {
     if (!active) return undefined;
@@ -157,5 +159,12 @@ export function useVideoRotate(active) {
     setOrientation('portrait');
     backToAuto = setTimeout(applyOrientation, 2500);
   };
+  // Site: Esc sai da tela cheia.
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !full || typeof window === 'undefined') return undefined;
+    const key = (e) => e.key === 'Escape' && exit();
+    window.addEventListener('keydown', key);
+    return () => window.removeEventListener('keydown', key);
+  }, [full]);
   return { full, enter, exit, toggle: () => (full ? exit() : enter()) };
 }

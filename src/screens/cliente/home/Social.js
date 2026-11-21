@@ -562,7 +562,7 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
   };
 
   return (
-    <Modal videoHost visible={visible} animationType="slide" supportedOrientations={['portrait', 'landscape']} onRequestClose={full ? rot.exit : close}><KeyboardLift style={{ flex: 1, backgroundColor: '#03050A' }}>
+    <Modal videoHost deskFull={full} visible={visible} animationType="slide" supportedOrientations={['portrait', 'landscape']} onRequestClose={full ? rot.exit : close}><KeyboardLift style={{ flex: 1, backgroundColor: '#03050A' }}>
       <Animated.View style={{ flex: 1, backgroundColor: '#03050A', transform: [{ translateY: slide }] }} {...(mine || full ? {} : swipe.panHandlers)}>
         {live ? <Photo uri={live.photo ? live.photo.replace('800/500', '800/1400') : null} style={StyleSheet.absoluteFill} fallback="🎥" /> : null}
         {mine ? (
@@ -582,7 +582,25 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
             </View>
             {live ? <Text numberOfLines={1} style={{ color: '#fff', fontWeight: '700', marginLeft: 10, flexShrink: 1, marginTop: 3 }}>{live.host}</Text> : null}
             <View style={{ flex: 1 }} />
-            <TouchableOpacity style={styles.iconBtnDark} onPress={rot.exit} accessibilityLabel="Sair da tela cheia">
+            {!mine && live ? (
+              <TouchableOpacity style={[styles.iconBtnDark, { marginRight: 8 }]} onPress={() => swipeRef.current && swipeRef.current(1)} accessibilityLabel="Próxima live">
+                <Ionicons name="play-skip-forward" size={18} color="#FFFFFF" />
+              </TouchableOpacity>
+            ) : null}
+            {!mine && live ? (
+              <TouchableOpacity
+                style={[styles.iconBtnDark, { marginRight: 8 }]}
+                accessibilityLabel="Minimizar a live numa janelinha"
+                onPress={() => {
+                  rot.exit();
+                  onClose();
+                  dispatch({ type: 'LIVE_MINIMIZE', live });
+                }}
+              >
+                <Ionicons name="remove" size={22} color="#FFFFFF" />
+              </TouchableOpacity>
+            ) : null}
+            <TouchableOpacity style={styles.iconBtnDark} onPress={rot.exit} accessibilityLabel="Sair da tela cheia (Esc)">
               <Ionicons name="contract" size={20} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
@@ -609,6 +627,12 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
             </View>
           ) : null}
           <View style={{ flex: 1 }} />
+          {/* Próxima live do mesmo segmento (o mesmo que puxar para cima). */}
+          {!mine && live ? (
+            <TouchableOpacity style={[styles.iconBtnDark, { marginRight: 8 }]} onPress={() => swipeRef.current && swipeRef.current(1)} accessibilityLabel="Próxima live">
+              <Ionicons name="play-skip-forward" size={18} color="#FFFFFF" />
+            </TouchableOpacity>
+          ) : null}
           {!mine && live ? (
             <TouchableOpacity style={[styles.iconBtnDark, { marginRight: 8 }]} onPress={rot.enter} accessibilityLabel="Tela cheia">
               <Ionicons name="expand" size={19} color="#FFFFFF" />
@@ -624,7 +648,7 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
                 dispatch({ type: 'LIVE_MINIMIZE', live });
               }}
             >
-              <Ionicons name="contract" size={20} color="#FFFFFF" />
+              <Ionicons name="remove" size={22} color="#FFFFFF" />
             </TouchableOpacity>
           ) : null}
           <TouchableOpacity style={styles.iconBtnDark} onPress={close} accessibilityLabel="Fechar">
