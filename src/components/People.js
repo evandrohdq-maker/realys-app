@@ -30,8 +30,8 @@ export function FriendButton({ member, compact }) {
   if (st === 'recebido') {
     return (
       <View style={{ flexDirection: 'row' }}>
-        <Btn compact={compact} icon="checkmark" label="Aceitar" solid onPress={() => set('amigo')} style={compact ? null : { flex: 1 }} />
-        <Btn compact={compact} icon="close" label={compact ? '' : 'Recusar'} onPress={() => set(null)} style={[{ marginLeft: 6 }, compact ? null : { flex: 1 }]} a11y={`Recusar pedido de ${first}`} />
+        <Btn compact={compact} icon="checkmark" label="Aceitar" solid onPress={() => set('amigo')} />
+        <Btn compact={compact} icon="close" label={compact ? '' : 'Recusar'} onPress={() => set(null)} style={{ marginLeft: 6 }} a11y={`Recusar pedido de ${first}`} />
       </View>
     );
   }
@@ -130,7 +130,8 @@ export function UserProfileModal() {
   return (
     <Modal visible animationType="slide" onRequestClose={close}><KeyboardLift style={{ flex: 1 }}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
-        <Photo uri={`https://picsum.photos/seed/realys-cover-${m.id}/900/400`} style={{ width: '100%', height: 150 }} />
+        {/* Capa no formato 3:1 (acompanha a largura sem esticar nem distorcer) e em resolução maior. */}
+        <Photo uri={`https://picsum.photos/seed/realys-cover-${m.id}/1500/500`} style={{ width: '100%', aspectRatio: 3, maxHeight: 260 }} />
         <TouchableOpacity onPress={close} style={[styles.back, { top: insets.top + 10 }]} accessibilityLabel="Voltar">
           <Ionicons name="arrow-back" size={20} color={colors.text} />
         </TouchableOpacity>
@@ -159,17 +160,14 @@ export function UserProfileModal() {
           {st === 'recebido' ? <Text style={styles.ask}>{m.name.split(' ')[0]} quer ser seu amigo no Realyz.</Text> : null}
           {/* Pedido recebido: Aceitar/Recusar numa linha só deles, para não ficar por cima da Mensagem. */}
           {st === 'recebido' ? (
-            <View style={{ marginTop: 12 }}>
+            <View style={{ marginTop: 12, alignItems: 'center' }}>
               <FriendButton member={m} />
             </View>
           ) : null}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: st === 'recebido' ? 8 : 12 }}>
-            {st === 'recebido' ? null : (
-              <View style={{ flex: 1 }}>
-                <FriendButton member={m} />
-              </View>
-            )}
-            <TouchableOpacity style={[styles.msgBtn, st === 'recebido' && { flex: 1, justifyContent: 'center', marginLeft: 0 }]} onPress={openChat} accessibilityLabel={`Mensagem para ${m.name}`}>
+          {/* Botões pequenos, lado a lado (não esticam na largura da tela). */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', marginTop: st === 'recebido' ? 8 : 12 }}>
+            {st === 'recebido' ? null : <FriendButton member={m} />}
+            <TouchableOpacity style={[styles.msgBtn, st === 'recebido' && { marginLeft: 0 }]} onPress={openChat} accessibilityLabel={`Mensagem para ${m.name}`}>
               <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.primary} />
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700', marginLeft: 6 }}>Mensagem</Text>
             </TouchableOpacity>
@@ -290,9 +288,7 @@ export function ProfilePeek({ m, onClose, onMessage, onFull }) {
           <LiveNowBadge hostType="usuario" hostId={m.id} />
           {st === 'recebido' ? <Text style={styles.ask}>{firstName} quer ser seu amigo no Realyz.</Text> : null}
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
-            <View style={{ flex: 1 }}>
-              <FriendButton member={m} />
-            </View>
+            <FriendButton member={m} />
             {onMessage ? (
               <TouchableOpacity style={[styles.msgBtn, { paddingHorizontal: 12 }]} onPress={onMessage} accessibilityLabel={`Mensagem para ${m.name}`}>
                 <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.primary} />
@@ -619,31 +615,31 @@ const styles = StyleSheet.create({
   peekDim: { flex: 1, backgroundColor: 'rgba(20,18,14,0.35)' },
   peekSheet: { backgroundColor: colors.bg, borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 16, paddingTop: 8 },
   peekGrab: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: 12 },
-  peekRing: { width: 70, height: 70, borderRadius: 35, borderWidth: 2.5, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
-  peekAvatar: { width: 62, height: 62, borderRadius: 31 },
+  peekRing: { width: 60, height: 60, borderRadius: 30, borderWidth: 2.5, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
+  peekAvatar: { width: 53, height: 53, borderRadius: 27 },
   peekName: { color: colors.text, fontSize: 18, fontWeight: '800' },
   peekClose: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginLeft: 6 },
   peekTag: { color: colors.muted, fontSize: 10, fontWeight: '800', letterSpacing: 1, marginTop: 12 },
   peekPost: { width: 150, backgroundColor: colors.card, borderRadius: 14, padding: 8, marginRight: 8, ...soft },
   peekPostImg: { width: '100%', height: 90, borderRadius: 10 },
-  peekFull: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: colors.primary, borderRadius: 12, paddingVertical: 11, marginTop: 14 },
+  peekFull: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', alignSelf: 'center', borderWidth: 1.5, borderColor: colors.primary, borderRadius: 999, paddingVertical: 7, paddingHorizontal: 16, marginTop: 14 },
   pageRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, padding: 8, marginBottom: 8, borderWidth: 1, borderColor: colors.border },
   pageThumb: { width: 54, height: 40, borderRadius: 8 },
   classChip: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 999, paddingVertical: 7, paddingHorizontal: 12, marginRight: 8, backgroundColor: colors.card },
-  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 12, paddingVertical: 11, paddingHorizontal: 14, borderWidth: 1.5 },
+  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 999, paddingVertical: 7, paddingHorizontal: 14, borderWidth: 1.5 },
   btnSm: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 10 },
   btnSolid: { backgroundColor: colors.primary, borderColor: colors.primary },
   btnLine: { backgroundColor: colors.card, borderColor: colors.primary },
-  btnText: { fontWeight: '700', marginLeft: 6, fontSize: 14 },
+  btnText: { fontWeight: '700', marginLeft: 6, fontSize: 13 },
   back: { position: 'absolute', left: 14, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   avatarRing: { width: 104, height: 104, borderRadius: 52, borderWidth: 3, borderColor: colors.gold, backgroundColor: colors.bg, marginTop: -52, alignItems: 'center', justifyContent: 'center' },
   avatar: { width: 94, height: 94, borderRadius: 47 },
   name: { color: colors.text, fontSize: 22, fontWeight: '800' },
   handle: { color: colors.muted, marginTop: 2 },
   bio: { color: colors.text, marginTop: 8, lineHeight: 20 },
-  stats: { flexDirection: 'row', backgroundColor: colors.card, borderRadius: 16, paddingVertical: 12, marginTop: 14, ...soft },
+  stats: { flexDirection: 'row', backgroundColor: colors.card, borderRadius: 16, paddingVertical: 9, marginTop: 14, ...soft },
   ask: { color: colors.primaryDark, fontWeight: '700', marginTop: 12 },
-  msgBtn: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.card, borderRadius: 12, paddingVertical: 11, paddingHorizontal: 14, marginLeft: 8 },
+  msgBtn: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.card, borderRadius: 999, paddingVertical: 7, paddingHorizontal: 14, marginLeft: 8 },
   section: { color: colors.text, fontWeight: '700', fontSize: 16, marginTop: 18, marginBottom: 8 },
   post: { backgroundColor: colors.card, borderRadius: 16, padding: 12, marginBottom: 10, ...soft },
   listRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 9, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },

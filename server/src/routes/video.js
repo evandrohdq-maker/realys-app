@@ -117,7 +117,7 @@ export default function videoRoutes(r, { db, cfg, hub, publicUser, userById }) {
   };
   const telaEnd = (t) => {
     telas.delete(t.id);
-    for (const v of t.viewers) hub.send(v, 'tela-off', { id: t.id, sala: t.sala });
+    for (const v of t.viewers) hub.send(v, 'tela-off', { id: t.id, sala: t.sala, kind: t.kind || 'tela' });
   };
   const viewerIds = (list, me) => {
     const ids = Array.isArray(list) ? [...new Set(list.map((x) => String(x || '').slice(0, 64)).filter((x) => x && x !== me))] : [];
@@ -129,12 +129,14 @@ export default function videoRoutes(r, { db, cfg, hub, publicUser, userById }) {
     if (!on()) off();
     const sala = str(body.sala, 'a sala', { max: 120 });
     if (!sala) fail(400, 'Em qual sala você vai mostrar a tela?');
-    // Uma tela por pessoa: abrir outra encerra a anterior.
-    for (const t of telas.values()) if (t.host === user.id) telaEnd(t);
-    const t = { id: newId('tela'), host: user.id, sala, viewers: new Set(viewerIds(body.para, user.id)), at: now() };
+    // kind: 'tela' (a tela do celular/computador) ou 'cam' (a câmera da pessoa, que aparece pequena
+    // no canto da tela). Uma de cada por pessoa: abrir outra do mesmo tipo encerra a anterior.
+    const kind = body.kind === 'cam' ? 'cam' : 'tela';
+    for (const t of telas.values()) if (t.host === user.id && (t.kind || 'tela') === kind) telaEnd(t);
+    const t = { id: newId(kind), kind, host: user.id, sala, viewers: new Set(viewerIds(body.para, user.id)), at: now() };
     telas.set(t.id, t);
     const from = publicUser(userById(user.id));
-    for (const v of t.viewers) hub.send(v, 'tela-on', { id: t.id, sala, from });
+    for (const v of t.viewers) hub.send(v, 'tela-on', { id: t.id, sala, from, kind });
     const token = sign(cfg.videoSecret, { act: 'publish', path: `tela/${t.id}`, uid: user.id, exp: now() + 6 * 3600 * 1000 });
     return { id: t.id, whip: `${base()}/tela/${t.id}/whip`, token, iceServers: iceFor(user.id), quality: '720p' };
   });
@@ -145,8 +147,8 @@ export default function videoRoutes(r, { db, cfg, hub, publicUser, userById }) {
     if (t.host !== user.id) fail(403, 'Só quem está mostrando a tela muda quem assiste.');
     const next = new Set(viewerIds(body.para, user.id));
     const from = publicUser(userById(user.id));
-    for (const v of t.viewers) if (!next.has(v)) hub.send(v, 'tela-off', { id: t.id, sala: t.sala });
-    for (const v of next) if (!t.viewers.has(v)) hub.send(v, 'tela-on', { id: t.id, sala: t.sala, from });
+    for (const v of t.viewers) if (!next.has(v)) hub.send(v, 'tela-off', { id: t.id, sala: t.sala, kind: t.kind || 'tela' });
+    for (const v of next) if (!t.viewers.has(v)) hub.send(v, 'tela-on', { id: t.id, sala: t.sala, from, kind: t.kind || 'tela' });
     t.viewers = next;
     return { ok: true, viewers: next.size };
   });

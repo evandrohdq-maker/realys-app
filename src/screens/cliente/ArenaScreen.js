@@ -20,6 +20,7 @@ import ArenaUserSheet from '../../components/ArenaUserSheet';
 import { CallPersonSheet, InviteSheet } from '../../components/ArenaCallInvite';
 import { useScreenShare, startScreenShare, stopScreenShare } from '../../screenShare';
 import { ScreenViewer } from '../../components/ScreenShareKit';
+import { useCamShare, startCam, stopCam } from '../../camShare';
 
 const D = { bg: '#F7F5EF', rail: '#EDE8DA', card: '#FFFFFF', text: '#1B1B1F', muted: '#7A7468', gold: '#B8860B', online: '#2FB463', idle: '#E0A92B', dnd: '#E5484D' };
 const ROLE = { dono: { label: 'Dono', color: '#B8860B' }, mod: { label: 'Moderador', color: '#3B82F6' }, membro: { label: 'Membro', color: '#1B1B1F' } };
@@ -92,6 +93,17 @@ export default function ArenaScreen({ explore }) {
       Alert.alert('Tela não compartilhada', e.message);
     }
   };
+  // Câmera na sala: a imagem da pessoa (pequena no canto se ela também mostra a tela).
+  const camOn = useCamShare();
+  const camHere = !!(camOn && voice && camOn.sala === salaKey(voice));
+  const toggleCam = async () => {
+    if (camHere) return stopCam();
+    try {
+      await startCam({ sala: salaKey(voice), label: voiceCh ? voiceCh.name : 'Arena', para: [] });
+    } catch (e) {
+      Alert.alert('Câmera não ligada', e.message);
+    }
+  };
   const [userOpen, setUserOpen] = useState(null); // pessoa com as opções abertas (silenciar, volume, bloquear…)
   const openUser = (name) => name && name !== me && setUserOpen(name);
   // Segurar o nome de alguém: convidar para chamada. O botão 👤+ convida amigos e manda o link por fora.
@@ -159,6 +171,7 @@ export default function ArenaScreen({ explore }) {
   const leaveVoice = () => {
     if (!voice) return;
     if (sharingHere) stopScreenShare();
+    if (camHere) stopCam();
     setServers((list) => list.map((s) => ({ ...s, channels: s.channels.map((x) => (x.kind === 'voice' ? { ...x, inVoice: (x.inVoice || []).filter((n) => n !== me) } : x)) })));
     setVoice(null);
   };
@@ -258,7 +271,7 @@ export default function ArenaScreen({ explore }) {
             <Ionicons name="send" size={17} color="#fff" />
           </TouchableOpacity>
         </View>
-        {voice ? <VoiceBar ch={voiceCh} sv={voiceSv} mic={mic} deaf={deaf} setMic={setMic} setDeaf={setDeaf} leave={leaveVoice} screen={sharingHere} onScreen={toggleScreen} /> : null}
+        {voice ? <VoiceBar ch={voiceCh} sv={voiceSv} mic={mic} deaf={deaf} setMic={setMic} setDeaf={setDeaf} leave={leaveVoice} screen={sharingHere} onScreen={toggleScreen} cam={camHere} onCam={toggleCam} /> : null}
         <Modal visible={!!react} transparent animationType="fade" onRequestClose={() => setReact(null)}><KeyboardLift style={{ flex: 1 }}>
           <TouchableOpacity style={st.backdrop} activeOpacity={1} onPress={() => setReact(null)}>
             <View style={st.reactBox}>
@@ -422,7 +435,7 @@ export default function ArenaScreen({ explore }) {
   );
 }
 
-function VoiceBar({ ch, sv, mic, deaf, setMic, setDeaf, leave, screen, onScreen }) {
+function VoiceBar({ ch, sv, mic, deaf, setMic, setDeaf, leave, screen, onScreen, cam, onCam }) {
   if (!ch) return null;
   return (
     <View style={st.voiceBar}>
@@ -443,6 +456,12 @@ function VoiceBar({ ch, sv, mic, deaf, setMic, setDeaf, leave, screen, onScreen 
           <Ionicons name={deaf ? 'volume-mute' : 'headset'} size={19} color={deaf ? D.dnd : D.text} />
         </View>
         <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.vLabel, deaf && { color: D.dnd }]}>{deaf ? 'Áudio mudo' : 'Áudio'}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={onCam} style={st.vCol} accessibilityLabel={cam ? 'Desligar a câmera' : 'Ligar a câmera para a sala'}>
+        <View style={[st.vBtn, cam && { backgroundColor: '#E6F6EC' }]}>
+          <Ionicons name={cam ? 'videocam' : 'videocam-outline'} size={19} color={cam ? D.online : D.text} />
+        </View>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.vLabel, cam && { color: D.online }]}>{cam ? 'Câmera on' : 'Câmera'}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={onScreen} style={st.vCol} accessibilityLabel={screen ? 'Parar de mostrar a tela' : 'Mostrar minha tela para a sala'}>
         <View style={[st.vBtn, screen && { backgroundColor: '#E6F6EC' }]}>

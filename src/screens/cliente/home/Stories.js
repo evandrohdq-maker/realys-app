@@ -14,7 +14,7 @@ import { STORY_EFFECTS, effectStyle, STORY_VIDEO_MAX_S } from '../../../storyEff
 import { StoryMusicPlayer, MusicSticker, MusicPicker } from '../../../components/StoryMusic';
 import StoryCamera from '../../../components/StoryCamera';
 import StoryEffectOverlay from '../../../components/StoryEffectOverlay';
-import { realWidth, DESK_MIN } from '../../../webFrame';
+import StoryFrame, { storyDesk } from '../../../components/StoryFrame';
 
 // Story só de texto sem cor escolhida: fundo claro (marfim) e letra escura. A cor de fundo é opção.
 export const STORY_PLAIN = '#FBF8F1';
@@ -134,7 +134,8 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
   };
 
   return (
-    <Modal visible={visible} animationType="fade" onRequestClose={onClose} statusBarTranslucent>
+    <Modal visible={visible} animationType="fade" transparent={storyDesk()} onRequestClose={onClose} statusBarTranslucent>
+      <StoryFrame>
       <KeyboardLift style={{ flex: 1, backgroundColor: '#000' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {item.video && EV ? (
           <View style={StyleSheet.absoluteFill}>
@@ -236,6 +237,7 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
           )}
         </View>
       </KeyboardLift>
+      </StoryFrame>
     </Modal>
   );
 }
@@ -311,10 +313,10 @@ export function StoryComposer({ visible, onClose, onPublish }) {
   const light = !media && isLightBg(bg);
   const ink = light ? colors.text : '#fff';
   // No computador: uma caixa em pé no meio da tela (menos de 1/3 da largura), não a tela inteira.
-  const deskBox = Platform.OS === 'web' && realWidth() >= DESK_MIN;
+  const deskBox = storyDesk();
   return (
-    <Modal visible={visible} animationType="slide" transparent={deskBox} onRequestClose={onClose}><KeyboardLift style={[{ flex: 1 }, deskBox && styles.deskBackdrop]}>
-      <View style={[{ flex: 1, backgroundColor: media ? '#000' : bg || STORY_PLAIN }, deskBox && styles.deskBox]}>
+    <Modal visible={visible} animationType="slide" transparent={deskBox} onRequestClose={onClose}><StoryFrame bg={media ? '#000' : bg || STORY_PLAIN}><KeyboardLift style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: media ? '#000' : bg || STORY_PLAIN }}>
         {media && media.kind === 'video' && EV ? <View style={StyleSheet.absoluteFill}><StoryVideo key={media.uri} uri={media.uri} loop muted={!!music} paused={false} style={StyleSheet.absoluteFill} /><StoryEffectOverlay effect={effect} /></View> : null}
         {visible && music && !picking ? <StoryMusicPlayer music={music} paused={false} /> : null}
         {media && media.kind === 'image' ? <View style={StyleSheet.absoluteFill}><Image source={{ uri: media.uri }} style={[StyleSheet.absoluteFill, fx]} /><StoryEffectOverlay effect={effect} onImage /></View> : null}
@@ -438,7 +440,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
         onPick={(m) => (setMusic(m), setPicking(false))}
         onRemove={() => (setMusic(null), setPicking(false))}
       />
-    </KeyboardLift></Modal>
+    </KeyboardLift></StoryFrame></Modal>
   );
 }
 
@@ -479,9 +481,6 @@ const styles = StyleSheet.create({
   palette: { paddingHorizontal: 16, paddingTop: 12, backgroundColor: 'rgba(0,0,0,0.25)' },
   swatch: { width: 40, height: 40, borderRadius: 20, marginRight: 10, borderWidth: 2, borderColor: 'rgba(255,255,255,0.6)' },
   swatchOn: { borderColor: '#fff', borderWidth: 3, transform: [{ scale: 1.1 }] },
-  deskBackdrop: { backgroundColor: 'rgba(241,235,221,0.88)', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  // Caixa em pé no computador: largura de story (9:16), bem menos que 1/3 da tela.
-  deskBox: { flex: 0, width: 380, height: '88%', maxHeight: 680, borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: '#EAD7A4', shadowColor: '#8A6208', shadowOpacity: 0.18, shadowRadius: 30, shadowOffset: { width: 0, height: 12 } },
   capBtnLight: { borderColor: '#EAD7A4', backgroundColor: '#FFF8E4' },
   swatchPlain: { backgroundColor: '#fff', borderColor: '#E3DAC4', alignItems: 'center', justifyContent: 'center' },
   swatchOnLight: { borderColor: colors.primary, borderWidth: 3 },

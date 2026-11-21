@@ -6,7 +6,7 @@ const { getDefaultConfig } = require('expo/metro-config');
 const config = getDefaultConfig(__dirname);
 const shim = (f) => path.resolve(__dirname, 'web-shims', f);
 const WEB = {
-  'react-native-webrtc': shim('empty.js'),
+  'react-native-webrtc': shim('webrtc.js'), // WebRTC do navegador (câmera, lives, chamadas)
   '@react-native-ml-kit/face-detection': shim('empty.js'),
   'realys-updater': shim('empty.js'),
   'expo-intent-launcher': shim('intent-launcher.js'),
@@ -17,6 +17,10 @@ const WEB = {
 const original = config.resolver.resolveRequest;
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (platform === 'web' && WEB[moduleName]) return { type: 'sourceFile', filePath: WEB[moduleName] };
+  // Telas do app no site: o Modal fica numa coluna no meio no computador (web-shims/react-native.js).
+  if (platform === 'web' && moduleName === 'react-native' && !/node_modules|web-shims/.test(context.originModulePath || '')) {
+    return { type: 'sourceFile', filePath: shim('react-native.js') };
+  }
   return original ? original(context, moduleName, platform) : context.resolveRequest(context, moduleName, platform);
 };
 module.exports = config;
