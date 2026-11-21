@@ -47,7 +47,7 @@ export default function InventoryScreen() {
       <Title sub={`${products.length} produtos · ${brl(totalValue)} em estoque (custo)`}>Estoque</Title>
       <BoostButton target="produto" label="Boost nos seus produtos" hint="Destaque no Shop e nas buscas, com pontos ou saldo. Anúncios de 30 s também." />
 
-      <Card style={{ backgroundColor: colors.primaryLight, borderColor: colors.primaryLight }}>
+      <Card style={{ backgroundColor: '#FFFFFF', borderColor: colors.border }}>
         <Text style={{ color: colors.primaryDark, fontSize: 13 }}>
           🔗 Ligado à sua vitrine: cada venda no app baixa o estoque sozinha e emite a nota fiscal (NF-e). Produto zerado
           aparece como "Esgotado" para o cliente. Toque em "Lançar no Shop" para mostrar um produto novo no topo da loja.
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 8,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.bg,
     alignItems: 'center',
     justifyContent: 'center',
   },

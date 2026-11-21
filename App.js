@@ -433,6 +433,41 @@ function Shell({ inviteTick }) {
     return () => sub.remove();
   }, []);
 
+  // Site (realyz.com.br) no celular: o voltar do Android/navegador volta dentro do app (fecha a
+  // janela aberta, a rádio, a sub-aba, a aba) em vez de sair do site. Guardamos sempre um passo
+  // "de reserva" no histórico do navegador; só sai do site com dois toques seguidos na tela inicial.
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined' || !window.history) return undefined;
+    const guard = () => window.history.pushState({ rz: Date.now() }, '');
+    guard();
+    let leaving = false;
+    const toast = (msg) => {
+      try {
+        const el = document.createElement('div');
+        el.textContent = msg;
+        el.style.cssText = 'position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#FFFFFF;color:#14120E;border:1px solid #E6DAC0;border-radius:999px;padding:10px 16px;font:600 13px system-ui,sans-serif;z-index:5000;box-shadow:0 4px 18px rgba(0,0,0,.08)';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1900);
+      } catch (e) {}
+    };
+    const onPop = () => {
+      if (leaving) return;
+      const handled = (window.__rzModalBack && window.__rzModalBack()) || goBackRef.current();
+      if (handled) return guard();
+      const now = Date.now();
+      if (now - lastBack.current < 2000) {
+        leaving = true;
+        window.history.back(); // segundo toque na tela inicial: aí sim sai do site
+        return;
+      }
+      lastBack.current = now;
+      toast('Toque em voltar de novo para sair do Realyz');
+      guard();
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
   // A voz da Lotus já fica escolhida desde a abertura do app (resposta sem atraso).
   // O modelo de linguagem (190 mil palavras) é pesado para montar: em vez de travar a primeira
   // tela logo na abertura, ele carrega quando a Lotus é aberta (enquanto a pessoa ainda fala)

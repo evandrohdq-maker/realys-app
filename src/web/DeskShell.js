@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, Image, ScrollView, Platform, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Text } from '../responsive';
-import { useStore, cartTotal } from '../store';
+import { useStore } from '../store';
 import { colors, brl } from '../theme';
 import WalletScreen from '../screens/WalletScreen';
 import { DESK_MIN, RAIL_MIN, CONTENT_MAX, realWidth } from '../webFrame';
@@ -123,18 +123,21 @@ function Rail({ onOrders, onLotus, onGo, commTop, currentKey }) {
         })}
       </View>
 
-      <View style={st.box}>
-        <Text style={st.boxLabel}>Carrinho</Text>
-        {count ? (
-          <>
-            <Text style={st.big}>{count} {count === 1 ? 'item' : 'itens'} · {brl(cartTotal(state))}</Text>
-            <TouchableOpacity onPress={() => dispatch({ type: 'OPEN_CART' })} style={st.goldBtn} accessibilityLabel="Abrir o carrinho">
-              <Text style={st.goldText}>Ver carrinho e pagar</Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          <Text style={st.small}>Vazio. Os produtos que você escolher no Shop e no Food aparecem aqui.</Text>
-        )}
+      {/* Carteira (dourada, sem mostrar o saldo) e, ao lado, um botãozinho para o carrinho. */}
+      <View style={[st.box, st.walletRow]}>
+        <TouchableOpacity onPress={() => setWallet(true)} style={st.walletBtn} accessibilityLabel="Abrir a carteira">
+          <Ionicons name="wallet" size={18} color={colors.gold} />
+          <Text style={st.walletGold}>Carteira</Text>
+          <Ionicons name="eye-off-outline" size={14} color={colors.gold} style={{ marginLeft: 6 }} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => dispatch({ type: 'OPEN_CART' })} style={st.cartBtn} accessibilityLabel={count ? `Abrir o carrinho: ${count} ${count === 1 ? 'item' : 'itens'}` : 'Abrir o carrinho'}>
+          <Ionicons name="cart-outline" size={18} color={colors.text} />
+          {count ? (
+            <View style={st.cartBadge}>
+              <Text style={st.cartBadgeText}>{count > 9 ? '9+' : count}</Text>
+            </View>
+          ) : null}
+        </TouchableOpacity>
       </View>
 
       <View style={st.box}>
@@ -162,12 +165,6 @@ function Rail({ onOrders, onLotus, onGo, commTop, currentKey }) {
         <Text style={st.small}>Peça um eletricista, uma pizza ou o perfil de alguém. Ela mostra as opções e só confirma quando você mandar.</Text>
       </TouchableOpacity>
 
-      {/* Carteira discreta: só o link, sem o saldo. O valor aparece só depois de abrir. */}
-      <TouchableOpacity onPress={() => setWallet(true)} style={st.walletLink} accessibilityLabel="Abrir a carteira">
-        <Ionicons name="wallet-outline" size={16} color={colors.muted} />
-        <Text style={st.walletText}>Carteira</Text>
-        <Ionicons name="eye-off-outline" size={14} color={colors.muted} />
-      </TouchableOpacity>
       <WalletScreen visible={wallet} onClose={() => setWallet(false)} />
     </ScrollView>
   );
@@ -229,6 +226,12 @@ const st = StyleSheet.create({
   lotusBig: { color: '#B8860B', fontSize: 22, fontWeight: '800' },
   short: { flexDirection: 'row', alignItems: 'center', paddingVertical: 9, paddingHorizontal: 10, borderRadius: 12 },
   shortText: { marginLeft: 12, fontSize: 15, color: colors.text, fontWeight: '600' },
+  walletRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
+  walletBtn: { flex: 1, flexDirection: 'row', alignItems: 'center' },
+  walletGold: { color: colors.gold, fontWeight: '800', fontSize: 15, marginLeft: 8 },
+  cartBtn: { width: 38, height: 38, borderRadius: 19, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  cartBadge: { position: 'absolute', top: -4, right: -4, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  cartBadgeText: { color: '#fff', fontSize: 10, fontWeight: '800' },
   walletLink: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', paddingVertical: 6, paddingHorizontal: 8 },
   walletText: { color: colors.muted, fontSize: 13, fontWeight: '600', marginLeft: 6, marginRight: 6 },
 });

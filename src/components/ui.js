@@ -53,10 +53,11 @@ export function Card({ children, style, onPress }) {
 
 export function Button({ title, onPress, variant = 'primary', small, style, disabled }) {
   const v = {
-    primary: { bg: colors.primary, fg: colors.onPrimary, bd: colors.primary },
+    // Visual mais suave: botão branco com contorno fino e letra dourada (sem bloco dourado).
+    primary: { bg: colors.card, fg: colors.primaryDark, bd: colors.borderStrong },
     outline: { bg: 'transparent', fg: colors.primary, bd: colors.primary },
     danger: { bg: colors.danger, fg: colors.onPrimary, bd: colors.danger },
-    light: { bg: colors.primaryLight, fg: colors.primaryDark, bd: colors.primaryLight },
+    light: { bg: colors.card, fg: colors.primaryDark, bd: colors.border },
     dark: { bg: colors.cardAlt, fg: colors.text, bd: colors.cardAlt },
   }[variant];
   return (
@@ -177,7 +178,7 @@ export function Photo({ uri, style, fallback = '🖼️' }) {
 export function Chip({ label, active, onPress }) {
   return (
     <TouchableOpacity onPress={onPress} style={[styles.chip, active && styles.chipActive]}>
-      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, active && { color: colors.onPrimary }]}>{label}</Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, active && { color: colors.primaryDark, fontWeight: '800' }]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -238,6 +239,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.cardAlt,
     marginRight: 8,
   },
-  chipActive: { backgroundColor: colors.primary },
+  chipActive: { backgroundColor: colors.card, borderColor: colors.primary },
   chipText: { fontSize: 13, fontWeight: '600', color: colors.text },
 });

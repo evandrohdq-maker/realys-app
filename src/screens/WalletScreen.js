@@ -145,9 +145,9 @@ export default function WalletScreen({ visible, onClose }) {
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 + insets.bottom }}>
           {/* Saldo */}
           <View style={styles.balanceCard}>
-            <Text style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '600' }}>Saldo disponível</Text>
+            <Text style={{ color: colors.muted, fontWeight: '600' }}>Saldo disponível</Text>
             <Text style={styles.balance}>{brl(state.wallet)}</Text>
-            <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>Moeda Realyz · 1 RLS = R$ 1,00 na demonstração</Text>
+            <Text style={{ color: colors.muted, fontSize: 11 }}>Moeda Realyz · 1 RLS = R$ 1,00 na demonstração</Text>
             <View style={{ flexDirection: 'row', marginTop: 14 }}>
               <BigBtn icon="add-circle-outline" label="Depositar" onPress={() => setAction('deposito')} />
               <BigBtn icon="arrow-up-circle-outline" label="Sacar" onPress={() => setAction('saque')} />
@@ -422,8 +422,8 @@ function BigBtn({ icon, label, onPress, style }) {
     <Pressable style={[styles.bigBtn, style]} onPress={onPress} accessibilityLabel={label}>
       {({ pressed }) => (
         <>
-          <Ionicons name={pressed ? icon.replace('-outline', '') : icon} size={21} color={pressed ? colors.gold : '#FFFFFF'} />
-          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: pressed ? colors.gold : '#FFFFFF', fontWeight: '700', fontSize: 12, marginTop: 3 }}>
+          <Ionicons name={pressed ? icon.replace('-outline', '') : icon} size={21} color={pressed ? colors.primaryDark || colors.primary : colors.primary} />
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', fontSize: 12, marginTop: 3 }}>
             {label}
           </Text>
         </>
@@ -582,8 +582,9 @@ const styles = StyleSheet.create({
   convertText: { color: '#0B1124', fontWeight: '800', fontSize: 12, marginLeft: 4 },
   liveRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border, marginTop: 6 },
   giftRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border, marginTop: 6 },
-  balanceCard: { backgroundColor: '#14120E', borderRadius: 20, padding: 16 },
-  balance: { color: '#fff', fontSize: 32, fontWeight: '800', marginVertical: 4 },
+  // Claro e dourado (sem fundo preto).
+  balanceCard: { backgroundColor: '#FFF8E4', borderRadius: 20, padding: 16, borderWidth: 1, borderColor: '#EAD7A4' },
+  balance: { color: colors.text, fontSize: 32, fontWeight: '800', marginVertical: 4 },
   bigBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 46, paddingHorizontal: 2 },
   periods: { flexDirection: 'row', marginTop: 16 },
   section: { color: colors.text, fontWeight: '700', fontSize: 16, marginTop: 14, marginBottom: 8 },

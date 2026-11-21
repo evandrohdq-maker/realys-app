@@ -7,6 +7,7 @@
 // Na demonstração fica na memória do celular; com o servidor no ar, a fila e as salas chegam para todos.
 import { useEffect, useState } from 'react';
 import { crmAdd, crmMove } from './crm';
+import { cfgPadrao } from './salaPlanos';
 
 const now = Date.now();
 const m = (min) => now - min * 60000;
@@ -73,7 +74,8 @@ const SEED = [
   },
 ];
 
-let salas = SEED;
+// Toda sala tem configuração (ID, senha, limite, exposta, moderação, classes, painel): src/salaPlanos.js.
+let salas = SEED.map((s) => ({ ...s, cfg: cfgPadrao((s.team[0] || {}).name, 'gratis') }));
 let here = null; // { sid, rid } sala em que estou
 let myQueue = null; // { sid, id, at } meu lugar na fila
 const subs = new Set();
@@ -87,6 +89,20 @@ const patchSala = (sid, fn) => set((l) => l.map((s) => (s.id === sid ? fn(s) : s
 export const salasAll = () => salas;
 export const salaOf = (sid) => salas.find((s) => s.id === sid);
 export const salaKey = (sid, rid) => `negocios:${sid}:${rid}`;
+export const salaById = (id) => salas.find((s) => s.cfg && s.cfg.id === id);
+export const salaGente = (s) => [...new Set([...s.team.map((t) => t.name), ...s.fila.map((f) => f.client), ...s.rooms.flatMap((r) => r.people)])];
+export function setSalaCfg(sid, cfg) {
+  patchSala(sid, (s) => ({ ...s, cfg }));
+}
+// Moderação: tira a pessoa da equipe, da fila e das salas.
+export function salaKick(sid, name) {
+  patchSala(sid, (s) => ({
+    ...s,
+    team: s.team.filter((t) => t.name !== name),
+    fila: s.fila.filter((f) => f.client !== name),
+    rooms: s.rooms.map((r) => (r.people.includes(name) ? { ...r, people: r.people.filter((n) => n !== name), screen: r.screen === name ? null : r.screen } : r)),
+  }));
+}
 
 export function useSalas() {
   const [, tick] = useState(0);
@@ -103,7 +119,7 @@ export function createSala({ name, emoji, tipo, owner }) {
   const id = 'sl-' + Date.now();
   const t = SALA_TIPOS[tipo] || SALA_TIPOS.loja;
   set((l) => [
-    { id, name, emoji: emoji || '💼', tipo, city: 'Passo Fundo', open: true, mine: true, team: [{ name: owner, role: 'Responsável', online: true }], fila: [], rooms: [{ id: 'r1', kind: 'atendimento', name: `${t.room} 1`, people: [], since: null }, { id: 'r2', kind: 'equipe', name: 'Reunião da equipe', people: [], since: null }], canais: [{ id: 'c1', name: 'avisos-da-equipe', msgs: [] }] },
+    { id, cfg: cfgPadrao(owner), name, emoji: emoji || '💼', tipo, city: 'Passo Fundo', open: true, mine: true, team: [{ name: owner, role: 'Responsável', online: true }], fila: [], rooms: [{ id: 'r1', kind: 'atendimento', name: `${t.room} 1`, people: [], since: null }, { id: 'r2', kind: 'equipe', name: 'Reunião da equipe', people: [], since: null }], canais: [{ id: 'c1', name: 'avisos-da-equipe', msgs: [] }] },
     ...l,
   ]);
   return id;

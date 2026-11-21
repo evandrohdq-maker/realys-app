@@ -263,7 +263,7 @@ export default function ProductForm({ onSave, onCancel, food = false, categoria 
                         setChoosing(false);
                       }}
                     >
-                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pillText, on && { color: '#fff' }]}>{sub.label}</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pillText, on && { color: colors.primaryDark, fontWeight: '800' }]}>{sub.label}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -296,7 +296,7 @@ export default function ProductForm({ onSave, onCancel, food = false, categoria 
                           setChoosing(false);
                         }}
                       >
-                        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pillText, on && { color: '#fff' }]}>
+                        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pillText, on && { color: colors.primaryDark, fontWeight: '800' }]}>
                           {g.icon} {g.label}
                         </Text>
                       </TouchableOpacity>
@@ -321,7 +321,7 @@ export default function ProductForm({ onSave, onCancel, food = false, categoria 
               const on = modos.includes(m.key);
               return (
                 <TouchableOpacity key={m.key} style={[styles.modo, on && styles.pillOn, { flex: 1 }]} onPress={() => toggleModo(m.key)} activeOpacity={0.85}>
-                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pillText, on && { color: '#fff', fontWeight: '800' }]}>{m.label}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.pillText, on && { color: colors.primaryDark, fontWeight: '800' }]}>{m.label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -362,7 +362,7 @@ export default function ProductForm({ onSave, onCancel, food = false, categoria 
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 }}>
                   {g.values.map((v) => (
                     <TouchableOpacity key={v.label} onPress={() => toggleVal(gi, v.label)} style={[styles.pill, v.on !== false && styles.pillOn]}>
-                      <Text numberOfLines={1} style={[styles.pillText, v.on !== false && { color: '#fff' }]}>{v.label}</Text>
+                      <Text numberOfLines={1} style={[styles.pillText, v.on !== false && { color: colors.primaryDark, fontWeight: '800' }]}>{v.label}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
   chooser: { backgroundColor: colors.card, borderRadius: 14, padding: 10, marginTop: 6, ...soft },
   secTitle: { color: colors.text, fontWeight: '800', fontSize: 12, marginBottom: 4 },
   pill: { borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 5, marginRight: 5, marginBottom: 5, backgroundColor: colors.card },
-  pillOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  pillOn: { backgroundColor: '#FFFFFF', borderColor: colors.primary },
   modo: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingVertical: 9, marginRight: 6, alignItems: 'center', backgroundColor: colors.card },
   pillText: { color: colors.text, fontSize: 11.5 },
   novo: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EEF6EF', borderRadius: 12, padding: 10, marginTop: 8 },

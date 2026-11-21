@@ -1,3 +1,4 @@
+import FollowedStores from '../../components/FollowedStores';
 import { addOrChoose, openProduct } from '../../components/ProductSheet';
 import { optionsLabel } from '../../productOptions';
 import { askPix } from '../../components/PixPay';
@@ -231,8 +232,9 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
           <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.back}>‹ {food ? 'Todos os restaurantes e bares' : 'Todas as lojas'}</Text>
         </TouchableOpacity>
         <Photo uri={s.cover} style={styles.cover} fallback={s.logo} />
-        {/* Loja de verdade (servidor): conversa com a loja pelo Realyz (o atendente IA responde na hora, se ela ligou). */}
-        {s.serverId ? (
+        {/* Cliente não abre conversa direta com a loja: o contato nasce da compra (vitrine e produtos).
+            Só empresas (fornecedor ↔ empresa) conversam por aqui. */}
+        {s.serverId && state.activeRole === 'empresa' ? (
           <TouchableOpacity
             onPress={() =>
               api('GET', `/companies/${s.serverId}`)
@@ -375,6 +377,8 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
           {/* Um menu só: a faixa de tipos acima filtra (o antigo "Bateu a fome? ⋮" fazia a mesma coisa). */}
         </>
       ) : null}
+      {/* Lojas que o cliente segue (ou para seguir): tocar abre a página da loja. */}
+      {!q ? <FollowedStores food={food} /> : null}
       {food && !q ? <SpotlightCarousel ads={FOOD_SPOTLIGHT} onOpen={openAd} /> : null}
       {!q ? (food ? <ShopHero title="Food" sub={mode === 'reservas' ? 'Os melhores rolês perto de você, com mesa garantida' : 'O que você tá a fim, na sua porta'} /> : <ShopHero title="Loja Realyz" sub="Só loja de verdade. As melhores aparecem primeiro" />) : null}
       {food ? null : <CircleShortcuts items={CATEGORIES} value={cat} onPress={setCat} />}

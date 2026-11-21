@@ -240,6 +240,7 @@ const initialState = {
   viewProvider: null, // perfil de prestador aberto por cima de qualquer tela
   previewProvider: null, // prévia do perfil de trabalho aberta pela pesquisa (só para analisar)
   liked: {},
+  postComments: {}, // comentários dos clientes nos posts das lojas (id do post → lista)
   reports: D.reports,
   signups: D.pendingSignups,
   blocked: [],
@@ -460,6 +461,10 @@ function baseReducer(state, a) {
 
     case 'TOGGLE_LIKE':
       return { ...state, liked: { ...state.liked, [a.id]: !state.liked[a.id] } };
+    case 'POST_COMMENT': {
+      const list = (state.postComments && state.postComments[a.id]) || [];
+      return { ...state, postComments: { ...state.postComments, [a.id]: [...list, { id: 'c' + Date.now(), who: a.who || 'Você', text: a.text }] } };
+    }
 
     case 'ADD_TO_CART': {
       // options: o que o cliente escolheu (cor, metragem, tamanho…). Mesma escolha soma; outra escolha é outro item.

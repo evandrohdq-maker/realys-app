@@ -20,6 +20,7 @@ import { storeTrust } from '../storeTrust';
 import LotusFocus from './LotusFocus';
 import { MY_COMPANY_ID } from '../data';
 import { useLeadAsk } from './LeadAsk';
+import PostActions from './PostActions';
 import { memberById, members } from '../people';
 import { PeopleListModal } from './People';
 import { businessOf, showcaseOf, sectorByKey, roleByKey, SERVE_MODES, ratingOf, GALLERY_TYPES } from '../companyBusiness';
@@ -494,11 +495,15 @@ export function BusinessPageModal({ p, media, MediaList }) {
                 <Ionicons name={following ? 'checkmark' : 'add'} size={16} color={following ? colors.primary : NIGHT} />
                 <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.ctaText, following && { color: colors.primary }]}>{following ? 'Seguindo' : 'Seguir empresa'}</Text>
               </TouchableOpacity>
-              {/* Pedir orçamento: vira contato novo (lead) no CRM da empresa. */}
+              {/* Cliente (usuário) não abre conversa direta com a loja: só compra pela vitrine e pelos produtos,
+                e curte, comenta e compartilha os posts. Pedir orçamento fica só entre empresas (fornecedor ↔ empresa).
+                Pedir orçamento: vira contato novo (lead) no CRM da empresa. */}
+{state.activeRole === 'empresa' ? (
               <TouchableOpacity style={[styles.glassBtn, { marginLeft: 8 }]} onPress={lead.ask} accessibilityLabel={`Pedir orçamento para ${p.name}`}>
                 <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.text} />
                 <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={styles.glassBtnText}>Pedir orçamento</Text>
               </TouchableOpacity>
+) : null}
             </View>
             {lead.modal}
 
@@ -632,7 +637,9 @@ export function BusinessPageModal({ p, media, MediaList }) {
                   <Photo uri={x.image} style={{ width: '100%', height: 220 }} />
                   <View style={{ padding: 10 }}>
                     <Text style={{ color: colors.text }}>{x.text}</Text>
-                    <Text style={[styles.sub, { marginTop: 4 }]}>♥ {x.likes} · {x.comments} comentários</Text>
+                    <View style={{ marginTop: 8 }}>
+                      <PostActions post={x} author={p.name} />
+                    </View>
                   </View>
                 </View>
               ))

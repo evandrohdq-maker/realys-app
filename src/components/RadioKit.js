@@ -5,7 +5,7 @@ import { View, StyleSheet, TouchableOpacity, Animated, ActivityIndicator, Image,
 import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import Floating from './Floating';
-import { radioNow, onRadioNow, setRadioNow, playRadio, stopRadio, resolveStream, loadRadios, radioOf, onRadios, radioEnded } from '../radio';
+import { radioNow, onRadioNow, setRadioNow, playRadio, stopRadio, resolveStream, loadRadios, radioOf, onRadios, radioEnded, allRadios } from '../radio';
 import { stationCat, openStation } from '../streamCats';
 import { minimizeApp } from '../pip';
 import { openArtist, trackById, artistGets } from '../music';
@@ -339,7 +339,19 @@ export function RadioMiniBar({ bottom }) {
       ) : null}
       <FavHeart kind="music" item={miniTrack} size={16} color="#1B1B1F" style={st.miniBtn} hitSlop={6} />
       <PlaylistPlus track={miniTrack} size={18} color="#1B1B1F" style={st.miniBtn} hitSlop={6} />
-      <TouchableOpacity onPress={radioEnded} style={st.miniBtn} hitSlop={6} accessibilityLabel="Próxima música">
+      {/* Próxima: na música, a próxima da fila; na rádio, a próxima estação. */}
+      <TouchableOpacity
+        onPress={() => {
+          if (n.radio.track) return radioEnded();
+          const list = allRadios().filter((r) => r.url);
+          if (list.length < 2) return;
+          const i = Math.max(0, list.findIndex((r) => r.id === n.radio.id));
+          playRadio(list[(i + 1) % list.length]);
+        }}
+        style={st.miniBtn}
+        hitSlop={6}
+        accessibilityLabel={n.radio.track ? 'Próxima música' : 'Próxima rádio'}
+      >
         <Ionicons name="play-skip-forward" size={16} color="#1B1B1F" />
       </TouchableOpacity>
       {/* Minimizar: o Realyz sai da frente e a capa fica numa janelinha; a música continua. */}
