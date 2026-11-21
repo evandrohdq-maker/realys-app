@@ -49,7 +49,9 @@ export function reviewer(state, rv) {
 }
 
 // Logo com anel em órbita, no mesmo estilo da Lotus.
-function OrbitLogo({ logo }) {
+function OrbitLogo({ logo, name, photo }) {
+  // Tocar na foto de perfil da empresa abre ela numa moldura no meio da tela.
+  const [zoom, setZoom] = useState(false);
   const spin = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -76,9 +78,28 @@ function OrbitLogo({ logo }) {
         <View style={[styles.orbitDot, { top: -4, left: 52 - 4, backgroundColor: colors.gold }]} />
         <View style={[styles.orbitDot, { bottom: -3, left: 52 - 3, width: 6, height: 6, backgroundColor: '#5FA2FF' }]} />
       </Animated.View>
-      <View style={styles.logo}>
-        <Text style={{ fontSize: 36 }}>{logo}</Text>
-      </View>
+      <TouchableOpacity style={styles.logo} activeOpacity={0.85} onPress={() => setZoom(true)} accessibilityLabel={`Ver a foto de perfil de ${name || 'empresa'}`}>
+        {photo ? <Photo uri={photo} style={{ width: '100%', height: '100%', borderRadius: 999 }} fallback={logo} /> : <Text style={{ fontSize: 36 }}>{logo}</Text>}
+      </TouchableOpacity>
+      {zoom ? (
+        <Modal visible transparent animationType="fade" onRequestClose={() => setZoom(false)}>
+          <TouchableOpacity style={styles.viewer} activeOpacity={1} onPress={() => setZoom(false)}>
+            <TouchableOpacity activeOpacity={1} style={[styles.viewerCard, { maxWidth: 340, alignItems: 'center' }]} onPress={() => {}}>
+              {photo ? (
+                <Photo uri={photo} style={[styles.viewerImg, { aspectRatio: 1 }]} fallback={logo} />
+              ) : (
+                <View style={[styles.viewerImg, { aspectRatio: 1, backgroundColor: '#FFF8E4', alignItems: 'center', justifyContent: 'center' }]}>
+                  <Text style={{ fontSize: 140 }}>{logo}</Text>
+                </View>
+              )}
+              {name ? <Text style={styles.viewerText}>{name}</Text> : null}
+              <TouchableOpacity onPress={() => setZoom(false)} style={styles.viewerClose} accessibilityLabel="Fechar a foto">
+                <Ionicons name="close" size={18} color={colors.text} />
+              </TouchableOpacity>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
+      ) : null}
     </View>
   );
 }
@@ -421,7 +442,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
           </TouchableOpacity>
 
           <View style={[styles.heroBody, { paddingTop: insets.top + 70 }]}>
-            <OrbitLogo logo={p.logo} />
+            <OrbitLogo logo={p.logo} name={p.name} photo={p.logoUri || null} />
             <Text style={styles.heroName}>{p.name}</Text>
             {b.tagline ? <Text style={styles.tagline}>{b.tagline}</Text> : null}
             <LiveNowBadge hostType="empresa" hostId={p.id} />
@@ -468,13 +489,13 @@ export function BusinessPageModal({ p, media, MediaList }) {
               ))}
             </View>
 
-            <View style={{ flexDirection: 'row', marginTop: 14 }}>
-              <TouchableOpacity style={[styles.cta, { flex: 1 }, following && styles.ctaOn]} onPress={() => dispatch({ type: 'FOLLOW', id: p.id })}>
+            <View style={{ flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 }}>
+              <TouchableOpacity style={[styles.cta, following && styles.ctaOn]} onPress={() => dispatch({ type: 'FOLLOW', id: p.id })}>
                 <Ionicons name={following ? 'checkmark' : 'add'} size={16} color={following ? colors.primary : NIGHT} />
                 <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.ctaText, following && { color: colors.primary }]}>{following ? 'Seguindo' : 'Seguir empresa'}</Text>
               </TouchableOpacity>
               {/* Pedir orçamento: vira contato novo (lead) no CRM da empresa. */}
-              <TouchableOpacity style={[styles.glassBtn, { flex: 1, marginLeft: 8 }]} onPress={lead.ask} accessibilityLabel={`Pedir orçamento para ${p.name}`}>
+              <TouchableOpacity style={[styles.glassBtn, { marginLeft: 8 }]} onPress={lead.ask} accessibilityLabel={`Pedir orçamento para ${p.name}`}>
                 <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.text} />
                 <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={styles.glassBtnText}>Pedir orçamento</Text>
               </TouchableOpacity>
@@ -655,11 +676,11 @@ const styles = StyleSheet.create({
   statSep: { borderLeftWidth: 1, borderLeftColor: colors.border },
   statValue: { color: colors.text, fontSize: 14, fontWeight: '800' },
   statLabel: { color: colors.muted, fontSize: 9.5, fontWeight: '700', letterSpacing: 0.3, marginTop: 2, textTransform: 'uppercase' },
-  cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.gold },
+  cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 999, paddingVertical: 7, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.gold },
   ctaOn: { backgroundColor: 'transparent' },
   ctaText: { color: NIGHT, fontWeight: '800', fontSize: 13, marginLeft: 6 },
   ctaGhost: { borderRadius: 14, paddingVertical: 11, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  glassBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.borderStrong },
+  glassBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF', borderRadius: 999, paddingVertical: 7, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.borderStrong },
   glassBtnText: { color: colors.text, fontWeight: '700', fontSize: 13, marginLeft: 6 },
   bio: { color: colors.text, marginTop: 14, lineHeight: 20 },
   hours: { color: colors.muted, fontSize: 12, marginTop: 6 },
