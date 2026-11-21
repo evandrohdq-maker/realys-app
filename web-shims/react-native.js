@@ -28,6 +28,25 @@ function DeskModal(props) {
     window.addEventListener('resize', on);
     return () => window.removeEventListener('resize', on);
   }, []);
+  // Voltar do celular no site (botão do Android/navegador): fecha a janela de cima primeiro.
+  // App.js chama window.__rzModalBack() antes de voltar de aba.
+  React.useEffect(() => {
+    if (!props.visible || typeof window === 'undefined') return undefined;
+    const entry = { close: () => reqClose.current && reqClose.current() };
+    const list = (window.__rzModals = window.__rzModals || []);
+    list.push(entry);
+    window.__rzModalBack = () => {
+      const l = window.__rzModals || [];
+      const top = l[l.length - 1];
+      if (!top) return false;
+      top.close();
+      return true;
+    };
+    return () => {
+      const i = list.lastIndexOf(entry);
+      if (i >= 0) list.splice(i, 1);
+    };
+  }, [props.visible]);
   // Navegou pelo menu lateral, ou apertou Esc: fecha esta janela.
   React.useEffect(() => {
     if (!props.visible || typeof window === 'undefined') return undefined;
