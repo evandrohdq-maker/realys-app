@@ -2,14 +2,20 @@
 
 Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro de 2026.
 
-## ⚠️ CONTRATAR (aviso também no painel do administrador)
+## Servidor (feito em novembro de 2026)
 
-- [ ] **Servidor de vídeo (lives e chamadas)**: VPS **Hetzner CX22 ou CAX11**, Alemanha ou Finlândia,
-      ~€ 4 a 10/mês com **20 TB de tráfego incluídos** (~44 mil horas de live assistidas por mês;
-      passou disso, € 1 por TB). O sistema já está pronto: MediaMTX (lives) + coturn (chamadas).
-      Passo a passo em `server/deploy/video/LEIA-ME.md`. Na fase de testes pode ser a mesma VPS do app.
-- [ ] **Servidor do app** (contas, carteira, pedidos): `server/deploy/setup-ubuntu.sh`.
-- [ ] **Domínios**: `api.` e `video.` apontando para as VPS.
+- [x] **Servidor do app** na Hetzner (ubuntu-8gb-fsn1-1, Alemanha, 8 GB, IP 91.98.12.204), em
+      https://api.realyz.com.br. Atualizar: `bash /opt/realys/server/deploy/update.sh`.
+- [x] **Servidor de vídeo** (MediaMTX + coturn) instalado na mesma VPS em 21/11/2026, em
+      https://video.realyz.com.br; VIDEO_* e TURN_* no .env do app. Quando crescer, mudar para uma VPS
+      só de vídeo (Hetzner CX22/CAX11, 20 TB de tráfego) com `server/deploy/video/setup-video.sh`.
+- [x] **Domínios**: `api.` e `video.` apontando para o servidor (DNS no Registro.br).
+- [x] **Notificações**: chave da conta de serviço do Firebase (projeto realyz-70ae7) no servidor,
+      em /opt/realys/server/data/firebase-conta-servico.json (FIREBASE_SERVICE_ACCOUNT no .env).
+- [ ] **Testar no celular com o APK novo**: notificação com o app fechado, live de um celular para
+      outro e chamada de vídeo (uma no Wi-Fi e outra no 4G, para testar o retransmissor TURN).
+- [ ] **Pix de verdade** (Santander): credenciais do portal de desenvolvedores + certificado A1 no
+      .env (PIX_*), e depois desligar os depósitos de teste (TEST_DEPOSITS=false).
 
 ## Compartilhar a tela (Arena Gamer e Hub de Negócios) — testar no primeiro APK com o servidor
 
@@ -35,7 +41,7 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 
 ## Quando contratar o servidor (fase de testes, 10 a 20 usuários)
 
-- [ ] **Hospedar o Realys num servidor na nuvem**, para as pessoas acessarem de verdade.
+- [x] **Hospedar o Realys num servidor na nuvem**, para as pessoas acessarem de verdade (Hetzner, nov/2026).
 - [ ] **Etapa 2 de contratos e receitas: assinatura ICP-Brasil.** Contratar uma empresa certificadora
       (com API) para a assinatura com certificado digital ICP-Brasil, ligada pelo servidor.
   - Obrigatória para **receitas médicas** (Resolução CFM 2.299/2021, RDC Anvisa 1.000/2025).
@@ -99,7 +105,7 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
       de consultas). Hoje os horários são publicados pelas unidades dentro do Realys e o app confere o
       número do cartão pela regra oficial.
 
-## Vídeo (já pronto, falta o servidor)
+## Vídeo (servidor instalado em 21/11/2026)
 
 - [ ] Depois de instalar: testar live real (transmitir num celular, assistir em outro) e chamada 1 para 1.
 - [ ] Com muita gente assistindo: rede de entrega (CDN) com ponto em São Paulo na frente do `/hls/`.
@@ -400,7 +406,7 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
 - [x] Termo da empresa v3 (funcionários de atendimento, biometria, atendimento direcionado e fechamentos) e Termo de Adesão v18 (item 16-k: taxa sobre negócios fechados pelo CRM). Advogado revisar.
 - [x] Notificação com o app fechado: expo-notifications + Firebase (projeto realyz-70ae7, app com.realys.app,
       google-services.json no repositório). O servidor manda o aviso quando a pessoa não está com o app aberto
-      (server/src/push.js). Falta pôr a chave da conta de serviço no servidor: FIREBASE_SERVICE_ACCOUNT no .env.
+      (server/src/push.js). Chave da conta de serviço instalada no servidor em 21/11/2026.
       O aviso de "streamer favorito entrou ao vivo" já sai do servidor (evento `live-favorito`) e
       aparece com o app aberto; com o push instalado, é só mandar o mesmo aviso para quem ligou o sininho.
 - [x] Food: atalhos Tudo, Pratos, Lanches, Pizza, Japonesa, Padaria, Café & Doces, Saudável e Bar & Drinks, filtrando as lojas pelos produtos de cada tipo.
