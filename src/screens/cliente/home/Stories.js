@@ -14,6 +14,16 @@ import { STORY_EFFECTS, effectStyle, STORY_VIDEO_MAX_S } from '../../../storyEff
 import { StoryMusicPlayer, MusicSticker, MusicPicker } from '../../../components/StoryMusic';
 import StoryCamera from '../../../components/StoryCamera';
 import StoryEffectOverlay from '../../../components/StoryEffectOverlay';
+import { realWidth, DESK_MIN } from '../../../webFrame';
+
+// Story só de texto sem cor escolhida: fundo claro (marfim) e letra escura. A cor de fundo é opção.
+export const STORY_PLAIN = '#FBF8F1';
+const isLightBg = (c) => {
+  const m = String(c || STORY_PLAIN).replace('#', '');
+  if (m.length !== 6) return false;
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(m.slice(i, i + 2), 16));
+  return 0.299 * r + 0.587 * g + 0.114 * b > 186;
+};
 
 let EV = null;
 try {
@@ -137,8 +147,8 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
             <StoryEffectOverlay effect={item.effect} onImage />
           </View>
         ) : (
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: item.bg || colors.primary, alignItems: 'center', justifyContent: 'center', padding: 30 }]}>
-            <Text style={styles.textStory}>{item.text}</Text>
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: item.bg || STORY_PLAIN, alignItems: 'center', justifyContent: 'center', padding: 30 }]}>
+            <Text style={[styles.textStory, isLightBg(item.bg) && { color: colors.text }]}>{item.text}</Text>
           </View>
         )}
         {visible && item.music ? <StoryMusicPlayer key={item.id} music={item.music} paused={paused || typing || covered} /> : null}
@@ -235,7 +245,7 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
 export function StoryComposer({ visible, onClose, onPublish }) {
   const insets = useSafeAreaInsets();
   const [text, setText] = useState('');
-  const [bg, setBg] = useState(STORY_BACKGROUNDS[0]);
+  const [bg, setBg] = useState(null); // sem fundo colorido: a cor é opção do cliente
   const [media, setMedia] = useState(null); // { kind: 'image' | 'video', uri, secs }
   const [effect, setEffect] = useState('original');
   const [writing, setWriting] = useState(false);
@@ -246,7 +256,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
   useEffect(() => {
     if (!visible) return;
     setText('');
-    setBg(STORY_BACKGROUNDS[0]);
+    setBg(null);
     setMedia(null);
     setEffect('original');
     setWriting(false);
@@ -284,7 +294,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
   const ready = !!(text.trim() || media);
   const publish = () => {
     if (!ready) return;
-    const item = { id: 'me' + Date.now(), text: text.trim(), bg, time: 'agora', views: 0 };
+    const item = { id: 'me' + Date.now(), text: text.trim(), bg: bg || STORY_PLAIN, time: 'agora', views: 0 };
     if (music) item.music = music;
     if (media && media.kind === 'image') Object.assign(item, { image: media.uri, effect });
     if (media && media.kind === 'video') Object.assign(item, { video: media.uri, secs: media.secs, effect });
@@ -297,18 +307,23 @@ export function StoryComposer({ visible, onClose, onPublish }) {
   };
 
   const fx = effectStyle(effect);
+  // Sem foto e sem cor: tela clara, letras e botões escuros.
+  const light = !media && isLightBg(bg);
+  const ink = light ? colors.text : '#fff';
+  // No computador: uma caixa em pé no meio da tela (menos de 1/3 da largura), não a tela inteira.
+  const deskBox = Platform.OS === 'web' && realWidth() >= DESK_MIN;
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
-      <View style={{ flex: 1, backgroundColor: media ? '#000' : bg }}>
+    <Modal visible={visible} animationType="slide" transparent={deskBox} onRequestClose={onClose}><KeyboardLift style={[{ flex: 1 }, deskBox && styles.deskBackdrop]}>
+      <View style={[{ flex: 1, backgroundColor: media ? '#000' : bg || STORY_PLAIN }, deskBox && styles.deskBox]}>
         {media && media.kind === 'video' && EV ? <View style={StyleSheet.absoluteFill}><StoryVideo key={media.uri} uri={media.uri} loop muted={!!music} paused={false} style={StyleSheet.absoluteFill} /><StoryEffectOverlay effect={effect} /></View> : null}
         {visible && music && !picking ? <StoryMusicPlayer music={music} paused={false} /> : null}
         {media && media.kind === 'image' ? <View style={StyleSheet.absoluteFill}><Image source={{ uri: media.uri }} style={[StyleSheet.absoluteFill, fx]} /><StoryEffectOverlay effect={effect} onImage /></View> : null}
         <View style={[styles.composerTop, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity style={styles.close} onPress={media ? () => setMedia(null) : onClose} accessibilityLabel={media ? 'Tirar a foto ou o vídeo' : 'Cancelar'}>
-            <Ionicons name={media ? 'arrow-back' : 'close'} size={24} color="#fff" />
+            <Ionicons name={media ? 'arrow-back' : 'close'} size={24} color={ink} />
           </TouchableOpacity>
-          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>Novo story</Text>
-          <TouchableOpacity style={[styles.publish, !ready && { opacity: 0.5 }]} onPress={publish}>
+          <Text style={{ color: ink, fontWeight: '700', fontSize: 16 }}>Novo story</Text>
+          <TouchableOpacity style={[styles.publish, light && { backgroundColor: colors.primary }, !ready && { opacity: 0.5 }]} onPress={publish}>
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '800' }}>Publicar</Text>
           </TouchableOpacity>
         </View>
@@ -317,9 +332,9 @@ export function StoryComposer({ visible, onClose, onPublish }) {
           {music ? (
             <MusicSticker music={music} onPress={() => setPicking(true)} />
           ) : (
-            <TouchableOpacity onPress={() => setPicking(true)} style={styles.addText} accessibilityLabel="Adicionar música ao story">
-              <Ionicons name="musical-notes-outline" size={16} color="#fff" />
-              <Text numberOfLines={1} style={{ color: '#fff', fontWeight: '700', marginLeft: 6 }}>Música</Text>
+            <TouchableOpacity onPress={() => setPicking(true)} style={[styles.addText, light && styles.capBtnLight, light && { borderWidth: 1 }]} accessibilityLabel="Adicionar música ao story">
+              <Ionicons name="musical-notes-outline" size={16} color={light ? colors.primary : '#fff'} />
+              <Text numberOfLines={1} style={{ color: ink, fontWeight: '700', marginLeft: 6 }}>Música</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -332,9 +347,9 @@ export function StoryComposer({ visible, onClose, onPublish }) {
             </TouchableOpacity>
           ) : (
             <TextInput
-              style={[styles.textStory, media && styles.textOnPhoto, { minHeight: 120 }]}
+              style={[styles.textStory, media && styles.textOnPhoto, light && { color: colors.text }, { minHeight: 120 }]}
               placeholder="Conte o que você está vivendo…"
-              placeholderTextColor="rgba(255,255,255,0.75)"
+              placeholderTextColor={light ? colors.muted : 'rgba(255,255,255,0.75)'}
               value={text}
               onChangeText={setText}
               multiline
@@ -343,7 +358,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
           )}
         </View>
 
-        <View style={[styles.palette, { paddingBottom: insets.bottom + 16 }]}>
+        <View style={[styles.palette, light && { backgroundColor: 'transparent' }, { paddingBottom: insets.bottom + 16 }]}>
           {media ? (
             <>
               <Text style={{ color: '#fff', fontWeight: '700', marginBottom: 8 }}>Efeitos</Text>
@@ -379,14 +394,18 @@ export function StoryComposer({ visible, onClose, onPublish }) {
                   ['video', 'videocam-outline', `Vídeo ${STORY_VIDEO_MAX_S}s`],
                   ['galeria', 'images-outline', 'Galeria'],
                 ].map(([k, icon, label]) => (
-                  <TouchableOpacity key={k} onPress={() => take(k)} style={styles.capBtn} accessibilityLabel={label}>
-                    <Ionicons name={icon} size={22} color="#fff" />
-                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '700', fontSize: 12, marginTop: 3 }}>{label}</Text>
+                  <TouchableOpacity key={k} onPress={() => take(k)} style={[styles.capBtn, light && styles.capBtnLight]} accessibilityLabel={label}>
+                    <Ionicons name={icon} size={22} color={light ? colors.primary : '#fff'} />
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: ink, fontWeight: '700', fontSize: 12, marginTop: 3 }}>{label}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
-              <Text style={{ color: '#fff', fontWeight: '700', marginBottom: 8 }}>Fundo</Text>
+              <Text style={{ color: ink, fontWeight: '700', marginBottom: 8 }}>Fundo (opcional)</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                {/* Sem fundo: o padrão, claro. */}
+                <TouchableOpacity style={[styles.swatch, styles.swatchPlain, !bg && styles.swatchOnLight]} onPress={() => setBg(null)} accessibilityLabel="Sem cor de fundo">
+                  <Ionicons name="ban-outline" size={18} color={colors.muted} />
+                </TouchableOpacity>
                 {STORY_BACKGROUNDS.map((c) => (
                   <TouchableOpacity key={c} style={[styles.swatch, { backgroundColor: c }, bg === c && styles.swatchOn]} onPress={() => setBg(c)} accessibilityLabel="Cor de fundo" />
                 ))}
@@ -396,7 +415,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
                   </TouchableOpacity>
                 ))}
               </ScrollView>
-              <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, marginTop: 8 }}>Fica no ar por 24 horas, só para pessoas verificadas.</Text>
+              <Text style={{ color: light ? colors.muted : 'rgba(255,255,255,0.8)', fontSize: 11, marginTop: 8 }}>Fica no ar por 24 horas, só para pessoas verificadas.</Text>
             </>
           )}
         </View>
@@ -460,6 +479,12 @@ const styles = StyleSheet.create({
   palette: { paddingHorizontal: 16, paddingTop: 12, backgroundColor: 'rgba(0,0,0,0.25)' },
   swatch: { width: 40, height: 40, borderRadius: 20, marginRight: 10, borderWidth: 2, borderColor: 'rgba(255,255,255,0.6)' },
   swatchOn: { borderColor: '#fff', borderWidth: 3, transform: [{ scale: 1.1 }] },
+  deskBackdrop: { backgroundColor: 'rgba(241,235,221,0.88)', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  // Caixa em pé no computador: largura de story (9:16), bem menos que 1/3 da tela.
+  deskBox: { flex: 0, width: 380, height: '88%', maxHeight: 680, borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: '#EAD7A4', shadowColor: '#8A6208', shadowOpacity: 0.18, shadowRadius: 30, shadowOffset: { width: 0, height: 12 } },
+  capBtnLight: { borderColor: '#EAD7A4', backgroundColor: '#FFF8E4' },
+  swatchPlain: { backgroundColor: '#fff', borderColor: '#E3DAC4', alignItems: 'center', justifyContent: 'center' },
+  swatchOnLight: { borderColor: colors.primary, borderWidth: 3 },
   capBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 58, marginHorizontal: 4, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.55)', backgroundColor: 'rgba(0,0,0,0.2)' },
   addText: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', paddingHorizontal: 14, minHeight: 38, borderRadius: 19, backgroundColor: 'rgba(0,0,0,0.35)' },
   fxItem: { alignItems: 'center', marginRight: 10, width: 62 },
