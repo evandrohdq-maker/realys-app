@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -57,6 +57,18 @@ jobs:
           cp dist/index.html dist/404.html   # qualquer endereço abre o app
           touch dist/.nojekyll
           ls -la dist
+
+      - name: Testar o site no navegador (erros e fotos da tela vão para a branch site-check)
+        continue-on-error: true
+        run: |
+          mkdir -p /tmp/pw && cd /tmp/pw && npm init -y > /dev/null && npm install playwright@1 > /dev/null && npx playwright install --with-deps chromium > /dev/null
+          cd "$GITHUB_WORKSPACE"
+          cp tools/site/smoke.mjs /tmp/pw/smoke.mjs
+          node /tmp/pw/smoke.mjs "$GITHUB_WORKSPACE/dist" "$WEB_BASE" /tmp/check
+          cd /tmp/check
+          git init -q && git checkout -q -b site-check
+          git -c user.name=ci -c user.email=ci@realys add -A && git -c user.name=ci -c user.email=ci@realys commit -qm "site-check ${{ github.run_number }}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" site-check
 
       - uses: actions/upload-pages-artifact@v3
         with:
