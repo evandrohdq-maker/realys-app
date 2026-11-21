@@ -14,7 +14,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundImage": "./assets/adaptive-icon-bg.png",
         "monochromeImage": "./assets/adaptive-icon-mono.png",
-        "backgroundColor": "#B07A0C"
+        "backgroundColor": "#FBF8F1"
       },
       "permissions": [
         "USE_BIOMETRIC",
