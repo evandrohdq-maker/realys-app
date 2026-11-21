@@ -10,22 +10,29 @@ def starpoly(cx,cy,R,r,rot=-90):
         pts.append((cx+rr*math.cos(a), cy+rr*math.sin(a)))
     return pts
 def letterA(color, starc, bg_is_dark):
+    # A e estrela mesclados: as pernas do A são as pontas de baixo da estrela.
+    # A em ouro escuro, estrela em ouro claro e, onde os dois se cruzam, a mistura das duas cores.
     d0=ImageDraw.Draw(Image.new('RGBA',(5,5)))
     b=d0.textbbox((0,0),'A',font=font)
-    w=b[2]-b[0]; h=d0.textbbox((0,0),'E',font=font); h=h[3]-h[1]
-    pad=int(60*S)
-    im=Image.new('RGBA',(w+2*pad,H),(0,0,0,0))
+    w=(b[2]-b[0])*1.14; h=d0.textbbox((0,0),'E',font=font); h=h[3]-h[1]
+    pad=int(44*S)
+    size=(int(w)+2*pad,H)
     X=lambda u: pad+u*w; Y=lambda v: TOP+v*h
-    # estrela no fundo, maior que o A
-    R=h*0.66
-    ImageDraw.Draw(im).polygon(starpoly(X(0.5), Y(0.56), R, R*0.46), fill=starc)
-    # A na frente, unido a ela
-    m=Image.new('L',im.size,0); md=ImageDraw.Draw(m)
-    md.polygon([(X(0.415),Y(0)),(X(0.585),Y(0)),(X(1),Y(1)),(X(0),Y(1))],fill=255)
-    md.polygon([(X(0.5),Y(0.30)),(X(0.745),Y(1.01)),(X(0.255),Y(1.01))],fill=0)
-    md.rectangle([X(0.2),Y(0.62),X(0.8),Y(0.76)],fill=255)
-    md.polygon([(X(0.5),Y(0.30)),(X(0.745),Y(1.01)),(X(0.255),Y(1.01))],outline=None)
-    im.paste(Image.new('RGBA',im.size,color),(0,0),m)
+    A=Image.new('L',size,0); d=ImageDraw.Draw(A)
+    d.polygon([(X(0.44),Y(-0.02)),(X(0.56),Y(-0.02)),(X(0.97),Y(1)),(X(0.03),Y(1))],fill=255)
+    d.polygon([(X(0.5),Y(0.36)),(X(0.75),Y(1.01)),(X(0.25),Y(1.01))],fill=0)
+    E=Image.new('L',size,0)
+    # estrela saindo de dentro do A: a ponta de cima é o topo do A e as pontas de baixo correm pelas pernas
+    P=[(0.5,-0.02),(0.60,0.40),(1.20,0.30),(0.70,0.62),(0.86,1.0),(0.5,0.79),(0.14,1.0),(0.30,0.62),(-0.20,0.30),(0.40,0.40)]
+    ImageDraw.Draw(E).polygon([(X(u),Y(v)) for u,v in P],fill=255)
+    from PIL import ImageChops
+    both=ImageChops.multiply(A,E)
+    onlyA=ImageChops.subtract(A,both); onlyE=ImageChops.subtract(E,both)
+    im=Image.new('RGBA',size,(0,0,0,0))
+    cA,cE,cM = starc
+    im.paste(Image.new('RGBA',size,cA),(0,0),onlyA)
+    im.paste(Image.new('RGBA',size,cE),(0,0),onlyE)
+    im.paste(Image.new('RGBA',size,cM),(0,0),both)
     return im
 def make(color, starc, path):
     d0=ImageDraw.Draw(Image.new('RGBA',(5,5)))
@@ -39,10 +46,10 @@ def make(color, starc, path):
     W=sum(p.width for p in parts)+gap*4
     out=Image.new('RGBA',(W,H),(0,0,0,0)); x=gap
     for i,p in enumerate(parts):
-        if i==1: x-=int(42*S)
+        if i==1: x-=int(18*S)
         out.alpha_composite(p,(x,0)); x+=p.width+gap
-        if i==1: x-=int(42*S)
+        if i==1: x-=int(18*S)
     bb=out.getbbox(); out=out.crop((bb[0]-8*S,0,bb[2]+8*S,H))
     out=out.resize((out.width//S,H//S),Image.LANCZOS); out.save(path); print(path,out.size)
-make((20,18,14,255),(224,168,26,255),'/tmp/wm/wordmark-dark.png')
-make((251,248,241,255),(242,193,78,255),'/tmp/wm/wordmark-light.png')
+make((20,18,14,255),((168,112,6,255),(245,196,70,255),(214,152,20,255)),'/tmp/wm/wordmark-dark.png')
+make((251,248,241,255),((212,150,20,255),(255,224,130,255),(240,184,48,255)),'/tmp/wm/wordmark-light.png')

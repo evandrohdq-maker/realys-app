@@ -685,7 +685,7 @@ function Shell({ inviteTick }) {
       <PipManager />
       <LiveFloat bottom={150 + insets.bottom} />
       <TouchableOpacity
-        style={[styles.fab, { bottom: 84 + insets.bottom }, videoFull && { display: 'none' }]}
+        style={[styles.fab, { bottom: 84 + insets.bottom }, (videoFull || desk) && { display: 'none' }]}
         onPress={() => setVoice(true)}
         activeOpacity={0.85}
         accessibilityLabel="Falar com a Lotus"

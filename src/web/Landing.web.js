@@ -62,7 +62,7 @@ const AREAS = [
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Manrope:wght@400;500;700&display=swap');
-.rz{--ouro:#E0A81A;--ouro-claro:#F2C14E;--marfim:#FBF8F1;--tinta:#14120E;--cinza:#5B564B;
+.rz{position:relative;--ouro:#E0A81A;--ouro-claro:#F2C14E;--marfim:#FBF8F1;--tinta:#14120E;--cinza:#5B564B;
   font-family:Manrope,system-ui,sans-serif;color:var(--tinta);background:var(--marfim);height:100%;overflow-y:auto;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 .rz *{box-sizing:border-box}
 .rz a{color:inherit}
