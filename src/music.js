@@ -23,18 +23,27 @@ const r2 = (n) => Math.round(n * 100) / 100;
 export const priceFor = (artistValue) => r2(artistValue + MUSIC_FEE);
 export const artistGets = (price) => r2(Math.max(0, price - MUSIC_FEE));
 
-const T = (n) => `https://www.soundhelix.com/examples/mp3/SoundHelix-Song-${n}.mp3`;
-// Faixas de exemplo (artistas inventados; o áudio é de teste).
+// Faixas livres de verdade: Kevin MacLeod (incompetech.com), licença Creative Commons BY 4.0.
+// Uso gratuito, inclusive comercial, desde que o crédito apareça (fica no nome do artista e no aviso da Galeria).
+// São grátis para ouvir no Realyz (sem venda). Quando o servidor de músicas estiver no ar, o ideal é
+// guardar uma cópia delas lá em vez de puxar do site do autor.
+const IC = (file) => `https://incompetech.com/music/royalty-free/mp3-royaltyfree/${encodeURIComponent(file)}`;
+export const FREE_CREDIT = 'Músicas livres: Kevin MacLeod (incompetech.com) · Licença CC BY 4.0';
+const KM = 'Kevin MacLeod';
 const SEED = [
-  { id: 'mu1', title: 'Estrada de Chão', artist: 'Duda Ferraz', genre: 'Sertanejo', emoji: '🤠', price: 2.99, plays: 18400, url: T(1), example: true },
-  { id: 'mu2', title: 'Luz do Amanhecer', artist: 'Ministério Aliança', genre: 'Gospel', emoji: '🙌', price: 1.99, plays: 32100, url: T(2), example: true },
-  { id: 'mu3', title: 'Ijexá da Lua', artist: 'Lia Moreno', genre: 'MPB', emoji: '🌙', price: 3.49, plays: 9700, url: T(3), example: true },
-  { id: 'mu4', title: 'Rua 15', artist: 'Banda Volts', genre: 'Rock', emoji: '🎸', price: 2.49, plays: 6200, url: T(4), example: true },
-  { id: 'mu5', title: 'Coração no Modo Avião', artist: 'Bela Nunes', genre: 'Pop', emoji: '✈️', price: 2.99, plays: 27800, url: T(5), example: true },
-  { id: 'mu6', title: 'Quebrada de Ouro', artist: 'MC Tavin', genre: 'Rap', emoji: '🎤', price: 1.99, plays: 41500, url: T(6), example: true },
-  { id: 'mu7', title: 'Neon Sul', artist: 'DJ Karu', genre: 'Eletrônica', emoji: '🎧', price: 3.99, plays: 12900, url: T(7), example: true },
-  { id: 'mu8', title: 'Domingo no Quintal', artist: 'Grupo Sem Pressa', genre: 'Pagode', emoji: '🥁', price: 2.49, plays: 15300, url: T(8), example: true },
-].map((t) => ({ ...t, cover: `https://picsum.photos/seed/realys-cd-${t.id}/400/400` })); // capa do CD/da música
+  { id: 'mu1', title: 'Paradise Found', genre: 'Pop', emoji: '🏝️', file: 'Paradise_Found.mp3' },
+  { id: 'mu2', title: 'Late Night Radio', genre: 'Pop', emoji: '🌃', file: 'Late Night Radio.mp3' },
+  { id: 'mu3', title: 'Cloud Dancer', genre: 'Eletrônica', emoji: '☁️', file: 'Cloud Dancer.mp3' },
+  { id: 'mu4', title: 'Boogie Party', genre: 'Rock', emoji: '🎸', file: 'Boogie Party.mp3' },
+  { id: 'mu5', title: 'Pleasant Porridge', genre: 'Rock', emoji: '🥣', file: 'Pleasant Porridge.mp3' },
+  { id: 'mu6', title: 'Galactic Rap', genre: 'Rap', emoji: '🪐', file: 'Galactic Rap.mp3' },
+  { id: 'mu7', title: 'Space Jazz', genre: 'Instrumental', emoji: '🎷', file: 'Space Jazz.mp3' },
+  { id: 'mu8', title: 'Vibing Over Venus', genre: 'Instrumental', emoji: '✨', file: 'Vibing Over Venus.mp3' },
+  { id: 'mu9', title: 'Morning', genre: 'Instrumental', emoji: '🌅', file: 'Morning.mp3' },
+  { id: 'mu10', title: 'Tiki Bar Mixer', genre: 'Instrumental', emoji: '🍹', file: 'Tiki Bar Mixer.mp3' },
+  { id: 'mu11', title: 'Del Rio Bravo', genre: 'Instrumental', emoji: '🌵', file: 'Del Rio Bravo.mp3' },
+  { id: 'mu12', title: 'Ether Vox', genre: 'Pop', emoji: '🌙', file: 'Ether Vox.mp3' },
+].map(({ file, ...t }) => ({ ...t, artist: KM, price: 0, free: true, license: 'CC BY 4.0', url: IC(file), cover: `https://picsum.photos/seed/realys-cd-${t.id}/400/400` }));
 
 const KEY = 'realys.music.v1';
 let data = { mine: [], playlists: [], plan: null, sales: 0, earned: 0, heard: 0, server: [] };

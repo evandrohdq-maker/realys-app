@@ -34,6 +34,7 @@ import { makePix } from './pagamentos/pix.js';
 import { makeIA } from './ia/index.js';
 import { makeAtendente } from './ia/atendente.js';
 import iaRoutes from './routes/ia.js';
+import noticiasRoutes from './routes/noticias.js';
 
 // Dados públicos de uma pessoa (nunca devolve hash de senha nem documento completo).
 export function publicUser(u, { self = false } = {}) {
@@ -87,7 +88,7 @@ export function createApp(cfg) {
     attempts.set(key, a);
   };
   deps.clearLogin = (key) => attempts.delete(key);
-  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes].forEach((r) => r(router, deps));
+  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes, noticiasRoutes].forEach((r) => r(router, deps));
   router.get('/health', () => ({ ok: true, name: 'Realyz', time: now() }), { auth: false });
 
   // Administrador inicial (ADMIN_PASSWORD no .env).

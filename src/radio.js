@@ -5,7 +5,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const KEY = 'realys.radios';
 
-// Rádios de exemplo para a demonstração (streams públicos de rádios na internet).
+// Rádios reais e gratuitas, com conteúdo para todas as idades:
+// - Sky Plus: a rádio principal do Realyz.
+// - Rádio Câmara e Rádio Senado: rádios públicas do Congresso. O conteúdo é público e gratuito, e as
+//   duas liberam a retransmissão ao vivo pelos links oficiais (Câmara: licença Creative Commons BY).
+// - SomaFM: rádio independente, sem comerciais, mantida pelos ouvintes (San Francisco, EUA).
+// Rádio comercial brasileira só entra com autorização da própria rádio (ela indexa pelo app).
+const SOMA = (id) => `https://ice2.somafm.com/${id}-128-mp3`;
 const SEED = [
   // Rádio principal do Realyz (destaque no topo do Stream).
   {
@@ -14,13 +20,22 @@ const SEED = [
     url: 'https://stm1.voxpainel.com.br:7004/stream', desc: 'A rádio principal do Realyz. Ao vivo 24 horas.',
   },
   {
-    id: 'rd-exemplo-1', name: 'Groove Salad (SomaFM)', city: 'San Francisco, EUA', genre: 'Eletrônica ambiente', emoji: '🎧',
-    url: 'https://ice1.somafm.com/groovesalad-128-mp3', example: true, cat: 'eletronica', desc: 'Rádio de exemplo: mostra como fica uma rádio indexada no Realyz.',
+    id: 'rd-camara', name: 'Rádio Câmara', city: 'Brasília · 96,9 FM', genre: 'Notícias e cidadania', cat: 'noticias', emoji: '🏛️', verified: true, public: true,
+    url: 'https://stream3.camara.leg.br/radiocamara1t64',
+    desc: 'Rádio pública da Câmara dos Deputados: jornalismo, sessões ao vivo, música brasileira e A Voz do Brasil.',
   },
   {
-    id: 'rd-exemplo-2', name: 'Bossa Beyond (SomaFM)', city: 'San Francisco, EUA', genre: 'Bossa nova e MPB', emoji: '🎷',
-    url: 'https://ice2.somafm.com/bossa-128-mp3', example: true, cat: 'mpb', desc: 'Rádio de exemplo com bossa nova.',
+    id: 'rd-senado', name: 'Rádio Senado', city: 'Brasília · 91,7 FM', genre: 'Notícias e música brasileira', cat: 'noticias', emoji: '🏛️', verified: true, public: true,
+    url: 'http://radioaovivo.senado.leg.br/fm.mp3',
+    desc: 'Rádio pública do Senado Federal: votações ao vivo, entrevistas, programas culturais e música brasileira.',
   },
+  { id: 'rd-exemplo-2', name: 'Bossa Beyond', city: 'SomaFM · San Francisco, EUA', genre: 'Bossa nova e MPB', cat: 'mpb', emoji: '🎷', url: SOMA('bossa'), desc: 'Bossa nova, samba-jazz e MPB, sem comerciais.' },
+  { id: 'rd-exemplo-1', name: 'Groove Salad', city: 'SomaFM · San Francisco, EUA', genre: 'Eletrônica ambiente', cat: 'eletronica', emoji: '🎧', url: SOMA('groovesalad'), desc: 'Batidas leves e eletrônica tranquila, sem comerciais.' },
+  { id: 'rd-soma-lush', name: 'Lush', city: 'SomaFM · San Francisco, EUA', genre: 'Pop suave com vocais', cat: 'pop', emoji: '🌸', url: SOMA('lush'), desc: 'Vozes suaves e pop eletrônico calmo, sem comerciais.' },
+  { id: 'rd-soma-folk', name: 'Folk Forward', city: 'SomaFM · San Francisco, EUA', genre: 'Folk e indie acústico', cat: 'rock', emoji: '🪕', url: SOMA('folkfwd'), desc: 'Folk, indie e acústico, sem comerciais.' },
+  { id: 'rd-soma-agent', name: 'Secret Agent', city: 'SomaFM · San Francisco, EUA', genre: 'Jazz e lounge instrumental', cat: 'mpb', emoji: '🕶️', url: SOMA('secretagent'), desc: 'Lounge e jazz instrumental com clima de cinema, sem comerciais.' },
+  { id: 'rd-soma-drone', name: 'Drone Zone', city: 'SomaFM · San Francisco, EUA', genre: 'Ambiente para relaxar', cat: 'classica', emoji: '🌌', url: SOMA('dronezone'), desc: 'Música ambiente sem batida, para relaxar, estudar ou dormir.' },
+  { id: 'rd-soma-space', name: 'Deep Space One', city: 'SomaFM · San Francisco, EUA', genre: 'Eletrônica espacial', cat: 'eletronica', emoji: '🚀', url: SOMA('deepspaceone'), desc: 'Eletrônica ambiente com clima espacial, sem comerciais.' },
 ];
 
 let radios = SEED;
