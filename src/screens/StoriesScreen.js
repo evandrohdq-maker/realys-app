@@ -38,6 +38,12 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
     if (!explore || explore.tab !== 'stories') return;
     setTop(explore.top && COMMUNITY_TOP_KEYS.includes(explore.top) ? explore.top : 'comunidade');
   }, [explore]);
+  // Veio do "Seu story" do menu lateral (computador): ver/criar o story ou abrir o "+".
+  useEffect(() => {
+    if (!explore || explore.tab !== 'stories' || !explore.story) return;
+    if (explore.story === 'add') setAdding(true);
+    if (explore.story === 'mine') openMine();
+  }, [explore]);
   // Avisa o app qual sub-aba está aberta (para o arrastar para os lados saber onde está).
   useEffect(() => {
     if (onTop) onTop(top);

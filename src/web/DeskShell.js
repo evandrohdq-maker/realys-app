@@ -23,11 +23,38 @@ export function useDesktop() {
   return { desk: Platform.OS === 'web' && w >= DESK_MIN, rail: Platform.OS === 'web' && w >= RAIL_MIN };
 }
 
-function Side({ tabs, currentKey, onTab, onLotus, onMenu, onProfile, profileOn, userName }) {
+// O seu story no topo do menu lateral, sempre à vista: tocar na foto vê o seu story (ou cria, se ainda
+// não tem); o "+" abre publicar (post, Reel, story ou depoimento).
+function MyStory({ onGo }) {
+  const { state } = useStore();
+  const name = (state.user && state.user.name) || 'Você';
+  const last = state.myStories && state.myStories.length ? state.myStories[state.myStories.length - 1] : null;
+  const photo = (state.myProfile && state.myProfile.photo) || (last && last.image) || null;
+  return (
+    <View style={st.myStory}>
+      <TouchableOpacity onPress={() => onGo && onGo({ tab: 'stories', top: 'comunidade', story: 'mine' })} activeOpacity={0.85} accessibilityLabel={last ? 'Ver o seu story' : 'Criar o seu story'}>
+        <View style={st.myRing}>
+          {photo ? (
+            <Image source={{ uri: photo }} style={st.myImg} />
+          ) : (
+            <View style={[st.myImg, { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }]}>
+              <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 24 }}>{name.charAt(0).toUpperCase()}</Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => onGo && onGo({ tab: 'stories', top: 'comunidade', story: 'add' })} style={st.myPlus} accessibilityLabel="Publicar: post, Reel, story ou depoimento">
+        <Ionicons name="add" size={18} color="#fff" />
+      </TouchableOpacity>
+      <Text style={st.myLabel} numberOfLines={1}>Seu story</Text>
+    </View>
+  );
+}
+
+function Side({ tabs, currentKey, onTab, onLotus, onMenu, onProfile, profileOn, userName, onGo }) {
   return (
     <View style={st.side}>
-      {/* A logo do app (o A com a estrela e o R): a mesma que ficava em cima dos stories. */}
-      <Image source={require('../../assets/logo-mark.png')} style={st.mark} resizeMode="contain" accessibilityLabel="Realyz" />
+      <MyStory onGo={onGo} />
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 12 }}>
         {tabs.map((t) => {
           const on = t.key === currentKey;
@@ -163,7 +190,11 @@ export default function DeskShell({ desk, rail, children, ...p }) {
 const st = StyleSheet.create({
   page: { flex: 1, flexDirection: 'row', backgroundColor: '#F1EBDD' },
   side: { width: 248, backgroundColor: colors.bg, borderRightWidth: 1, borderRightColor: colors.border, paddingTop: 22, paddingHorizontal: 14, paddingBottom: 16 },
-  mark: { width: 64, height: 64, alignSelf: 'center', marginBottom: 22 }, // só a logo, no centro da coluna
+  myStory: { alignSelf: 'center', alignItems: 'center', marginBottom: 18 },
+  myRing: { width: 84, height: 84, borderRadius: 42, borderWidth: 3, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
+  myImg: { width: 72, height: 72, borderRadius: 36 },
+  myPlus: { position: 'absolute', right: -2, top: 58, width: 28, height: 28, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.bg },
+  myLabel: { marginTop: 6, color: colors.primary, fontWeight: '800', fontSize: 13 },
   item: { flexDirection: 'row', alignItems: 'center', paddingVertical: 11, paddingHorizontal: 12, borderRadius: 12, marginBottom: 2 },
   itemOn: { backgroundColor: '#F6EDD6' },
   itemText: { marginLeft: 14, fontSize: 16, color: colors.text, fontWeight: '600' },
