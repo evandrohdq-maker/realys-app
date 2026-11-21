@@ -19,10 +19,11 @@ function seeded(seed) {
 
 // Fundo da caixa: bem translúcido, para o céu "transparecer" e só as caixas de conteúdo se destacarem.
 export function skyBg(sky) {
-  if (sky.mode === 'day') return 'rgba(46,120,206,0.52)';
-  if (sky.mode === 'night') return 'rgba(10,16,40,0.62)';
-  if (sky.mode === 'cloudy') return sky.day ? 'rgba(92,120,156,0.56)' : 'rgba(30,38,60,0.64)';
-  return sky.day ? 'rgba(62,76,98,0.62)' : 'rgba(22,28,44,0.68)'; // chuvoso
+  // Céu ainda translúcido, mas forte o bastante para o texto do app por trás não atrapalhar a leitura.
+  if (sky.mode === 'day') return 'rgba(40,104,186,0.9)';
+  if (sky.mode === 'night') return 'rgba(10,16,40,0.9)';
+  if (sky.mode === 'cloudy') return sky.day ? 'rgba(70,96,132,0.9)' : 'rgba(26,34,56,0.9)';
+  return sky.day ? 'rgba(54,66,88,0.9)' : 'rgba(20,26,42,0.92)'; // chuvoso
 }
 
 const GROUPS = 3;
@@ -133,7 +134,7 @@ export default function StarField({ count = 40, active = true, sky = { mode: 'ni
   const d1 = drift.interpolate({ inputRange: [0, 1], outputRange: [0, 40] });
   const d2 = drift.interpolate({ inputRange: [0, 1], outputRange: [0, -28] });
   const cloudColor =
-    mode === 'day' ? 'rgba(255,255,255,0.55)' : mode === 'cloudy' ? (day ? 'rgba(236,242,250,0.42)' : 'rgba(150,160,190,0.22)') : day ? 'rgba(150,162,182,0.5)' : 'rgba(90,100,124,0.4)';
+    mode === 'day' ? 'rgba(255,255,255,0.16)' : mode === 'cloudy' ? (day ? 'rgba(236,242,250,0.14)' : 'rgba(150,160,190,0.1)') : day ? 'rgba(150,162,182,0.14)' : 'rgba(90,100,124,0.12)';
 
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
@@ -180,12 +181,12 @@ export default function StarField({ count = 40, active = true, sky = { mode: 'ni
       {mode !== 'night' ? (
         <>
           <Cloud top={34} left={-10} scale={1.1} color={cloudColor} drift={d1} />
-          <Cloud top={150} left={210} scale={0.9} color={cloudColor} drift={d2} />
+          <Cloud top={40} left={230} scale={0.9} color={cloudColor} drift={d2} />
           {mode !== 'day' ? (
             <>
               <Cloud top={6} left={150} scale={1.3} color={cloudColor} drift={d2} />
-              <Cloud top={260} left={-30} scale={1.2} color={cloudColor} drift={d1} />
-              <Cloud top={90} left={90} scale={0.8} color={cloudColor} drift={d1} />
+              <Cloud top={60} left={-40} scale={1.0} color={cloudColor} drift={d1} />
+              <Cloud top={20} left={90} scale={0.8} color={cloudColor} drift={d1} />
             </>
           ) : null}
         </>

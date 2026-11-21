@@ -323,8 +323,14 @@ export function askRealys(text, state, { min = 0.5 } = {}) {
 
 // É uma dúvida sobre o Realyz (e não um pedido de ação)? A voz da Lotus usa isso para decidir
 // entre responder a dúvida ou procurar produto, prestador, festa...
-const QUESTION = /\b(como|quanto|quantos|quantas|qual|quais|por ?que|pra que|para que|o que (e|é|significa|acontece|diz|fala)|posso|da pra|dá pra|tem como|e se|onde (fica|vejo|acho)|preciso|funciona|cobra|pode)\b/;
-export const looksLikeRealysQuestion = (t) => QUESTION.test(norm(t)) && !/^\s*(abr[ea]|abrir|me leva|vai pra|mostra|chama|pede|compra|liga)\b/.test(norm(t));
+const QUESTION = /\b(como|quanto|quantos|quantas|qual|quais|por ?que|pra que|para que|o que (e|é|significa|acontece|diz|fala)|posso|da pra|dá pra|tem como|e se|onde (fica|vejo|acho)|preciso|funciona|cobra|pode|(quero|queria|vou|posso) (ser|virar|trabalhar))\b/;
+// Pedido de serviço ("preciso de um motorista", "quero uma diarista") não é dúvida sobre o app:
+// vai para a busca de prestadores. Só continua dúvida se a pessoa fala de SER prestador
+// ("quero ser motorista", "preciso me cadastrar").
+const SERVICE_REQUEST = /^\s*(eu\s+)?(preciso|precisava|quero|queria|procuro|to precisando|estou precisando|me arruma|arruma|me manda|manda|me chama)\s+(de\s+)?(um|uma|uns|umas)\b/;
+const BE_PROVIDER = /\b(ser|virar|trabalhar|cadastr|me cadastrar|oferecer)\b/;
+export const isServiceRequest = (t) => SERVICE_REQUEST.test(norm(t)) && !BE_PROVIDER.test(norm(t));
+export const looksLikeRealysQuestion = (t) => QUESTION.test(norm(t)) && !isServiceRequest(t) && !/^\s*(abr[ea]|abrir|me leva|vai pra|mostra|chama|pede|compra|liga)\b/.test(norm(t));
 
 // Para os testes e para o administrador: quantas respostas a Lotus tem na cabeça.
 export const knowledgeSize = () => {

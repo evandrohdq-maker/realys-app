@@ -635,7 +635,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
 }
 
 // Palavras que mostram que a dúvida é sobre o próprio Realyz (e não sobre um produto ou prestador).
-const REALYS_CUE = /\b(realys|app|aplicativo|plataforma|taxa|taxas|cobra|cobram|comiss|garantia|biometria|reconhecimento|rosto|saque|sacar|saco|saca|grana|dinheiro|saldo|carteira|pix|ponto|pontos|reembolso|estorno|devolu|conta|senha|termo|regra|plano|mensalidade|assinatura|anunciar|anuncio|vender|desapego|date|lotus|ouvindo|escuta|microfone|suporte|chamado|atendente|qr|gorjeta|presente|live|streamer|boost|pagina|menor|idade|seguro|golpe|fake|privacidade|dados|atualiza|contrato|prestador|motorista|embarc|espera|loja)/;
+const REALYS_CUE = /\b(realys|realyz|app|trabalhar|aplicativo|plataforma|taxa|taxas|cobra|cobram|comiss|garantia|biometria|reconhecimento|rosto|saque|sacar|saco|saca|grana|dinheiro|saldo|carteira|pix|ponto|pontos|reembolso|estorno|devolu|conta|senha|termo|regra|plano|mensalidade|assinatura|anunciar|anuncio|vender|desapego|date|lotus|ouvindo|escuta|microfone|suporte|chamado|atendente|qr|gorjeta|presente|live|streamer|boost|pagina|menor|idade|seguro|golpe|fake|privacidade|dados|atualiza|contrato|prestador|motorista|embarc|espera|loja)/;
 
 // Entre as opções que o celular ouviu, prefere a que é um pedido de navegação
 // ("histories" na 1ª opção, "stories" na 2ª → vai para os Stories).
@@ -1598,9 +1598,11 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
             </Text>
           ) : null}
           {/* Com opções na tela, a resposta já está no cartão logo abaixo: aqui fica só o que você está falando. */}
-          {compact && !partial ? null : (
-            <Text style={[styles.live, !partial && !last && styles.livePlaceholder]} numberOfLines={2}>
-              {partial || (last && phase !== 'listening' ? splitSentences(last.reply)[0] : tratoOf() ? openLine(tratoOf(), state.user && state.user.name) : '“Me leva pro Agro”')}
+          {/* A resposta da Lotus já aparece no cartão logo abaixo: aqui não repete. Fica só o que
+              você está falando, ou o convite antes da primeira pergunta. */}
+          {(compact || last) && !partial ? null : (
+            <Text style={[styles.live, !partial && styles.livePlaceholder]} numberOfLines={2}>
+              {partial || (tratoOf() ? openLine(tratoOf(), state.user && state.user.name) : '“Me leva pro Agro”')}
             </Text>
           )}
           {!compact ? paused && phase !== 'speaking' ? (
