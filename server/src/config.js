@@ -59,6 +59,7 @@ export function loadConfig(overrides = {}) {
     foodFeePct: num(env.FOOD_FEE_PCT, env.ORDER_FEE_PCT === undefined ? 0 : num(env.ORDER_FEE_PCT, 0)), // no Food (tabela: 10%)
     // Serviços: o Realyz fica com 15% da taxa de visita e 18% do valor das corridas e entregas.
     visitFeePct: num(env.VISIT_FEE_PCT, 15),
+    showFeePct: num(env.SHOW_FEE_PCT, 10),
     rideFeePct: num(env.RIDE_FEE_PCT, 18),
     // Ingressos: 8% de cada ingresso, no mínimo R$ 1,99, pagos pelo produtor.
     ticketFeePct: num(env.TICKET_FEE_PCT, 8),

@@ -22,6 +22,8 @@ import { MuralTab, MuralPeek, useMuralItems } from './Mural';
 import { stories as STORY_GROUPS } from '../homeData';
 import { galleryOf } from '../testimonialsData';
 import { StoryViewer } from '../screens/cliente/home/Stories';
+import { HireButton } from './ArtistBooking';
+import { artistByRef } from '../artistShows';
 
 // Foto do perfil: tocar abre os stories da pessoa (anel dourado = tem story novo);
 // segurar mostra a foto de perfil grande. Sem story, tocar também mostra a foto.
@@ -275,6 +277,7 @@ export function UserProfileModal() {
               <Ionicons name="gift-outline" size={18} color={colors.primary} />
             </TouchableOpacity>
           </View>
+          <HireButton artist={artistByRef('member', m.id)} before={close} />
           {/* Deixar depoimento: só entre amigos (o dono do perfil aprova antes de aparecer). */}
           {st === 'amigo' ? (
             <TouchableOpacity style={styles.depBtn} onPress={() => setWriting(true)} activeOpacity={0.85} accessibilityLabel={`Deixar depoimento para ${m.name}`}>
@@ -393,6 +396,8 @@ export function ProfilePeek({ m, onClose, onMessage, onFull }) {
               </TouchableOpacity>
             ) : null}
           </View>
+          {/* Artista com vitrine de shows: contratar, orçamento e contato pelo Realyz. */}
+          <HireButton artist={artistByRef('member', m.id)} before={onClose} />
 
           {posts.length ? (
             <>

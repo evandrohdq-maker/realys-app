@@ -15,6 +15,7 @@ import { StoryMusicPlayer, MusicSticker, MusicPicker } from '../../../components
 import StoryCamera from '../../../components/StoryCamera';
 import StoryEffectOverlay from '../../../components/StoryEffectOverlay';
 import StoryFrame, { storyDesk } from '../../../components/StoryFrame';
+import { ShowStoryCard } from '../../../components/ArtistBooking';
 
 // Story só de texto sem cor escolhida: fundo claro (marfim) e letra escura. A cor de fundo é opção.
 export const STORY_PLAIN = '#FBF8F1';
@@ -141,6 +142,10 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
           <View style={StyleSheet.absoluteFill}>
             <StoryVideo key={item.id} uri={item.video} muted={!!item.music} paused={paused || typing || covered} style={StyleSheet.absoluteFill} />
             <StoryEffectOverlay effect={item.effect} />
+          </View>
+        ) : item.showCard ? (
+          <View style={[StyleSheet.absoluteFill, { justifyContent: 'center' }]}>
+            <ShowStoryCard card={item.showCard} style={{ borderRadius: 0, width: '100%' }} />
           </View>
         ) : item.image ? (
           <View style={StyleSheet.absoluteFill}>

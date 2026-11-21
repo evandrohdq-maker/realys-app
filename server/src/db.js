@@ -667,6 +667,60 @@ const MIGRATIONS = [
   );
   ALTER TABLE messages ADD COLUMN ia INTEGER NOT NULL DEFAULT 0;
   `,
+  // 23: contratação de artistas (vitrine de shows, pedidos, conversa do pedido e divulgação)
+  `
+  CREATE TABLE artist_shows (
+    user_id TEXT PRIMARY KEY REFERENCES users(id),
+    ativo INTEGER NOT NULL DEFAULT 0,
+    nome TEXT NOT NULL,
+    genero TEXT DEFAULT '',
+    cidade TEXT NOT NULL,
+    frase TEXT DEFAULT '',
+    pacotes TEXT NOT NULL,        -- JSON [{id, nome, duracao, valor (centavos), desc}]
+    eventos TEXT NOT NULL DEFAULT '[]',
+    atende TEXT NOT NULL,         -- JSON {modo: cidade|regiao|viaja, raioKm, porKm (centavos), hospedagem}
+    dias_semana TEXT NOT NULL DEFAULT '[]',
+    agenda_ate TEXT,
+    bloqueados TEXT NOT NULL DEFAULT '[]',
+    vitrine TEXT NOT NULL DEFAULT '[]',
+    estrutura TEXT DEFAULT '',
+    updated_at INTEGER NOT NULL
+  );
+  CREATE TABLE show_pedidos (
+    id TEXT PRIMARY KEY,
+    artist_id TEXT NOT NULL REFERENCES users(id),
+    client_id TEXT NOT NULL REFERENCES users(id),
+    tipo TEXT NOT NULL CHECK (tipo IN ('contratacao','orcamento','contato')),
+    status TEXT NOT NULL CHECK (status IN ('aguardando','proposta','confirmado','realizado','recusado','cancelado','conversa')),
+    pacote TEXT,                  -- JSON do show escolhido
+    data TEXT,                    -- AAAA-MM-DD
+    hora TEXT DEFAULT '',
+    evento TEXT DEFAULT '',
+    local TEXT DEFAULT '',
+    cidade TEXT DEFAULT '',
+    publico INTEGER,
+    valor INTEGER,                -- cachê (centavos)
+    desloc INTEGER NOT NULL DEFAULT 0,
+    pay_state TEXT CHECK (pay_state IN ('retida','liberada','devolvida')),
+    from_gift INTEGER NOT NULL DEFAULT 0,
+    divulga_artista INTEGER NOT NULL DEFAULT 0,
+    divulga_cliente INTEGER NOT NULL DEFAULT 0,
+    nota INTEGER,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE INDEX show_pedidos_artist ON show_pedidos(artist_id, status);
+  CREATE INDEX show_pedidos_client ON show_pedidos(client_id, status);
+  CREATE INDEX show_pedidos_data ON show_pedidos(artist_id, data);
+  CREATE TABLE show_msgs (
+    id TEXT PRIMARY KEY,
+    pedido_id TEXT NOT NULL REFERENCES show_pedidos(id),
+    from_id TEXT NOT NULL REFERENCES users(id),
+    text TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX show_msgs_pedido ON show_msgs(pedido_id, created_at);
+  `,
 ];
 
 export function openDb(file) {

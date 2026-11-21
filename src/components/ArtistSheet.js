@@ -13,6 +13,8 @@ import { useMusic, useArtistOpen, closeArtist, artistTracks, playTrack } from '.
 import { useRadioNow } from './RadioKit';
 import { stopRadio } from '../radio';
 import { memberByName } from '../people';
+import { HireButton } from './ArtistBooking';
+import { allArtists } from '../artistShows';
 
 const short = (n) => (n >= 1000 ? (n / 1000).toFixed(1).replace('.0', '') + ' mil' : String(n));
 
@@ -71,6 +73,9 @@ function ArtistSheet({ name }) {
           ) : null}
         </View>
 
+        <View style={{ paddingHorizontal: 16 }}>
+          <HireButton artist={allArtists().find((a) => a.nome === name)} before={closeArtist} />
+        </View>
         <Text style={st.h}>Músicas</Text>
         {tracks.map((t) => {
           const on = playingId === t.id;

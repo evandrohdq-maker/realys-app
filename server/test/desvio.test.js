@@ -26,7 +26,7 @@ async function api(method, path, { who, body } = {}) {
   return { status: res.status, data };
 }
 const signup = async (who, extra) => {
-  const r = await api('POST', '/auth/signup', { body: { password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v18', ...extra } });
+  const r = await api('POST', '/auth/signup', { body: { password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v19', ...extra } });
   assert.ok(r.status < 300, JSON.stringify(r.data));
   S[who] = { token: r.data.accessToken, id: r.data.user.id };
 };

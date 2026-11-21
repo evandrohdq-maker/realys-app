@@ -3,15 +3,24 @@ import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
-import { colors, soft } from '../../theme';
+import { colors, soft, brl } from '../../theme';
 import { Screen, Title, Photo, Badge, Row } from '../../components/ui';
 import { artists, artMedia, ART_KINDS } from '../../extraData';
 import { MediaList } from '../../components/CompanyProfile';
 import { SearchBar, GlobalResults } from '../../components/Search';
+import { useShows, allArtists, fromPrice, atendeText, cityName } from '../../artistShows';
+import { openArtistShow } from '../../components/ArtistBooking';
+import { carregarArtistas } from '../../serverShows';
+
 
 // Artistas: músicas em MP3, vídeos e obras. Cada artista tem a sua página.
 export default function ArtistsScreen({ explore, navigate }) {
   const { dispatch } = useStore();
+  useShows();
+  // Artistas com vitrine no servidor (quando o app está ligado a ele).
+  useEffect(() => {
+    carregarArtistas().catch(() => {});
+  }, []);
   const [kind, setKind] = useState('todos');
   const [q, setQ] = useState('');
   const [searched, setSearched] = useState('');
@@ -59,13 +68,31 @@ export default function ArtistsScreen({ explore, navigate }) {
         })}
       </Row>
 
+      {/* Contratar para evento: artistas com vitrine de shows (cachê, onde atende e agenda). */}
+      <Text style={styles.h2}>🎤 Contrate para o seu evento</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14, marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
+        {allArtists()
+          .filter((a) => a.ativo && (!term || (a.nome + ' ' + a.genero + ' ' + a.cidade).toLowerCase().includes(term)))
+          .map((a) => (
+            <TouchableOpacity key={a.id} style={styles.hire} onPress={() => openArtistShow(a.id)} activeOpacity={0.85} accessibilityLabel={`Contratar ${a.nome}`}>
+              <Photo uri={a.foto} style={styles.artistImg} fallback={a.logo} />
+              <View style={{ padding: 8 }}>
+                <Text style={styles.name} numberOfLines={1}>{a.nome}</Text>
+                <Text style={styles.sub} numberOfLines={1}>{a.genero} · {cityName(a.cidade)}</Text>
+                <Text style={styles.sub} numberOfLines={1}>{atendeText(a).title}</Text>
+                {fromPrice(a) ? <Text style={styles.price} numberOfLines={1}>a partir de {brl(fromPrice(a))}</Text> : null}
+              </View>
+            </TouchableOpacity>
+          ))}
+      </ScrollView>
+
       <Text style={styles.h2}>Em alta</Text>
       <MediaList items={media} showOwner />
 
       <View style={styles.cta}>
         <Ionicons name="cloud-upload-outline" size={20} color={colors.primary} />
         <Text style={[styles.sub, { flex: 1, marginLeft: 8, marginTop: 0 }]}>
-          É artista? Cadastre seu CNPJ ou MEI e publique faixas MP3, vídeos e obras pela área empresarial (aba Página).
+          É artista? Monte sua vitrine de shows (cachês, agenda e onde atende) em Perfil › Shows e contratação. Faixas MP3, vídeos e obras sobem pelo Estúdio Realyz.
         </Text>
       </View>
     </Screen>
@@ -81,5 +108,7 @@ const styles = StyleSheet.create({
   chip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, minHeight: 34, borderRadius: 17, borderWidth: 1, borderColor: colors.border, backgroundColor: '#FFFFFF', marginRight: 6, marginBottom: 6 },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipText: { marginLeft: 5, fontWeight: '700', color: colors.primary, fontSize: 12 },
+  hire: { width: 170, backgroundColor: '#FFFFFF', borderRadius: 16, marginRight: 10, overflow: 'hidden', ...soft },
+  price: { color: colors.primaryDark, fontWeight: '800', fontSize: 12, marginTop: 3 },
   cta: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, borderRadius: 14, padding: 12, marginTop: 8 },
 });

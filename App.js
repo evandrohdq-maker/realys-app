@@ -109,6 +109,7 @@ import { SupplierShowcaseHost } from './src/components/SupplierShowcase';
 import RadiosScreen from './src/screens/cliente/RadiosScreen';
 import { RadioHost, RadioHeadChip } from './src/components/RadioKit';
 import { ArtistSheetHost } from './src/components/ArtistSheet';
+import { ArtistShowHost } from './src/components/ArtistBooking';
 import { TvFloat, LiveFloat } from './src/components/FloatPlayers';
 import { BioGateModal, LockedScreen, canOpenTab, isVerified, useServerBio } from './src/components/BioGate';
 import HRScreen from './src/screens/empresa/HRScreen';
@@ -726,6 +727,7 @@ function Shell({ inviteTick }) {
           borda dourada), com fechar, próxima música e o artista. A capa grande aparece só ao minimizar o app. */}
       <RadioHeadChip top={insets.top + 50} />
       <ArtistSheetHost />
+      <ArtistShowHost />
       {/* TV da aba Stream e live minimizada: janelinhas flutuantes (segure e arraste). */}
       <TvFloat bottom={150 + insets.bottom} />
       {/* Perfil de rádio/TV (abre ao tocar no nome) e a janelinha por cima dos outros apps. */}

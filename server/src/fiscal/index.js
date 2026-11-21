@@ -29,6 +29,7 @@ const ORIGENS = {
   comissao_corrida: 'Intermediação de corrida e entrega',
   comissao_ingresso: 'Intermediação de venda de ingressos',
   taxa_musica: 'Serviço de distribuição digital de música (download)',
+  comissao_show: 'Intermediação de contratação de artista (show)',
   plano: 'Plano de divulgação para empresas',
   anuncio: 'Anúncio e destaque na plataforma',
   outro: 'Serviço de intermediação digital',

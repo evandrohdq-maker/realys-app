@@ -34,6 +34,9 @@ export const TAXAS = {
   musicaPremium: { valor: 23.9, gratisMeses: 3, planos: { individual: 23.9, universitario: 12.9, duo: 31.9, familia: 40.9 }, unidade: 'R$ por mês, sem propaganda e com músicas offline (3 primeiros meses grátis)', quemPaga: 'ouvinte', mercado: 'Spotify Premium: R$ 23,90 por mês (Universitário R$ 12,90, Duo R$ 31,90, Família R$ 40,90)', argumento: 'preço dos grandes apps de música, com 3 meses grátis, offline incluído e a compra da música direto do artista' },
   // Páginas de usuário (estilo blog): mensalidade por página (src/userPages.js › PAGE_PRICE).
   paginaUsuario: { valor: 14.9, unidade: 'R$ por mês por página, da segunda em diante (a primeira é gratuita)', quemPaga: 'usuário dono da página', mercado: 'construtores de site e blog cobram mensalidade por site, sem público incluído', argumento: 'R$ 14,90 por mês com página personalizável e o público verificado do Realyz' },
+  // Contratação de artistas (src/artistShows.js): o artista paga 10% do cachê, só quando o show acontece.
+  // Deslocamento vai inteiro para o artista; quem contrata não paga taxa.
+  show: { pct: 10, quemPaga: 'artista (descontado do cachê)', mercado: 'agências e escritórios de artistas ficam com 15% a 30% do cachê; sites de contratação cobram mensalidade do artista', argumento: '10% do cachê só quando o show acontece, sem mensalidade, e o pagamento fica garantido antes do show' },
   destaquePrestador: { valor: 49.9, unidade: 'R$ por mês', mercado: 'GetNinjas: pacotes a partir de R$ 149', argumento: 'destaque o mês inteiro por R$ 49,90' },
 };
 
@@ -59,6 +62,7 @@ export const MERCADO_PUBLICO = {
   musicaVenda: 'lojas de música ficam com 15% a 30% da venda; faixa a R$ 1,90 a R$ 2,90',
   musicaPremium: 'os grandes apps de música cobram cerca de R$ 23,90 por mês',
   paginaUsuario: 'construtores de site e blog cobram mensalidade por site, sem público incluído',
+  show: 'agências de artistas ficam com 15% a 30% do cachê',
   destaquePrestador: 'sites de serviços cobram pacotes a partir de R$ 149',
 };
 export const mercadoPublico = (chave) => MERCADO_PUBLICO[chave] || null;

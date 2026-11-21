@@ -38,6 +38,16 @@ Tema claro, com as cores de sempre: fundo marfim, dourado de glória e azul-céu
 - **Plano de destaque** (R$ 49,90/mês, no painel do Prestador): aparece no topo como **Patrocinado**, separado do ranking por mérito.
 - Na demonstração, as respostas do outro lado (prestador aceitou, cliente confirmou) são simuladas por botões no próprio cartão.
 
+**Contratação de artistas (Perfil › Shows e contratação):** para a classe Artistas (música, artes cênicas e artes visuais). Regras em `src/artistShows.js`, telas em `src/components/ArtistBooking.js` (vitrine, contratar, pedido, arte do story) e `src/components/ArtistShowEditor.js` (área do artista), servidor em `server/src/routes/shows.js`.
+
+- **Vitrine do artista:** frase de chamada, vídeos e fotos ao vivo, cachês (nome, duração, valor e o que inclui), tipos de evento e a estrutura que leva.
+- **Onde atende:** só na cidade, cidade e região (até X km) ou viaja pelo Brasil, com deslocamento por km (ida e volta) e hospedagem por conta de quem contrata, se o artista quiser.
+- **Agenda:** dias da semana em que toca, agenda aberta até tal mês e dias bloqueados no calendário. Show fechado ocupa o dia sozinho.
+- **Três botões para quem quer contratar:** *Contratar* (escolhe o show e um dia livre e paga; o valor fica retido pela Garantia Realyz até o show), *Fazer orçamento* (o artista responde com cachê + deslocamento e quem pediu paga para fechar) e *Entrar em contato* (conversa dentro do pedido; telefone e pagamento por fora são bloqueados).
+- **Taxa:** o Realyz fica com 10% do cachê, descontados do artista, só quando o show acontece. Deslocamento vai inteiro para o artista; quem contrata não paga taxa. Cancelamento com estorno total até 7 dias antes.
+- **Divulgação:** o app gera a arte do show (story com a marca do artista, estilo, cidade, vídeos ao vivo, onde atende, agenda e o link para pedir orçamento). Show fechado, os dois lados se comprometem a divulgar: o artista posta 2 stories (anúncio e "é hoje") e quem contratou posta 1; o pedido mostra o que já foi postado. Boost da vitrine e story patrocinado do show em Divulgar.
+- **Onde aparece:** Artistas › Contrate para o seu evento, botão dourado no perfil e na prévia do perfil do artista, na página do artista e no player de música. Os pedidos ficam em Pedidos › Shows (e em Aguardando).
+
 **Agenda do prestador (aba Agenda):** o prestador vê tudo o que tem marcado e o que já fez, num lugar só. As regras ficam em `src/agenda.js` e a tela em `src/screens/prestador/AgendaScreen.js`.
 
 - **Próximo trabalho** em destaque, com contagem ("em 2h 10min"), endereço e botão **Rota** (abre o mapa do celular). No painel **Trabalhar** tem o atalho **Minha agenda** com o próximo trabalho.

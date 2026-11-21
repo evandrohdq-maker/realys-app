@@ -21,6 +21,10 @@ import { providerTarget } from '../../components/GiftSheet';
 import { recentDone, TIP_DAYS } from '../../recentDone';
 import { listings } from '../../homeData';
 import { ChatModal } from './home/Social';
+import { useShows } from '../../artistShows';
+import { sincronizarPedidos } from '../../serverShows';
+import { conectado } from '../../serverShop';
+import { ShowPedidoCard } from '../../components/ArtistBooking';
 import { lateContact, foodLateRefund, canCancel, cancelInfo } from '../../orderContact';
 
 // Concluídos nos últimos 7 dias úteis: ainda dá para dar gorjeta e avaliar quem não avaliou na hora.
@@ -332,6 +336,13 @@ export default function OrdersScreen({ navigate, explore }) {
   const cartCount = state.cart.reduce((n, c) => n + c.qty, 0) + (state.musicCart || []).length;
   const cartSubtotal = +(cartTotal(state) + (state.musicCart || []).reduce((n, x) => n + x.price, 0)).toFixed(2);
   const [seg, setSeg] = useState(cartCount ? 'carrinho' : 'compras');
+  // Shows de artistas que eu contratei, pedi orçamento ou com quem conversei (src/artistShows.js).
+  const myShows = useShows().pedidos.filter((x) => x.lado === 'cliente');
+  const showWaiting = myShows.filter((x) => ['aguardando', 'proposta', 'conversa'].includes(x.status));
+  const showEnded = (x) => ['realizado', 'cancelado', 'recusado'].includes(x.status);
+  useEffect(() => {
+    if (conectado(state)) sincronizarPedidos().catch(() => {});
+  }, []);
   // Aguardando retorno: chamados e pedidos que o cliente fez e ainda esperam a resposta do outro lado.
   const waiting = [
     ...(state.visits || []).filter((v) => v.status === 'aguardando').map((v) => ({ id: v.id, at: v.at || 0, icon: 'construct-outline', title: `${v.serviceLabel} · ${v.provider.name}`, text: `Chamado enviado para ${v.when ? v.when.toLowerCase() : 'assim que possível'}. Aguardando ${v.provider.name.split(' ')[0]} aceitar.`, note: `Taxa de visita de ${brl(v.fee)} reservada. Se recusar, o valor volta na hora.` })),
@@ -354,10 +365,11 @@ export default function OrdersScreen({ navigate, explore }) {
   const pick = (arr, done) => arr.filter((x) => (showDone ? done(x) : !done(x)));
   const SEGS = [
     { key: 'carrinho', label: 'Carrinho', icon: 'bag-handle-outline', badge: cartCount || null },
-    { key: 'aguardando', label: 'Aguardando', icon: 'hourglass-outline', badge: waiting.length || null },
+    { key: 'aguardando', label: 'Aguardando', icon: 'hourglass-outline', badge: waiting.length + showWaiting.length || null },
     { key: 'compras', label: 'Compras', icon: 'cube-outline', badge: buys.filter((o) => !orderDone(o)).length || null },
     { key: 'comida', label: 'Comida', icon: 'restaurant-outline', badge: food.filter((o) => !orderDone(o)).length || null },
     { key: 'ingressos', label: 'Ingressos', icon: 'ticket-outline', badge: tickets.filter((t) => !t.used).length + venueOrders.filter((o) => !venueDone(o)).length || null },
+    { key: 'shows', label: 'Shows', icon: 'mic-outline', badge: myShows.filter((x) => x.status === 'confirmado').length || null },
     { key: 'servicos', label: 'Serviços', icon: 'construct-outline', badge: services.filter((r) => !r.done).length + (state.onlineAppts || []).filter((x) => x.status === 'confirmado').length || null },
     { key: 'propostas', label: 'Propostas', icon: 'megaphone-outline', badge: state.reverseRequests.filter((r) => r.status === 'aberto' && r.offers.length).length || null },
     { key: 'assinaturas', label: 'Assinaturas', icon: 'repeat-outline', badge: state.subscriptions.filter((x) => x.status === 'ativa').length || null },
@@ -372,8 +384,9 @@ export default function OrdersScreen({ navigate, explore }) {
     ...tickets.filter((t) => t.price).map((t) => ({ id: t.id, at: t.at || 0, icon: t.eventId ? '🎟️' : '🚌', title: t.title || t.name, sector: t.eventId ? 'Ingressos' : 'Passagens', value: t.price, done: !!t.used })),
     ...venueOrders.map((o) => ({ id: o.id, at: o.at || 0, icon: '🍹', title: `${o.venue} · ${o.items.map((i) => i.name).join(', ')}`, sector: 'No evento', value: o.total, done: venueDone(o) })),
     ...services.filter((r) => r.price).map((r) => ({ id: r.id, at: r.acceptedAt || 0, icon: r.icon || '🧑‍🔧', title: `${r.serviceLabel} · ${r.provider.name}`, sector: 'Serviços', value: r.price, done: !!r.done })),
+    ...myShows.filter((x) => x.pago && ['aguardando', 'confirmado', 'realizado'].includes(x.status)).map((x) => ({ id: x.id, at: x.at || 0, icon: '🎤', title: `Show · ${x.artista.nome}`, sector: 'Shows', value: x.total, done: x.status === 'realizado' })),
   ].sort((a, b) => b.at - a.at);
-  const statusSeg = ['compras', 'comida', 'ingressos', 'servicos'].includes(seg);
+  const statusSeg = ['compras', 'comida', 'ingressos', 'shows', 'servicos'].includes(seg);
   // Acompanhar ao vivo: { order } para entregas, { ride } para motorista e prestadores.
   const [track, setTrack] = useState(null);
   const [chatOrder, setChatOrder] = useState(null); // pedido atrasado: conversa com a loja
@@ -432,8 +445,16 @@ export default function OrdersScreen({ navigate, explore }) {
         )
       ) : null}
 
+      {seg === 'aguardando' ? showWaiting.map((x) => <ShowPedidoCard key={x.id} p={x} />) : null}
+      {seg === 'shows' ? (
+        pick(myShows, showEnded).length ? (
+          pick(myShows, showEnded).map((x) => <ShowPedidoCard key={x.id} p={x} />)
+        ) : (
+          <Empty text={showDone ? 'Nenhum show concluído ainda.' : 'Nenhum show contratado. Ache artistas em Artistas (menu ⋮) e toque em Contratar.'} />
+        )
+      ) : null}
       {seg === 'aguardando' ? (
-        waiting.length ? (
+        waiting.length || showWaiting.length ? (
           waiting.map((w) => (
             <Card key={w.id}>
               <Row>
