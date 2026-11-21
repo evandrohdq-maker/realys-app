@@ -93,9 +93,13 @@ export class Hub {
     return this.clients.has(userId);
   }
   // Envia um aviso para todos os aparelhos conectados de uma pessoa.
+  // Quem não está com o app aberto recebe o aviso como notificação no celular (this.offline, em push.js).
   send(userId, type, data) {
     const set = this.clients.get(userId);
-    if (!set) return;
+    if (!set) {
+      if (this.offline) this.offline(userId, type, data);
+      return;
+    }
     const f = frame(JSON.stringify({ type, data, at: Date.now() }));
     for (const s of set) {
       try {

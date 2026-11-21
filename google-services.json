@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1006613364193",
+    "project_id": "realyz-70ae7",
+    "storage_bucket": "realyz-70ae7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1006613364193:android:ed4a982f4fcf64ee13e6a0",
+        "android_client_info": {
+          "package_name": "com.realys.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD2wjNji_Qa884qRTK087agROZBfmuq_DU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

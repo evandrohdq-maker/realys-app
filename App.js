@@ -110,6 +110,7 @@ import RadiosScreen from './src/screens/cliente/RadiosScreen';
 import { RadioHost, RadioHeadChip } from './src/components/RadioKit';
 import { ArtistSheetHost } from './src/components/ArtistSheet';
 import { ArtistShowHost } from './src/components/ArtistBooking';
+import { usePush } from './src/pushNotifications';
 import { TvFloat, LiveFloat } from './src/components/FloatPlayers';
 import { BioGateModal, LockedScreen, canOpenTab, isVerified, useServerBio } from './src/components/BioGate';
 import HRScreen from './src/screens/empresa/HRScreen';
@@ -236,6 +237,7 @@ function Shell({ inviteTick }) {
   // Conta sem biometria usa só o perfil de usuário (modo social).
   const verified = isVerified(state);
   useServerBio();
+  usePush(); // notificações com o app fechado (src/pushNotifications.js)
   // Prestador: pedidos de visita e visitas aceitas entram sozinhos no CRM (aba Clientes).
   const hasProvider = !!state.myProvider;
   useEffect(() => {

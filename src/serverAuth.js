@@ -4,6 +4,7 @@
 // a conta também é criada/aberta lá, e o app guarda a sessão daquela conta no cofre do Android.
 // Sem servidor configurado, nada disso roda e o app segue no modo demonstração.
 import * as ImagePicker from 'expo-image-picker';
+import { unregisterPush } from './pushNotifications';
 import { serverOn, login as apiLogin, signup as apiSignup, verificarAparelho, setServerAccount, logout as apiLogout, ApiError } from './api';
 import { TERMO_ADESAO_VERSAO } from './termoAdesao';
 
@@ -66,7 +67,8 @@ export async function entrarOuMigrar(loginText, password, acc) {
 
 // Troca a conta usada nas chamadas ao servidor (cada conta salva tem a sua sessão).
 export const usarConta = (user) => setServerAccount(user && user.serverId);
-export const sairDoServidor = () => (serverOn() ? apiLogout() : Promise.resolve());
+// Sair: o aparelho para de receber as notificações da conta antes de encerrar a sessão.
+export const sairDoServidor = () => (serverOn() ? unregisterPush().then(apiLogout) : Promise.resolve());
 
 // Conta que existe no servidor mas não neste celular (cadastrada em outro aparelho).
 export function userFromServer(u) {

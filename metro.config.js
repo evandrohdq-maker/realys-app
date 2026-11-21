@@ -13,6 +13,7 @@ const WEB = {
   'expo-local-authentication': shim('local-authentication.js'),
   'expo-screen-capture': shim('screen-capture.js'),
   'expo-secure-store': shim('secure-store.js'),
+  'expo-notifications': shim('notifications.js'), // avisos no site chegam pelo WebSocket
 };
 const original = config.resolver.resolveRequest;
 config.resolver.resolveRequest = (context, moduleName, platform) => {
