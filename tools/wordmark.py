@@ -3,6 +3,8 @@ import math
 S=4; H=240*S
 font=ImageFont.truetype('/usr/share/fonts/truetype/google-fonts/Poppins-Bold.ttf', 190*S)
 TOP=int(H*0.16)
+GOLD=(214,160,28,255)
+SW=6*S
 def starpoly(cx,cy,R,r,rot=-90):
     pts=[]
     for i in range(10):
@@ -33,7 +35,13 @@ def letterA(color, starc, bg_is_dark):
     im.paste(Image.new('RGBA',size,cA),(0,0),onlyA)
     im.paste(Image.new('RGBA',size,cE),(0,0),onlyE)
     im.paste(Image.new('RGBA',size,cM),(0,0),both)
-    return im
+    from PIL import ImageFilter
+    union=ImageChops.lighter(A,E)
+    ring=ImageChops.subtract(union.filter(ImageFilter.MaxFilter(2*SW+1)),union)
+    out=Image.new('RGBA',size,(0,0,0,0))
+    out.paste(Image.new('RGBA',size,GOLD),(0,0),ring)
+    out.alpha_composite(im)
+    return out
 def make(color, starc, path):
     d0=ImageDraw.Draw(Image.new('RGBA',(5,5)))
     parts=[]
@@ -41,7 +49,7 @@ def make(color, starc, path):
         if p=='A': parts.append(letterA(color if False else starc, starc, False) if False else letterA(color, starc, False))
         else:
             b=d0.textbbox((0,0),p,font=font)
-            im=Image.new('RGBA',(b[2]-b[0],H),(0,0,0,0)); ImageDraw.Draw(im).text((-b[0],TOP-b[1]),p,font=font,fill=color); parts.append(im)
+            im=Image.new('RGBA',(b[2]-b[0]+2*SW,H),(0,0,0,0)); ImageDraw.Draw(im).text((-b[0]+SW,TOP-b[1]),p,font=font,fill=color,stroke_width=SW,stroke_fill=GOLD); parts.append(im)
     gap=int(6*S)
     W=sum(p.width for p in parts)+gap*4
     out=Image.new('RGBA',(W,H),(0,0,0,0)); x=gap
@@ -51,5 +59,4 @@ def make(color, starc, path):
         if i==1: x-=int(18*S)
     bb=out.getbbox(); out=out.crop((bb[0]-8*S,0,bb[2]+8*S,H))
     out=out.resize((out.width//S,H//S),Image.LANCZOS); out.save(path); print(path,out.size)
-make((20,18,14,255),((168,112,6,255),(245,196,70,255),(214,152,20,255)),'/tmp/wm/wordmark-dark.png')
-make((251,248,241,255),((212,150,20,255),(255,224,130,255),(240,184,48,255)),'/tmp/wm/wordmark-light.png')
+make((0,0,0,255),((255,255,255,255),(240,184,48,255),(250,222,150,255)),'/tmp/wm/wordmark.png')
