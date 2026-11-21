@@ -60,6 +60,8 @@ export function loadConfig(overrides = {}) {
     // Serviços: o Realyz fica com 15% da taxa de visita e 18% do valor das corridas e entregas.
     visitFeePct: num(env.VISIT_FEE_PCT, 15),
     showFeePct: num(env.SHOW_FEE_PCT, 10),
+    // Notificações com o app fechado: caminho do JSON da conta de serviço do Firebase (ou o JSON inteiro).
+    firebaseServiceAccount: env.FIREBASE_SERVICE_ACCOUNT || null,
     rideFeePct: num(env.RIDE_FEE_PCT, 18),
     // Ingressos: 8% de cada ingresso, no mínimo R$ 1,99, pagos pelo produtor.
     ticketFeePct: num(env.TICKET_FEE_PCT, 8),

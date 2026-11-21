@@ -24,6 +24,7 @@
     "expo-intent-launcher": "*",
     "expo-local-authentication": "*",
     "expo-location": "*",
+    "expo-notifications": "*",
     "expo-print": "*",
     "expo-screen-capture": "*",
     "expo-secure-store": "*",

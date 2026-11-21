@@ -721,6 +721,17 @@ const MIGRATIONS = [
   );
   CREATE INDEX show_msgs_pedido ON show_msgs(pedido_id, created_at);
   `,
+  // 24: notificações com o app fechado (código de cada aparelho no Firebase)
+  `
+  CREATE TABLE push_tokens (
+    token TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    platform TEXT NOT NULL DEFAULT 'android',
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE INDEX push_tokens_user ON push_tokens(user_id);
+  `,
 ];
 
 export function openDb(file) {

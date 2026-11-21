@@ -36,6 +36,8 @@ import { makeAtendente } from './ia/atendente.js';
 import iaRoutes from './routes/ia.js';
 import noticiasRoutes from './routes/noticias.js';
 import showsRoutes from './routes/shows.js';
+import pushRoutes from './routes/push.js';
+import { makePush } from './push.js';
 
 // Dados públicos de uma pessoa (nunca devolve hash de senha nem documento completo).
 export function publicUser(u, { self = false } = {}) {
@@ -75,7 +77,10 @@ export function createApp(cfg) {
   const fiscal = makeFiscal({ db, cfg, hub, clients: cfg.fiscalClients || {} });
   // Pix de verdade dos depósitos (Santander). Sem credenciais no .env, fica desligado.
   const pix = cfg.pix || makePix(cfg);
-  const deps = { db, cfg, wallet, hub, userById, publicUser, cipher, matcher, biometria, fiscal, pix };
+  // Notificações com o app fechado (Firebase). Sem a chave no .env, ficam desligadas.
+  const push = makePush({ db, cfg });
+  hub.offline = push.aviso;
+  const deps = { db, cfg, wallet, hub, userById, publicUser, cipher, matcher, biometria, fiscal, pix, push };
   // IA do Realyz (atendente das empresas e copiloto de vendas).
   deps.ia = cfg.ia || makeIA(cfg);
   deps.atendente = makeAtendente(deps);
@@ -89,7 +94,7 @@ export function createApp(cfg) {
     attempts.set(key, a);
   };
   deps.clearLogin = (key) => attempts.delete(key);
-  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes, noticiasRoutes, showsRoutes].forEach((r) => r(router, deps));
+  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes, noticiasRoutes, showsRoutes, pushRoutes].forEach((r) => r(router, deps));
   router.get('/health', () => ({ ok: true, name: 'Realyz', time: now() }), { auth: false });
 
   // Administrador inicial (ADMIN_PASSWORD no .env).

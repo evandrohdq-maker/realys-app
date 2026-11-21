@@ -398,8 +398,9 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
       funcionário (hoje o perfil é criado dentro da empresa, no mesmo aparelho), permissões valendo
       por pessoa, chamada de voz real (hoje é demonstração visual) e o cliente tocar no catálogo para comprar.
 - [x] Termo da empresa v3 (funcionários de atendimento, biometria, atendimento direcionado e fechamentos) e Termo de Adesão v18 (item 16-k: taxa sobre negócios fechados pelo CRM). Advogado revisar.
-- [ ] Notificação com o app fechado: precisa da biblioteca de notificações, de uma conta Firebase
-      (Google) do Re@lys e do servidor enviando os avisos. Ainda não instalado.
+- [x] Notificação com o app fechado: expo-notifications + Firebase (projeto realyz-70ae7, app com.realys.app,
+      google-services.json no repositório). O servidor manda o aviso quando a pessoa não está com o app aberto
+      (server/src/push.js). Falta pôr a chave da conta de serviço no servidor: FIREBASE_SERVICE_ACCOUNT no .env.
       O aviso de "streamer favorito entrou ao vivo" já sai do servidor (evento `live-favorito`) e
       aparece com o app aberto; com o push instalado, é só mandar o mesmo aviso para quem ligou o sininho.
 - [x] Food: atalhos Tudo, Pratos, Lanches, Pizza, Japonesa, Padaria, Café & Doces, Saudável e Bar & Drinks, filtrando as lojas pelos produtos de cada tipo.
