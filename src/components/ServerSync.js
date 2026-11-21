@@ -8,6 +8,7 @@ import { serverOn, connectEvents } from '../api';
 import { usarConta } from '../serverAuth';
 import { carregarCatalogo, carregarCarteira, carregarPedidos, conectado } from '../serverShop';
 import { carregarPrestadores, carregarVisitas } from '../serverServices';
+import { carregarEventos } from '../serverEvents';
 
 export default function ServerSync() {
   const { state, dispatch } = useStore();
@@ -19,7 +20,11 @@ export default function ServerSync() {
   useEffect(() => {
     if (!serverOn()) return;
     carregarCatalogo(dispatch).catch(() => {});
-    const t = setInterval(() => carregarCatalogo(dispatch).catch(() => {}), 120000);
+    carregarEventos(dispatch).catch(() => {});
+    const t = setInterval(() => {
+      carregarCatalogo(dispatch).catch(() => {});
+      carregarEventos(dispatch).catch(() => {});
+    }, 120000);
     return () => clearInterval(t);
   }, []);
 

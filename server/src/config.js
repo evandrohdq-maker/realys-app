@@ -60,6 +60,9 @@ export function loadConfig(overrides = {}) {
     // Serviços: o Realyz fica com 15% da taxa de visita e 18% do valor das corridas e entregas.
     visitFeePct: num(env.VISIT_FEE_PCT, 15),
     rideFeePct: num(env.RIDE_FEE_PCT, 18),
+    // Ingressos: 8% de cada ingresso, no mínimo R$ 1,99, pagos pelo produtor.
+    ticketFeePct: num(env.TICKET_FEE_PCT, 8),
+    ticketFeeMin: num(env.TICKET_FEE_MIN, 1.99),
     // Taxa de proteção Realyz: valor fixo por compra (carrinho), pago pelo cliente, a qualquer hora (sem taxa noturna).
     protectionFee: num(env.PROTECTION_FEE, 0.99),
     withdrawMin: num(env.WITHDRAW_MIN, 10),

@@ -7,6 +7,7 @@ import { soft, colors, brl } from '../../../theme';
 import { Screen, Photo, ProductThumb, Badge } from '../../../components/ui';
 import { venueOfEvent, freeTable, ticketPrice } from '../../../venueData';
 import { promos, listings, LISTING_KINDS, LISTING_CTA, communityPosts, contacts, lives, events, EVENT_GROUPS } from '../../../homeData';
+import { comprarIngresso } from '../../../serverEvents';
 import { ChatModal, VideoCallModal, LiveModal } from './Social';
 import LivesTab from './LivesTab';
 import NewsTab from './NewsTab';
@@ -324,14 +325,32 @@ const EVENT_SHORTCUTS = EVENT_GROUPS.map((g) => ({ key: g.key, label: EVENT_SHOR
 const sortEv = (list) => [...list].sort((a, b) => b.sponsored - a.sponsored);
 
 function EventsTab({ group, setGroup, onContact }) {
-  const festas = sortEv(events.filter((e) => e.group === 'festa-promo'));
+  const { state: st0 } = useStore();
+  // Eventos de verdade (publicados por empresas no servidor) vêm primeiro.
+  const reais = st0.serverEvents || [];
+  const festas = [...reais, ...sortEv(events.filter((e) => e.group === 'festa-promo'))];
   const anuncios = sortEv(events.filter((e) => e.group === 'promo-anuncio'));
   const outros = events.filter((e) => !['festa-promo', 'promo-anuncio'].includes(e.group));
-  const list = sortEv(events.filter((e) => e.group === group));
+  const list = group === 'festa-promo' ? festas : sortEv(events.filter((e) => e.group === group));
   const { state, dispatch } = useStore();
   const ticketOf = (e) => (state.tickets || []).find((t) => t.eventId === e.id);
   // Comprar ingresso (com ou sem mesa reservada). Com ingresso, no local: abre a comanda para pedir.
   const act = (e) => {
+    // Evento de verdade: compra pelo servidor e o ingresso chega com o código para a portaria.
+    if (e.serverId) {
+      if (e.status === 'esgotado') return Alert.alert('Esgotado', 'Os ingressos desse evento acabaram.');
+      const comprar = (qty) =>
+        comprarIngresso(state, dispatch, e, qty).then((r) =>
+          r.ok
+            ? Alert.alert('Ingresso garantido 🎟️', `${e.title} · ${e.who} · ${e.when}\n\nCódigo${r.codes.length > 1 ? 's' : ''}: ${r.codes.join(', ')}\nMostre na entrada (fica em Pedidos › Ingressos).`)
+            : Alert.alert('Compra não feita', r.message)
+        );
+      return Alert.alert(e.title, `${e.who} · ${e.when}\n${e.place}\n${e.price} por ingresso`, [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: '1 ingresso', onPress: () => comprar(1) },
+        { text: '2 ingressos', onPress: () => comprar(2) },
+      ]);
+    }
     const tk = ticketOf(e);
     const venue = venueOfEvent(e);
     if (tk) return dispatch({ type: 'VENUE_ENTER', venue, table: tk.table, open: true, eventId: e.id });

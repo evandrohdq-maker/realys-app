@@ -78,3 +78,22 @@ test('corrida: o Realyz fica com 18% e o motorista com o resto', async () => {
   assert.equal(pago.fee, 9);
   assert.equal(await saldo(mot.accessToken), 41);
 });
+
+test('ingressos: empresa publica, cliente compra, Realyz fica com 8% (mín. R$ 1,99) e a portaria confere', async () => {
+  const bar = await call('POST', '/auth/signup', null, { kind: 'empresa', name: 'Casa Noturna PF', doc: '11222333000181', username: 'casapf', email: 'casa@teste.com', password: 'senha1234', aceiteTermos: TERMO_ADESAO_VERSAO });
+  const cli = await signup('Bia Baladeira', '93541134780', 'bia');
+  const ev = await call('POST', '/events', bar.accessToken, { title: 'Sertanejo ao vivo', when: 'Sáb · 22h', place: 'Centro, Passo Fundo', price: 40, capacity: 2 });
+  assert.ok((await call('GET', '/events')).some((e) => e.id === ev.id));
+  await call('POST', '/wallet/deposit', cli.accessToken, { amount: 100 });
+  const r = await call('POST', `/events/${ev.id}/tickets`, cli.accessToken, { qty: 2 });
+  assert.equal(r.codes.length, 2);
+  assert.equal(await saldo(cli.accessToken), 20);
+  assert.equal(await saldo(bar.accessToken), 73.6); // 80 - 2 × 3,20
+  assert.equal(r.event.status, 'esgotado');
+  await assert.rejects(call('POST', `/events/${ev.id}/tickets`, cli.accessToken, { qty: 1 }), /404/);
+  const meus = await call('GET', '/tickets', cli.accessToken);
+  assert.equal(meus.length, 2);
+  const ok = await call('POST', `/tickets/${r.codes[0]}/entrada`, bar.accessToken);
+  assert.equal(ok.buyer, 'Bia Baladeira');
+  await assert.rejects(call('POST', `/tickets/${r.codes[0]}/entrada`, bar.accessToken), /409/);
+});

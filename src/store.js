@@ -514,6 +514,8 @@ function baseReducer(state, a) {
       });
       return { ...state, visits: [...fresh, ...visits] };
     }
+    case 'SERVER_EVENTS':
+      return { ...state, serverEvents: a.events };
     case 'SERVER_WALLET':
       return { ...state, wallet: a.balance, giftCredits: a.giftCredits };
     case 'SERVER_ORDERS_PLACED': {

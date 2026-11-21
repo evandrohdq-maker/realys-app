@@ -573,6 +573,39 @@ const MIGRATIONS = [
   ALTER TABLE service_calls ADD COLUMN problem TEXT DEFAULT '';
   ALTER TABLE service_calls ADD COLUMN ride_fee INTEGER NOT NULL DEFAULT 0;
   `,
+  // 19: eventos e ingressos de verdade (empresa publica, cliente compra, portaria confere o código)
+  `
+  CREATE TABLE events (
+    id TEXT PRIMARY KEY,
+    company_id TEXT NOT NULL REFERENCES companies(id),
+    title TEXT NOT NULL,
+    detail TEXT DEFAULT '',
+    when_text TEXT NOT NULL,
+    starts_at INTEGER,
+    place TEXT NOT NULL,
+    city TEXT DEFAULT '',
+    price INTEGER NOT NULL,
+    capacity INTEGER NOT NULL,
+    sold INTEGER NOT NULL DEFAULT 0,
+    cover TEXT,
+    status TEXT NOT NULL CHECK (status IN ('aberto','esgotado','encerrado')),
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX events_status ON events(status, starts_at);
+  CREATE TABLE tickets (
+    id TEXT PRIMARY KEY,
+    code TEXT NOT NULL UNIQUE,
+    event_id TEXT NOT NULL REFERENCES events(id),
+    buyer_id TEXT NOT NULL REFERENCES users(id),
+    price INTEGER NOT NULL,
+    fee INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL CHECK (status IN ('valido','usado','cancelado')),
+    created_at INTEGER NOT NULL,
+    used_at INTEGER
+  );
+  CREATE INDEX tickets_buyer ON tickets(buyer_id, created_at DESC);
+  CREATE INDEX tickets_event ON tickets(event_id);
+  `,
 ];
 
 export function openDb(file) {
