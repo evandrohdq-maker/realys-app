@@ -1,5 +1,6 @@
 // Reels (abre arrastando a página inicial para a direita ou pela Lotus): todos os Reels do
 // Realyz num lugar só, estilo Instagram. Os Reels publicados pelo usuário aparecem primeiro. "Para você" mistura lojas e comida; "Shop" e "Food" filtram.
+import StoryFrame from '../../components/StoryFrame';
 import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text } from '../../responsive';
@@ -31,6 +32,8 @@ export default function ReelsScreen() {
   const mine = state.myReels || [];
   const reels = tab === 'shop' ? shop : tab === 'food' ? food : tab === 'servicos' ? SERVICE_CLIPS : tab === 'negocios' ? NEGOCIO_CLIPS : [...mine, ...mix(shop, COMMUNITY_CLIPS, food, SERVICE_CLIPS, NEGOCIO_CLIPS)];
   return (
+    // No computador, os Reels ficam numa moldura em pé (9:16) no meio da coluna.
+    <StoryFrame>
     <View style={{ flex: 1, backgroundColor: '#000' }}>
       {/* key: trocar o filtro recomeça do primeiro Reel */}
       <ReelsFeed key={tab + (tab === 'todos' ? mine.length : '')} reels={reels} />
@@ -43,6 +46,7 @@ export default function ReelsScreen() {
         ))}
       </View>
     </View>
+    </StoryFrame>
   );
 }
 
