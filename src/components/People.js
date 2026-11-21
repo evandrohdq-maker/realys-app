@@ -19,6 +19,63 @@ import { memberTarget } from './GiftSheet';
 import { SocialBadge } from './SocialClass';
 import { CLASSES } from '../socialClasses';
 import { MuralTab, MuralPeek, useMuralItems } from './Mural';
+import { stories as STORY_GROUPS } from '../homeData';
+import { StoryViewer } from '../screens/cliente/home/Stories';
+
+// Foto do perfil: tocar abre os stories da pessoa (anel dourado = tem story novo);
+// segurar mostra a foto de perfil grande. Sem story, tocar também mostra a foto.
+const HOLD_MS = 1000;
+function StoryAvatar({ m, ringStyle, imgStyle }) {
+  const { state, dispatch } = useStore();
+  const group = STORY_GROUPS.find((g) => g.contactId === m.id || g.name === m.name) || null;
+  const [view, setView] = useState(false);
+  const [zoom, setZoom] = useState(false);
+  const fresh = !!(group && !(state.storySeen || {})[group.id]);
+  const big = m.photo ? String(m.photo).replace(/\/200\/200$/, '/700/700') : null;
+  return (
+    <>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => (group ? setView(true) : setZoom(true))}
+        onLongPress={() => setZoom(true)}
+        delayLongPress={HOLD_MS}
+        accessibilityLabel={group ? `Ver os stories de ${m.name}. Segure para ver a foto de perfil` : `Ver a foto de perfil de ${m.name}`}
+      >
+        <View style={[ringStyle, group && { borderColor: fresh ? colors.gold : colors.border, borderWidth: fresh ? 3 : 2 }]}>
+          <Photo uri={m.photo} style={imgStyle} fallback="🙂" />
+        </View>
+      </TouchableOpacity>
+      {group && view ? (
+        <StoryViewer
+          visible
+          groups={[group]}
+          start={0}
+          onClose={() => setView(false)}
+          onSeen={(id) => dispatch({ type: 'STORY_SEEN', id })}
+          onReply={() => {}}
+          onCta={() => setView(false)}
+        />
+      ) : null}
+      {zoom ? (
+        <Modal visible transparent animationType="fade" onRequestClose={() => setZoom(false)}>
+          {/* Foto numa moldura no meio da tela (não em tela cheia), no app e no site. */}
+          <TouchableOpacity style={styles.zoomBack} activeOpacity={1} onPress={() => setZoom(false)} accessibilityLabel="Fechar a foto">
+            <TouchableOpacity activeOpacity={1} style={styles.zoomCard} onPress={() => {}}>
+              <Photo uri={big} style={styles.zoomImg} fallback="🙂" />
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
+                <Text style={styles.zoomName} numberOfLines={1}>{m.name}</Text>
+                <Ionicons name="shield-checkmark" size={15} color={colors.primary} style={{ marginLeft: 6 }} />
+              </View>
+              <TouchableOpacity onPress={() => setZoom(false)} style={styles.zoomClose} accessibilityLabel="Fechar">
+                <Ionicons name="close" size={18} color={colors.text} />
+              </TouchableOpacity>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
+      ) : null}
+    </>
+  );
+}
 
 // Botão de amizade: Adicionar → Solicitação enviada → Amigos (ou Aceitar / Recusar quando pediram para você).
 export function FriendButton({ member, compact }) {
@@ -137,9 +194,7 @@ export function UserProfileModal() {
         </TouchableOpacity>
 
         <View style={{ paddingHorizontal: 16 }}>
-          <View style={styles.avatarRing}>
-            <Photo uri={m.photo} style={styles.avatar} fallback="🙂" />
-          </View>
+          <StoryAvatar m={m} ringStyle={styles.avatarRing} imgStyle={styles.avatar} />
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
             <Text style={styles.name}>{m.name}</Text>
             <Ionicons name="shield-checkmark" size={16} color={colors.primary} style={{ marginLeft: 6 }} />
@@ -261,9 +316,7 @@ export function ProfilePeek({ m, onClose, onMessage, onFull }) {
         <View style={styles.peekGrab} />
         <ScrollView style={{ maxHeight: 560 }} contentContainerStyle={{ paddingBottom: 6 }} showsVerticalScrollIndicator={false}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View style={styles.peekRing}>
-              <Photo uri={m.photo} style={styles.peekAvatar} fallback="🙂" />
-            </View>
+            <StoryAvatar m={m} ringStyle={styles.peekRing} imgStyle={styles.peekAvatar} />
             <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={styles.peekName} numberOfLines={1}>
                 {m.name} <Ionicons name="shield-checkmark" size={15} color={colors.primary} />
@@ -612,6 +665,11 @@ export function PersonRow({ m, onOpen }) {
 
 const styles = StyleSheet.create({
   depBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.card, borderRadius: 12, paddingVertical: 11, paddingHorizontal: 14, marginTop: 8 },
+  zoomBack: { flex: 1, backgroundColor: 'rgba(241,235,221,0.94)', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  zoomCard: { width: 320, maxWidth: '100%', alignItems: 'center', backgroundColor: colors.card, borderRadius: 24, padding: 14, borderWidth: 1, borderColor: '#EAD7A4', shadowColor: '#8A6208', shadowOpacity: 0.18, shadowRadius: 24, shadowOffset: { width: 0, height: 10 } },
+  zoomImg: { width: 290, maxWidth: '100%', aspectRatio: 1, borderRadius: 18 },
+  zoomName: { color: colors.text, fontWeight: '800', fontSize: 16, flexShrink: 1 },
+  zoomClose: { position: 'absolute', top: 20, right: 20, width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.9)', alignItems: 'center', justifyContent: 'center' },
   peekDim: { flex: 1, backgroundColor: 'rgba(20,18,14,0.35)' },
   peekSheet: { backgroundColor: colors.bg, borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 16, paddingTop: 8 },
   peekGrab: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: 12 },
