@@ -9,15 +9,17 @@ import { BoostButton } from '../../components/Boost';
 import { SHOP_SECTORS } from '../../shopSectorsData';
 import { MY_COMPANY_ID, isFoodStore } from '../../data';
 import { rotuloClasse } from '../../foodClasses';
+import { isFoodBusiness } from '../../companyBusiness';
 import { publicarProduto, carregarCatalogo, conectado } from '../../serverShop';
 
 export default function InventoryScreen() {
   const { state, dispatch } = useStore();
   const [adding, setAdding] = useState(false);
   const products = myProducts(state);
-  // Loja de comida (Alimentação, Bares, Doces e cafés, Mercado): o cadastro usa as classes do Food.
+  // Só empresa do ramo de alimentação (Onde atua: Alimentação ou Mercado) cadastra pelas classes do Food.
+  // As outras cadastram direto para o Shop, sem nada de cardápio.
   const minhaLoja = state.stores.find((s) => s.id === MY_COMPANY_ID);
-  const food = isFoodStore(minhaLoja);
+  const food = isFoodBusiness(state);
   const totalValue = products.reduce((s, p) => s + p.cost * p.stock, 0);
 
   // Produto novo publicado: vai para a página da loja e para o Shop, no setor que o Realyz classificou.
@@ -55,7 +57,7 @@ export default function InventoryScreen() {
       </Card>
 
       {adding ? (
-        <ProductForm onSave={save} onCancel={() => setAdding(false)} food={food} categoria={minhaLoja ? minhaLoja.category : 'Alimentação'} />
+        <ProductForm onSave={save} onCancel={() => setAdding(false)} food={food} categoria={food && minhaLoja && isFoodStore(minhaLoja) ? minhaLoja.category : food ? 'Alimentação' : (minhaLoja && minhaLoja.category) || ''} />
       ) : (
         <Button title="+ Cadastrar produto" onPress={() => setAdding(true)} style={{ marginBottom: 12 }} />
       )}
