@@ -1,7 +1,12 @@
 import PostActions from '../../components/PostActions';
 import FollowedStores from '../../components/FollowedStores';
 import { addOrChoose, openProduct } from '../../components/ProductSheet';
-import React from 'react';
+import React, { useState } from 'react';
+import FeedVideo from '../../components/FeedVideo';
+import PeopleSuggestions from '../../components/PeopleSuggestions';
+import ReelsStrip from '../../components/ReelsStrip';
+import { PeopleSearchModal } from '../../components/People';
+import { COMMUNITY_CLIPS, SHOP_CLIPS, FOOD_CLIPS } from '../../adsData';
 import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Text } from '../../responsive';
 import { useStore } from '../../store';
@@ -9,18 +14,25 @@ import { colors, brl, soft } from '../../theme';
 import { Screen, Photo, Badge, Row, Button } from '../../components/ui';
 import { memberByName } from '../../people';
 
-export default function FeedScreen({ goTo }) {
+export default function FeedScreen({ goTo, navigate }) {
   const { state, dispatch } = useStore();
+  const [people, setPeople] = useState(false);
+  // De vez em quando, no meio dos posts: sugestões de amizade e uma faixa de Reels (como no Instagram).
+  const reels = [...COMMUNITY_CLIPS, ...SHOP_CLIPS, ...FOOD_CLIPS];
+  const extra = (i) =>
+    i === 0 ? <PeopleSuggestions onSeeAll={() => setPeople(true)} /> : i === 2 ? <ReelsStrip reels={reels} /> : i === 5 ? <PeopleSuggestions offset={10} onSeeAll={() => setPeople(true)} /> : null;
+  const n = state.posts.length;
 
   return (
     <Screen>
       {/* Lojas do Realyz: tocar abre a página da loja (as seguidas primeiro). */}
       <FollowedStores />
 
-      {state.posts.map((p) => {
+      {state.posts.map((p, i) => {
         const product = p.productId ? state.products.find((x) => x.id === p.productId) : null;
         return (
-          <View key={p.id} style={styles.post}>
+          <React.Fragment key={p.id}>
+          <View style={styles.post}>
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => {
@@ -46,12 +58,11 @@ export default function FeedScreen({ goTo }) {
             </TouchableOpacity>
 
             <View>
-              <Photo uri={p.image} style={styles.image} />
-              {p.type === 'video' ? (
-                <View style={styles.play}>
-                  <Text style={{ color: '#fff', fontSize: 28 }}>▶</Text>
-                </View>
-              ) : null}
+              {p.type === 'video' && p.video ? (
+                <FeedVideo source={p.video} poster={p.image} style={styles.image} />
+              ) : (
+                <Photo uri={p.image} style={styles.image} />
+              )}
             </View>
 
             <View style={{ padding: 12 }}>
@@ -75,8 +86,13 @@ export default function FeedScreen({ goTo }) {
               ) : null}
             </View>
           </View>
+          {extra(i)}
+          {i === n - 1 && n < 3 ? extra(2) : null}
+          </React.Fragment>
         );
       })}
+
+      <PeopleSearchModal visible={people} onClose={() => setPeople(false)} navigate={navigate} />
 
       <View style={styles.trust}>
         <Text style={{ fontWeight: '700', color: colors.primaryDark }}>🛡️ Feed protegido</Text>
