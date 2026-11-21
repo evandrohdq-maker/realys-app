@@ -8,7 +8,7 @@ sym=ns['letterA']((0,0,0,255),None,False)
 # pequeno R branco no centro da estrela, dentro do A
 from PIL import ImageFont
 F=ns['font']; h=ImageDraw.Draw(Image.new('RGBA',(5,5))).textbbox((0,0),'E',font=F); h=h[3]-h[1]
-rf=ImageFont.truetype('/usr/share/fonts/truetype/google-fonts/Poppins-Bold.ttf', int(F.size*0.30))
+rf=ImageFont.truetype('/usr/share/fonts/truetype/google-fonts/Poppins-Bold.ttf', int(F.size*0.25))
 d=ImageDraw.Draw(sym)
 cx=sym.width/2; cy=ns['TOP']+0.585*h
 b=d.textbbox((0,0),'R',font=rf)
