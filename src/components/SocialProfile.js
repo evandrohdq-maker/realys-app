@@ -13,6 +13,7 @@ import { Photo, Empty } from './ui';
 import { members, memberById, searchMembers } from '../people';
 import { listenOnce } from './Search';
 import { analyzeTestimonial, galleryOf } from '../testimonialsData';
+import { storyDesk } from './StoryFrame';
 import { STORY_SAMPLE_PHOTOS } from '../homeData';
 import { StoryViewer } from '../screens/cliente/home/Stories';
 import { privacyOf, creationsOf } from '../studioData';
@@ -972,8 +973,9 @@ function MediaViewer({ items, index, kind, onClose }) {
   const go = (d) => setI((x) => Math.max(0, Math.min(items.length - 1, x + d)));
   const src = kind === 'videos' ? it.thumb : it.uri;
   return (
-    <Modal visible animationType="fade" onRequestClose={onClose} statusBarTranslucent><KeyboardLift style={{ flex: 1 }}>
-      <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center' }}>
+    // No computador: a foto numa moldura no meio da tela (não em tela cheia preta).
+    <Modal visible animationType="fade" transparent={storyDesk()} onRequestClose={onClose} statusBarTranslucent><KeyboardLift style={[{ flex: 1 }, storyDesk() && { backgroundColor: 'rgba(241,235,221,0.92)', alignItems: 'center', justifyContent: 'center', padding: 20 }]}>
+      <View style={storyDesk() ? { width: '100%', maxWidth: 560, height: 560, maxHeight: '90%', backgroundColor: '#14120E', borderRadius: 22, overflow: 'hidden', justifyContent: 'center', borderWidth: 1, borderColor: '#EAD7A4' } : { flex: 1, backgroundColor: '#000', justifyContent: 'center' }}>
         {src ? (
           <Image source={{ uri: src }} style={{ width: '100%', height: kind === 'videos' ? 260 : '75%' }} resizeMode="contain" />
         ) : (
