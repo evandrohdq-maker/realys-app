@@ -9,7 +9,8 @@ import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
-import { depositar, conectado } from '../serverShop';
+import { conectado } from '../serverShop';
+import { askPix } from '../components/PixPay';
 import { api } from '../api';
 import { colors, brl, soft } from '../theme';
 import { GIFT_FEE_PCT, LIVE_CONVERT_MIN, liveGiftOf, cashoutQuote, CASHOUT_MIN_POINTS, CASHOUT_EARLY_MIN_POINTS, CASHOUT_POINTS_PER_REAL, CASHOUT_KEEP_PCT, CASHOUT_EARLY_KEEP_PCT } from '../gifts';
@@ -481,10 +482,10 @@ function ActionSheet({ kind, onClose, wallet, limit, dispatch }) {
       dispatch({ type: 'WALLET_WITHDRAW', amount: v, dest: dest.trim() });
       return setDone(`Saque de ${brl(v)} enviado por Pix para ${dest.trim()}. Cai na sua conta em instantes.`);
     }
+    // Conta ligada ao servidor: abre o Pix de verdade (cobrança na conta do Realyz, confirmada sozinha).
     if (conectado(state)) {
-      return depositar(state, dispatch, v, method)
-        .then(() => setDone(`Depósito de ${brl(v)} por ${method} confirmado. O saldo já está disponível.`))
-        .catch((e) => (e.pendente ? setDone(e.message) : Alert.alert('Depósito não feito', e.message)));
+      reset();
+      return askPix({ amount: v, available: 0, label: 'Depósito na carteira', onPaid: () => Alert.alert('Depósito confirmado ✅', `${brl(v)} já está na sua carteira.`) });
     }
     dispatch({ type: 'WALLET_DEPOSIT', amount: v, method });
     setDone(`Depósito de ${brl(v)} por ${method} confirmado. O saldo já está disponível.`);

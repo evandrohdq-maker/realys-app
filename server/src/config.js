@@ -127,6 +127,17 @@ export function loadConfig(overrides = {}) {
     fiscalAgrupar: env.FISCAL_AGRUPAR || 'imediato', // imediato, diario ou mensal (uma nota por cliente)
     fiscalCertPem: env.FISCAL_CERT_PEM ? resolve(ROOT, env.FISCAL_CERT_PEM) : '',
     fiscalKeyPem: env.FISCAL_KEY_PEM ? resolve(ROOT, env.FISCAL_KEY_PEM) : '',
+    // Pix de verdade (depósitos): API Pix do Santander, conta do CNPJ do Realyz. Sem isso, vale TEST_DEPOSITS.
+    pixProvider: env.PIX_PROVIDER || '', // 'santander'
+    pixBaseUrl: (env.PIX_BASE_URL || 'https://trust-pix.santander.com.br').replace(/\/$/, ''),
+    pixTokenUrl: env.PIX_TOKEN_URL || '',
+    pixApiPath: env.PIX_API_PATH ?? '/api/v1',
+    pixClientId: env.PIX_CLIENT_ID || '',
+    pixClientSecret: env.PIX_CLIENT_SECRET || '',
+    pixChave: env.PIX_CHAVE || '',
+    pixExpiraSeg: num(env.PIX_EXPIRA_SEG, 3600),
+    pixCertPem: resolve(ROOT, env.PIX_CERT_PEM || env.FISCAL_CERT_PEM || 'data/fiscal/certificado.pem'),
+    pixKeyPem: resolve(ROOT, env.PIX_KEY_PEM || env.FISCAL_KEY_PEM || 'data/fiscal/chave.pem'),
     fiscalNfseUrl: env.FISCAL_NFSE_URL || '',
     fiscalIntervaloMin: num(env.FISCAL_INTERVALO_MIN, 5),
     fiscalCustosMensais: num(env.FISCAL_CUSTOS_MENSAIS, 0), // R$: servidor, biometria, contador... (para o resumo de lucro)

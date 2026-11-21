@@ -3,6 +3,33 @@ import { Ionicons } from '@expo/vector-icons';
 import { serverOn, api } from '../../api';
 import { videoStatus } from '../../video';
 
+// Caixa do Realyz (servidor): lucro que pode ir da conta Santander para a conta Nubank e o dinheiro
+// dos usuários que precisa ficar no Santander. Aparece só para o administrador entrado no servidor.
+function CaixaRealyz() {
+  const [c, setC] = useState(null);
+  useEffect(() => {
+    if (!serverOn()) return;
+    api('GET', '/admin/caixa').then(setC).catch(() => setC(null));
+  }, []);
+  if (!c) return null;
+  const linha = (l, v, cor) => (
+    <Row style={{ justifyContent: 'space-between', marginTop: 4 }}>
+      <Text style={{ color: colors.muted }}>{l}</Text>
+      <Text style={{ color: cor || colors.text, fontWeight: '800' }}>{brl(v)}</Text>
+    </Row>
+  );
+  return (
+    <Card>
+      <Text style={{ fontWeight: '800', color: colors.text, fontSize: 16 }}>💰 Caixa do Realyz</Text>
+      {linha('Lucro disponível (pode ir para o Nubank)', c.lucroDisponivel, colors.success)}
+      {linha('Saldo dos usuários (fica no Santander)', c.saldoDosUsuarios)}
+      {linha('Taxas de visita retidas', c.visitasRetidas)}
+      {linha('Saques a pagar', c.saquesPendentes)}
+      <Text style={{ color: colors.muted, fontSize: 12, marginTop: 8 }}>{c.orientacao}</Text>
+    </Card>
+  );
+}
+
 // Central de segurança (com o servidor no ar): lista os alertas abertos e atualiza sozinha.
 const KIND_LABEL = { chave: 'Chave do motorista', coacao: 'Coação (resposta de segurança)', perigo: 'Em perigo agora', denuncia: 'Denúncia', emergencia: 'Emergência médica' };
 function CentralSeguranca() {
@@ -175,6 +202,7 @@ export function AdminOverview() {
     <Screen>
       <AnalystBanner />
       <Title sub="Controle geral da plataforma Realyz">Administração</Title>
+      <CaixaRealyz />
       <CrmClosings />
       <HireNotices />
 

@@ -4,7 +4,7 @@ import { tx } from '../db.js';
 
 const brl = (c) => `R$ ${(c / 100).toFixed(2).replace('.', ',')}`;
 
-export default function walletRoutes(r, { db, cfg, wallet, hub, userById, biometria, fiscal }) {
+export default function walletRoutes(r, { db, cfg, wallet, hub, userById, biometria, fiscal, pix }) {
   const view = (userId) => {
     const w = wallet.get(userId);
     return { balance: toReais(w.balance), giftCredits: toReais(w.gift_credits), liveCredits: toReais(w.live_credits), currency: 'RLS' };
@@ -20,11 +20,49 @@ export default function walletRoutes(r, { db, cfg, wallet, hub, userById, biomet
     return rows.map((x) => ({ id: x.id, bucket: x.bucket, amount: toReais(x.amount), cat: x.cat, description: x.description, ref: x.ref, at: x.created_at }));
   });
 
-  // Depósito. Na fase de testes entra na hora (sem Pix real); depois, fica pendente até o pagamento confirmar.
-  r.post('/wallet/deposit', ({ user, body }) => {
+  // Depósito confirmado pelo banco: o saldo entra (uma vez só, mesmo se o aviso chegar duas vezes).
+  const confirmarDeposito = (d) =>
+    tx(db, () => {
+      const r2 = db.prepare("UPDATE deposits SET status = 'confirmado', decided_at = ? WHERE id = ? AND status = 'pendente'").run(now(), d.id);
+      if (!r2.changes) return false;
+      wallet.move(d.user_id, 'saldo', d.amount, 'Depósito', 'Depósito por Pix', d.id);
+      return true;
+    });
+  const conferirDeposito = async (d) => {
+    if (!d || d.status !== 'pendente' || !d.txid || !pix || !pix.ready) return d;
+    const r2 = await pix.consultar(d.txid);
+    if (r2.status === 'pago' && confirmarDeposito(d)) hub.send(d.user_id, 'deposit', { id: d.id, amount: toReais(d.amount), status: 'confirmado' });
+    else if (r2.status === 'expirado' || (d.expira_em && Date.now() > d.expira_em + 10 * 60000)) {
+      db.prepare("UPDATE deposits SET status = 'recusado', decided_at = ? WHERE id = ? AND status = 'pendente'").run(now(), d.id);
+    }
+    return db.prepare('SELECT * FROM deposits WHERE id = ?').get(d.id);
+  };
+  // Para o servidor conferir de tempos em tempos os depósitos Pix ainda abertos.
+  if (pix) pix.conferirDepositos = async () => {
+    for (const d of db.prepare("SELECT * FROM deposits WHERE status = 'pendente' AND txid IS NOT NULL AND created_at > ?").all(Date.now() - 48 * 3600000)) {
+      await conferirDeposito(d).catch(() => {});
+    }
+  };
+
+  // Andamento de um depósito (o app pergunta enquanto o cliente paga o Pix).
+  r.get('/wallet/deposits/:id', async ({ user, params }) => {
+    const d = db.prepare('SELECT * FROM deposits WHERE id = ? AND user_id = ?').get(params.id, user.id);
+    if (!d) fail(404, 'Depósito não encontrado.');
+    const n = await conferirDeposito(d).catch(() => d);
+    return { id: n.id, amount: toReais(n.amount), status: n.status, pix: n.pix_copia ? { copiaECola: n.pix_copia, expiraEm: n.expira_em } : null, wallet: view(user.id) };
+  });
+
+  // Depósito. Com o Pix do banco ligado: gera a cobrança e o saldo entra quando o cliente paga.
+  // Sem o banco: na fase de testes entra na hora (sem Pix real); fora dela, fica pendente para o administrador.
+  r.post('/wallet/deposit', async ({ user, body }) => {
     const amount = money(body.amount, 'depósito', { min: 1, max: 10000 });
     const method = ['pix', 'cartao', 'boleto'].includes(body.method) ? body.method : 'pix';
     const id = newId('dp');
+    if (pix && pix.ready && method === 'pix') {
+      const c = await pix.cobrar(amount, `Depósito na carteira Realyz (${user.name})`);
+      db.prepare('INSERT INTO deposits (id, user_id, amount, method, status, created_at, txid, pix_copia, expira_em) VALUES (?,?,?,?,?,?,?,?,?)').run(id, user.id, amount, 'pix', 'pendente', now(), c.txid, c.copiaECola, c.expiraEm);
+      return { id, status: 'pendente', pix: { copiaECola: c.copiaECola, imagem: c.imagem, expiraEm: c.expiraEm }, wallet: view(user.id) };
+    }
     tx(db, () => {
       db.prepare('INSERT INTO deposits (id, user_id, amount, method, status, created_at, decided_at) VALUES (?,?,?,?,?,?,?)').run(
         id, user.id, amount, method, cfg.testDeposits ? 'confirmado' : 'pendente', now(), cfg.testDeposits ? now() : null

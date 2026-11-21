@@ -30,6 +30,7 @@ import { makeCipher, parseKeys } from './crypto.js';
 import { makeMatcher } from './biometria/matcher.js';
 import { makeBiometria } from './biometria/service.js';
 import { makeMaintenance } from './maintenance.js';
+import { makePix } from './pagamentos/pix.js';
 
 // Dados públicos de uma pessoa (nunca devolve hash de senha nem documento completo).
 export function publicUser(u, { self = false } = {}) {
@@ -67,7 +68,9 @@ export function createApp(cfg) {
   const matcher = cfg.matcher || makeMatcher(cfg);
   const biometria = makeBiometria({ db, cfg, matcher, cipher });
   const fiscal = makeFiscal({ db, cfg, hub, clients: cfg.fiscalClients || {} });
-  const deps = { db, cfg, wallet, hub, userById, publicUser, cipher, matcher, biometria, fiscal };
+  // Pix de verdade dos depósitos (Santander). Sem credenciais no .env, fica desligado.
+  const pix = cfg.pix || makePix(cfg);
+  const deps = { db, cfg, wallet, hub, userById, publicUser, cipher, matcher, biometria, fiscal, pix };
   // Tentativas de login por IP (proteção contra quem tenta adivinhar senha).
   const attempts = new Map();
   deps.limitLogin = (key) => {
@@ -156,5 +159,10 @@ export function createApp(cfg) {
       server.closeAllConnections?.();
     });
 
-  return { server, db, hub, wallet, close, maintenance, biometria, fiscal };
+  // Confere os depósitos Pix abertos a cada minuto (além de quando o app pergunta).
+  let pixTimer = null;
+  const startPix = () => {
+    if (pix.ready && !pixTimer) pixTimer = setInterval(() => pix.conferirDepositos && pix.conferirDepositos().catch(() => {}), 60000);
+  };
+  return { server, db, hub, wallet, close: async () => { if (pixTimer) clearInterval(pixTimer); return close(); }, maintenance, biometria, fiscal, pix, startPix };
 }

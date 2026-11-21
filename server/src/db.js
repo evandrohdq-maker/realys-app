@@ -632,6 +632,13 @@ const MIGRATIONS = [
     UNIQUE (track_id, buyer_id)
   );
   `,
+  // 21: depósito por Pix de verdade (cobrança no banco: txid, código copia e cola e validade)
+  `
+  ALTER TABLE deposits ADD COLUMN txid TEXT;
+  ALTER TABLE deposits ADD COLUMN pix_copia TEXT;
+  ALTER TABLE deposits ADD COLUMN expira_em INTEGER;
+  CREATE INDEX deposits_txid ON deposits(txid);
+  `,
 ];
 
 export function openDb(file) {

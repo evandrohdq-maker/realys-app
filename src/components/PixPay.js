@@ -5,7 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { Alert } from 'react-native';
-import { depositar, conectado } from '../serverShop';
+import { conectado } from '../serverShop';
+import { api } from '../api';
+import { Image } from 'react-native';
 import { colors, brl } from '../theme';
 import { useScreenSharePause } from '../screenShare';
 
@@ -75,6 +77,7 @@ export function PixPayHost() {
   const [req, setReq] = useState(null);
   const [mode, setMode] = useState(null); // 'tudo' | 'saldo'
   const [busy, setBusy] = useState(false);
+  const [dep, setDep] = useState(null); // depósito no servidor (cobrança Pix de verdade)
   useScreenSharePause(!!req, 'pix');
   useEffect(() => {
     listener = (r) => {
@@ -87,26 +90,66 @@ export function PixPayHost() {
       listener = null;
     };
   }, []);
+  // Conta ligada ao servidor: ao abrir o QR, gera a cobrança Pix de verdade; depois confere sozinho a cada 4 s.
+  const realOn = conectado(state);
+  useEffect(() => {
+    if (!req || !mode || !realOn || dep) return;
+    const tot = +Number(req.amount).toFixed(2);
+    const av = Math.max(0, Math.min(+Number(req.available || 0).toFixed(2), tot));
+    const valor = mode === 'saldo' ? +(tot - av).toFixed(2) : tot;
+    let vivo = true;
+    api('POST', '/wallet/deposit', { amount: valor, method: 'pix' })
+      .then((d) => vivo && setDep(d))
+      .catch((e) => vivo && Alert.alert('Pix não gerado', e.message));
+    return () => {
+      vivo = false;
+    };
+  }, [req, mode, realOn]);
+  const conferirRef = React.useRef(null);
+  useEffect(() => {
+    if (!dep || dep.status !== 'pendente') return;
+    const t = setInterval(() => conferirRef.current && conferirRef.current(false), 4000);
+    return () => clearInterval(t);
+  }, [dep && dep.id, dep && dep.status]);
   if (!req) return null;
-  const close = () => setReq(null);
+  const close = () => {
+    setReq(null);
+    setDep(null);
+  };
   const total = +Number(req.amount).toFixed(2);
   const avail = Math.max(0, Math.min(+Number(req.available || 0).toFixed(2), total));
   const pixValue = mode === 'saldo' ? +(total - avail).toFixed(2) : total;
-  const code = `00020126580014BR.GOV.BCB.PIX0136realys-pagamentos5204000053039865406${pixValue.toFixed(2)}5802BR5906REALYS6009SAO PAULO62070503***`;
+  const demoCode = `00020126580014BR.GOV.BCB.PIX0136realys-pagamentos5204000053039865406${pixValue.toFixed(2)}5802BR5906REALYS6009SAO PAULO62070503***`;
+  const code = real ? (dep && dep.pix ? dep.pix.copiaECola : dep && dep.status === 'confirmado' ? 'Depósito de teste: o valor já entrou na sua carteira.' : 'Gerando o Pix…') : demoCode;
+  const real = conectado(state);
+  // Conta ligada ao servidor: o Pix é uma cobrança de verdade na conta do Realyz (ou, na fase de testes, entra na hora).
+  const concluir = (w) => {
+    if (w) dispatch({ type: 'SERVER_WALLET', balance: w.balance, giftCredits: w.giftCredits });
+    const done = req.onPaid;
+    setReq(null);
+    setDep(null);
+    setTimeout(() => done && done(), 50);
+  };
+  const conferir = async (manual) => {
+    if (!dep) return;
+    if (dep.status === 'confirmado') return concluir(dep.wallet);
+    try {
+      const d = await api('GET', `/wallet/deposits/${dep.id}`);
+      if (d.status === 'confirmado') return concluir(d.wallet);
+      if (d.status === 'recusado') {
+        setDep(null);
+        return Alert.alert('Pix expirou', 'O tempo para pagar acabou. Gere um novo Pix.');
+      }
+      if (manual) Alert.alert('Ainda não chegou', 'O banco ainda não confirmou o Pix. Assim que confirmar, a compra continua sozinha.');
+    } catch (e) {
+      if (manual) Alert.alert('Não consegui conferir', e.message);
+    }
+  };
+  conferirRef.current = conferir;
   const paid = () => {
+    if (real) return conferir(true);
     setBusy(true);
     const done = req.onPaid;
-    // Conta ligada ao servidor: o depósito entra na carteira do servidor antes de pagar.
-    if (conectado(state)) {
-      depositar(state, dispatch, pixValue, 'Pix')
-        .then(() => {
-          setReq(null);
-          setTimeout(() => done && done(), 50);
-        })
-        .catch((e) => Alert.alert(e.pendente ? 'Depósito registrado' : 'Depósito não feito', e.message))
-        .finally(() => setBusy(false));
-      return;
-    }
     setTimeout(() => {
       dispatch({ type: 'WALLET_DEPOSIT', amount: pixValue, method: 'Pix' });
       setReq(null);
@@ -163,7 +206,13 @@ export function PixPayHost() {
             <>
               <View style={{ alignItems: 'center', marginTop: 6 }}>
                 <View style={styles.qrBox}>
-                  <QrView seed={code + req.at} />
+                  {real && dep && dep.pix && dep.pix.imagem ? (
+                    <Image source={{ uri: dep.pix.imagem.startsWith('data:') ? dep.pix.imagem : `data:image/png;base64,${dep.pix.imagem}` }} style={{ width: 180, height: 180 }} />
+                  ) : real ? (
+                    <Ionicons name="qr-code-outline" size={120} color="#0B1124" />
+                  ) : (
+                    <QrView seed={code + req.at} />
+                  )}
                 </View>
                 <Text style={styles.value}>{brl(pixValue)}</Text>
                 <Text style={[styles.optSub, { textAlign: 'center' }]}>
@@ -176,14 +225,18 @@ export function PixPayHost() {
               </Text>
               <TouchableOpacity style={[styles.payBtn, busy && { opacity: 0.7 }]} onPress={paid} disabled={busy} activeOpacity={0.85}>
                 {busy ? <ActivityIndicator color="#0B1124" /> : <Ionicons name="checkmark-circle-outline" size={18} color="#0B1124" />}
-                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.payText}>{busy ? 'Confirmando o Pix…' : 'Já fiz o Pix'}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.payText}>{busy ? 'Confirmando o Pix…' : real && dep && dep.status === 'confirmado' ? 'Continuar' : 'Já fiz o Pix'}</Text>
               </TouchableOpacity>
               {avail > 0 ? (
                 <TouchableOpacity onPress={() => setMode(null)} style={{ alignSelf: 'center', marginTop: 8 }}>
                   <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '700', fontSize: 12 }}>Trocar forma de pagamento</Text>
                 </TouchableOpacity>
               ) : null}
-              <Text style={styles.demo}>Demonstração: o QR é ilustrativo. Na versão final o Pix é gerado pelo banco parceiro e confirmado sozinho.</Text>
+              {real ? (
+                <Text style={styles.demo}>Copie o código e pague no app do seu banco. Quando o banco confirmar, a compra continua sozinha.</Text>
+              ) : (
+                <Text style={styles.demo}>Demonstração: o QR é ilustrativo. Na versão final o Pix é gerado pelo banco parceiro e confirmado sozinho.</Text>
+              )}
             </>
           )}
         </View>

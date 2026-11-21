@@ -228,7 +228,14 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
       presentes (pessoas, prestadores e lives), eventos e ingressos (8%, mín. R$ 1,99, portaria por código)
       e músicas (artista recebe 100%, Realyz soma R$ 0,99 por download; envio do MP3 pelo app).
 - [ ] Ainda só no celular: tele do Food, plano de músicas (assinatura), Date, imóveis/veículos, CRM, Desapego.
-- [ ] Pagamentos de verdade: escolher a empresa de pagamentos (Pix por API + divisão) e ligar depósitos e saques.
+- [x] Esquema das duas contas (nov/2026): depósitos por Pix de verdade na conta **Santander** (API Pix, cobrança
+      com QR e copia e cola, confirmação sozinha); o lucro vai para a conta **Nubank** por Pix normal
+      (Painel do administrador › Caixa mostra quanto pode ir). Testado com banco simulado.
+- [ ] Santander: pedir ao gerente de cash o acesso à API Pix (Portal Developers: client_id e client_secret),
+      instalar o certificado A1 (bash deploy/certificado-fiscal.sh), preencher PIX_* no .env, TEST_DEPOSITS=false,
+      e conferir no Portal os endereços de produção (PIX_BASE_URL/PIX_TOKEN_URL). Primeiro teste: depósito de R$ 1.
+- [ ] Saques dos usuários: por enquanto o administrador paga pelo app do Santander (Painel › Saques).
+      Depois: API de pagamentos Pix do Santander para sair sozinho.
       Conta que recebe o lucro do Realyz: a do CNPJ (Nubank ou Santander). Chaves só no .env da VPS.
 - [ ] Primeiro teste sem o serviço biométrico: na VPS, `EXIGIR_BIOMETRIA=false` e `VERIFICACAO_FACIAL_ACOES=false`;
       voltar para `true` quando o server/biometria-ia estiver rodando.

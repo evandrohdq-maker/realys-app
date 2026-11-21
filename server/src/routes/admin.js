@@ -46,6 +46,23 @@ export default function adminRoutes(r, { db, wallet, hub, publicUser }) {
   }, A);
 
   // Depósitos pendentes (quando TEST_DEPOSITS=false): confirmar depois de ver o Pix no banco.
+  // Caixa do Realyz: quanto é lucro (pode ir para a conta Nubank) e quanto é dinheiro de clientes
+  // que ainda está retido (taxas de visita) ou esperando saque. Os valores de clientes ficam no Santander.
+  r.get('/admin/caixa', () => {
+    const w = db.prepare("SELECT balance FROM wallets WHERE user_id = 'realys'").get() || { balance: 0 };
+    const retidas = db.prepare("SELECT COALESCE(SUM(visit_fee),0) AS v FROM service_calls WHERE visit_state = 'retida'").get().v;
+    const saques = db.prepare("SELECT COALESCE(SUM(amount),0) AS v FROM withdrawals WHERE status = 'pendente'").get().v;
+    const clientes = db.prepare("SELECT COALESCE(SUM(balance + gift_credits + live_credits),0) AS v FROM wallets WHERE user_id != 'realys'").get().v;
+    const lucro = w.balance - retidas;
+    return {
+      lucroDisponivel: toReais(Math.max(0, lucro)),
+      visitasRetidas: toReais(retidas),
+      saquesPendentes: toReais(saques),
+      saldoDosUsuarios: toReais(clientes),
+      orientacao: 'O lucro disponível pode ser transferido da conta Santander para a conta Nubank do Realyz. Deixe no Santander o saldo dos usuários, as visitas retidas e os saques pendentes.',
+    };
+  }, { auth: 'admin' });
+
   r.get('/admin/deposits', ({ query }) =>
     db.prepare('SELECT d.*, u.name FROM deposits d JOIN users u ON u.id = d.user_id WHERE d.status = ? ORDER BY d.created_at DESC LIMIT 100').all(query.status || 'pendente').map((d) => ({ ...d, amount: toReais(d.amount) })), A);
   r.post('/admin/deposits/:id/:action', ({ params }) => {

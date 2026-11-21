@@ -10,6 +10,9 @@ app.server.listen(cfg.port, cfg.host, () => {
   if (cfg.production && !cfg.biometricKeys) console.log('Aviso: BIOMETRIA_KEYS não configurada. Cadastros biométricos ficam parados até configurar.');
   if (cfg.production && !cfg.biometricServiceUrl) console.log('Aviso: BIOMETRIA_SERVICE_URL não configurada. Todo cadastro biométrico vai para revisão manual.');
   app.maintenance.start();
+  app.startPix();
+  if (cfg.pixProvider && !app.pix.ready) console.log('Pix do banco desligado. Falta configurar: ' + app.pix.pendencias().join('; '));
+  if (app.pix.ready) console.log('Pix do banco ligado: depósitos por cobrança Pix na conta do Realyz.');
   app.fiscal.start();
   const falta = app.fiscal.pendenciasConfig();
   if (falta.length) console.log('Notas fiscais desligadas. Falta configurar: ' + falta.join('; '));
