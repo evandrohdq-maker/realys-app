@@ -510,7 +510,12 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
     if (!live) return;
     if (cost.total > state.wallet)
       return Alert.alert('Saldo insuficiente', `Esse presente custa ${brl(cost.total)}. Deposite saldo na carteira. (Créditos de presente não servem para presentear.)`);
-    dispatch({ type: 'SEND_LIVE_GIFT', live, gift: gift.key, qty });
+    // Live de verdade (servidor): o presente sai da carteira do servidor e chega ao streamer na hora.
+    if (live.real && state.user && state.user.serverId) {
+      api('POST', `/lives/${live.id}/gifts`, { gift: gift.key, qty })
+        .then((r) => api('GET', '/wallet').then((w) => dispatch({ type: 'SERVER_WALLET', balance: w.balance, giftCredits: w.giftCredits })))
+        .catch((e) => Alert.alert('Presente não enviado', e.message));
+    } else dispatch({ type: 'SEND_LIVE_GIFT', live, gift: gift.key, qty });
     setComments((cs) => [...cs.slice(-5), { who: userName || 'Você', g: gift, what: `enviou ${gift.name}${qty > 1 ? ` x${qty}` : ''}`, gift: true }]);
     showBurst(gift, qty, 'Você');
     setTray(false);

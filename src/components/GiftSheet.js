@@ -14,12 +14,14 @@ import { Photo } from './ui';
 import { members } from '../people';
 import { serviceTypes, MY_COMPANY_ID } from '../data';
 import { GIFT_AMOUNTS, GIFT_MIN, GIFT_MAX, GIFT_FEE_PCT, giftFee, OCCASIONS } from '../gifts';
+import { api } from '../api';
+import { conectado } from '../serverShop';
 
 const NIGHT = '#0B1124';
 const toNumber = (t) => Number(String(t || '').replace(/[^\d,.]/g, '').replace(/\./g, '').replace(',', '.')) || 0;
 
-export const memberTarget = (m) => ({ id: m.id, name: m.name, kind: 'pessoa', photo: m.photo, role: m.city });
-export const providerTarget = (p) => ({ id: p.id, name: p.name, kind: 'prestador', photo: p.photo, role: (serviceTypes.find((t) => t.key === p.service) || {}).label || 'Prestador' });
+export const memberTarget = (m) => ({ id: m.id, serverId: m.serverId, name: m.name, kind: 'pessoa', photo: m.photo, role: m.city });
+export const providerTarget = (p) => ({ id: p.id, serverId: p.serverId, name: p.name, kind: 'prestador', photo: p.photo, role: (serviceTypes.find((t) => t.key === p.service) || {}).label || 'Prestador' });
 
 export default function GiftSheet() {
   const { state, dispatch } = useStore();
@@ -31,6 +33,18 @@ export default function GiftSheet() {
   const [other, setOther] = useState('');
   const [occasion, setOccasion] = useState('');
   const [message, setMessage] = useState('');
+  // Busca de pessoas de verdade (servidor do Realyz).
+  const [busca, setBusca] = useState('');
+  const [achados, setAchados] = useState([]);
+  useEffect(() => {
+    if (!open || !conectado(state) || busca.trim().length < 2) return setAchados([]);
+    const t = setTimeout(() => {
+      api('GET', `/users?q=${encodeURIComponent(busca.trim().replace(/^[@*]/, ''))}`)
+        .then((l) => setAchados(l.filter((u) => u.id !== state.user.serverId).map((u) => ({ id: 'srv_' + u.id, serverId: u.id, name: u.name, kind: 'pessoa', photo: u.photo, role: '*' + u.username }))))
+        .catch(() => setAchados([]));
+    }, 350);
+    return () => clearTimeout(t);
+  }, [busca, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -58,6 +72,16 @@ export default function GiftSheet() {
     if (value < GIFT_MIN) return Alert.alert('Valor mínimo', `O presente mínimo é de ${brl(GIFT_MIN)}.`);
     if (value > GIFT_MAX) return Alert.alert('Valor máximo', `O presente máximo é de ${brl(GIFT_MAX)}.`);
     if (total > state.wallet) return Alert.alert('Saldo insuficiente', `O presente custa ${brl(total)}. Deposite saldo na carteira. (Créditos de presente não servem para presentear.)`);
+    // Pessoa ou prestador de verdade: o presente sai da carteira do servidor e chega na conta dele na hora.
+    if (to.serverId && conectado(state)) {
+      return api('POST', '/gifts', { toId: to.serverId, amount: value, occasion: occasion || occasions[0], message: message.trim(), asCompany: !!asCompany, tip: !!to.tip })
+        .then((r) => {
+          if (r.wallet) dispatch({ type: 'SERVER_WALLET', balance: r.wallet.balance, giftCredits: r.wallet.giftCredits });
+          close();
+          Alert.alert('Presente enviado 🎁', `${to.name.split(' ')[0]} já recebeu ${brl(value - (r.fee || 0))} em créditos de presente para usar no Realyz.`);
+        })
+        .catch((e) => Alert.alert('Presente não enviado', e.message));
+    }
     dispatch({ type: 'SEND_GIFT', to, amount: value, occasion: occasion || occasions[0], message: message.trim(), asCompany });
     close();
     Alert.alert('Presente enviado 🎁', `${to.name.split(' ')[0]} já recebeu ${brl(net)} em créditos de presente para usar em compras no Realyz. Não precisa aceitar: já está na conta.`);
@@ -114,8 +138,11 @@ export default function GiftSheet() {
                     ))}
                   </View>
                 ) : null}
+                {conectado(state) ? (
+                  <TextInput value={busca} onChangeText={setBusca} placeholder="Buscar no Realyz: nome ou *usuário" placeholderTextColor={colors.muted} style={[styles.amount, styles.otherInput, { marginBottom: 8, width: '100%', textAlign: 'left' }]} />
+                ) : null}
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 4 }}>
-                  {(tab === 'prestadores' && !asCompany ? providers.map(providerTarget) : friendsFirst.map(memberTarget)).map((t) => (
+                  {(achados.length ? achados : tab === 'prestadores' && !asCompany ? providers.map(providerTarget) : friendsFirst.map(memberTarget)).map((t) => (
                     <TouchableOpacity key={t.kind + t.id} style={styles.pick} onPress={() => setTo(t)} accessibilityLabel={`Presentear ${t.name}`}>
                       <Photo uri={t.photo} style={styles.pickPhoto} fallback={t.kind === 'prestador' ? '🧑‍🔧' : '🙂'} />
                       <Text style={styles.pickName} numberOfLines={1}>{t.name.split(' ')[0]}</Text>
