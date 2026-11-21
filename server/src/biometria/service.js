@@ -314,6 +314,7 @@ export function makeBiometria({ db, cfg, matcher, cipher }) {
 
   // Consome a verificação de uma ação (aceite ou finalização). Sem ela, a ação é recusada.
   function consume(userId, purpose, callId) {
+    if (cfg.verificacaoAcoes === false) return true; // fase de testes sem o serviço biométrico
     const since = now() - cfg.biometricCheckTtlMin * 60000;
     const c = db
       .prepare(`SELECT id FROM biometria_checks WHERE user_id = ? AND purpose = ? AND (call_id IS ? OR call_id = ?) AND used_at IS NULL AND created_at > ? ORDER BY created_at DESC LIMIT 1`)

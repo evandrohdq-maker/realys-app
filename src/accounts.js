@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import * as Crypto from 'expo-crypto';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { cadastrarNoServidor } from './serverAuth';
 
 const ACCOUNTS_KEY = 'realys.accounts';
 const SAVED_KEY = 'realys.savedUsers';
@@ -121,9 +122,9 @@ const saveAccounts = (list) => AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify
 // O usuário (objeto que entra no app) a partir da conta cadastrada.
 export function userFromAccount(acc) {
   if (acc.kind === 'empresa') {
-    return { id: acc.id, name: acc.name, username: acc.username, verified: acc.bio !== false, roles: ['empresa', 'fornecedor', 'cliente'], cnpj: formatCnpj(acc.doc) };
+    return { id: acc.id, serverId: acc.serverId || null, name: acc.name, username: acc.username, verified: acc.bio !== false, roles: ['empresa', 'fornecedor', 'cliente'], cnpj: formatCnpj(acc.doc) };
   }
-  return { id: acc.id, name: acc.name, username: acc.username, verified: acc.bio !== false, roles: ['cliente', 'prestador'], cpf: formatCpf(acc.doc), cnpj: '12.345.678/0001-90', social: acc.social || null, about: acc.about || '', work: acc.work || '', birth: acc.birth || null };
+  return { id: acc.id, serverId: acc.serverId || null, name: acc.name, username: acc.username, verified: acc.bio !== false, roles: ['cliente', 'prestador'], cpf: formatCpf(acc.doc), cnpj: '12.345.678/0001-90', social: acc.social || null, about: acc.about || '', work: acc.work || '', birth: acc.birth || null };
 }
 
 // Acha a conta pelo que a pessoa digitou: usuário, CPF ou CNPJ.
@@ -183,8 +184,21 @@ export async function createAccount({ kind, name, doc, username, email, phone, p
     bio: !!bio,
     createdAt: new Date().toISOString(),
   };
+  // Servidor ligado: a conta nasce também no servidor (lá é conferido de novo CPF/CNPJ, usuário e e-mail).
+  try {
+    const srv = await cadastrarNoServidor(account, password);
+    if (srv) account.serverId = srv.id;
+  } catch (e) {
+    return { error: e.message || 'Não foi possível criar a conta no Re@lys. Tente de novo.' };
+  }
   await saveAccounts([...list, account]);
   return { account };
+}
+
+// Conta antiga deste celular que acabou de ganhar o cadastro no servidor.
+export async function setServerId(accId, serverId) {
+  const list = await loadAccounts();
+  await saveAccounts(list.map((a) => (a.id === accId ? { ...a, serverId } : a)));
 }
 
 // ---------- Contas salvas no aparelho (entrar só com a biometria) ----------

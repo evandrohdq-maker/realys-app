@@ -60,5 +60,7 @@ export const PROTECTION_FEE = 0.99;
 export const PROTECTION_FREE_SCORE = 850;
 export const PROTECTION_TEXT = 'Paga a Garantia Re@lys (seu dinheiro volta se der problema), a verificação por biometria de todo mundo e a segurança contra golpes. Valor fixo de R$ 0,99 por pedido. Quem tem Score Re@lys Diamante não paga.';
 export function protectionFee(state) {
+  // Conta ligada ao servidor: o servidor cobra os R$ 0,99 (a isenção do Diamante ainda não está lá).
+  if (state.user && state.user.serverId) return PROTECTION_FEE;
   return scoreOf(state, 'usuario').score >= PROTECTION_FREE_SCORE ? 0 : PROTECTION_FEE;
 }

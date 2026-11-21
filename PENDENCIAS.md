@@ -219,6 +219,14 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
       registrada no fiscal (`taxa_protecao`) e devolvida se a loja cancelar. Valor em `PROTECTION_FEE`.
       Falta: isenção do Score Diamante no servidor (o score ainda é calculado só no app).
 - [ ] Ligar no servidor a taxa de visita, que hoje existe só no app, chamando `fiscal.registrar`.
+- [x] Compras do app ligadas ao servidor (nov/2026): cadastro e entrada criam/abrem a conta no servidor
+      (conta antiga do celular é criada lá na primeira entrada com senha), cada conta salva tem a sua
+      sessão, lojas e produtos do servidor aparecem no Shop/Food, carteira e depósitos são os do servidor,
+      o carrinho paga no servidor (com a taxa de proteção) e a loja recebe e muda os pedidos no
+      Painel da empresa › Pedidos do Re@lys. Produtos de demonstração viram pedido de demonstração, sem cobrar.
+- [ ] Ainda só no celular: serviços, corridas, presentes, ingressos, tele do Food e músicas (próximas ligações).
+- [ ] Primeiro teste sem o serviço biométrico: na VPS, `EXIGIR_BIOMETRIA=false` e `VERIFICACAO_FACIAL_ACOES=false`;
+      voltar para `true` quando o server/biometria-ia estiver rodando.
 - [ ] Telas no app: "Minhas notas fiscais", painel fiscal do administrador e aviso de teto do MEI.
 - [ ] **Conversa com o contador sobre 2027:** pela LC 214/2025 (arts. 22 e 23), plataformas digitais respondem
       pela CBS/IBS das vendas intermediadas e precisam se inscrever no regime regular. Ver se o Simples ainda compensa.

@@ -9,6 +9,7 @@ import { BoostButton } from '../../components/Boost';
 import { SHOP_SECTORS } from '../../shopSectorsData';
 import { MY_COMPANY_ID, isFoodStore } from '../../data';
 import { rotuloClasse } from '../../foodClasses';
+import { publicarProduto, carregarCatalogo, conectado } from '../../serverShop';
 
 export default function InventoryScreen() {
   const { state, dispatch } = useStore();
@@ -20,7 +21,17 @@ export default function InventoryScreen() {
   const totalValue = products.reduce((s, p) => s + p.cost * p.stock, 0);
 
   // Produto novo publicado: vai para a página da loja e para o Shop, no setor que o Re@lys classificou.
-  const save = (product) => {
+  const save = async (product) => {
+    // Conta ligada ao servidor: o produto vai para o servidor e aparece no Shop/Food de todo mundo.
+    if (conectado(state)) {
+      try {
+        const srv = await publicarProduto(state, product);
+        if (srv) product = { ...product, serverId: srv.id };
+        carregarCatalogo(dispatch).catch(() => {});
+      } catch (e) {
+        return Alert.alert('Produto não publicado', e.message);
+      }
+    }
     dispatch({ type: 'ADD_PRODUCT', product });
     setAdding(false);
     if (product.classe) {

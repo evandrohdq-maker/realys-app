@@ -22,6 +22,9 @@ import {
   savedKey,
 } from '../accounts';
 import SignupForm from './SignupForm';
+import { entrarOuMigrar, userFromServer, usarConta } from '../serverAuth';
+import { setServerId } from '../accounts';
+import { serverOn } from '../api';
 import ScanFacial from '../components/ScanFacial';
 import SupportCenter from '../components/SupportCenter';
 import { authStyles } from './authStyles';
@@ -107,6 +110,7 @@ export default function LoginScreen() {
   }[info.kind];
 
   const login = async (user, loginText, keep) => {
+    usarConta(user);
     if (keep) await saveUser(loginText, user).catch(() => {});
     dispatch({ type: 'LOGIN', user });
   };
@@ -146,6 +150,23 @@ export default function LoginScreen() {
       } else {
         user = demoUser(value, info); // conta de demonstração
       }
+      // Servidor ligado: entra também no servidor (compras, carteira e pedidos de verdade).
+      // Conta antiga só deste celular é criada lá na primeira entrada.
+      if (serverOn()) {
+        try {
+          const srv = await entrarOuMigrar(value, password, acc);
+          if (srv) {
+            if (acc) {
+              user = { ...user, serverId: srv.id };
+              if (acc.serverId !== srv.id) await setServerId(acc.id, srv.id).catch(() => {});
+            } else user = userFromServer(srv);
+          }
+        } catch (e) {
+          // Sem internet: entra no modo do celular (demonstração) e tenta o servidor na próxima entrada.
+          if (e.status !== 0 && (acc || e.status !== 401)) return Alert.alert('Não foi possível entrar', e.message);
+          // Sem conta aqui nem no servidor: segue como conta de demonstração (sem compras de verdade).
+        }
+      }
       // Aparelho já cadastrado (conta salva aqui): abre normal, sem biometria a cada entrada.
       // Conta sem biometria feita neste aparelho: a pessoa dona da conta faz o reconhecimento facial.
       const conhecido = (await getSavedUsers()).some((x) => x.key === savedKey(value));
@@ -162,6 +183,7 @@ export default function LoginScreen() {
     try {
       // Aparelho já cadastrado: entra direto, sem biometria. Serviços, compras e saques pedem biometria à parte.
       await touchSavedUser(s.key).catch(() => {});
+      usarConta(s.user);
       return dispatch({ type: 'LOGIN', user: s.user });
     } finally {
       setBusy(false);

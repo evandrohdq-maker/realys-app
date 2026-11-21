@@ -46,6 +46,9 @@ export function loadConfig(overrides = {}) {
     // Conta sem biometria aprovada é só perfil social: não compra, não contrata e não usa a carteira.
     // Em produção já vem ligado; nos testes locais fica desligado para não travar a demonstração.
     exigirBiometria: bool(env.EXIGIR_BIOMETRIA, production),
+    // Conferência do rosto nas ações (venda, saque, aceite...). Precisa do serviço biométrico
+    // (BIOMETRIA_SERVICE_URL). Só para o primeiro teste, sem esse serviço: VERIFICACAO_FACIAL_ACOES=false.
+    verificacaoAcoes: bool(env.VERIFICACAO_FACIAL_ACOES, true),
     // Regras de dinheiro (mesmas do app). Valores em reais.
     giftFeePct: num(env.GIFT_FEE_PCT, 10), // 10%, descontado do presente (igual ao app)
     giftFeeMin: num(env.GIFT_FEE_MIN, 0),

@@ -29,8 +29,19 @@ export class ApiError extends Error {
   }
 }
 
-const saveSession = (t) => SecureStore.setItemAsync(SESSION_KEY, t, { requireAuthentication: false });
-export const hasSession = async () => !!(await SecureStore.getItemAsync(SESSION_KEY).catch(() => null));
+// Cada conta tem a sua sessão guardada (celular da empresa usado por mais de uma pessoa):
+// "realys.session.<id da conta no servidor>". Trocar de conta troca a sessão usada nas chamadas.
+let sessionKey = SESSION_KEY;
+const keyFor = (serverId) => (serverId ? `${SESSION_KEY}.${String(serverId).replace(/[^A-Za-z0-9._-]/g, '')}` : SESSION_KEY);
+export function setServerAccount(serverId) {
+  const k = keyFor(serverId);
+  if (k !== sessionKey) {
+    sessionKey = k;
+    accessToken = null;
+  }
+}
+const saveSession = (t) => SecureStore.setItemAsync(sessionKey, t, { requireAuthentication: false });
+export const hasSession = async () => !!(await SecureStore.getItemAsync(sessionKey).catch(() => null));
 
 async function raw(method, path, body, headers = {}) {
   let res;
@@ -54,7 +65,7 @@ async function raw(method, path, body, headers = {}) {
 export async function refresh() {
   if (refreshing) return refreshing;
   refreshing = (async () => {
-    const sessionToken = await SecureStore.getItemAsync(SESSION_KEY).catch(() => null);
+    const sessionToken = await SecureStore.getItemAsync(sessionKey).catch(() => null);
     if (!sessionToken) throw new ApiError(401, 'Entre com usuário e senha.', 'sem_sessao');
     accessToken = null;
     const d = await raw('POST', '/auth/refresh', { sessionToken });
@@ -101,6 +112,7 @@ export async function login(loginText, password, device = 'Android', aparelhoTok
   accessToken = null;
   const key = await deviceKey();
   const d = await raw('POST', '/auth/login', { login: loginText, password, device, deviceKey: key, aparelhoToken });
+  setServerAccount(d.user && d.user.id);
   accessToken = d.accessToken;
   await saveSession(d.sessionToken);
   return d.user;
@@ -110,18 +122,19 @@ export async function login(loginText, password, device = 'Android', aparelhoTok
 export async function signup(data, device = 'Android') {
   accessToken = null;
   const d = await raw('POST', '/auth/signup', { ...data, device });
+  setServerAccount(d.user && d.user.id);
   accessToken = d.accessToken;
   await saveSession(d.sessionToken);
   return d.user;
 }
 
 export async function logout() {
-  const sessionToken = await SecureStore.getItemAsync(SESSION_KEY).catch(() => null);
+  const sessionToken = await SecureStore.getItemAsync(sessionKey).catch(() => null);
   try {
     if (sessionToken) await api('POST', '/auth/logout', { sessionToken });
   } catch (e) {}
   accessToken = null;
-  await SecureStore.deleteItemAsync(SESSION_KEY).catch(() => {});
+  await SecureStore.deleteItemAsync(sessionKey).catch(() => {});
 }
 
 // Envia uma foto, vídeo ou música e devolve o endereço completo.

@@ -9,6 +9,7 @@ import { Screen, Title, Card, Row, Stat, BarChart, Section, ProductThumb, Badge 
 import { ALL_ADS, shortNum } from '../../adsData';
 import { MY_COMPANY_ID } from '../../data';
 import PlanoLojaCard from '../../components/PlanoLojaCard';
+import ServerShopOrders from '../../components/ServerShopOrders';
 import { ReelComposer } from '../StoriesScreen';
 
 export default function DashboardScreen({ goTo, navigate }) {
@@ -40,6 +41,9 @@ export default function DashboardScreen({ goTo, navigate }) {
       </Row>
 
       <PlanoLojaCard />
+
+      {/* Pedidos de clientes de verdade, pelo servidor do Re@lys. */}
+      <ServerShopOrders />
 
       {/* Hub de Negócios: recepção ao vivo, atendimento com tela compartilhada e reuniões da equipe. */}
       <TouchableOpacity onPress={() => (navigate ? navigate({ tab: 'salas' }) : goTo && goTo('salas'))} activeOpacity={0.85} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 18, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: colors.border }} accessibilityLabel="Abrir o Hub de Negócios">

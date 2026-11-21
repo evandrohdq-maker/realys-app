@@ -6,6 +6,7 @@ import { View, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-nat
 import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf, cartTotal } from '../../store';
+import { finalizarCompra, aPagar } from '../../serverShop';
 import { colors, brl, soft } from '../../theme';
 import { SearchBar, GlobalResults } from '../../components/Search';
 import { Screen, Photo, Badge, Row, Button, Input, ProductThumb, Chip, Card, Section, Empty } from '../../components/ui';
@@ -155,11 +156,13 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
 
   const checkout = () => {
     const avail = state.wallet + state.giftCredits;
-    if (total > avail) return askPix({ amount: total, available: avail, label: 'Carrinho', onPaid: finish });
+    const due = aPagar(state, total);
+    if (due > avail) return askPix({ amount: due, available: avail, label: 'Carrinho', onPaid: finish });
     finish();
   };
-  const finish = () => {
-    dispatch({ type: 'CHECKOUT' });
+  const finish = async () => {
+    const r = await finalizarCompra(state, dispatch);
+    if (!r.ok) return Alert.alert('Compra não finalizada', r.message);
     setShowCart(false);
     Alert.alert(
       'Pedido confirmado! ✅',

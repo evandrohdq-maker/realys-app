@@ -54,6 +54,7 @@ import TermoReaceite from './src/components/TermoReaceite';
 import AccountBlocked from './src/components/AccountBlocked';
 import LotusSOS from './src/components/LotusSOS';
 import SecurityEvents from './src/components/SecurityEvents';
+import ServerSync from './src/components/ServerSync';
 import { FavLiveAlerts } from './src/components/FavKit';
 import { useFavs } from './src/favorites';
 import { SoftAlertHost, installSoftAlert } from './src/components/SoftAlert';
@@ -726,6 +727,7 @@ function Shell({ inviteTick }) {
       <TermoReaceite />
       <LotusSOS />
       <SecurityEvents />
+      <ServerSync />
       <FavLiveAlerts />
       <AccountBlocked />
       <WakeWordListener

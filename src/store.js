@@ -15,6 +15,8 @@ import { initialGifts, initialGiftCredits, giftFee, giftNet, GIFT_MIN, GIFT_MAX,
 import { INTEL_PLAN, subPlan } from './engage';
 import { fareQuote, TARIFFS, surgeText } from './pricing';
 import { protectionFee } from './guarantee';
+import { usarConta } from './serverAuth';
+import { isServerId } from './serverShop';
 import { pointsFor, pointOffer, giftPoints, initialPoints, promoDiscount, POINT_RULES, watchedToday } from './rewards';
 import { initialLoyalty, onDelivered } from './loyalty';
 import { conversations as initialConversations, communityPosts as initialCommunityPosts } from './homeData';
@@ -485,8 +487,38 @@ function baseReducer(state, a) {
     case 'CLOSE_CART':
       return { ...state, cartOpen: false };
 
+    // ── Servidor do Re@lys: lojas e produtos de verdade, carteira e pedidos ──
+    case 'SERVER_CATALOG': {
+      // Produtos da minha própria loja já aparecem pela cópia local (estoque e painel da empresa).
+      const mine = new Set(state.products.filter((p) => !isServerId(p.id) && p.serverId).map((p) => p.serverId));
+      const products = [...state.products.filter((p) => !isServerId(p.id)), ...a.products.filter((p) => !mine.has(p.serverId))];
+      const stores = [...state.stores.filter((x) => !isServerId(x.id)), ...a.stores];
+      const ids = new Set(products.map((p) => p.id));
+      return { ...state, products, stores, cart: state.cart.filter((c) => ids.has(c.productId)) };
+    }
+    case 'SERVER_WALLET':
+      return { ...state, wallet: a.balance, giftCredits: a.giftCredits };
+    case 'SERVER_ORDERS_PLACED': {
+      const bought = new Set(a.productIds);
+      return { ...state, cart: state.cart.filter((c) => !bought.has(c.productId)), orders: [...a.orders, ...state.orders] };
+    }
+    case 'SERVER_ORDERS_SYNC': {
+      const byId = new Map(a.orders.map((o) => [o.serverId, o]));
+      const known = new Set(state.orders.filter((o) => o.serverId).map((o) => o.serverId));
+      const fresh = a.orders.filter((o) => !known.has(o.serverId));
+      return {
+        ...state,
+        orders: [...fresh, ...state.orders.map((o) => (o.serverId && byId.has(o.serverId) ? { ...o, status: byId.get(o.serverId).status } : o))],
+      };
+    }
     case 'CHECKOUT': {
-      const lines = state.cart.map((c) => ({ ...c, product: state.products.find((p) => p.id === c.productId) }));
+      // Produtos de lojas do servidor são pagos lá (finalizarCompra em serverShop.js) e ficam fora daqui.
+      // Conta ligada ao servidor: a carteira é a do servidor, então os produtos de demonstração
+      // viram pedido de demonstração, sem descontar saldo.
+      const real = !!(state.user && state.user.serverId);
+      const localCart = state.cart.filter((c) => !isServerId(c.productId));
+      const keepCart = state.cart.filter((c) => isServerId(c.productId));
+      const lines = localCart.map((c) => ({ ...c, product: state.products.find((p) => p.id === c.productId) })).filter((l) => l.product);
       const total = lines.reduce((s, l) => s + l.product.price * l.qty, 0);
       // Créditos promocionais dos parceiros: descontam sozinhos nas compras daquela loja.
       const { off: promoOff, used: promoUsed } = promoDiscount(state, lines);
@@ -497,9 +529,10 @@ function baseReducer(state, a) {
       const foodSubtotal = lines.filter((l) => foodStoreObjs.some((s) => s.id === l.product.storeId)).reduce((s, l) => s + l.product.price * l.qty, 0);
       const tele = teleDoCarrinho(state, foodStoreObjs, foodSubtotal);
       const toPay = +(total - promoOff + protection + (tele ? tele.cliente : 0)).toFixed(2);
-      if (!lines.length || toPay > state.wallet + state.giftCredits) return state;
+      if (!lines.length || (!real && toPay > state.wallet + state.giftCredits)) return state;
       // Créditos de presente pagam primeiro; o resto sai do saldo.
-      const fromGift = +Math.min(state.giftCredits, toPay).toFixed(2);
+      const fromGift = real ? 0 : +Math.min(state.giftCredits, toPay).toFixed(2);
+      const charged = real ? 0 : toPay;
       const mine = lines.filter((l) => l.product.storeId === D.MY_COMPANY_ID);
       const mineTotal = mine.reduce((s, l) => s + l.product.price * l.qty, 0);
       const storeNames = [...new Set(lines.map((l) => state.stores.find((s) => s.id === l.product.storeId).name))];
@@ -513,10 +546,10 @@ function baseReducer(state, a) {
       return {
         ...state,
         nfeSeq: state.nfeSeq + 1,
-        protectionFees: +((state.protectionFees || 0) + protection).toFixed(2),
+        protectionFees: +((state.protectionFees || 0) + (real ? 0 : protection)).toFixed(2),
         teleGratisMes: tele && tele.pagaRealys ? somarGasto(state, tele.pagaRealys) : state.teleGratisMes,
-        wallet: +(state.wallet - (toPay - fromGift)).toFixed(2),
-        cart: [],
+        wallet: +(state.wallet - (charged - fromGift)).toFixed(2),
+        cart: keepCart,
         promoCredits: (state.promoCredits || []).map((pc) => (promoUsed[pc.id] ? { ...pc, used: true } : pc)),
         giftCredits: +(state.giftCredits - fromGift).toFixed(2),
         gifts: fromGift ? [{ id: newId('gu'), dir: 'usado', amount: fromGift, desc: storeNames.join(', '), at: Date.now() }, ...state.gifts] : state.gifts,
@@ -534,6 +567,7 @@ function baseReducer(state, a) {
             protectionFee: protection || undefined,
             tele: tele ? { valor: tele.tele, cliente: tele.cliente, pagaLoja: tele.pagaLoja, pagaRealys: tele.pagaRealys, motivo: tele.motivo } : undefined,
             status: 'Pagamento protegido',
+            demo: real || undefined,
             store: storeNames.join(', '),
             courier: courier ? courier.name : null,
             courierId: courier ? courier.id : null,
@@ -1969,7 +2003,10 @@ export function StoreProvider({ children }) {
   // Ao abrir: se tem sessão salva, entra direto.
   useEffect(() => {
     readSession()
-      .then((session) => dispatch({ type: 'RESTORE_SESSION', session }))
+      .then((session) => {
+        usarConta(session && session.user); // a sessão do servidor daquela conta
+        dispatch({ type: 'RESTORE_SESSION', session });
+      })
       .catch(() => dispatch({ type: 'RESTORE_SESSION', session: null }));
   }, []);
   // Guarda a sessão a cada login/troca de perfil e apaga ao sair.

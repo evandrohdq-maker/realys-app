@@ -18,6 +18,7 @@ import { protectionFee, PROTECTION_TEXT } from '../guarantee';
 import { teleDoCarrinho } from '../teleGratis';
 import { isFoodStore } from '../data';
 import MusicCart, { musicCartCount } from './MusicCart';
+import { finalizarCompra, aPagar } from '../serverShop';
 
 const NIGHT = '#0B1124';
 
@@ -41,14 +42,16 @@ export default function CartSheet({ onOrders }) {
 
   const pay = () => {
     const avail = state.wallet + (state.giftCredits || 0);
-    if (total > avail) {
+    const due = aPagar(state, total);
+    if (due > avail) {
       close();
-      return askPix({ amount: total, available: avail, label: `Carrinho · ${count} ${count === 1 ? 'item' : 'itens'}`, onPaid: finish });
+      return askPix({ amount: due, available: avail, label: `Carrinho · ${count} ${count === 1 ? 'item' : 'itens'}`, onPaid: finish });
     }
     finish();
   };
-  const finish = () => {
-    dispatch({ type: 'CHECKOUT' });
+  const finish = async () => {
+    const r = await finalizarCompra(state, dispatch);
+    if (!r.ok) return Alert.alert('Compra não finalizada', r.message);
     close();
     Alert.alert('Pedido confirmado! ✅', 'Pagamento protegido: o valor fica retido pelo Re@lys e só é liberado para a loja quando você confirmar a entrega.', [
       { text: 'Ver pedidos', onPress: () => onOrders && onOrders() },

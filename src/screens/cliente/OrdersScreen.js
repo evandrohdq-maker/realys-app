@@ -6,6 +6,7 @@ import { View, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, cartTotal, storeOf } from '../../store';
+import { finalizarCompra, aPagar } from '../../serverShop';
 import MusicCart from '../../components/MusicCart';
 import { SegTabs } from '../../components/AdKit';
 import { ProductThumb } from '../../components/ui';
@@ -170,11 +171,13 @@ function CartTab({ onPaid }) {
   const hasFood = lines.some((l) => isFoodStore(storeOf(state, l.p.storeId)));
   const pay = () => {
     const avail = state.wallet + (state.giftCredits || 0);
-    if (total > avail) return askPix({ amount: total, available: avail, label: 'Carrinho', onPaid: finish });
+    const due = aPagar(state, total);
+    if (due > avail) return askPix({ amount: due, available: avail, label: 'Carrinho', onPaid: finish });
     finish();
   };
-  const finish = () => {
-    dispatch({ type: 'CHECKOUT' });
+  const finish = async () => {
+    const r = await finalizarCompra(state, dispatch);
+    if (!r.ok) return Alert.alert('Compra não finalizada', r.message);
     onPaid(hasFood);
     Alert.alert('Pedido confirmado! ✅', 'Pagamento protegido: o valor fica retido pelo Re@lys e só é liberado para a loja quando você confirmar a entrega.');
   };
@@ -545,7 +548,8 @@ export default function OrdersScreen({ navigate, explore }) {
                   <Button small title="Avaliar pedido" onPress={() => dispatch({ type: 'OPEN_RATE', kind: 'pedido', refId: o.id })} />
                 )
               ) : null}
-              {o.status !== 'Entregue' && o.status !== 'Reembolsado' ? (
+              {/* Pedido de loja do servidor: quem muda o status é a loja; aqui só acompanha. */}
+              {!o.serverId && o.status !== 'Entregue' && o.status !== 'Reembolsado' ? (
                 <Button
                   small
                   variant="light"

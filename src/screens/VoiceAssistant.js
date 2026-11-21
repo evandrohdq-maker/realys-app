@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { KeyboardLift } from '../keyboard';
 import {
-  View, Modal, TouchableOpacity, StyleSheet, ScrollView, Platform, Animated, Easing, Pressable, Dimensions, AppState,
+  View, Modal, TouchableOpacity, StyleSheet, ScrollView, Platform, Animated, Easing, Pressable, Dimensions, AppState, Alert,
 } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as IntentLauncher from 'expo-intent-launcher';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
+import { finalizarCompra, aPagar } from '../serverShop';
 import { useStore, buildServiceCall, callReply, searchReply, detectService, serviceType, priceText, myProducts, cartTotal } from '../store';
 import { colors, brl, soft } from '../theme';
 import { ServiceCallCard } from './cliente/ServicesScreen';
@@ -431,8 +432,9 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
     const buy = tap ? YES.test(t) : confirmedNow;
     if (YES.test(t) && !buy) return { reply: `Quer que eu confirme a compra? (Toque em Finalizar compra${orSay()}.)`, pending };
     if (buy) {
-      if (pending.total > state.wallet + (state.giftCredits || 0)) return { reply: 'Seu saldo não dá para essa compra. Adicione saldo na carteira e eu finalizo.' };
-      dispatch({ type: 'CHECKOUT' });
+      if (aPagar(state, pending.total) > state.wallet + (state.giftCredits || 0)) return { reply: 'Seu saldo não dá para essa compra. Adicione saldo na carteira e eu finalizo.' };
+      // Lojas do servidor: o pagamento vai para o Re@lys; se der errado, o aviso aparece na tela.
+      finalizarCompra(state, dispatch).then((r) => { if (!r.ok) Alert.alert('Compra não finalizada', r.message); });
       return { reply: `${doneLine('compra')} ${brl(pending.total)}, com pagamento protegido. Acompanhe em Pedidos.` };
     }
   }

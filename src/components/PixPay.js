@@ -4,6 +4,8 @@ import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
+import { Alert } from 'react-native';
+import { depositar, conectado } from '../serverShop';
 import { colors, brl } from '../theme';
 import { useScreenSharePause } from '../screenShare';
 
@@ -93,9 +95,20 @@ export function PixPayHost() {
   const code = `00020126580014BR.GOV.BCB.PIX0136realys-pagamentos5204000053039865406${pixValue.toFixed(2)}5802BR5906REALYS6009SAO PAULO62070503***`;
   const paid = () => {
     setBusy(true);
+    const done = req.onPaid;
+    // Conta ligada ao servidor: o depósito entra na carteira do servidor antes de pagar.
+    if (conectado(state)) {
+      depositar(state, dispatch, pixValue, 'Pix')
+        .then(() => {
+          setReq(null);
+          setTimeout(() => done && done(), 50);
+        })
+        .catch((e) => Alert.alert(e.pendente ? 'Depósito registrado' : 'Depósito não feito', e.message))
+        .finally(() => setBusy(false));
+      return;
+    }
     setTimeout(() => {
       dispatch({ type: 'WALLET_DEPOSIT', amount: pixValue, method: 'Pix' });
-      const done = req.onPaid;
       setReq(null);
       setTimeout(() => done && done(), 50);
     }, 1200);

@@ -9,6 +9,8 @@ import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
+import { depositar, conectado } from '../serverShop';
+import { api } from '../api';
 import { colors, brl, soft } from '../theme';
 import { GIFT_FEE_PCT, LIVE_CONVERT_MIN, liveGiftOf, cashoutQuote, CASHOUT_MIN_POINTS, CASHOUT_EARLY_MIN_POINTS, CASHOUT_POINTS_PER_REAL, CASHOUT_KEEP_PCT, CASHOUT_EARLY_KEEP_PCT } from '../gifts';
 import { POINTS_PER_RATING, POINTS_COMMENT_BONUS, POINT_RULES } from '../rewards';
@@ -441,6 +443,7 @@ function Tile({ label, value, color, icon }) {
 
 // Depositar, sacar ou ajustar o limite.
 function ActionSheet({ kind, onClose, wallet, limit, dispatch }) {
+  const { state } = useStore();
   const insets = useSafeAreaInsets();
   const [value, setValue] = useState('');
   const [method, setMethod] = useState('Pix');
@@ -465,8 +468,23 @@ function ActionSheet({ kind, onClose, wallet, limit, dispatch }) {
     if (kind === 'saque') {
       if (v > wallet) return Alert.alert('Saldo insuficiente', `Você pode sacar até ${brl(wallet)}.`);
       if (!dest.trim()) return Alert.alert('Chave Pix', 'Informe a chave Pix da conta que vai receber (CPF, e-mail, celular ou chave aleatória).');
+      // Conta ligada ao servidor: o saque sai da carteira do servidor (pede a confirmação do rosto).
+      if (conectado(state)) {
+        return api('POST', '/wallet/withdraw', { amount: v, pixKey: dest.trim() })
+          .then((r) => {
+            if (r && r.wallet) dispatch({ type: 'SERVER_WALLET', balance: r.wallet.balance, giftCredits: r.wallet.giftCredits });
+            else api('GET', '/wallet').then((w) => dispatch({ type: 'SERVER_WALLET', balance: w.balance, giftCredits: w.giftCredits })).catch(() => {});
+            setDone(`Saque de ${brl(v)} pedido por Pix para ${dest.trim()}. O Re@lys envia o Pix e avisa quando cair.`);
+          })
+          .catch((e) => Alert.alert('Saque não feito', e.message));
+      }
       dispatch({ type: 'WALLET_WITHDRAW', amount: v, dest: dest.trim() });
       return setDone(`Saque de ${brl(v)} enviado por Pix para ${dest.trim()}. Cai na sua conta em instantes.`);
+    }
+    if (conectado(state)) {
+      return depositar(state, dispatch, v, method)
+        .then(() => setDone(`Depósito de ${brl(v)} por ${method} confirmado. O saldo já está disponível.`))
+        .catch((e) => (e.pendente ? setDone(e.message) : Alert.alert('Depósito não feito', e.message)));
     }
     dispatch({ type: 'WALLET_DEPOSIT', amount: v, method });
     setDone(`Depósito de ${brl(v)} por ${method} confirmado. O saldo já está disponível.`);
