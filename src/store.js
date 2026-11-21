@@ -1,4 +1,6 @@
 import { subscribeQuote } from './datePlans';
+import { ORDER_DEADLINE, foodLateRefund, canCancel, cancelInfo } from './orderContact';
+import { forClients } from './providerName';
 import { moderateAction } from './moderation';
 import { DESAPEGO_DEMO } from './desapego';
 import { MANDADOS_DEMO } from './empresaDemo';
@@ -207,6 +209,8 @@ const initialState = {
   teleGratisMes: null, // { mes: 'AAAA-MM', gasto } da primeira tele grátis paga pelo Realyz
   // Notícias e Alertas (src/newsData.js)
   alertsDismissed: {}, // alertas que a pessoa fechou na faixa do topo
+  storeReached: {}, // lojas que chamaram o cliente (reativação pelo CRM): o cliente pode responder
+  orderChats: {}, // conversa do pedido atrasado com a loja: { [orderId]: { messages: [], blocked } }
   safeAt: null, // quando marcou "Estou seguro" (os contatos são avisados)
   newsReports: [], // relatos que a pessoa mandou: vão para a moderação antes de aparecer
   disputes: [], // casos da Garantia Realyz: { id, kind, refId, title, reason, text, amount, status, outcome, at }
@@ -340,7 +344,7 @@ const withUserRole = (user) => {
 // Atualiza o cadastro do prestador e a lista que os clientes veem (se ele está disponível).
 function withMyProvider(state, me) {
   const others = state.providers.filter((p) => p.id !== 'me');
-  return { ...state, myProvider: me, providers: state.available ? [...others, me] : others };
+  return { ...state, myProvider: me, providers: state.available ? [...others, forClients(me)] : others };
 }
 
 // Food chama um motoboy já cadastrado no Realyz: o mais perto que faz entregas.
@@ -604,6 +608,8 @@ function baseReducer(state, a) {
             food: !!foodStores.length,
             requestedBy: foodStores.join(', '),
             nfe,
+            // Prazo de entrega: passou dele, o cliente ganha o botão de contato com a loja no pedido.
+            deadline: Date.now() + (foodStores.length ? ORDER_DEADLINE.food : ORDER_DEADLINE.shop),
           },
           ...state.orders,
         ],
@@ -636,7 +642,7 @@ function baseReducer(state, a) {
         orders: state.orders.map((o) => {
           if (o.id !== a.id) return o;
           const next = flow[Math.min(flow.indexOf(o.status) + 1, flow.length - 1)];
-          return { ...o, status: next, courier: o.courier || 'Marcos Silva', ...(next === 'Entregue' && o.status !== 'Entregue' ? { deliveredAt: Date.now() } : {}) };
+          return { ...o, status: next, courier: o.courier || 'Marcos S.', ...(next === 'Entregue' && o.status !== 'Entregue' ? { deliveredAt: Date.now() } : {}) };
         }),
         // Entregou: já abre a avaliação do pedido.
         rateOpen: (() => {
@@ -891,6 +897,45 @@ function baseReducer(state, a) {
       return { ...state, viewCompany: a.id, viewProduct: a.product || null };
     case 'CLOSE_COMPANY':
       return { ...state, viewCompany: null, viewProduct: null };
+    // Conversa do pedido atrasado (só mensagens, sem ligação). Telefone na conversa bloqueia tudo.
+    case 'ORDER_CHAT_SEND': {
+      const c = (state.orderChats || {})[a.id] || { messages: [] };
+      if (c.blocked) return state;
+      return { ...state, orderChats: { ...state.orderChats, [a.id]: { ...c, messages: [...c.messages, a.message] } } };
+    }
+    // Food atrasado demais (src/orderContact.js): reembolso na hora para o cliente, cobrado do restaurante.
+    case 'FOOD_LATE_REFUND': {
+      const o = state.orders.find((x) => x.id === a.id);
+      if (!o || !foodLateRefund(o)) return state;
+      const now = Date.now();
+      return {
+        ...state,
+        wallet: +(state.wallet + o.total).toFixed(2),
+        walletTx: [{ id: newId('w'), ts: now, kind: 'deposito', cat: 'Garantia Realyz', desc: `Reembolso por atraso: ${o.store}`, amount: o.total }, ...state.walletTx],
+        orders: state.orders.map((x) => (x.id === o.id ? { ...x, status: 'Reembolsado', refund: { at: now, why: 'atraso', debitFrom: o.store } } : x)),
+        disputes: [{ id: newId('gr'), kind: 'pedido', refId: o.id, title: `Pedido ${o.store}`, reason: 'atraso', amount: o.total, status: 'resolvido', outcome: 'reembolsado', at: now, resolvedAt: now, debitFrom: o.store }, ...state.disputes],
+      };
+    }
+    // Cliente cancela antes do preparo (pedido de demonstração; o do servidor usa /orders/:id/cancelar).
+    case 'ORDER_CANCEL': {
+      const o = state.orders.find((x) => x.id === a.id);
+      if (!o || o.serverId || !canCancel(o)) return state;
+      const { fees, back } = cancelInfo(o);
+      const now = Date.now();
+      return {
+        ...state,
+        wallet: +(state.wallet + back).toFixed(2),
+        walletTx: [{ id: newId('w'), ts: now, kind: 'deposito', cat: 'Estorno', desc: `Pedido cancelado: ${o.store} (taxas de ${fees.toFixed(2).replace('.', ',')} retidas)`, amount: back }, ...state.walletTx],
+        orders: state.orders.map((x) => (x.id === o.id ? { ...x, status: 'Cancelado', cancel: { at: now, by: 'cliente', back, fees } } : x)),
+      };
+    }
+    case 'ORDER_CHAT_BLOCK': {
+      const c = (state.orderChats || {})[a.id] || { messages: [] };
+      return { ...state, orderChats: { ...state.orderChats, [a.id]: { ...c, blocked: { at: Date.now(), why: a.why || 'telefone' } } } };
+    }
+    // A loja chamou o cliente (ex.: reativar quem não fechou). Abre a resposta do cliente para essa loja.
+    case 'STORE_REACHED':
+      return { ...state, storeReached: { ...(state.storeReached || {}), [a.id]: a.on === false ? undefined : Date.now() } };
     case 'FOLLOW': {
       const following = { ...state.following };
       if (following[a.id]) delete following[a.id];
@@ -1247,7 +1292,7 @@ function baseReducer(state, a) {
       const available = !state.available;
       // Ao ficar disponível com cadastro feito, o prestador aparece para os clientes (e para a voz da Lotus).
       const others = state.providers.filter((p) => p.id !== 'me');
-      const providers = available && state.myProvider ? [...others, state.myProvider] : others;
+      const providers = available && state.myProvider ? [...others, forClients(state.myProvider)] : others;
       return { ...state, available, providers };
     }
     case 'SAVE_MY_PROVIDER': {
@@ -1270,7 +1315,7 @@ function baseReducer(state, a) {
         ...a.profile,
       };
       const others = state.providers.filter((p) => p.id !== 'me');
-      return { ...state, myProvider: me, providers: state.available ? [...others, me] : others };
+      return { ...state, myProvider: me, providers: state.available ? [...others, forClients(me)] : others };
     }
     // Carteira: depositar, sacar e definir o limite de gastos do mês.
     case 'OPEN_GIFT':
@@ -1468,7 +1513,8 @@ function baseReducer(state, a) {
       const now = Date.now();
       return {
         ...state,
-        disputes: state.disputes.map((x) => (x.id === d.id ? { ...x, status: 'resolvido', outcome: refund ? 'reembolsado' : 'negado', resolvedAt: now } : x)),
+        // Reembolso aprovado: o valor sai da venda da loja/restaurante (ou da visita do prestador), não do caixa do Realyz.
+        disputes: state.disputes.map((x) => (x.id === d.id ? { ...x, status: 'resolvido', outcome: refund ? 'reembolsado' : 'negado', resolvedAt: now, ...(refund ? { debitFrom: d.kind === 'pedido' ? ((state.orders.find((o) => o.id === d.refId) || {}).store || 'vendedor') : 'prestador' } : {}) } : x)),
         ...(refund
           ? {
               // O que veio de créditos de presente volta como crédito de presente (não vira saque).

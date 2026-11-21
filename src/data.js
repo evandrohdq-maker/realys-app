@@ -1,4 +1,5 @@
 import { catalogTypes } from './professionsData';
+import { forClients } from './providerName';
 // Dados de demonstração do Realyz. Tudo aqui é fictício, para apresentação.
 // Fotos vêm do picsum.photos (precisam de internet no celular).
 
@@ -273,7 +274,7 @@ const baseServiceTypes = [
 // Catálogo completo de profissões (classes e subclasses): src/professionsData.js
 export const serviceTypes = [...baseServiceTypes, ...catalogTypes(baseServiceTypes)];
 
-export const providers = [
+const PROVIDERS_CADASTRO = [
   { id: 'v1', name: 'Carlos Lima', service: 'motorista', rating: 4.9, distanceKm: 0.8, vehicle: 'Chevrolet Onix prata', plate: 'BRA2E19', functions: ['Corridas na cidade', 'Aeroporto', 'Viagens intermunicipais'], car: { year: 2022, seats: 4, ar: true, portaMalas: true }, price: 8, priceUnit: 'corrida + R$ 2,50/km', photo: photo('realys-carlos', 200, 200) },
   { id: 'v3', name: 'Juliana Rocha', service: 'motorista', rating: 4.7, distanceKm: 2.1, vehicle: 'Hyundai HB20 branco', plate: 'QWE7C31', functions: ['Corridas na cidade', 'Carro com cadeirinha infantil', 'Buscar crianças na escola'], car: { year: 2021, seats: 4, cadeirinha: true, elevacao: true, bebeConforto: true, ar: true, mulher: true }, price: 8, priceUnit: 'corrida + R$ 2,50/km', photo: photo('realys-juliana', 200, 200) },
   { id: 'v2', name: 'Marcos Silva', service: 'motoboy', rating: 4.8, distanceKm: 1.2, vehicle: 'Honda CG 160 preta', plate: 'RLY4A22', functions: ['Entregas rápidas', 'Documentos', 'Compras no mercado'], price: 7, priceUnit: 'entrega + R$ 1,50/km', photo: photo('realys-marcos', 200, 200) },
@@ -290,7 +291,7 @@ export const providers = [
   { id: 'v11', online: true, slots: ['Agora', 'Hoje 17h', 'Amanhã 9h'], name: 'Thiago Ramos', service: 'tecnico', rating: 4.8, distanceKm: 3.0, vehicle: null, plate: null, functions: ['Formatação', 'Rede e Wi-Fi', 'Conserto de notebook e celular'], price: 100, priceUnit: 'hora', photo: photo('realys-thiago', 200, 200) },
   { id: 'v12', name: 'José Carreto', service: 'frete', rating: 4.5, distanceKm: 6.1, vehicle: 'Caminhão baú 3/4', plate: 'FRT9J03', functions: ['Fretes', 'Mudanças pequenas', 'Entregas de móveis'], price: 150, priceUnit: 'frete (até 10 km)', photo: photo('realys-jose', 200, 200) },
   { id: 'v16', name: 'DJ Bruno Beats', service: 'dj', rating: 4.9, distanceKm: 3.2, vehicle: null, plate: null, functions: ['Som e iluminação', 'Casamentos e aniversários', 'Festas em casa noturna'], price: 900, priceUnit: 'evento (até 5h)', photo: photo('realys-dj', 200, 200) },
-  { id: 'v17', name: 'Carla Souza Fotografia', service: 'fotografo', rating: 5.0, distanceKm: 2.8, vehicle: null, plate: null, functions: ['Fotos de eventos', 'Ensaios', 'Filmagem com drone'], price: 250, priceUnit: 'hora', photo: photo('realys-foto', 200, 200) },
+  { id: 'v17', name: 'Carla Fotografia', service: 'fotografo', rating: 5.0, distanceKm: 2.8, vehicle: null, plate: null, functions: ['Fotos de eventos', 'Ensaios', 'Filmagem com drone'], price: 250, priceUnit: 'hora', photo: photo('realys-foto', 200, 200) },
   { id: 'v18', name: 'Buffet Sabor & Festa', service: 'buffet', rating: 4.8, distanceKm: 4.1, vehicle: null, plate: null, functions: ['Salgados e doces', 'Garçons e bartender', 'Churrasco no local'], price: 65, priceUnit: 'convidado', photo: photo('realys-buffet', 200, 200) },
   { id: 'v19', name: 'Encanto Decorações', service: 'decoracao', rating: 4.7, distanceKm: 5.0, vehicle: null, plate: null, functions: ['Arco de balões', 'Mesa temática', 'Decoração de casamento'], price: 450, priceUnit: 'festa', photo: photo('realys-decor', 200, 200) },
   { id: 'v30', online: true, slots: ['Amanhã 8h', 'Sexta 14h'], name: 'Eng. Agr. Mariana Campos', service: 'agronomo', rating: 4.9, distanceKm: 6.5, vehicle: 'Toyota Hilux branca', plate: 'AGR3C55', functions: ['Visita técnica na propriedade', 'Análise de solo e adubação', 'Controle de pragas e doenças', 'Plano de safra'], price: 250, priceUnit: 'visita', photo: photo('realys-agronoma', 200, 200) },
@@ -334,6 +335,11 @@ export const providers = [
   { id: 'v69', name: 'E-Lixo Certo', service: 'eletronicodescarte', rating: 4.8, distanceKm: 6.3, vehicle: 'Fiorino', plate: 'ELX3C77', functions: ['Celulares, pilhas e baterias', 'Computadores e TVs', 'Certificado de descarte'], price: 30, priceUnit: 'coleta', photo: photo('realys-elixo', 200, 200) },
   { id: 'v70', online: true, slots: ['Hoje 15h', 'Amanhã 9h', 'Amanhã 14h'], name: 'Mariana · Intérprete de Libras', service: 'libras', rating: 5.0, distanceKm: 3.7, vehicle: null, plate: null, functions: ['Consultas e reuniões', 'Atendimento em órgãos públicos', 'Chamada de vídeo ou presencial'], price: 90, priceUnit: 'hora', photo: photo('realys-mariana', 200, 200) },
 ];
+
+// Nomes de marca ou apelidos profissionais (não são nome + sobrenome de pessoa): aparecem como estão.
+const BRAND_NAMES = new Set(['v12', 'v15', 'v16', 'v17', 'v18', 'v19', 'v21', 'v22', 'v32', 'v52', 'v53', 'v54', 'v55', 'v58', 'v59', 'v60', 'v61', 'v65', 'v66', 'v67', 'v68', 'v69']);
+// O cliente vê só o primeiro nome e a inicial do sobrenome (src/providerName.js).
+export const providers = PROVIDERS_CADASTRO.map((p) => forClients(BRAND_NAMES.has(p.id) ? { ...p, brand: true } : p));
 
 export const suppliers = [
   {
@@ -405,7 +411,7 @@ export const initialProposals = [
 ];
 
 export const initialOrders = [
-  { id: 'o1', items: [{ name: 'Pizza Calabresa Grande', qty: 1, price: 54.9 }], total: 54.9, status: 'Entregue', store: 'Pizzaria da Praça', courier: 'Marcos Silva', courierId: 'v2', food: true, requestedBy: 'Pizzaria da Praça' },
+  { id: 'o1', items: [{ name: 'Pizza Calabresa Grande', qty: 1, price: 54.9 }], total: 54.9, status: 'Entregue', store: 'Pizzaria da Praça', courier: 'Marcos S.', courierId: 'v2', food: true, requestedBy: 'Pizzaria da Praça' },
 ];
 
 // Pedidos que chegam para o prestador (no perfil Prestador da demonstração).

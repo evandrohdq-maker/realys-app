@@ -205,7 +205,9 @@ test('prestadores: GPS, mais próximos, chamado, pagamento e avaliação', async
   app.db.prepare(`INSERT INTO biometria (id, user_id, status, updated_at, last_verified_at) VALUES ('bio_beto', ?, 'aprovado', ?, ?)`).run(S.beto.id, Date.now(), Date.now());
   await ok('POST', '/providers/me/location', { who: 'beto', body: { lat: -23.5505, lng: -46.6333 } });
   const near = await ok('GET', '/providers/nearby?service=motorista&lat=-23.56&lng=-46.64', { who: 'ana' });
-  assert.equal(near[0].name, 'Beto Motorista');
+  // O cliente vê só o primeiro nome e a inicial do sobrenome do prestador (anti-desvio).
+  assert.equal(near[0].name, 'Beto M.');
+  assert.equal(near[0].fullName, undefined);
   assert.ok(near[0].distanceKm > 0 && near[0].distanceKm < 3);
   assert.ok((await ok('GET', '/me', { who: 'beto' })).user.roles.includes('prestador'));
 

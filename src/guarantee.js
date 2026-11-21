@@ -5,7 +5,8 @@
 // 2. Depois de confirmado, o valor daquela venda fica mais GUARANTEE_DAYS dias na reserva de
 //    garantia do vendedor (é dinheiro do vendedor, não do caixa do Realyz).
 // 3. Nesse tempo, o cliente abre um caso: o Realyz olha o chat, o GPS da entrega, o QR Code e as fotos.
-// 4. Resolvido a favor do cliente: o valor volta para a carteira. O vendedor perde pontos no Score;
+// 4. Resolvido a favor do cliente: o valor volta para a carteira e é DESCONTADO DA VENDA da loja ou do
+//    restaurante (da reserva de garantia ou dos próximos repasses), nunca do caixa do Realyz. O vendedor perde pontos no Score;
 //    quem age de má-fé de novo é banido, e com a biometria não consegue criar outra conta.
 // 5. Quem abre caso falso também perde Score.
 // Só vale o que foi pago DENTRO do Realyz. Valores combinados e pagos por fora não têm garantia.
@@ -32,7 +33,7 @@ export const GUARANTEE_RULES = [
   'Seu pagamento fica retido e só é liberado quando você confirma que recebeu.',
   `Depois de confirmar, você ainda tem ${GUARANTEE_DAYS} dias para abrir um caso.`,
   `O Realyz responde em até ${GUARANTEE_ANSWER_HOURS} horas, olhando o chat, o GPS, o QR Code da entrega e as fotos.`,
-  'Deu razão a você: o dinheiro volta para a sua carteira.',
+  'Deu razão a você: o dinheiro volta para a sua carteira, descontado da venda da loja ou do restaurante.',
   'Quem age de má-fé é banido, e com a biometria não volta com outra conta.',
   'Vale só o que você pagou pelo Realyz. Não pague por fora.',
 ];

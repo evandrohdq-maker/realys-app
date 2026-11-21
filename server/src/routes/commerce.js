@@ -236,6 +236,29 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
     return orderView(db.prepare(`${ORDER_SQL} WHERE o.id = ?`).get(o.id));
   });
 
+  // O cliente cancela enquanto a loja ainda não começou a preparar (status "Recebido").
+  // Quem cancela paga as taxas: a comissão do Realyz e a taxa de proteção ficam retidas;
+  // volta o valor dos produtos menos a comissão. A loja devolve o que recebeu (não perde nada).
+  r.post('/orders/:id/cancelar', ({ user, params }) => {
+    const o = db.prepare('SELECT * FROM orders WHERE id = ? AND buyer_id = ?').get(params.id, user.id);
+    if (!o) fail(404, 'Pedido não encontrado.');
+    if (o.status !== 'Recebido') fail(409, o.status === 'Cancelado' ? 'Este pedido já está cancelado.' : 'A loja já começou a preparar: não dá mais para cancelar. Se houver problema, use a Garantia Realyz.');
+    const c = db.prepare('SELECT * FROM companies WHERE id = ?').get(o.company_id);
+    const back = o.total - o.fee; // o que volta para o cliente
+    const toGift = Math.min(o.from_gift, back); // créditos de presente voltam como presente (não viram saque)
+    tx(db, () => {
+      wallet.move(c.owner_id, 'saldo', -back, 'Vendas', `Pedido ${o.id} cancelado pelo cliente`, o.id);
+      if (toGift) wallet.move(o.buyer_id, 'presente', toGift, 'Estorno', `Pedido ${o.id} cancelado (taxas retidas)`, o.id);
+      if (back - toGift) wallet.move(o.buyer_id, 'saldo', back - toGift, 'Estorno', `Pedido ${o.id} cancelado (taxas retidas)`, o.id);
+      for (const i of db.prepare('SELECT product_id, qty FROM order_items WHERE order_id = ?').all(o.id)) db.prepare('UPDATE products SET stock = stock + ? WHERE id = ?').run(i.qty, i.product_id);
+      // NF-e do produto ainda na fila não sai mais; já emitida, pede o cancelamento ao emissor.
+      db.prepare("UPDATE fiscal_notas SET status = CASE WHEN status = 'emitida' THEN 'cancelamento' ELSE 'cancelada' END, updated_at = ? WHERE tipo = 'nfe' AND ref = ? AND status IN ('fila','erro','emitida')").run(now(), o.id);
+      db.prepare('UPDATE orders SET status = ?, updated_at = ? WHERE id = ?').run('Cancelado', now(), o.id);
+    });
+    hub.send(c.owner_id, 'order', { id: o.id, buyer: user.name, status: 'Cancelado' });
+    return { ...orderView(db.prepare(`${ORDER_SQL} WHERE o.id = ?`).get(o.id)), refunded: toReais(back), feesKept: toReais(o.fee + (o.protection || 0)) };
+  });
+
   // Painel da empresa: vendas por dia (últimos 7 dias).
   r.get('/companies/me/sales', ({ user }) => {
     const c = myCompany(user);

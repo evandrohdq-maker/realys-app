@@ -115,7 +115,7 @@ export default function ProviderProfile({ provider: p, visible, onClose, onHire,
                   {st.done90} serviços nos últimos 90 dias · responde {st.responseRate}% dos pedidos em ~{st.responseMin} min
                 </Text>
                 {visitDiscount(p) ? <Text style={[styles.visitLine, { color: colors.success }]}>Desconta a taxa de visita do serviço se for contratado</Text> : null}
-                <Text style={styles.visitLine}>Telefone liberado depois que a taxa de visita é paga. Antes disso, converse pelo chat do Realyz.</Text>
+                <Text style={styles.visitLine}>Contato e pagamento só pelo chat do Realyz: é o que garante o seu dinheiro e a avaliação do serviço.</Text>
               </View>
             ) : null}
 

@@ -19,6 +19,7 @@ import { classifyFood, FOOD_CLASSES, MODOS, classeByKey, FOOD_MODES, FOOD_TIPOS,
 import { freeTable } from '../../venueData';
 import FoodClassPicker from '../../components/FoodClassPicker';
 import { FoodHighlights } from './FoodHighlights';
+import { byStoreTrust } from '../../storeTrust';
 import { ShopHero, CircleShortcuts, ShopHead, ShopProductCard as ProductCard, ShopGrid, StoreRow } from '../../components/ShopKit';
 import { SegTabs, SpotlightCarousel, ClipStrip, PromoSector } from '../../components/AdKit';
 import {
@@ -142,8 +143,8 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
           s.name.toLowerCase().includes(term) ||
           state.products.some((p) => p.storeId === s.id && p.name.toLowerCase().includes(term))
       )
-      .sort((a, b) => b.sponsored - a.sponsored || b.recommended - a.recommended || b.rating - a.rating);
-  }, [state.stores, state.products, q, cat, food, chaveFood, foodIndex, mode]);
+      .sort(byStoreTrust(state));
+  }, [state.stores, state.orders, state.products, q, cat, food, chaveFood, foodIndex, mode]);
 
   // Na aba Food só entram produtos de restaurantes, bares e cafés.
   // No Shop/Loja, nada de comida.
@@ -438,7 +439,7 @@ function MarketTab({ onOpenStore, onAdd, onPromos }) {
   const { state, dispatch } = useStore();
   const [q, setQ] = useState('');
   const [aisle, setAisle] = useState('todos');
-  const markets = state.stores.filter(isMarket).sort((a, b) => b.sponsored - a.sponsored || b.rating - a.rating);
+  const markets = state.stores.filter(isMarket).sort(byStoreTrust(state));
   const ids = markets.map((m) => m.id);
   const term = q.trim().toLowerCase();
   const a = MERCADO_AISLES.find((x) => x.key === aisle) || {};

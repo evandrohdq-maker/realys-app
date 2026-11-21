@@ -489,7 +489,7 @@ function VisitPanel() {
             </View>
           ) : null}
           <Text style={{ color: colors.muted, fontSize: 12, marginTop: 8, lineHeight: 17 }}>
-            Sobe quem finaliza serviços com nota alta e responde rápido. Recusar um pedido não tira pontos. Faltar numa visita aceita tira.
+            Cada serviço fechado e finalizado pelo Realyz, com nota alta, te leva para o topo das pesquisas da sua região. Serviço combinado por fora não conta: não dá nota, não sobe no ranking e não tem a Garantia Realyz. Responder rápido também ajuda. Recusar um pedido não tira pontos; faltar numa visita aceita tira.
           </Text>
         </Card>
       </Section>

@@ -70,8 +70,11 @@ export const splitSentences = (text) => {
 // A marca se escreve "Realyz", mas a Lotus fala "Realyz" (nunca "re arroba lys").
 const sayName = (t) => String(t || '').replace(/re@lyz/gi, 'Realyz');
 
+// Prestador aparece como "Carlos L.": a Lotus fala só o primeiro nome ("Carlos"), nunca o sobrenome.
+const dropInitial = (t) => String(t || '').replace(/(\p{Lu}[\p{Ll}\p{M}'-]+)\s\p{Lu}\.(?=[\s,;:!?·)]|$)/gu, '$1');
+
 export function forSpeech(text) {
-  let t = sayName(text);
+  let t = sayName(dropInitial(text));
   t = t.replace(/\([^)]*\)/g, '');
   t = t.replace(/,?\s*nota\s*\d+(?:[.,]\d+)?/gi, '');
   t = t.replace(/★\s*\d+(?:[.,]\d+)?/g, '');

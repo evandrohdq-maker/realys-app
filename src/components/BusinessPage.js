@@ -16,6 +16,7 @@ import { useStore } from '../store';
 import { colors, brl, soft } from '../theme';
 import { Photo, ProductThumb } from './ui';
 import { ShopProductCard } from './ShopKit';
+import { storeTrust } from '../storeTrust';
 import LotusFocus from './LotusFocus';
 import { MY_COMPANY_ID } from '../data';
 import { useLeadAsk } from './LeadAsk';
@@ -424,6 +425,11 @@ export function BusinessPageModal({ p, media, MediaList }) {
               <View style={styles.glassBadge}>
                 <Ionicons name="shield-checkmark" size={12} color={colors.primary} />
                 <Text style={styles.glassBadgeText}>CNPJ verificado</Text>
+              </View>
+              {/* Selo de confiança: vendas fechadas e entregues pelo Realyz, com boa avaliação. */}
+              <View style={styles.glassBadge}>
+                <Ionicons name="ribbon-outline" size={12} color={colors.success} />
+                <Text style={styles.glassBadgeText}>{(storeTrust(p).level || { label: 'Loja nova' }).label} · {storeTrust(p).sales} vendas</Text>
               </View>
               <View style={styles.glassBadge}>
                 <Ionicons name="location-outline" size={12} color={colors.accent} />

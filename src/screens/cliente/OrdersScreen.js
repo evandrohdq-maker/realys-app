@@ -6,7 +6,7 @@ import { View, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, cartTotal, storeOf } from '../../store';
-import { finalizarCompra, aPagar } from '../../serverShop';
+import { finalizarCompra, aPagar, cancelarPedido } from '../../serverShop';
 import MusicCart from '../../components/MusicCart';
 import { SegTabs } from '../../components/AdKit';
 import { ProductThumb } from '../../components/ui';
@@ -20,6 +20,8 @@ import { Screen, Title, Card, Row, Button, Badge, Empty, Photo } from '../../com
 import { providerTarget } from '../../components/GiftSheet';
 import { recentDone, TIP_DAYS } from '../../recentDone';
 import { listings } from '../../homeData';
+import { ChatModal } from './home/Social';
+import { lateContact, foodLateRefund, canCancel, cancelInfo } from '../../orderContact';
 
 // Concluídos nos últimos 7 dias úteis: ainda dá para dar gorjeta e avaliar quem não avaliou na hora.
 function RecentDone() {
@@ -346,7 +348,7 @@ export default function OrdersScreen({ navigate, explore }) {
     }
   }, [explore]);
   useBack(view !== 'andamento' || seg !== 'compras', () => (view !== 'andamento' ? setView('andamento') : setSeg('compras')));
-  const orderDone = (o) => o.status === 'Entregue' || o.status === 'Reembolsado';
+  const orderDone = (o) => o.status === 'Entregue' || o.status === 'Reembolsado' || o.status === 'Cancelado';
   const venueDone = (o) => o.status === 'Entregue';
   const showDone = view === 'concluidos';
   const pick = (arr, done) => arr.filter((x) => (showDone ? done(x) : !done(x)));
@@ -374,6 +376,7 @@ export default function OrdersScreen({ navigate, explore }) {
   const statusSeg = ['compras', 'comida', 'ingressos', 'servicos'].includes(seg);
   // Acompanhar ao vivo: { order } para entregas, { ride } para motorista e prestadores.
   const [track, setTrack] = useState(null);
+  const [chatOrder, setChatOrder] = useState(null); // pedido atrasado: conversa com a loja
   const courierOf = (o) => (state.providers || []).find((x) => x.id === o.courierId) || (state.providers || []).find((x) => x.name === o.courier) || { name: o.courier || 'Entregador Realyz' };
   return (
     <Screen>
@@ -549,7 +552,7 @@ export default function OrdersScreen({ navigate, explore }) {
                 )
               ) : null}
               {/* Pedido de loja do servidor: quem muda o status é a loja; aqui só acompanha. */}
-              {!o.serverId && o.status !== 'Entregue' && o.status !== 'Reembolsado' ? (
+              {!o.serverId && o.status !== 'Entregue' && o.status !== 'Reembolsado' && o.status !== 'Cancelado' ? (
                 <Button
                   small
                   variant="light"
@@ -558,6 +561,61 @@ export default function OrdersScreen({ navigate, explore }) {
                 />
               ) : null}
             </Row>
+            {/* Antes do preparo o cliente pode cancelar. Quem cancela paga as taxas. */}
+            {canCancel(o) ? (
+              <TouchableOpacity
+                style={[styles.lateBtn, { borderColor: colors.border }]}
+                activeOpacity={0.85}
+                accessibilityLabel="Cancelar pedido"
+                onPress={() => {
+                  const { fees, back } = cancelInfo(o);
+                  Alert.alert(
+                    'Cancelar pedido?',
+                    `A loja ainda não começou a preparar. Voltam ${brl(back)} para a sua carteira. As taxas (${brl(fees)}) ficam retidas, porque quem cancela paga as taxas.`,
+                    [
+                      { text: 'Voltar', style: 'cancel' },
+                      {
+                        text: 'Cancelar pedido',
+                        style: 'destructive',
+                        onPress: () =>
+                          o.serverId
+                            ? cancelarPedido(o, dispatch).catch((e) => Alert.alert('Não deu para cancelar', e.message || 'Tente de novo.'))
+                            : dispatch({ type: 'ORDER_CANCEL', id: o.id }),
+                      },
+                    ]
+                  );
+                }}
+              >
+                <Ionicons name="close-circle-outline" size={16} color={colors.muted} />
+                <Text numberOfLines={1} style={[styles.lateText, { color: colors.muted }]}>Cancelar pedido</Text>
+              </TouchableOpacity>
+            ) : null}
+            {/* Passou do prazo de entrega: contato com a loja por mensagens, dentro do pedido. */}
+            {lateContact(o) ? (
+              <TouchableOpacity style={styles.lateBtn} onPress={() => setChatOrder(o)} activeOpacity={0.85} accessibilityLabel={`Falar com ${o.store} sobre o atraso`}>
+                <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.danger} />
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.lateText}>
+                  {(state.orderChats || {})[o.id] && state.orderChats[o.id].blocked ? 'Conversa bloqueada · suporte Realyz' : 'Pedido atrasado · falar com a loja'}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+            {foodLateRefund(o) ? (
+              <TouchableOpacity
+                style={[styles.lateBtn, { backgroundColor: colors.danger, borderColor: colors.danger }]}
+                activeOpacity={0.85}
+                accessibilityLabel="Pedir o dinheiro de volta pelo atraso"
+                onPress={() =>
+                  Alert.alert(
+                    'Dinheiro de volta',
+                    `O pedido passou mais de 1 hora do prazo. ${brl(o.total)} voltam agora para a sua carteira e o valor é cobrado do restaurante.`,
+                    [{ text: 'Cancelar', style: 'cancel' }, { text: 'Quero o reembolso', onPress: () => dispatch({ type: 'FOOD_LATE_REFUND', id: o.id }) }]
+                  )
+                }
+              >
+                <Ionicons name="cash-outline" size={16} color="#FFFFFF" />
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.lateText, { color: '#FFFFFF' }]}>Atrasou demais · quero meu dinheiro de volta</Text>
+              </TouchableOpacity>
+            ) : null}
             {/* Garantia Realyz: deu problema, abre um caso e o dinheiro volta. */}
             {orderCovered(o) || (state.disputes || []).some((d) => d.refId === o.id) ? (
               <GuaranteeButton kind="pedido" refId={o.id} title={`Pedido ${o.store}`} amount={o.total} deliveredAt={o.status === 'Entregue' ? o.deliveredAt : null} />
@@ -567,6 +625,26 @@ export default function OrdersScreen({ navigate, explore }) {
       })}
       </>
       )}
+      {chatOrder ? (() => {
+        const name = String(chatOrder.store || '').split(',')[0].trim();
+        const st = (state.stores || []).find((x) => x.name === name);
+        const chat = (state.orderChats || {})[chatOrder.id] || { messages: [] };
+        return (
+          <ChatModal
+            visible
+            hideVoice
+            contact={{ id: st ? st.id : 'loja-' + chatOrder.id, name, photo: st ? st.cover : null, status: `Pedido atrasado · só mensagens` }}
+            messages={[
+              { from: 'system', text: 'Seu pedido passou do prazo. Explique o problema aqui: a loja responde por mensagem. Não é permitido passar telefone.', time: '' },
+              ...chat.messages,
+            ]}
+            onSend={(m) => dispatch({ type: 'ORDER_CHAT_SEND', id: chatOrder.id, message: m })}
+            blocked={chat.blocked}
+            onBlocked={() => dispatch({ type: 'ORDER_CHAT_BLOCK', id: chatOrder.id, why: 'telefone' })}
+            onClose={() => setChatOrder(null)}
+          />
+        );
+      })() : null}
       {track && track.order ? (
         <DeliveryTracker
           visible
@@ -607,6 +685,8 @@ const styles = StyleSheet.create({
   cartBarBadgeText: { color: '#F5C331', fontSize: 10, fontWeight: '800' },
   cartBarTitle: { color: '#0B1124', fontWeight: '800', fontSize: 15.5 },
   cartBarSub: { color: '#3A3220', fontWeight: '600', fontSize: 12.5, marginTop: 1 },
+  lateBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: colors.danger },
+  lateText: { color: colors.danger, fontWeight: '700', marginLeft: 8, fontSize: 13 },
   trackBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5C331', borderRadius: 12, paddingVertical: 10, marginTop: 10 },
   trackText: { color: '#0B1124', fontWeight: '800', marginLeft: 6 },
   trackLive: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#16A34A', marginLeft: 8 },

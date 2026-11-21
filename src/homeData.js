@@ -140,8 +140,9 @@ export const conversations = [
   {
     id: 'm2', contactId: 'u5', unread: 0,
     messages: [
-      { from: 'me', text: 'Boa noite, vocês entregam no Jardim Paulista?', time: 'ontem' },
-      { from: 'them', text: 'Entregamos sim! Em até 40 minutos pelo Realyz.', time: 'ontem' },
+      // Conversa de loja: só dentro do pedido. Pedido entregue, a conversa fica só para leitura.
+      { from: 'them', text: 'Recebemos o seu pedido! A calabresa grande já está no forno 🍕', time: 'ontem' },
+      { from: 'them', text: 'Pedido entregue. Obrigado por pedir pelo Realyz!', time: 'ontem' },
     ],
   },
   {
@@ -170,7 +171,7 @@ export const lives = [
   { id: 'v11', sub: 'gospel', gifts: 70, cat: 'artistas', hostType: 'artista', hostId: 'a1', title: 'Ensaio aberto: louvor ao vivo', host: 'Banda Louvor Vivo', viewers: 3100, sponsored: false, photo: photo('realys-live-louvor', 800, 500), tag: 'Show ao vivo' },
   { id: 'v12', sub: 'pedidos', gifts: 40, cat: 'artistas', hostType: 'artista', hostId: 'a2', title: 'Voz e viola: pedidos dos fãs', host: 'Duda Viola', viewers: 1180, sponsored: false, photo: photo('realys-live-viola', 800, 500), tag: 'Show ao vivo' },
   // Cursos e faculdades
-  { id: 'v13', sub: 'oficinas', cat: 'cursos', hostType: 'prestador', hostId: 'v4', title: 'Oficina: troca de chuveiro com segurança', host: 'Pedro Alves', viewers: 340, sponsored: false, photo: photo('realys-live-eletrica', 800, 500), tag: 'Oficina', aula: true },
+  { id: 'v13', sub: 'oficinas', cat: 'cursos', hostType: 'prestador', hostId: 'v4', title: 'Oficina: troca de chuveiro com segurança', host: 'Pedro A.', viewers: 340, sponsored: false, photo: photo('realys-live-eletrica', 800, 500), tag: 'Oficina', aula: true },
   { id: 'v14', sub: 'aulas', cat: 'faculdades', hostType: 'empresa', hostId: null, title: 'Aula aberta: Direito Digital e redes sociais', host: 'Universidade Aberta Brasil Sul', viewers: 920, sponsored: false, photo: photo('realys-live-direito', 800, 500), tag: 'Faculdade', aula: true },
   // Tecnologia
   { id: 'v15', sub: 'ia', cat: 'tecnologia', hostType: 'empresa', hostId: null, title: 'IA para pequenos negócios: na prática', host: 'NeuralBR Soluções', viewers: 760, sponsored: true, photo: photo('realys-live-ia', 800, 500), tag: 'Tecnologia' },
@@ -180,7 +181,7 @@ export const lives = [
   { id: 'v18', sub: 'agro', cat: 'noticias', hostType: 'empresa', hostId: null, title: 'Boletim do agro: cotações e clima', host: 'Canal Campo Hoje', viewers: 610, sponsored: false, photo: photo('realys-live-agro', 800, 500), tag: 'Noticiário', verifiedNews: true },
   // Podcasts
   { id: 'v19', sub: 'negocios', cat: 'podcasts', hostType: 'empresa', hostId: 'e1', title: 'Podcast Negócio de Bairro #42', host: 'Mercadinho Bom Preço', viewers: 380, sponsored: false, photo: photo('realys-live-podcast1', 800, 500), tag: 'Podcast' },
-  { id: 'v20', sub: 'cotidiano', cat: 'podcasts', hostType: 'prestador', hostId: 'v2', title: 'Papo de Motoboy: a vida nas entregas', host: 'Marcos Silva', viewers: 520, sponsored: false, photo: photo('realys-live-podcast2', 800, 500), tag: 'Podcast' },
+  { id: 'v20', sub: 'cotidiano', cat: 'podcasts', hostType: 'prestador', hostId: 'v2', title: 'Papo de Motoboy: a vida nas entregas', host: 'Marcos S.', viewers: 520, sponsored: false, photo: photo('realys-live-podcast2', 800, 500), tag: 'Podcast' },
   { id: 'v21', sub: 'fe', cat: 'podcasts', hostType: 'usuario', hostId: 'u1', title: 'Fé e Família: conversa de domingo', host: 'Ana Paula', viewers: 290, sponsored: false, photo: photo('realys-live-podcast3', 800, 500), tag: 'Podcast' },
   // Fornecedores
   { id: 'v22', sub: 'atacado', cat: 'compras', hostType: 'fornecedor', hostId: 's2', title: 'Degustação e lote de café para cafeterias', host: 'Atacadão do Café', viewers: 210, sponsored: false, photo: photo('realys-live-cafe', 800, 500), tag: 'Atacado ao vivo' },

@@ -140,9 +140,9 @@ export const TERMO_ADESAO = {
   ]
 };
 
-export const TERMO_EMPRESA_VERSAO = "2026-11-empresa-v3";
+export const TERMO_EMPRESA_VERSAO = "2026-11-empresa-v4";
 export const TERMO_EMPRESA = {
-  "versao": "2026-11-empresa-v3",
+  "versao": "2026-11-empresa-v4",
   "titulo": "Termo de Responsabilidade da Empresa Prestadora",
   "atualizado": "7 de novembro de 2026",
   "itens": [
@@ -192,7 +192,7 @@ export const TERMO_EMPRESA = {
     },
     {
       "titulo": "11. Disputas e suporte",
-      "texto": "Reclamações de clientes sobre os atendimentos são registradas no pedido e analisadas com a empresa, com base nos registros de horário, local e verificação. O Realyz pode orientar o reembolso e a empresa será comunicada para se manifestar. Dúvidas e solicitações podem ser enviadas pelo canal de suporte do aplicativo."
+      "texto": "Reclamações de clientes sobre os atendimentos são registradas no pedido e analisadas com a empresa, com base nos registros de horário, local e verificação. O Realyz pode orientar o reembolso e a empresa será comunicada para se manifestar. Dúvidas e solicitações podem ser enviadas pelo canal de suporte do aplicativo. Quando o reembolso da Garantia Realyz for aprovado, o valor devolvido ao cliente é descontado da venda da empresa (do saldo retido ou dos próximos repasses), e não do caixa do Realyz."
     },
     {
       "titulo": "12. Foro",

@@ -245,6 +245,18 @@ export function crmSend(id, text) {
     unread: 0,
     messages: [...l.messages, msg('me', text, at)],
     ...(l.stage === 'novo' ? { stage: 'conversa', history: [...l.history, { stage: 'conversa', at }] } : {}),
+    // A loja chamou de novo um cliente que não fechou: o atendimento reabre em "Em conversa".
+    // Se fechar, a taxa do Realyz é cobrada normalmente no fechamento (crmFee).
+    ...(l.stage === 'perdido'
+      ? {
+          stage: 'conversa',
+          cycle: (l.cycle || 1) + 1,
+          reactivated: true,
+          lastLost: l.lostReason || null,
+          lostReason: null,
+          history: [...l.history, { stage: 'conversa', at, restart: true, byStore: true }],
+        }
+      : {}),
   }));
 }
 export const crmRead = (id) => patch(id, (l) => (l.unread ? { ...l, unread: 0 } : l));

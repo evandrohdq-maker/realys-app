@@ -3,7 +3,7 @@
 // Como funciona (demonstração):
 // 1. O cliente pede uma visita e paga a TAXA DE VISITA pelo Realyz. O valor fica retido.
 // 2. O prestador aceita ou recusa. Recusou: a taxa volta na hora e o pedido não recebe avaliação.
-// 3. Aceitou: a conversa segue pelo chat do Realyz e o telefone é liberado (a taxa já foi paga).
+// 3. Aceitou: a conversa segue pelo chat do Realyz. O cliente nunca recebe telefone nem sobrenome do prestador.
 // 4. O cliente confirma que a visita aconteceu. Só então a taxa é dividida:
 //    REALYS_FEE_PCT % (15%) fica com o Realyz e o resto vai para o prestador.
 //    Se o prestador não foi, a taxa volta para o cliente e ele perde posição no ranking.

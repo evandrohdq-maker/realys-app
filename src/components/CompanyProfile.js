@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { colors, brl, soft } from '../theme';
 import { Photo, ProductThumb, Badge, Row } from './ui';
-import { ShopProductCard } from './ShopKit';
+import { ShopProductCard, TrustLine } from './ShopKit';
 import { artists, artMedia, companyPages } from '../extraData';
 import { MY_COMPANY_ID } from '../data';
 import { isVerified } from './BioGate';
@@ -201,6 +201,7 @@ export function CompanyProfileModal() {
             {p.shipsBrazil ? <View style={{ marginLeft: 6 }}><Badge label="Envia para todo o Brasil" color={colors.accent} /></View> : null}
             {p.id === MY_COMPANY_ID ? <View style={{ marginLeft: 6 }}><Badge label="Sua página" color={colors.success} /></View> : null}
           </Row>
+            {!isArtist ? <TrustLine s={p} style={{ marginTop: 6 }} /> : null}
           {p.bio ? <Text style={styles.bio}>{p.bio}</Text> : null}
           <LiveNowBadge hostType="artista" hostId={p.id} />
           {p.hours ? <Text style={styles.sub}>🕒 {p.hours}</Text> : null}

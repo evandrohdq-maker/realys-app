@@ -3,6 +3,7 @@
 // quanto cobra, escolhe, chama ou agenda e acompanha o prestador chegando.
 import { fail, newId, now, str, money, int, coord, toReais } from '../http.js';
 import { tx } from '../db.js';
+import { publicName } from '../providerName.js';
 
 const CALL_STATUS = ['Solicitado', 'Aceito', 'A caminho', 'Chegou', 'Concluído', 'Recusado', 'Cancelado'];
 const TRANSPORT = ['motorista', 'motoboy', 'frete', 'carro', 'moto', 'van'];
@@ -15,11 +16,13 @@ export function distanceKm(lat1, lng1, lat2, lng2) {
 }
 
 export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biometria, fiscal }) {
-  const providerView = (p, from) => {
+  // Para o cliente, o prestador aparece só com o primeiro nome e a inicial do sobrenome
+  // ("Carlos L."): ele não acha o prestador pelo nome completo para contratar por fora.
+  const providerView = (p, from, { own = false } = {}) => {
     const u = userById(p.user_id);
     const km = from && p.lat != null ? distanceKm(from.lat, from.lng, p.lat, p.lng) : null;
     return {
-      id: p.user_id, name: u.name, photo: u.photo, service: p.service, functions: JSON.parse(p.functions), price: toReais(p.price), priceUnit: p.price_unit,
+      id: p.user_id, name: own ? u.name : publicName(u.name), fullName: own ? u.name : undefined, photo: u.photo, service: p.service, functions: JSON.parse(p.functions), price: toReais(p.price), priceUnit: p.price_unit,
       available: !!p.available, vehicle: p.vehicle, visitFee: toReais(p.visit_fee || 0), rating: +p.rating.toFixed(1), ratingCount: p.rating_count,
       distanceKm: km == null ? null : +km.toFixed(1), etaMin: km == null ? null : Math.max(3, Math.round(km * (TRANSPORT.includes(p.service) ? 4 : 6))),
     };
@@ -46,7 +49,7 @@ export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biom
         if (!roles.includes('prestador')) db.prepare('UPDATE users SET roles = ? WHERE id = ?').run(JSON.stringify([...roles, 'prestador']), user.id);
       }
     });
-    return providerView(db.prepare('SELECT * FROM providers WHERE user_id = ?').get(user.id));
+    return providerView(db.prepare('SELECT * FROM providers WHERE user_id = ?').get(user.id), null, { own: true });
   });
 
   // Liga/desliga o GPS e a disponibilidade. Chamado de tempos em tempos pelo app com a posição.
@@ -86,7 +89,7 @@ export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biom
   }, { auth: false });
 
   // ── Chamados ──
-  const callView = (c) => ({ visitFee: toReais(c.visit_fee || 0), visitState: c.visit_state || null, problem: c.problem || '', rideFee: toReais(c.ride_fee || 0), id: c.id, clientId: c.client_id, client: userById(c.client_id).name, providerId: c.provider_id, provider: userById(c.provider_id).name, service: c.service, address: c.address, when: c.when_text, status: c.status, createdAt: c.created_at, updatedAt: c.updated_at });
+  const callView = (c) => ({ visitFee: toReais(c.visit_fee || 0), visitState: c.visit_state || null, problem: c.problem || '', rideFee: toReais(c.ride_fee || 0), id: c.id, clientId: c.client_id, client: userById(c.client_id).name, providerId: c.provider_id, provider: publicName(userById(c.provider_id).name), service: c.service, address: c.address, when: c.when_text, status: c.status, createdAt: c.created_at, updatedAt: c.updated_at });
 
   // O cliente chama agora ou agenda ("amanhã às 9h"). Só depois que confirmou no app.
   r.post('/calls', ({ body, user }) => {
@@ -187,7 +190,7 @@ export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biom
     // (o Realyz já recebeu pela taxa de visita).
     const fee = TRANSPORT.includes(c.service) ? Math.round((amount * cfg.rideFeePct) / 100) : 0;
     const paid = tx(db, () => {
-      const r2 = wallet.pay(user.id, amount, 'Serviços', `${c.service} com ${provider.name}`, c.id);
+      const r2 = wallet.pay(user.id, amount, 'Serviços', `${c.service} com ${publicName(provider.name)}`, c.id);
       wallet.move(provider.id, 'saldo', amount - fee, 'Serviços', `Serviço para ${user.name}`, c.id);
       if (fee) {
         wallet.move('realys', 'saldo', fee, 'Comissão', `Comissão da corrida ${c.id}`, c.id);

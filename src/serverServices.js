@@ -9,13 +9,15 @@
 //   (src/components/ServerProviderPanel.js).
 // Sem servidor configurado, nada disso roda.
 import { api } from './api';
+import { forClients } from './providerName';
 import { getDevicePoint } from './geo';
 import { SRV, conectado, carregarCarteira } from './serverShop';
 
-export const providerFromServer = (p) => ({
+export const providerFromServer = (p) => forClients({
   id: SRV + p.id,
   serverId: p.id,
   name: p.name,
+  brand: !!p.brand,
   photo: p.photo || null,
   service: p.service,
   functions: p.functions || [],

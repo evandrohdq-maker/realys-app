@@ -18,6 +18,8 @@ import { HostChip, useOpenHost } from '../../../components/HostChip';
 import { LIVE_CATS, hostOptions, defaultHost, catOf, subOf, HOST_TYPES, missionId, LIVE_MISSION_SECS, LIVE_MISSION_POINTS, liveScore } from '../../../liveData';
 import { members } from '../../../people';
 import { artists } from '../../../extraData';
+import { storeChat, storeOfContact } from '../../../storeTrust';
+import { BLOCK_TEXT } from '../../../orderContact';
 import { LiveStage, openRealLive, endRealLive, realLivesOf } from '../../../components/LiveVideo';
 import { serverOn, api, connectEvents } from '../../../api';
 import { setOpeningCurtain, onScreenPauseChange } from '../../../screenShare';
@@ -31,7 +33,7 @@ const now = () => {
 const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
 // Conversa com histórico de mensagens.
-export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo, hideVoice }) {
+export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo, hideVoice, blocked, onBlocked }) {
   usePrivateScreen(!!visible, 'chat');
   const insets = useSafeAreaInsets();
   const { state, dispatch } = useStore();
@@ -56,6 +58,10 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
     setPeek(true);
   };
   const friendSt = state.friends[contact.id];
+  // Loja: o cliente só escreve dentro de um pedido em andamento (ou quando a loja chamou primeiro).
+  // Ligação e vídeo com loja não existem para o cliente: tudo fica registrado no pedido.
+  const store = storeOfContact(state, contact);
+  const storeRule = store ? storeChat(state, store) : { open: true };
 
   const send = () => {
     const t = text.trim();
@@ -64,6 +70,15 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
     // Pix ou "por fora" (vale até entre amigos, se um dos dois vende). Entre amigos comuns, a conversa é livre.
     const business = (state.providers || []).some((x) => x.id === contact.id || x.name === contact.name) || (state.stores || []).some((x) => x.id === contact.id || x.name === contact.name) || contact.business;
     const iSell = !!state.myProvider || (state.user && (state.user.roles || []).some((r) => r === 'empresa' || r === 'prestador' || r === 'fornecedor'));
+    // Conversa do pedido com a loja: telefone bloqueia a conversa inteira (vai para o suporte do Realyz).
+    if (onBlocked) {
+      const ad = antiDesvio(t);
+      if (!ad.ok && ad.what === 'telefone') {
+        setText('');
+        onBlocked();
+        return Alert.alert('Conversa bloqueada 🔒', BLOCK_TEXT);
+      }
+    }
     if (business || iSell || friendSt !== 'amigo') {
       const ad = antiDesvio(t);
       if (!ad.ok) return Alert.alert('Fica tudo no Realyz 🔒', ad.why);
@@ -88,7 +103,7 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
               <Text style={styles.headStatus}>{contact.status ? `${contact.status} · ` : ''}ver perfil</Text>
             </View>
           </TouchableOpacity>
-          {hideVoice ? null : (
+          {hideVoice || store ? null : (
             <TouchableOpacity
               style={styles.iconBtn}
               onPress={() => setVoice(true)}
@@ -98,7 +113,7 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
             </TouchableOpacity>
           )}
           {/* Sem onVideo (ex.: no Date, com a pessoa offline) o botão de vídeo não aparece. */}
-          {onVideo ? (
+          {onVideo && !store ? (
             <TouchableOpacity style={[styles.iconBtn, { marginLeft: 8 }]} onPress={onVideo} accessibilityLabel="Chamar por vídeo">
               <Ionicons name="videocam-outline" size={20} color={colors.primary} />
             </TouchableOpacity>
@@ -114,7 +129,9 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
           <Text style={styles.secure}>
             <Ionicons name="lock-closed" size={11} color={colors.muted} /> Conversa protegida · só pessoas verificadas
           </Text>
-          {messages.map((m, i) => (
+          {messages.map((m, i) => m.from === 'system' ? (
+            <Text key={i} style={{ color: colors.muted, fontSize: 12, textAlign: 'center', marginVertical: 8, marginHorizontal: 16, lineHeight: 17 }}>{m.text}</Text>
+          ) : (
             <View key={i} style={[styles.bubble, m.from === 'me' ? styles.mine : styles.theirs]}>
               <Text style={{ color: m.from === 'me' ? colors.onPrimary : colors.text, fontSize: 15 }}>{m.text}</Text>
               <Text style={[styles.time, m.from === 'me' && { color: 'rgba(255,255,255,0.8)' }]}>{m.time}</Text>
@@ -142,6 +159,20 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
           </TouchableOpacity>
         </KeyboardLift></Modal>
 
+        {blocked ? (
+          <View style={[styles.composer, { paddingBottom: 10 + insets.bottom, alignItems: 'center' }]}>
+            <Ionicons name="lock-closed" size={16} color={colors.danger || '#C0392B'} />
+            <Text style={{ color: colors.muted, fontSize: 12, marginLeft: 8, flex: 1, lineHeight: 17 }}>{BLOCK_TEXT}</Text>
+          </View>
+        ) : !storeRule.open ? (
+          <View style={[styles.composer, { paddingBottom: 10 + insets.bottom, alignItems: 'center' }]}>
+            <Ionicons name="lock-closed-outline" size={16} color={colors.muted} />
+            <Text style={{ color: colors.muted, fontSize: 12, marginLeft: 8, flex: 1, lineHeight: 17 }}>{storeRule.why}</Text>
+            <TouchableOpacity onPress={() => { onClose(); dispatch({ type: 'OPEN_COMPANY', id: store.id }); }} accessibilityLabel={`Abrir a página de ${store.name}`}>
+              <Text numberOfLines={1} style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>Ver loja</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
         <View style={[styles.composer, { paddingBottom: 10 + insets.bottom }]}>
           <TextInput
             style={styles.composerInput}
@@ -156,6 +187,7 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
             <Ionicons name="send" size={18} color={colors.onPrimary} />
           </TouchableOpacity>
         </View>
+        )}
       </KeyboardLift>
       <VideoCallModal audio contact={contact} visible={voice} onClose={() => setVoice(false)} />
     </Modal>

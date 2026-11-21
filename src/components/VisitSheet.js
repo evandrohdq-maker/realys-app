@@ -16,14 +16,6 @@ import { pedirVisita, acaoVisita } from '../serverServices';
 
 const WHEN = ['Assim que possível', 'Hoje à tarde', 'Amanhã de manhã', 'Neste fim de semana'];
 
-// Telefone de exemplo, liberado só depois que a taxa de visita é paga.
-const phoneOf = (id) => {
-  let h = 0;
-  for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  const n = String(10000000 + (h % 89999999));
-  return `(11) 9${n.slice(0, 4)}-${n.slice(4, 8)}`;
-};
-
 export function VisitRequestSheet({ provider: p, visible, onClose, address = '', onSent }) {
   const { state, dispatch } = useStore();
   const insets = useSafeAreaInsets();
@@ -174,19 +166,16 @@ export function VisitCard({ visit: v }) {
 
       {v.status === 'aceita' ? (
         <>
-          {v.serverId ? (
-            <Text style={styles.hint}>{first} aceitou. Combinem os detalhes pelas mensagens do Realyz: contato e pagamento sempre por aqui.</Text>
-          ) : (
+          {/* Sem telefone do prestador para o cliente: contato e pagamento só pelo Realyz. */}
           <View style={styles.phone}>
-            <Ionicons name="call-outline" size={15} color={colors.success} />
+            <Ionicons name="shield-checkmark-outline" size={15} color={colors.success} />
             <Text style={{ color: colors.text, marginLeft: 8, flex: 1, fontSize: 13 }}>
-              Telefone liberado: <Text style={{ fontWeight: '700' }}>{phoneOf(v.providerId)}</Text>
+              {first} aceitou. Combinem tudo pelo chat do Realyz: é o que garante o seu dinheiro.
             </Text>
             <TouchableOpacity onPress={() => Alert.alert('Chat do Realyz', `Conversa com ${first} aberta.`)}>
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700' }}>Chat</Text>
             </TouchableOpacity>
           </View>
-          )}
           <Text style={styles.hint}>Depois que {first} passar aí, confirme a visita. Só então o valor é liberado.</Text>
           <Row>
             <Small title="Confirmar visita" onPress={() => act('VISIT_CONFIRM')} main />

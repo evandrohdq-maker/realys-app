@@ -434,3 +434,11 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
 - [ ] Na VPS: bash deploy/ia.sh e IA_URL/IA_MODEL no .env (precisa de ~3 GB de memória livre).
 - [ ] Próximo: suporte do próprio Realyz pela mesma IA (base de conhecimento do app e dos termos),
       relatórios do atendente (quantas conversas, quantas viraram venda) e plano pago para empresas.
+
+## Anti-desvio, lojas e atrasos (21/11/2026) — falta no servidor
+- Liberar a resposta do cliente quando a loja chama pelo CRM (hoje `STORE_REACHED` só existe no app).
+- Bloqueio da conversa por telefone também no servidor (hoje é só no celular do cliente).
+- Reembolso por atraso do Food (mais de 1 hora) e da Garantia: descontar o valor dos repasses da loja no servidor (hoje fica registrado só no app).
+- Prazo de entrega do pedido (`deadline`) também no servidor: Food 60 min, Shop 7 dias.
+- Termo da empresa foi para a v4 (reembolso sai da venda da loja): as empresas aceitam de novo.
+- Rota nova `POST /orders/:id/cancelar` (cliente cancela antes do preparo, taxas retidas) ainda sem teste automático.

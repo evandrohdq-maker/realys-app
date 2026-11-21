@@ -93,6 +93,14 @@ export async function carregarPedidos(dispatch) {
   dispatch({ type: 'SERVER_ORDERS_SYNC', orders: list.map(orderFromServer) });
 }
 
+// Cliente cancela antes do preparo: volta o valor menos as taxas (o servidor decide e devolve).
+export async function cancelarPedido(order, dispatch) {
+  const r = await api('POST', `/orders/${order.serverId}/cancelar`, {});
+  await carregarPedidos(dispatch);
+  await carregarCarteira(dispatch);
+  return r;
+}
+
 // Aviso em tempo real "order" (a loja mudou o status): atualiza a lista.
 export const statusDoAviso = (e) => ({ serverId: e.id, status: STATUS[e.status] || e.status });
 

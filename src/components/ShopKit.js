@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, soft, brl } from '../theme';
 import { ProductThumb, Badge } from './ui';
+import { storeTrust } from '../storeTrust';
 
 // Peças do visual do Shop (aba Shop do rodapé), usadas também no Food, na Loja,
 // em Eventos e nas páginas das empresas, para o app inteiro ter a mesma cara.
@@ -184,6 +185,20 @@ export function ShopGrid({ children }) {
 }
 
 // Linha de loja: logo num quadradinho, nome, categoria, nota e selo de patrocinado.
+// Selo de confiança da loja: vem das vendas fechadas e entregues pelo Realyz (src/storeTrust.js).
+export function TrustLine({ s, style }) {
+  const t = storeTrust(s);
+  return (
+    <View style={[{ flexDirection: 'row', alignItems: 'center', marginTop: 3 }, style]}>
+      {t.level ? <Ionicons name={t.level.icon} size={12} color={colors.success} /> : null}
+      <Text numberOfLines={1} style={{ color: t.level ? colors.success : colors.muted, fontSize: 11.5, fontWeight: '700', marginLeft: t.level ? 4 : 0 }}>
+        {t.level ? `${t.level.label} · ` : 'Loja nova · '}
+        {t.sales} vendas pelo Realyz
+      </Text>
+    </View>
+  );
+}
+
 export function StoreRow({ s, onPress, extra }) {
   return (
     <TouchableOpacity style={styles.storeRow} onPress={onPress} activeOpacity={0.85}>
@@ -197,6 +212,7 @@ export function StoreRow({ s, onPress, extra }) {
           {s.city ? ` · ${s.city}` : ''} · <Text style={{ color: colors.accent, fontWeight: '700' }}>★ {s.rating}</Text>
           {s.shipsBrazil ? ' · envia p/ todo o Brasil' : ''}
         </Text>
+        <TrustLine s={s} />
         {extra}
       </View>
       {s.sponsored ? <Badge label="Patrocinado" color={colors.sponsored} /> : s.recommended ? <Badge label="Recomendado" /> : null}

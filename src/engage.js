@@ -117,7 +117,7 @@ export function sampleOffers(kind, text) {
     ];
   const svc = t.includes('vaza') || t.includes('pia') || t.includes('cano') ? 'Encanador' : t.includes('faxina') || t.includes('limpeza') ? 'Diarista' : 'Eletricista';
   return [
-    { from: 'Pedro Alves', fromType: 'prestador', price: 180, eta: 'Hoje às 15h', note: `${svc} · nota 4,9 · abate a visita no serviço` },
+    { from: 'Pedro A.', fromType: 'prestador', price: 180, eta: 'Hoje às 15h', note: `${svc} · nota 4,9 · abate a visita no serviço` },
     { from: 'Ana Ribeiro', fromType: 'prestador', price: 220, eta: 'Amanhã cedo', note: `${svc} · nota 4,8 · garantia de 90 dias` },
     { from: 'Faz Tudo Rápido', fromType: 'prestador', price: 150, eta: 'Amanhã à tarde', note: `${svc} · nota 4,6` },
   ];

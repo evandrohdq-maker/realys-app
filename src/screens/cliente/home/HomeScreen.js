@@ -30,6 +30,7 @@ import { ShopHero, CircleShortcuts, ShopProductCard, ShopGrid, StoreRow, Categor
 import { SegTabs, SpotlightCarousel, ClipStrip, PromoSector } from '../../../components/AdKit';
 import { SearchBar } from '../../../components/Search';
 import { isFoodStore } from '../../../data';
+import { byStoreTrust } from '../../../storeTrust';
 import { shopSectorItems } from '../../../shopSectorsData';
 import { SHOP_SPOTLIGHT, SHOP_CLIPS, SHOP_SPONSORED_PRODUCTS, SHOP_FLASH, SHOP_COUPONS, SHOP_COMBOS } from '../../../adsData';
 
@@ -193,7 +194,7 @@ function ShopTab({ goTo, explore, navigate }) {
   const featured = state.products.filter((p) => p.featured && notFood(p));
   const sponsored = SHOP_SPONSORED_PRODUCTS.map((id) => state.products.find((p) => p.id === id)).filter(Boolean);
   const grid = withSponsored(featured, sponsored);
-  const stores = state.stores.filter((st) => !isFoodStore(st)).sort((a, b) => b.sponsored - a.sponsored || b.recommended - a.recommended || b.rating - a.rating);
+  const stores = state.stores.filter((st) => !isFoodStore(st)).sort(byStoreTrust(state));
   const add = (p) => dispatch({ type: 'ADD_TO_CART', productId: p.id });
   // Toque no anúncio da vitrine: mostra o produto e leva para a loja ou para o carrinho.
   const openAd = (ad) => {
@@ -673,6 +674,7 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
   const friends = members
     .filter((m) => state.friends[m.id] === 'amigo')
     .map((m) => ({ ...(contacts.find((c) => c.id === m.id) || { status: 'amigo no Realyz' }), id: m.id, name: m.name, photo: m.photo }));
+  // Lojas que o cliente segue (seguir não é amizade: sem mensagem e sem ligação).
   const people = [...friends, ...contacts.filter((c) => c.business)];
   const posts = state.communityPosts;
   const [liked, setLiked] = useState({});
@@ -903,8 +905,8 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
             <View key={ct.id} style={styles.convRow}>
               <TouchableOpacity
                 style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
-                onPress={() => !ct.business && dispatch({ type: 'OPEN_PROFILE', id: ct.id })}
-                activeOpacity={ct.business ? 1 : 0.7}
+                onPress={() => (ct.business ? openAuthor(ct.name) : dispatch({ type: 'OPEN_PROFILE', id: ct.id }))}
+                activeOpacity={0.7}
                 accessibilityLabel={`Ver perfil de ${ct.name}`}
               >
               <View>
@@ -916,12 +918,22 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
                 <Text style={{ color: ct.status === 'online' ? colors.success : colors.muted, fontSize: 12 }}>{ct.status}</Text>
               </View>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.roundSm} onPress={() => onChat(ct)} accessibilityLabel={`Mensagem para ${ct.name}`}>
-                <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.primary} />
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.roundSm, { marginLeft: 8 }]} onPress={() => onVideo(ct)} accessibilityLabel={`Chamada de vídeo com ${ct.name}`}>
-                <Ionicons name="videocam-outline" size={18} color={colors.primary} />
-              </TouchableOpacity>
+              {ct.business ? (
+                // Loja: o cliente segue, mas não manda mensagem nem liga. Conversa só dentro dos pedidos.
+                <View style={styles.followChip}>
+                  <Ionicons name="checkmark" size={14} color={colors.primary} />
+                  <Text numberOfLines={1} style={{ color: colors.primary, fontWeight: '700', fontSize: 12, marginLeft: 4 }}>Seguindo</Text>
+                </View>
+              ) : (
+                <>
+                  <TouchableOpacity style={styles.roundSm} onPress={() => onChat(ct)} accessibilityLabel={`Mensagem para ${ct.name}`}>
+                    <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.primary} />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.roundSm, { marginLeft: 8 }]} onPress={() => onVideo(ct)} accessibilityLabel={`Chamada de vídeo com ${ct.name}`}>
+                    <Ionicons name="videocam-outline" size={18} color={colors.primary} />
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
           ))}
         </View>
@@ -1078,6 +1090,7 @@ const styles = StyleSheet.create({
   },
   convAvatar: { width: 46, height: 46, borderRadius: 23 },
   onlineDot: { position: 'absolute', right: 0, bottom: 0, width: 12, height: 12, borderRadius: 6, backgroundColor: colors.success, borderWidth: 2, borderColor: colors.card },
+  followChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: colors.primary },
   roundSm: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(168,121,10,0.45)', alignItems: 'center', justifyContent: 'center' },
   goLiveCard: {
     flexDirection: 'row',
