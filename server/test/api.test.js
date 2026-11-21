@@ -95,8 +95,10 @@ test('loja e pedidos: preço do servidor, presente primeiro, estoque, cancelamen
 
   const o = await ok('POST', '/orders', { who: 'beto', body: { items: [{ productId: p.id, qty: 2 }], address: 'Rua A, 10' } });
   assert.equal(o.orders[0].total, 30);
+  assert.equal(o.orders[0].protection, 0.99); // taxa de proteção Re@lys, paga pelo cliente
   assert.equal(o.orders[0].fromGift, 18);
-  assert.equal(o.orders[0].fromWallet, 12);
+  assert.equal(o.orders[0].fromWallet, 12.99);
+  assert.equal((await ok('GET', '/wallet', { who: 'beto' })).balance, 37.01);
   assert.equal((await ok('GET', '/wallet', { who: 'pizza' })).balance, 30);
   assert.equal((await api('POST', '/orders', { who: 'beto', body: { items: [{ productId: p.id, qty: 5 }] } })).status, 409); // sem estoque
 

@@ -215,8 +215,10 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] **Contador conferir** regime, anexo, código do serviço, ISS de Passo Fundo e agrupamento das notas.
 - [ ] Testar na produção restrita da Receita (`FISCAL_AMBIENTE=2`) antes de ligar em produção.
 - [ ] Contratar o emissor parceiro de NF-e (Focus NFe ou parecido) para as lojas que quiserem.
-- [ ] Ligar no servidor a taxa de proteção (R$ 0,99) e a taxa de visita, que hoje existem só no app,
-      chamando `fiscal.registrar` como já é feito na comissão de pedido e nos presentes.
+- [x] Taxa de proteção (R$ 0,99) ligada no servidor: cobrada uma vez por compra, vai para o caixa do Re@lys,
+      registrada no fiscal (`taxa_protecao`) e devolvida se a loja cancelar. Valor em `PROTECTION_FEE`.
+      Falta: isenção do Score Diamante no servidor (o score ainda é calculado só no app).
+- [ ] Ligar no servidor a taxa de visita, que hoje existe só no app, chamando `fiscal.registrar`.
 - [ ] Telas no app: "Minhas notas fiscais", painel fiscal do administrador e aviso de teto do MEI.
 - [ ] **Conversa com o contador sobre 2027:** pela LC 214/2025 (arts. 22 e 23), plataformas digitais respondem
       pela CBS/IBS das vendas intermediadas e precisam se inscrever no regime regular. Ver se o Simples ainda compensa.

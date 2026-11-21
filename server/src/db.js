@@ -559,6 +559,10 @@ const MIGRATIONS = [
   );
   CREATE INDEX streamer_favs_host ON streamer_favs(host_id, notify);
   `,
+  // 17: taxa de proteção Re@lys (R$ 0,99 por compra, paga pelo cliente), guardada no pedido em que foi cobrada
+  `
+  ALTER TABLE orders ADD COLUMN protection INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export function openDb(file) {

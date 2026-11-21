@@ -54,6 +54,8 @@ export function loadConfig(overrides = {}) {
     liveConvertMin: num(env.LIVE_CONVERT_MIN, 10),
     orderFeePct: num(env.ORDER_FEE_PCT, 0), // comissão do Re@lys sobre vendas no Shop (0 na fase de testes; tabela: 10%)
     foodFeePct: num(env.FOOD_FEE_PCT, env.ORDER_FEE_PCT === undefined ? 0 : num(env.ORDER_FEE_PCT, 0)), // no Food (tabela: 10%)
+    // Taxa de proteção Re@lys: valor fixo por compra (carrinho), pago pelo cliente, a qualquer hora (sem taxa noturna).
+    protectionFee: num(env.PROTECTION_FEE, 0.99),
     withdrawMin: num(env.WITHDRAW_MIN, 10),
     // Servidor de vídeo próprio (MediaMTX + coturn numa VPS, ver deploy/video/LEIA-ME.md).
     // Vazio = ainda não contratado: as lives ficam no modo demonstração.

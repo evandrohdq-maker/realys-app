@@ -166,31 +166,39 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
         byCompany.get(p.company_id).lines.push({ p, qty });
       }
       const out = [];
+      // Taxa de proteção Re@lys: uma vez por compra (mesmo com várias lojas), cobrada no primeiro pedido.
+      let protection = Math.round(cfg.protectionFee * 100);
       for (const [companyId, g] of byCompany) {
         const id = newId('o');
         const total = g.lines.reduce((s, l) => s + l.p.price * l.qty, 0);
         // Food (todos os itens com classe de cardápio) tem comissão própria; o resto é Shop.
         const isFood = g.lines.every((l) => l.p.classe);
         const fee = Math.round((total * (isFood ? cfg.foodFeePct : cfg.orderFeePct)) / 100);
-        const { fromGift, fromWallet } = wallet.pay(user.id, total, 'Compras', `Pedido em ${g.name}`, id);
+        const prot = protection;
+        protection = 0;
+        // O cliente paga os produtos + a taxa de proteção; a loja recebe só os produtos (menos a comissão).
+        const { fromGift, fromWallet } = wallet.pay(user.id, total + prot, 'Compras', `Pedido em ${g.name}`, id);
         wallet.move(g.owner, 'saldo', total - fee, 'Vendas', `Venda para ${user.name} (pedido ${id})`, id);
         if (fee) wallet.move('realys', 'saldo', fee, 'Comissão', `Comissão do pedido ${id}`, id);
+        if (prot) wallet.move('realys', 'saldo', prot, 'Proteção', `Taxa de proteção do pedido ${id}`, id);
         const t = now();
-        db.prepare('INSERT INTO orders (id, buyer_id, company_id, total, from_gift, from_wallet, fee, address, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)').run(id, user.id, companyId, total, fromGift, fromWallet, fee, address, 'Recebido', t, t);
+        db.prepare('INSERT INTO orders (id, buyer_id, company_id, total, from_gift, from_wallet, fee, protection, address, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)').run(id, user.id, companyId, total, fromGift, fromWallet, fee, prot, address, 'Recebido', t, t);
         for (const l of g.lines) db.prepare('INSERT INTO order_items (order_id, product_id, name, price, qty) VALUES (?,?,?,?,?)').run(id, l.p.id, l.p.name, l.p.price, l.qty);
         // Fiscal: a comissão é serviço do Re@lys para a loja (tomador = dono da loja); a NF-e do produto é da loja.
         if (fee) fiscal.registrar({ origem: 'comissao_pedido', ref: id, tomadorId: g.owner, valorCents: fee, descricao: `Intermediação de venda no Re@lys (pedido ${id})` });
+        // A taxa de proteção é serviço do Re@lys para o cliente (tomador = quem comprou).
+        if (prot) fiscal.registrar({ origem: 'taxa_protecao', ref: id, tomadorId: user.id, valorCents: prot });
         fiscal.filaNfeDoPedido(id);
-        out.push({ id, owner: g.owner, company: g.name, total, fromGift, fromWallet });
+        out.push({ id, owner: g.owner, company: g.name, total, prot, fromGift, fromWallet });
       }
       return out;
     });
     for (const o of created) hub.send(o.owner, 'order', { id: o.id, buyer: user.name, total: toReais(o.total), status: 'Recebido' });
-    return { orders: created.map((o) => ({ id: o.id, company: o.company, total: toReais(o.total), fromGift: toReais(o.fromGift), fromWallet: toReais(o.fromWallet), status: 'Recebido' })) };
+    return { orders: created.map((o) => ({ id: o.id, company: o.company, total: toReais(o.total), protection: toReais(o.prot), fromGift: toReais(o.fromGift), fromWallet: toReais(o.fromWallet), status: 'Recebido' })) };
   }, { status: 201 });
 
   const orderView = (o) => ({
-    id: o.id, company: o.company_name, companyId: o.company_id, buyer: o.buyer_name, total: toReais(o.total), fromGift: toReais(o.from_gift),
+    id: o.id, company: o.company_name, companyId: o.company_id, buyer: o.buyer_name, total: toReais(o.total), protection: toReais(o.protection || 0), fromGift: toReais(o.from_gift),
     fromWallet: toReais(o.from_wallet), status: o.status, address: o.address, createdAt: o.created_at, updatedAt: o.updated_at,
     items: db.prepare('SELECT product_id AS productId, name, price, qty FROM order_items WHERE order_id = ?').all(o.id).map((i) => ({ ...i, price: toReais(i.price) })),
   });
@@ -213,6 +221,8 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
       if (body.status === 'Cancelado') {
         wallet.move(c.owner_id, 'saldo', -(o.total - o.fee), 'Vendas', `Pedido ${o.id} cancelado`, o.id);
         if (o.fee) wallet.move('realys', 'saldo', -o.fee, 'Comissão', `Pedido ${o.id} cancelado`, o.id);
+        // Cancelado pela loja: a taxa de proteção também volta para o cliente (já está dentro do from_gift/from_wallet).
+        if (o.protection) wallet.move('realys', 'saldo', -o.protection, 'Proteção', `Pedido ${o.id} cancelado`, o.id);
         wallet.move(o.buyer_id, 'presente', o.from_gift, 'Estorno', `Pedido ${o.id} cancelado por ${c.name}`, o.id);
         wallet.move(o.buyer_id, 'saldo', o.from_wallet, 'Estorno', `Pedido ${o.id} cancelado por ${c.name}`, o.id);
         for (const i of db.prepare('SELECT product_id, qty FROM order_items WHERE order_id = ?').all(o.id)) db.prepare('UPDATE products SET stock = stock + ? WHERE id = ?').run(i.qty, i.product_id);
