@@ -1,11 +1,11 @@
 // Plano da loja (Shop e Food).
 // Regra do negócio:
 // - Cadastrar a loja e montar a vitrine é grátis. A loja só entra no plano quando aceita o
-//   primeiro pedido que chega pelo Re@lys.
+//   primeiro pedido que chega pelo Realyz.
 // - Para aceitar esse pedido, ela escolhe: plano mensal (R$ 49,90) ou plano anual, que sai por
 //   75% do valor de 12 mensalidades.
 // - O primeiro mês é gratuito nos dois: a cobrança começa 30 dias depois do primeiro pedido.
-// - Fora o plano, o Re@lys fica com 10% do valor de cada venda.
+// - Fora o plano, o Realyz fica com 10% do valor de cada venda.
 import { TAXAS } from './taxas';
 
 const r2 = (n) => Math.round(n * 100) / 100;

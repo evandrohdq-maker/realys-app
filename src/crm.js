@@ -138,7 +138,7 @@ const SEED = [
   {
     board: 'online', id: 'o2', client: 'Aline Castro', origin: 'Página', interest: 'Orientação nutricional por vídeo', value: 220, stage: 'negociacao', unread: 0, note: 'Prefere à noite.', followUp: h(-26),
     history: [{ stage: 'novo', at: h(100) }, { stage: 'conversa', at: h(98) }, { stage: 'proposta', at: h(80) }, { stage: 'negociacao', at: h(70) }],
-    messages: [msg('me', 'Confirmado: amanhã, 19h30, por chamada de vídeo aqui no Re@lys.', h(70)), msg('them', 'Combinado!', h(69))],
+    messages: [msg('me', 'Confirmado: amanhã, 19h30, por chamada de vídeo aqui no Realyz.', h(70)), msg('them', 'Combinado!', h(69))],
   },
   {
     board: 'online', id: 'o3', client: 'Bruno Farias', origin: 'Reels', interest: 'Suporte de informática remoto', value: 90, stage: 'fechado', unread: 0, note: '', followUp: null,
@@ -221,7 +221,7 @@ export function useCrm(board = 'empresa') {
 }
 
 // Muda de etapa e registra a data na linha do tempo.
-// Ao fechar, o Re@lys registra o fechamento e a parte dele (crmFee): é assim que a plataforma ganha
+// Ao fechar, o Realyz registra o fechamento e a parte dele (crmFee): é assim que a plataforma ganha
 // por negócio fechado.
 export function crmMove(id, stage, extra = {}) {
   patch(id, (l) =>
@@ -268,8 +268,8 @@ export function crmRemove(id) {
   emit();
 }
 
-// ---------- Fechamento acompanhado pelo Re@lys ----------
-// Todo negócio fechado pelo CRM é registrado na plataforma, e o Re@lys recebe a parte dele sobre o
+// ---------- Fechamento acompanhado pelo Realyz ----------
+// Todo negócio fechado pelo CRM é registrado na plataforma, e o Realyz recebe a parte dele sobre o
 // valor fechado: lojas pagam a comissão de venda; prestadores, aulas e atendimento online pagam a
 // taxa de serviço. Imóveis e veículos já pagam por plano ou por conversa liberada (sem taxa no fechamento).
 export const CRM_FEE_PCT = { empresa: ORDER_FEE_PCT, prestador: SERVICE_FEE_PCT, aulas: SERVICE_FEE_PCT, online: SERVICE_FEE_PCT, imoveis: 0, veiculos: 0 };
@@ -279,9 +279,9 @@ export function crmFee(board, value) {
   const fee = r2(((value || 0) * pct) / 100);
   return { pct, fee, net: r2((value || 0) - fee) };
 }
-// Cliente pagou pelo Re@lys: o fechamento fica quitado (na demonstração, marcado à mão).
+// Cliente pagou pelo Realyz: o fechamento fica quitado (na demonstração, marcado à mão).
 export const crmPaid = (id) => patch(id, (l) => (l.closing ? { ...l, closing: { ...l.closing, paid: true, paidAt: Date.now() } } : l));
-// Visão da plataforma (administrador): tudo que foi fechado pelos CRMs e quanto o Re@lys recebe.
+// Visão da plataforma (administrador): tudo que foi fechado pelos CRMs e quanto o Realyz recebe.
 export function crmPlatform() {
   const won = leads.filter((l) => l.stage === 'fechado' && l.closing);
   const by = {};

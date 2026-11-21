@@ -1,5 +1,5 @@
-// Desapego: clientes vendendo itens usados entre eles, com a Garantia Re@lys.
-// O comprador paga pelo Re@lys, o dinheiro fica retido e só vai para o vendedor quando o comprador
+// Desapego: clientes vendendo itens usados entre eles, com a Garantia Realyz.
+// O comprador paga pelo Realyz, o dinheiro fica retido e só vai para o vendedor quando o comprador
 // confirma que recebeu (QR Code na entrega). Sem pagamento por fora, sem golpe.
 // Texto passa pela moderação; foto segue a regra de nudez; anúncio com nome real (biometria).
 import React, { useState } from 'react';
@@ -27,7 +27,7 @@ export default function DesapegoScreen() {
 
   const buy = (x) => {
     if (state.wallet < x.price) return Alert.alert('Saldo insuficiente', `Seu saldo é ${brl(state.wallet)}. Adicione saldo na Carteira.`);
-    Alert.alert(`Comprar ${x.title}`, `${brl(x.price)} pela Garantia Re@lys: o dinheiro fica retido e só vai para ${x.seller.split(' ')[0]} quando você confirmar que recebeu. Não pague por fora.`, [
+    Alert.alert(`Comprar ${x.title}`, `${brl(x.price)} pela Garantia Realyz: o dinheiro fica retido e só vai para ${x.seller.split(' ')[0]} quando você confirmar que recebeu. Não pague por fora.`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Comprar', onPress: () => (dispatch({ type: 'DESAPEGO_BUY', id: x.id }), setOpen(null)) },
     ]);
@@ -53,14 +53,14 @@ export default function DesapegoScreen() {
         <Card key={'m' + x.id} style={{ borderColor: colors.primary, borderWidth: 1 }}>
           <Text style={{ color: colors.text, fontWeight: '800' }}>{x.buyer === me ? 'Você comprou' : 'Você vendeu'}: {x.title}</Text>
           <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
-            {brl(x.price)} retido na Garantia Re@lys{x.seller === me ? ` · você recebe ${brl(x.price - desapegoFee(x.price))} quando o comprador confirmar` : ''}
+            {brl(x.price)} retido na Garantia Realyz{x.seller === me ? ` · você recebe ${brl(x.price - desapegoFee(x.price))} quando o comprador confirmar` : ''}
           </Text>
           {x.buyer === me ? (
             <Row style={{ marginTop: 8 }}>
               <TouchableOpacity onPress={() => dispatch({ type: 'DESAPEGO_RECEIVED', id: x.id })} style={{ marginRight: 18 }}>
                 <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.success, fontWeight: '700' }}>Recebi, tudo certo</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => Alert.alert('Abrir um caso', 'Conte o problema pelo suporte: o Re@lys analisa o chat, as fotos e o QR da entrega, e o dinheiro continua retido enquanto isso.')}>
+              <TouchableOpacity onPress={() => Alert.alert('Abrir um caso', 'Conte o problema pelo suporte: o Realyz analisa o chat, as fotos e o QR da entrega, e o dinheiro continua retido enquanto isso.')}>
                 <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.danger, fontWeight: '700' }}>Deu problema</Text>
               </TouchableOpacity>
             </Row>
@@ -114,10 +114,10 @@ function ItemModal({ x, me, onClose, onBuy, onRemove }) {
             <Text style={{ color: '#C77D12', fontWeight: '700', marginTop: 16 }}>Reservado para outra pessoa.</Text>
           ) : (
             <TouchableOpacity style={st.buy} onPress={() => onBuy(x)}>
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.buyText}>Comprar com a Garantia Re@lys</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.buyText}>Comprar com a Garantia Realyz</Text>
             </TouchableOpacity>
           )}
-          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 10 }}>Pagou pelo Re@lys, está protegido. Pagamento por fora não tem garantia.</Text>
+          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 10 }}>Pagou pelo Realyz, está protegido. Pagamento por fora não tem garantia.</Text>
         </View>
       </ScrollView>
     </KeyboardLift></Modal>
@@ -188,7 +188,7 @@ function SellModal({ visible, onClose }) {
           ))}
         </View>
         <Text style={{ color: colors.muted, fontSize: 12, marginTop: 10 }}>
-          Taxa do Re@lys: 10% da venda (a mesma dos pedidos), descontada só quando o comprador confirmar. Proibido: armas, remédios, animais, documentos e produtos ilegais.
+          Taxa do Realyz: 10% da venda (a mesma dos pedidos), descontada só quando o comprador confirmar. Proibido: armas, remédios, animais, documentos e produtos ilegais.
         </Text>
         <TouchableOpacity style={st.buy} onPress={save}>
           <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.buyText}>Publicar</Text>

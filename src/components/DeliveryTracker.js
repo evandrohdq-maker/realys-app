@@ -171,7 +171,7 @@ export default function DeliveryTracker({ visible, onClose, who = {}, kind = 'mo
               {who.plate ? ` · ${who.plate}` : ''}
             </Text>
           </View>
-          <TouchableOpacity style={styles.round} onPress={() => Alert.alert('Ligação pelo Re@lys', `Ligando para ${who.name || k.label}. O número dos dois fica protegido.`)} accessibilityLabel="Ligar">
+          <TouchableOpacity style={styles.round} onPress={() => Alert.alert('Ligação pelo Realyz', `Ligando para ${who.name || k.label}. O número dos dois fica protegido.`)} accessibilityLabel="Ligar">
             <Ionicons name="call" size={17} color={NIGHT} />
           </TouchableOpacity>
         </View>
@@ -183,7 +183,7 @@ export default function DeliveryTracker({ visible, onClose, who = {}, kind = 'mo
           </TouchableOpacity>
         ) : null}
         <Text style={styles.note}>
-          Quem presta serviço no Re@lys fica com o GPS ligado enquanto trabalha. Na demonstração o caminho é simulado.
+          Quem presta serviço no Realyz fica com o GPS ligado enquanto trabalha. Na demonstração o caminho é simulado.
         </Text>
       </View>
     </Modal>

@@ -1,7 +1,7 @@
-// Reels do Re@lys (estilo Instagram): vídeo vertical em tela cheia, arrasta para cima para o próximo.
+// Reels do Realyz (estilo Instagram): vídeo vertical em tela cheia, arrasta para cima para o próximo.
 // Toque pausa, toque duplo curte. Do lado: loja, curtir, comentar, enviar e som.
 // Embaixo: loja verificada, título e o produto com o botão Comprar (Shop) ou Pedir (Food).
-// Assistiu até o fim, ganha pontos Re@lys (uma vez por Reel).
+// Assistiu até o fim, ganha pontos Realyz (uma vez por Reel).
 import { addOrChoose, openProduct } from './ProductSheet';
 import { KeyboardLift } from '../keyboard';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
@@ -202,7 +202,7 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
       {earned ? (
         <View style={[styles.earned, { top: insets.top + 56 }]}>
           <Ionicons name="star" size={15} color="#0B1124" />
-          <Text style={styles.earnedText}>+{CLIP_POINTS} pontos Re@lys por assistir!</Text>
+          <Text style={styles.earnedText}>+{CLIP_POINTS} pontos Realyz por assistir!</Text>
         </View>
       ) : null}
 
@@ -231,7 +231,7 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.sideBtn}
-          onPress={() => Share.share({ message: `${reel.title} · ${owner} no Re@lys\nRe@lys · Pessoas reais. Negócios reais.` }).catch(() => {})}
+          onPress={() => Share.share({ message: `${reel.title} · ${owner} no Realyz\nRealyz · Pessoas reais. Negócios reais.` }).catch(() => {})}
           accessibilityLabel="Enviar"
         >
           <Ionicons name="paper-plane-outline" size={27} color="#fff" />
@@ -276,9 +276,9 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
               <Text numberOfLines={1} style={{ color: colors.text, fontWeight: '700' }}>{prov ? (prov.functions || [])[0] || 'Prestador de serviço' : ad.title}</Text>
               <Text numberOfLines={1} style={{ color: colors.primary, fontWeight: '800', marginTop: 2 }}>{prov ? priceText(prov) : ad.price}</Text>
             </View>
-            <TouchableOpacity style={styles.buy} onPress={callOwner} accessibilityLabel={prov ? `Chamar ${prov.name} pelo Re@lys` : `Tenho interesse no anúncio de ${ad.who}`}>
+            <TouchableOpacity style={styles.buy} onPress={callOwner} accessibilityLabel={prov ? `Chamar ${prov.name} pelo Realyz` : `Tenho interesse no anúncio de ${ad.who}`}>
               <Ionicons name={prov ? 'call' : 'pricetag'} size={15} color="#fff" />
-              <Text numberOfLines={1} style={{ color: '#fff', fontWeight: '800', marginLeft: 5, fontSize: 13 }}>{prov ? 'Chamar pelo Re@lys' : (state.negRequests || {})[ad.id] ? 'Aguardando' : 'Tenho interesse'}</Text>
+              <Text numberOfLines={1} style={{ color: '#fff', fontWeight: '800', marginLeft: 5, fontSize: 13 }}>{prov ? 'Chamar pelo Realyz' : (state.negRequests || {})[ad.id] ? 'Aguardando' : 'Tenho interesse'}</Text>
             </TouchableOpacity>
           </View>
         ) : null}

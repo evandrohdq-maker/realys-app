@@ -1,6 +1,6 @@
-// Ligações feitas de dentro do Re@lys, usando o próprio chip do celular.
+// Ligações feitas de dentro do Realyz, usando o próprio chip do celular.
 // Com a permissão "Fazer e gerenciar ligações" aceita, o Android liga direto.
-// Sem ela, o Re@lys abre o discador já com o número digitado (basta tocar em ligar).
+// Sem ela, o Realyz abre o discador já com o número digitado (basta tocar em ligar).
 import { Platform, PermissionsAndroid, Linking, Alert } from 'react-native';
 import * as IntentLauncher from 'expo-intent-launcher';
 
@@ -19,8 +19,8 @@ export async function askCallPermission() {
   if (Platform.OS !== 'android') return false;
   try {
     const r = await PermissionsAndroid.request(CALL, {
-      title: 'Ligações pelo Re@lys',
-      message: 'Permita que o Re@lys faça ligações do seu celular para pedir socorro (SAMU, Bombeiros, Polícia) e falar com hospitais e prestadores.',
+      title: 'Ligações pelo Realyz',
+      message: 'Permita que o Realyz faça ligações do seu celular para pedir socorro (SAMU, Bombeiros, Polícia) e falar com hospitais e prestadores.',
       buttonPositive: 'Permitir',
       buttonNegative: 'Agora não',
     });
@@ -62,7 +62,7 @@ export function confirmCall(label, number) {
 export function demoCall(name, number) {
   Alert.alert(
     `Ligar para ${name}`,
-    `Na versão final, o Re@lys liga direto para ${number}. Este é um cadastro de demonstração, então nenhuma ligação foi feita.`
+    `Na versão final, o Realyz liga direto para ${number}. Este é um cadastro de demonstração, então nenhuma ligação foi feita.`
   );
 }
 

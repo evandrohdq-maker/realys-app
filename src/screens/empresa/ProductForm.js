@@ -11,15 +11,15 @@ import { classifyFood, FOOD_CLASSES, MODOS, rotuloClasse, subclasseByKey } from 
 import { MAX_PRODUCT_PHOTOS, MAX_VIDEO_SEC, COLORS, suggestFor, groupFromSuggestion, cleanOptions } from '../../productOptions';
 
 // Cadastro de produto pelo administrador da loja: fotos, nome, descrição, preço e estoque.
-// O Re@lys descobre sozinho onde o produto aparece no Shop (setor › subgrupo) pelo nome e pela
-// descrição; a loja só troca se ele errar. O Re@lys só vende produtos NOVOS (sem uso).
+// O Realyz descobre sozinho onde o produto aparece no Shop (setor › subgrupo) pelo nome e pela
+// descrição; a loja só troca se ele errar. O Realyz só vende produtos NOVOS (sem uso).
 const MAX_PHOTOS = MAX_PRODUCT_PHOTOS; // até 5 fotos por produto
 const GOLD = '#F5C331';
 
 export async function pickPhotos(limit) {
   const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!perm.granted) {
-    Alert.alert('Permissão necessária', 'Autorize o Re@lys a ver suas fotos para escolher as do produto.');
+    Alert.alert('Permissão necessária', 'Autorize o Realyz a ver suas fotos para escolher as do produto.');
     return [];
   }
   const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsMultipleSelection: true, selectionLimit: limit, quality: 0.8 });
@@ -31,7 +31,7 @@ export async function pickPhotos(limit) {
 export async function pickVideo(fromCamera) {
   const perm = fromCamera ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!perm.granted) {
-    Alert.alert('Permissão necessária', fromCamera ? 'Autorize a câmera para gravar o vídeo do produto.' : 'Autorize o Re@lys a ver seus vídeos.');
+    Alert.alert('Permissão necessária', fromCamera ? 'Autorize a câmera para gravar o vídeo do produto.' : 'Autorize o Realyz a ver seus vídeos.');
     return null;
   }
   const opts = { mediaTypes: ['videos'], videoMaxDuration: MAX_VIDEO_SEC, allowsEditing: true, quality: 0.7 };
@@ -113,7 +113,7 @@ export default function ProductForm({ onSave, onCancel, food = false, categoria 
     : auto;
   useEffect(() => setChoosing(false), [auto && auto.label]);
   useEffect(() => setModosManual(null), [auto && auto.label]);
-  // Modos de atendimento: o que o Re@lys decidiu pelo produto, a menos que a loja mude.
+  // Modos de atendimento: o que o Realyz decidiu pelo produto, a menos que a loja mude.
   const modos = modosManual || (cls && cls.modos) || MODOS.map((m) => m.key);
   const toggleModo = (k) => {
     const atual = modos.includes(k) ? modos.filter((x) => x !== k) : [...modos, k];
@@ -227,7 +227,7 @@ export default function ProductForm({ onSave, onCancel, food = false, categoria 
           <Text style={{ fontSize: 18 }}>{manual ? '✅' : '✨'}</Text>
           <View style={{ flex: 1, marginLeft: 8 }}>
             <Text style={styles.autoLabel}>{cls.label}</Text>
-            <Text style={styles.why}>{manual ? 'Escolhido por você' : food ? 'O Re@lys classificou pelo nome e pela descrição' : 'O Re@lys classificou pelo nome e pela descrição'}</Text>
+            <Text style={styles.why}>{manual ? 'Escolhido por você' : food ? 'O Realyz classificou pelo nome e pela descrição' : 'O Realyz classificou pelo nome e pela descrição'}</Text>
           </View>
           <TouchableOpacity onPress={() => setChoosing(!choosing)} hitSlop={8}>
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.chg}>{choosing ? 'fechar' : 'trocar'}</Text>
@@ -237,7 +237,7 @@ export default function ProductForm({ onSave, onCancel, food = false, categoria 
         <View style={[styles.auto, { borderColor: colors.border, backgroundColor: colors.card }]}>
           <Text style={{ fontSize: 18 }}>🔎</Text>
           <Text style={[styles.why, { flex: 1, marginLeft: 8, marginTop: 0 }]}>
-            {name.trim().length < 3 ? 'Digite o nome: o Re@lys descobre a categoria sozinho.' : food ? 'Não reconheci este produto. Escolha a classe dele.' : 'Não reconheci este produto. Escolha onde ele aparece.'}
+            {name.trim().length < 3 ? 'Digite o nome: o Realyz descobre a categoria sozinho.' : food ? 'Não reconheci este produto. Escolha a classe dele.' : 'Não reconheci este produto. Escolha onde ele aparece.'}
           </Text>
           {name.trim().length >= 3 ? (
             <TouchableOpacity onPress={() => setChoosing(!choosing)} hitSlop={8}>
@@ -420,7 +420,7 @@ export default function ProductForm({ onSave, onCancel, food = false, categoria 
       <View style={styles.novo}>
         <Ionicons name="checkmark-circle" size={20} color="#2E9E62" />
         <Text style={{ flex: 1, marginLeft: 8, color: colors.text, fontSize: 12, lineHeight: 17 }}>
-          <Text style={{ fontWeight: '800' }}>Produto novo.</Text> O Re@lys só vende itens novos, sem uso. Anúncio de usado é retirado.
+          <Text style={{ fontWeight: '800' }}>Produto novo.</Text> O Realyz só vende itens novos, sem uso. Anúncio de usado é retirado.
         </Text>
       </View>
       <Row style={styles.shipRow}>

@@ -31,7 +31,7 @@ import { askCallPermission } from '../../phone';
 import { isTransport, isWaiting, WaitCountdown, NO_SHOW_MIN } from '../../rideRules';
 import { checkFair, priceRef, refText, fareQuote, driverEarnings, TARIFFS, RIDE_FEE_PCT, SURGE_MAX } from '../../pricing';
 
-// Tarifa do Re@lys para motorista e motoboy: quanto o cliente paga e quanto fica com o prestador.
+// Tarifa do Realyz para motorista e motoboy: quanto o cliente paga e quanto fica com o prestador.
 function RideEarnings({ service }) {
   const t = TARIFFS[service];
   if (!t) return null;
@@ -47,9 +47,9 @@ function RideEarnings({ service }) {
   );
   return (
     <Card>
-      <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>Tarifa Re@lys ({t.label})</Text>
+      <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>Tarifa Realyz ({t.label})</Text>
       <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
-        Igual para todos: {brl(t.base)} de saída{t.kmFree ? ` (até ${t.kmFree} km)` : ''} + {brl(t.km)} por km + {brl(t.min)} por minuto, mínimo {brl(t.minimo)}. O Re@lys fica com {RIDE_FEE_PCT}%.
+        Igual para todos: {brl(t.base)} de saída{t.kmFree ? ` (até ${t.kmFree} km)` : ''} + {brl(t.km)} por km + {brl(t.min)} por minuto, mínimo {brl(t.minimo)}. O Realyz fica com {RIDE_FEE_PCT}%.
       </Text>
       {line(`Corrida de 5 km agora (${now.minutes} min)`, now, e1)}
       {line(`No pico (18h, ${peak.minutes} min)`, peak, e2)}
@@ -78,7 +78,7 @@ function SafetyKey() {
     if (call190) await askCallPermission();
     await savePanic({ phrase: p, call190, on: true, decoy: 'Certo.' });
     setEditing(false);
-    Alert.alert('Chave de segurança ativada', `Em perigo, com o Re@lys aberto, diga: "Lotus, ${p}". A Lotus só responde "Certo." e, em silêncio, envia o alerta com sua localização${call190 ? ' e liga para o 190' : ''}.`);
+    Alert.alert('Chave de segurança ativada', `Em perigo, com o Realyz aberto, diga: "Lotus, ${p}". A Lotus só responde "Certo." e, em silêncio, envia o alerta com sua localização${call190 ? ' e liga para o 190' : ''}.`);
   };
   return (
     <Card style={{ borderColor: '#C0392B', borderWidth: 1 }}>
@@ -167,7 +167,7 @@ function DriverMain({ goTo, onCadastro }) {
     const online = (serviceType(service) || {}).mode === 'online';
     const fv = byVisit ? checkFair(service, 'visita', f) : { ok: true };
     const fp = checkFair(service, unit, v, { online });
-    if (!fv.ok) return Alert.alert('Taxa de visita acima da faixa justa', `Para ${(serviceType(service) || {}).label || 'este serviço'}, a visita no Re@lys vai de ${refText(fv.ref)}. Ajuste para no máximo R$ ${fv.ref.max}.`);
+    if (!fv.ok) return Alert.alert('Taxa de visita acima da faixa justa', `Para ${(serviceType(service) || {}).label || 'este serviço'}, a visita no Realyz vai de ${refText(fv.ref)}. Ajuste para no máximo R$ ${fv.ref.max}.`);
     if (!fp.ok) return Alert.alert('Valor acima da faixa justa', `A faixa justa é de ${refText(fp.ref)}. Ajuste para no máximo R$ ${fp.ref.max}.`);
     if (fv.level === 'baixo' || fp.level === 'baixo') Alert.alert('Valor abaixo do comum', 'Seu valor está abaixo da faixa de referência. Pode não cobrir seus custos (deslocamento, ferramentas, impostos). Você pode manter assim se quiser.');
     if (moves && (!vehicle.trim() || !plate.trim())) return Alert.alert('Dados do veículo', 'Informe o modelo e a placa. O cliente vê esses dados antes de embarcar.');
@@ -278,12 +278,12 @@ function DriverMain({ goTo, onCadastro }) {
             />
             <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Quanto você cobra</Text>
             {TARIFFS[service] ? (
-              <Text style={{ color: colors.muted, fontSize: 12, marginBottom: 8 }}>Motorista e motoboy seguem a Tarifa Re@lys, igual para todos (com valor dinâmico no pico). O valor abaixo fica só como referência sua.</Text>
+              <Text style={{ color: colors.muted, fontSize: 12, marginBottom: 8 }}>Motorista e motoboy seguem a Tarifa Realyz, igual para todos (com valor dinâmico no pico). O valor abaixo fica só como referência sua.</Text>
             ) : null}
             <Input placeholder="Valor em R$" keyboardType="decimal-pad" value={price} onChangeText={setPrice} />
             {priceRef(service, unit, { online: (serviceType(service) || {}).mode === 'online' }) ? (
               <Text style={{ color: colors.primary, fontSize: 12, marginTop: -4, marginBottom: 8 }}>
-                Faixa justa Re@lys: {refText(priceRef(service, unit, { online: (serviceType(service) || {}).mode === 'online' }))}
+                Faixa justa Realyz: {refText(priceRef(service, unit, { online: (serviceType(service) || {}).mode === 'online' }))}
               </Text>
             ) : null}
             <Row style={{ flexWrap: 'wrap', marginBottom: 12 }}>
@@ -301,8 +301,8 @@ function DriverMain({ goTo, onCadastro }) {
                   <Text style={{ color: colors.primary, fontSize: 12, marginTop: -4, marginBottom: 6 }}>Faixa justa da visita: {refText(priceRef(service, 'visita'))}</Text>
                 ) : null}
                 <Text style={{ color: colors.muted, fontSize: 12, marginTop: -4, marginBottom: 10 }}>
-                  O cliente paga pelo Re@lys e o valor fica retido até ele confirmar a visita. Você recebe{' '}
-                  {100 - REALYS_FEE_PCT}% e o Re@lys fica com {REALYS_FEE_PCT}%. O valor do serviço vocês combinam direto, sem taxa.
+                  O cliente paga pelo Realyz e o valor fica retido até ele confirmar a visita. Você recebe{' '}
+                  {100 - REALYS_FEE_PCT}% e o Realyz fica com {REALYS_FEE_PCT}%. O valor do serviço vocês combinam direto, sem taxa.
                 </Text>
                 <Row style={{ justifyContent: 'space-between', marginBottom: 12 }}>
                   <Text style={{ color: colors.text, flex: 1, marginRight: 10 }}>Descontar a taxa de visita do serviço se eu for contratado</Text>

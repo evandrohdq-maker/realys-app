@@ -32,7 +32,7 @@ export default function NewsTab({ onWatch, navigate }) {
     <Screen>
       <View style={styles.trust}>
         <Ionicons name="shield-checkmark" size={13} color={colors.success} />
-        <Text style={styles.trustText}>Só canais verificados e fontes oficiais. Notícia falsa é derrubada pela IA Re@lys.</Text>
+        <Text style={styles.trustText}>Só canais verificados e fontes oficiais. Notícia falsa é derrubada pela IA Realyz.</Text>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 12 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
@@ -175,7 +175,7 @@ function AlertCard({ a, navigate }) {
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.alertBtn, styles.alertBtnLight, { borderColor: L.color }]}
-          onPress={() => Share.share({ message: `${L.label} (${a.source}): ${a.type}. ${a.area}, ${a.until}. Fonte oficial, via Re@lys.` }).catch(() => {})}
+          onPress={() => Share.share({ message: `${L.label} (${a.source}): ${a.type}. ${a.area}, ${a.until}. Fonte oficial, via Realyz.` }).catch(() => {})}
           accessibilityLabel="Compartilhar alerta"
         >
           <Ionicons name="share-social" size={14} color={L.color} />
@@ -323,13 +323,13 @@ function Article({ n, onClose }) {
           <Text style={styles.meta}>{n.time} · {fmt(n.reads)} leituras</Text>
           <View style={styles.checked}>
             <Ionicons name="sparkles" size={14} color={colors.success} />
-            <Text style={{ color: colors.success, fontWeight: '700', fontSize: 12, marginLeft: 6, flex: 1 }}>Checado pela IA Re@lys: confere com outras fontes confiáveis</Text>
+            <Text style={{ color: colors.success, fontWeight: '700', fontSize: 12, marginLeft: 6, flex: 1 }}>Checado pela IA Realyz: confere com outras fontes confiáveis</Text>
           </View>
           <Text style={styles.body}>{n.summary}</Text>
           <Text style={styles.body}>
             Esta é uma notícia de demonstração. Na versão real, o texto completo vem do canal verificado que publicou, com nome do jornalista responsável e data.
           </Text>
-          <TouchableOpacity style={[styles.send, { backgroundColor: colors.primary }]} onPress={() => Share.share({ message: `${n.title} (${n.source}, via Re@lys)` }).catch(() => {})}>
+          <TouchableOpacity style={[styles.send, { backgroundColor: colors.primary }]} onPress={() => Share.share({ message: `${n.title} (${n.source}, via Realyz)` }).catch(() => {})}>
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Compartilhar</Text>
           </TouchableOpacity>
         </View>

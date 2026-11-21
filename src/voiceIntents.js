@@ -145,7 +145,7 @@ export function findProfile(text, state) {
   if (!asked || NOT_NAMES.has(asked) || findNavigation(asked)) return null;
 
   const friendIds = new Set(contacts.filter((c) => !c.business).map((c) => c.id));
-  const people = members.map((p) => ({ kind: 'person', id: p.id, name: p.name, sub: `@${p.handle} · ${p.city}`, photo: p.photo, friend: friendIds.has(p.id) || !!(state.friends && state.friends[p.id] === 'amigo'), mutual: p.mutual || 0 }));
+  const people = members.map((p) => ({ kind: 'person', id: p.id, name: p.name, sub: `*${p.handle} · ${p.city}`, photo: p.photo, friend: friendIds.has(p.id) || !!(state.friends && state.friends[p.id] === 'amigo'), mutual: p.mutual || 0 }));
   const companies = [
     ...(state.stores || []).map((s) => ({ kind: 'company', id: s.id, name: s.name, sub: `${s.category} · ${s.city}`, photo: s.cover, friend: false, mutual: 0 })),
     ...artists.map((a) => ({ kind: 'company', id: a.id, name: a.name, sub: `${a.genre} · ${a.city}`, photo: a.cover, friend: false, mutual: 0 })),

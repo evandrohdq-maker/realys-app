@@ -1,8 +1,8 @@
-// Arena Gamer: comunidades de jogos no estilo Discord, dentro do Re@lys.
+// Arena Gamer: comunidades de jogos no estilo Discord, dentro do Realyz.
 // - Servidores (barra da esquerda): cada jogo ou grupo tem o seu; dá para criar o próprio.
 // - Canais de texto (#geral, #procurando-time…) e de voz (🔊 Squad, Sala…).
 // - Membros com cargo (Dono, Moderador, Membro) e o que estão jogando agora.
-// - Mensagens passam pela moderação do Re@lys; perfis são de pessoas reais (biometria).
+// - Mensagens passam pela moderação do Realyz; perfis são de pessoas reais (biometria).
 // Na demonstração, as conversas ficam no celular; com o servidor no ar, chegam para todos.
 import React, { useEffect, useRef, useState } from 'react';
 import { KeyboardLift } from '../../keyboard';
@@ -119,7 +119,7 @@ export default function ArenaScreen({ explore }) {
     const t = draft.trim();
     if (!t) return;
     const mod = moderateText ? moderateText(t) : { ok: true };
-    if (mod && mod.ok === false) return Alert.alert('Mensagem não enviada', mod.why || 'A mensagem não segue as regras do Re@lys.');
+    if (mod && mod.ok === false) return Alert.alert('Mensagem não enviada', mod.why || 'A mensagem não segue as regras do Realyz.');
     if (!iAmIn(sv)) join();
     update((s) => ({ ...s, channels: s.channels.map((c) => (c.id === cid ? { ...c, msgs: [...c.msgs, { who: me, text: t, at: Date.now() }] } : c)) }));
     setDraft('');
@@ -219,7 +219,7 @@ export default function ArenaScreen({ explore }) {
           {ch.msgs.map((msg, i) => {
             const mem = sv.members.find((x) => x.name === msg.who) || {};
             const role = ROLE[mem.role] || ROLE.membro;
-            const mention = msg.text.includes('@' + me);
+            const mention = (msg.text.includes('*' + me) || msg.text.includes('@' + me));
             const pf = msg.who === me ? null : arenaPref(msg.who);
             // Bloqueado: a mensagem nem aparece. Ignorado: fica recolhida; tocar abre as opções da pessoa.
             if (pf && pf.blocked) return null;

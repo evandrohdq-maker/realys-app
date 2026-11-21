@@ -52,11 +52,11 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
   r.post('/auth/signup', ({ body }) => {
     if (body.aceiteTermos !== TERMO_ADESAO_VERSAO) fail(400, 'Leia e aceite o termo de adesão para criar sua conta.', 'termos');
     const kind = body.kind === 'empresa' ? 'empresa' : 'pessoa';
-    // Nascimento: pessoa física informa; o Re@lys não aceita menor de 18 anos.
+    // Nascimento: pessoa física informa; o Realyz não aceita menor de 18 anos.
     const nascimento = parseNascimento(body.nascimento ?? body.birth);
     if (body.nascimento || body.birth) {
       if (!nascimento) fail(400, 'Data de nascimento inválida. Use dia/mês/ano.', 'nascimento');
-      if (idadeEm(nascimento) < 18) fail(400, 'O Re@lys não aceita cadastro de menores de 18 anos.', 'maioridade');
+      if (idadeEm(nascimento) < 18) fail(400, 'O Realyz não aceita cadastro de menores de 18 anos.', 'maioridade');
     }
     if (kind === 'pessoa' && !nascimento) fail(400, 'Informe sua data de nascimento (dia/mês/ano).', 'nascimento');
     const maiorDeIdade = nascimento && idadeEm(nascimento) >= 18 ? 1 : 0;
@@ -116,7 +116,7 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
       ? db.prepare('SELECT * FROM users WHERE doc = ?').get(d)
       : db.prepare('SELECT * FROM users WHERE username = ?').get(cleanUsername(login));
     if (!user || !checkPassword(String(body.password || ''), user.pass_hash)) fail(401, 'Usuário ou senha incorretos.');
-    if (user.status !== 'ativo') fail(403, 'Esta conta está bloqueada. Fale com o suporte do Re@lys.');
+    if (user.status !== 'ativo') fail(403, 'Esta conta está bloqueada. Fale com o suporte do Realyz.');
     // Aparelho novo, com biometria cadastrada: primeiro a conferência do rosto (sem refazer o cadastro).
     const deviceKey = String(body.deviceKey || '').slice(0, 80);
     if (biometria.hasBiometria(user.id)) {

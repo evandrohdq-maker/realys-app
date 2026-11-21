@@ -1,4 +1,4 @@
-// Rádios no Re@lys: cada rádio (empresa com CNPJ) indexa a URL do próprio streaming
+// Rádios no Realyz: cada rádio (empresa com CNPJ) indexa a URL do próprio streaming
 // (MP3, AAC ou HLS .m3u8; também aceita listas .pls e .m3u) e ela toca na página da rádio
 // e no diretório de Rádios. Um player só no app inteiro: tocar uma rádio para a outra.
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -7,15 +7,15 @@ const KEY = 'realys.radios';
 
 // Rádios de exemplo para a demonstração (streams públicos de rádios na internet).
 const SEED = [
-  // Rádio principal do Re@lys (destaque no topo do Stream).
+  // Rádio principal do Realyz (destaque no topo do Stream).
   {
     id: 'rd-skyplus', name: 'Sky Plus', city: 'Rádio online', genre: 'Rádio online', cat: 'comunitaria', emoji: '📻',
     logo: require('../assets/radios/skyplus.jpg'), featured: true, verified: true,
-    url: 'https://stm1.voxpainel.com.br:7004/stream', desc: 'A rádio principal do Re@lys. Ao vivo 24 horas.',
+    url: 'https://stm1.voxpainel.com.br:7004/stream', desc: 'A rádio principal do Realyz. Ao vivo 24 horas.',
   },
   {
     id: 'rd-exemplo-1', name: 'Groove Salad (SomaFM)', city: 'San Francisco, EUA', genre: 'Eletrônica ambiente', emoji: '🎧',
-    url: 'https://ice1.somafm.com/groovesalad-128-mp3', example: true, cat: 'eletronica', desc: 'Rádio de exemplo: mostra como fica uma rádio indexada no Re@lys.',
+    url: 'https://ice1.somafm.com/groovesalad-128-mp3', example: true, cat: 'eletronica', desc: 'Rádio de exemplo: mostra como fica uma rádio indexada no Realyz.',
   },
   {
     id: 'rd-exemplo-2', name: 'Bossa Beyond (SomaFM)', city: 'San Francisco, EUA', genre: 'Bossa nova e MPB', emoji: '🎷',
@@ -119,5 +119,5 @@ export function toggleFollow(id) {
   emit();
   return !!following[id];
 }
-// Link para divulgar a estação fora do app (abre o perfil dela no Re@lys).
+// Link para divulgar a estação fora do app (abre o perfil dela no Realyz).
 export const stationLink = (s, kind = 'radio') => `https://realys.app/${kind}/${s.id}`;

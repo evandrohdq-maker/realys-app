@@ -150,7 +150,7 @@ function Sheet({ p }) {
             ) : null}
             <View style={st.guar}>
               <Ionicons name="shield-checkmark-outline" size={16} color={C.gold} />
-              <Text style={{ flex: 1, marginLeft: 8, color: C.muted, fontSize: 12 }}>Produto novo, de loja verificada. Pagando pelo Re@lys, vale a Garantia: se der problema, o dinheiro volta.</Text>
+              <Text style={{ flex: 1, marginLeft: 8, color: C.muted, fontSize: 12 }}>Produto novo, de loja verificada. Pagando pelo Realyz, vale a Garantia: se der problema, o dinheiro volta.</Text>
             </View>
           </View>
         </ScrollView>

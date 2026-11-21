@@ -1,4 +1,4 @@
-// Conta no servidor do Re@lys (api.realyz.com.br).
+// Conta no servidor do Realyz (api.realyz.com.br).
 //
 // O cadastro e a entrada continuam passando pelas telas de sempre; quando o servidor está ligado,
 // a conta também é criada/aberta lá, e o app guarda a sessão daquela conta no cofre do Android.

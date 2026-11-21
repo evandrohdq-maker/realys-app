@@ -4,7 +4,7 @@
 //    perfil completo; se não for, abre só a prévia, com o botão de adicionar.
 //  - empresa ou artista → abre a página da empresa.
 //  - prestador de serviço → abre só a PRÉVIA do perfil de trabalho (sem adicionar, sem contato direto:
-//    serviço só se contrata pelo Re@lys).
+//    serviço só se contrata pelo Realyz).
 //  - eu mesmo → vai para a aba Perfil.
 import { Alert } from 'react-native';
 import { useStore } from './store';
@@ -42,7 +42,7 @@ export function useOpenPerson() {
       onLeave && onLeave();
       return dispatch({ type: 'NAV_REQUEST', go: { tab: 'perfil' } }), true;
     }
-    Alert.alert(who && who.name ? who.name : 'Perfil', 'Essa pessoa ainda não tem um perfil aberto no Re@lys.');
+    Alert.alert(who && who.name ? who.name : 'Perfil', 'Essa pessoa ainda não tem um perfil aberto no Realyz.');
     return false;
   };
 }

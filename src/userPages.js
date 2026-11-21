@@ -3,11 +3,11 @@
 //
 // Cada página escolhe como aparece:
 //  - Assinada: mostra "Assinada por <nome> ✓ verificado" e leva ao perfil do dono.
-//  - Anônima: o nome do dono não aparece para ninguém, mas a página mostra "Dono verificado pelo Re@lys".
-//    O Re@lys sabe quem é: a identidade só é revelada por ordem judicial. Por isso página anônima
+//  - Anônima: o nome do dono não aparece para ninguém, mas a página mostra "Dono verificado pelo Realyz".
+//    O Realyz sabe quem é: a identidade só é revelada por ordem judicial. Por isso página anônima
 //    continua sujeita à IA contra notícias falsas, às denúncias e ao bloqueio, como tudo no app.
 // Regras das anônimas: não pode se passar por pessoa, empresa ou órgão real, nem vender (vendas são
-// assinadas, para a Garantia Re@lys funcionar).
+// assinadas, para a Garantia Realyz funcionar).
 import { FUTURE_THEMES } from './components/ThemeArt';
 const photo = (seed, w = 800, h = 400) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
 
@@ -68,7 +68,7 @@ export const DEMO_PAGES = [
 ];
 
 // Como a página assina: o dono verificado (assinada) ou "dono verificado" sem nome (anônima).
-export const signatureOf = (pg) => (pg.anon ? 'Página anônima · dono verificado pelo Re@lys' : `Assinada por ${pg.ownerName} · verificado`);
+export const signatureOf = (pg) => (pg.anon ? 'Página anônima · dono verificado pelo Realyz' : `Assinada por ${pg.ownerName} · verificado`);
 
 export const myPages = (state) => (state.userPages || []).filter((p) => p.ownerId === 'me');
 // Páginas assinadas de uma pessoa (as anônimas ficam de fora: o dono não é revelado).
@@ -91,8 +91,8 @@ export function pageNameProblem(name, anon, state) {
 
 export const PAGE_RULES = [
   'A página é sua e fica ligada à sua conta verificada por biometria.',
-  'A primeira página é gratuita. Da segunda em diante, cada uma custa R$ 14,90 por mês, do seu saldo Re@lys.',
-  'Anônima: seu nome não aparece, mas o Re@lys sabe quem é e só revela por ordem judicial.',
+  'A primeira página é gratuita. Da segunda em diante, cada uma custa R$ 14,90 por mês, do seu saldo Realyz.',
+  'Anônima: seu nome não aparece, mas o Realyz sabe quem é e só revela por ordem judicial.',
   'Página anônima não pode se passar por pessoa, empresa ou órgão real, nem vender produtos.',
   'Todo post passa pela IA contra notícias falsas; fake news não é publicada e pode bloquear a página.',
 ];
@@ -135,7 +135,7 @@ export function pageStyle(pg) {
 // mensalidade (valor em src/taxas.js › paginaUsuario).
 export const PAGE_PRICE = 14.9;
 
-// Prestador com o plano Destaque Re@lys (R$ 49,90 por mês) tem uma página de trabalhos incluída,
+// Prestador com o plano Destaque Realyz (R$ 49,90 por mês) tem uma página de trabalhos incluída,
 // para apresentar o que faz e usar como referência com os clientes.
 export const includedPage = (state) => (state.userPages || []).find((p) => p.ownerId === 'me' && p.included) || null;
 export const hasIncludedPageRight = (state) => !!(state.myProvider && state.myProvider.sponsored);

@@ -1,5 +1,5 @@
 // Trava da biometria no servidor.
-// Regra do Re@lys: conta sem biometria aprovada é só perfil social. Ela navega, publica e conversa,
+// Regra do Realyz: conta sem biometria aprovada é só perfil social. Ela navega, publica e conversa,
 // mas não compra, não contrata, não presta serviço e não mexe com dinheiro.
 // O app já barra isso na tela; aqui é a trava de verdade (não depende do aplicativo).
 // Liga com EXIGIR_BIOMETRIA=true (em produção já vem ligada). Empresas (CNPJ) e o administrador
@@ -24,7 +24,7 @@ const chave = (method, path) => `${method} ${path}`;
 const TRAVADAS = new Set(ROTAS_COM_BIOMETRIA.map(([m, p]) => chave(m, p)));
 export const rotaExigeBiometria = (method, path) => TRAVADAS.has(chave(method, path));
 
-export const MSG_SEM_BIOMETRIA = 'Biometria não cadastrada. Por favor, cadastre sua biometria para comprar ou contratar pelo Re@lys.';
+export const MSG_SEM_BIOMETRIA = 'Biometria não cadastrada. Por favor, cadastre sua biometria para comprar ou contratar pelo Realyz.';
 
 // A conta pode comprar e contratar?
 export function podeComprar(db, cfg, user, roles = []) {

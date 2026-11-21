@@ -1,4 +1,4 @@
-// Banco de dados do Re@lys: SQLite (um arquivo só, data/realys.db), embutido no Node.
+// Banco de dados do Realyz: SQLite (um arquivo só, data/realys.db), embutido no Node.
 // Para a fase de testes (dezenas de usuários) é rápido, simples de copiar e de fazer backup.
 // Quando crescer, as mesmas tabelas passam para PostgreSQL.
 // Dinheiro é guardado em CENTAVOS (número inteiro), nunca com vírgula, para não perder centavos.
@@ -40,8 +40,8 @@ const MIGRATIONS = [
 
   CREATE TABLE wallets (
     user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    balance INTEGER NOT NULL DEFAULT 0 CHECK (balance >= 0),            -- moeda Re@lys (RLS), pode sacar
-    gift_credits INTEGER NOT NULL DEFAULT 0 CHECK (gift_credits >= 0),  -- só compra no Re@lys
+    balance INTEGER NOT NULL DEFAULT 0 CHECK (balance >= 0),            -- moeda Realyz (RLS), pode sacar
+    gift_credits INTEGER NOT NULL DEFAULT 0 CHECK (gift_credits >= 0),  -- só compra no Realyz
     live_credits INTEGER NOT NULL DEFAULT 0 CHECK (live_credits >= 0)   -- vira RLS quando converte
   );
 
@@ -360,7 +360,7 @@ const MIGRATIONS = [
   ALTER TABLE products ADD COLUMN maioridade INTEGER NOT NULL DEFAULT 0;
   CREATE INDEX products_classe ON products(classe, subclasse);
   `,
-  // 7: o Re@lys não aceita menores de 18 anos; a data de nascimento e a condição de maior ficam na conta
+  // 7: o Realyz não aceita menores de 18 anos; a data de nascimento e a condição de maior ficam na conta
   `
   ALTER TABLE users ADD COLUMN nascimento TEXT;
   ALTER TABLE users ADD COLUMN maior_idade INTEGER NOT NULL DEFAULT 0;
@@ -468,7 +468,7 @@ const MIGRATIONS = [
     updated_at INTEGER NOT NULL
   );
   `,
-  // 13: módulo fiscal (receitas do Re@lys, notas NFS-e e NF-e, configuração fiscal das lojas)
+  // 13: módulo fiscal (receitas do Realyz, notas NFS-e e NF-e, configuração fiscal das lojas)
   `
   CREATE TABLE fiscal_receitas (
     id TEXT PRIMARY KEY,
@@ -559,7 +559,7 @@ const MIGRATIONS = [
   );
   CREATE INDEX streamer_favs_host ON streamer_favs(host_id, notify);
   `,
-  // 17: taxa de proteção Re@lys (R$ 0,99 por compra, paga pelo cliente), guardada no pedido em que foi cobrada
+  // 17: taxa de proteção Realyz (R$ 0,99 por compra, paga pelo cliente), guardada no pedido em que foi cobrada
   `
   ALTER TABLE orders ADD COLUMN protection INTEGER NOT NULL DEFAULT 0;
   `,
@@ -581,8 +581,8 @@ export function openDb(file) {
       throw e;
     }
   }
-  // Conta do sistema: recebe as taxas do Re@lys (presentes, lives, vendas).
-  db.prepare(`INSERT OR IGNORE INTO users (id, kind, name, username, roles, created_at) VALUES ('realys', 'sistema', 'Re@lys', 'realys', '["sistema"]', ?)`).run(Date.now());
+  // Conta do sistema: recebe as taxas do Realyz (presentes, lives, vendas).
+  db.prepare(`INSERT OR IGNORE INTO users (id, kind, name, username, roles, created_at) VALUES ('realys', 'sistema', 'Realyz', 'realys', '["sistema"]', ?)`).run(Date.now());
   db.prepare(`INSERT OR IGNORE INTO wallets (user_id) VALUES ('realys')`).run();
   return db;
 }

@@ -165,7 +165,7 @@ export default function TransitScreen({ explore, navigate }) {
           <SearchBar value={dest} onChangeText={(t) => { setDest(t); if (!t) setSearched(''); }} onSubmit={setSearched} placeholder="Para onde? (ex.: Campinas, Rio de Janeiro)" voicePrompt="Para onde você vai?" />
           <Text style={styles.h2}>Saindo de São Paulo - SP hoje</Text>
           {list.length === 0 ? <Text style={styles.sub}>Nenhuma viagem {scope === 'interestadual' ? 'entre estados' : 'entre cidades'} para esse destino hoje.</Text> : null}
-          {searched && list.length === 0 ? <GlobalResults query={searched} navigate={navigate} hideEmpty title="Outras opções no Re@lys" /> : null}
+          {searched && list.length === 0 ? <GlobalResults query={searched} navigate={navigate} hideEmpty title="Outras opções no Realyz" /> : null}
           {list.map((t) => {
             const c = company(t.companyId);
             return (
@@ -209,7 +209,7 @@ export default function TransitScreen({ explore, navigate }) {
       <Card style={{ backgroundColor: colors.cardAlt }}>
         <Text style={styles.name}>🚌 É empresa de transporte?</Text>
         <Text style={[styles.sub, { marginTop: 4 }]}>
-          Municipal, intermunicipal ou interestadual: cadastre suas linhas e horários com o CNPJ, ligue o GPS da frota e venda passagens pelo Re@lys.
+          Municipal, intermunicipal ou interestadual: cadastre suas linhas e horários com o CNPJ, ligue o GPS da frota e venda passagens pelo Realyz.
         </Text>
       </Card>
     </Screen>
@@ -285,7 +285,7 @@ function TicketView({ t, onBack, onTrack }) {
         <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.back}>‹ Transporte público</Text>
       </TouchableOpacity>
       <Card style={{ alignItems: 'center', paddingVertical: 20 }}>
-        <Text style={styles.kicker}>PASSAGEM REALYS</Text>
+        <Text style={styles.kicker}>PASSAGEM REALYZ</Text>
         <Text style={[styles.h1, { textAlign: 'center' }]}>{t.title}</Text>
         <Text style={styles.sub}>{t.company} · {t.when}</Text>
         {t.seat ? <Text style={[styles.name, { marginTop: 6 }]}>Poltrona {t.seat}</Text> : null}
@@ -295,7 +295,7 @@ function TicketView({ t, onBack, onTrack }) {
           ))}
         </View>
         <Text style={styles.code2}>{t.code}</Text>
-        <Text style={[styles.sub, { textAlign: 'center' }]}>Mostre este código na catraca ou ao motorista. Pago com saldo Re@lys: {brl(t.price)}</Text>
+        <Text style={[styles.sub, { textAlign: 'center' }]}>Mostre este código na catraca ou ao motorista. Pago com saldo Realyz: {brl(t.price)}</Text>
       </Card>
       {t.track ? <Button title="Acompanhar ônibus pelo GPS" onPress={onTrack} /> : null}
     </Screen>

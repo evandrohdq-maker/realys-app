@@ -166,7 +166,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
     setShowCart(false);
     Alert.alert(
       'Pedido confirmado! ✅',
-      'Pagamento protegido: o valor fica retido pelo Re@lys e só é liberado para a loja quando você confirmar a entrega.',
+      'Pagamento protegido: o valor fica retido pelo Realyz e só é liberado para a loja quando você confirmar a entrega.',
       [{ text: 'Ver pedidos', onPress: () => goTo('pedidos') }, { text: 'OK' }]
     );
   };
@@ -202,7 +202,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
         })}
         <Card>
           <Row style={{ justifyContent: 'space-between' }}>
-            <Text style={{ color: colors.muted }}>Seu saldo Re@lys</Text>
+            <Text style={{ color: colors.muted }}>Seu saldo Realyz</Text>
             <Text style={{ color: colors.text, fontWeight: '700' }}>{brl(state.wallet)}</Text>
           </Row>
           {state.giftCredits > 0 ? (
@@ -216,7 +216,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
             <Text style={{ fontWeight: '700', fontSize: 16, color: colors.primary }}>{brl(total)}</Text>
           </Row>
         </Card>
-        <Button title="Pagar com saldo Re@lys" onPress={checkout} disabled={!state.cart.length} />
+        <Button title="Pagar com saldo Realyz" onPress={checkout} disabled={!state.cart.length} />
       </Screen>
     );
   }
@@ -360,7 +360,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
         </>
       ) : null}
       {food && !q ? <SpotlightCarousel ads={FOOD_SPOTLIGHT} onOpen={openAd} /> : null}
-      {!q ? (food ? <ShopHero title="Food" sub={mode === 'reservas' ? 'Os melhores rolês perto de você, com mesa garantida' : 'O que você tá a fim, na sua porta'} /> : <ShopHero title="Loja Re@lys" sub="Só loja de verdade. As melhores aparecem primeiro" />) : null}
+      {!q ? (food ? <ShopHero title="Food" sub={mode === 'reservas' ? 'Os melhores rolês perto de você, com mesa garantida' : 'O que você tá a fim, na sua porta'} /> : <ShopHero title="Loja Realyz" sub="Só loja de verdade. As melhores aparecem primeiro" />) : null}
       {food ? null : <CircleShortcuts items={CATEGORIES} value={cat} onPress={setCat} />}
       {food && !q ? <ClipStrip title="🎬 Reels da cozinha" clips={FOOD_CLIPS} food /> : null}
       {food && !q ? (
@@ -386,7 +386,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
       ) : null}
 
       {searched && !matchedProducts.length && !rankedStores.length ? (
-        <GlobalResults query={searched} navigate={navigate} title={food ? 'Não achei no Food, mas achei no Re@lys' : 'Não está na loja, mas achei no Re@lys'} />
+        <GlobalResults query={searched} navigate={navigate} title={food ? 'Não achei no Food, mas achei no Realyz' : 'Não está na loja, mas achei no Realyz'} />
       ) : null}
 
       {food && !q ? <FoodHighlights filter={cat} onOpenStore={setOpenStore} onAdd={add} /> : null}

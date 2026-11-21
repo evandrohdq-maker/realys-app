@@ -1,5 +1,5 @@
 // Aba Stream (topo da Community): rádios e TV online num lugar só.
-// Rádios: o diretório de rádios do Re@lys (o player é um só no app; ver src/radio.js).
+// Rádios: o diretório de rádios do Realyz (o player é um só no app; ver src/radio.js).
 // TV online: canais que indexaram a URL do próprio sinal de vídeo (ver src/tv.js).
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
@@ -127,7 +127,7 @@ function RadioList({ navigate }) {
           ))
         : shown.map((r) => <RadioCard key={r.id} radio={r} />)}
       {!shown.length ? (
-        <Text style={st.empty}>{catInfo ? `Ainda não tem rádio ${catInfo.label.toLowerCase()} no Re@lys. Tem uma? Indexe a sua e seja a primeira.` : 'Nenhuma rádio encontrada.'}</Text>
+        <Text style={st.empty}>{catInfo ? `Ainda não tem rádio ${catInfo.label.toLowerCase()} no Realyz. Tem uma? Indexe a sua e seja a primeira.` : 'Nenhuma rádio encontrada.'}</Text>
       ) : null}
       <OwnBar
         icon="radio-outline"
@@ -169,7 +169,7 @@ function TvList() {
     if (!mod.ok) return Alert.alert('Não foi possível salvar', mod.why);
     saveTv({ ...form, name: form.name.trim(), url: form.url.trim(), genre: form.genre.trim(), city: form.city.trim() });
     setForm(null);
-    Alert.alert('Canal indexado ✅', 'O seu canal já aparece na TV online do Re@lys.');
+    Alert.alert('Canal indexado ✅', 'O seu canal já aparece na TV online do Realyz.');
   };
 
   return (
@@ -212,7 +212,7 @@ function TvList() {
           </TouchableOpacity>
         );
       })}
-      {!shown.length ? <Text style={st.empty}>{tvCat ? `Ainda não tem canal de ${tvCat.label.toLowerCase()} no Re@lys. Tem um? Indexe o seu.` : 'Nenhum canal encontrado.'}</Text> : null}
+      {!shown.length ? <Text style={st.empty}>{tvCat ? `Ainda não tem canal de ${tvCat.label.toLowerCase()} no Realyz. Tem um? Indexe o seu.` : 'Nenhum canal encontrado.'}</Text> : null}
 
       <OwnBar
         icon="tv-outline"
@@ -252,7 +252,7 @@ function TvList() {
             {form.id ? (
               <TouchableOpacity
                 onPress={() =>
-                  Alert.alert('Remover canal', 'O canal sai da TV online do Re@lys.', [
+                  Alert.alert('Remover canal', 'O canal sai da TV online do Realyz.', [
                     { text: 'Cancelar', style: 'cancel' },
                     { text: 'Remover', style: 'destructive', onPress: () => { if (on && on.id === form.id) stopTv(); removeTv(form.id); setForm(null); } },
                   ])

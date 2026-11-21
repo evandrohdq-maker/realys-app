@@ -80,15 +80,15 @@ export default function CrmLead({ lead, onClose }) {
   const send = (t) => {
     const v = (t || text).trim();
     if (!v) return;
-    // Anti-desvio: telefone, Pix e "por fora" não saem pela conversa. O fechamento é pelo Re@lys.
+    // Anti-desvio: telefone, Pix e "por fora" não saem pela conversa. O fechamento é pelo Realyz.
     const ad = antiDesvio(v);
-    if (!ad.ok) return Alert.alert('Fica tudo no Re@lys 🔒', `${ad.why}\n\nUse a proposta ou o fechamento aqui no CRM.`);
+    if (!ad.ok) return Alert.alert('Fica tudo no Realyz 🔒', `${ad.why}\n\nUse a proposta ou o fechamento aqui no CRM.`);
     crmSend(lead.id, v);
     setText('');
     setTimeout(() => scroll.current && scroll.current.scrollToEnd({ animated: true }), 60);
   };
   const close = () =>
-    Alert.alert(`${B.close}?`, `${lead.client} · ${brl(lead.value || 0)}${fee.pct ? `\n\nFechamento registrado no Re@lys: taxa de ${fee.pct}% (${brl(fee.fee)}). Você recebe ${brl(fee.net)}.` : '\n\nFechamento registrado no Re@lys.'}`, [
+    Alert.alert(`${B.close}?`, `${lead.client} · ${brl(lead.value || 0)}${fee.pct ? `\n\nFechamento registrado no Realyz: taxa de ${fee.pct}% (${brl(fee.fee)}). Você recebe ${brl(fee.net)}.` : '\n\nFechamento registrado no Realyz.'}`, [
       { text: 'Ainda não', style: 'cancel' },
       { text: B.close, onPress: () => crmMove(lead.id, 'fechado') },
     ]);
@@ -195,7 +195,7 @@ export default function CrmLead({ lead, onClose }) {
                       <Text style={{ color: colors.text, flex: 1, fontWeight: '800' }}>Total</Text>
                       <Text style={{ color: colors.text, fontWeight: '800' }}>{brl(m.total)}</Text>
                     </View>
-                    <Text style={{ color: colors.muted, fontSize: 11.5, marginTop: 4 }}>O cliente aceita e paga pelo Re@lys, com a Garantia.</Text>
+                    <Text style={{ color: colors.muted, fontSize: 11.5, marginTop: 4 }}>O cliente aceita e paga pelo Realyz, com a Garantia.</Text>
                     <Text style={st.time}>{m.time}</Text>
                   </View>
                 ) : m.kind === 'catalog' ? (
@@ -210,7 +210,7 @@ export default function CrmLead({ lead, onClose }) {
                         <Text style={{ color: colors.text, fontWeight: '800' }}>{brl(it.price)}</Text>
                       </View>
                     ))}
-                    <Text style={{ color: colors.muted, fontSize: 11.5, marginTop: 4 }}>O cliente toca num produto para comprar pelo Re@lys.</Text>
+                    <Text style={{ color: colors.muted, fontSize: 11.5, marginTop: 4 }}>O cliente toca num produto para comprar pelo Realyz.</Text>
                     <Text style={st.time}>{m.time}</Text>
                   </View>
                 ) : (
@@ -324,18 +324,18 @@ export default function CrmLead({ lead, onClose }) {
 
         {tab === 'dados' ? (
           <ScrollView contentContainerStyle={{ padding: 14, paddingBottom: 30 + insets.bottom }} keyboardShouldPersistTaps="handled">
-            {/* Fechamento acompanhado pelo Re@lys */}
+            {/* Fechamento acompanhado pelo Realyz */}
             {won && lead.closing ? (
               <View style={st.closing}>
-                <Text style={{ color: colors.text, fontWeight: '800' }}>Fechamento registrado no Re@lys</Text>
+                <Text style={{ color: colors.text, fontWeight: '800' }}>Fechamento registrado no Realyz</Text>
                 <Text style={st.closeLine}>Valor fechado: {brl(lead.closing.value)}</Text>
-                <Text style={st.closeLine}>{lead.closing.pct ? `Taxa do Re@lys (${lead.closing.pct}%): ${brl(lead.closing.fee)}` : 'Sem taxa no fechamento (pago por plano ou por conversa)'}</Text>
+                <Text style={st.closeLine}>{lead.closing.pct ? `Taxa do Realyz (${lead.closing.pct}%): ${brl(lead.closing.fee)}` : 'Sem taxa no fechamento (pago por plano ou por conversa)'}</Text>
                 <Text style={st.closeLine}>Você recebe: {brl(lead.closing.net)}</Text>
                 {lead.closing.paid ? (
                   <Text style={{ color: colors.primary, fontWeight: '800', marginTop: 6 }}>Pago pelo cliente ✅</Text>
                 ) : (
                   <TouchableOpacity style={[st.advance, { marginRight: 0, marginTop: 8, flex: 0 }]} onPress={() => crmPaid(lead.id)} accessibilityLabel="Marcar que o cliente pagou">
-                    <Text numberOfLines={1} style={{ color: '#fff', fontWeight: '800', fontSize: 13 }}>Cliente pagou pelo Re@lys</Text>
+                    <Text numberOfLines={1} style={{ color: '#fff', fontWeight: '800', fontSize: 13 }}>Cliente pagou pelo Realyz</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -353,7 +353,7 @@ export default function CrmLead({ lead, onClose }) {
 
             <Text style={st.label}>Valor do negócio (R$)</Text>
             <TextInput value={value} onChangeText={setValue} onEndEditing={() => crmUpdate(lead.id, { value: num(value) })} keyboardType="decimal-pad" placeholder="0,00" placeholderTextColor={colors.muted} style={[st.field, { marginTop: 0 }]} />
-            {!won && fee.pct ? <Text style={st.hint}>Ao fechar: taxa do Re@lys de {fee.pct}% ({brl(crmFee(board, num(value)).fee)}).</Text> : null}
+            {!won && fee.pct ? <Text style={st.hint}>Ao fechar: taxa do Realyz de {fee.pct}% ({brl(crmFee(board, num(value)).fee)}).</Text> : null}
             <Text style={st.label}>Notas do atendimento (só a equipe vê)</Text>
             <TextInput value={note} onChangeText={setNote} onEndEditing={() => crmUpdate(lead.id, { note: note.trim() })} placeholder="Ex.: prefere entrega de manhã" placeholderTextColor={colors.muted} style={[st.field, { marginTop: 0, minHeight: 70, textAlignVertical: 'top' }]} multiline />
             <Text style={st.label}>Lembrete de retorno</Text>
@@ -437,7 +437,7 @@ export default function CrmLead({ lead, onClose }) {
           <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(20,18,14,0.4)' }} activeOpacity={1} onPress={() => setQuote(null)} />
           <View style={st.sheet}>
             <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16 }}>Enviar orçamento</Text>
-            <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 2 }}>Marque o que entra e o valor de cada item. O cliente recebe na conversa e paga pelo Re@lys.</Text>
+            <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 2 }}>Marque o que entra e o valor de cada item. O cliente recebe na conversa e paga pelo Realyz.</Text>
             <ScrollView style={{ maxHeight: 330, marginTop: 8 }} keyboardShouldPersistTaps="handled">
               {(quote || []).map((x, qi) => (
                 <View key={qi} style={[st.pick, { alignItems: 'center' }]}>

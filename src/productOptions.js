@@ -2,7 +2,7 @@
 //  - options: o que o CLIENTE escolhe antes de pôr no carrinho. [{ name: 'Cor', values: [{ label, hex?, stock? }] }]
 //  - specs: ficha técnica que qualifica o produto. [{ k: 'Marca', v: 'Sil' }]
 //  - video: vídeo curto (até 5 segundos) mostrando o produto.
-// O Re@lys sugere as opções e a ficha pelo tipo do produto; a loja aceita, muda ou cria as suas.
+// O Realyz sugere as opções e a ficha pelo tipo do produto; a loja aceita, muda ou cria as suas.
 
 export const MAX_PRODUCT_PHOTOS = 5;
 export const MAX_VIDEO_SEC = 5;

@@ -22,9 +22,9 @@ import { MuralTab } from './Mural';
 
 const first = (name) => String(name || '').split(' ')[0];
 const norm = (v) => String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-// Amigos que batem com a pesquisa (nome, primeiro nome ou @usuário).
+// Amigos que batem com a pesquisa (nome, primeiro nome ou *usuário).
 const friendsMatching = (list, q) => {
-  const k = norm(q).replace(/^@/, '');
+  const k = norm(q).replace(/^[@*]/, '');
   return list.filter((m) => norm(m.name).includes(k) || norm(m.handle).includes(k));
 };
 
@@ -38,7 +38,7 @@ export function usePerson() {
   return (id) => {
     if (id === 'me') return { id: 'me', name: state.user ? state.user.name : 'Você', photo: (state.myProfile && state.myProfile.photo) || null, me: true };
     const m = memberById(id);
-    return m ? { ...m } : { id, name: 'Membro Re@lys', photo: null };
+    return m ? { ...m } : { id, name: 'Membro Realyz', photo: null };
   };
 }
 
@@ -80,7 +80,7 @@ export function TestimonialCard({ t, hideTarget, ownerTools }) {
   };
   const share = async () => {
     try {
-      const r = await Share.share({ message: `Depoimento de ${from.name} para ${to.name} no Re@lys:\n\n“${t.text}”\n\nRe@lys · Pessoas reais. Negócios reais.` });
+      const r = await Share.share({ message: `Depoimento de ${from.name} para ${to.name} no Realyz:\n\n“${t.text}”\n\nRealyz · Pessoas reais. Negócios reais.` });
       if (!r || r.action !== Share.dismissedAction) dispatch({ type: 'T_SHARE', id: t.id });
     } catch (e) {}
   };
@@ -233,7 +233,7 @@ export function TestimonialComposer({ visible, onClose, toId }) {
               </View>
               <Text style={[styles.modalTitle, { marginTop: 16, textAlign: 'center' }]}>Depoimento enviado para {first(sent.name)}!</Text>
               <Text style={{ color: colors.muted, textAlign: 'center', marginTop: 8, lineHeight: 20 }}>
-                A Re@lys já analisou o texto. Agora {first(sent.name)} decide se aceita. Só depois de aprovado ele aparece no perfil e no feed de depoimentos.
+                A Realyz já analisou o texto. Agora {first(sent.name)} decide se aceita. Só depois de aprovado ele aparece no perfil e no feed de depoimentos.
               </Text>
               <TouchableOpacity style={[styles.primaryBtn, { marginTop: 22, alignSelf: 'stretch' }]} onPress={onClose}>
                 <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.primaryTxt}>Concluir</Text>
@@ -247,7 +247,7 @@ export function TestimonialComposer({ visible, onClose, toId }) {
                   <Photo uri={target.photo} style={{ width: 44, height: 44, borderRadius: 22 }} fallback="🙂" />
                   <View style={{ flex: 1, marginLeft: 10 }}>
                     <Text style={{ color: colors.text, fontWeight: '700' }}>{target.name}</Text>
-                    <Text style={{ color: colors.muted, fontSize: 12 }}>@{target.handle}</Text>
+                    <Text style={{ color: colors.muted, fontSize: 12 }}>*{target.handle}</Text>
                   </View>
                   {toId ? null : (
                     <TouchableOpacity onPress={() => setTo(null)}>
@@ -257,13 +257,13 @@ export function TestimonialComposer({ visible, onClose, toId }) {
                 </View>
               ) : (
                 <>
-                  {/* Pesquisar contato: por nome ou @usuário, digitando ou falando */}
+                  {/* Pesquisar contato: por nome ou *usuário, digitando ou falando */}
                   <View style={styles.findBox}>
                     <Ionicons name="search" size={17} color={colors.muted} />
                     <TextInput
                       value={find}
                       onChangeText={setFind}
-                      placeholder="Pesquisar contato por nome ou @usuário"
+                      placeholder="Pesquisar contato por nome ou *usuário"
                       placeholderTextColor={colors.muted}
                       style={styles.findInput}
                       autoCapitalize="none"
@@ -294,7 +294,7 @@ export function TestimonialComposer({ visible, onClose, toId }) {
                           <Photo uri={m.photo} style={{ width: 40, height: 40, borderRadius: 20 }} fallback="🙂" />
                           <View style={{ flex: 1, marginLeft: 10 }}>
                             <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>{m.name}</Text>
-                            <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>@{m.handle}</Text>
+                            <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>*{m.handle}</Text>
                           </View>
                           <Ionicons name="create-outline" size={18} color={colors.primary} />
                         </TouchableOpacity>
@@ -358,7 +358,7 @@ export function TestimonialComposer({ visible, onClose, toId }) {
               <View style={styles.info}>
                 <Ionicons name="shield-checkmark-outline" size={18} color={colors.primary} />
                 <Text style={{ color: colors.text, fontSize: 12, marginLeft: 8, flex: 1, lineHeight: 18 }}>
-                  Antes de entregar, a Re@lys analisa o depoimento (ofensas, golpes, links e dados pessoais). Depois, o dono do perfil escolhe se aceita ou recusa. Só os aceitos ficam expostos.
+                  Antes de entregar, a Realyz analisa o depoimento (ofensas, golpes, links e dados pessoais). Depois, o dono do perfil escolhe se aceita ou recusa. Só os aceitos ficam expostos.
                 </Text>
               </View>
 
@@ -421,7 +421,7 @@ export function TestimonialTools({ onSearching }) {
   useEffect(() => {
     onSearching && onSearching(open);
   }, [open]);
-  const k = norm(q).replace(/^@/, '');
+  const k = norm(q).replace(/^[@*]/, '');
   const hideMine = (state.privacy || {}).testimonials === false;
   const all = state.testimonials.filter((t) => t.status === 'aprovado' && !(hideMine && t.to === 'me'));
   const hit = (id) => {
@@ -496,7 +496,7 @@ export function TestimonialTools({ onSearching }) {
                   <View style={{ flex: 1, marginLeft: 10 }}>
                     <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>{m.name}</Text>
                     <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>
-                      {all.filter((t) => t.to === m.id).length} depoimento(s) · {friend ? 'amigo' : `@${m.handle}`}
+                      {all.filter((t) => t.to === m.id).length} depoimento(s) · {friend ? 'amigo' : `*${m.handle}`}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -654,7 +654,7 @@ export function TestimonialsTab({ ownerId }) {
                     <Text style={styles.quoteText}>{t.text}</Text>
                   </View>
                   <Text style={{ color: colors.muted, fontSize: 11, marginTop: 8 }}>
-                    <Ionicons name="shield-checkmark" size={11} color={colors.success} /> Analisado pela Re@lys: sem ofensas, links ou golpes.
+                    <Ionicons name="shield-checkmark" size={11} color={colors.success} /> Analisado pela Realyz: sem ofensas, links ou golpes.
                   </Text>
                   <View style={{ flexDirection: 'row', marginTop: 10 }}>
                     <TouchableOpacity style={[styles.primaryBtn, { flex: 1, marginTop: 0 }]} onPress={() => dispatch({ type: 'T_RESPOND', id: t.id, status: 'aprovado' })}>
@@ -862,7 +862,7 @@ function HighlightComposer({ visible, onClose }) {
 async function pickFromPhone(kind) {
   const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!perm.granted) {
-    Alert.alert('Permissão necessária', 'Autorize o Re@lys a ver suas fotos e vídeos para escolher o que vai para o perfil.');
+    Alert.alert('Permissão necessária', 'Autorize o Realyz a ver suas fotos e vídeos para escolher o que vai para o perfil.');
     return [];
   }
   const res = await ImagePicker.launchImageLibraryAsync({
@@ -907,7 +907,7 @@ function MediaGallery({ ownerId, kind }) {
   };
   const remove = (it) =>
     mine &&
-    Alert.alert(kind === 'videos' ? 'Remover vídeo?' : 'Remover foto?', 'Sai da sua galeria no Re@lys (continua no seu celular).', [
+    Alert.alert(kind === 'videos' ? 'Remover vídeo?' : 'Remover foto?', 'Sai da sua galeria no Realyz (continua no seu celular).', [
       { text: 'Manter', style: 'cancel' },
       { text: 'Remover', style: 'destructive', onPress: () => dispatch({ type: 'GALLERY_REMOVE', kind, id: it.id }) },
     ]);
@@ -1059,7 +1059,7 @@ export function ProfilePreviewModal({ visible, onClose }) {
               <Text style={{ color: colors.text, fontWeight: '800', fontSize: 19 }}>{u.name}</Text>
               <Ionicons name="checkmark-circle" size={17} color={colors.primary} style={{ marginLeft: 5 }} />
             </View>
-            {prof.handle || prof.profession ? <Text style={{ color: colors.muted, fontSize: 13, marginTop: 2 }}>{[prof.handle ? '@' + prof.handle : '', prof.profession].filter(Boolean).join(' · ')}</Text> : null}
+            {prof.handle || prof.profession ? <Text style={{ color: colors.muted, fontSize: 13, marginTop: 2 }}>{[prof.handle ? '*' + prof.handle : '', prof.profession].filter(Boolean).join(' · ')}</Text> : null}
             {prof.bio && priv.exposed !== false ? <Text style={{ color: colors.text, textAlign: 'center', marginTop: 8 }}>{prof.bio}</Text> : null}
           </View>
           <ViewAs.Provider value={as}>

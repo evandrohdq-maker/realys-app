@@ -42,7 +42,7 @@ const signup = async (who, name, doc, username) => {
 
 test('convite de chamada: link por fora do app, cadastro e entrada na sala', async () => {
   await signup('ana', 'Ana Paula Souza', '529.982.247-25', 'ana');
-  const inv = await api('POST', '/convites/chamada', { who: 'ana', body: { sid: 'sv-realys', cid: 'v1', server: 'Re@lys Gamers', room: 'Squad' } });
+  const inv = await api('POST', '/convites/chamada', { who: 'ana', body: { sid: 'sv-realys', cid: 'v1', server: 'Realyz Gamers', room: 'Squad' } });
   assert.equal(inv.status, 201);
   assert.match(inv.data.code, /^[A-Z2-9]{6}$/);
   assert.equal(inv.data.url, `https://realys.exemplo/c/${inv.data.code}`);

@@ -30,7 +30,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
   const [kind, setKind] = useState('pessoa'); // pessoa | empresa
   const [name, setName] = useState('');
   const [doc, setDoc] = useState('');
-  const [birth, setBirth] = useState(''); // DD/MM/AAAA: o Re@lys é só para maiores de 18
+  const [birth, setBirth] = useState(''); // DD/MM/AAAA: o Realyz é só para maiores de 18
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -62,7 +62,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
     if (!empresa) {
       const age = ageFromBirth(birth);
       if (age == null) return 'Digite sua data de nascimento (dia/mês/ano).';
-      if (age < 18) return 'O Re@lys é só para maiores de 18 anos.';
+      if (age < 18) return 'O Realyz é só para maiores de 18 anos.';
     }
     const u = usernameProblem(username);
     if (u) return u;
@@ -81,7 +81,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
     if (err) return Alert.alert('Confira o cadastro', err);
     setBusy(true);
     try {
-      const bio = later === true ? 'depois' : await confirmBiometric('Confirme sua biometria para criar a conta Re@lys');
+      const bio = later === true ? 'depois' : await confirmBiometric('Confirme sua biometria para criar a conta Realyz');
       if (bio === 'falhou') return Alert.alert('Biometria não confirmada', 'Não deu para confirmar que é você. Tente de novo ou crie a conta sem biometria por enquanto.');
       // Pessoa: o perfil social sai do questionário (Gamer, Artista, Estudante...).
       const social = empresa ? null : quiz.manual && quiz.social ? quiz.social : classifyProfile(`${quiz.about} ${quiz.work}`, quiz.hobbies);
@@ -91,10 +91,10 @@ export default function SignupForm({ onDone, onGoLogin }) {
       Alert.alert(
         'Conta criada!',
         bio === 'ok'
-          ? `Bem-vindo ao Re@lys, ${account.name.split(' ')[0]}. Sua identidade foi confirmada pela biometria.`
+          ? `Bem-vindo ao Realyz, ${account.name.split(' ')[0]}. Sua identidade foi confirmada pela biometria.`
           : bio === 'sem'
-          ? `Bem-vindo ao Re@lys, ${account.name.split(' ')[0]}. Este celular não tem digital nem rosto cadastrados, então sua conta começa no modo social: dá para interagir e navegar por tudo, mas não comprar nem contratar. Cadastre a biometria no aparelho e libere a conta pelo Perfil.`
-          : `Bem-vindo ao Re@lys, ${account.name.split(' ')[0]}. Sua conta começa no modo social: dá para interagir e navegar por tudo, mas não comprar nem contratar. Quando quiser liberar tudo, faça a biometria no Perfil.`,
+          ? `Bem-vindo ao Realyz, ${account.name.split(' ')[0]}. Este celular não tem digital nem rosto cadastrados, então sua conta começa no modo social: dá para interagir e navegar por tudo, mas não comprar nem contratar. Cadastre a biometria no aparelho e libere a conta pelo Perfil.`
+          : `Bem-vindo ao Realyz, ${account.name.split(' ')[0]}. Sua conta começa no modo social: dá para interagir e navegar por tudo, mas não comprar nem contratar. Quando quiser liberar tudo, faça a biometria no Perfil.`,
         [{ text: 'Entrar', onPress: () => onDone(account, remember) }]
       );
     } finally {
@@ -139,7 +139,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
         children: (
           <TextInput
             style={authStyles.input}
-            placeholder={empresa ? 'Como a empresa aparece no Re@lys' : 'Seu nome e sobrenome'}
+            placeholder={empresa ? 'Como a empresa aparece no Realyz' : 'Seu nome e sobrenome'}
             placeholderTextColor={colors.muted}
             value={name}
             onChangeText={setName}
@@ -180,8 +180,8 @@ export default function SignupForm({ onDone, onGoLogin }) {
               birth.length === 10 && ageFromBirth(birth) == null
                 ? 'Data inválida.'
                 : birth.length === 10 && ageFromBirth(birth) < 18
-                ? 'O Re@lys é só para maiores de 18 anos.'
-                : 'O Re@lys é só para maiores de 18 anos.',
+                ? 'O Realyz é só para maiores de 18 anos.'
+                : 'O Realyz é só para maiores de 18 anos.',
             children: (
               <TextInput
                 style={authStyles.input}
@@ -312,7 +312,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
       <TouchableOpacity style={authStyles.check} onPress={() => setTerms(!terms)} activeOpacity={0.8}>
         <Ionicons name={terms ? 'checkbox' : 'square-outline'} size={22} color={terms ? colors.primary : colors.muted} />
         <View style={{ flex: 1, marginLeft: 8 }}>
-          <Text style={authStyles.checkText}>Li e aceito o Termo de Adesão ao Re@lys</Text>
+          <Text style={authStyles.checkText}>Li e aceito o Termo de Adesão ao Realyz</Text>
           <Text style={authStyles.checkSub}>Uma pessoa, uma conta. Inclui as regras de reconhecimento facial e de documentos.</Text>
           <TouchableOpacity onPress={() => setTermoOpen(true)} hitSlop={8} accessibilityLabel="Ler o termo de adesão">
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700', fontSize: 12, marginTop: 4 }}>Ler o termo completo ›</Text>

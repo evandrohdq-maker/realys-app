@@ -52,7 +52,7 @@ export function useVerify() {
     if (busy) return false;
     setBusy(true);
     try {
-      const res = await confirmBiometric('Confirme sua biometria para liberar compras e serviços no Re@lys');
+      const res = await confirmBiometric('Confirme sua biometria para liberar compras e serviços no Realyz');
       if (res === 'ok') {
         await markVerified(state.user).catch(() => {});
         dispatch({ type: 'SET_VERIFIED' });
@@ -82,7 +82,7 @@ function Body({ onLater }) {
         <Ionicons name="finger-print" size={30} color={colors.text} />
       </View>
       <Text style={st.title}>Biometria não cadastrada</Text>
-      <Text style={st.text}>Por favor, cadastre sua biometria para continuar. Você pode olhar tudo à vontade, mas para comprar ou contratar pelo Re@lys a gente precisa confirmar que é você: é isso que mantém a plataforma só com gente de verdade.</Text>
+      <Text style={st.text}>Por favor, cadastre sua biometria para continuar. Você pode olhar tudo à vontade, mas para comprar ou contratar pelo Realyz a gente precisa confirmar que é você: é isso que mantém a plataforma só com gente de verdade.</Text>
       {POINTS.map(([icon, t, d]) => (
         <View key={t} style={st.row}>
           <Ionicons name={icon} size={17} color={colors.menu} />

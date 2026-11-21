@@ -15,8 +15,8 @@ import {
 } from '../updates';
 
 // Atualização ao abrir o app. No Android 12+ é automática: achou versão nova, baixa,
-// instala por cima sozinha, apaga o arquivo e o Re@lys reabre atualizado.
-// Só na primeira vez pede para ligar a chave "Instalar apps desconhecidos" do Re@lys.
+// instala por cima sozinha, apaga o arquivo e o Realyz reabre atualizado.
+// Só na primeira vez pede para ligar a chave "Instalar apps desconhecidos" do Realyz.
 // Também pode ser aberto à mão (Perfil → Verificar atualizações) com `manual`.
 export default function UpdateChecker({ manual = false, onDone }) {
   const [info, setInfo] = useState(null);
@@ -91,7 +91,7 @@ export default function UpdateChecker({ manual = false, onDone }) {
   if (!manual && (status === 'downloading' || status === 'auto' || status === 'installing')) {
     const shown = status === 'downloading' ? pct : 100;
     return (
-      <View pointerEvents="none" style={[styles.bar, { top: insets.top + 4 }]} accessibilityLabel={`Atualizando o Re@lys, ${shown} por cento`}>
+      <View pointerEvents="none" style={[styles.bar, { top: insets.top + 4 }]} accessibilityLabel={`Atualizando o Realyz, ${shown} por cento`}>
         <View style={styles.barTrack}>
           <View style={[styles.barFill, { width: `${shown}%` }]} />
         </View>
@@ -116,7 +116,7 @@ export default function UpdateChecker({ manual = false, onDone }) {
   const mb = info && info.size ? ` (${(info.size / 1048576).toFixed(0)} MB)` : '';
 
   const content = {
-    checking: { icon: 'sync-outline', title: 'Procurando atualização…', text: 'Conferindo se existe uma versão nova do Re@lys.' },
+    checking: { icon: 'sync-outline', title: 'Procurando atualização…', text: 'Conferindo se existe uma versão nova do Realyz.' },
     available: {
       icon: 'rocket-outline',
       title: 'Nova versão disponível',
@@ -125,27 +125,27 @@ export default function UpdateChecker({ manual = false, onDone }) {
     downloading: {
       icon: 'cloud-download-outline',
       title: 'Baixando a atualização…',
-      text: `${pct}%${mb}. O Re@lys baixa a versão nova por dentro do app, sem encher o celular de arquivos.`,
+      text: `${pct}%${mb}. O Realyz baixa a versão nova por dentro do app, sem encher o celular de arquivos.`,
     },
     permission: {
       icon: 'shield-checkmark-outline',
       title: 'Ative as atualizações automáticas',
-      text: 'Só uma vez: ligue "Permitir desta fonte" para o Re@lys. Depois disso, toda versão nova se instala sozinha quando você abrir o app, sem perguntar nada.',
+      text: 'Só uma vez: ligue "Permitir desta fonte" para o Realyz. Depois disso, toda versão nova se instala sozinha quando você abrir o app, sem perguntar nada.',
     },
     auto: {
       icon: 'sparkles-outline',
-      title: 'Atualizando o Re@lys…',
+      title: 'Atualizando o Realyz…',
       text: 'O app vai fechar por um instante e abrir de novo já na versão nova. Seus dados continuam aqui.',
     },
     installing: {
       icon: 'construct-outline',
       title: 'Instalando',
-      text: 'Toque em "Atualizar" na tela do Android. O Re@lys é substituído pela versão nova e seus dados continuam no app.',
+      text: 'Toque em "Atualizar" na tela do Android. O Realyz é substituído pela versão nova e seus dados continuam no app.',
     },
     failed: {
       icon: 'alert-circle-outline',
       title: 'Não deu para atualizar',
-      text: 'Confira a internet e tente de novo. Se o Android pedir, permita que o Re@lys instale atualizações.',
+      text: 'Confira a internet e tente de novo. Se o Android pedir, permita que o Realyz instale atualizações.',
     },
     uptodate: { icon: 'checkmark-circle-outline', title: 'Você está na versão mais nova', text: `Versão ${info && info.current} instalada.` },
     error: { icon: 'cloud-offline-outline', title: 'Não deu para verificar agora', text: 'Confira a internet e tente de novo pelo Perfil.' },

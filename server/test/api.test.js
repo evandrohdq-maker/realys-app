@@ -95,7 +95,7 @@ test('loja e pedidos: preço do servidor, presente primeiro, estoque, cancelamen
 
   const o = await ok('POST', '/orders', { who: 'beto', body: { items: [{ productId: p.id, qty: 2 }], address: 'Rua A, 10' } });
   assert.equal(o.orders[0].total, 30);
-  assert.equal(o.orders[0].protection, 0.99); // taxa de proteção Re@lys, paga pelo cliente
+  assert.equal(o.orders[0].protection, 0.99); // taxa de proteção Realyz, paga pelo cliente
   assert.equal(o.orders[0].fromGift, 18);
   assert.equal(o.orders[0].fromWallet, 12.99);
   assert.equal((await ok('GET', '/wallet', { who: 'beto' })).balance, 37.01);
@@ -139,7 +139,7 @@ test('lives: pausa da tela ao abrir o jogo e segmentos do app', async () => {
   assert.ok((await ok('GET', '/lives?cat=agro', { who: 'beto' })).some((l) => l.id === live.id));
 });
 
-test('lives: presente ao vivo vira crédito de live e depois moeda Realys', async () => {
+test('lives: presente ao vivo vira crédito de live e depois moeda Realyz', async () => {
   const live = await ok('POST', '/lives', { who: 'pizza', body: { hostType: 'empresa', cat: 'compras', title: 'Pizza na pedra' } });
   assert.equal(live.host, 'Pizzaria da Praça');
   assert.equal(live.source, 'camera');
@@ -192,7 +192,7 @@ test('social: amizade, depoimento aceito, mensagens com aviso em tempo real', as
   assert.equal((await ok('GET', '/conversations', { who: 'beto' }))[0].unread, 0);
   ws.close();
 
-  const post = await ok('POST', '/posts', { who: 'ana', body: { text: 'Bom dia, Realys!' } });
+  const post = await ok('POST', '/posts', { who: 'ana', body: { text: 'Bom dia, Realyz!' } });
   await ok('POST', '/posts', { who: 'ana', body: { kind: 'story', text: 'Café ☕' } });
   assert.equal((await ok('GET', '/feed', { who: 'beto' }))[0].id, post.id);
   assert.equal((await ok('GET', '/stories', { who: 'beto' }))[0].items.length, 1);

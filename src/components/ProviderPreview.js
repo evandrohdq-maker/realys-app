@@ -105,7 +105,7 @@ export default function ProviderPreview({ provider: p, onClose, onCall }) {
           <View style={styles.notice}>
             <Ionicons name="lock-closed-outline" size={12} color={colors.muted} />
             <Text style={styles.noticeTxt}>
-              {onCall ? 'O contato com o prestador é feito pela Lotus, dentro do Re@lys.' : 'Prévia só para analisar. Para contratar, volte à lista ou peça pela Lotus.'}
+              {onCall ? 'O contato com o prestador é feito pela Lotus, dentro do Realyz.' : 'Prévia só para analisar. Para contratar, volte à lista ou peça pela Lotus.'}
             </Text>
           </View>
         </ScrollView>

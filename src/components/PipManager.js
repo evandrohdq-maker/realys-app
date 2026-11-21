@@ -2,7 +2,7 @@
 //  - TV no ar → o vídeo do canal (TvFloat ocupa a janelinha inteira);
 //  - live aberta ou minimizada → o vídeo da live (LiveFloat ocupa a janelinha inteira);
 //  - rádio tocando → a logo da rádio (RadioPipView).
-// Android 12+: sair do Re@lys já abre a janelinha. Tocar nela e no botão de tela cheia volta para o app
+// Android 12+: sair do Realyz já abre a janelinha. Tocar nela e no botão de tela cheia volta para o app
 // (a live volta em tela cheia); fechar no X para o que estava tocando.
 import React, { useEffect, useRef } from 'react';
 import { AppState, useWindowDimensions } from 'react-native';

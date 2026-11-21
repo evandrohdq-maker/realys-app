@@ -2,7 +2,7 @@
 // Junta numa linha do tempo só:
 //   - compromissos da própria agenda (state.agenda): os de exemplo, os que o prestador marca
 //     na mão (cliente particular) e os bloqueios (folga, almoço, médico…);
-//   - visitas aceitas pelo Re@lys (state.myVisits), que entram sozinhas quando o prestador aceita;
+//   - visitas aceitas pelo Realyz (state.myVisits), que entram sozinhas quando o prestador aceita;
 //   - corridas/serviços aceitos agora (state.rides).
 // Sem dependências do React Native, para poder ser testado no computador.
 
@@ -13,9 +13,9 @@ export const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho
 
 // De onde veio o compromisso.
 export const ORIGIN = {
-  realys: { label: 'Pelo Re@lys', icon: 'shield-checkmark-outline' },
-  visita: { label: 'Visita pelo Re@lys', icon: 'home-outline' },
-  corrida: { label: 'Pedido pelo Re@lys', icon: 'navigate-outline' },
+  realys: { label: 'Pelo Realyz', icon: 'shield-checkmark-outline' },
+  visita: { label: 'Visita pelo Realyz', icon: 'home-outline' },
+  corrida: { label: 'Pedido pelo Realyz', icon: 'navigate-outline' },
   particular: { label: 'Cliente particular', icon: 'person-outline' },
   bloqueio: { label: 'Horário bloqueado', icon: 'lock-closed-outline' },
 };

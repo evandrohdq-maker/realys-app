@@ -1,4 +1,4 @@
-// Mantém o app em dia com o servidor do Re@lys: catálogo (lojas e produtos de verdade),
+// Mantém o app em dia com o servidor do Realyz: catálogo (lojas e produtos de verdade),
 // carteira e pedidos. Atualiza ao entrar, a cada minuto e na hora quando chega um aviso de pedido.
 // Sem servidor configurado, não faz nada.
 import { useEffect } from 'react';
@@ -32,8 +32,8 @@ export default function ServerSync() {
     const stop = connectEvents((e) => {
       if (e.type !== 'order') return;
       tudo();
-      // Loja: chegou pedido novo pelo Re@lys.
-      if (e.buyer) Alert.alert('Novo pedido! 🛍️', `${e.buyer} fez um pedido de R$ ${Number(e.total || 0).toFixed(2).replace('.', ',')}. Veja em Painel da empresa › Pedidos do Re@lys.`);
+      // Loja: chegou pedido novo pelo Realyz.
+      if (e.buyer) Alert.alert('Novo pedido! 🛍️', `${e.buyer} fez um pedido de R$ ${Number(e.total || 0).toFixed(2).replace('.', ',')}. Veja em Painel da empresa › Pedidos do Realyz.`);
     });
     return () => {
       clearInterval(t);

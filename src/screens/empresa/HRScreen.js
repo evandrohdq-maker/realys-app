@@ -51,7 +51,7 @@ export default function HRScreen() {
         title: form.title.trim(),
         salary,
         shift: form.shift.trim(),
-        desc: form.desc.trim() || 'Vaga anunciada pelo Re@lys.',
+        desc: form.desc.trim() || 'Vaga anunciada pelo Realyz.',
         reqs: form.reqs.split(',').map((r) => r.trim()).filter(Boolean),
         area: form.area,
         type: form.type,
@@ -75,12 +75,12 @@ export default function HRScreen() {
     setCv(null);
     const first = c.name.split(' ')[0];
     if (status === 'contratado') Alert.alert('Contratação 🎉', `${c.name} foi contratado(a). Na versão real, o cadastro segue para o eSocial e a folha.`);
-    if (status === 'recusado') Alert.alert('Retorno enviado', `${first} recebeu uma resposta educada de que não foi selecionado(a) desta vez. Ninguém fica sem retorno no Re@lys.`);
+    if (status === 'recusado') Alert.alert('Retorno enviado', `${first} recebeu uma resposta educada de que não foi selecionado(a) desta vez. Ninguém fica sem retorno no Realyz.`);
   };
   const confirmMeet = () => {
     const when = `${meet.day} às ${meet.hour}`;
     setStatus(meet.cand, 'entrevista', { when, mode: meet.mode });
-    Alert.alert('Entrevista marcada', `${meet.cand.name.split(' ')[0]} recebeu o convite: ${when}, ${meet.mode === 'video' ? 'por vídeo no Re@lys' : 'na empresa'}.`);
+    Alert.alert('Entrevista marcada', `${meet.cand.name.split(' ')[0]} recebeu o convite: ${when}, ${meet.mode === 'video' ? 'por vídeo no Realyz' : 'na empresa'}.`);
     setMeet(null);
   };
   const invite = (t) => {
@@ -243,7 +243,7 @@ export default function HRScreen() {
                 ) : null}
                 {cv.status !== 'contratado' && cv.status !== 'recusado' ? (
                   <View style={{ flexDirection: 'row', marginTop: 8 }}>
-                    <TouchableOpacity style={[styles.ghostBtn, { marginRight: 8 }]} onPress={() => Alert.alert('Mensagem', `Conversa com ${cv.name.split(' ')[0]} aberta no chat do Re@lys.`)}>
+                    <TouchableOpacity style={[styles.ghostBtn, { marginRight: 8 }]} onPress={() => Alert.alert('Mensagem', `Conversa com ${cv.name.split(' ')[0]} aberta no chat do Realyz.`)}>
                       <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary} />
                       <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.ghostText}>Mensagem</Text>
                     </TouchableOpacity>

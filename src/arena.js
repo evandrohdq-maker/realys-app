@@ -11,7 +11,7 @@ const m = (min) => now - min * 60000;
 // Servidores de exemplo (guardados enquanto o app está aberto).
 const SEED = [
   {
-    id: 'sv-realys', name: 'Re@lys Gamers', emoji: '🎮', tint: '#B8860B',
+    id: 'sv-realys', name: 'Realyz Gamers', emoji: '🎮', tint: '#B8860B',
     members: [
       { name: 'Diego Ramos', role: 'dono', status: 'online', game: 'Futebol virtual' },
       { name: 'Ana Souza', role: 'mod', status: 'online', game: 'Tiro tático' },
@@ -21,7 +21,7 @@ const SEED = [
     ],
     channels: [
       { id: 'c1', kind: 'text', name: 'geral', msgs: [
-        { who: 'Diego Ramos', text: 'Bem-vindos à Arena do Re@lys! Aqui só tem gente real, sem fake. 🎮', at: m(180) },
+        { who: 'Diego Ramos', text: 'Bem-vindos à Arena do Realyz! Aqui só tem gente real, sem fake. 🎮', at: m(180) },
         { who: 'Ana Souza', text: 'Regras no #regras. Respeito acima de tudo.', at: m(170) },
         { who: 'Bia Lima', text: 'Alguém pra uma ranqueada de battle royale hoje à noite?', at: m(12) },
       ] },
@@ -30,8 +30,8 @@ const SEED = [
         { who: 'Ana Souza', text: '@Lucas Prado bora, chama na voz às 21h', at: m(45) },
       ] },
       { id: 'c3', kind: 'text', name: 'clipes', msgs: [{ who: 'Rafa Gomes', text: 'Olha essa jogada que fiz ontem 😂 (clipe nas minhas lives)', at: m(300) }] },
-      { id: 'c4', kind: 'text', name: 'torneios', msgs: [{ who: 'Diego Ramos', text: '🏆 Torneio de futebol virtual sábado 15h. Inscrição pelo Re@lys, prêmio em moeda Re@lys.', at: m(600) }] },
-      { id: 'c5', kind: 'text', name: 'regras', msgs: [{ who: 'Ana Souza', text: '1. Respeito. 2. Sem golpe nem venda por fora: troca e venda só com a Garantia Re@lys. 3. Sem fake news. 4. Proibido para menores de 18.', at: m(2000) }] },
+      { id: 'c4', kind: 'text', name: 'torneios', msgs: [{ who: 'Diego Ramos', text: '🏆 Torneio de futebol virtual sábado 15h. Inscrição pelo Realyz, prêmio em moeda Realyz.', at: m(600) }] },
+      { id: 'c5', kind: 'text', name: 'regras', msgs: [{ who: 'Ana Souza', text: '1. Respeito. 2. Sem golpe nem venda por fora: troca e venda só com a Garantia Realyz. 3. Sem fake news. 4. Proibido para menores de 18.', at: m(2000) }] },
       { id: 'v1', kind: 'voice', name: 'Squad', inVoice: ['Bia Lima', 'Diego Ramos'], screen: 'Bia Lima' },
       { id: 'v2', kind: 'voice', name: 'Sala de espera', inVoice: [] },
     ],

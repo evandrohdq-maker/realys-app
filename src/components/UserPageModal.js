@@ -25,7 +25,7 @@ async function pickPhoto() {
   try {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert('Permissão necessária', 'Autorize o Re@lys a ver suas fotos.');
+      Alert.alert('Permissão necessária', 'Autorize o Realyz a ver suas fotos.');
       return null;
     }
     const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
@@ -181,12 +181,12 @@ export default function UserPageModal() {
     // A mesma IA dos posts da Community confere antes: notícia falsa não é publicada.
     const v = checkText(`${title} ${t}`).verdict;
     if (editPost) {
-      if (v === 'falso') return Alert.alert('Post não salvo', 'A verificação do Re@lys identificou informação falsa. Confira a fonte antes de publicar.');
+      if (v === 'falso') return Alert.alert('Post não salvo', 'A verificação do Realyz identificou informação falsa. Confira a fonte antes de publicar.');
       dispatch({ type: 'PAGE_POST_EDIT', id: pg.id, postId: editPost, patch: { text: t, title: title.trim(), photo } });
     } else {
       dispatch({ type: 'PAGE_POST', id: pg.id, post: { text: t, ...(title.trim() ? { title: title.trim() } : {}), ...(photo ? { photo } : {}) } });
-      if (v === 'falso') Alert.alert('Post não publicado', 'A verificação do Re@lys identificou informação falsa. Confira a fonte antes de publicar.');
-      else if (v === 'suspeito') Alert.alert('Post em verificação', 'Ele aparece para você e fica visível para todos depois que o Re@lys conferir.');
+      if (v === 'falso') Alert.alert('Post não publicado', 'A verificação do Realyz identificou informação falsa. Confira a fonte antes de publicar.');
+      else if (v === 'suspeito') Alert.alert('Post em verificação', 'Ele aparece para você e fica visível para todos depois que o Realyz conferir.');
     }
     setText('');
     setTitle('');
@@ -205,7 +205,7 @@ export default function UserPageModal() {
       { text: 'Apagar', style: 'destructive', onPress: () => dispatch({ type: 'PAGE_POST_DELETE', id: pg.id, postId: p.id }) },
     ]);
   const report = () =>
-    Alert.alert('Denunciar página', pg.anon ? 'A página é anônima, mas o dono é verificado: o Re@lys analisa e pode bloquear.' : 'O Re@lys vai analisar a página.', [
+    Alert.alert('Denunciar página', pg.anon ? 'A página é anônima, mas o dono é verificado: o Realyz analisa e pode bloquear.' : 'O Realyz vai analisar a página.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Notícia falsa', onPress: () => dispatch({ type: 'PAGE_REPORT', id: pg.id, kind: 'Fake news', detail: 'Usuário denunciou notícia falsa' }) },
       { text: 'Golpe ou se passando por alguém', onPress: () => dispatch({ type: 'PAGE_REPORT', id: pg.id, kind: 'Golpe', detail: 'Usuário denunciou golpe ou falsidade' }) },
@@ -237,11 +237,11 @@ export default function UserPageModal() {
           <View style={{ padding: 16 }}>
             <Text style={[st.name, { color: T.text }, ff]}>{pg.name}</Text>
             <View style={{ height: 3, width: 48, borderRadius: 2, backgroundColor: th.accent, marginTop: 6 }} />
-            <Text style={[st.handle, { color: T.muted }]}>@{pg.handle} · {cat.label}</Text>
+            <Text style={[st.handle, { color: T.muted }]}>*{pg.handle} · {cat.label}</Text>
             {pg.anon ? (
               <View style={[st.sealAnon, { backgroundColor: T.card }]}>
                 <Ionicons name="eye-off-outline" size={15} color={T.muted} />
-                <Text style={[st.sealAnonText, { color: T.muted }]}>Página anônima · dono verificado pelo Re@lys</Text>
+                <Text style={[st.sealAnonText, { color: T.muted }]}>Página anônima · dono verificado pelo Realyz</Text>
               </View>
             ) : (
               <TouchableOpacity
@@ -305,7 +305,7 @@ export default function UserPageModal() {
             <Text style={[st.boxTitle, { marginTop: 18, color: T.text }, ff]}>Posts</Text>
             {posts.map((p) => (
               <View key={p.id} style={flat ? [st.postFlat, { borderTopColor: T.line }] : [st.post, { backgroundColor: T.card }]}>
-                {p.flagged ? <Text style={st.flag}>Em verificação: só você vê até o Re@lys conferir.</Text> : null}
+                {p.flagged ? <Text style={st.flag}>Em verificação: só você vê até o Realyz conferir.</Text> : null}
                 {th.layout === 'revista' && p.photo ? <Photo uri={p.photo} style={st.postPhotoBig} fallback="🖼️" /> : null}
                 {p.title ? <Text style={[st.postTitle, { color: T.text, fontSize: th.layout === 'cartoes' ? 16 : 20 }, ff]}>{p.title}</Text> : null}
                 <Text style={[st.postText, { color: T.text }, flat && { fontSize: 15, lineHeight: 23 }, ff]}>{p.text}</Text>

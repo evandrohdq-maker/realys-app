@@ -1,4 +1,4 @@
-// Tabela única das taxas do Re@lys, com a referência do mercado usada para definir cada uma.
+// Tabela única das taxas do Realyz, com a referência do mercado usada para definir cada uma.
 // Regra: ficar perto do mercado para ter margem, mas sempre abaixo, para usar isso na divulgação.
 // Pesquisa de novembro de 2026 (fontes em PENDENCIAS.md). Ao mudar uma taxa aqui, mude também o
 // Termo de Adesão (src/termoAdesao.js, item 16) e suba a versão do termo.
@@ -22,18 +22,18 @@ export const TAXAS = {
   contatoVeiculo: { valor: 4.9, unidade: 'R$ por conversa liberada', quemPaga: 'particular (veículo ou máquina)', mercado: 'Webmotors: anúncio a partir de R$ 9,90, pago antes de aparecer interessado', argumento: 'anunciar é grátis; R$ 4,90 só quando aparece um interessado verificado' },
   // Espaços de publicidade (preços por pacote em src/rewards.js › POINT_SHOP).
   publicidade: { valor: 14.9, unidade: 'R$ por dia para aparecer em primeiro nas buscas (story R$ 9,90; banner da vitrine R$ 39,90)', quemPaga: 'anunciante', mercado: 'iFood Anúncios: orçamento mínimo de R$ 25 por dia, cobrado por clique', argumento: 'R$ 14,90 por dia, preço fechado, sem leilão e sem surpresa' },
-  // Músicas (Stream › Músicas): o artista vende a faixa e o Re@lys fica com uma parte. Ouvir é grátis, com propaganda.
+  // Músicas (Stream › Músicas): o artista vende a faixa e o Realyz fica com uma parte. Ouvir é grátis, com propaganda.
   // Base de mercado (nov/2026): Bandcamp fica com 15% da venda digital, mais 4 a 7% de taxa de pagamento;
   // lojas de app como a iTunes ficam com cerca de 30% e vendem a faixa por R$ 1,90 a R$ 2,90.
-  // Re@lys: R$ 0,99 fixo por download, somado ao que o artista quer receber (o artista recebe 100% do valor dele).
+  // Realyz: R$ 0,99 fixo por download, somado ao que o artista quer receber (o artista recebe 100% do valor dele).
   // Sugestão: artista R$ 0,90 + R$ 0,99 = R$ 1,89 para o cliente, um pouco abaixo da iTunes (R$ 1,90).
-  musicaVenda: { valor: 0.99, artistaSugerido: 0.9, artistaMinimo: 0.5, unidade: 'R$ por download, somado ao valor do artista', quemPaga: 'cliente (somado ao preço da música)', mercado: 'Bandcamp: 15% mais taxa de pagamento; lojas de app: cerca de 30%; faixa a R$ 1,90 a R$ 2,90', argumento: 'o artista recebe 100% do valor dele; o Re@lys cobra só R$ 0,99 por download, e a faixa sai a partir de R$ 1,49' },
+  musicaVenda: { valor: 0.99, artistaSugerido: 0.9, artistaMinimo: 0.5, unidade: 'R$ por download, somado ao valor do artista', quemPaga: 'cliente (somado ao preço da música)', mercado: 'Bandcamp: 15% mais taxa de pagamento; lojas de app: cerca de 30%; faixa a R$ 1,90 a R$ 2,90', argumento: 'o artista recebe 100% do valor dele; o Realyz cobra só R$ 0,99 por download, e a faixa sai a partir de R$ 1,49' },
   // Base de mercado (Spotify Brasil, nov/2026): Individual R$ 23,90, Universitário R$ 12,90, Duo R$ 31,90,
-  // Família R$ 40,90, com 3 meses grátis para quem nunca assinou. Re@lys: mesmo valor do Spotify (decisão de nov/2026), com margem
+  // Família R$ 40,90, com 3 meses grátis para quem nunca assinou. Realyz: mesmo valor do Spotify (decisão de nov/2026), com margem
   // para pagar os artistas pelas reproduções, o ECAD e os impostos. Inclui ouvir offline.
   musicaPremium: { valor: 23.9, gratisMeses: 3, planos: { individual: 23.9, universitario: 12.9, duo: 31.9, familia: 40.9 }, unidade: 'R$ por mês, sem propaganda e com músicas offline (3 primeiros meses grátis)', quemPaga: 'ouvinte', mercado: 'Spotify Premium: R$ 23,90 por mês (Universitário R$ 12,90, Duo R$ 31,90, Família R$ 40,90)', argumento: 'preço dos grandes apps de música, com 3 meses grátis, offline incluído e a compra da música direto do artista' },
   // Páginas de usuário (estilo blog): mensalidade por página (src/userPages.js › PAGE_PRICE).
-  paginaUsuario: { valor: 14.9, unidade: 'R$ por mês por página, da segunda em diante (a primeira é gratuita)', quemPaga: 'usuário dono da página', mercado: 'construtores de site e blog cobram mensalidade por site, sem público incluído', argumento: 'R$ 14,90 por mês com página personalizável e o público verificado do Re@lys' },
+  paginaUsuario: { valor: 14.9, unidade: 'R$ por mês por página, da segunda em diante (a primeira é gratuita)', quemPaga: 'usuário dono da página', mercado: 'construtores de site e blog cobram mensalidade por site, sem público incluído', argumento: 'R$ 14,90 por mês com página personalizável e o público verificado do Realyz' },
   destaquePrestador: { valor: 49.9, unidade: 'R$ por mês', mercado: 'GetNinjas: pacotes a partir de R$ 149', argumento: 'destaque o mês inteiro por R$ 49,90' },
 };
 
@@ -63,6 +63,6 @@ export const MERCADO_PUBLICO = {
 };
 export const mercadoPublico = (chave) => MERCADO_PUBLICO[chave] || null;
 
-// Frase curta de cada taxa, para telas de "Por que o Re@lys é mais barato" e para a divulgação (sem marcas).
+// Frase curta de cada taxa, para telas de "Por que o Realyz é mais barato" e para a divulgação (sem marcas).
 export const comparativo = () =>
   Object.entries(TAXAS).map(([chave, t]) => ({ chave, realys: t.argumento, mercado: MERCADO_PUBLICO[chave] || null }));

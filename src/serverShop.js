@@ -1,9 +1,9 @@
-// Compras de verdade pelo servidor do Re@lys (api.realyz.com.br).
+// Compras de verdade pelo servidor do Realyz (api.realyz.com.br).
 //
 // - Lojas e produtos cadastrados no servidor aparecem no Shop e no Food junto com os de demonstração
 //   (id começando com "srv_").
 // - Conta ligada ao servidor: a carteira mostrada é a do servidor (depósitos vão para lá).
-// - Finalizar compra: os itens de lojas do servidor são pagos lá, com a taxa de proteção Re@lys
+// - Finalizar compra: os itens de lojas do servidor são pagos lá, com a taxa de proteção Realyz
 //   de R$ 0,99 por compra cobrada pelo servidor. Os itens de demonstração seguem no celular.
 // Sem servidor configurado, nada disso roda.
 import { serverOn, api, API_URL } from './api';
@@ -115,7 +115,7 @@ export function totalServidor(state) {
 // Devolve { ok, message }. Não lança erro.
 export async function finalizarCompra(state, dispatch, { address } = {}) {
   if (!conectado(state) && linhasDoServidor(state).length) {
-    return { ok: false, message: 'Para comprar nas lojas do Re@lys, entre com a sua conta (cadastro com senha e biometria).' };
+    return { ok: false, message: 'Para comprar nas lojas do Realyz, entre com a sua conta (cadastro com senha e biometria).' };
   }
   const srvLines = conectado(state) ? linhasDoServidor(state) : [];
   const hasLocal = state.cart.some((c) => !isServerId(c.productId));

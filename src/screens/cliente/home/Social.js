@@ -36,7 +36,7 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
   const insets = useSafeAreaInsets();
   const { state, dispatch } = useStore();
   const [text, setText] = useState('');
-  const [peek, setPeek] = useState(false); // prévia de quem não tem perfil no Re@lys
+  const [peek, setPeek] = useState(false); // prévia de quem não tem perfil no Realyz
   const [voice, setVoice] = useState(false); // chamada de voz
   const scroll = useRef(null);
   if (!contact) return null;
@@ -66,7 +66,7 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
     const iSell = !!state.myProvider || (state.user && (state.user.roles || []).some((r) => r === 'empresa' || r === 'prestador' || r === 'fornecedor'));
     if (business || iSell || friendSt !== 'amigo') {
       const ad = antiDesvio(t);
-      if (!ad.ok) return Alert.alert('Fica tudo no Re@lys 🔒', ad.why);
+      if (!ad.ok) return Alert.alert('Fica tudo no Realyz 🔒', ad.why);
     }
     onSend({ from: 'me', text: t, time: now() });
     setText('');
@@ -122,14 +122,14 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
           ))}
         </ScrollView>
 
-        {/* Prévia de quem não tem perfil aberto no Re@lys (ex.: anunciante): adicionar aos contatos. */}
+        {/* Prévia de quem não tem perfil aberto no Realyz (ex.: anunciante): adicionar aos contatos. */}
         <Modal visible={peek} transparent animationType="fade" onRequestClose={() => setPeek(false)}><KeyboardLift style={{ flex: 1 }}>
           <TouchableOpacity style={styles.peekBack} activeOpacity={1} onPress={() => setPeek(false)}>
             <View style={styles.peekCard}>
               <Photo uri={contact.photo} style={styles.peekAvatar} fallback="🙂" />
               <Text style={styles.peekName}>{contact.name}</Text>
               {contact.status ? <Text style={styles.headStatus}>{contact.status}</Text> : null}
-              <Text style={styles.peekNote}>Essa pessoa ainda não tem um perfil público no Re@lys.</Text>
+              <Text style={styles.peekNote}>Essa pessoa ainda não tem um perfil público no Realyz.</Text>
               <TouchableOpacity
                 style={[styles.peekBtn, friendSt && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.primary }]}
                 onPress={() => dispatch({ type: 'FRIEND', id: contact.id, status: friendSt ? null : 'enviado' })}
@@ -361,7 +361,7 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
   const [realId, setRealId] = useState(null);
   // Fonte da live: câmera ou a tela do celular (lives de jogos).
   const [source, setSource] = useState('camera');
-  // Cortina ao abrir o jogo: tempo (s) que a tela fica escondida depois de sair do Re@lys,
+  // Cortina ao abrir o jogo: tempo (s) que a tela fica escondida depois de sair do Realyz,
   // para a tela inicial e os aplicativos do celular não aparecerem na live.
   const [curtainSecs, setCurtainSecs] = useState(10);
   const [myPause, setMyPause] = useState(null); // 'abrindo' | motivo de segurança | null
@@ -430,7 +430,7 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
     lastLiveId.current = live.id;
   }, [visible, live && live.id]);
 
-  // Missão do dia: 3 minutos assistindo lives da classe dão pontos Re@lys (uma vez por dia e por classe).
+  // Missão do dia: 3 minutos assistindo lives da classe dão pontos Realyz (uma vez por dia e por classe).
   useEffect(() => {
     if (mine || !live || secs !== LIVE_MISSION_SECS) return;
     dispatch({ type: 'AD_REWARD', id: missionId(live.cat), points: LIVE_MISSION_POINTS, desc: `lives de ${catOf(live.cat).label}` });
@@ -468,8 +468,8 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
     };
   }, [visible, onAir, realId]);
 
-  // Live de jogo (tela): com o Re@lys aberto a tela fica escondida; ao sair, espera o tempo da cortina
-  // (passar pela tela inicial e abrir o jogo) e só então libera. Voltou ao Re@lys: esconde de novo.
+  // Live de jogo (tela): com o Realyz aberto a tela fica escondida; ao sair, espera o tempo da cortina
+  // (passar pela tela inicial e abrir o jogo) e só então libera. Voltou ao Realyz: esconde de novo.
   const screenLive = !!(visible && mine && onAir && source === 'tela');
   useEffect(() => {
     if (!screenLive) return;
@@ -687,7 +687,7 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
             {source === 'tela' ? (
               <View style={{ marginBottom: 10 }}>
                 <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 2 }}>Esconder a tela ao abrir o jogo</Text>
-                <Text style={{ color: colors.muted, fontSize: 11, marginBottom: 6 }}>Quem assiste não vê seus aplicativos nem a tela inicial: só o jogo. Enquanto o Re@lys estiver aberto, a tela também fica escondida.</Text>
+                <Text style={{ color: colors.muted, fontSize: 11, marginBottom: 6 }}>Quem assiste não vê seus aplicativos nem a tela inicial: só o jogo. Enquanto o Realyz estiver aberto, a tela também fica escondida.</Text>
                 <View style={{ flexDirection: 'row' }}>
                   {[5, 10, 15].map((n) => (
                     <TouchableOpacity key={n} style={[styles.typeChip, curtainSecs === n && styles.typeChipOn]} onPress={() => setCurtainSecs(n)} accessibilityLabel={`Esconder por ${n} segundos`}>
@@ -700,7 +700,7 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
             {cat === 'gamers' || source === 'tela' ? (
               <View style={{ marginBottom: 10 }}>
                 <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 2 }}>Jogar com o time</Text>
-                <Text style={{ color: colors.muted, fontSize: 11, marginBottom: 6 }}>Entre numa sala de voz da Arena Gamer ao abrir a live e fale com o seu time sem sair do Re@lys.</Text>
+                <Text style={{ color: colors.muted, fontSize: 11, marginBottom: 6 }}>Entre numa sala de voz da Arena Gamer ao abrir a live e fale com o seu time sem sair do Realyz.</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <TouchableOpacity style={[styles.typeChip, !team && styles.typeChipOn]} onPress={() => setTeam(null)} accessibilityLabel="Sem sala de voz">
                     <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: !team ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700' }}>Sem sala</Text>
@@ -811,7 +811,7 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
                   </TouchableOpacity>
                 </View>
                 <Text style={styles.trayNote}>
-                  Quem transmite recebe {brl(cost.net)} em créditos de live (a taxa de {brl(cost.fee)} do Re@lys sai do presente). Você ganha +{giftPoints(cost.value, state.gifts.filter((x) => x.dir === 'enviado').length).total} pontos Re@lys., que viram moeda Re@lys.
+                  Quem transmite recebe {brl(cost.net)} em créditos de live (a taxa de {brl(cost.fee)} do Realyz sai do presente). Você ganha +{giftPoints(cost.value, state.gifts.filter((x) => x.dir === 'enviado').length).total} pontos Realyz., que viram moeda Realyz.
                 </Text>
               </View>
             ) : null}
@@ -850,7 +850,7 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
               <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14, marginTop: 6, textAlign: 'center' }}>
                 {mine
                   ? myPause === 'abrindo'
-                    ? `Tela escondida para quem assiste. Abra o jogo: ela volta ${curtainSecs} s depois de você sair do Re@lys.`
+                    ? `Tela escondida para quem assiste. Abra o jogo: ela volta ${curtainSecs} s depois de você sair do Realyz.`
                     : 'Tela pausada por segurança para quem assiste.'
                   : remotePause === 'abrindo'
                   ? 'Abrindo o jogo… já volta!'

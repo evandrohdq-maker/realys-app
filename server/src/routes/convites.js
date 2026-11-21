@@ -1,6 +1,6 @@
 // Convites de chamada por link (Arena Gamer).
 // Quem está no app gera um link e manda por fora (WhatsApp, SMS, e-mail). Quem recebe:
-//   - abre GET /c/:codigo no navegador: página com quem chamou, botão para abrir no Re@lys e,
+//   - abre GET /c/:codigo no navegador: página com quem chamou, botão para abrir no Realyz e,
 //     para quem ainda não tem o app, botão para baixar e os passos do cadastro (documento + biometria);
 //   - já com a conta, o app chama POST /convites/:codigo/entrar e vai direto para a sala de voz.
 // O convite vale 24 h e não mostra nada além do primeiro nome de quem convidou e do nome da sala.
@@ -67,17 +67,17 @@ export default function conviteRoutes(r, { db, cfg, hub, userById }) {
         : `<p class="tag">CONVITE PARA CHAMADA</p>
 <h2>${esc(firstName(host && host.name))} te chamou para a chamada</h2>
 <p class="room">🎧 ${esc(c.room_name || 'Sala de voz')}${c.server_name ? ` · ${esc(c.server_name)}` : ''}</p>
-<a class="btn" href="${esc(intent)}">Já tenho o Re@lys: entrar na chamada</a>
-<a class="btn alt" href="${esc(cfg.apkUrl)}">Ainda não tenho: baixar o Re@lys</a>
+<a class="btn" href="${esc(intent)}">Já tenho o Realyz: entrar na chamada</a>
+<a class="btn alt" href="${esc(cfg.apkUrl)}">Ainda não tenho: baixar o Realyz</a>
 <ol>
-<li>Baixe e instale o Re@lys (Android).</li>
+<li>Baixe e instale o Realyz (Android).</li>
 <li>Toque em <b>Cadastre-se</b>: documento e biometria do rosto. Só gente real, sem perfil fake.</li>
 <li>Volte para esta página e toque em <b>entrar na chamada</b>. Ou abra o app e use o código <b class="code">${esc(code)}</b>.</li>
 </ol>
 <p class="small">O convite vale até ${new Date(c.expires_at).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}. Link do app: <a href="${esc(deep)}">${esc(deep)}</a></p>`;
-    const html = `<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Re@lys · convite para chamada</title>
+    const html = `<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Realyz · convite para chamada</title>
 <style>body{font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;padding:28px 18px;color:#1b1b1f;background:#fbf8f1}h1{font-size:22px;color:#b07a0c;margin:0 0 18px}h2{font-size:20px;margin:6px 0}.tag{color:#7a7468;font-size:11px;font-weight:800;letter-spacing:1px;margin:0}.room{font-size:17px;font-weight:700}.btn{display:block;text-align:center;background:#2fb463;color:#fff;font-weight:800;text-decoration:none;padding:14px;border-radius:12px;margin:12px 0}.btn.alt{background:#fff;color:#b07a0c;border:2px solid #b07a0c}ol{line-height:1.6;padding-left:20px}.code{letter-spacing:2px}.small{color:#7a7468;font-size:12px;word-break:break-all}</style>
-<body><h1>Re@lys</h1>${body}<p class="small">Re@lys · Pessoas reais. Negócios reais.</p></body></html>`;
+<body><h1>Realyz</h1>${body}<p class="small">Realyz · Pessoas reais. Negócios reais.</p></body></html>`;
     res.writeHead(ok ? 200 : 404, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
     res.end(html);
   }, { auth: false });

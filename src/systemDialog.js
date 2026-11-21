@@ -1,4 +1,4 @@
-// Janelas do próprio Android por cima do Realys (pedido de permissão do microfone ou do GPS,
+// Janelas do próprio Android por cima do Realyz (pedido de permissão do microfone ou do GPS,
 // janela de voz do Google). Enquanto uma delas está aberta, o Android avisa que o app "saiu da tela",
 // mas a pessoa NÃO minimizou o app. Sem esta conferência a caixa da Lotus fechava sozinha
 // na primeira vez que era aberta (era quando o celular pedia a permissão do microfone e do GPS).

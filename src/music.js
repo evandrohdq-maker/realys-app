@@ -1,6 +1,6 @@
-// Músicas no Re@lys (Stream › Músicas), no estilo dos apps de música:
+// Músicas no Realyz (Stream › Músicas), no estilo dos apps de música:
 // - Galeria: tudo que os artistas publicam fica disponível para ouvir de graça, com propaganda.
-// - O artista põe as músicas à venda: ele diz quanto quer receber e o Re@lys soma R$ 0,99 por download (src/taxas.js).
+// - O artista põe as músicas à venda: ele diz quanto quer receber e o Realyz soma R$ 0,99 por download (src/taxas.js).
 // - Baixar: só quem comprou a música do artista.
 // - Playlists: o ouvinte monta e guarda as suas.
 // - Plano Premium: sem propaganda; os 3 primeiros meses são gratuitos.
@@ -10,7 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TAXAS } from './taxas';
 import { playRadio, stopRadio, setOnEnded, radioNow } from './radio';
 
-export const MUSIC_FEE = TAXAS.musicaVenda.valor; // R$ 0,99 do Re@lys por download, somado ao valor do artista
+export const MUSIC_FEE = TAXAS.musicaVenda.valor; // R$ 0,99 do Realyz por download, somado ao valor do artista
 export const MUSIC_ARTIST_MIN = TAXAS.musicaVenda.artistaMinimo;
 export const MUSIC_ARTIST_SUGGESTED = TAXAS.musicaVenda.artistaSugerido;
 export const MUSIC_PLAN_PRICE = TAXAS.musicaPremium.valor;
@@ -18,7 +18,7 @@ export const MUSIC_PLAN_FREE_MONTHS = TAXAS.musicaPremium.gratisMeses;
 export const ADS_EVERY = 3; // sem o plano: uma propaganda a cada 3 músicas
 export const MUSIC_GENRES = ['Sertanejo', 'Gospel', 'MPB', 'Rock', 'Pop', 'Rap', 'Eletrônica', 'Pagode', 'Forró', 'Instrumental'];
 const r2 = (n) => Math.round(n * 100) / 100;
-// Preço da música = o que o artista quer receber + R$ 0,99 do Re@lys.
+// Preço da música = o que o artista quer receber + R$ 0,99 do Realyz.
 export const priceFor = (artistValue) => r2(artistValue + MUSIC_FEE);
 export const artistGets = (price) => r2(Math.max(0, price - MUSIC_FEE));
 
@@ -88,7 +88,7 @@ export function publishTrack({ title, artist, genre, price, url, emoji, cover })
   return t;
 }
 export const removeTrack = (id) => set({ mine: data.mine.filter((t) => t.id !== id), playlists: data.playlists.map((p) => ({ ...p, tracks: p.tracks.filter((x) => x !== id) })) });
-// Na demonstração: registra uma venda de uma música minha (o artista recebe o valor menos a parte do Re@lys).
+// Na demonstração: registra uma venda de uma música minha (o artista recebe o valor menos a parte do Realyz).
 export const registerSale = (price) => set({ sales: data.sales + 1, earned: r2(data.earned + artistGets(price)) });
 
 // ---------- Playlists ----------
@@ -113,7 +113,7 @@ export function planInfo(at = Date.now()) {
 
 // ---------- Ouvir offline (pacote especial do Premium) ----------
 // Diferente da compra: a comprada é do cliente para sempre (pode baixar). A offline fica guardada
-// protegida dentro do Re@lys, só toca no app e só enquanto o Premium estiver pago. Cancelou ou
+// protegida dentro do Realyz, só toca no app e só enquanto o Premium estiver pago. Cancelou ou
 // parou de pagar: as offline ficam bloqueadas (voltam ao assinar de novo). Para conferir o plano,
 // o app precisa entrar na internet pelo menos 1 vez a cada 30 dias. Os plays offline contam para
 // o artista e sobem quando a internet volta.

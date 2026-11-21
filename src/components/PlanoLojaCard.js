@@ -19,7 +19,7 @@ export default function PlanoLojaCard() {
   const escolher = (p) =>
     Alert.alert(
       `Plano ${p.nome}`,
-      `${brl(p.valor)} ${p.periodo}. O primeiro mês é gratuito: a primeira cobrança é só daqui a ${LOJA_GRATIS_DIAS} dias. Além do plano, o Re@lys fica com ${LOJA_COMISSAO_PCT}% de cada venda.`,
+      `${brl(p.valor)} ${p.periodo}. O primeiro mês é gratuito: a primeira cobrança é só daqui a ${LOJA_GRATIS_DIAS} dias. Além do plano, o Realyz fica com ${LOJA_COMISSAO_PCT}% de cada venda.`,
       [
         { text: 'Voltar', style: 'cancel' },
         { text: 'Contratar e aceitar o pedido', onPress: () => dispatch({ type: 'STORE_PLAN', plan: p.id }) },
@@ -39,7 +39,7 @@ export default function PlanoLojaCard() {
       {status === 'livre' ? (
         <>
           <Text style={{ color: colors.muted, fontSize: 13, lineHeight: 18, marginTop: 8 }}>
-            Sua loja está no ar sem pagar nada. O plano só começa quando você aceitar o primeiro pedido pelo Re@lys, e o primeiro mês é gratuito. Depois: {brl(LOJA_MENSAL)} por mês ou {brl(LOJA_ANUAL)} no anual, mais {LOJA_COMISSAO_PCT}% de cada venda.
+            Sua loja está no ar sem pagar nada. O plano só começa quando você aceitar o primeiro pedido pelo Realyz, e o primeiro mês é gratuito. Depois: {brl(LOJA_MENSAL)} por mês ou {brl(LOJA_ANUAL)} no anual, mais {LOJA_COMISSAO_PCT}% de cada venda.
           </Text>
           <TouchableOpacity onPress={() => dispatch({ type: 'STORE_FIRST_ORDER' })} style={{ marginTop: 10, paddingVertical: 10, borderRadius: 12, backgroundColor: colors.cardAlt, alignItems: 'center' }} accessibilityLabel="Simular a chegada do primeiro pedido">
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>Simular: chegou o primeiro pedido</Text>
@@ -72,7 +72,7 @@ export default function PlanoLojaCard() {
 
       {plan ? (
         <Text style={{ color: colors.muted, fontSize: 13, lineHeight: 18, marginTop: 8 }}>
-          Plano {plan.nome}: {brl(plan.valor)} {plan.periodo}. {status === 'gratis' ? `Mês grátis até ${dia(lojaPrimeiraCobranca(sp))}; a primeira cobrança vem nesse dia.` : `Em dia desde ${dia(lojaPrimeiraCobranca(sp))}.`} O Re@lys fica com {LOJA_COMISSAO_PCT}% de cada venda.
+          Plano {plan.nome}: {brl(plan.valor)} {plan.periodo}. {status === 'gratis' ? `Mês grátis até ${dia(lojaPrimeiraCobranca(sp))}; a primeira cobrança vem nesse dia.` : `Em dia desde ${dia(lojaPrimeiraCobranca(sp))}.`} O Realyz fica com {LOJA_COMISSAO_PCT}% de cada venda.
         </Text>
       ) : null}
     </View>

@@ -149,7 +149,7 @@ function MemberNew({ bottom, onCreated }) {
       </View>
       <TouchableOpacity style={st.check} onPress={() => setOk(!ok)} activeOpacity={0.8} accessibilityLabel="A empresa é responsável por este funcionário">
         <Ionicons name={ok ? 'checkbox' : 'square-outline'} size={22} color={ok ? colors.primary : colors.muted} />
-        <Text style={{ color: colors.text, flex: 1, marginLeft: 10, lineHeight: 19 }}>A empresa é responsável por este funcionário e pelo que ele fizer no atendimento pelo Re@lys.</Text>
+        <Text style={{ color: colors.text, flex: 1, marginLeft: 10, lineHeight: 19 }}>A empresa é responsável por este funcionário e pelo que ele fizer no atendimento pelo Realyz.</Text>
       </TouchableOpacity>
       <TouchableOpacity style={st.btn} onPress={create} accessibilityLabel="Criar perfil do funcionário">
         <Text numberOfLines={1} style={[st.btnText, { marginLeft: 0 }]}>Criar perfil</Text>
@@ -176,7 +176,7 @@ function MemberEdit({ member: m, bottom, onRemoved }) {
         <Ionicons name={m.bio ? 'shield-checkmark' : 'finger-print'} size={22} color={m.bio ? colors.primary : colors.text} />
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={{ color: colors.text, fontWeight: '800' }}>{m.bio ? 'Biometria cadastrada' : 'Biometria não cadastrada'}</Text>
-          <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 1 }}>{m.bio ? `Perfil Re@lys ${m.username ? `@${m.username}` : 'criado'}, ligado à empresa como funcionário.` : 'Sem a biometria, ele não pode atender clientes. Ao cadastrar, o perfil dele é criado e ligado à empresa.'}</Text>
+          <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 1 }}>{m.bio ? `Perfil Realyz ${m.username ? `*${m.username}` : 'criado'}, ligado à empresa como funcionário.` : 'Sem a biometria, ele não pode atender clientes. Ao cadastrar, o perfil dele é criado e ligado à empresa.'}</Text>
         </View>
         {!m.bio ? (
           <TouchableOpacity style={st.small} onPress={() => setScan(true)} accessibilityLabel="Cadastrar a biometria do funcionário">
@@ -190,7 +190,7 @@ function MemberEdit({ member: m, bottom, onRemoved }) {
         onClose={() => setScan(false)}
         onFrames={() => {
           setScan(false);
-          // Com a biometria feita, nasce o perfil Re@lys do funcionário, já ligado à empresa.
+          // Com a biometria feita, nasce o perfil Realyz do funcionário, já ligado à empresa.
           const username = m.username || `${m.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '').slice(0, 18)}.${String(Date.now()).slice(-3)}`;
           memberUpdate(m.id, { bio: true, bioAt: Date.now(), username });
           Alert.alert('Biometria cadastrada ✅', `Perfil @${username} criado e ligado à empresa como funcionário. ${m.name.split(' ')[0]} já pode atender clientes.`);
@@ -239,7 +239,7 @@ function MemberEdit({ member: m, bottom, onRemoved }) {
         </TouchableOpacity>
       ) : null}
 
-      <Text style={st.note}>A empresa é responsável por este funcionário e pelo que ele fizer no atendimento pelo Re@lys.</Text>
+      <Text style={st.note}>A empresa é responsável por este funcionário e pelo que ele fizer no atendimento pelo Realyz.</Text>
       <TouchableOpacity style={{ paddingVertical: 16, alignItems: 'center' }} onPress={() => Alert.alert(`Tirar ${m.name} da equipe?`, 'Os atendimentos dele ficam sem responsável.', [{ text: 'Voltar', style: 'cancel' }, { text: 'Tirar', style: 'destructive', onPress: () => { memberRemove(m.id); onRemoved(); } }])}>
         <Text style={{ color: colors.danger || '#C0392B', fontWeight: '700' }}>Tirar da equipe</Text>
       </TouchableOpacity>

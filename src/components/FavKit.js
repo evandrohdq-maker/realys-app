@@ -187,7 +187,7 @@ export function FavLiveAlerts() {
       if (e.type !== 'live-favorito' || !e.data) return;
       const l = { ...e.data, real: true, photo: null, tag: 'Ao vivo', viewers: e.data.viewers || 0 };
       pushLiveAlert(l);
-      Alert.alert(`🔴 ${l.host} está ao vivo`, l.title || 'Entrou ao vivo agora no Re@lys.', [
+      Alert.alert(`🔴 ${l.host} está ao vivo`, l.title || 'Entrou ao vivo agora no Realyz.', [
         { text: 'Depois', style: 'cancel' },
         { text: 'Assistir', onPress: () => dispatch({ type: 'LIVE_OPEN', live: l }) },
       ]);

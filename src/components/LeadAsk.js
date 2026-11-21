@@ -21,7 +21,7 @@ export function useLeadAsk(company) {
     if (company && company.id === MY_COMPANY_ID) crmCapture({ client: state.user.name, text: t, origin: 'Página' });
     setText('');
     setOpen(false);
-    Alert.alert('Pedido enviado ✅', `${company ? company.name : 'A empresa'} recebeu o seu pedido e responde pelo chat do Re@lys.`);
+    Alert.alert('Pedido enviado ✅', `${company ? company.name : 'A empresa'} recebeu o seu pedido e responde pelo chat do Realyz.`);
   };
   const modal = (
     <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}><KeyboardLift style={{ flex: 1 }}>

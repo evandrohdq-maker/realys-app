@@ -43,9 +43,9 @@ export function moderateText(text, where = 'publico') {
   const t = norm(text);
   if (!t) return { ok: true };
   if (MINOR.test(t) && SEXUAL.test(t))
-    return { ok: false, kind: 'menor', why: 'Conteúdo sexual envolvendo criança ou adolescente é crime e não é permitido no Re@lys. A tentativa fica registrada.' };
+    return { ok: false, kind: 'menor', why: 'Conteúdo sexual envolvendo criança ou adolescente é crime e não é permitido no Realyz. A tentativa fica registrada.' };
   if (HATE.some((r) => r.test(t)))
-    return { ok: false, kind: 'odio', why: 'Racismo, discriminação e discurso de ódio não são permitidos no Re@lys (racismo e injúria racial são crimes). Reescreva a mensagem com respeito.' };
+    return { ok: false, kind: 'odio', why: 'Racismo, discriminação e discurso de ódio não são permitidos no Realyz (racismo e injúria racial são crimes). Reescreva a mensagem com respeito.' };
   if (where === 'publico' && /\b(nudes?|pelad[ao]s?|foto sem roupa|pornografi\w*|porno|putaria)\b/.test(t))
     return { ok: false, kind: 'nudez', why: 'Conteúdo sexual e nudez não são permitidos em publicações, comentários e lives. Biquíni e sunga pode.' };
   return { ok: true };
@@ -54,8 +54,8 @@ export function moderateText(text, where = 'publico') {
 // Regra mostrada a quem publica foto ou vídeo.
 export const PHOTO_RULE = 'Sem nudez e sem partes íntimas à mostra. Biquíni, maiô e sunga pode. Nada com criança em situação íntima. Publicações fora da regra são removidas e a conta pode ser suspensa.';
 
-// ---------- Anti-desvio: o cliente não sai do Re@lys pela caixa de conversa ----------
-// Venda e contratação de serviço só pelo Re@lys (com a Garantia e a taxa da plataforma).
+// ---------- Anti-desvio: o cliente não sai do Realyz pela caixa de conversa ----------
+// Venda e contratação de serviço só pelo Realyz (com a Garantia e a taxa da plataforma).
 // Em conversa de negócio (empresa, prestador, rádio, sala de atendimento, CRM) e em conversa com quem
 // ainda não aceitou o contato, não passam: telefone, e-mail, @ de outra rede, link de WhatsApp/Telegram,
 // chave Pix e combinados de pagar "por fora". Entre amigos que aceitaram o contato, a conversa é livre.
@@ -68,7 +68,7 @@ const DESVIO = [
   { kind: 'fora', test: (raw, t) => /\b(whats|whatsapp|wpp|zap|zapzap|telegram|telegran|insta|direct|dm)\b/.test(t) && /\b(me chama|chama no|manda no|fala no|me add|me adiciona|passa teu|passa seu|me passa|meu numero|teu numero|seu numero|contato|la no|pelo|no)\b/.test(t) },
   { kind: 'pagamento', test: (raw, t) => /\b(por fora|fora do app|fora do aplicativo|fora da plataforma|sem a taxa|sem taxa do app|direto comigo|paga direto|pagar direto|deposita na minha conta|transfere pra mim|faz um pix|manda um pix|chave pix|minha chave|meu pix|pix pra mim|pix direto|dinheiro na mao|em especie)\b/.test(t) },
 ];
-export const DESVIO_MSG = 'Para a sua segurança, contatos e pagamentos ficam dentro do Re@lys. Assim vale a Garantia Re@lys: se der problema, o dinheiro volta. Combine e pague pelo app (proposta, pedido ou chamado).';
+export const DESVIO_MSG = 'Para a sua segurança, contatos e pagamentos ficam dentro do Realyz. Assim vale a Garantia Realyz: se der problema, o dinheiro volta. Combine e pague pelo app (proposta, pedido ou chamado).';
 export function antiDesvio(text) {
   const raw = String(text || '');
   const t = norm(raw);

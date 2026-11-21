@@ -1,4 +1,4 @@
-// Tema claro do Re@lys: fundo marfim luminoso, dourado brilhante combinando com preto.
+// Tema claro do Realyz: fundo marfim luminoso, dourado brilhante combinando com preto.
 // Os fundos continuam claros; o preto fica nas letras e nos ícones, e o dourado nos destaques.
 export const colors = {
   primary: '#B8860B', // dourado (botões e letras douradas)

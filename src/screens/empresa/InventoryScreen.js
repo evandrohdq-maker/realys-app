@@ -20,7 +20,7 @@ export default function InventoryScreen() {
   const food = isFoodStore(minhaLoja);
   const totalValue = products.reduce((s, p) => s + p.cost * p.stock, 0);
 
-  // Produto novo publicado: vai para a página da loja e para o Shop, no setor que o Re@lys classificou.
+  // Produto novo publicado: vai para a página da loja e para o Shop, no setor que o Realyz classificou.
   const save = async (product) => {
     // Conta ligada ao servidor: o produto vai para o servidor e aparece no Shop/Food de todo mundo.
     if (conectado(state)) {

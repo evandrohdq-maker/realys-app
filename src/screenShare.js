@@ -1,7 +1,7 @@
 // Compartilhar a tela do celular numa sala (Arena Gamer e Hub de Negócios).
 // O mesmo motor serve para as duas: cada tela decide onde fica o botão.
 //
-// Com o servidor e o servidor de vídeo no ar: a tela vai para o servidor de vídeo do Re@lys (WHIP) e só
+// Com o servidor e o servidor de vídeo no ar: a tela vai para o servidor de vídeo do Realyz (WHIP) e só
 // quem está na sala recebe (WHEP), com passe conferido pelo servidor. Sem isso, roda em modo demonstração
 // (mostra o aviso e o painel de quem está transmitindo, sem vídeo de verdade).
 //
@@ -32,7 +32,7 @@ const emit = () => subs.forEach((fn) => fn());
 export const screenShare = () => share;
 export const PAUSE_LABEL = { abrindo: 'Abrindo o jogo', carteira: 'Carteira aberta', pix: 'Pagamento por Pix', chat: 'Conversa privada', chamada: 'Chamada privada', senha: 'Digitando senha', login: 'Entrando na conta', biometria: 'Biometria', dados: 'Dados pessoais' };
 
-// Enquanto estou transmitindo e há uma tela privada aberta, o Android também deixa o Re@lys preto na
+// Enquanto estou transmitindo e há uma tela privada aberta, o Android também deixa o Realyz preto na
 // captura (FLAG_SECURE): mesmo que algo falhe na pausa, a senha não aparece para ninguém.
 let secured = false;
 const secure = (on) => {
@@ -147,7 +147,7 @@ export function useScreenSharePause(active, motivo = 'carteira') {
   }, [active, motivo]);
 }
 
-// Cortina da live de jogo: enquanto o Re@lys está aberto e por alguns segundos depois de sair dele
+// Cortina da live de jogo: enquanto o Realyz está aberto e por alguns segundos depois de sair dele
 // (o tempo de passar pela tela inicial e abrir o jogo), a tela não vai para quem assiste.
 // Assim ninguém vê os aplicativos e a tela inicial do celular; só o jogo.
 export function setOpeningCurtain(on) {

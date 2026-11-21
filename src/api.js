@@ -1,8 +1,8 @@
-// Ligação do app com o servidor do Re@lys (pasta server/ do repositório).
+// Ligação do app com o servidor do Realyz (pasta server/ do repositório).
 //
 // Enquanto o endereço do servidor não estiver configurado, o app continua no modo demonstração
 // (tudo no celular). Para ligar: em app.json › expo › extra › apiUrl, coloque o endereço da VPS,
-// por exemplo "https://api.realys.com.br", e gere o APK de novo.
+// por exemplo "https://api.realyz.com.br", e gere o APK de novo.
 //
 // Sessão: na primeira entrada (usuário/CPF/CNPJ + senha) o servidor devolve uma "sessão do aparelho",
 // guardada no cofre do Android (SecureStore). Depois, a biometria libera essa sessão e o app pega um
@@ -52,7 +52,7 @@ async function raw(method, path, body, headers = {}) {
       body: body === undefined ? undefined : body instanceof ArrayBuffer ? body : JSON.stringify(body),
     });
   } catch (e) {
-    throw new ApiError(0, 'Sem conexão com o Re@lys. Confira sua internet.');
+    throw new ApiError(0, 'Sem conexão com o Realyz. Confira sua internet.');
   }
   const data = await res.json().catch(() => ({}));
   // O servidor recusou por falta de biometria: o app abre o aviso "Biometria não cadastrada".

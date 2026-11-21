@@ -1,5 +1,5 @@
 // Empregos (lado do usuário): vagas de empresas com CNPJ conferido, perto de você.
-// - Currículo Re@lys: montado do perfil verificado; a pessoa completa habilidades e disponibilidade.
+// - Currículo Realyz: montado do perfil verificado; a pessoa completa habilidades e disponibilidade.
 // - Compatibilidade: cada vaga mostra o quanto combina com o currículo (habilidades e distância).
 // - Candidatura rápida com um toque, vagas salvas e o andamento de cada candidatura
 //   (enviada → vista → entrevista → resultado), com o mesmo status que a empresa marca no RH.
@@ -80,7 +80,7 @@ export default function JobsScreen({ explore }) {
   const quickApply = (j, msg = '') => {
     if (state.applications[j.id]) return;
     dispatch({ type: 'APPLY_JOB', id: j.id, note: msg.trim(), match: j.match });
-    Alert.alert('Candidatura enviada ✅', `${j.company} recebeu seu currículo Re@lys, com identidade verificada. Acompanhe em "Candidaturas".`);
+    Alert.alert('Candidatura enviada ✅', `${j.company} recebeu seu currículo Realyz, com identidade verificada. Acompanhe em "Candidaturas".`);
   };
 
   const done = resumeDone(resume);
@@ -94,7 +94,7 @@ export default function JobsScreen({ explore }) {
     <Screen>
       <Title sub="Sua próxima vaga tá pertinho. Só empresa de verdade">Empregos</Title>
 
-      {/* Currículo Re@lys */}
+      {/* Currículo Realyz */}
       <TouchableOpacity style={styles.resume} activeOpacity={0.9} onPress={() => setEditing(true)} accessibilityLabel="Editar meu currículo">
         <View style={styles.resAvatar}>
           {state.myProfile && state.myProfile.photo ? (
@@ -185,7 +185,7 @@ export default function JobsScreen({ explore }) {
                   <View style={styles.interview}>
                     <Ionicons name={p.interview.mode === 'video' ? 'videocam' : 'business'} size={16} color={colors.primary} />
                     <Text style={{ marginLeft: 6, color: colors.text, flex: 1 }}>
-                      {p.interview.when} · {p.interview.mode === 'video' ? 'por vídeo no Re@lys' : 'na empresa'}
+                      {p.interview.when} · {p.interview.mode === 'video' ? 'por vídeo no Realyz' : 'na empresa'}
                     </Text>
                   </View>
                 ) : null}
@@ -277,7 +277,7 @@ export default function JobsScreen({ explore }) {
                   <>
                     <Text style={styles.h3}>Mensagem para a empresa (opcional)</Text>
                     <TextInput placeholder="Ex.: Tenho 2 anos de experiência e moro perto" placeholderTextColor={colors.muted} value={note} onChangeText={setNote} style={styles.input} multiline />
-                    <Text style={styles.hint}>Vai junto o seu currículo Re@lys, com nome e foto verificados por biometria.</Text>
+                    <Text style={styles.hint}>Vai junto o seu currículo Realyz, com nome e foto verificados por biometria.</Text>
                     <TouchableOpacity style={styles.applyBig} onPress={() => { quickApply(job, note); setNote(''); setOpen(null); }}>
                       <Ionicons name="paper-plane" size={18} color="#FFFFFF" />
                       <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 16, marginLeft: 8 }}>Candidatar-se</Text>
@@ -364,7 +364,7 @@ function JobCard({ j, applied, saved, onPress, onSave, onApply }) {
   );
 }
 
-// Editor do currículo Re@lys.
+// Editor do currículo Realyz.
 function ResumeEditor({ visible, onClose }) {
   const { state, dispatch } = useStore();
   const [r, setR] = useState(state.resume || {});

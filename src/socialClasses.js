@@ -1,4 +1,4 @@
-// Perfis sociais do Re@lys: cada pessoa ganha uma CLASSE (ex.: Gamer) e uma SUBCLASSE (ex.: Streamer)
+// Perfis sociais do Realyz: cada pessoa ganha uma CLASSE (ex.: Gamer) e uma SUBCLASSE (ex.: Streamer)
 // a partir do que ela escreve sobre si no cadastro. Tudo roda no celular, sem servidor.
 //
 // Para criar uma classe nova: acrescente um item em CLASSES com ícone, cor, palavras e subclasses.
@@ -352,7 +352,7 @@ export const CLASSES = [
   },
 ];
 
-export const DEFAULT_CLASS = { id: 'membro', label: 'Membro Re@lys', icon: 'person-circle', color: '#B8860B', subs: [] };
+export const DEFAULT_CLASS = { id: 'membro', label: 'Membro Realyz', icon: 'person-circle', color: '#B8860B', subs: [] };
 
 // Perguntas rápidas do questionário (opcionais). Cada resposta soma palavras à descrição.
 export const QUIZ_HOBBIES = [

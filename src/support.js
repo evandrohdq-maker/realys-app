@@ -1,4 +1,4 @@
-// Suporte do Re@lys para os usuários.
+// Suporte do Realyz para os usuários.
 // 1) Perguntas frequentes. 2) A Lotus responde na hora as dúvidas comuns. 3) O que ela não resolve
 // vira um chamado, que a equipe responde pelo painel do administrador (aba Suporte).
 // Assuntos de dinheiro, conta bloqueada e biometria entram na frente da fila.
@@ -27,7 +27,7 @@ export { FAQ };
 
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 // A Lotus procura a pergunta frequente que mais combina com a dúvida. Sem combinação boa, devolve null.
-// A Lotus responde pelo conhecimento do Re@lys (src/lm/realysKnowledge.js): entende pelo sentido,
+// A Lotus responde pelo conhecimento do Realyz (src/lm/realysKnowledge.js): entende pelo sentido,
 // usa as regras e taxas do app, o Termo de Adesão e os dados da própria conta (saldo, pedidos...).
 // Sem resposta boa, cai nas perguntas frequentes por palavra-chave.
 export function lotusAnswer(text, state) {
@@ -99,7 +99,7 @@ export function openTicket({ user, topic, text, lotusTried }) {
     at,
     updatedAt: at,
     unreadUser: 0,
-    messages: [msg('user', text, at), msg('system', `Chamado nº ${n} aberto${t.urgent ? ' com prioridade' : ''}. A equipe do Re@lys responde por aqui.`, at)],
+    messages: [msg('user', text, at), msg('system', `Chamado nº ${n} aberto${t.urgent ? ' com prioridade' : ''}. A equipe do Realyz responde por aqui.`, at)],
     lotusTried: !!lotusTried,
   };
   tickets = [ticket, ...tickets];
@@ -113,7 +113,7 @@ const patch = (id, fn) => {
   emit();
 };
 export const userReply = (id, text) => patch(id, (t) => ({ ...t, status: 'aberto', updatedAt: Date.now(), messages: [...t.messages, msg('user', text)] }));
-export const teamReply = (id, text, by = 'Equipe Re@lys') => patch(id, (t) => ({ ...t, status: 'respondido', updatedAt: Date.now(), unreadUser: (t.unreadUser || 0) + 1, messages: [...t.messages, { ...msg('team', text), by }] }));
+export const teamReply = (id, text, by = 'Equipe Realyz') => patch(id, (t) => ({ ...t, status: 'respondido', updatedAt: Date.now(), unreadUser: (t.unreadUser || 0) + 1, messages: [...t.messages, { ...msg('team', text), by }] }));
 export const closeTicket = (id, by = 'user') =>
   patch(id, (t) => ({ ...t, status: 'resolvido', updatedAt: Date.now(), messages: [...t.messages, msg('system', by === 'user' ? 'Você marcou o chamado como resolvido.' : 'A equipe encerrou o chamado. Se precisar, é só responder para reabrir.')] }));
 export const rateTicket = (id, stars) => patch(id, (t) => ({ ...t, rating: stars }));
@@ -143,6 +143,6 @@ export function supportSummary() {
 export const QUICK_REPLIES = [
   'Olá! Recebemos o seu chamado e já estamos verificando.',
   'Pode nos enviar mais detalhes, por favor? Em qual tela aconteceu e o que apareceu?',
-  'Conferimos aqui e o valor foi devolvido para a sua carteira Re@lys.',
+  'Conferimos aqui e o valor foi devolvido para a sua carteira Realyz.',
   'Problema corrigido. Feche e abra o app para atualizar.',
 ];

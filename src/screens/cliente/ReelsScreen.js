@@ -1,5 +1,5 @@
 // Reels (abre arrastando a página inicial para a direita ou pela Lotus): todos os Reels do
-// Re@lys num lugar só, estilo Instagram. Os Reels publicados pelo usuário aparecem primeiro. "Para você" mistura lojas e comida; "Shop" e "Food" filtram.
+// Realyz num lugar só, estilo Instagram. Os Reels publicados pelo usuário aparecem primeiro. "Para você" mistura lojas e comida; "Shop" e "Food" filtram.
 import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text } from '../../responsive';

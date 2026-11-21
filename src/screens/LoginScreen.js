@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { KeyboardLift } from '../keyboard';
-import { View, StyleSheet, Alert, ScrollView, TouchableOpacity, Platform, BackHandler } from 'react-native';
+import { View, StyleSheet, Alert, ScrollView, TouchableOpacity, Platform, BackHandler, Image } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
@@ -48,8 +48,8 @@ function detect(value) {
 // CNPJ → empresa e fornecedor (e também cliente); CPF ou usuário → cliente e prestador.
 function demoUser(value, info) {
   if (info.kind === 'cnpj') return { name: 'Minha Empresa', roles: ['empresa', 'fornecedor', 'cliente'], cnpj: info.doc };
-  if (info.kind === 'cpf') return { name: 'Usuário Re@lys', roles: ['cliente', 'prestador'], cpf: info.doc, cnpj: '12.345.678/0001-90' };
-  const name = value.trim().replace(/^@/, '');
+  if (info.kind === 'cpf') return { name: 'Usuário Realyz', roles: ['cliente', 'prestador'], cpf: info.doc, cnpj: '12.345.678/0001-90' };
+  const name = value.trim().replace(/^[@*]/, '');
   return { name: name.charAt(0).toUpperCase() + name.slice(1), roles: ['cliente', 'prestador'], cnpj: '12.345.678/0001-90' };
 }
 
@@ -220,10 +220,8 @@ export default function LoginScreen() {
     <KeyboardLift style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled">
         <View style={styles.brandBlock}>
-          <View style={styles.mark}>
-            <Ionicons name="cube-outline" size={30} color={colors.primary} />
-          </View>
-          <Text style={styles.logo}>REALYS</Text>
+          {/* Marca Realyz: o A unido à estrela dourada no fundo. */}
+          <Image source={require('../../assets/wordmark-escuro.png')} style={styles.wordmark} resizeMode="contain" accessibilityLabel="Realyz" />
           <Text style={styles.headline}>Você no comando.</Text>
           <Text style={styles.tagline}>Pessoas reais. Negócios reais.</Text>
         </View>
@@ -243,7 +241,7 @@ export default function LoginScreen() {
           <SignupForm onDone={onSignedUp} onGoLogin={() => setMode('entrar')} />
         ) : !showForm && saved.length ? (
           <View style={styles.panel}>
-            <Text style={styles.label}>Quem vai usar o Re@lys?</Text>
+            <Text style={styles.label}>Quem vai usar o Realyz?</Text>
             <Text style={styles.sub}>Contas salvas neste aparelho. Toque e confirme com a biometria.</Text>
             {saved.map((s) => {
               const icon = KIND_ICON[s.user.roles[0]] || 'person-outline';
@@ -381,6 +379,7 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     elevation: 8,
   },
+  wordmark: { width: 230, height: 71, marginBottom: 6 },
   logo: { fontSize: 36, fontWeight: '700', color: colors.text, letterSpacing: 8 },
   headline: { fontSize: 30, color: colors.text, fontWeight: '800', marginTop: 18, letterSpacing: -0.5, textAlign: 'center' },
   tagline: { fontSize: 17, color: colors.accent, fontWeight: '700', marginTop: 6 },

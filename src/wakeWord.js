@@ -1,6 +1,6 @@
 // Comando de ativação "abrir Lotus": o app fica ouvindo e, quando alguém fala "abrir Lotus…",
 // abre a assistente Lotus com o pedido. Não passa pelo "Ok Google": usa o reconhecimento
-// de voz do próprio celular, dentro do Re@lys.
+// de voz do próprio celular, dentro do Realyz.
 // Funciona com o app aberto e a tela ligada. Com a tela bloqueada é a próxima etapa
 // (precisa de um serviço em segundo plano com aviso fixo na barra de notificações).
 import { useEffect, useRef } from 'react';
@@ -333,7 +333,7 @@ export function WakeWordListener({ enabled, onWake, onWakeStart, onWakeHeard, on
     if (event && (event.error === 'not-allowed' || event.error === 'service-not-allowed')) {
       on.current = false;
       stop();
-      onFatal && onFatal('O Re@lys precisa da permissão do microfone para ouvir o comando "abrir Lotus".');
+      onFatal && onFatal('O Realyz precisa da permissão do microfone para ouvir o comando "abrir Lotus".');
     }
   });
 

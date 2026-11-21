@@ -102,7 +102,7 @@ function Onboarding({ openTerms }) {
             <Text style={{ color: colors.text, fontWeight: '700', marginLeft: 8, flex: 1 }}>O Encontros fica desligado para você</Text>
           </Row>
           <Text style={{ color: colors.muted, marginTop: 6, lineHeight: 19 }}>
-            Por respeito ao seu relacionamento, quem está namorando, em união estável ou casado não aparece para ninguém e não recebe nenhuma notificação de encontros. O resto do Re@lys continua igual.
+            Por respeito ao seu relacionamento, quem está namorando, em união estável ou casado não aparece para ninguém e não recebe nenhuma notificação de encontros. O resto do Realyz continua igual.
           </Text>
         </Card>
       ) : null}
@@ -133,11 +133,11 @@ function Onboarding({ openTerms }) {
               <Ionicons name="chevron-forward" size={18} color={colors.muted} />
             </TouchableOpacity>
             <Check on={age} onPress={() => setAge(!age)} text="Tenho 18 anos ou mais e não estou em um relacionamento." />
-            <Check on={agree} onPress={() => setAgree(!agree)} text="Li e aceito os Termos de Uso do Re@lys Encontros." />
+            <Check on={agree} onPress={() => setAgree(!agree)} text="Li e aceito os Termos de Uso do Realyz Encontros." />
             <Check
               on={consent}
               onPress={() => setConsent(!consent)}
-              text="Autorizo o Re@lys a usar meus dados de relacionamento e a minha localização aproximada (só com o radar ligado) para o Encontros funcionar. Posso retirar a autorização a qualquer momento."
+              text="Autorizo o Realyz a usar meus dados de relacionamento e a minha localização aproximada (só com o radar ligado) para o Encontros funcionar. Posso retirar a autorização a qualquer momento."
             />
           </Section>
 
@@ -821,7 +821,7 @@ function ScoreBar({ score, onPress }) {
 async function pickPhotos(limit) {
   const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!perm.granted) {
-    Alert.alert('Permissão necessária', 'Autorize o Re@lys a ver suas fotos para escolher as do Date.');
+    Alert.alert('Permissão necessária', 'Autorize o Realyz a ver suas fotos para escolher as do Date.');
     return [];
   }
   const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsMultipleSelection: true, selectionLimit: limit, quality: 0.8 });
@@ -992,7 +992,7 @@ function ProfileEditor({ visible, onClose }) {
           <Card>
             <Row>
               <View style={{ flex: 1, paddingRight: 10 }}>
-                <Text style={{ color: colors.text, fontWeight: '700' }}>Mostrar meu perfil da Re@lys para meus crushes</Text>
+                <Text style={{ color: colors.text, fontWeight: '700' }}>Mostrar meu perfil da Realyz para meus crushes</Text>
                 <Text style={styles.note}>Desligado: ninguém do Date chega ao seu perfil social, nem depois do crush.</Text>
               </View>
               <Switch value={showSocial} onValueChange={setShowSocial} trackColor={{ true: ROSE, false: colors.border }} thumbColor="#fff" />
@@ -1196,7 +1196,7 @@ function TermsModal({ visible, onClose }) {
       <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
         <View style={styles.termsHead}>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>Termos de Uso do Re@lys Encontros</Text>
+            <Text style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>Termos de Uso do Realyz Encontros</Text>
             <Text style={{ color: colors.muted, fontSize: 12 }}>{TERMS_VERSION}</Text>
           </View>
           <TouchableOpacity onPress={onClose} style={styles.closeBtn} accessibilityLabel="Fechar">

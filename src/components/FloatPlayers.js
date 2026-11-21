@@ -1,4 +1,4 @@
-// Players flutuantes do Re@lys (montados uma vez no App, por cima de qualquer tela):
+// Players flutuantes do Realyz (montados uma vez no App, por cima de qualquer tela):
 //  - TvFloat: o canal de TV da aba Stream numa janelinha. Segure e arraste para mudar de canto.
 //    O botão de janela (ou sair do app com o canal tocando) passa o vídeo para o
 //    picture-in-picture do Android: ele continua num canto da tela, por cima dos outros apps.
@@ -45,7 +45,7 @@ export function hardStopTv() {
 
 // O vídeo do canal. Trocar de canal remonta o player (key = id do canal).
 function TvVideo({ channel, viewRef, ctl, onPlaying, onFail }) {
-  const player = EV.useVideoPlayer({ uri: channel.url, metadata: { title: channel.name, artist: channel.kind === 'clipe' ? 'Clipe no Re@lys' : 'TV no Re@lys' } }, (p) => {
+  const player = EV.useVideoPlayer({ uri: channel.url, metadata: { title: channel.name, artist: channel.kind === 'clipe' ? 'Clipe no Realyz' : 'TV no Realyz' } }, (p) => {
     p.staysActiveInBackground = true; // o som continua se a pessoa sair do app
     p.showNowPlayingNotification = true; // controle na barra de notificações
     p.play();
@@ -121,7 +121,7 @@ export function TvFloat({ bottom = 150 }) {
   const h = Math.round((w * 9) / 16);
   const showUi = !inPip && (!full || ui);
   // Janelinha por cima dos outros apps: só o vídeo do canal (src/pip.js).
-  // Minimizar: o Re@lys sai da frente e o vídeo fica numa janelinha; o som continua.
+  // Minimizar: o Realyz sai da frente e o vídeo fica numa janelinha; o som continua.
   const pip = () => minimizeApp('tv');
   return (
     <Floating full={inPip || full} place={{ right: 12, bottom }} style={[st.tv, { width: w, height: h }]}>

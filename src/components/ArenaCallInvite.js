@@ -2,7 +2,7 @@
 //  - CallPersonSheet: abre ao SEGURAR o nome de alguém (membros, jogando agora, sala de voz) ou pela
 //    opção "Convidar para chamada" da pessoa. Chama para a sala de voz em que estou, para outra sala
 //    do servidor ou para uma chamada particular só de vocês dois.
-//  - InviteSheet: botão de adicionar (👤+) do servidor. Convida amigos do Re@lys e, para quem ainda não
+//  - InviteSheet: botão de adicionar (👤+) do servidor. Convida amigos do Realyz e, para quem ainda não
 //    tem o app, manda o link por fora (WhatsApp, SMS...): a pessoa baixa, se cadastra e cai na chamada.
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert } from 'react-native';
@@ -178,13 +178,13 @@ export function InviteSheet({ open, sv, me, onClose }) {
           <Text style={{ color: D.muted, marginVertical: 10 }}>Este servidor ainda não tem sala de voz. Crie uma em Canais de voz.</Text>
         )}
 
-        {/* Fora do app: para quem ainda não tem o Re@lys (ou não está na sua lista). */}
+        {/* Fora do app: para quem ainda não tem o Realyz (ou não está na sua lista). */}
         <TouchableOpacity style={st.primary} onPress={sendLink} activeOpacity={0.85} accessibilityLabel="Enviar link da chamada por fora do app">
           <Ionicons name="link" size={18} color="#fff" />
           <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.primaryTxt}>Enviar link por fora do app</Text>
         </TouchableOpacity>
         <Text style={st.hint}>
-          Manda por WhatsApp, SMS ou e-mail. Quem não tem o Re@lys baixa o app, faz o cadastro com biometria e entra direto na chamada.
+          Manda por WhatsApp, SMS ou e-mail. Quem não tem o Realyz baixa o app, faz o cadastro com biometria e entra direto na chamada.
         </Text>
         {link ? (
           <View style={st.linkBox}>
@@ -196,7 +196,7 @@ export function InviteSheet({ open, sv, me, onClose }) {
           </View>
         ) : null}
 
-        <Text style={[st.label, { marginTop: 14 }]}>Amigos no Re@lys</Text>
+        <Text style={[st.label, { marginTop: 14 }]}>Amigos no Realyz</Text>
         <ScrollView style={{ maxHeight: 260 }}>
           {friends.length ? (
             friends.map((m) => {
@@ -207,7 +207,7 @@ export function InviteSheet({ open, sv, me, onClose }) {
                   <Photo uri={m.photo} style={{ width: 38, height: 38, borderRadius: 19 }} fallback="🙂" />
                   <View style={{ flex: 1, marginLeft: 10 }}>
                     <Text style={{ color: D.text, fontWeight: '700' }} numberOfLines={1}>{m.name}</Text>
-                    <Text style={{ color: D.muted, fontSize: 12 }} numberOfLines={1}>{there ? 'Na sala' : sent[m.name] ? 'Convite enviado · aguardando' : `@${m.handle}`}</Text>
+                    <Text style={{ color: D.muted, fontSize: 12 }} numberOfLines={1}>{there ? 'Na sala' : sent[m.name] ? 'Convite enviado · aguardando' : `*${m.handle}`}</Text>
                   </View>
                   <TouchableOpacity disabled={!!done || !room} onPress={() => invite(m)} style={[st.small, done && st.smallDone]} accessibilityLabel={`Convidar ${m.name} para a chamada`}>
                     <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.smallTxt, done && { color: D.muted }]}>{there ? 'Na sala' : sent[m.name] ? 'Enviado' : 'Convidar'}</Text>
@@ -216,7 +216,7 @@ export function InviteSheet({ open, sv, me, onClose }) {
               );
             })
           ) : (
-            <Text style={{ color: D.muted, fontSize: 13 }}>Você ainda não tem amigos no Re@lys. Mande o link por fora do app.</Text>
+            <Text style={{ color: D.muted, fontSize: 13 }}>Você ainda não tem amigos no Realyz. Mande o link por fora do app.</Text>
           )}
         </ScrollView>
       </View>

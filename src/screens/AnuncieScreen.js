@@ -1,4 +1,4 @@
-// Anuncie no Re@lys: todos os espaços de publicidade num lugar só, com preço fechado e compra
+// Anuncie no Realyz: todos os espaços de publicidade num lugar só, com preço fechado e compra
 // direta pelo app (saldo ou pontos). Abre pelo menu ⋮ e pela Lotus ("anunciar").
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
@@ -10,7 +10,7 @@ import { BoostOffers, MyBoosts } from '../components/Boost';
 import { TAXAS, mercadoPublico } from '../taxas';
 
 const PONTOS = [
-  ['people-outline', 'Só gente de verdade vê', 'Todo mundo no Re@lys passou pela biometria: sem perfil falso, sem robô.'],
+  ['people-outline', 'Só gente de verdade vê', 'Todo mundo no Realyz passou pela biometria: sem perfil falso, sem robô.'],
   ['pricetag-outline', 'Preço fechado', 'Você sabe quanto paga antes de confirmar. Sem leilão e sem cobrança por clique.'],
   ['flash-outline', 'Contrata na hora', 'Escolhe o espaço, paga com saldo ou pontos e o anúncio vai para análise.'],
 ];
@@ -18,7 +18,7 @@ const PONTOS = [
 export default function AnuncieScreen() {
   return (
     <Screen>
-      <Title sub="Coloque a sua marca na frente de quem compra">Anuncie no Re@lys</Title>
+      <Title sub="Coloque a sua marca na frente de quem compra">Anuncie no Realyz</Title>
       <View style={st.box}>
         {PONTOS.map(([icon, title, text]) => (
           <View key={title} style={st.row}>

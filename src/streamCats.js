@@ -1,5 +1,5 @@
 // Categorias de transmissão do Stream (rádios e TVs).
-// A rádio/TV escolhe a categoria ao indexar; se não escolher, o Re@lys descobre pelo estilo escrito.
+// A rádio/TV escolhe a categoria ao indexar; se não escolher, o Realyz descobre pelo estilo escrito.
 // tint = cor da categoria (chips e capa do perfil quando a estação não mandou capa).
 
 export const RADIO_CATS = [

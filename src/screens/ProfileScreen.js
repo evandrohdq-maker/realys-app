@@ -214,7 +214,7 @@ export default function ProfileScreen({ navigate, explore }) {
     if (explore && explore.tab === 'perfil' && explore.biometria) setBioOpen(true);
   }, [explore]);
 
-  // Sai da conta e volta para a tela "Quem vai usar o Re@lys?".
+  // Sai da conta e volta para a tela "Quem vai usar o Realyz?".
   const switchUser = () =>
     Alert.alert('Trocar usuário', `Sair da conta de ${u.name} para outra pessoa entrar?`, [
       { text: 'Cancelar', style: 'cancel' },
@@ -226,7 +226,7 @@ export default function ProfileScreen({ navigate, explore }) {
     const saved = await getSavedUsers();
     const mine = saved.find((s) => (u.id && s.user.id === u.id) || (s.user.name === u.name && s.user.cpf === u.cpf && s.user.cnpj === u.cnpj));
     if (!mine) return dispatch({ type: 'LOGOUT' });
-    Alert.alert('Sair do Re@lys', 'Sua conta está salva neste aparelho. Quer manter para entrar só com a biometria da próxima vez?', [
+    Alert.alert('Sair do Realyz', 'Sua conta está salva neste aparelho. Quer manter para entrar só com a biometria da próxima vez?', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Remover e sair',
@@ -292,7 +292,7 @@ export default function ProfileScreen({ navigate, explore }) {
           <Ionicons name="checkmark-circle" size={18} color={colors.accent} style={{ marginLeft: 5 }} accessibilityLabel="Identidade verificada por biometria" />
         </View>
         {prof.handle || prof.profession ? (
-          <Text style={styles.handle} numberOfLines={1}>{[prof.handle ? '@' + prof.handle : '', prof.profession].filter(Boolean).join(' · ')}</Text>
+          <Text style={styles.handle} numberOfLines={1}>{[prof.handle ? '*' + prof.handle : '', prof.profession].filter(Boolean).join(' · ')}</Text>
         ) : null}
         {prof.social ? (
           <SocialBadge social={prof.social} style={{ marginTop: 8, alignSelf: 'center' }} onPress={() => setQuizOpen(true)} />
@@ -361,7 +361,7 @@ export default function ProfileScreen({ navigate, explore }) {
           Abre pelo número "Dep" lá em cima (saiu da página inicial). */}
       <DepCenter visible={depOpen} onClose={() => setDepOpen(false)} />
 
-      {/* Menu ⋮ do Perfil: duas partes, Minha conta e Explorar o Re@lys. */}
+      {/* Menu ⋮ do Perfil: duas partes, Minha conta e Explorar o Realyz. */}
       <Modal visible={menuOpen} animationType="slide" onRequestClose={closeMenu}>
         <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
           <View style={styles.menuHead}>
@@ -388,14 +388,14 @@ export default function ProfileScreen({ navigate, explore }) {
           ) : (
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 30 + insets.bottom }} keyboardShouldPersistTaps="handled">
       <View style={styles.moreBox}>
-        <Item open={open} onToggle={toggle} k="score" icon="ribbon-outline" title="Score Re@lys" sub="Sua reputação em todos os perfis">
+        <Item open={open} onToggle={toggle} k="score" icon="ribbon-outline" title="Score Realyz" sub="Sua reputação em todos os perfis">
           <ScoreCard />
           <GuaranteeInfo />
         </Item>
-        {/* Estúdio Re@lys: para artistas, músicos e criadores de conteúdo. Não aparece no perfil de empresa
+        {/* Estúdio Realyz: para artistas, músicos e criadores de conteúdo. Não aparece no perfil de empresa
             (a empresa divulga por anúncios, propagandas e reels de anúncio, no Painel). */}
         {state.activeRole !== 'empresa' ? (
-          <Item open={open} onToggle={toggle} k="estudio" icon="rocket-outline" title="Estúdio Re@lys" sub="Para artistas, músicos e criadores de conteúdo">
+          <Item open={open} onToggle={toggle} k="estudio" icon="rocket-outline" title="Estúdio Realyz" sub="Para artistas, músicos e criadores de conteúdo">
             <StudioPanel />
           </Item>
         ) : (
@@ -426,7 +426,7 @@ export default function ProfileScreen({ navigate, explore }) {
               <View style={{ flex: 1, paddingRight: 10 }}>
                 <Text style={{ fontWeight: '700', color: colors.text, fontSize: 15 }}>Acionar falando "abrir Lotus"</Text>
                 <Text style={{ color: colors.muted, fontSize: 12, marginTop: 4 }}>
-                  Com o app aberto, diga "abrir Lotus, preciso de um eletricista" e a Lotus, assistente do Re@lys, atende com voz suave, sem tocar na tela e sem "Ok Google".
+                  Com o app aberto, diga "abrir Lotus, preciso de um eletricista" e a Lotus, assistente do Realyz, atende com voz suave, sem tocar na tela e sem "Ok Google".
                 </Text>
               </View>
               <Switch
@@ -434,10 +434,10 @@ export default function ProfileScreen({ navigate, explore }) {
                 onValueChange={async (on) => {
                   if (!on) return dispatch({ type: 'SET_HANDSFREE', on: false });
                   if (!wakeWordSupported()) {
-                    return Alert.alert('Não disponível', 'Este celular não tem reconhecimento de voz disponível para o Re@lys.');
+                    return Alert.alert('Não disponível', 'Este celular não tem reconhecimento de voz disponível para o Realyz.');
                   }
                   const ok = await askMicPermission();
-                  if (!ok) return Alert.alert('Microfone bloqueado', 'Permita o microfone para o Re@lys nas configurações do celular.');
+                  if (!ok) return Alert.alert('Microfone bloqueado', 'Permita o microfone para o Realyz nas configurações do celular.');
                   // Primeira vez: a Lotus aprende a voz do titular antes de ligar.
                   if (!voicePrintOf() && voicePrintSupported()) return openEnroll();
                   dispatch({ type: 'SET_HANDSFREE', on: true });
@@ -447,7 +447,7 @@ export default function ProfileScreen({ navigate, explore }) {
               />
             </Row>
             <Text style={{ color: colors.muted, fontSize: 11, marginTop: 8 }}>
-              Funciona com o Re@lys aberto e a tela ligada. Com o celular bloqueado será a próxima etapa.
+              Funciona com o Realyz aberto e a tela ligada. Com o celular bloqueado será a próxima etapa.
             </Text>
             {/* Voz do titular: só a voz do dono da conta abre a Lotus falando "abrir Lotus". */}
             <View style={{ borderTopWidth: 1, borderTopColor: 'rgba(168,121,10,0.2)', marginTop: 12, paddingTop: 12 }}>
@@ -525,7 +525,7 @@ export default function ProfileScreen({ navigate, explore }) {
         <Item open={open} onToggle={toggle} icon="document-text-outline" title="Contratos e receitas" sub="Assinatura online e cópia para cada parte" onPress={() => (setMenuOpen(false), dispatch({ type: 'OPEN_DOCS' }))} />
         <Item open={open} onToggle={toggle} icon="headset-outline" title="Ajuda e suporte" sub="Dúvidas e chamados" onPress={() => (setMenuOpen(false), setHelpOpen(true))} />
         <Item open={open} onToggle={toggle} icon="text-outline" title="Letras maiores" sub={state.bigText ? 'Ligado · toque para desligar' : 'Desligado · toque para ligar'} onPress={toggleBigText} />
-        <Item open={open} onToggle={toggle} icon="pricetags-outline" title="Nossas taxas" sub="Re@lys × mercado" onPress={() => (setMenuOpen(false), setTaxasOpen(true))} />
+        <Item open={open} onToggle={toggle} icon="pricetags-outline" title="Nossas taxas" sub="Realyz × mercado" onPress={() => (setMenuOpen(false), setTaxasOpen(true))} />
         <Item open={open} onToggle={toggle} icon="sparkles-outline" title="Novidades do app" sub="Demonstração do que tem de novo" onPress={() => (setMenuOpen(false), setDemoOpen(true))} />
         <Item open={open} onToggle={toggle} icon="cloud-download-outline" title="Verificar atualizações" sub={VERSION_LABEL} onPress={() => (setMenuOpen(false), setChecking(true))} />
         <Item open={open} onToggle={toggle} icon="people-outline" title="Trocar usuário" sub="Celular compartilhado (ex.: da empresa)" onPress={switchUser} />
@@ -568,7 +568,7 @@ export default function ProfileScreen({ navigate, explore }) {
         }}
       />
       <Text style={{ textAlign: 'center', color: colors.muted, fontSize: 11, marginTop: 14 }}>
-        Re@lys · {VERSION_LABEL} · demonstração
+        Realyz · {VERSION_LABEL} · demonstração
       </Text>
     </Screen>
   );

@@ -218,7 +218,7 @@ function TodayView({ today, board, onOpen }) {
       <Group title="Tarefas" icon="checkbox-outline" items={today.tasks} render={(x) => row(x.lead, `${x.late ? 'Atrasada · ' : ''}${x.task.text}`, x.task.id)} />
       <Group title="Retornar hoje" icon="alarm-outline" items={today.follow} render={(l) => row(l, l.interest)} />
       <Group title="Parados há mais de 2 dias" icon="hourglass-outline" items={today.stalled} render={(l) => row(l, `Nesta etapa ${crmIdle(l)}`)} />
-      <Group title="Fechados, aguardando pagamento" icon="cash-outline" items={today.toPay} render={(l) => row(l, `${brl(l.closing.value)} · taxa Re@lys ${brl(l.closing.fee)}`)} />
+      <Group title="Fechados, aguardando pagamento" icon="cash-outline" items={today.toPay} render={(l) => row(l, `${brl(l.closing.value)} · taxa Realyz ${brl(l.closing.fee)}`)} />
       {empty ? <Text style={st.empty}>Nada pendente por aqui. Tudo em dia.</Text> : null}
     </View>
   );
@@ -259,9 +259,9 @@ function ReportView({ rep, sum, B }) {
         </View>
       ) : null}
       <View style={st.repBox}>
-        <Text style={st.repTitle}>Fechamentos acompanhados pelo Re@lys</Text>
+        <Text style={st.repTitle}>Fechamentos acompanhados pelo Realyz</Text>
         <Text style={{ color: colors.text, fontSize: 13 }}>{sum.wonCount} {B.won} · {brl(sum.wonValue)}</Text>
-        <Text style={{ color: colors.muted, fontSize: 13, marginTop: 2 }}>Taxa do Re@lys sobre os fechamentos: {brl(rep.fee)}</Text>
+        <Text style={{ color: colors.muted, fontSize: 13, marginTop: 2 }}>Taxa do Realyz sobre os fechamentos: {brl(rep.fee)}</Text>
         <Text style={{ color: colors.muted, fontSize: 13, marginTop: 2 }}>Clientes que voltaram depois de não fechar: {rep.returned}</Text>
       </View>
     </View>

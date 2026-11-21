@@ -1,4 +1,4 @@
-// Favoritos do Re@lys: o coraçãozinho que aparece nos players e nas listas.
+// Favoritos do Realyz: o coraçãozinho que aparece nos players e nas listas.
 // Dá para favoritar rádios, canais de TV, streamers (quem faz live) e músicas.
 // Fica salvo no celular, por tipo; a aba Stream e a aba Lives mostram os favoritos no topo.
 import { useEffect, useState } from 'react';

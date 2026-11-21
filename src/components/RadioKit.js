@@ -141,7 +141,7 @@ function Host() {
       try {
         player.staysActiveInBackground = true;
         player.showNowPlayingNotification = true;
-        player.replace({ uri, metadata: { title: n.radio.name, artist: n.radio.track ? n.radio.artist || 'Música no Re@lys' : 'Rádio no Re@lys', artwork: logoUri(n.radio.logo) } });
+        player.replace({ uri, metadata: { title: n.radio.name, artist: n.radio.track ? n.radio.artist || 'Música no Realyz' : 'Rádio no Realyz', artwork: logoUri(n.radio.logo) } });
         player.play();
       } catch (e) {
         setRadioNow({ status: 'erro', error: 'Não consegui tocar esta rádio.' });
@@ -254,7 +254,7 @@ export function RadioMiniBar({ bottom }) {
       <TouchableOpacity onPress={radioEnded} style={st.miniBtn} hitSlop={6} accessibilityLabel="Próxima música">
         <Ionicons name="play-skip-forward" size={16} color="#fff" />
       </TouchableOpacity>
-      {/* Minimizar: o Re@lys sai da frente e a capa fica numa janelinha; a música continua. */}
+      {/* Minimizar: o Realyz sai da frente e a capa fica numa janelinha; a música continua. */}
       <TouchableOpacity onPress={() => minimizeApp('radio')} style={st.miniBtn} hitSlop={6} accessibilityLabel="Minimizar: continuar ouvindo com a tela livre">
         <Ionicons name="remove" size={18} color="#fff" />
       </TouchableOpacity>

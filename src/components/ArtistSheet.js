@@ -1,6 +1,6 @@
 // Perfil do artista (músicas): abre ao tocar no nome do artista no mini player ou na lista de músicas.
 // Capa, nome, gênero, as músicas dele (tocar a lista inteira, uma após a outra) e, se o artista
-// também é membro do Re@lys, o botão para o perfil social dele.
+// também é membro do Realyz, o botão para o perfil social dele.
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { Text } from '../responsive';

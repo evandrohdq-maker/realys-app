@@ -41,7 +41,7 @@ test('sem biometria: navega e interage, mas não compra, não contrata e não us
   // Navegar e interagir: liberado.
   assert.equal((await api('GET', '/products')).status, 200);
   assert.equal((await api('GET', '/companies')).status, 200);
-  assert.notEqual((await api('POST', '/posts', { text: 'Olá, Re@lys!' })).data.code, 'biometria');
+  assert.notEqual((await api('POST', '/posts', { text: 'Olá, Realyz!' })).data.code, 'biometria');
 
   // Comprar, contratar e carteira: recusado com o aviso de biometria.
   for (const [m, p, b] of [

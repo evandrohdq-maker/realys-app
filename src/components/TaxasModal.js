@@ -1,4 +1,4 @@
-// Por que o Re@lys é mais barato: cada taxa do Re@lys ao lado do que o mercado cobra.
+// Por que o Realyz é mais barato: cada taxa do Realyz ao lado do que o mercado cobra.
 // Os dados vêm de src/taxas.js (comparativo). Bom para mostrar a lojistas e prestadores.
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
@@ -39,16 +39,16 @@ export default function TaxasModal({ visible, onClose }) {
           <TouchableOpacity onPress={onClose} style={st.back} accessibilityLabel="Voltar">
             <Ionicons name="chevron-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={st.title} numberOfLines={1}>Por que o Re@lys é mais barato</Text>
+          <Text style={st.title} numberOfLines={1}>Por que o Realyz é mais barato</Text>
         </View>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 30 + insets.bottom }}>
-          <Text style={st.intro}>Cada taxa do Re@lys ao lado do que os outros cobram. Todas aparecem antes de você confirmar qualquer coisa.</Text>
+          <Text style={st.intro}>Cada taxa do Realyz ao lado do que os outros cobram. Todas aparecem antes de você confirmar qualquer coisa.</Text>
           {linhas.map((l) => (
             <View key={l.chave} style={st.card}>
               <Text style={st.name}>{NOMES[l.chave] || l.chave}</Text>
               <View style={st.row}>
                 <Ionicons name="checkmark-circle" size={17} color={colors.primary} />
-                <Text style={st.realys}>Re@lys: {l.realys}</Text>
+                <Text style={st.realys}>Realyz: {l.realys}</Text>
               </View>
               <View style={st.row}>
                 <Ionicons name="storefront-outline" size={16} color={colors.muted} />

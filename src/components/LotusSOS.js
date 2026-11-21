@@ -1,6 +1,6 @@
 // Lotus Denúncia e Lotus Emergência: abertos só pela voz ("Lotus, denúncia" / "Lotus, emergência").
 // Não têm aba no app. Cada pedido fica registrado com protocolo, GPS e endereço para a central de
-// segurança do Re@lys e, quando houver convênio, vai direto para o profissional mais perto
+// segurança do Realyz e, quando houver convênio, vai direto para o profissional mais perto
 // (policial na ativa, socorrista, ambulância). Ver PENDENCIAS.md (Polícia Inteligente).
 import React, { useEffect, useRef, useState } from 'react';
 import { KeyboardLift } from '../keyboard';
@@ -118,7 +118,7 @@ function Denuncia({ onClose }) {
   };
 
   const perigo = () => {
-    // Em perigo agora: alerta silencioso com GPS para a segurança do Re@lys, na hora.
+    // Em perigo agora: alerta silencioso com GPS para a segurança do Realyz, na hora.
     const id = 'sos' + Date.now();
     request(dispatch, { id, kind: 'perigo', tipo: 'Pessoa em perigo agora', who: state.user ? state.user.name : null, userId: state.user ? state.user.id : null, protocol: protocolo(), at: Date.now(), status: 'aberto' });
     locate(id);
@@ -148,7 +148,7 @@ function Denuncia({ onClose }) {
 
       {step === 'perigo' ? (
         <>
-          <Text style={st.h}>A segurança do Re@lys já recebeu a sua localização.</Text>
+          <Text style={st.h}>A segurança do Realyz já recebeu a sua localização.</Text>
           <Big icon="call" label="Ligar para a polícia: 190" onPress={() => callNow('190')} />
           <Big icon="call" color="#6B4BA1" label="Ligue 180" sub="Central de Atendimento à Mulher · 24 h, gratuito" onPress={() => callNow('180')} />
           <Line icon="logo-whatsapp" label="Falar com o 180 pelo WhatsApp (escrito, sem som)" onPress={() => Linking.openURL(WHATS_180).catch(() => {})} />
@@ -192,7 +192,7 @@ function Denuncia({ onClose }) {
       {step === 'feito' ? (
         <>
           <Text style={st.h}>Denúncia registrada · protocolo {prot}</Text>
-          <Text style={st.p}>A central de segurança do Re@lys recebeu a sua denúncia. Para que ela seja investigada pela polícia, faça também o registro no canal oficial:</Text>
+          <Text style={st.p}>A central de segurança do Realyz recebeu a sua denúncia. Para que ela seja investigada pela polícia, faça também o registro no canal oficial:</Text>
           <Big icon="call" color="#6B4BA1" label={oficial.l} sub="Gratuito, 24 h, pode ser anônimo" onPress={() => callNow(oficial.n)} />
           {oficial.n === '180' ? <Line icon="logo-whatsapp" label="180 pelo WhatsApp (61) 9610-0180" onPress={() => Linking.openURL(WHATS_180).catch(() => {})} /> : null}
           <Big icon="call" label="Urgência agora: 190" onPress={() => callNow('190')} />
@@ -262,7 +262,7 @@ function Emergencia({ onClose }) {
           </Text>
         </View>
       ))}
-      <Text style={st.note}>A Lotus não substitui o atendimento médico. Em caso grave, ligue 192 primeiro. Serviços públicos (SAMU, Bombeiros, SUS) não têm taxa do Re@lys.</Text>
+      <Text style={st.note}>A Lotus não substitui o atendimento médico. Em caso grave, ligue 192 primeiro. Serviços públicos (SAMU, Bombeiros, SUS) não têm taxa do Realyz.</Text>
     </Shell>
   );
 }

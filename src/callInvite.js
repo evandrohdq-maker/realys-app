@@ -1,8 +1,8 @@
 // Convite para chamada por fora do app (WhatsApp, SMS, e-mail...).
 //
 // Quem convida gera um link. Quem recebe:
-//   - já tem o Re@lys: o link abre o app direto na chamada;
-//   - não tem: o link abre uma página do Re@lys (servidor › GET /c/:codigo) que mostra quem chamou,
+//   - já tem o Realyz: o link abre o app direto na chamada;
+//   - não tem: o link abre uma página do Realyz (servidor › GET /c/:codigo) que mostra quem chamou,
 //     o botão para baixar o APK e os passos do cadastro (documento + biometria). Depois do cadastro,
 //     o mesmo link (ou o botão "Já instalei") leva para dentro da chamada.
 // O app guarda o convite enquanto a pessoa entra ou se cadastra e abre a chamada logo depois do login.
@@ -15,7 +15,7 @@ import { API_URL, serverOn, api } from './api';
 
 export const APP_SCHEME = 'realys';
 // Endereço público das páginas de convite: o mesmo servidor da API.
-export const INVITE_WEB = API_URL || 'https://realys.com.br';
+export const INVITE_WEB = API_URL || 'https://realyz.com.br';
 const PENDING_KEY = 'realys.pendingCall';
 
 const code6 = () => {
@@ -47,9 +47,9 @@ export async function makeCallInvite({ sid, cid, server, room, host }) {
 
 export function inviteMessage({ url, code, host, room, server }) {
   return (
-    `🎮 ${host || 'Um amigo'} te chamou para a chamada "${room}"${server ? ` (${server})` : ''} no Re@lys.\n\n` +
+    `🎮 ${host || 'Um amigo'} te chamou para a chamada "${room}"${server ? ` (${server})` : ''} no Realyz.\n\n` +
     `Toque para entrar: ${url}\n\n` +
-    `Ainda não tem o Re@lys? O link mostra como baixar o app e se cadastrar (só gente real, com biometria). ` +
+    `Ainda não tem o Realyz? O link mostra como baixar o app e se cadastrar (só gente real, com biometria). ` +
     `Assim que terminar o cadastro, você entra direto na chamada.\n` +
     `Código do convite: ${code}`
   );

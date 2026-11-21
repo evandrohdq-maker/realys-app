@@ -1,7 +1,7 @@
 // Janelinha por cima dos outros apps (picture-in-picture do Android), como no YouTube Premium.
 // Dentro da janelinha aparece SÓ o player que a pessoa está usando, nunca o app inteiro:
 //   - rádio: a logo, o nome e o AO VIVO;   - TV: o vídeo do canal;   - live: o vídeo da live.
-// A janelinha abre sozinha ao sair do Re@lys (Android 12+) ou pelo botão de janela do player.
+// A janelinha abre sozinha ao sair do Realyz (Android 12+) ou pelo botão de janela do player.
 // O próprio Android põe nela os botões de abrir em tela cheia e de fechar, e deixa arrastar.
 // Precisa do APK novo (módulo nativo RealysUpdater); sem ele, nada muda.
 import { useEffect, useState } from 'react';
@@ -52,7 +52,7 @@ export function usePipState() {
   return v || smallWindow(win);
 }
 
-// ---------- Minimizar o Re@lys ----------
+// ---------- Minimizar o Realyz ----------
 // O que está tocando agora (o PipManager atualiza): 'radio' | 'tv' | 'live' | null.
 let playing = null;
 export const setPlayingKind = (k) => (playing = k);
@@ -87,7 +87,7 @@ export const registerLive = (h) => {
 export const liveOpenNow = () => liveHere;
 
 // ---------- Vídeo em tela cheia: TV, clipes e lives ----------
-// Enquanto um vídeo está aberto, o Re@lys gira junto com o celular: deitou, o vídeo ocupa a tela
+// Enquanto um vídeo está aberto, o Realyz gira junto com o celular: deitou, o vídeo ocupa a tela
 // inteira (sem barras do Android); levantou, volta para a janela normal. O botão de tela cheia
 // deita na marra, mesmo com a rotação do celular travada. Rádio e música só de áudio não giram.
 export const setOrientation = (mode) => call('setOrientation', mode);

@@ -74,7 +74,7 @@ export function validCnpj(v) {
   return dv(12) === Number(d[12]) && dv(13) === Number(d[13]);
 }
 
-export const cleanUsername = (v) => String(v || '').trim().replace(/^@/, '').toLowerCase();
+export const cleanUsername = (v) => String(v || '').trim().replace(/^[@*]/, '').toLowerCase();
 
 export function usernameProblem(v) {
   const u = cleanUsername(v);

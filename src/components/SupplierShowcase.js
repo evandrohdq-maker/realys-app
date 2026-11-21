@@ -244,7 +244,7 @@ export function SupplierItemSheet({ item, owner, onClose, onEdit }) {
     if (isNaN(q) || q < item.minQty) return Alert.alert('Quantidade', `Pedido mínimo: ${item.minQty} unidades.`);
     dispatch({ type: 'SEND_PROPOSAL', itemId: item.id, qty: q, discount: isNaN(d) ? 0 : d });
     onClose();
-    Alert.alert('Proposta enviada', `${sup.name} vai responder em Negócios. O pagamento fica retido pelo Re@lys até a entrega.`);
+    Alert.alert('Proposta enviada', `${sup.name} vai responder em Negócios. O pagamento fica retido pelo Realyz até a entrega.`);
   };
 
   return (

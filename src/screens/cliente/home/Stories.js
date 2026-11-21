@@ -234,9 +234,9 @@ export function StoryComposer({ visible, onClose, onPublish }) {
   const [media, setMedia] = useState(null); // { kind: 'image' | 'video', uri, secs }
   const [effect, setEffect] = useState('original');
   const [writing, setWriting] = useState(false);
-  const [music, setMusic] = useState(null); // música do story (galeria do Re@lys)
+  const [music, setMusic] = useState(null); // música do story (galeria do Realyz)
   const [picking, setPicking] = useState(false);
-  const [camera, setCamera] = useState(null); // 'foto' | 'video': câmera do Re@lys aberta
+  const [camera, setCamera] = useState(null); // 'foto' | 'video': câmera do Realyz aberta
 
   useEffect(() => {
     if (!visible) return;
@@ -251,7 +251,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
   }, [visible]);
 
   const take = async (how) => {
-    // Foto e vídeo pela câmera do Re@lys (sai igual à prévia, sem inverter, e com efeitos na hora).
+    // Foto e vídeo pela câmera do Realyz (sai igual à prévia, sem inverter, e com efeitos na hora).
     if (how !== 'galeria') return setCamera(how);
     try {
       const camera = how !== 'galeria';
@@ -307,7 +307,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '800' }}>Publicar</Text>
           </TouchableOpacity>
         </View>
-        {/* Adicionar música: abre a galeria de músicas do Re@lys. Com música, mostra a figurinha (tocar troca). */}
+        {/* Adicionar música: abre a galeria de músicas do Realyz. Com música, mostra a figurinha (tocar troca). */}
         <View style={{ paddingHorizontal: 14, marginTop: 12, flexDirection: 'row' }}>
           {music ? (
             <MusicSticker music={music} onPress={() => setPicking(true)} />

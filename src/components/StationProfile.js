@@ -1,4 +1,4 @@
-// Perfil de uma rádio ou TV do Re@lys (abre ao tocar no nome ou na logo em qualquer lugar do app).
+// Perfil de uma rádio ou TV do Realyz (abre ao tocar no nome ou na logo em qualquer lugar do app).
 // Capa, logo, categoria, seguidores, botão de ouvir/assistir, link para divulgar e os posts da estação.
 // A dona da estação (empresa com CNPJ) publica no feed com o link para os ouvintes tocarem na hora.
 import { usePipState } from '../pip';
@@ -83,7 +83,7 @@ function StationProfile({ kind, id }) {
   const link = stationLink(s, kind);
   const cover = logoSource(s.cover);
 
-  const share = () => Share.share({ message: `${kind === 'tv' ? 'Assista' : 'Ouça'} ${s.name} ao vivo no Re@lys: ${link}` }).catch(() => {});
+  const share = () => Share.share({ message: `${kind === 'tv' ? 'Assista' : 'Ouça'} ${s.name} ao vivo no Realyz: ${link}` }).catch(() => {});
   const publish = () => {
     const text = (writing || '').trim();
     if (!text) return;
@@ -151,7 +151,7 @@ function StationProfile({ kind, id }) {
               </>
             ) : (
               <View style={{ flexDirection: 'row' }}>
-                <TouchableOpacity style={[st.ownBtn, { marginRight: 8 }]} onPress={() => setWriting(`🔴 Estamos ao vivo! ${kind === 'tv' ? 'Assista' : 'Ouça'} agora a ${s.name} no Re@lys.`)}>
+                <TouchableOpacity style={[st.ownBtn, { marginRight: 8 }]} onPress={() => setWriting(`🔴 Estamos ao vivo! ${kind === 'tv' ? 'Assista' : 'Ouça'} agora a ${s.name} no Realyz.`)}>
                   <Ionicons name="create-outline" size={16} color={C.gold} />
                   <Text numberOfLines={1} style={st.ownBtnText}>Publicar</Text>
                 </TouchableOpacity>

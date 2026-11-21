@@ -51,7 +51,7 @@ function NewPage({ onDone }) {
     // Prestador com o plano Destaque: a página de trabalhos já está incluída.
     if (!price) return go();
     if (state.wallet < price) return Alert.alert('Saldo insuficiente', `A primeira página é gratuita; as próximas custam ${brl(price)} por mês cada. Coloque saldo na carteira e tente de novo.`);
-    Alert.alert('Criar página', `${brl(price)} por mês, do seu saldo Re@lys. Você personaliza a página do seu jeito: capa, cores, letra e formato dos posts.`, [
+    Alert.alert('Criar página', `${brl(price)} por mês, do seu saldo Realyz. Você personaliza a página do seu jeito: capa, cores, letra e formato dos posts.`, [
       { text: 'Agora não', style: 'cancel' },
       {
         text: `Criar por ${brl(price)}`,
@@ -82,7 +82,7 @@ function NewPage({ onDone }) {
         <View style={{ flex: 1, marginRight: 10 }}>
           <Text style={st.toggleTitle}>{anon ? 'Página anônima' : 'Assinada com meu nome verificado'}</Text>
           <Text style={st.small}>
-            {anon ? 'Seu nome não aparece. A página mostra "dono verificado pelo Re@lys".' : `Aparece "Assinada por ${state.user ? state.user.name : 'você'} · verificado".`}
+            {anon ? 'Seu nome não aparece. A página mostra "dono verificado pelo Realyz".' : `Aparece "Assinada por ${state.user ? state.user.name : 'você'} · verificado".`}
           </Text>
         </View>
         <Switch value={anon} onValueChange={setAnon} trackColor={{ true: colors.gold, false: colors.border }} thumbColor="#fff" accessibilityLabel="Publicar como anônimo" />
@@ -92,7 +92,7 @@ function NewPage({ onDone }) {
           <Text key={r} style={st.rule}>• {r}</Text>
         ))}
       </View>
-      <Text style={[st.small, { marginTop: 10 }]}>{workPage ? 'Incluída no seu plano Destaque Re@lys: é a sua página de trabalhos, ligada ao seu perfil profissional.' : !price ? 'Sua primeira página é gratuita. Da segunda em diante, cada página custa R$ 14,90 por mês.' : 'Sua primeira página já é gratuita. Esta é cobrada por mês.'}</Text>
+      <Text style={[st.small, { marginTop: 10 }]}>{workPage ? 'Incluída no seu plano Destaque Realyz: é a sua página de trabalhos, ligada ao seu perfil profissional.' : !price ? 'Sua primeira página é gratuita. Da segunda em diante, cada página custa R$ 14,90 por mês.' : 'Sua primeira página já é gratuita. Esta é cobrada por mês.'}</Text>
       <Button title={price ? `Criar página · ${brl(price)} por mês` : workPage ? 'Criar minha página de trabalhos' : 'Criar minha página grátis'} onPress={create} style={{ marginTop: 12 }} />
       <Button title="Cancelar" variant="dark" small onPress={onDone} style={{ marginTop: 8 }} />
     </Card>

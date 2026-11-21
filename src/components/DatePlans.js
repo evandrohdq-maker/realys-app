@@ -105,7 +105,7 @@ export function DatePlansModal({ visible, onClose, reason }) {
           {/* Comparação sem nome de marca: só a faixa de preço dos outros apps (a lista com os nomes fica no painel do administrador). */}
           <Text style={st.h}>Compare com os outros apps (por mês)</Text>
           <View style={st.cmpRow}>
-            <Text style={[st.cmpName, { color: ROSE, fontWeight: '800' }]}>Re@lys Date+</Text>
+            <Text style={[st.cmpName, { color: ROSE, fontWeight: '800' }]}>Realyz Date+</Text>
             <Text style={[st.cmpVal, { color: ROSE, fontWeight: '800' }]}>{brl(14.9)}</Text>
           </View>
           <View style={st.cmpRow}>

@@ -39,7 +39,7 @@ export default function ArenaUserSheet({ name, sv, me, myRole, onClose, onMentio
   if (!name) return null;
   const pf = arenaPref(name);
   const mem = (sv && sv.members.find((x) => x.name === name)) || {};
-  const person = memberByName(name); // perfil do Re@lys, quando a pessoa tem
+  const person = memberByName(name); // perfil do Realyz, quando a pessoa tem
   const friendStore = person ? (state.friends || {})[person.id] : null;
   const friend = friendStore || pf.friend; // 'amigo' · 'enviado' · 'recebido' · null
   const canMod = (myRole === 'dono' || myRole === 'mod') && mem.role !== 'dono' && name !== me;
@@ -64,7 +64,7 @@ export default function ArenaUserSheet({ name, sv, me, myRole, onClose, onMentio
   };
   const report = () =>
     Alert.alert(`Denunciar ${first}`, 'Qual é o problema?', [
-      ...['Ofensa ou assédio', 'Golpe ou venda por fora', 'Spam'].map((r) => ({ text: r, onPress: () => Alert.alert('Denúncia enviada ✅', 'A moderação do Re@lys vai analisar. Obrigado por cuidar da Arena.') })),
+      ...['Ofensa ou assédio', 'Golpe ou venda por fora', 'Spam'].map((r) => ({ text: r, onPress: () => Alert.alert('Denúncia enviada ✅', 'A moderação do Realyz vai analisar. Obrigado por cuidar da Arena.') })),
       { text: 'Voltar', style: 'cancel' },
     ]);
   const kick = (voiceOnly) =>

@@ -102,7 +102,7 @@ export function UserProfileModal() {
   const close = () => dispatch({ type: 'CLOSE_PROFILE' });
   const friendsCount = m.friends + (st === 'amigo' ? 1 : 0);
 
-  const contact = { id: m.id, name: m.name, status: st === 'amigo' ? 'amigo no Re@lys' : 'pessoa verificada', photo: m.photo };
+  const contact = { id: m.id, name: m.name, status: st === 'amigo' ? 'amigo no Realyz' : 'pessoa verificada', photo: m.photo };
   const conv = state.conversations.find((c) => c.contactId === m.id);
   const openChat = () => {
     if (!conv) dispatch({ type: 'UPDATE_CONVS', fn: (cs) => [{ id: 'm' + Date.now(), contactId: m.id, unread: 0, messages: [], extra: contact }, ...cs] });
@@ -120,7 +120,7 @@ export function UserProfileModal() {
           messages={(state.conversations.find((c) => c.contactId === m.id) || {}).messages || []}
           onClose={() => setChat(null)}
           onSend={(msg) => dispatch({ type: 'UPDATE_CONVS', fn: (cs) => cs.map((c) => (c.contactId === m.id ? { ...c, messages: [...c.messages, msg] } : c)) })}
-          onVideo={() => Alert.alert('Chamada de vídeo', `Ligando para ${m.name} pela Re@lys.`)}
+          onVideo={() => Alert.alert('Chamada de vídeo', `Ligando para ${m.name} pela Realyz.`)}
         />
       </>
     );
@@ -142,7 +142,7 @@ export function UserProfileModal() {
             <Text style={styles.name}>{m.name}</Text>
             <Ionicons name="shield-checkmark" size={16} color={colors.primary} style={{ marginLeft: 6 }} />
           </View>
-          <Text style={styles.handle}>@{m.handle} · {m.city}</Text>
+          <Text style={styles.handle}>*{m.handle} · {m.city}</Text>
           <SocialBadge social={m.social} style={{ marginTop: 6 }} />
           {privacyOf(m.id).exposed ? <Text style={styles.bio}>{m.bio}</Text> : null}
 
@@ -155,7 +155,7 @@ export function UserProfileModal() {
           <StatListModal m={list ? m : null} kind={list} onClose={() => setList(null)} />
 
           <LiveNowBadge hostType="usuario" hostId={m.id} />
-          {st === 'recebido' ? <Text style={styles.ask}>{m.name.split(' ')[0]} quer ser seu amigo no Re@lys.</Text> : null}
+          {st === 'recebido' ? <Text style={styles.ask}>{m.name.split(' ')[0]} quer ser seu amigo no Realyz.</Text> : null}
           {/* Pedido recebido: Aceitar/Recusar numa linha só deles, para não ficar por cima da Mensagem. */}
           {st === 'recebido' ? (
             <View style={{ marginTop: 12 }}>
@@ -235,7 +235,7 @@ export function UserProfileModal() {
         messages={(state.conversations.find((c) => c.contactId === m.id) || {}).messages || []}
         onClose={() => setChat(null)}
         onSend={(msg) => dispatch({ type: 'UPDATE_CONVS', fn: (cs) => cs.map((c) => (c.contactId === m.id ? { ...c, messages: [...c.messages, msg] } : c)) })}
-        onVideo={() => Alert.alert('Chamada de vídeo', `Ligando para ${m.name} pela Re@lys.`)}
+        onVideo={() => Alert.alert('Chamada de vídeo', `Ligando para ${m.name} pela Realyz.`)}
       />
       <TestimonialComposer visible={writing} onClose={() => setWriting(false)} toId={m.id} />
     </KeyboardLift></Modal>
@@ -269,7 +269,7 @@ export function ProfilePeek({ m, onClose, onMessage, onFull }) {
               <Text style={styles.peekName} numberOfLines={1}>
                 {m.name} <Ionicons name="shield-checkmark" size={15} color={colors.primary} />
               </Text>
-              <Text style={styles.handle} numberOfLines={1}>@{m.handle} · {m.city}</Text>
+              <Text style={styles.handle} numberOfLines={1}>*{m.handle} · {m.city}</Text>
               <SocialBadge social={m.social} size="sm" style={{ marginTop: 4 }} />
             </View>
             <TouchableOpacity onPress={onClose} style={styles.peekClose} accessibilityLabel="Fechar prévia">
@@ -287,7 +287,7 @@ export function ProfilePeek({ m, onClose, onMessage, onFull }) {
           <StatListModal m={list ? m : null} kind={list} onClose={() => setList(null)} />
 
           <LiveNowBadge hostType="usuario" hostId={m.id} />
-          {st === 'recebido' ? <Text style={styles.ask}>{firstName} quer ser seu amigo no Re@lys.</Text> : null}
+          {st === 'recebido' ? <Text style={styles.ask}>{firstName} quer ser seu amigo no Realyz.</Text> : null}
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
             <View style={{ flex: 1 }}>
               <FriendButton member={m} />
@@ -349,7 +349,7 @@ function Stat({ n, label, onPress }) {
 }
 
 // ---------- O que tem dentro de cada número do perfil ----------
-// Amigos e em comum: na demonstração, saem dos membros do Re@lys (o servidor traz a lista real).
+// Amigos e em comum: na demonstração, saem dos membros do Realyz (o servidor traz a lista real).
 const hashOf = (t) => [...String(t)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
 function friendsOfMember(m, myFriends) {
   const others = members.filter((x) => x.id !== m.id);
@@ -385,7 +385,7 @@ export function PeopleListModal({ visible, title, people = [], total, onClose })
               <Photo uri={x.photo} style={{ width: 44, height: 44, borderRadius: 22 }} fallback="🙂" />
               <View style={{ flex: 1, marginLeft: 10 }}>
                 <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>{x.name}</Text>
-                <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>{state.friends[x.id] === 'amigo' ? 'Seu amigo' : `@${x.handle} · ${x.city}`}</Text>
+                <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>{state.friends[x.id] === 'amigo' ? 'Seu amigo' : `*${x.handle} · ${x.city}`}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color={colors.muted} />
             </TouchableOpacity>
@@ -450,7 +450,7 @@ export function StatListModal({ m, kind, onClose }) {
                       <Photo uri={x.photo} style={{ width: 44, height: 44, borderRadius: 22 }} fallback="🙂" />
                       <View style={{ flex: 1, marginLeft: 10 }}>
                         <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>{x.name}</Text>
-                        <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>{mine ? 'Seu amigo' : `@${x.handle} · ${x.city}`}</Text>
+                        <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>{mine ? 'Seu amigo' : `*${x.handle} · ${x.city}`}</Text>
                       </View>
                       <Ionicons name="chevron-forward" size={16} color={colors.muted} />
                     </TouchableOpacity>
@@ -459,7 +459,7 @@ export function StatListModal({ m, kind, onClose }) {
                 {total > people.length ? <Text style={styles.tip}>e mais {(total - people.length).toLocaleString('pt-BR')} pessoa(s) · a lista completa vem com o servidor</Text> : null}
               </>
             ) : (
-              <Empty text={kind === 'comum' ? `Vocês ainda não têm amigos em comum.` : `${first} ainda não tem amigos no Re@lys.`} />
+              <Empty text={kind === 'comum' ? `Vocês ainda não têm amigos em comum.` : `${first} ainda não tem amigos no Realyz.`} />
             )
           ) : null}
           {kind === 'depoimentos' ? (deps.length ? deps.map((t) => <TestimonialCard key={t.id} t={t} hideTarget />) : <Empty text={`${first} ainda não tem depoimentos expostos.`} />) : null}
@@ -481,7 +481,7 @@ export function StatListModal({ m, kind, onClose }) {
   );
 }
 
-// Busca de pessoas na rede Re@lys, por nome ou @usuário.
+// Busca de pessoas na rede Realyz, por nome ou *usuário.
 export function PeopleSearchModal({ visible, onClose, navigate }) {
   const { state, dispatch } = useStore();
   const insets = useSafeAreaInsets();
@@ -515,7 +515,7 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
               }}
               onSubmitEditing={() => setSearched(q.trim())}
               autoFocus
-              placeholder="Buscar por nome, @usuário ou perfil (ex.: gamer)"
+              placeholder="Buscar por nome, *usuário ou perfil (ex.: gamer)"
               placeholderTextColor={colors.muted}
               style={styles.searchInput}
               returnKeyType="search"
@@ -556,8 +556,8 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
               </>
             ) : (
               <>
-                <Empty text={`Ninguém encontrado com "${q.trim()}". Confira o nome ou peça o @usuário da pessoa.`} />
-                {searched ? <GlobalResults query={searched} navigate={navigate ? (go) => { onClose(); navigate(go); } : null} title="Achei em outras partes do Re@lys" hideEmpty /> : null}
+                <Empty text={`Ninguém encontrado com "${q.trim()}". Confira o nome ou peça o *usuário da pessoa.`} />
+                {searched ? <GlobalResults query={searched} navigate={navigate ? (go) => { onClose(); navigate(go); } : null} title="Achei em outras partes do Realyz" hideEmpty /> : null}
               </>
             )
           ) : (
@@ -584,7 +584,7 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
               {suggestions.map((m) => (
                 <PersonRow key={m.id} m={m} onOpen={() => open(m)} />
               ))}
-              <Text style={styles.tip}>Dica: peça para a pessoa te passar o nome ou o @usuário dela no Re@lys e digite aqui.</Text>
+              <Text style={styles.tip}>Dica: peça para a pessoa te passar o nome ou o *usuário dela no Realyz e digite aqui.</Text>
             </>
           )}
         </ScrollView>
@@ -602,7 +602,7 @@ export function PersonRow({ m, onOpen }) {
           {m.name} <Ionicons name="shield-checkmark" size={12} color={colors.primary} />
         </Text>
         <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 12 }}>
-          @{m.handle}
+          *{m.handle}
           {m.mutual ? ` · ${m.mutual} amigos em comum` : ` · ${m.city}`}
         </Text>
         <SocialBadge social={m.social} size="sm" showExtra={false} />

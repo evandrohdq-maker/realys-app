@@ -1,4 +1,4 @@
-// Contas do Re@lys guardadas NO CELULAR (versão de demonstração, sem servidor).
+// Contas do Realyz guardadas NO CELULAR (versão de demonstração, sem servidor).
 //
 // - Cadastro: as contas criadas em "Cadastre-se" ficam no aparelho, com a senha
 //   guardada só como "impressão digital" (hash SHA-256 com sal), nunca a senha em si.
@@ -72,7 +72,7 @@ export function validCnpj(v) {
 
 export const validEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((v || '').trim());
 
-export const cleanUsername = (v) => (v || '').trim().replace(/^@/, '').toLowerCase();
+export const cleanUsername = (v) => (v || '').trim().replace(/^[@*]/, '').toLowerCase();
 
 export function usernameProblem(v) {
   const u = cleanUsername(v);
@@ -95,7 +95,7 @@ export function maskLogin(login) {
   const d = onlyDigits(login);
   if (/^[\d.\-\/]+$/.test(login) && d.length === 11) return `***.${d.slice(3, 6)}.${d.slice(6, 9)}-**`;
   if (/^[\d.\-\/]+$/.test(login) && d.length === 14) return `**.${d.slice(2, 5)}.${d.slice(5, 8)}/****-${d.slice(12)}`;
-  return '@' + cleanUsername(login);
+  return '*' + cleanUsername(login);
 }
 
 // ---------- Senha ----------
@@ -142,7 +142,7 @@ export async function checkPassword(acc, password) {
 }
 
 // Cria a conta. Devolve { account } ou { error }.
-// O Re@lys é só para maiores de 18 anos. Idade a partir de "DD/MM/AAAA" (null se a data for inválida).
+// O Realyz é só para maiores de 18 anos. Idade a partir de "DD/MM/AAAA" (null se a data for inválida).
 export function ageFromBirth(birth) {
   const m = String(birth || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (!m) return null;
@@ -158,7 +158,7 @@ export function ageFromBirth(birth) {
 // bio: a pessoa confirmou a biometria no cadastro? Sem ela a conta nasce no modo social
 // (só interage; não compra nem usa serviços) até fazer a biometria.
 export async function createAccount({ kind, name, doc, username, email, phone, password, social = null, about = '', work = '', birth = null, bio = true }) {
-  if (kind !== 'empresa' && !(ageFromBirth(birth) >= 18)) return { error: 'O Re@lys é só para maiores de 18 anos.' };
+  if (kind !== 'empresa' && !(ageFromBirth(birth) >= 18)) return { error: 'O Realyz é só para maiores de 18 anos.' };
   const list = await loadAccounts();
   const d = onlyDigits(doc);
   const u = cleanUsername(username);
@@ -189,7 +189,7 @@ export async function createAccount({ kind, name, doc, username, email, phone, p
     const srv = await cadastrarNoServidor(account, password);
     if (srv) account.serverId = srv.id;
   } catch (e) {
-    return { error: e.message || 'Não foi possível criar a conta no Re@lys. Tente de novo.' };
+    return { error: e.message || 'Não foi possível criar a conta no Realyz. Tente de novo.' };
   }
   await saveAccounts([...list, account]);
   return { account };
@@ -272,7 +272,7 @@ export async function markVerified(user) {
 // ---------- Biometria ----------
 
 // 'ok' = confirmou · 'sem' = aparelho sem digital/rosto cadastrado · 'falhou' = cancelou ou não reconheceu
-export async function confirmBiometric(message = 'Confirme que é você para entrar no Re@lys') {
+export async function confirmBiometric(message = 'Confirme que é você para entrar no Realyz') {
   try {
     const hasHw = await LocalAuthentication.hasHardwareAsync();
     const enrolled = await LocalAuthentication.isEnrolledAsync();

@@ -179,7 +179,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
           // A IA verificadora confere antes de publicar (ver src/lm/factCheck.js).
           const check = checkText(post.text);
           if (check.verdict === 'falso')
-            Alert.alert('Publicação não feita', `A IA do Re@lys verificou este conteúdo como informação falsa (${check.reasons.join(', ')}). Ele não foi publicado.`);
+            Alert.alert('Publicação não feita', `A IA do Realyz verificou este conteúdo como informação falsa (${check.reasons.join(', ')}). Ele não foi publicado.`);
           else if (check.verdict === 'suspeito')
             Alert.alert('Publicado em verificação', 'A IA achou alguns sinais de informação falsa. O post aparece com o aviso "em verificação" até a moderação conferir.');
         }}
@@ -193,7 +193,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
           // A IA verificadora confere a legenda antes de publicar, como nas publicações.
           const check = checkText(reel.title);
           if (check.verdict === 'falso')
-            return Alert.alert('Reel não publicado', `A IA do Re@lys verificou a legenda como informação falsa (${check.reasons.join(', ')}). O Reel não foi publicado.`);
+            return Alert.alert('Reel não publicado', `A IA do Realyz verificou a legenda como informação falsa (${check.reasons.join(', ')}). O Reel não foi publicado.`);
           dispatch({ type: 'PUBLISH_REEL', reel: { ...reel, user: userName } });
           Alert.alert('Reel publicado ✅', 'Ele já aparece nos Reels. Para ver, puxe a página inicial para a direita.', [
             { text: 'Ok' },
@@ -258,7 +258,7 @@ function PostComposer({ visible, onClose, onPublish }) {
   const pick = async () => {
     try {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted) return Alert.alert('Permissão necessária', 'Autorize o Re@lys a ver suas fotos para anexar na publicação.');
+      if (!perm.granted) return Alert.alert('Permissão necessária', 'Autorize o Realyz a ver suas fotos para anexar na publicação.');
       const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
       if (!res.canceled && res.assets && res.assets[0]) setImage(res.assets[0].uri);
     } catch (e) {
@@ -325,7 +325,7 @@ export function ReelComposer({ visible, onClose, onPublish }) {
   const pick = async () => {
     try {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted) return Alert.alert('Permissão necessária', 'Autorize o Re@lys a ver seus vídeos para publicar um Reel.');
+      if (!perm.granted) return Alert.alert('Permissão necessária', 'Autorize o Realyz a ver seus vídeos para publicar um Reel.');
       const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['videos'], videoMaxDuration: 60, quality: 0.8 });
       const a = !res.canceled && res.assets && res.assets[0];
       if (!a) return;

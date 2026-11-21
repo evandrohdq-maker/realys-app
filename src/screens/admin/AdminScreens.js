@@ -59,7 +59,7 @@ function CentralSeguranca() {
   );
 }
 
-// Avisos de contratação: o que ainda precisa ser contratado para o Re@lys funcionar de verdade.
+// Avisos de contratação: o que ainda precisa ser contratado para o Realyz funcionar de verdade.
 function HireNotices() {
   const [video, setVideo] = useState(null);
   useEffect(() => {
@@ -91,7 +91,7 @@ function HireNotices() {
     {
       done: false,
       title: 'Envio de e-mail (código do e-mail institucional)',
-      text: 'Resend (resend.com) ou similar, com o domínio do Re@lys. Colocar RESEND_API_KEY e EMAIL_FROM no .env do servidor.',
+      text: 'Resend (resend.com) ou similar, com o domínio do Realyz. Colocar RESEND_API_KEY e EMAIL_FROM no .env do servidor.',
     },
     { done: false, title: 'Acordo com a OAB', text: 'O Cadastro Nacional dos Advogados não pode ser repassado a terceiros sem autorização: até haver acordo, a equipe confere cada advogado em cna.oab.org.br.' },
   ];
@@ -125,7 +125,7 @@ import { Screen, Title, Card, Row, Stat, Button, Badge, Section, Chip, Empty, Ba
 const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
 // Visão geral de toda a plataforma.
-// Fechamentos acompanhados: tudo que as empresas e os prestadores fecharam pelo CRM e a parte do Re@lys.
+// Fechamentos acompanhados: tudo que as empresas e os prestadores fecharam pelo CRM e a parte do Realyz.
 function CrmClosings() {
   useCrm();
   const c = crmPlatform();
@@ -133,11 +133,11 @@ function CrmClosings() {
   return (
     <Card>
       <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>Fechamentos pelo CRM</Text>
-      <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 2 }}>Negócios fechados com acompanhamento do Re@lys e a taxa da plataforma.</Text>
+      <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 2 }}>Negócios fechados com acompanhamento do Realyz e a taxa da plataforma.</Text>
       <Row style={{ marginTop: 10 }}>
         <Stat label="Fechados" value={String(c.count)} />
         <Stat label="Valor" value={brl(c.value)} />
-        <Stat label="Taxa Re@lys" value={brl(c.fee)} />
+        <Stat label="Taxa Realyz" value={brl(c.fee)} />
       </Row>
       {Object.keys(c.by).map((b) => (
         <Text key={b} style={{ color: colors.text, fontSize: 13, marginTop: 6 }}>
@@ -174,7 +174,7 @@ export function AdminOverview() {
   return (
     <Screen>
       <AnalystBanner />
-      <Title sub="Controle geral da plataforma Re@lys">Administração</Title>
+      <Title sub="Controle geral da plataforma Realyz">Administração</Title>
       <CrmClosings />
       <HireNotices />
 
@@ -300,7 +300,7 @@ export function AdminOverview() {
         <Stat label="Movimentado hoje" value={brl(s.gmvToday)} color={colors.success} />
       </Row>
       <Row style={{ marginHorizontal: -4, marginBottom: 16 }}>
-        <Stat label="Receita Re@lys (mês)" value={brl(s.revenueMonth)} color={colors.success} hint="planos, vídeos, patrocínios e taxas B2B" />
+        <Stat label="Receita Realyz (mês)" value={brl(s.revenueMonth)} color={colors.success} hint="planos, vídeos, patrocínios e taxas B2B" />
         <Stat label="Fakes bloqueados" value={fmt(s.blockedFakes + state.blocked.length)} color={colors.danger} />
       </Row>
 
@@ -323,7 +323,7 @@ export function AdminOverview() {
         <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 4 }}>⚠️ Precisa da sua atenção</Text>
         <Text style={{ color: colors.text }}>• {openReports} denúncias abertas (aba Moderação)</Text>
         <Text style={{ color: colors.text }}>• {pending} cadastros aguardando aprovação (aba Cadastros)</Text>
-        <Text style={{ color: colors.text }}>• {(state.disputes || []).filter((d) => d.status === 'em análise').length + 3} casos da Garantia Re@lys em análise (prazo de 48 h)</Text>
+        <Text style={{ color: colors.text }}>• {(state.disputes || []).filter((d) => d.status === 'em análise').length + 3} casos da Garantia Realyz em análise (prazo de 48 h)</Text>
         <Text style={{ color: colors.text }}>• {(state.newsReports || []).length + 4} relatos de moradores esperando moderação (Notícias e Alertas)</Text>
       </Card>
 
@@ -331,8 +331,8 @@ export function AdminOverview() {
         {[
           [`Taxas sobre pedidos (${ORDER_FEE_PCT}%)`, orderFeesMonth],
           [`Taxas de contratação de serviços (${SERVICE_FEE_PCT}% da visita)`, serviceFeesMonth],
-          ['Taxa de proteção Re@lys (R$ 0,99 por pedido)', 4210 + (state.protectionFees || 0)],
-          [`Presentes: parte do Re@lys (${GIFT_FUND_SPLIT.realys}% da taxa)`, giftSplit.realys],
+          ['Taxa de proteção Realyz (R$ 0,99 por pedido)', 4210 + (state.protectionFees || 0)],
+          [`Presentes: parte do Realyz (${GIFT_FUND_SPLIT.realys}% da taxa)`, giftSplit.realys],
           ['Planos mensais de empresas', 21840],
           ['Vídeos avulsos e vídeos longos', 7310],
           ['Patrocínio na busca', 8420],
@@ -347,7 +347,7 @@ export function AdminOverview() {
         ))}
       </Section>
 
-      {/* Taxa dos presentes (10%) dividida: parte para o fundo de doações, parte para os projetos e o lucro do Re@lys. */}
+      {/* Taxa dos presentes (10%) dividida: parte para o fundo de doações, parte para os projetos e o lucro do Realyz. */}
       <Section title="Taxa de presentes: divisão">
         <Card>
           <Row style={{ justifyContent: 'space-between' }}>
@@ -361,12 +361,12 @@ export function AdminOverview() {
             <Text style={{ fontWeight: '800', color: colors.success }}>{brl(giftSplit.doacoes)}</Text>
           </Row>
           <Text style={{ color: colors.muted, fontSize: 12, marginTop: 6, lineHeight: 17 }}>
-            Fica separado no caixa, reservado para projetos sociais de parceiros e do próprio Re@lys.
+            Fica separado no caixa, reservado para projetos sociais de parceiros e do próprio Realyz.
           </Text>
         </Card>
         <Card>
           <Row style={{ justifyContent: 'space-between' }}>
-            <Text style={{ color: colors.text, flex: 1, fontWeight: '700' }}>Projetos e lucro do Re@lys ({GIFT_FUND_SPLIT.realys}%)</Text>
+            <Text style={{ color: colors.text, flex: 1, fontWeight: '700' }}>Projetos e lucro do Realyz ({GIFT_FUND_SPLIT.realys}%)</Text>
             <Text style={{ fontWeight: '800', color: colors.primary }}>{brl(giftSplit.realys)}</Text>
           </Row>
         </Card>

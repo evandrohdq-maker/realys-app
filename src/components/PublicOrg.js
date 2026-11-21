@@ -110,7 +110,7 @@ function About({ org }) {
       </View>
       {org.gps ? (
         <Text style={[st.small, { marginBottom: 10 }]}>
-          <Ionicons name="navigate" size={12} color={k.color} /> GPS das equipes ligado: o Re@lys mostra a equipe mais perto quando você pede socorro.
+          <Ionicons name="navigate" size={12} color={k.color} /> GPS das equipes ligado: o Realyz mostra a equipe mais perto quando você pede socorro.
         </Text>
       ) : null}
       <Text style={st.h}>Horário</Text>
@@ -149,7 +149,7 @@ function Posts({ org }) {
   });
 }
 
-// Agendar pelo SUS: horários publicados pela unidade; o Re@lys confere o Cartão do SUS do perfil.
+// Agendar pelo SUS: horários publicados pela unidade; o Realyz confere o Cartão do SUS do perfil.
 function Booking({ org }) {
   const { state, dispatch } = useStore();
   const mine = (state.susBookings || []).filter((b) => b.orgId === org.id && b.status === 'agendado');
@@ -305,7 +305,7 @@ export function SusCard({ compact }) {
     if (!validCNS(n)) return Alert.alert('Número do SUS inválido', 'Confira os 15 números do seu Cartão Nacional de Saúde. Você encontra no cartão físico ou no app Meu SUS Digital.');
     dispatch({ type: 'SUS_SAVE', sus: { cns: n, name: name.trim(), unit: unit.trim(), savedAt: Date.now() } });
     setEditing(false);
-    Alert.alert('Cartão do SUS salvo ✅', 'Ele fica só neste celular, protegido. Agora você agenda atendimentos nas unidades do SUS pelo Re@lys.');
+    Alert.alert('Cartão do SUS salvo ✅', 'Ele fica só neste celular, protegido. Agora você agenda atendimentos nas unidades do SUS pelo Realyz.');
   };
   const bookings = (state.susBookings || []).filter((b) => b.status === 'agendado' && b.at > Date.now());
   return (

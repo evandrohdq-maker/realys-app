@@ -51,7 +51,7 @@ export function VisitRequestSheet({ provider: p, visible, onClose, address = '',
     onClose();
     Alert.alert(
       'Pedido enviado ✅',
-      `${brl(fee)} ficou retido no Re@lys. Se ${first} recusar ou não aparecer, o valor volta para você. Acompanhe em Serviços › Minhas visitas.`
+      `${brl(fee)} ficou retido no Realyz. Se ${first} recusar ou não aparecer, o valor volta para você. Acompanhe em Serviços › Minhas visitas.`
     );
     onSent && onSent();
   };
@@ -92,10 +92,10 @@ export function VisitRequestSheet({ provider: p, visible, onClose, address = '',
                 <Text style={styles.feeLabel}>Taxa de visita</Text>
                 <Text style={styles.feeValue}>{brl(fee)}</Text>
               </Row>
-              <Line icon="lock-closed-outline" text="Fica retida no Re@lys até você confirmar que a visita aconteceu." />
+              <Line icon="lock-closed-outline" text="Fica retida no Realyz até você confirmar que a visita aconteceu." />
               <Line icon="return-down-back-outline" text={`Se ${first} recusar ou não aparecer, o valor volta na hora.`} />
-              <Line icon="pie-chart-outline" text={`Depois da visita: ${brl(split.provider)} para ${first} e ${brl(split.realys)} (${REALYS_FEE_PCT}%) para o Re@lys.`} />
-              <Line icon="chatbubbles-outline" text="O valor do serviço vocês combinam direto. O Re@lys não cobra nada sobre ele." />
+              <Line icon="pie-chart-outline" text={`Depois da visita: ${brl(split.provider)} para ${first} e ${brl(split.realys)} (${REALYS_FEE_PCT}%) para o Realyz.`} />
+              <Line icon="chatbubbles-outline" text="O valor do serviço vocês combinam direto. O Realyz não cobra nada sobre ele." />
               {discount ? <Line icon="pricetag-outline" color={colors.success} text={`${first} abate a taxa de visita no fechamento do serviço, se for contratado. O valor final é combinado entre vocês.`} /> : null}
             </View>
 
@@ -103,7 +103,7 @@ export function VisitRequestSheet({ provider: p, visible, onClose, address = '',
               <Ionicons name="shield-checkmark" size={16} color={colors.onPrimary} />
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.sendText}>Pagar {brl(fee)} e pedir visita</Text>
             </TouchableOpacity>
-            <Text style={styles.saldo}>Saldo Re@lys: {brl(state.wallet)}</Text>
+            <Text style={styles.saldo}>Saldo Realyz: {brl(state.wallet)}</Text>
           </ScrollView>
         </View>
       </KeyboardLift>
@@ -167,7 +167,7 @@ export function VisitCard({ visit: v }) {
             <Text style={{ color: colors.text, marginLeft: 8, flex: 1, fontSize: 13 }}>
               Telefone liberado: <Text style={{ fontWeight: '700' }}>{phoneOf(v.providerId)}</Text>
             </Text>
-            <TouchableOpacity onPress={() => Alert.alert('Chat do Re@lys', `Conversa com ${first} aberta.`)}>
+            <TouchableOpacity onPress={() => Alert.alert('Chat do Realyz', `Conversa com ${first} aberta.`)}>
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700' }}>Chat</Text>
             </TouchableOpacity>
           </View>
@@ -191,7 +191,7 @@ export function VisitCard({ visit: v }) {
       {v.status === 'confirmada' ? (
         <>
           <Text style={styles.hint}>
-            Taxa dividida: {brl(v.split.provider)} para {first} e {brl(v.split.realys)} para o Re@lys. Agora combinem o valor do serviço direto
+            Taxa dividida: {brl(v.split.provider)} para {first} e {brl(v.split.realys)} para o Realyz. Agora combinem o valor do serviço direto
             {v.discount ? `. ${first} desconta a taxa de visita se for contratado.` : '.'}
           </Text>
           <Row>

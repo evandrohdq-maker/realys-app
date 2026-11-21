@@ -109,13 +109,13 @@ export default function ProviderProfile({ provider: p, visible, onClose, onHire,
                 <Text style={styles.visitLine}>
                   {st.sponsored ? 'Patrocinado · ' : ''}
                   {rank.pos ? `#${rank.pos} de ${rank.total} em ${type.label.toLowerCase()} na região` : ''}
-                  {isNewProvider(p) ? ' · Novo no Re@lys' : ''}
+                  {isNewProvider(p) ? ' · Novo no Realyz' : ''}
                 </Text>
                 <Text style={styles.visitLine}>
                   {st.done90} serviços nos últimos 90 dias · responde {st.responseRate}% dos pedidos em ~{st.responseMin} min
                 </Text>
                 {visitDiscount(p) ? <Text style={[styles.visitLine, { color: colors.success }]}>Desconta a taxa de visita do serviço se for contratado</Text> : null}
-                <Text style={styles.visitLine}>Telefone liberado depois que a taxa de visita é paga. Antes disso, converse pelo chat do Re@lys.</Text>
+                <Text style={styles.visitLine}>Telefone liberado depois que a taxa de visita é paga. Antes disso, converse pelo chat do Realyz.</Text>
               </View>
             ) : null}
 
@@ -158,7 +158,7 @@ export default function ProviderProfile({ provider: p, visible, onClose, onHire,
                   <Text style={[styles.itemName, { flex: 1 }]}>Valor cobrado</Text>
                   <Text style={styles.price}>{priceText(p)}</Text>
                 </View>
-                <Text style={styles.note}>Valores informados pelo próprio prestador no cadastro do Re@lys.</Text>
+                <Text style={styles.note}>Valores informados pelo próprio prestador no cadastro do Realyz.</Text>
               </View>
             ) : null}
 

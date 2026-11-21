@@ -1,4 +1,4 @@
-// Texto responsivo do Re@lys. Todas as telas importam Text e TextInput daqui (e não direto do
+// Texto responsivo do Realyz. Todas as telas importam Text e TextInput daqui (e não direto do
 // react-native), para o app inteiro se ajustar sozinho ao celular de cada pessoa:
 //  1. Letra grande nas configurações do Android: o texto cresce só até um limite, para não
 //     estourar botões e cartões.

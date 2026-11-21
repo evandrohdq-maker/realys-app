@@ -331,7 +331,7 @@ export default function MusicTab() {
             <Text style={{ color: colors.muted, fontWeight: '800', fontSize: 11, letterSpacing: 1 }}>PROPAGANDA</Text>
             <Ionicons name="megaphone" size={40} color={colors.primary} style={{ marginVertical: 10 }} />
             <Text style={{ color: colors.text, fontWeight: '800', fontSize: 17, textAlign: 'center' }}>Sua marca toca aqui</Text>
-            <Text style={{ color: colors.muted, fontSize: 13, textAlign: 'center', marginTop: 4 }}>Anuncie entre as músicas do Re@lys e fale com quem está ouvindo agora.</Text>
+            <Text style={{ color: colors.muted, fontSize: 13, textAlign: 'center', marginTop: 4 }}>Anuncie entre as músicas do Realyz e fale com quem está ouvindo agora.</Text>
             <Text style={{ color: colors.text, fontWeight: '800', marginTop: 14 }}>Sua música começa em {left} s</Text>
             <TouchableOpacity style={[st.planBtn, { marginTop: 12 }]} onPress={() => { subscribePlan(); setLeft(0); }}>
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '800', fontSize: 12.5 }}>Tirar as propagandas · {MUSIC_PLAN_FREE_MONTHS} meses grátis</Text>
@@ -348,13 +348,13 @@ function ArtistArea() {
   const { state } = useStore();
   const m = useMusic();
   const [f, setF] = useState({ title: '', genre: MUSIC_GENRES[0], price: String(MUSIC_ARTIST_SUGGESTED.toFixed(2)).replace('.', ','), url: '' });
-  // O artista digita quanto quer receber; o cliente paga isso + R$ 0,99 do Re@lys.
+  // O artista digita quanto quer receber; o cliente paga isso + R$ 0,99 do Realyz.
   const mine = Number(String(f.price).replace(',', '.')) || 0;
   const price = priceFor(mine);
   const publish = () => {
     if (!f.title.trim()) return Alert.alert('Falta o nome', 'Escreva o nome da música.');
     const mod = moderateText(f.title);
-    if (mod && mod.ok === false) return Alert.alert('Nome não aceito', 'O nome da música não passou na moderação do Re@lys.');
+    if (mod && mod.ok === false) return Alert.alert('Nome não aceito', 'O nome da música não passou na moderação do Realyz.');
     const bad = checkUrl(f.url);
     if (bad) return Alert.alert('Confira o endereço do áudio', bad);
     if (mine < MUSIC_ARTIST_MIN) return Alert.alert('Valor', `O mínimo para você receber é ${brl(MUSIC_ARTIST_MIN)} por música.`);
@@ -368,7 +368,7 @@ function ArtistArea() {
         <Ionicons name="cash-outline" size={18} color={colors.text} />
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={{ color: colors.text, fontWeight: '800', fontSize: 13.5 }}>{m.sales} venda{m.sales === 1 ? '' : 's'} · {brl(m.earned)} para você</Text>
-          <Text style={{ color: colors.muted, fontSize: 12 }}>Você recebe 100% do seu valor. O Re@lys soma só {brl(MUSIC_FEE)} por download.</Text>
+          <Text style={{ color: colors.muted, fontSize: 12 }}>Você recebe 100% do seu valor. O Realyz soma só {brl(MUSIC_FEE)} por download.</Text>
         </View>
       </View>
       <Text style={st.h}>Publicar música</Text>

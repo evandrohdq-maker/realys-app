@@ -1,4 +1,4 @@
-// Como o Re@lys ganha na aba Negócios (imóveis, veículos e máquinas).
+// Como o Realyz ganha na aba Negócios (imóveis, veículos e máquinas).
 // O cliente nunca paga. Quem anuncia paga de um dos dois jeitos:
 //  - plano mensal (imobiliária, revenda): conversas com interessados liberadas;
 //  - por conversa (proprietário, particular): anunciar é grátis e só paga ao liberar a conversa

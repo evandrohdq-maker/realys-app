@@ -180,19 +180,19 @@ export default function TrackingScreen({ call, visible, onClose, onOpenProfile }
                 onClose();
               }}
             >
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.mainText}>Concluir e pagar pelo Re@lys</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.mainText}>Concluir e pagar pelo Realyz</Text>
             </TouchableOpacity>
           ) : null}
 
           <View style={{ flexDirection: 'row' }}>
             <TouchableOpacity
               style={[styles.action, { backgroundColor: colors.primary, borderColor: colors.primary }]}
-              onPress={() => Alert.alert(`Ligando para ${first}`, 'A ligação passa pela Re@lys: o seu número fica protegido.')}
+              onPress={() => Alert.alert(`Ligando para ${first}`, 'A ligação passa pela Realyz: o seu número fica protegido.')}
             >
               <Ionicons name="call" size={16} color={colors.onPrimary} />
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.actionText, { color: colors.onPrimary }]}>Ligar</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.action} onPress={() => Alert.alert('Mensagem', `Conversa com ${first} aberta no chat do Re@lys.`)}>
+            <TouchableOpacity style={styles.action} onPress={() => Alert.alert('Mensagem', `Conversa com ${first} aberta no chat do Realyz.`)}>
               <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.text} />
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.actionText}>Mensagem</Text>
             </TouchableOpacity>

@@ -77,7 +77,7 @@ export function ProfileQuiz({ value, onChange }) {
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={styles.qTitle}>Seu perfil social</Text>
-          <Text style={styles.qSub}>Responda rapidinho. O Re@lys entende quem você é e cria seu selo.</Text>
+          <Text style={styles.qSub}>Responda rapidinho. O Realyz entende quem você é e cria seu selo.</Text>
         </View>
       </View>
 

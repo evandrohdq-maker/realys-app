@@ -60,7 +60,7 @@ import { FavLiveAlerts } from './src/components/FavKit';
 import { useFavs } from './src/favorites';
 import { SoftAlertHost, installSoftAlert } from './src/components/SoftAlert';
 
-// Avisos no estilo do Re@lys no app inteiro (no lugar da caixa cinza do Android).
+// Avisos no estilo do Realyz no app inteiro (no lugar da caixa cinza do Android).
 installSoftAlert();
 import { callNow } from './src/phone';
 import { getDevicePoint } from './src/geo';
@@ -140,7 +140,7 @@ const TABS = {
     // Reels: sem botão na barra. Abre arrastando a página inicial para a direita (como no Instagram)
     // ou pela Lotus; para publicar, é a opção Reel do botão de publicação.
     { key: 'reels', label: 'Reels', icon: 'play-circle-outline', Comp: ReelsScreen, hidden: true },
-    // Anuncie no Re@lys: espaços de publicidade com preço fechado (menu ⋮ e Lotus).
+    // Anuncie no Realyz: espaços de publicidade com preço fechado (menu ⋮ e Lotus).
     { key: 'anuncie', label: 'Anuncie', icon: 'megaphone-outline', Comp: AnuncieScreen, hidden: true },
     // Date: sem botão na barra. Abre pelo coraçãozinho discreto do Perfil (e pelo menu ⋮ e pela Lotus).
     { key: 'encontros', label: 'Date', icon: 'heart-outline', Comp: EncontrosScreen, hidden: true },
@@ -293,7 +293,7 @@ function Shell({ inviteTick }) {
     if (cfg.call190 !== false) setTimeout(() => callNow('190'), 1200);
   };
   // Frase de segurança (coação) na hora de confirmar: a Lotus mostra que deu certo, nada é cobrado,
-  // e em silêncio vai o alerta com GPS e endereço para a segurança do Re@lys, e a ligação para o 190.
+  // e em silêncio vai o alerta com GPS e endereço para a segurança do Realyz, e a ligação para o 190.
   const duressNow = (info) => triggerDuress(dispatch, stateRef.current, info);
   const silentNow = (info) => triggerSilent(dispatch, stateRef.current, info);
   const [acaoPendente, setAcaoPendente] = useState(null); // mensagem da Lotus aguardando sim/não (só chat)
@@ -413,7 +413,7 @@ function Shell({ inviteTick }) {
       if (goBackRef.current()) return true;
       const now = Date.now();
       if (now - lastBack.current < 2000) {
-        // Segundo toque: MINIMIZA o Re@lys (não fecha). Com rádio, TV ou live tocando, vira a
+        // Segundo toque: MINIMIZA o Realyz (não fecha). Com rádio, TV ou live tocando, vira a
         // janelinha com a capa/vídeo e o som continua. Fechar de verdade = arrastar o app para
         // fora na tela de apps abertos, e aí o som para.
         lastBack.current = 0;
@@ -421,7 +421,7 @@ function Shell({ inviteTick }) {
         return true;
       }
       lastBack.current = now;
-      if (Platform.OS === 'android') ToastAndroid.show(playingKind() ? 'Toque em voltar de novo para minimizar (o som continua)' : 'Toque em voltar de novo para minimizar o Re@lys', ToastAndroid.SHORT);
+      if (Platform.OS === 'android') ToastAndroid.show(playingKind() ? 'Toque em voltar de novo para minimizar (o som continua)' : 'Toque em voltar de novo para minimizar o Realyz', ToastAndroid.SHORT);
       return true;
     });
     return () => sub.remove();
@@ -571,8 +571,8 @@ function Shell({ inviteTick }) {
     {/* Toda a tela sobe junto com o teclado: dá para ver o que está digitando (src/keyboard.js). */}
     <KeyboardLift style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        {/* Só a logo (o R dentro do @), sem fundo dourado e sem o nome escrito: a palavra Re@lys fica só na entrada do app. */}
-        <View style={{ flexDirection: 'row', alignItems: 'center' }} accessibilityLabel="Re@lys">
+        {/* Só a logo (o R dentro do @), sem fundo dourado e sem o nome escrito: a palavra Realyz fica só na entrada do app. */}
+        <View style={{ flexDirection: 'row', alignItems: 'center' }} accessibilityLabel="Realyz">
           <Image source={require('./assets/logo-mark.png')} style={styles.logoImg} />
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -592,7 +592,7 @@ function Shell({ inviteTick }) {
           ) : null}
           {/* Carrinho discreto: só aparece quando há itens */}
           <CartIcon style={styles.iconBtn} />
-          <TouchableOpacity onPress={() => setSearching(true)} style={styles.iconBtn} accessibilityLabel="Buscar pessoas na rede Re@lys">
+          <TouchableOpacity onPress={() => setSearching(true)} style={styles.iconBtn} accessibilityLabel="Buscar pessoas na rede Realyz">
             <Ionicons name="search-outline" size={21} color={colors.text} />
           </TouchableOpacity>
           {/* Sininho e mensagens no topo (opção 1): pequenos, sem fundo, só um pontinho dourado quando tem novidade.
@@ -628,7 +628,7 @@ function Shell({ inviteTick }) {
             ) : null}
           </TouchableOpacity>
           {/* ⋮ no canto direito, em qualquer tela: Menu com Minha conta e Explorar. */}
-          <TouchableOpacity onPress={openMenuAnywhere} style={styles.iconBtn} accessibilityLabel="Abrir menu: minha conta e explorar o Re@lys">
+          <TouchableOpacity onPress={openMenuAnywhere} style={styles.iconBtn} accessibilityLabel="Abrir menu: minha conta e explorar o Realyz">
             <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
           </TouchableOpacity>
         </View>
@@ -834,8 +834,8 @@ function Shell({ inviteTick }) {
             dispatch({ type: 'CLOSE_PROVIDER' });
             pick({ tab: 'servicos', service: p.service });
           }}
-          onQuote={(p) => Alert.alert('Orçamento pedido', `${p.name} recebeu seu pedido. A proposta chega no chat do Re@lys.`)}
-          onMessage={(p) => Alert.alert('Mensagem', `Conversa com ${p.name.split(' ')[0]} aberta no chat do Re@lys.`)}
+          onQuote={(p) => Alert.alert('Orçamento pedido', `${p.name} recebeu seu pedido. A proposta chega no chat do Realyz.`)}
+          onMessage={(p) => Alert.alert('Mensagem', `Conversa com ${p.name.split(' ')[0]} aberta no chat do Realyz.`)}
         />
       ) : null}
       {/* Prévia do prestador tocado na pesquisa: só para analisar, sem mensagem nem chamar */}
@@ -888,7 +888,7 @@ function Root() {
       <StatusBar style="dark" />
       {!state.ready ? (
         <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={[styles.brand, { fontSize: 26, marginBottom: 16 }]}>REALYS</Text>
+          <Image source={require('./assets/wordmark-escuro.png')} style={{ width: 200, height: 62, marginBottom: 16 }} resizeMode="contain" accessibilityLabel="Realyz" />
           <ActivityIndicator color={colors.primary} />
         </View>
       ) : state.user ? (
@@ -907,7 +907,7 @@ export default function App() {
       <StoreProvider>
         <Root />
       </StoreProvider>
-      {/* Avisos do Re@lys: em qualquer tela, inclusive na entrada (login). */}
+      {/* Avisos do Realyz: em qualquer tela, inclusive na entrada (login). */}
       <SoftAlertHost />
     </SafeAreaProvider>
   );

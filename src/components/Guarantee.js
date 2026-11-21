@@ -1,4 +1,4 @@
-// Garantia Re@lys na tela: selo, botão "Tive um problema", janela para abrir o caso e acompanhamento.
+// Garantia Realyz na tela: selo, botão "Tive um problema", janela para abrir o caso e acompanhamento.
 import React, { useEffect, useState } from 'react';
 import { KeyboardLift } from '../keyboard';
 import { View, StyleSheet, TouchableOpacity, Modal, Alert, ScrollView } from 'react-native';
@@ -11,12 +11,12 @@ import { GUARANTEE_REASONS, GUARANTEE_RULES, GUARANTEE_DAYS, GUARANTEE_ANSWER_HO
 
 const GREEN = '#1E9E63';
 
-// Selo curto: "Protegido pela Garantia Re@lys".
+// Selo curto: "Protegido pela Garantia Realyz".
 export function GuaranteeSeal({ text, style }) {
   return (
     <View style={[styles.seal, style]}>
       <Ionicons name="shield-checkmark" size={14} color={GREEN} />
-      <Text style={styles.sealText}>{text || `Protegido pela Garantia Re@lys · ${GUARANTEE_DAYS} dias`}</Text>
+      <Text style={styles.sealText}>{text || `Protegido pela Garantia Realyz · ${GUARANTEE_DAYS} dias`}</Text>
     </View>
   );
 }
@@ -27,13 +27,13 @@ export function GuaranteeInfo() {
   const { state } = useStore();
   const cases = state.disputes || [];
   return (
-    <TouchableOpacity activeOpacity={0.9} onPress={() => setOpen(!open)} style={styles.info} accessibilityLabel="Garantia Re@lys">
+    <TouchableOpacity activeOpacity={0.9} onPress={() => setOpen(!open)} style={styles.info} accessibilityLabel="Garantia Realyz">
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={styles.infoIcon}>
           <Ionicons name="shield-checkmark" size={20} color="#fff" />
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={styles.infoTitle}>Garantia Re@lys</Text>
+          <Text style={styles.infoTitle}>Garantia Realyz</Text>
           <Text style={styles.infoSub}>Deu problema? Seu dinheiro volta.</Text>
         </View>
         <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={GREEN} />
@@ -80,7 +80,7 @@ export function GuaranteeButton({ kind, refId, title, amount, giftPart, delivere
   const [text, setText] = useState('');
   const d = (state.disputes || []).find((x) => x.refId === refId);
 
-  // Demonstração: o Re@lys analisa (chat, GPS, QR Code) e responde em alguns segundos.
+  // Demonstração: o Realyz analisa (chat, GPS, QR Code) e responde em alguns segundos.
   useEffect(() => {
     if (!d || d.status !== 'em análise') return;
     const t = setTimeout(() => dispatch({ type: 'DISPUTE_RESOLVE', id: d.id, favor: true }), 6000);
@@ -95,9 +95,9 @@ export function GuaranteeButton({ kind, refId, title, amount, giftPart, delivere
         <Text style={[styles.statusText, done && { color: GREEN }]}>
           {done
             ? d.outcome === 'reembolsado'
-              ? `Garantia Re@lys: ${brl(d.amount)} devolvido para a sua carteira`
-              : 'Garantia Re@lys: caso analisado e não aprovado'
-            : `Garantia Re@lys analisando: ${d.reason.toLowerCase()}. Resposta em até ${GUARANTEE_ANSWER_HOURS} h.`}
+              ? `Garantia Realyz: ${brl(d.amount)} devolvido para a sua carteira`
+              : 'Garantia Realyz: caso analisado e não aprovado'
+            : `Garantia Realyz analisando: ${d.reason.toLowerCase()}. Resposta em até ${GUARANTEE_ANSWER_HOURS} h.`}
         </Text>
       </View>
     );
@@ -110,12 +110,12 @@ export function GuaranteeButton({ kind, refId, title, amount, giftPart, delivere
     setOpen(false);
     setReason(null);
     setText('');
-    Alert.alert('Caso aberto', `O valor continua retido. O Re@lys vai olhar o chat, o GPS e o QR Code e responder em até ${GUARANTEE_ANSWER_HOURS} horas.`);
+    Alert.alert('Caso aberto', `O valor continua retido. O Realyz vai olhar o chat, o GPS e o QR Code e responder em até ${GUARANTEE_ANSWER_HOURS} horas.`);
   };
 
   return (
     <>
-      <TouchableOpacity style={styles.btn} onPress={() => setOpen(true)} accessibilityLabel="Tive um problema: Garantia Re@lys">
+      <TouchableOpacity style={styles.btn} onPress={() => setOpen(true)} accessibilityLabel="Tive um problema: Garantia Realyz">
         <Ionicons name="shield-checkmark-outline" size={14} color={GREEN} />
         <Text numberOfLines={1} style={styles.btnText}>Tive um problema</Text>
         {deliveredAt ? <Text numberOfLines={1} style={[styles.btnSub, { flexShrink: 1 }]}> · {daysLeft(deliveredAt)} dias de garantia</Text> : null}
@@ -130,7 +130,7 @@ export function GuaranteeButton({ kind, refId, title, amount, giftPart, delivere
                 <Ionicons name="shield-checkmark" size={18} color="#fff" />
               </View>
               <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={styles.infoTitle}>Garantia Re@lys</Text>
+                <Text style={styles.infoTitle}>Garantia Realyz</Text>
                 <Text style={styles.infoSub} numberOfLines={1}>{title} · {brl(amount)}</Text>
               </View>
               <TouchableOpacity onPress={() => setOpen(false)} accessibilityLabel="Fechar" style={{ padding: 4 }}>
@@ -150,9 +150,9 @@ export function GuaranteeButton({ kind, refId, title, amount, giftPart, delivere
               })}
               <Text style={styles.label}>Conte em poucas palavras (opcional)</Text>
               <TextInput style={styles.input} value={text} onChangeText={setText} placeholder="Ex.: a embalagem chegou aberta e faltou uma peça" placeholderTextColor={colors.muted} multiline />
-              <Text style={styles.note}>O Re@lys vai olhar a conversa, o GPS da entrega, o QR Code e as fotos. Enquanto isso, o dinheiro fica retido. Caso falso tira pontos do seu Score.</Text>
+              <Text style={styles.note}>O Realyz vai olhar a conversa, o GPS da entrega, o QR Code e as fotos. Enquanto isso, o dinheiro fica retido. Caso falso tira pontos do seu Score.</Text>
               <TouchableOpacity style={styles.send} onPress={send}>
-                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Abrir caso na Garantia Re@lys</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Abrir caso na Garantia Realyz</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>

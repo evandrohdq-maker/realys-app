@@ -157,7 +157,7 @@ export default function SupportCenter({ visible, onClose }) {
                 {openFaq === f.id ? <Text style={{ color: colors.muted, marginTop: 8, lineHeight: 20 }}>{f.a}</Text> : null}
               </TouchableOpacity>
             ))}
-            <Text style={st.note}>O atendimento do Re@lys é só por mensagem, aqui no app. {guest ? 'Volte a esta tela para ver a resposta do seu chamado.' : 'Em caso de perigo, use o SOS no Perfil: o suporte não substitui a polícia nem o SAMU.'}</Text>
+            <Text style={st.note}>O atendimento do Realyz é só por mensagem, aqui no app. {guest ? 'Volte a esta tela para ver a resposta do seu chamado.' : 'Em caso de perigo, use o SOS no Perfil: o suporte não substitui a polícia nem o SAMU.'}</Text>
           </ScrollView>
         )}
       </KeyboardLift>
@@ -191,7 +191,7 @@ export function TicketThread({ ticket, bottom = 0, asTeam = false, onSend, quick
             <Text key={i} style={st.system}>{m.text}</Text>
           ) : (
             <View key={i} style={[st.bubble, (m.from === 'user') !== asTeam ? st.mine : st.theirs]}>
-              {m.from === 'team' && !asTeam ? <Text style={st.who}>{m.by || 'Equipe Re@lys'}</Text> : null}
+              {m.from === 'team' && !asTeam ? <Text style={st.who}>{m.by || 'Equipe Realyz'}</Text> : null}
               {m.from === 'user' && asTeam ? <Text style={st.who}>{ticket.userName}</Text> : null}
               <Text style={{ color: colors.text, lineHeight: 20 }}>{m.text}</Text>
               <Text style={{ color: colors.muted, fontSize: 10.5, marginTop: 3, alignSelf: 'flex-end' }}>{m.time}</Text>

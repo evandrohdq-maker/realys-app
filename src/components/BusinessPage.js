@@ -44,7 +44,7 @@ export function Stars({ value, size = 13, color = colors.gold }) {
 export function reviewer(state, rv) {
   if (rv.who === 'me') return { name: (state.user && state.user.name) || 'Você', photo: state.myProfile && state.myProfile.photo };
   const m = memberById(rv.who);
-  return m ? { name: m.name, photo: m.photo } : { name: 'Cliente Re@lys', photo: null };
+  return m ? { name: m.name, photo: m.photo } : { name: 'Cliente Realyz', photo: null };
 }
 
 // Logo com anel em órbita, no mesmo estilo da Lotus.
@@ -582,7 +582,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
                     <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.ctaText}>Escrever depoimento</Text>
                   </TouchableOpacity>
                 ) : (
-                  <Text style={[styles.sub, { textAlign: 'center', marginBottom: 12 }]}>Só quem comprou aqui pelo Re@lys pode escrever depoimento.</Text>
+                  <Text style={[styles.sub, { textAlign: 'center', marginBottom: 12 }]}>Só quem comprou aqui pelo Realyz pode escrever depoimento.</Text>
                 )
               ) : null}
               {writing ? <WriteReview company={p} onClose={() => setWriting(false)} /> : null}
@@ -613,7 +613,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
           {tab === 'midia' && MediaList ? <MediaList items={media} /> : null}
         </View>
       </ScrollView>
-      {/* Seguidores da empresa (na demonstração, membros do Re@lys; o servidor traz a lista real). */}
+      {/* Seguidores da empresa (na demonstração, membros do Realyz; o servidor traz a lista real). */}
       <PeopleListModal visible={followersOpen} title={`Seguidores de ${p.name}`} people={members.slice(0, 12)} total={p.followers + (following ? 1 : 0)} onClose={() => setFollowersOpen(false)} />
     </KeyboardLift></Modal>
   );

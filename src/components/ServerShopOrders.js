@@ -1,4 +1,4 @@
-// Painel da empresa: pedidos que chegaram pelo servidor do Re@lys (clientes de verdade).
+// Painel da empresa: pedidos que chegaram pelo servidor do Realyz (clientes de verdade).
 // A loja avança o status (Preparando → A caminho → Entregue) ou cancela, e o cliente vê na hora.
 // Mudar um pedido pede a confirmação do rosto (quando o servidor exige).
 import React, { useEffect, useState, useCallback } from 'react';
@@ -52,7 +52,7 @@ export default function ServerShopOrders() {
   return (
     <Card>
       <Row style={{ justifyContent: 'space-between', marginBottom: 6 }}>
-        <Text style={{ fontWeight: '800', color: colors.text }}>🛍️ Pedidos do Re@lys</Text>
+        <Text style={{ fontWeight: '800', color: colors.text }}>🛍️ Pedidos do Realyz</Text>
         <TouchableOpacity onPress={load} accessibilityLabel="Atualizar pedidos">
           <Text style={{ color: colors.primary, fontWeight: '700' }}>Atualizar</Text>
         </TouchableOpacity>

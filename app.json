@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Re@lys",
+    "name": "Realyz",
     "slug": "realys",
     "scheme": "realys",
     "version": "0.7.0",
@@ -37,14 +37,14 @@
       [
         "@config-plugins/react-native-webrtc",
         {
-          "cameraPermission": "O Re@lys usa a câmera para as suas lives e chamadas de vídeo.",
-          "microphonePermission": "O Re@lys usa o microfone nas suas lives e chamadas de vídeo."
+          "cameraPermission": "O Realyz usa a câmera para as suas lives e chamadas de vídeo.",
+          "microphonePermission": "O Realyz usa o microfone nas suas lives e chamadas de vídeo."
         }
       ],
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "O Re@lys usa sua biometria para confirmar que você é uma pessoa real."
+          "faceIDPermission": "O Realyz usa sua biometria para confirmar que você é uma pessoa real."
         }
       ],
       "expo-status-bar",
@@ -70,22 +70,22 @@
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "O Re@lys usa o microfone para ouvir quando você chama \"Re@lys\".",
-          "speechRecognitionPermission": "O Re@lys reconhece sua voz para atender seus pedidos."
+          "microphonePermission": "O Realyz usa o microfone para ouvir quando você chama \"Realyz\".",
+          "speechRecognitionPermission": "O Realyz reconhece sua voz para atender seus pedidos."
         }
       ],
       "expo-secure-store",
       [
         "expo-image-picker",
         {
-          "photosPermission": "O Re@lys acessa suas fotos e vídeos para você montar a galeria do seu perfil.",
-          "cameraPermission": "O Re@lys usa a câmera para fotos do seu perfil."
+          "photosPermission": "O Realyz acessa suas fotos e vídeos para você montar a galeria do seu perfil.",
+          "cameraPermission": "O Realyz usa a câmera para fotos do seu perfil."
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "O Re@lys usa sua localização para mostrar o tempo e a temperatura onde você está e os prestadores mais próximos."
+          "locationWhenInUsePermission": "O Realyz usa sua localização para mostrar o tempo e a temperatura onde você está e os prestadores mais próximos."
         }
       ]
     ],

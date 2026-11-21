@@ -37,7 +37,7 @@ export function AnunciarSheet({ visible, onClose, kinds, kindLabel }) {
 
   const assinar = (p) => {
     if (state.wallet < p.valor) return Alert.alert('Saldo insuficiente', `O plano ${p.nome} custa ${brl(p.valor)} por mês. Coloque saldo na carteira e tente de novo.`);
-    Alert.alert(`Plano ${p.nome}`, `${brl(p.valor)} por mês, do seu saldo Re@lys. ${p.detalhe}, com as conversas liberadas.`, [
+    Alert.alert(`Plano ${p.nome}`, `${brl(p.valor)} por mês, do seu saldo Realyz. ${p.detalhe}, com as conversas liberadas.`, [
       { text: 'Agora não', style: 'cancel' },
       { text: 'Assinar', onPress: () => dispatch({ type: 'NEG_PLAN', id: p.id }) },
     ]);

@@ -1,4 +1,4 @@
-// Música no story (como no Instagram): quem publica escolhe uma música da galeria do Re@lys
+// Música no story (como no Instagram): quem publica escolhe uma música da galeria do Realyz
 // e o trecho; o story toca a música junto (o som do vídeo fica mudo) e mostra a figurinha
 // com a capa, o nome e o artista. A rádio/música que estava tocando pausa e volta depois.
 import React, { useEffect, useMemo, useState } from 'react';

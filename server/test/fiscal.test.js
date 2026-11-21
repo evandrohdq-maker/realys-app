@@ -73,7 +73,7 @@ test('Resumo do mês avisa quando a receita não cobre custos e impostos', () =>
 
 test('DPS: Id com 45 caracteres e assinatura digital que confere', () => {
   const emitente = { cnpj: '12.345.678/0001-90', municipio: '4314100', opSimpNac: 3 };
-  const nota = { serie: 1, numero: 7, emitidaEm: Date.UTC(2026, 10, 9, 15), valorCents: 99, descricao: 'Taxa de proteção Realys & garantia <teste>', cTribNac: '100501', tomador: { doc: '123.456.789-09', nome: 'Ana' } };
+  const nota = { serie: 1, numero: 7, emitidaEm: Date.UTC(2026, 10, 9, 15), valorCents: 99, descricao: 'Taxa de proteção Realyz & garantia <teste>', cTribNac: '100501', tomador: { doc: '123.456.789-09', nome: 'Ana' } };
   const { id, xml } = montarDps({ ambiente: 2, emitente, nota });
   assert.equal(id, idDps({ municipio: '4314100', cnpj: '12345678000190', serie: 1, numero: 7 }));
   assert.equal(id.length, 45);
@@ -122,7 +122,7 @@ after(async () => {
   rmSync(dir, { recursive: true, force: true });
 });
 
-test('Taxa do Realys vira nota emitida e depois é cancelada no estorno', async () => {
+test('Taxa do Realyz vira nota emitida e depois é cancelada no estorno', async () => {
   const { db, fiscal } = app;
   tx(db, () => fiscal.registrar({ origem: 'taxa_protecao', ref: 'o_1', tomadorId: 'u_ana', valorCents: 99 }));
   const r = await fiscal.processar();

@@ -1,4 +1,4 @@
-# Servidor do Realys
+# Servidor do Realyz
 
 Guarda tudo o que no app de demonstração ficava só no celular: contas, carteira, presentes, lojas, pedidos, posts, stories, depoimentos, mensagens, prestadores com GPS, lives e o acesso do administrador.
 

@@ -1,4 +1,4 @@
-// Rádios: diretório das rádios do Re@lys e cadastro da rádio da empresa.
+// Rádios: diretório das rádios do Realyz e cadastro da rádio da empresa.
 // A rádio indexa a URL do próprio streaming e passa a tocar na página dela e aqui.
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
@@ -48,7 +48,7 @@ export default function RadiosScreen() {
 
   return (
     <Screen>
-      <Title sub="Rádios ao vivo das empresas do Re@lys">Rádios</Title>
+      <Title sub="Rádios ao vivo das empresas do Realyz">Rádios</Title>
 
       <TouchableOpacity style={st.own} onPress={openForm} accessibilityLabel={mine ? 'Editar minha rádio' : 'Indexar minha rádio'}>
         <Ionicons name="radio-outline" size={20} color="#fff" />

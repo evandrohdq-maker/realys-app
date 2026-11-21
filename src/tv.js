@@ -1,4 +1,4 @@
-// TV online no Re@lys: cada canal (empresa com CNPJ) indexa a URL do próprio streaming de vídeo
+// TV online no Realyz: cada canal (empresa com CNPJ) indexa a URL do próprio streaming de vídeo
 // (HLS .m3u8 ou MP4) e passa a aparecer na aba Stream, ao lado das rádios.
 // Funciona igual às rádios (src/radio.js): a URL é do sinal ao vivo, não do site do canal.
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,7 +10,7 @@ const SEED = [
   {
     id: 'tv-exemplo-1', name: 'Canal Demonstração 1', city: 'Sinal de teste', genre: 'Animação', emoji: '📺',
     url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', example: true, cat: 'filmes',
-    desc: 'Canal de exemplo: mostra como fica uma TV indexada no Re@lys.',
+    desc: 'Canal de exemplo: mostra como fica uma TV indexada no Realyz.',
   },
   {
     id: 'tv-exemplo-2', name: 'Canal Demonstração 2', city: 'Sinal de teste', genre: 'Barras de teste', emoji: '🎬',

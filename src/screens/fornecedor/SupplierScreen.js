@@ -106,7 +106,7 @@ export default function SupplierScreen() {
                   </View>
                 ) : null}
                 {o.status === 'aceita' ? (
-                  <Text style={{ fontSize: 12, color: colors.success, marginTop: 4 }}>✓ Negócio fechado. Pagamento retido pelo Re@lys até a entrega.</Text>
+                  <Text style={{ fontSize: 12, color: colors.success, marginTop: 4 }}>✓ Negócio fechado. Pagamento retido pelo Realyz até a entrega.</Text>
                 ) : null}
               </Card>
             );

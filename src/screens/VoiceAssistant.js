@@ -56,7 +56,7 @@ const EXAMPLES = [
 ];
 
 // Palavras que ajudam o reconhecimento de voz a acertar os nomes do app.
-const HINTS = ['Lotus', 'Re@lys', 'Community', 'Stories', 'Food', 'Date', 'Shop', 'Agro', 'Lives', 'Tecnologia', 'Pedidos', 'Perfil', 'Serviços'];
+const HINTS = ['Lotus', 'Realyz', 'Community', 'Stories', 'Food', 'Date', 'Shop', 'Agro', 'Lives', 'Tecnologia', 'Pedidos', 'Perfil', 'Serviços'];
 
 const norm = (s) =>
   s
@@ -195,7 +195,7 @@ function duressReply(state, dispatch, pending) {
     reply = `${doneLine('compra', true)} ${brl(pending.total)}, com pagamento protegido. Acompanhe em Pedidos.`;
     what = `Compra de ${brl(pending.total)} (simulada, nada foi cobrado)`;
   } else if (pending.type === 'convertLive') {
-    reply = `${doneLine('operacao', true)} ${brl(state.liveCredits)} em créditos de live viraram moeda Re@lys no seu saldo.`;
+    reply = `${doneLine('operacao', true)} ${brl(state.liveCredits)} em créditos de live viraram moeda Realyz no seu saldo.`;
     what = 'Conversão de créditos (simulada)';
   } else if (pending.type === 'service') {
     const call = buildServiceCall(state, pending.address || '', pending.serviceKey, pending.providerId);
@@ -433,7 +433,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
     if (YES.test(t) && !buy) return { reply: `Quer que eu confirme a compra? (Toque em Finalizar compra${orSay()}.)`, pending };
     if (buy) {
       if (aPagar(state, pending.total) > state.wallet + (state.giftCredits || 0)) return { reply: 'Seu saldo não dá para essa compra. Adicione saldo na carteira e eu finalizo.' };
-      // Lojas do servidor: o pagamento vai para o Re@lys; se der errado, o aviso aparece na tela.
+      // Lojas do servidor: o pagamento vai para o Realyz; se der errado, o aviso aparece na tela.
       finalizarCompra(state, dispatch).then((r) => { if (!r.ok) Alert.alert('Compra não finalizada', r.message); });
       return { reply: `${doneLine('compra')} ${brl(pending.total)}, com pagamento protegido. Acompanhe em Pedidos.` };
     }
@@ -445,7 +445,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
     if (conv) {
       if (state.liveCredits < 10) return { reply: 'Você precisa de pelo menos 10 créditos de live para converter.' };
       dispatch({ type: 'CONVERT_LIVE_CREDITS', amount: state.liveCredits });
-      return { reply: `${doneLine('operacao')} ${brl(state.liveCredits)} em créditos de live viraram moeda Re@lys no seu saldo.` };
+      return { reply: `${doneLine('operacao')} ${brl(state.liveCredits)} em créditos de live viraram moeda Realyz no seu saldo.` };
     }
   }
   if (pending && NO.test(t)) return { reply: 'Tudo bem. Se precisar, é só chamar.' };
@@ -493,7 +493,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   // Conhecimento da Lotus (o que empresas e clientes publicaram): preços, comparação, opinião dos
   // clientes e informação falsa. "Quanto custa um eletricista?", "o que falam da Pizzaria?",
   // "é verdade que a gasolina vai a R$ 15?". Só responde: nunca compra, vende ou age sozinha.
-  // Dúvida sobre o próprio Re@lys (taxas, garantia, saque, biometria, Date, termos...): responde pela
+  // Dúvida sobre o próprio Realyz (taxas, garantia, saque, biometria, Date, termos...): responde pela
   // base de conhecimento, com os dados da conta. Só quando a pergunta é claramente sobre o app;
   // "quanto custa um eletricista?" continua indo para os preços do mercado logo abaixo.
   const ask = stripWake(text);
@@ -509,7 +509,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   if (prof) {
     if (prof.open) return { open: prof.open, reply: openReply(prof.open, prof.others) };
     if (prof.ask) return { reply: askReply(prof.ask, prof.options), results: prof.options.map(toResult), pending: { type: 'profile', options: prof.options } };
-    return { reply: `Não encontrei ninguém chamado ${prof.notFound} no Re@lys. Confira o nome ou procure pela lupa no topo do app.` };
+    return { reply: `Não encontrei ninguém chamado ${prof.notFound} no Realyz. Confira o nome ou procure pela lupa no topo do app.` };
   }
 
   // Festas: "festa mais próxima", "tem balada aberta agora?" → abertas ou que abrem logo, pela distância.
@@ -556,7 +556,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
     // para escolher o horário (nunca agenda sozinha).
     const type = serviceType(serviceKey);
     const list = state.providers.filter((p) => p.service === serviceKey).sort((a, b) => b.rating - a.rating);
-    if (!list.length) return { reply: `Ainda não tem ${type.label.toLowerCase()} atendendo online no Re@lys.` };
+    if (!list.length) return { reply: `Ainda não tem ${type.label.toLowerCase()} atendendo online no Realyz.` };
     const f = list[0];
     let reply = `Encontrei ${list.length === 1 ? 'um' : list.length} ${type.label.toLowerCase()}${list.length === 1 ? '' : 's'} com atendimento online, por chamada de vídeo. ${f.name}, nota ${String(f.rating).replace('.', ',')}, cobra ${priceText(f)}`;
     reply += f.slots && f.slots[0] ? ` e tem horário ${f.slots[0].toLowerCase()}.` : '.';
@@ -597,10 +597,10 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   // "Quanto ganhei nas lives?", "converte meus créditos de live".
   if (/\blives?\b/.test(t) && /(credito|ganhei|presente|recebi|converte|converter|moeda)/.test(t)) {
     const c = state.liveCredits || 0;
-    if (c < 10) return { reply: `Você tem ${brl(c)} em créditos de live. Com 10 ou mais dá para converter em moeda Re@lys.` };
-    return { reply: `Você tem ${brl(c)} em créditos de live, dos presentes que ganhou transmitindo. Quer que eu converta em moeda Re@lys agora?`, pending: { type: 'convertLive' } };
+    if (c < 10) return { reply: `Você tem ${brl(c)} em créditos de live. Com 10 ou mais dá para converter em moeda Realyz.` };
+    return { reply: `Você tem ${brl(c)} em créditos de live, dos presentes que ganhou transmitindo. Quer que eu converta em moeda Realyz agora?`, pending: { type: 'convertLive' } };
   }
-  if (/(saldo|dinheiro|carteira)/.test(t)) return { reply: `Seu saldo Re@lys é de ${brl(state.wallet)}.` };
+  if (/(saldo|dinheiro|carteira)/.test(t)) return { reply: `Seu saldo Realyz é de ${brl(state.wallet)}.` };
 
   // Busca geral em todo o conteúdo do app: anúncios, hotéis, imóveis, eventos, cursos,
   // lojas, produtos, promoções, prestadores, lives, pessoas e posts.
@@ -621,7 +621,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   }
   const { results, tokens, label } = found;
   if (results.length || found.category) return withCartOffer({ reply: contentReply(results, label, found), results }, state);
-  // Não achou nada no app: talvez seja uma dúvida sobre o Re@lys ("e se eu não embarcar a tempo?").
+  // Não achou nada no app: talvez seja uma dúvida sobre o Realyz ("e se eu não embarcar a tempo?").
   if (!depth) {
     const kb = askRealys(stripWake(text), state);
     if (kb && kb.reply && kb.score >= 0.6) return { reply: kb.reply, voice: kb.voice, kb: true };
@@ -634,7 +634,7 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   };
 }
 
-// Palavras que mostram que a dúvida é sobre o próprio Re@lys (e não sobre um produto ou prestador).
+// Palavras que mostram que a dúvida é sobre o próprio Realyz (e não sobre um produto ou prestador).
 const REALYS_CUE = /\b(realys|app|aplicativo|plataforma|taxa|taxas|cobra|cobram|comiss|garantia|biometria|reconhecimento|rosto|saque|sacar|saco|saca|grana|dinheiro|saldo|carteira|pix|ponto|pontos|reembolso|estorno|devolu|conta|senha|termo|regra|plano|mensalidade|assinatura|anunciar|anuncio|vender|desapego|date|lotus|ouvindo|escuta|microfone|suporte|chamado|atendente|qr|gorjeta|presente|live|streamer|boost|pagina|menor|idade|seguro|golpe|fake|privacidade|dados|atualiza|contrato|prestador|motorista|embarc|espera|loja)/;
 
 // Entre as opções que o celular ouviu, prefere a que é um pedido de navegação
@@ -1290,7 +1290,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
       if (!p || !p.granted) {
         const r = await withSystemDialog(() => ExpoSpeechRecognitionModule.requestPermissionsAsync());
         if (!r || !r.granted) {
-          setHistory((h) => [{ at: Date.now(), q: '🎙️', reply: 'O Re@lys precisa da permissão do microfone para ouvir você. Você também pode digitar abaixo.' }, ...h]);
+          setHistory((h) => [{ at: Date.now(), q: '🎙️', reply: 'O Realyz precisa da permissão do microfone para ouvir você. Você também pode digitar abaixo.' }, ...h]);
           return;
         }
       }
@@ -1430,7 +1430,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     level.setValue(0);
     setPhase(restPhase());
     if (code === 'not-allowed' || code === 'service-not-allowed') {
-      setHistory((h) => [{ at: Date.now(), q: '🎙️', reply: 'O Re@lys precisa da permissão do microfone para ouvir você.' }, ...h]);
+      setHistory((h) => [{ at: Date.now(), q: '🎙️', reply: 'O Realyz precisa da permissão do microfone para ouvir você.' }, ...h]);
     } else if (isNetError(code)) {
       setPartial('');
       setHistory((h) => [
@@ -1538,7 +1538,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
           <View style={styles.head}>
             <View>
               <Text style={styles.brand}>LOTUS</Text>
-              <Text style={styles.brandSub}>assistente do Re@lys</Text>
+              <Text style={styles.brandSub}>assistente do Realyz</Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               {weather ? (
@@ -1642,7 +1642,7 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
                     ) : h.knowledge ? (
                       <View style={[styles.sense, { backgroundColor: 'rgba(226,182,73,0.16)' }]}>
                         <Ionicons name="library-outline" size={11} color={colors.gold} />
-                        <Text style={[styles.senseTxt, { color: colors.gold }]}>Pelo que foi publicado no Re@lys</Text>
+                        <Text style={[styles.senseTxt, { color: colors.gold }]}>Pelo que foi publicado no Realyz</Text>
                       </View>
                     ) : null}
                     {h.understood ? (

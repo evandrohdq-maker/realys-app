@@ -75,7 +75,7 @@ export default function SalasScreen({ explore }) {
   return (
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
       <Text style={st.h1}>Hub de Negócios</Text>
-      <Text style={st.sub}>Atendimento ao vivo com quem é real: voz, vídeo e tela compartilhada, sem sair do Re@lys.</Text>
+      <Text style={st.sub}>Atendimento ao vivo com quem é real: voz, vídeo e tela compartilhada, sem sair do Realyz.</Text>
       {here ? (
         <TouchableOpacity style={st.backToRoom} onPress={() => { setSid(here.sid); setRid(here.rid); }} accessibilityLabel="Voltar para a sala em que você está">
           <Ionicons name="radio-button-on" size={14} color={C.green} />
@@ -184,7 +184,7 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom }) {
       const txt = draft.trim();
       if (!txt) return;
       const mod = moderateText ? moderateText(txt) : { ok: true };
-      if (mod && mod.ok === false) return Alert.alert('Mensagem não enviada', mod.why || 'A mensagem não segue as regras do Re@lys.');
+      if (mod && mod.ok === false) return Alert.alert('Mensagem não enviada', mod.why || 'A mensagem não segue as regras do Realyz.');
       channelPost(sid, ch.id, me, txt);
       setDraft('');
     };
@@ -264,7 +264,7 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom }) {
             style={st.meetBtn}
             onPress={() => {
               const r = createMeeting(sid, `Reunião ${new Date().getHours()}h`, me);
-              Share.share({ message: `Reunião no Re@lys com ${s.name}. Entre pelo link (precisa ter conta verificada): ${meetingLink(sid, r)}` }).catch(() => {});
+              Share.share({ message: `Reunião no Realyz com ${s.name}. Entre pelo link (precisa ter conta verificada): ${meetingLink(sid, r)}` }).catch(() => {});
               onRoom(r);
             }}
             accessibilityLabel="Começar uma reunião e convidar pessoas"
@@ -300,7 +300,7 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom }) {
             {c.msgs.length ? <Text style={{ color: C.muted, fontSize: 12 }}>{c.msgs.length}</Text> : null}
           </TouchableOpacity>
         )) : null}
-        <Text style={st.foot}>Todos aqui são verificados por biometria. Pagamento e contrato só pelo Re@lys, com a Garantia Re@lys.</Text>
+        <Text style={st.foot}>Todos aqui são verificados por biometria. Pagamento e contrato só pelo Realyz, com a Garantia Realyz.</Text>
       </ScrollView>
 
       <Modal visible={!!asking} transparent animationType="slide" onRequestClose={() => setAsking(null)}><KeyboardLift style={{ flex: 1 }}>
@@ -374,16 +374,16 @@ function Room({ sid, rid, me, isCompany, onLeave, onBack }) {
     if (a === 'proposta') return setProp({ desc: '', value: '' });
     if (a === 'contrato') {
       roomPost(sid, rid, { kind: 'contrato', who: me, text: 'Contrato enviado para assinar no app (cópia em PDF para as duas partes).' });
-      return Alert.alert('Contrato enviado ✍️', 'O cliente assina aqui mesmo, no Re@lys. As duas partes recebem o PDF.');
+      return Alert.alert('Contrato enviado ✍️', 'O cliente assina aqui mesmo, no Realyz. As duas partes recebem o PDF.');
     }
   };
   const send = () => {
     const txt = draft.trim();
     if (!txt) return;
     const mod = moderateText ? moderateText(txt) : { ok: true };
-    if (mod && mod.ok === false) return Alert.alert('Mensagem não enviada', mod.why || 'A mensagem não segue as regras do Re@lys.');
+    if (mod && mod.ok === false) return Alert.alert('Mensagem não enviada', mod.why || 'A mensagem não segue as regras do Realyz.');
     const ad = antiDesvio(txt);
-    if (!ad.ok) return Alert.alert('Fica tudo no Re@lys 🔒', `${ad.why}\n\nNa sala, use os botões Proposta e Contrato.`);
+    if (!ad.ok) return Alert.alert('Fica tudo no Realyz 🔒', `${ad.why}\n\nNa sala, use os botões Proposta e Contrato.`);
     roomPost(sid, rid, { kind: 'msg', who: me, text: txt });
     setDraft('');
   };
@@ -434,7 +434,7 @@ function Room({ sid, rid, me, isCompany, onLeave, onBack }) {
                 <Text style={{ color: C.text, fontWeight: '700', marginTop: 4 }}>{c.text}</Text>
                 <Text style={{ color: C.text, fontWeight: '800', fontSize: 18, marginTop: 4 }}>{brl(c.value)}</Text>
                 {c.accepted ? (
-                  <Text style={{ color: C.green, fontWeight: '800', marginTop: 6 }}>✅ Aceita · pagamento pelo Re@lys com Garantia</Text>
+                  <Text style={{ color: C.green, fontWeight: '800', marginTop: 6 }}>✅ Aceita · pagamento pelo Realyz com Garantia</Text>
                 ) : !owner ? (
                   <TouchableOpacity style={[st.callBtn, { alignSelf: 'flex-start', marginTop: 8 }]} onPress={() => roomAccept(sid, rid, i)}>
                     <Text style={{ color: '#fff', fontWeight: '800' }} numberOfLines={1}>Aceitar proposta</Text>

@@ -1,4 +1,4 @@
-// Anti-desvio nas conversas: contato e pagamento ficam no Re@lys; quem vende só manda o pedido de contato.
+// Anti-desvio nas conversas: contato e pagamento ficam no Realyz; quem vende só manda o pedido de contato.
 //   npm test
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -56,7 +56,7 @@ test('conversa: sem contato aceito não passa telefone; empresa só manda o pedi
   assert.equal((await msg('ana', 'beto', 'Me chama no zap (54) 99999-1234')).status, 422);
   assert.equal((await msg('ana', 'beto', 'Oi Beto!')).status, 201);
   // Empresa vendendo para quem não aceitou o contato: só a primeira mensagem.
-  assert.equal((await msg('loja', 'ana', 'Olá! Temos promoção hoje no Re@lys.')).status, 201);
+  assert.equal((await msg('loja', 'ana', 'Olá! Temos promoção hoje no Realyz.')).status, 201);
   const seg = await msg('loja', 'ana', 'Viu a promoção?');
   assert.equal(seg.status, 403);
   assert.equal(seg.data.code || seg.data.kind || 'contato_pendente', 'contato_pendente');

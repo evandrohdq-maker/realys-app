@@ -1,5 +1,5 @@
 // Boost: aparecer mais e mais rápido (prestador, Date, produtos, publicações, lives) e anúncios.
-// Paga com pontos Re@lys ou com saldo (R$). Pontos só valem aqui, em serviços do próprio Re@lys.
+// Paga com pontos Realyz ou com saldo (R$). Pontos só valem aqui, em serviços do próprio Realyz.
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert } from 'react-native';
 import { Text } from '../responsive';
@@ -38,7 +38,7 @@ export function BoostOffers({ targets }) {
         text: 'Confirmar',
         onPress: () => {
           dispatch({ type: 'REDEEM_POINTS', offerId: o.id, pay });
-          if (o.target === 'anuncio') Alert.alert('Anúncio enviado', 'Seu anúncio passa pela análise do Re@lys e entra no ar no próximo espaço livre do horário escolhido.');
+          if (o.target === 'anuncio') Alert.alert('Anúncio enviado', 'Seu anúncio passa pela análise do Realyz e entra no ar no próximo espaço livre do horário escolhido.');
         },
       },
     ]);
@@ -150,7 +150,7 @@ export function BoostButton({ target, label, hint, style }) {
             <ScrollView style={{ maxHeight: 460 }}>
               <BoostOffers targets={[target, ...(target === 'produto' ? ['anuncio'] : [])]} />
               <MyBoosts />
-              <Text style={styles.rule}>Pontos são ganhos avaliando, comprando e assistindo lives e clipes. Valem só em boosts e anúncios do Re@lys: não viram saldo e não podem ser sacados.</Text>
+              <Text style={styles.rule}>Pontos são ganhos avaliando, comprando e assistindo lives e clipes. Valem só em boosts e anúncios do Realyz: não viram saldo e não podem ser sacados.</Text>
             </ScrollView>
           </View>
         </View>

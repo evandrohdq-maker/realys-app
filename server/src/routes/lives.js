@@ -8,7 +8,7 @@ import { tx } from '../db.js';
 export const LIVE_GIFTS = { rosa: 100, coracao: 200, aplauso: 500, estrela: 1000, coroa: 5000, foguete: 10000, diamante: 30000, lotus: 50000 };
 // Mesmos segmentos do app (src/liveData.js): o "puxar para cima" vai para a próxima live do mesmo segmento.
 const CATS = ['gamers', 'artistas', 'compras', 'esportes', 'saude', 'fe', 'cursos', 'faculdades', 'tecnologia', 'agro', 'negocios', 'culinaria', 'beleza', 'arte', 'humor', 'podcasts', 'noticias', 'noite', 'comunidade'];
-// Pausa da tela (live de jogo): 'abrindo' = o streamer está saindo do Re@lys e abrindo o jogo (a tela
+// Pausa da tela (live de jogo): 'abrindo' = o streamer está saindo do Realyz e abrindo o jogo (a tela
 // inicial do celular não aparece); 'seguranca' = senha, carteira, Pix etc. Fica na memória, como a plateia.
 const PAUSE_MOTIVOS = ['abrindo', 'seguranca'];
 const HOSTS = ['usuario', 'empresa', 'artista', 'prestador', 'fornecedor'];
@@ -126,7 +126,7 @@ export default function livesRoutes(r, { db, wallet, hub, fiscal }) {
     const fee = wallet.giftFee(value);
     const id = newId('lg');
     tx(db, () => {
-      // Igual ao app: quem envia paga só o valor; os 10% do Re@lys saem do presente.
+      // Igual ao app: quem envia paga só o valor; os 10% do Realyz saem do presente.
       wallet.move(user.id, 'saldo', -value, 'Presentes', `Live de ${l.host_name}: ${body.gift}${qty > 1 ? ` x${qty}` : ''}`, id);
       wallet.move(l.host_id, 'live', value - fee, 'Lives', `${user.name} enviou ${body.gift}${qty > 1 ? ` x${qty}` : ''} na live "${l.title}"`, id);
       if (fee) wallet.move('realys', 'saldo', fee, 'Taxa de presente', `Taxa do presente de live ${id}`, id);
