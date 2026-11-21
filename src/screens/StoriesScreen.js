@@ -68,6 +68,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
   // No computador cabem 5 por vez, e os atalhos (News, Eventos, Stream, Lives) vão para a coluna da direita.
   const wideWeb = Platform.OS === 'web' && realWidth() >= DESK_MIN;
   const railWeb = Platform.OS === 'web' && realWidth() >= RAIL_MIN;
+  const railFree = wideWeb; // computador: o seu story está no menu lateral
   const itemW = Math.floor((telaW - 24) / (wideWeb ? 5 : 3));
   const av = Math.min(Math.round(itemW * 0.66), 96);
   const avMeu = Math.min(Math.round(itemW * 0.74), 106);
@@ -126,6 +127,8 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
         >
           {/* Primeiro da faixa, em destaque: o seu story (anel dourado mais grosso e um pouco maior).
               Tocar na foto vê o seu story (ou cria, se ainda não tem); o "+" abre publicação, Reel, story ou depoimento. */}
+          {/* No computador o "Seu story" fica só no topo do menu lateral. */}
+          {railFree ? null : (
           <View style={[styles.item, { width: itemW }]}>
             <TouchableOpacity onPress={openMine} activeOpacity={0.85} accessibilityLabel={mine.items.length ? 'Ver o seu story' : 'Criar o seu story'}>
               <View style={[styles.outer, { width: avMeu + 18, height: avMeu + 18, borderRadius: (avMeu + 18) / 2, borderColor: colors.gold, borderWidth: 2 }]}>
@@ -145,6 +148,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
             </TouchableOpacity>
             <Text numberOfLines={1} style={[styles.name, { color: colors.primary, fontWeight: '800', maxWidth: itemW - 8 }]}>Seu story</Text>
           </View>
+          )}
           {[...fresh, ...old].map((g) => {
             const isSeen = !!seen[g.id];
             return (

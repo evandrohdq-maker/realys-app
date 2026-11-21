@@ -979,7 +979,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 2,
     borderRadius: 14,
   },
-  topTabOn: { backgroundColor: colors.gold },
+  topTabOn: { backgroundColor: '#F6EDD6' }, // escolhido: dourado suave, sem bloco amarelo forte
   foodHint: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF1E6', borderRadius: 14, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(232,89,12,0.3)' },
   sectorHit: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 16, padding: 10, marginBottom: 8, ...soft },
   sectorIcon: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },

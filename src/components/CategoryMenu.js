@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { KeyboardLift } from '../keyboard';
 import { View, TouchableOpacity, StyleSheet, Modal, ScrollView, Pressable, Platform } from 'react-native';
+import { realWidth, DESK_MIN } from '../webFrame';
 import { Text, TextInput } from '../responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -593,11 +594,13 @@ export default function CategoryMenu({ visible, onClose, onPick, roles = [], act
     // Dentro do Perfil: o voltar do celular desfaz um passo (classe → classe maior → começo).
     return <View style={{ flex: 1 }}>{body}</View>;
   }
+  // No computador: caixa menor (não quase a tela toda) e fundo claro.
+  const deskMenu = Platform.OS === 'web' && realWidth() >= DESK_MIN;
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={back} statusBarTranslucent>
-      <KeyboardLift behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
+      <KeyboardLift behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.backdrop, deskMenu && styles.backdropDesk]}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={[styles.sheet, { paddingBottom: 12 + insets.bottom }]}>
+        <View style={[styles.sheet, deskMenu && styles.sheetDesk, { paddingBottom: 12 + insets.bottom }]}>
           <View style={styles.grip} />
           {body}
         </View>
@@ -608,6 +611,8 @@ export default function CategoryMenu({ visible, onClose, onPick, roles = [], act
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(16,22,40,0.45)' },
+  backdropDesk: { backgroundColor: 'rgba(241,235,221,0.6)' },
+  sheetDesk: { height: '68%', maxHeight: 620, borderRadius: 24, marginHorizontal: 12, marginBottom: 12 },
   sheet: {
     height: '88%',
     backgroundColor: colors.bg,

@@ -45,7 +45,7 @@ export function SegTabs({ items, value, onChange, rows = 1, compact = false }) {
         return (
           <TouchableOpacity key={t.key} style={[styles.segItem, on && styles.segOn]} onPress={() => onChange(t.key)} activeOpacity={0.7} accessibilityLabel={t.label}>
             <View>
-              <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={19} color={on ? colors.text : colors.menu} />
+              <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={19} color={on ? colors.primary : colors.menu} />
               {t.badge ? (
                 <View style={styles.segBadge}>
                   <Text style={styles.segBadgeText}>{t.badge}</Text>
@@ -128,7 +128,7 @@ export function SpotlightCarousel({ ads, onOpen }) {
             <View style={styles.spotBody}>
               <Text style={styles.spotTitle} numberOfLines={2}>{ad.title}</Text>
               <Text style={styles.spotSub} numberOfLines={2}>{ad.sub}</Text>
-              <View style={[styles.spotCta, { backgroundColor: ad.tint || colors.primary }]}>
+              <View style={[styles.spotCta, { backgroundColor: colors.primary }]}>
                 <Text style={styles.spotCtaText}>{ad.cta}</Text>
                 <Ionicons name="arrow-forward" size={14} color="#fff" />
               </View>
@@ -512,19 +512,21 @@ export function PromoSector({ flash, coupons, combos, food, onOpenStore }) {
 const styles = StyleSheet.create({
   seg: { flexDirection: 'row', paddingTop: 2, paddingBottom: 8, marginBottom: 6 },
   segItem: { flex: 1, alignItems: 'center', paddingVertical: 7, paddingHorizontal: 2, marginHorizontal: 2, borderRadius: 14 },
-  segOn: { backgroundColor: colors.gold },
+  // Aba escolhida: dourado suave (não o bloco amarelo forte), igual ao menu lateral do site.
+  segOn: { backgroundColor: '#F6EDD6' },
   segText: { color: colors.menu, fontSize: 11.5, fontWeight: '700', marginTop: 3 },
-  segTextOn: { color: colors.text, fontWeight: '800' },
+  segTextOn: { color: colors.primary, fontWeight: '800' },
   segBadge: { position: 'absolute', top: -5, right: -12, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: '#FF3B5C', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   segBadgeText: { color: '#fff', fontSize: 9, fontWeight: '800' },
 
   spot: { height: 190, borderRadius: 22, overflow: 'hidden', backgroundColor: colors.dark },
-  spotShade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 120, backgroundColor: 'rgba(11,17,36,0.55)' },
-  spotTag: { position: 'absolute', top: 12, left: 12, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(11,17,36,0.7)', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(226,182,73,0.6)' },
-  spotTagText: { color: '#F5C331', fontSize: 10, fontWeight: '800', letterSpacing: 0.8, marginLeft: 4 },
+  // Faixa mais leve em cima da foto (antes era quase preta).
+  spotShade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 110, backgroundColor: 'rgba(20,18,14,0.3)' },
+  spotTag: { position: 'absolute', top: 12, left: 12, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,253,247,0.92)', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(226,182,73,0.6)' },
+  spotTagText: { color: '#8A6208', fontSize: 10, fontWeight: '800', letterSpacing: 0.8, marginLeft: 4 },
   spotBody: { position: 'absolute', left: 14, right: 14, bottom: 12 },
-  spotTitle: { color: '#fff', fontSize: 19, fontWeight: '800', letterSpacing: -0.3 },
-  spotSub: { color: 'rgba(255,255,255,0.88)', fontSize: 12, marginTop: 2 },
+  spotTitle: { color: '#fff', fontSize: 19, fontWeight: '800', letterSpacing: -0.3, textShadowColor: 'rgba(0,0,0,0.45)', textShadowRadius: 6 },
+  spotSub: { color: '#fff', fontSize: 12, marginTop: 2, textShadowColor: 'rgba(0,0,0,0.45)', textShadowRadius: 5 },
   spotCta: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', height: 32, paddingHorizontal: 12, borderRadius: 16, marginTop: 8 },
   spotCtaText: { color: '#fff', fontWeight: '800', fontSize: 12, marginRight: 5 },
   dots: { flexDirection: 'row', justifyContent: 'center', marginTop: 8 },
