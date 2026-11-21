@@ -25,6 +25,8 @@ const decode = (s) =>
     .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)))
     .replace(/&(\w+);/g, (m, k) => (k in ENT ? ENT[k] : m));
 const stripHtml = (s) => decode(decode(s)).replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|tr|li|div)>/gi, '\n').replace(/<[^>]+>/g, ' ').replace(/[ \t]+/g, ' ').replace(/\n\s*/g, '\n').trim();
+// Imagens que não são foto da notícia: logos, ícones .svg e pixels de contagem.
+const BAD_IMG = /logo|\.svg(\?|$)|ebc\.png\?|pixel|tracking|1x1/i;
 const tag = (x, t) => {
   const m = x.match(new RegExp(`<${t}(?:\\s[^>]*)?>([\\s\\S]*?)</${t}>`, 'i'));
   return m ? m[1] : '';
@@ -38,7 +40,8 @@ function parseRss(xml) {
       const img =
         (x.match(/<media:content[^>]*url="([^"]+)"/i) || [])[1] ||
         (x.match(/<enclosure[^>]*url="([^"]+)"[^>]*type="image/i) || [])[1] ||
-        (html.match(/<img[^>]*src="([^"]+)"/i) || [])[1] ||
+        // Primeira foto de verdade do texto: pula a logo do site e o pixel de contagem (ex.: ebc.png?id=…).
+      [...html.matchAll(/<img[^>]*src="([^"]+)"/gi)].map((m) => m[1]).find((u) => !BAD_IMG.test(u)) ||
         '';
       return {
         title: stripHtml(tag(x, 'title')),
@@ -91,7 +94,7 @@ function toNews(items) {
       title: i.title,
       summary: text.split('\n')[0].slice(0, 220),
       body: text,
-      photo: i.photo || null,
+      photo: i.photo && !BAD_IMG.test(i.photo) ? i.photo : null, // o servidor antigo ainda pode mandar a logo
       link: i.link,
     };
   });
