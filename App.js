@@ -96,7 +96,7 @@ import SalasScreen from './src/screens/empresa/SalasScreen';
 import { ScreenShareBar } from './src/components/ScreenShareKit';
 import { StationProfileHost } from './src/components/StationProfile';
 import PipManager from './src/components/PipManager';
-import { minimizeApp, playingKind } from './src/pip';
+import { minimizeApp, playingKind, useVideoFullState } from './src/pip';
 import { openProfileMenu } from './src/profileMenu';
 import { ProductSheetHost } from './src/components/ProductSheet';
 import { SupplierShowcaseHost } from './src/components/SupplierShowcase';
@@ -242,6 +242,7 @@ function Shell({ inviteTick }) {
   const lastBack = useRef(0);
   const live = useRef({});
   const [voice, setVoice] = useState(false);
+  const videoFull = useVideoFullState(); // vídeo (TV, clipe ou live) em tela cheia: a flor da Lotus sai da frente
   // "abrir Lotus" ouvido: a caixa já abriu e o mesmo microfone segue ouvindo o resto do pedido.
   const [wakeCapture, setWakeCapture] = useState(false);
   const [wakeLive, setWakeLive] = useState('');
@@ -665,7 +666,7 @@ function Shell({ inviteTick }) {
       <PipManager />
       <LiveFloat bottom={150 + insets.bottom} />
       <TouchableOpacity
-        style={[styles.fab, { bottom: 84 + insets.bottom }]}
+        style={[styles.fab, { bottom: 84 + insets.bottom }, videoFull && { display: 'none' }]}
         onPress={() => setVoice(true)}
         activeOpacity={0.85}
         accessibilityLabel="Falar com a Lotus"

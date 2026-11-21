@@ -13,7 +13,8 @@ import { Photo } from './ui';
 import { useStore } from '../store';
 import { tvNow, onTvNow, stopTv } from '../tv';
 import { onRadioNow } from '../radio';
-import { usePipState, minimizeApp } from '../pip';
+import { usePipState, minimizeApp, useVideoRotate } from '../pip';
+import { useBack } from '../back';
 import { LiveStage } from './LiveVideo';
 import { FavHeart, StreamerFav } from './FavKit';
 import { LiveModal } from '../screens/cliente/home/Social';
@@ -44,7 +45,7 @@ export function hardStopTv() {
 
 // O vídeo do canal. Trocar de canal remonta o player (key = id do canal).
 function TvVideo({ channel, viewRef, ctl, onPlaying, onFail }) {
-  const player = EV.useVideoPlayer({ uri: channel.url, metadata: { title: channel.name, artist: 'TV no Re@lys' } }, (p) => {
+  const player = EV.useVideoPlayer({ uri: channel.url, metadata: { title: channel.name, artist: channel.kind === 'clipe' ? 'Clipe no Re@lys' : 'TV no Re@lys' } }, (p) => {
     p.staysActiveInBackground = true; // o som continua se a pessoa sair do app
     p.showNowPlayingNotification = true; // controle na barra de notificações
     p.play();
@@ -75,6 +76,10 @@ function TvVideo({ channel, viewRef, ctl, onPlaying, onFail }) {
       contentFit="contain"
       nativeControls={false}
       allowsPictureInPicture={false}
+      allowsFullscreen={false}
+      // TextureView: o vídeo acompanha a janela quando ela é arrastada, aumentada ou vira a janelinha
+      // por cima dos outros apps. Com o padrão (SurfaceView) a janelinha ficava preta.
+      surfaceType="textureView"
     />
   );
 }
@@ -82,7 +87,7 @@ function TvVideo({ channel, viewRef, ctl, onPlaying, onFail }) {
 export function TvFloat({ bottom = 150 }) {
   const n = useTvNow();
   const win = useWindowDimensions();
-  const [big, setBig] = useState(false);
+  const [ui, setUi] = useState(true); // controles à mostra (em tela cheia somem sozinhos)
   const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
   const view = useRef(null);
@@ -101,14 +106,25 @@ export function TvFloat({ bottom = 150 }) {
     [],
   );
   const inPip = usePipState();
+  // Gira com o celular: deitou, tela cheia; levantou, volta para a janela. Botão de tela cheia deita na marra.
+  const rot = useVideoRotate(!!ch);
+  const full = rot.full;
+  useBack(full, rot.exit); // voltar do celular sai da tela cheia
+  useEffect(() => {
+    setUi(true);
+    if (!full) return undefined;
+    const t = setTimeout(() => setUi(false), 3500);
+    return () => clearTimeout(t);
+  }, [full, ch && ch.id]);
   if (!ch) return null;
-  const w = Math.round(big ? win.width - 24 : Math.min(260, win.width * 0.62));
+  const w = Math.round(Math.min(260, win.width * 0.62));
   const h = Math.round((w * 9) / 16);
+  const showUi = !inPip && (!full || ui);
   // Janelinha por cima dos outros apps: só o vídeo do canal (src/pip.js).
   // Minimizar: o Re@lys sai da frente e o vídeo fica numa janelinha; o som continua.
   const pip = () => minimizeApp('tv');
   return (
-    <Floating full={inPip} place={{ right: 12, bottom }} style={[st.tv, { width: w, height: h }]}>
+    <Floating full={inPip || full} place={{ right: 12, bottom }} style={[st.tv, { width: w, height: h }]}>
       {EV ? (
         <TvVideo key={ch.id} channel={ch} viewRef={view} ctl={ctl} onPlaying={setPlaying} onFail={() => setFailed(true)} />
       ) : (
@@ -122,23 +138,25 @@ export function TvFloat({ bottom = 150 }) {
           <Text style={st.msg}>Não consegui abrir o sinal deste canal agora.</Text>
         </View>
       ) : null}
+      {/* Tela cheia: um toque no vídeo mostra ou esconde os controles. */}
+      {full && !inPip ? <TouchableOpacity activeOpacity={1} style={StyleSheet.absoluteFill} onPress={() => setUi((v) => !v)} accessibilityLabel="Mostrar os controles" /> : null}
       {/* Em cima: nome do canal e os botões da janela (na janelinha do Android, os botões são dele) */}
-      {inPip ? null : <View style={st.top}>
-        <Ionicons name="move" size={13} color="rgba(255,255,255,0.75)" />
-        <Text style={st.name} numberOfLines={1}>{ch.name}</Text>
+      {!showUi ? null : <View style={[st.top, full && st.topFull]}>
+        {full ? null : <Ionicons name="move" size={13} color="rgba(255,255,255,0.75)" />}
+        <Text style={[st.name, full && st.nameFull]} numberOfLines={1}>{ch.name}</Text>
         <FavHeart kind="tv" item={ch} size={15} color="#fff" style={st.btn} hitSlop={6} />
         <TouchableOpacity onPress={pip} style={st.btn} hitSlop={6} accessibilityLabel="Minimizar: continuar assistindo com a tela livre">
           <Ionicons name="remove" size={17} color="#fff" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setBig((v) => !v)} style={st.btn} hitSlop={6} accessibilityLabel={big ? 'Diminuir a janela' : 'Aumentar a janela'}>
-          <Ionicons name={big ? 'contract' : 'expand'} size={15} color="#fff" />
+        <TouchableOpacity onPress={rot.toggle} style={st.btn} hitSlop={6} accessibilityLabel={full ? 'Sair da tela cheia' : 'Tela cheia'}>
+          <Ionicons name={full ? 'contract' : 'expand'} size={15} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity onPress={stopTv} style={st.btn} hitSlop={6} accessibilityLabel="Fechar o canal">
           <Ionicons name="close" size={16} color="#fff" />
         </TouchableOpacity>
       </View>}
-      {EV && !failed && !inPip ? (
-        <TouchableOpacity onPress={() => ctl.current && ctl.current.toggle()} style={st.play} hitSlop={8} accessibilityLabel={playing ? 'Pausar' : 'Continuar'}>
+      {EV && !failed && showUi ? (
+        <TouchableOpacity onPress={() => ctl.current && ctl.current.toggle()} style={[st.play, full && st.playFull]} hitSlop={8} accessibilityLabel={playing ? 'Pausar' : 'Continuar'}>
           <Ionicons name={playing ? 'pause' : 'play'} size={16} color="#fff" />
         </TouchableOpacity>
       ) : null}
@@ -194,6 +212,9 @@ const st = StyleSheet.create({
   msg: { color: '#fff', fontSize: 12, textAlign: 'center', marginTop: 4 },
   top: { position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 6, paddingVertical: 4, backgroundColor: 'rgba(0,0,0,0.45)' },
   name: { flex: 1, color: '#fff', fontWeight: '700', fontSize: 11, marginLeft: 5 },
+  topFull: { paddingHorizontal: 18, paddingVertical: 10 },
+  nameFull: { fontSize: 15, marginLeft: 0 },
+  playFull: { left: 18, bottom: 16, width: 44, height: 44, borderRadius: 22 },
   btn: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)', marginLeft: 4 },
   play: { position: 'absolute', left: 6, bottom: 6, width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.55)' },
   live: { width: 108, height: 160, borderRadius: 14, overflow: 'hidden', backgroundColor: '#000', elevation: 8, borderWidth: 1, borderColor: 'rgba(229,72,77,0.8)' },

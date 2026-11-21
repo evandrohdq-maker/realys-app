@@ -2,7 +2,11 @@ package expo.modules.realysupdater
 
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.view.View
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.util.Rational
 import android.content.Context
 import android.content.Intent
@@ -216,6 +220,59 @@ class RealysUpdaterModule : Module() {
     }
 
     // true no Android 12 ou mais novo: dá para atualizar sem a tela de confirmação.
+    // ---------- Vídeo em tela cheia (TV, clipes e lives) ----------
+    // O Re@lys é em pé. Com um vídeo aberto, ele passa a girar junto com o celular ("auto", respeita a
+    // trava de rotação do Android); o botão de tela cheia deita na marra ("landscape"); ao sair volta em pé.
+    Function("setOrientation") { mode: String ->
+      val act = appContext.currentActivity
+      if (act == null) {
+        false
+      } else {
+        act.runOnUiThread {
+          try {
+            act.requestedOrientation = when (mode) {
+              "auto" -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+              "landscape" -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+              else -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            }
+          } catch (e: Throwable) {}
+        }
+        true
+      }
+    }
+
+    // Esconde a barra de status e a de navegação enquanto o vídeo está em tela cheia (puxar da borda mostra).
+    Function("setImmersive") { on: Boolean ->
+      val act = appContext.currentActivity
+      if (act == null) {
+        false
+      } else {
+        act.runOnUiThread {
+          try {
+            val w = act.window
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+              val c = w.insetsController
+              if (c != null) {
+                if (on) {
+                  c.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                  c.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+                } else {
+                  c.show(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+                }
+              }
+            } else {
+              @Suppress("DEPRECATION")
+              w.decorView.systemUiVisibility = if (on)
+                (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                  View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
+              else View.SYSTEM_UI_FLAG_VISIBLE
+            }
+          } catch (e: Throwable) {}
+        }
+        true
+      }
+    }
+
     Function("supportsSilentUpdate") { Build.VERSION.SDK_INT >= Build.VERSION_CODES.S }
 
     // A chave "Instalar apps desconhecidos" do Re@lys está ligada?

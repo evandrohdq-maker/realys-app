@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { KeyboardLift } from '../../../keyboard';
 import { moderateText, antiDesvio } from '../../../moderation';
 import { usePrivateScreen } from '../../../privacyGuard';
-import { registerLive } from '../../../pip';
+import { registerLive, useVideoRotate } from '../../../pip';
 import { giftPoints } from '../../../rewards';
 import GiftIcon from '../../../components/GiftIcon';
 import { View, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform, Alert, Animated, Easing, PanResponder, Dimensions, AppState } from 'react-native';
@@ -265,6 +265,9 @@ const liveRank = (a, b) => (b.sponsored ? 1 : 0) - (a.sponsored ? 1 : 0) || live
 
 export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) {
   const insets = useSafeAreaInsets();
+  // Assistindo: a live gira com o celular. Deitou (ou tocou em tela cheia), só o vídeo na tela inteira.
+  const rot = useVideoRotate(!!visible && !mine);
+  const full = rot.full;
   // Assistindo: puxar para cima passa para a próxima live do MESMO segmento (Gamers → próxima de Gamers);
   // puxar para baixo volta para a anterior. A tela acompanha o dedo, como nos Reels.
   const [live, setCurLive] = useState(liveProp);
@@ -522,8 +525,8 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={close}><KeyboardLift style={{ flex: 1, backgroundColor: '#03050A' }}>
-      <Animated.View style={{ flex: 1, backgroundColor: '#03050A', transform: [{ translateY: slide }] }} {...(mine ? {} : swipe.panHandlers)}>
+    <Modal videoHost visible={visible} animationType="slide" supportedOrientations={['portrait', 'landscape']} onRequestClose={full ? rot.exit : close}><KeyboardLift style={{ flex: 1, backgroundColor: '#03050A' }}>
+      <Animated.View style={{ flex: 1, backgroundColor: '#03050A', transform: [{ translateY: slide }] }} {...(mine || full ? {} : swipe.panHandlers)}>
         {live ? <Photo uri={live.photo ? live.photo.replace('800/500', '800/1400') : null} style={StyleSheet.absoluteFill} fallback="🎥" /> : null}
         {mine ? (
           <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', backgroundColor: '#14120E' }]}>
@@ -534,6 +537,20 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
         {/* Vídeo de verdade: minha câmera transmitindo, ou a live que estou assistindo. */}
         <LiveStage liveId={mine ? realId : live && live.real ? live.id : null} mine={mine} onAir={onAir} screen={mine && source === 'tela'} viewScreen={!mine && live && live.source === 'tela'} onError={(m) => Alert.alert('Vídeo da live', m)} />
         <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(3,5,10,0.25)' }]} pointerEvents="none" />
+        {/* Tela cheia (celular deitado): só o vídeo, o AO VIVO e o botão de sair da tela cheia. */}
+        {full ? (
+          <View style={[StyleSheet.absoluteFill, { flexDirection: 'row', alignItems: 'flex-start', padding: 14 }]} pointerEvents="box-none">
+            <View style={styles.liveBadge}>
+              <Text style={styles.liveBadgeText}>AO VIVO</Text>
+            </View>
+            {live ? <Text numberOfLines={1} style={{ color: '#fff', fontWeight: '700', marginLeft: 10, flexShrink: 1, marginTop: 3 }}>{live.host}</Text> : null}
+            <View style={{ flex: 1 }} />
+            <TouchableOpacity style={styles.iconBtnDark} onPress={rot.exit} accessibilityLabel="Sair da tela cheia">
+              <Ionicons name="contract" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        ) : null}
+        <View style={[StyleSheet.absoluteFill, full && { display: 'none' }]} pointerEvents="box-none">
 
         <View style={[styles.liveTop, { paddingTop: insets.top + 12 }]}>
           {onAir ? (
@@ -555,6 +572,11 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
             </View>
           ) : null}
           <View style={{ flex: 1 }} />
+          {!mine && live ? (
+            <TouchableOpacity style={[styles.iconBtnDark, { marginRight: 8 }]} onPress={rot.enter} accessibilityLabel="Tela cheia">
+              <Ionicons name="expand" size={19} color="#FFFFFF" />
+            </TouchableOpacity>
+          ) : null}
           {!mine && live ? (
             <TouchableOpacity
               style={[styles.iconBtnDark, { marginRight: 8 }]}
@@ -845,6 +867,7 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
             </View>
           </View>
         ) : null}
+        </View>
       </Animated.View>
     </KeyboardLift></Modal>
   );

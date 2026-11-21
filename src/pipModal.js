@@ -8,14 +8,18 @@
 // Importado primeiro no App.js, antes de qualquer tela.
 import React from 'react';
 import * as RN from 'react-native';
-import { usePipState, playingKind } from './pip';
+import { usePipState, playingKind, useVideoFullState } from './pip';
 
 export const BaseModal = RN.Modal;
 
 function PipAwareModal(props) {
   const inPip = usePipState();
-  const hide = inPip && !!playingKind();
-  return <BaseModal {...props} visible={!!props.visible && !hide} />;
+  const full = useVideoFullState();
+  // Vídeo em tela cheia (TV ou clipe na janela flutuante): as páginas abertas ficam por trás dele.
+  // A live em tela cheia é ela mesma uma janela (Modal) e não se esconde (props.videoHost).
+  const hide = (inPip && !!playingKind()) || (full && !props.videoHost);
+  const { videoHost, ...rest } = props;
+  return <BaseModal {...rest} visible={!!props.visible && !hide} />;
 }
 
 try {

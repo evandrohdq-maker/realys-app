@@ -323,6 +323,7 @@ function CreationComposer({ visible, kind, onClose }) {
         desc: desc.trim(),
         cover: media && media.uri && kind !== 'video' ? media.uri : `https://picsum.photos/seed/realys-studio-${Date.now()}/600/600`,
         file: media ? media.name : null,
+        fileUri: media ? media.uri : null, // o vídeo de verdade, para tocar no player (clipes)
         video: kind === 'video' && media ? media.uri : null,
         dest,
         at: Date.now(),

@@ -85,3 +85,77 @@ export const registerLive = (h) => {
   };
 };
 export const liveOpenNow = () => liveHere;
+
+// ---------- Vídeo em tela cheia: TV, clipes e lives ----------
+// Enquanto um vídeo está aberto, o Re@lys gira junto com o celular: deitou, o vídeo ocupa a tela
+// inteira (sem barras do Android); levantou, volta para a janela normal. O botão de tela cheia
+// deita na marra, mesmo com a rotação do celular travada. Rádio e música só de áudio não giram.
+export const setOrientation = (mode) => call('setOrientation', mode);
+export const setImmersive = (on) => call('setImmersive', !!on);
+
+let rotateUsers = 0; // quantos vídeos abertos pedem para girar
+let forcedLand = false; // tela cheia pelo botão
+let backToAuto = null;
+const applyOrientation = () => setOrientation(forcedLand ? 'landscape' : rotateUsers > 0 ? 'auto' : 'portrait');
+
+// Algum vídeo está em tela cheia agora? As páginas do app (Modal) se escondem por trás dele.
+let videoFull = false;
+const fullSubs = new Set();
+export const videoFullNow = () => videoFull;
+function setVideoFull(v) {
+  if (v === videoFull) return;
+  videoFull = v;
+  fullSubs.forEach((fn) => fn(v));
+}
+export function useVideoFullState() {
+  const [v, setV] = useState(videoFull);
+  useEffect(() => {
+    fullSubs.add(setV);
+    return () => fullSubs.delete(setV);
+  }, []);
+  return v;
+}
+
+// active: o vídeo está aberto. Devolve { full, enter, exit, toggle }.
+export function useVideoRotate(active) {
+  const win = useWindowDimensions();
+  const inPipNow = usePipState();
+  const [forced, setForced] = useState(false);
+  useEffect(() => {
+    if (!active) return undefined;
+    rotateUsers += 1;
+    applyOrientation();
+    return () => {
+      rotateUsers = Math.max(0, rotateUsers - 1);
+      if (rotateUsers === 0) forcedLand = false;
+      setForced(false);
+      applyOrientation();
+    };
+  }, [active]);
+  const land = win.width > win.height;
+  const full = !!active && !inPipNow && (land || forced);
+  useEffect(() => {
+    if (!active) return undefined;
+    setImmersive(full);
+    setVideoFull(full);
+    return () => {
+      setImmersive(false);
+      setVideoFull(false);
+    };
+  }, [full, active]);
+  const enter = () => {
+    clearTimeout(backToAuto);
+    forcedLand = true;
+    setForced(true);
+    applyOrientation();
+  };
+  const exit = () => {
+    clearTimeout(backToAuto);
+    forcedLand = false;
+    setForced(false);
+    // Volta em pé na hora; depois de um instante, volta a girar com o celular.
+    setOrientation('portrait');
+    backToAuto = setTimeout(applyOrientation, 2500);
+  };
+  return { full, enter, exit, toggle: () => (full ? exit() : enter()) };
+}

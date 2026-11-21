@@ -13,6 +13,8 @@ import { ShopProductCard } from './ShopKit';
 import { artists, artMedia, companyPages } from '../extraData';
 import { MY_COMPANY_ID } from '../data';
 import { isVerified } from './BioGate';
+import { playTv, stopTv, tvNow, onTvNow } from '../tv';
+import { stopRadio } from '../radio';
 import { BusinessPageModal } from './BusinessPage';
 
 const count = (n) => (n >= 1000 ? (n / 1000).toFixed(1).replace('.', ',').replace(',0', '') + ' mil' : String(n));
@@ -43,9 +45,13 @@ const studioMedia = (state, id) =>
           price: 0,
           cover: c.cover,
           file: c.file,
+          url: c.fileUri || null,
           studio: true,
         }));
 export const mediaOf = (state, id) => [...studioMedia(state, id), ...(state.myMedia || []).filter((m) => m.ownerId === id), ...artMedia.filter((m) => m.ownerId === id)];
+
+// Vídeo de teste para os clipes de exemplo da demonstração (sem programação de verdade).
+const DEMO_CLIP_URL = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
 
 // Lista de faixas, vídeos e obras com tocador simples.
 export function MediaList({ items, showOwner }) {
@@ -60,8 +66,21 @@ export function MediaList({ items, showOwner }) {
   }, [playing]);
 
   const owned = (m) => !m.price || state.boughtMedia[m.id] || m.ownerId === MY_COMPANY_ID;
+  // Clipe: toca no mesmo player dos canais de TV (janela flutuante, gira com o celular, tela cheia
+  // e janelinha por cima dos outros apps). Clipes de exemplo usam um vídeo de teste.
+  const [tvOn, setTvOn] = useState(tvNow());
+  useEffect(() => onTvNow(setTvOn), []);
+  const clipOn = (m) => !!(tvOn.channel && tvOn.channel.id === 'clipe-' + m.id);
   const play = (m) => {
     if (m.kind === 'obra') return;
+    if (m.kind === 'video') {
+      if (clipOn(m)) return stopTv();
+      const owner = artists.find((a) => a.id === m.ownerId);
+      try {
+        stopRadio();
+      } catch (e) {}
+      return playTv({ id: 'clipe-' + m.id, kind: 'clipe', name: owner ? `${m.title} · ${owner.name}` : m.title, url: m.url || DEMO_CLIP_URL });
+    }
     setPlaying(playing === m.id ? null : m.id);
   };
   // Preço da faixa/obra: só põe no carrinho. A compra é confirmada no carrinho, nunca num toque só.
@@ -82,7 +101,7 @@ export function MediaList({ items, showOwner }) {
     <View>
       {items.map((m) => {
         const owner = showOwner ? artists.find((a) => a.id === m.ownerId) : null;
-        const on = playing === m.id;
+        const on = m.kind === 'video' ? clipOn(m) : playing === m.id;
         if (m.kind === 'video') {
           return (
             <TouchableOpacity key={m.id} style={styles.videoCard} activeOpacity={0.9} onPress={() => play(m)}>
@@ -90,7 +109,6 @@ export function MediaList({ items, showOwner }) {
               <View style={styles.videoOverlay}>
                 <Ionicons name={on ? 'pause-circle' : 'play-circle'} size={52} color="#FFFFFF" />
               </View>
-              {on ? <View style={[styles.videoBar, { width: `${pos}%` }]} /> : null}
               <View style={{ padding: 10 }}>
                 <Text style={styles.title} numberOfLines={1}>{m.title}</Text>
                 <Text style={styles.sub}>
