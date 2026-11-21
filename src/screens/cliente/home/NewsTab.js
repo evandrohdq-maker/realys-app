@@ -106,7 +106,7 @@ export default function NewsTab({ onWatch, navigate }) {
       {list.map((n, i) =>
         i === 0 ? (
           <TouchableOpacity key={n.id} style={styles.big} onPress={() => setOpen(n)} activeOpacity={0.9}>
-            <Photo uri={n.photo} style={styles.bigPhoto} fallback="📰" />
+            {n.photo ? <Photo uri={n.photo} style={styles.bigPhoto} fallback="📰" /> : null}
             <View style={{ padding: 12 }}>
               <Source n={n} />
               <Text style={styles.bigTitle}>{n.title}</Text>
@@ -121,7 +121,7 @@ export default function NewsTab({ onWatch, navigate }) {
               <Text style={styles.rowTitle} numberOfLines={3}>{n.title}</Text>
               <Text style={styles.meta}>{n.time}</Text>
             </View>
-            <Photo uri={n.photo} style={styles.rowPhoto} fallback="📰" />
+            {n.photo ? <Photo uri={n.photo} style={styles.rowPhoto} fallback="📰" /> : null}
           </TouchableOpacity>
         ),
       )}
@@ -321,7 +321,7 @@ function Article({ n, onClose }) {
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
-        <Photo uri={n.photo} style={{ width: '100%', height: 240 }} fallback="📰" />
+        {n.photo ? <Photo uri={n.photo} style={{ width: '100%', height: 240 }} fallback="📰" /> : <View style={{ height: 70 }} />}
         <TouchableOpacity onPress={onClose} style={[styles.close, { top: insets.top + 10 }]} accessibilityLabel="Voltar">
           <Ionicons name="arrow-back" size={20} color={colors.text} />
         </TouchableOpacity>
