@@ -12,6 +12,14 @@ import { colors, brl } from '../theme';
 import WalletScreen from '../screens/WalletScreen';
 import { DESK_MIN, RAIL_MIN, CONTENT_MAX, realWidth } from '../webFrame';
 
+// Avisa as janelas abertas (Modal no computador) para fecharem: a pessoa foi para outra área pelo menu.
+const deskNav = (fn) => (...args) => {
+  try {
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('rz-desk-nav'));
+  } catch (e) {}
+  return fn && fn(...args);
+};
+
 export function useDesktop() {
   const [w, setW] = useState(realWidth());
   useEffect(() => {
@@ -176,13 +184,14 @@ export default function DeskShell({ desk, rail, children, ...p }) {
       </View>
     );
   }
+  const nav = { ...p, onTab: deskNav(p.onTab), onMenu: deskNav(p.onMenu), onProfile: deskNav(p.onProfile), onGo: deskNav(p.onGo), onOrders: deskNav(p.onOrders) };
   return (
     <View style={st.page}>
-      <Side {...p} />
+      <Side {...nav} />
       <View style={st.center}>
         <View style={st.column}>{children}</View>
       </View>
-      {rail ? <Rail onOrders={p.onOrders} onLotus={p.onLotus} onGo={p.onGo} commTop={p.commTop} currentKey={p.currentKey} /> : null}
+      {rail ? <Rail onOrders={nav.onOrders} onLotus={p.onLotus} onGo={nav.onGo} commTop={p.commTop} currentKey={p.currentKey} /> : null}
     </View>
   );
 }

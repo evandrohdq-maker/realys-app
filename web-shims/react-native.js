@@ -1,36 +1,60 @@
 // Só no site: o mesmo react-native-web de sempre, com uma mudança no Modal.
-// No computador (tela larga), toda janela e menu que abre (Modal) fica numa coluna no meio da tela,
-// do tamanho das telas do app, em vez de esticar na largura do monitor. No celular nada muda.
+// No computador (tela larga), toda janela e menu que abre (Modal) fica SÓ na área do meio: o menu da
+// esquerda (e a coluna da direita) continuam à vista e funcionando, para voltar ao Shop, Food etc.
+// Clicar no menu lateral fecha as janelas abertas (evento 'rz-desk-nav', disparado pelo DeskShell).
+// No celular (navegador estreito) e no APK nada muda.
 const React = require('react');
 const RN = require('react-native-web');
+let ReactDOM = null;
+try {
+  ReactDOM = require('react-dom');
+} catch (e) {}
 
-const DESK_MIN = 1000; // igual a src/webFrame.js
-const COLUMN = 760; // igual a CONTENT_MAX
+// Iguais a src/webFrame.js e src/web/DeskShell.js.
+const DESK_MIN = 1000;
+const RAIL_MIN = 1320;
+const SIDE_W = 248;
+const RAIL_W = 340;
+const COLUMN = 760;
 const wide = () => typeof window !== 'undefined' && window.innerWidth >= DESK_MIN;
 
 function DeskModal(props) {
-  const [isWide, setWide] = React.useState(wide());
+  const [w, setW] = React.useState(typeof window !== 'undefined' ? window.innerWidth : 0);
+  const reqClose = React.useRef(props.onRequestClose);
+  reqClose.current = props.onRequestClose;
   React.useEffect(() => {
     if (typeof window === 'undefined') return undefined;
-    const on = () => setWide(wide());
+    const on = () => setW(window.innerWidth);
     window.addEventListener('resize', on);
     return () => window.removeEventListener('resize', on);
   }, []);
-  if (!isWide) return React.createElement(RN.Modal, props);
-  const { children, transparent, ...rest } = props;
-  return React.createElement(
-    RN.Modal,
-    { ...rest, transparent: true },
+  // Navegou pelo menu lateral, ou apertou Esc: fecha esta janela.
+  React.useEffect(() => {
+    if (!props.visible || typeof window === 'undefined') return undefined;
+    const nav = () => reqClose.current && reqClose.current();
+    const key = (e) => e.key === 'Escape' && reqClose.current && reqClose.current();
+    window.addEventListener('rz-desk-nav', nav);
+    window.addEventListener('keydown', key);
+    return () => {
+      window.removeEventListener('rz-desk-nav', nav);
+      window.removeEventListener('keydown', key);
+    };
+  }, [props.visible]);
+
+  if (!(w >= DESK_MIN) || !ReactDOM || typeof document === 'undefined') return React.createElement(RN.Modal, props);
+  if (!props.visible) return null;
+  const { children, transparent } = props;
+  const right = w >= RAIL_MIN ? RAIL_W : 0;
+  const body = React.createElement(
+    RN.View,
+    { style: { position: 'fixed', top: 0, bottom: 0, left: SIDE_W, right, zIndex: 1000, alignItems: 'center', backgroundColor: transparent ? 'transparent' : 'rgba(241,235,221,0.85)' } },
     React.createElement(
       RN.View,
-      { style: { flex: 1, alignItems: 'center', backgroundColor: transparent ? 'transparent' : 'rgba(241,235,221,0.78)' } },
-      React.createElement(
-        RN.View,
-        { style: { flex: 1, width: '100%', maxWidth: COLUMN, overflow: 'hidden', ...(transparent ? null : { backgroundColor: '#FBF8F1', borderLeftWidth: 1, borderRightWidth: 1, borderColor: '#EFE6CC' }) } },
-        children
-      )
+      { style: { flex: 1, width: '100%', maxWidth: COLUMN, overflow: 'hidden', ...(transparent ? null : { backgroundColor: '#FBF8F1', borderLeftWidth: 1, borderRightWidth: 1, borderColor: '#EFE6CC' }) } },
+      children
     )
   );
+  return ReactDOM.createPortal(body, document.body);
 }
 
 module.exports = { ...RN, Modal: DeskModal };
