@@ -19,7 +19,7 @@ import { FavHeart } from '../../../components/FavKit';
 import { useFavs, favList } from '../../../favorites';
 import {
   useMusic, allTracks, trackById, publishTrack, publishServerTrack, removeTrack, registerSale, createPlaylist, removePlaylist, togglePlaylistTrack,
-  subscribePlan, cancelPlan, planInfo, playTrack, startTrack, setAdHook, setOwnedTracks, offlineInfo, isOffline, toggleOffline, savePlaylistOffline, offlineTracks, markOnline, OFFLINE_CHECK_DAYS, openArtist, artistGets, priceFor, MUSIC_FEE, MUSIC_ARTIST_MIN, MUSIC_ARTIST_SUGGESTED, MUSIC_PLAN_PRICE, MUSIC_PLAN_FREE_MONTHS, MUSIC_GENRES, ADS_EVERY,
+  subscribePlan, cancelPlan, planInfo, playTrack, startTrack, setAdHook, setOwnedTracks, offlineInfo, isOffline, toggleOffline, savePlaylistOffline, offlineTracks, markOnline, OFFLINE_CHECK_DAYS, openArtist, artistGets, priceFor, MUSIC_FEE, MUSIC_ARTIST_MIN, MUSIC_ARTIST_SUGGESTED, MUSIC_PLAN_PRICE, MUSIC_PLAN_FREE_MONTHS, MUSIC_GENRES, ADS_EVERY, FREE_CREDIT,
 } from '../../../music';
 
 const SEGS = [
@@ -145,6 +145,10 @@ export default function MusicTab() {
               <Ionicons name={downloaded[t.id] ? 'checkmark' : 'download-outline'} size={14} color={colors.text} />
               <Text numberOfLines={1} style={st.pillText}>{downloaded[t.id] ? 'Baixada' : 'Baixar'}</Text>
             </TouchableOpacity>
+          ) : t.free ? (
+            <View style={[st.pill, { backgroundColor: colors.cardAlt, borderColor: colors.cardAlt }]} accessibilityLabel={`${t.title}: música livre, grátis`}>
+              <Text numberOfLines={1} style={st.pillText}>Grátis</Text>
+            </View>
           ) : (
             <TouchableOpacity style={st.pill} onPress={() => buy(t)} accessibilityLabel={inCart(t) ? `${t.title} está no carrinho. Abrir carrinho` : `Pôr ${t.title} no carrinho, ${brl(t.price)}`}>
               <Ionicons name={inCart(t) ? 'cart' : 'cart-outline'} size={13} color={colors.text} />
@@ -213,6 +217,7 @@ export default function MusicTab() {
           </ScrollView>
           {gallery.map((t) => <Row key={t.id} t={t} list={gallery} />)}
           {!gallery.length ? <Text style={st.empty}>Nenhuma música encontrada.</Text> : null}
+          {gallery.some((t) => t.free) ? <Text style={[st.empty, { fontSize: 11 }]}>{FREE_CREDIT}</Text> : null}
           <Text style={st.note}>Ouvir é livre. Quando uma música acaba, a próxima da lista começa sozinha. Para baixar, compre direto do artista.</Text>
         </>
       ) : null}

@@ -3,7 +3,7 @@
 // Depois relatos de moradores (moderados), lives de noticiário e as notícias por assunto.
 import React, { useState } from 'react';
 import { KeyboardLift } from '../../../keyboard';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Share } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Share, Linking } from 'react-native';
 import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,11 +13,13 @@ import { Screen, Photo } from '../../../components/ui';
 import { NEWS, NEWS_CATS, ALERTS, ALERT_LEVELS, REPORTS, TRANSPORT_ALERTS, RISK } from '../../../newsData';
 import { allLives } from '../../../components/LiveBits';
 import { confirmCall } from '../../../phone';
+import { useLiveNews } from '../../../liveNews';
 
 const fmt = (n) => n.toLocaleString('pt-BR');
 
 export default function NewsTab({ onWatch, navigate }) {
   const { state, dispatch } = useStore();
+  const live = useLiveNews(); // notícias (Agência Brasil) e alertas (INMET) de verdade
   const [cat, setCat] = useState('todas');
   const [open, setOpen] = useState(null);
   const [reporting, setReporting] = useState(false);
@@ -32,7 +34,7 @@ export default function NewsTab({ onWatch, navigate }) {
     <Screen>
       <View style={styles.trust}>
         <Ionicons name="shield-checkmark" size={13} color={colors.success} />
-        <Text style={styles.trustText}>Só canais verificados e fontes oficiais. Notícia falsa é derrubada pela IA Realyz.</Text>
+        <Text style={styles.trustText}>Notícias da Agência Brasil (EBC) e alertas do INMET: fontes oficiais, atualizadas a cada 10 min.</Text>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 12 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
@@ -71,6 +73,7 @@ export default function NewsTab({ onWatch, navigate }) {
           {ALERTS.map((a) => (
             <AlertCard key={a.id} a={a} navigate={navigate} />
           ))}
+          {!ALERTS.length ? <Text style={[styles.meta, { marginBottom: 12 }]}>{live.loading ? 'Buscando os avisos do INMET…' : 'Nenhum aviso meteorológico do INMET agora.'}</Text> : null}
           <TransportAlerts navigate={navigate} />
           <SafeCheck />
           <Reports onReport={() => setReporting(true)} mine={state.newsReports} />
@@ -78,6 +81,10 @@ export default function NewsTab({ onWatch, navigate }) {
       ) : null}
 
       {onlyTransport ? <TransportAlerts navigate={navigate} all /> : null}
+      {onlyTransport && !TRANSPORT_ALERTS.length ? <Text style={[styles.meta, { marginBottom: 12 }]}>Sem avisos de voos e estradas agora.</Text> : null}
+      {!list.length && !showAlerts && !onlyTransport ? (
+        <Text style={[styles.meta, { marginVertical: 12 }]}>{live.loading ? 'Carregando as notícias…' : live.ok ? 'Nenhuma notícia deste assunto agora.' : 'Não deu para carregar as notícias agora. Confira a internet e abra de novo.'}</Text>
+      ) : null}
 
       {lives.length && cat === 'todas' ? (
         <>
@@ -104,7 +111,7 @@ export default function NewsTab({ onWatch, navigate }) {
               <Source n={n} />
               <Text style={styles.bigTitle}>{n.title}</Text>
               <Text style={styles.summary} numberOfLines={2}>{n.summary}</Text>
-              <Text style={styles.meta}>{n.time} · {fmt(n.reads)} leituras</Text>
+              <Text style={styles.meta}>{n.time}{n.reads ? ` · ${fmt(n.reads)} leituras` : ''}</Text>
             </View>
           </TouchableOpacity>
         ) : (
@@ -188,6 +195,7 @@ function AlertCard({ a, navigate }) {
 // Avisos de transporte (voos, estradas, metrô, ônibus), ligados aos alertas de clima.
 export function TransportAlerts({ navigate, all, compact }) {
   const list = all ? TRANSPORT_ALERTS : TRANSPORT_ALERTS.filter((t) => t.risk !== 'baixa');
+  if (!list.length) return null;
   return (
     <View style={styles.reports}>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
@@ -320,16 +328,18 @@ function Article({ n, onClose }) {
         <View style={{ padding: 16 }}>
           <Source n={n} />
           <Text style={[styles.bigTitle, { fontSize: 22 }]}>{n.title}</Text>
-          <Text style={styles.meta}>{n.time} · {fmt(n.reads)} leituras</Text>
+          <Text style={styles.meta}>{n.time}{n.reads ? ` · ${fmt(n.reads)} leituras` : ''}</Text>
           <View style={styles.checked}>
-            <Ionicons name="sparkles" size={14} color={colors.success} />
-            <Text style={{ color: colors.success, fontWeight: '700', fontSize: 12, marginLeft: 6, flex: 1 }}>Checado pela IA Realyz: confere com outras fontes confiáveis</Text>
+            <Ionicons name="shield-checkmark" size={14} color={colors.success} />
+            <Text style={{ color: colors.success, fontWeight: '700', fontSize: 12, marginLeft: 6, flex: 1 }}>Fonte oficial: {n.source}{n.source === 'Agência Brasil' ? ' (EBC), agência pública de notícias' : ''}</Text>
           </View>
-          <Text style={styles.body}>{n.summary}</Text>
-          <Text style={styles.body}>
-            Esta é uma notícia de demonstração. Na versão real, o texto completo vem do canal verificado que publicou, com nome do jornalista responsável e data.
-          </Text>
-          <TouchableOpacity style={[styles.send, { backgroundColor: colors.primary }]} onPress={() => Share.share({ message: `${n.title} (${n.source}, via Realyz)` }).catch(() => {})}>
+          <Text style={styles.body}>{n.body || n.summary}</Text>
+          {n.link ? (
+            <TouchableOpacity style={[styles.send, { backgroundColor: colors.cardAlt }]} onPress={() => Linking.openURL(n.link).catch(() => {})} accessibilityLabel={`Ler a notícia completa na ${n.source}`}>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '800' }}>Ler completa na {n.source}</Text>
+            </TouchableOpacity>
+          ) : null}
+          <TouchableOpacity style={[styles.send, { backgroundColor: colors.primary }]} onPress={() => Share.share({ message: `${n.title} (${n.source}, via Realyz)${n.link ? `\n${n.link}` : ''}` }).catch(() => {})}>
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '800' }}>Compartilhar</Text>
           </TouchableOpacity>
         </View>
