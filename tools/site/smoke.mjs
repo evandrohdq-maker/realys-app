@@ -32,7 +32,26 @@ await page.waitForTimeout(6000);
 await page.screenshot({ path: join(out, '1-entrada.png') });
 const text = await page.evaluate(() => document.body.innerText.slice(0, 3000));
 await writeFile(join(out, 'texto.txt'), text);
-// Wide (computador)
+// Entrar com uma conta de demonstração e fotografar as telas principais.
+try {
+  await page.getByPlaceholder('Digite seu usuário, CPF ou CNPJ').fill('visitante');
+  await page.getByPlaceholder('Sua senha').fill('senha1234');
+  await page.getByText('Entrar com biometria').click();
+  await page.waitForTimeout(5000);
+  await page.screenshot({ path: join(out, '3-depois-de-entrar.png') });
+  for (const [i, aba] of ['Shop', 'Food', 'Serviços', 'Perfil'].entries()) {
+    const b = page.getByText(aba, { exact: true }).last();
+    if (await b.count()) {
+      await b.click().catch((e) => logs.push('[click ' + aba + '] ' + e.message));
+      await page.waitForTimeout(2500);
+      await page.screenshot({ path: join(out, `${4 + i}-${aba}.png`) });
+    } else logs.push('[aba não achada] ' + aba);
+  }
+  await writeFile(join(out, 'texto-dentro.txt'), await page.evaluate(() => document.body.innerText.slice(0, 3000)));
+} catch (e) {
+  logs.push('[fluxo] ' + e.message);
+}
+// Computador (tela larga)
 await page.setViewportSize({ width: 1280, height: 800 });
 await page.waitForTimeout(1500);
 await page.screenshot({ path: join(out, '2-computador.png') });

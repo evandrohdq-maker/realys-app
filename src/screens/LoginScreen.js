@@ -170,7 +170,8 @@ export default function LoginScreen() {
       // Aparelho já cadastrado (conta salva aqui): abre normal, sem biometria a cada entrada.
       // Conta sem biometria feita neste aparelho: a pessoa dona da conta faz o reconhecimento facial.
       const conhecido = (await getSavedUsers()).some((x) => x.key === savedKey(value));
-      if (!conhecido) return setPendente({ user, login: value, remember });
+      // No site não há o scan do aparelho: quem confere é o servidor (senha + rosto quando o navegador é novo).
+      if (!conhecido && Platform.OS !== 'web') return setPendente({ user, login: value, remember });
       await login(user, value, remember);
     } finally {
       setBusy(false);

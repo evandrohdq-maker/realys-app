@@ -54,6 +54,7 @@ import TermoReaceite from './src/components/TermoReaceite';
 import AccountBlocked from './src/components/AccountBlocked';
 import LotusSOS from './src/components/LotusSOS';
 import SecurityEvents from './src/components/SecurityEvents';
+import { WEB_MAX } from './src/webFrame';
 import ServerSync from './src/components/ServerSync';
 import { FavLiveAlerts } from './src/components/FavKit';
 import { useFavs } from './src/favorites';
@@ -901,7 +902,7 @@ function Root() {
 }
 
 export default function App() {
-  return (
+  const app = (
     <SafeAreaProvider>
       <StoreProvider>
         <Root />
@@ -909,6 +910,13 @@ export default function App() {
       {/* Avisos do Re@lys: em qualquer tela, inclusive na entrada (login). */}
       <SoftAlertHost />
     </SafeAreaProvider>
+  );
+  // Site no computador: o app numa coluna do tamanho de um celular, no centro da tela.
+  if (Platform.OS !== 'web') return app;
+  return (
+    <View style={{ flex: 1, backgroundColor: '#EFE8D8', alignItems: 'center' }}>
+      <View style={{ flex: 1, width: '100%', maxWidth: WEB_MAX, backgroundColor: '#FBF8F1', overflow: 'hidden', boxShadow: '0 0 40px rgba(0,0,0,0.12)' }}>{app}</View>
+    </View>
   );
 }
 
