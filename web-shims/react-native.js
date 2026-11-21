@@ -58,3 +58,4 @@ function DeskModal(props) {
 }
 
 module.exports = { ...RN, Modal: DeskModal };
+module.exports.DeskModal = DeskModal;

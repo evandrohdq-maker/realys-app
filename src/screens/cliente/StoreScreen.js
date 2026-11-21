@@ -17,7 +17,6 @@ import { isFoodStore } from '../../data';
 import { GROCERY_GROUPS, GROCERY_SECTIONS, sectionOf } from '../../grocerySections';
 import { classifyFood, FOOD_CLASSES, MODOS, classeByKey, FOOD_MODES, FOOD_TIPOS, productInMode, storeInMode, storeReserves } from '../../foodClasses';
 import { freeTable } from '../../venueData';
-import FoodClassPicker from '../../components/FoodClassPicker';
 import { FoodHighlights } from './FoodHighlights';
 import { byStoreTrust } from '../../storeTrust';
 import { ShopHero, CircleShortcuts, ShopHead, ShopProductCard as ProductCard, ShopGrid, StoreRow } from '../../components/ShopKit';
@@ -373,7 +372,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
               );
             })}
           </ScrollView>
-          <FoodClassPicker selected={foodCls} counts={foodIndex.counts} onPick={setFoodCls} title={FOOD_COPY[mode].title} hint={FOOD_COPY[mode].hint} />
+          {/* Um menu só: a faixa de tipos acima filtra (o antigo "Bateu a fome? ⋮" fazia a mesma coisa). */}
         </>
       ) : null}
       {food && !q ? <SpotlightCarousel ads={FOOD_SPOTLIGHT} onOpen={openAd} /> : null}

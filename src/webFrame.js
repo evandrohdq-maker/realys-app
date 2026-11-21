@@ -18,7 +18,12 @@ if (Platform.OS === 'web') {
   if (typeof document !== 'undefined') {
     const s = document.createElement('style');
     // Rola com a roda do mouse e arrastando, mas sem mostrar a barra de rolagem.
-    s.textContent = 'html,body{background:#F1EBDD;} body{overscroll-behavior:none;} *{scrollbar-width:none;-ms-overflow-style:none;} *::-webkit-scrollbar{display:none;width:0;height:0;}';
+    s.textContent = 'html,body{background:#F1EBDD;} body{overscroll-behavior:none;} *{scrollbar-width:none;-ms-overflow-style:none;} *::-webkit-scrollbar{display:none;width:0;height:0;}' +
+      // Sem o quadrado preto do navegador em volta do que foi clicado. Quem navega pelo teclado (Tab)
+      // vê um contorno dourado suave.
+      ' body:not(.rz-kb) *{outline:none !important;} body.rz-kb *:focus{outline:2px solid rgba(226,182,73,.8) !important;outline-offset:2px;border-radius:12px;}';
     document.head.appendChild(s);
+    window.addEventListener('keydown', (e) => e.key === 'Tab' && document.body.classList.add('rz-kb'));
+    window.addEventListener('mousedown', () => document.body.classList.remove('rz-kb'));
   }
 }

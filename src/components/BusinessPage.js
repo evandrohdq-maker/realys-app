@@ -49,7 +49,9 @@ export function reviewer(state, rv) {
 }
 
 // Logo com anel em órbita, no mesmo estilo da Lotus.
-function OrbitLogo({ logo }) {
+function OrbitLogo({ logo, name, photo }) {
+  // Tocar na foto de perfil da empresa abre ela numa moldura no meio da tela.
+  const [zoom, setZoom] = useState(false);
   const spin = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -76,9 +78,28 @@ function OrbitLogo({ logo }) {
         <View style={[styles.orbitDot, { top: -4, left: 52 - 4, backgroundColor: colors.gold }]} />
         <View style={[styles.orbitDot, { bottom: -3, left: 52 - 3, width: 6, height: 6, backgroundColor: '#5FA2FF' }]} />
       </Animated.View>
-      <View style={styles.logo}>
-        <Text style={{ fontSize: 36 }}>{logo}</Text>
-      </View>
+      <TouchableOpacity style={styles.logo} activeOpacity={0.85} onPress={() => setZoom(true)} accessibilityLabel={`Ver a foto de perfil de ${name || 'empresa'}`}>
+        {photo ? <Photo uri={photo} style={{ width: '100%', height: '100%', borderRadius: 999 }} fallback={logo} /> : <Text style={{ fontSize: 36 }}>{logo}</Text>}
+      </TouchableOpacity>
+      {zoom ? (
+        <Modal visible transparent animationType="fade" onRequestClose={() => setZoom(false)}>
+          <TouchableOpacity style={styles.viewer} activeOpacity={1} onPress={() => setZoom(false)}>
+            <TouchableOpacity activeOpacity={1} style={[styles.viewerCard, { maxWidth: 340, alignItems: 'center' }]} onPress={() => {}}>
+              {photo ? (
+                <Photo uri={photo} style={[styles.viewerImg, { aspectRatio: 1 }]} fallback={logo} />
+              ) : (
+                <View style={[styles.viewerImg, { aspectRatio: 1, backgroundColor: '#FFF8E4', alignItems: 'center', justifyContent: 'center' }]}>
+                  <Text style={{ fontSize: 140 }}>{logo}</Text>
+                </View>
+              )}
+              {name ? <Text style={styles.viewerText}>{name}</Text> : null}
+              <TouchableOpacity onPress={() => setZoom(false)} style={styles.viewerClose} accessibilityLabel="Fechar a foto">
+                <Ionicons name="close" size={18} color={colors.text} />
+              </TouchableOpacity>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
+      ) : null}
     </View>
   );
 }
@@ -146,12 +167,16 @@ function Gallery({ photos }) {
         ))}
       </View>
       <Modal visible={!!open} transparent animationType="fade" onRequestClose={() => setOpen(null)}><KeyboardLift style={{ flex: 1 }}>
+        {/* Foto numa moldura clara no meio da tela (não esticada nem em tela cheia). */}
         <TouchableOpacity style={styles.viewer} activeOpacity={1} onPress={() => setOpen(null)}>
           {open ? (
-            <>
+            <TouchableOpacity activeOpacity={1} style={styles.viewerCard} onPress={() => {}}>
               <Photo uri={open.photo} style={styles.viewerImg} fallback="🏢" />
               {open.caption ? <Text style={styles.viewerText}>{open.caption}</Text> : null}
-            </>
+              <TouchableOpacity onPress={() => setOpen(null)} style={styles.viewerClose} accessibilityLabel="Fechar a foto">
+                <Ionicons name="close" size={18} color={colors.text} />
+              </TouchableOpacity>
+            </TouchableOpacity>
           ) : null}
         </TouchableOpacity>
       </KeyboardLift></Modal>
@@ -314,7 +339,7 @@ function ProductCard({ x, onAdd, big }) {
   return (
     <View style={[styles.pCard, big && styles.pCardBig]}>
       {big ? <View style={styles.pGlow} /> : null}
-      <ProductThumb product={x} size={big ? 110 : 84} />
+      <TouchableOpacity activeOpacity={0.85} onPress={() => openProduct(x)} accessibilityLabel={`Ver ${x.name}`}><ProductThumb product={x} size={big ? 110 : 84} /></TouchableOpacity>
       {x.launch ? <Text style={styles.launch}>LANÇAMENTO</Text> : null}
       <Text style={[styles.title, { textAlign: 'center', marginTop: 4 }]} numberOfLines={2}>{x.name}</Text>
       {big && x.launch ? <Text style={[styles.sub, { textAlign: 'center' }]} numberOfLines={2}>{x.launch.note}</Text> : null}
@@ -417,7 +442,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
           </TouchableOpacity>
 
           <View style={[styles.heroBody, { paddingTop: insets.top + 70 }]}>
-            <OrbitLogo logo={p.logo} />
+            <OrbitLogo logo={p.logo} name={p.name} photo={p.logoUri || null} />
             <Text style={styles.heroName}>{p.name}</Text>
             {b.tagline ? <Text style={styles.tagline}>{b.tagline}</Text> : null}
             <LiveNowBadge hostType="empresa" hostId={p.id} />
@@ -464,13 +489,13 @@ export function BusinessPageModal({ p, media, MediaList }) {
               ))}
             </View>
 
-            <View style={{ flexDirection: 'row', marginTop: 14 }}>
-              <TouchableOpacity style={[styles.cta, { flex: 1 }, following && styles.ctaOn]} onPress={() => dispatch({ type: 'FOLLOW', id: p.id })}>
+            <View style={{ flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 }}>
+              <TouchableOpacity style={[styles.cta, following && styles.ctaOn]} onPress={() => dispatch({ type: 'FOLLOW', id: p.id })}>
                 <Ionicons name={following ? 'checkmark' : 'add'} size={16} color={following ? colors.primary : NIGHT} />
                 <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.ctaText, following && { color: colors.primary }]}>{following ? 'Seguindo' : 'Seguir empresa'}</Text>
               </TouchableOpacity>
               {/* Pedir orçamento: vira contato novo (lead) no CRM da empresa. */}
-              <TouchableOpacity style={[styles.glassBtn, { flex: 1, marginLeft: 8 }]} onPress={lead.ask} accessibilityLabel={`Pedir orçamento para ${p.name}`}>
+              <TouchableOpacity style={[styles.glassBtn, { marginLeft: 8 }]} onPress={lead.ask} accessibilityLabel={`Pedir orçamento para ${p.name}`}>
                 <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.text} />
                 <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={styles.glassBtnText}>Pedir orçamento</Text>
               </TouchableOpacity>
@@ -651,11 +676,11 @@ const styles = StyleSheet.create({
   statSep: { borderLeftWidth: 1, borderLeftColor: colors.border },
   statValue: { color: colors.text, fontSize: 14, fontWeight: '800' },
   statLabel: { color: colors.muted, fontSize: 9.5, fontWeight: '700', letterSpacing: 0.3, marginTop: 2, textTransform: 'uppercase' },
-  cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.gold },
+  cta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold, borderRadius: 999, paddingVertical: 7, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.gold },
   ctaOn: { backgroundColor: 'transparent' },
   ctaText: { color: NIGHT, fontWeight: '800', fontSize: 13, marginLeft: 6 },
   ctaGhost: { borderRadius: 14, paddingVertical: 11, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  glassBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, paddingVertical: 11, borderWidth: 1, borderColor: colors.borderStrong },
+  glassBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF', borderRadius: 999, paddingVertical: 7, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.borderStrong },
   glassBtnText: { color: colors.text, fontWeight: '700', fontSize: 13, marginLeft: 6 },
   bio: { color: colors.text, marginTop: 14, lineHeight: 20 },
   hours: { color: colors.muted, fontSize: 12, marginTop: 6 },
@@ -721,13 +746,15 @@ const styles = StyleSheet.create({
   gTypeOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   gTypeText: { color: colors.primaryDark, fontWeight: '700', fontSize: 12, marginLeft: 4 },
   gItem: { width: '48.5%', backgroundColor: '#FFFFFF', borderRadius: 16, marginBottom: 10, overflow: 'hidden', ...soft },
-  gImg: { width: '100%', height: 140 },
+  gImg: { width: '100%', aspectRatio: 4 / 3 }, // proporção fixa: não estica no computador
   gTag: { position: 'absolute', top: 8, left: 8, backgroundColor: 'rgba(11,17,36,0.75)', borderRadius: 10, paddingHorizontal: 7, paddingVertical: 2, borderWidth: 1, borderColor: GLASS_BD },
   gTagText: { color: colors.gold, fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
   gCaption: { color: colors.text, fontSize: 12, fontWeight: '600', padding: 8 },
-  viewer: { flex: 1, backgroundColor: 'rgba(11,17,36,0.94)', alignItems: 'center', justifyContent: 'center', padding: 16 },
-  viewerImg: { width: '100%', height: 360, borderRadius: 16 },
-  viewerText: { color: '#FFFFFF', fontWeight: '700', marginTop: 12, textAlign: 'center' },
+  viewer: { flex: 1, backgroundColor: 'rgba(241,235,221,0.92)', alignItems: 'center', justifyContent: 'center', padding: 16 },
+  viewerCard: { width: '100%', maxWidth: 520, backgroundColor: '#FFFFFF', borderRadius: 22, padding: 12, borderWidth: 1, borderColor: '#EAD7A4', shadowColor: '#8A6208', shadowOpacity: 0.18, shadowRadius: 24, shadowOffset: { width: 0, height: 10 } },
+  viewerImg: { width: '100%', aspectRatio: 4 / 3, borderRadius: 14 },
+  viewerText: { color: colors.text, fontWeight: '700', marginTop: 10, textAlign: 'center' },
+  viewerClose: { position: 'absolute', top: 18, right: 18, width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.9)', alignItems: 'center', justifyContent: 'center' },
   post: { backgroundColor: '#FFFFFF', borderRadius: 14, marginBottom: 12, overflow: 'hidden', ...soft },
   title: { fontWeight: '700', color: colors.text },
   sub: { color: colors.muted, fontSize: 12, marginTop: 2 },

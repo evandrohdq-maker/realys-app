@@ -418,7 +418,7 @@ export function PromoSector({ flash, coupons, combos, food, onOpenStore }) {
               const pct = Math.round(sold * 100);
               return (
                 <View key={id} style={styles.flash}>
-                  <TouchableOpacity activeOpacity={0.85} onPress={() => onOpenStore && onOpenStore(p.storeId)} style={{ alignItems: 'center' }}>
+                  <TouchableOpacity activeOpacity={0.85} onPress={() => openProduct(p)} style={{ alignItems: 'center' }} accessibilityLabel={`Ver ${p.name}`}>
                     <ProductThumb product={p} size={76} />
                   </TouchableOpacity>
                   <View style={styles.offBadge}>

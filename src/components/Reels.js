@@ -11,6 +11,7 @@ import {
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import StoryFrame, { storyDesk } from './StoryFrame';
 import { useStore, storeOf, priceText } from '../store';
 import { listings } from '../homeData';
 import { colors, brl } from '../theme';
@@ -381,13 +382,14 @@ export function ReelsViewer({ reels, index, onClose }) {
   const insets = useSafeAreaInsets();
   const visible = index !== null && index !== undefined;
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose} statusBarTranslucent><KeyboardLift style={{ flex: 1 }}>
+    // No computador: os Reels numa moldura em pé (9:16) no meio, como no celular; não esticados na tela.
+    <Modal visible={visible} animationType="slide" transparent={storyDesk()} onRequestClose={onClose} statusBarTranslucent><StoryFrame><KeyboardLift style={{ flex: 1 }}>
       {visible ? <ReelsFeed reels={reels} start={index} onClose={onClose} /> : null}
       <TouchableOpacity onPress={onClose} style={[styles.close, { top: insets.top + 10 }]} accessibilityLabel="Fechar Reels">
         <Ionicons name="chevron-down" size={28} color="#fff" />
       </TouchableOpacity>
       <Text style={[styles.brandTop, { top: insets.top + 14 }]}>Reels</Text>
-    </KeyboardLift></Modal>
+    </KeyboardLift></StoryFrame></Modal>
   );
 }
 

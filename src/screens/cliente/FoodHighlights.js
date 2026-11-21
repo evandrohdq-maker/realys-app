@@ -1,3 +1,4 @@
+import { openProduct } from '../../components/ProductSheet';
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Text } from '../../responsive';
@@ -146,7 +147,7 @@ export function FoodHighlights({ filter, onOpenStore, onAdd, only }) {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.hScroll} contentContainerStyle={{ paddingHorizontal: 16 }}>
             {news.map((p) => (
               <View key={p.id} style={styles.newCard}>
-                <ProductThumb product={p} size={64} />
+                <TouchableOpacity activeOpacity={0.85} onPress={() => openProduct(p)} accessibilityLabel={`Ver ${p.name}`}><ProductThumb product={p} size={64} /></TouchableOpacity>
                 <Text numberOfLines={2} style={[styles.cardTitle, { marginTop: 6 }]}>{p.name}</Text>
                 <Text numberOfLines={1} style={styles.cardMeta}>{(storeOf(state, p.storeId) || {}).name}</Text>
                 <Text style={[styles.price, { fontSize: 14 }]}>{brl(p.price)}</Text>
