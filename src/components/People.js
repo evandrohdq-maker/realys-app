@@ -20,6 +20,7 @@ import { SocialBadge } from './SocialClass';
 import { CLASSES } from '../socialClasses';
 import { MuralTab, MuralPeek, useMuralItems } from './Mural';
 import { stories as STORY_GROUPS } from '../homeData';
+import { galleryOf } from '../testimonialsData';
 import { StoryViewer } from '../screens/cliente/home/Stories';
 
 // Foto do perfil: tocar abre os stories da pessoa (anel dourado = tem story novo);
@@ -32,12 +33,23 @@ function StoryAvatar({ m, ringStyle, imgStyle }) {
   const [zoom, setZoom] = useState(false);
   const fresh = !!(group && !(state.storySeen || {})[group.id]);
   const big = m.photo ? String(m.photo).replace(/\/200\/200$/, '/700/700') : null;
+  // Fotos de perfil: a atual primeiro e as anteriores (na demonstração, vêm da galeria da pessoa).
+  // Arrastar para o lado (ou as setas no computador) passa para a próxima.
+  const fotos = [big, ...galleryOf(m.id).photos.slice(0, 3).map((f) => f.uri)].filter(Boolean);
+  const [idx, setIdx] = useState(0);
+  const pager = React.useRef(null);
+  const W = 290;
+  const goTo = (i) => {
+    const n = Math.max(0, Math.min(fotos.length - 1, i));
+    setIdx(n);
+    pager.current && pager.current.scrollTo({ x: n * W, animated: true });
+  };
   return (
     <>
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => (group ? setView(true) : setZoom(true))}
-        onLongPress={() => setZoom(true)}
+        onPress={() => (group ? setView(true) : (setIdx(0), setZoom(true)))}
+        onLongPress={() => (setIdx(0), setZoom(true))}
         delayLongPress={HOLD_MS}
         accessibilityLabel={group ? `Ver os stories de ${m.name}. Segure para ver a foto de perfil` : `Ver a foto de perfil de ${m.name}`}
       >
@@ -61,7 +73,40 @@ function StoryAvatar({ m, ringStyle, imgStyle }) {
           {/* Foto numa moldura no meio da tela (não em tela cheia), no app e no site. */}
           <TouchableOpacity style={styles.zoomBack} activeOpacity={1} onPress={() => setZoom(false)} accessibilityLabel="Fechar a foto">
             <TouchableOpacity activeOpacity={1} style={styles.zoomCard} onPress={() => {}}>
-              <Photo uri={big} style={styles.zoomImg} fallback="🙂" />
+              <View style={{ width: W, maxWidth: '100%' }}>
+                <ScrollView
+                  ref={pager}
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  onMomentumScrollEnd={(e) => setIdx(Math.round(e.nativeEvent.contentOffset.x / W))}
+                  onScroll={(e) => setIdx(Math.round(e.nativeEvent.contentOffset.x / W))}
+                  scrollEventThrottle={64}
+                >
+                  {fotos.map((u, i) => (
+                    <Photo key={i} uri={u} style={[styles.zoomImg, { width: W }]} fallback="🙂" />
+                  ))}
+                </ScrollView>
+                {fotos.length > 1 ? (
+                  <>
+                    {idx > 0 ? (
+                      <TouchableOpacity onPress={() => goTo(idx - 1)} style={[styles.zoomArrow, { left: 6 }]} accessibilityLabel="Foto anterior">
+                        <Ionicons name="chevron-back" size={18} color={colors.text} />
+                      </TouchableOpacity>
+                    ) : null}
+                    {idx < fotos.length - 1 ? (
+                      <TouchableOpacity onPress={() => goTo(idx + 1)} style={[styles.zoomArrow, { right: 6 }]} accessibilityLabel="Próxima foto">
+                        <Ionicons name="chevron-forward" size={18} color={colors.text} />
+                      </TouchableOpacity>
+                    ) : null}
+                  </>
+                ) : null}
+              </View>
+              {fotos.length > 1 ? (
+                <View style={styles.zoomDots}>
+                  {fotos.map((_, i) => <View key={i} style={[styles.zoomDot, i === idx && styles.zoomDotOn]} />)}
+                </View>
+              ) : null}
               <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
                 <Text style={styles.zoomName} numberOfLines={1}>{m.name}</Text>
                 <Ionicons name="shield-checkmark" size={15} color={colors.primary} style={{ marginLeft: 6 }} />
@@ -668,6 +713,10 @@ const styles = StyleSheet.create({
   zoomBack: { flex: 1, backgroundColor: 'rgba(241,235,221,0.94)', alignItems: 'center', justifyContent: 'center', padding: 24 },
   zoomCard: { width: 320, maxWidth: '100%', alignItems: 'center', backgroundColor: colors.card, borderRadius: 24, padding: 14, borderWidth: 1, borderColor: '#EAD7A4', shadowColor: '#8A6208', shadowOpacity: 0.18, shadowRadius: 24, shadowOffset: { width: 0, height: 10 } },
   zoomImg: { width: 290, maxWidth: '100%', aspectRatio: 1, borderRadius: 18 },
+  zoomArrow: { position: 'absolute', top: '45%', width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.9)', alignItems: 'center', justifyContent: 'center' },
+  zoomDots: { flexDirection: 'row', marginTop: 10 },
+  zoomDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.border, marginHorizontal: 3 },
+  zoomDotOn: { backgroundColor: colors.gold, width: 16 },
   zoomName: { color: colors.text, fontWeight: '800', fontSize: 16, flexShrink: 1 },
   zoomClose: { position: 'absolute', top: 20, right: 20, width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.9)', alignItems: 'center', justifyContent: 'center' },
   peekDim: { flex: 1, backgroundColor: 'rgba(20,18,14,0.35)' },
