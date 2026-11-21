@@ -4,7 +4,7 @@
 import { Platform, PermissionsAndroid, Linking, Alert } from 'react-native';
 import * as IntentLauncher from 'expo-intent-launcher';
 
-const CALL = PermissionsAndroid.PERMISSIONS ? PermissionsAndroid.PERMISSIONS.CALL_PHONE : 'android.permission.CALL_PHONE';
+const CALL = PermissionsAndroid && PermissionsAndroid.PERMISSIONS ? PermissionsAndroid.PERMISSIONS.CALL_PHONE : 'android.permission.CALL_PHONE';
 
 export async function hasCallPermission() {
   if (Platform.OS !== 'android') return false;
