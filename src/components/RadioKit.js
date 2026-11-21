@@ -156,8 +156,96 @@ function Host() {
 
 // Montado uma vez no App.
 export function RadioHost() {
+  if (Platform.OS === 'web') return <WebHost />;
   if (!EV) return null;
   return <Host />;
+}
+
+// No site: o player de áudio do próprio navegador. (O player de vídeo, sem uma tela de vídeo
+// aberta, ficava só "carregando" no navegador.)
+function WebHost() {
+  const n = useRadioNow();
+  const last = useRef(null);
+  const audio = useRef(null);
+  if (!audio.current && typeof window !== 'undefined' && window.Audio) audio.current = new window.Audio();
+  useEffect(() => {
+    const el = audio.current;
+    if (!el) return;
+    el.preload = 'none';
+    // O que os outros pedem para este player (pausar no story, parar ao fechar) também vale aqui.
+    livePlayer = {
+      pause: () => el.pause(),
+      play: () => el.play().catch(() => {}),
+      get playing() {
+        return !el.paused;
+      },
+    };
+    const onPlaying = () => setRadioNow({ status: 'tocando', error: null });
+    const onWaiting = () => radioNow().status !== 'parado' && setRadioNow({ status: 'carregando' });
+    const onError = () => {
+      if (radioNow().status === 'parado') return;
+      const url = (radioNow().radio && radioNow().radio.url) || '';
+      setRadioNow({
+        status: 'erro',
+        error: /^http:/i.test(url) && window.location.protocol === 'https:'
+          ? 'Esta rádio só toca no app: o link dela não é seguro (sem https) e o navegador bloqueia.'
+          : 'Não consegui tocar esta rádio. Confira a URL do streaming ou a internet.',
+      });
+    };
+    const onEnded = () => {
+      const now = radioNow();
+      if (now.status !== 'tocando' || Date.now() - (now.req || 0) < 1500) return;
+      if (now.radio && now.radio.track) radioEnded();
+    };
+    el.addEventListener('playing', onPlaying);
+    el.addEventListener('waiting', onWaiting);
+    el.addEventListener('error', onError);
+    el.addEventListener('ended', onEnded);
+    return () => {
+      el.removeEventListener('playing', onPlaying);
+      el.removeEventListener('waiting', onWaiting);
+      el.removeEventListener('error', onError);
+      el.removeEventListener('ended', onEnded);
+      el.pause();
+      livePlayer = null;
+    };
+  }, []);
+  useEffect(() => {
+    const el = audio.current;
+    if (!el || !n.req || n.req === last.current) return;
+    last.current = n.req;
+    if (n.status === 'parado') {
+      el.pause();
+      el.removeAttribute('src');
+      el.load();
+      return;
+    }
+    if (!n.radio) return;
+    let alive = true;
+    resolveStream(n.radio.url).then((uri) => {
+      if (!alive) return;
+      el.src = uri;
+      try {
+        if (navigator.mediaSession && window.MediaMetadata) {
+          const art = logoUri(n.radio.logo);
+          navigator.mediaSession.metadata = new window.MediaMetadata({
+            title: n.radio.name,
+            artist: n.radio.track ? n.radio.artist || 'Música no Realyz' : 'Rádio no Realyz',
+            artwork: art ? [{ src: art }] : [],
+          });
+        }
+      } catch (e) {}
+      el.play().catch((e) => {
+        if (!alive || radioNow().status === 'parado') return;
+        if (e && e.name === 'NotAllowedError') setRadioNow({ status: 'erro', error: 'Toque no play de novo para o navegador liberar o som.' });
+        else el.dispatchEvent(new Event('error'));
+      });
+    });
+    return () => {
+      alive = false;
+    };
+  }, [n.req]);
+  return null;
 }
 
 function LiveDot() {
@@ -246,17 +334,17 @@ export function RadioMiniBar({ bottom }) {
       </TouchableOpacity>
       {n.radio.artist ? (
         <TouchableOpacity onPress={artist} style={st.miniBtn} hitSlop={6} accessibilityLabel="Perfil do artista">
-          <Ionicons name="person-circle-outline" size={18} color="#fff" />
+          <Ionicons name="person-circle-outline" size={18} color="#1B1B1F" />
         </TouchableOpacity>
       ) : null}
-      <FavHeart kind="music" item={miniTrack} size={16} color="#fff" style={st.miniBtn} hitSlop={6} />
-      <PlaylistPlus track={miniTrack} size={18} color="#fff" style={st.miniBtn} hitSlop={6} />
+      <FavHeart kind="music" item={miniTrack} size={16} color="#1B1B1F" style={st.miniBtn} hitSlop={6} />
+      <PlaylistPlus track={miniTrack} size={18} color="#1B1B1F" style={st.miniBtn} hitSlop={6} />
       <TouchableOpacity onPress={radioEnded} style={st.miniBtn} hitSlop={6} accessibilityLabel="Próxima música">
-        <Ionicons name="play-skip-forward" size={16} color="#fff" />
+        <Ionicons name="play-skip-forward" size={16} color="#1B1B1F" />
       </TouchableOpacity>
       {/* Minimizar: o Realyz sai da frente e a capa fica numa janelinha; a música continua. */}
       <TouchableOpacity onPress={() => minimizeApp('radio')} style={st.miniBtn} hitSlop={6} accessibilityLabel="Minimizar: continuar ouvindo com a tela livre">
-        <Ionicons name="remove" size={18} color="#fff" />
+        <Ionicons name="remove" size={18} color="#1B1B1F" />
       </TouchableOpacity>
       {/* Fechar: encerra a música. */}
       <TouchableOpacity onPress={stopRadio} style={[st.miniBtn, st.miniClose]} hitSlop={8} accessibilityLabel="Fechar a música">
@@ -344,7 +432,7 @@ export function RadioPipView() {
           <Text style={[st.live, { fontSize: 10 }]}>{n.radio.track ? 'TOCANDO' : 'AO VIVO'}</Text>
         </View>
         <Text style={st.pipName} numberOfLines={2}>{n.radio.name}</Text>
-        {n.status === 'tocando' ? <Bars on /> : <Text style={st.miniStatus}>Conectando…</Text>}
+        {n.status === 'tocando' ? <Bars on /> : <Text style={[st.miniStatus, { color: 'rgba(255,255,255,0.7)' }]}>Conectando…</Text>}
       </View>
     </View>
   );
@@ -373,8 +461,9 @@ const st = StyleSheet.create({
   err: { color: '#E5484D', fontSize: 12, marginTop: 4 },
   play: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#B8860B', alignItems: 'center', justifyContent: 'center', marginLeft: 10 },
   bar: { width: 4, height: 22, borderRadius: 2, backgroundColor: '#B8860B', marginHorizontal: 1.5 },
-  mini: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1B1B1F', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 8, elevation: 6 },
-  miniName: { color: '#fff', fontWeight: '800', fontSize: 13 },
-  miniStatus: { color: 'rgba(255,255,255,0.7)', fontSize: 11 },
-  miniBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
+  // Barrinha clara (sem fundo preto), com borda dourada.
+  mini: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFDF7', borderWidth: 1, borderColor: '#EAD7A4', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 8, elevation: 6, shadowColor: '#8A6208', shadowOpacity: 0.15, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
+  miniName: { color: '#1B1B1F', fontWeight: '800', fontSize: 13 },
+  miniStatus: { color: '#7A7468', fontSize: 11 },
+  miniBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#F6EDD6', alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
 });

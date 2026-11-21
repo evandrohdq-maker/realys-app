@@ -9,7 +9,7 @@
 // e puxar para baixo no topo atualiza (traz o que é novo para cima).
 import React, { useMemo, useState } from 'react';
 import { KeyboardLift } from '../keyboard';
-import { View, StyleSheet, TouchableOpacity, FlatList, Modal, ScrollView, RefreshControl, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,7 +22,6 @@ import { galleryOf } from '../testimonialsData';
 import * as ImagePicker from 'expo-image-picker';
 import { getDevicePoint, addressOf } from '../geo';
 
-const PAGE = 6; // cartões por vez: o resto chega ao arrastar
 const NOTE_COLORS = ['#FFF3C4', '#DDF4FF', '#FFE1EC', '#E3FBE6', '#EDE4FF', '#FFFFFF'];
 const first = (n) => String(n || '').split(' ')[0];
 
@@ -62,18 +61,9 @@ export function MuralTab({ ownerId, ownerName, mine }) {
   const { state, dispatch } = useStore();
   const { theme, items } = useMuralItems(ownerId);
   const th = futureTheme(theme) || FUTURE_THEMES[1];
-  const [shown, setShown] = useState(PAGE);
-  const [refreshing, setRefreshing] = useState(false);
   const [writing, setWriting] = useState(false);
   const [picking, setPicking] = useState(null); // 'post' | 'foto' | 'tema'
   const [editing, setEditing] = useState(null); // cartão com o menu de montagem aberto
-  const list = items.slice(0, shown);
-
-  const refresh = () => {
-    setRefreshing(true);
-    setShown(PAGE); // volta ao topo com o que é mais novo
-    setTimeout(() => setRefreshing(false), 500);
-  };
   const add = (item) => dispatch({ type: 'MURAL_ADD', item: { id: 'm' + Date.now(), at: Date.now(), time: 'agora', ...item } });
 
   return (
@@ -94,33 +84,19 @@ export function MuralTab({ ownerId, ownerName, mine }) {
         </View>
       ) : null}
 
-      {/* O muralzinho: fundo do tema e rolagem própria */}
+      {/* O mural: fundo do tema e sem limite de altura. Rola junto com a página, como um feed. */}
       <View style={[st.wall, { backgroundColor: th.to }]}>
         <ThemeArt theme={th.key} />
-        <FlatList
-          data={list}
-          keyExtractor={(it) => it.id}
-          nestedScrollEnabled
-          removeClippedSubviews
-          initialNumToRender={PAGE}
-          maxToRenderPerBatch={PAGE}
-          windowSize={5}
-          showsVerticalScrollIndicator
-          contentContainerStyle={{ padding: 12, paddingBottom: 20 }}
-          onEndReachedThreshold={0.4}
-          onEndReached={() => shown < items.length && setShown((n) => n + PAGE)}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={th.accent} colors={[th.accent]} />}
-          ListHeaderComponent={
-            <Text style={[st.wallTitle, { color: th.text }]}>Mural de {mine ? 'você' : first(ownerName)}</Text>
-          }
-          ListEmptyComponent={
-            <Text style={{ color: th.muted, textAlign: 'center', marginTop: 30, lineHeight: 19 }}>
+        <View style={{ padding: 12, paddingBottom: 20 }}>
+          <Text style={[st.wallTitle, { color: th.text }]}>Mural de {mine ? 'você' : first(ownerName)}</Text>
+          {items.length ? (
+            items.map((item) => <MuralCard key={item.id} it={item} th={th} mine={mine} onEdit={() => setEditing(item)} />)
+          ) : (
+            <Text style={{ color: th.muted, textAlign: 'center', marginTop: 30, marginBottom: 30, lineHeight: 19 }}>
               {mine ? 'Seu mural está vazio. Deixe um recado, fixe um post que você curtiu ou uma foto.' : 'Nada no mural ainda.'}
             </Text>
-          }
-          ListFooterComponent={shown < items.length ? <Text style={{ color: th.muted, textAlign: 'center', fontSize: 12 }}>Arraste para ver mais</Text> : null}
-          renderItem={({ item }) => <MuralCard it={item} th={th} mine={mine} onEdit={() => setEditing(item)} />}
-        />
+          )}
+        </View>
       </View>
 
       {mine ? (
@@ -406,7 +382,7 @@ const st = StyleSheet.create({
   tools: { flexDirection: 'row', marginBottom: 10 },
   tool: { flex: 1, alignItems: 'center', paddingVertical: 6 },
   toolTxt: { color: colors.text, fontSize: 12, fontWeight: '700', marginTop: 3 },
-  wall: { height: 520, borderRadius: 20, overflow: 'hidden' },
+  wall: { minHeight: 220, borderRadius: 20, overflow: 'hidden' },
   peekWall: { borderRadius: 18, overflow: 'hidden' },
   peekMore: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
   wallTitle: { fontWeight: '900', fontSize: 16, marginBottom: 10, letterSpacing: 0.3 },

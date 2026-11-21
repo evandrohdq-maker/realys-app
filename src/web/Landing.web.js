@@ -17,7 +17,6 @@ const IDLE = [
 ].map(uri);
 const HALO = uri(require('../../assets/lotus/light_halo.webp'));
 const RAYS = uri(require('../../assets/lotus/light_rays.webp'));
-const MARCA_CLARA = uri(require('../../assets/wordmark-claro.png'));
 const MARCA_ESCURA = uri(require('../../assets/wordmark-escuro.png'));
 const APK = 'https://github.com/evandrohdq-maker/realys-app/releases/latest/download/realys-demo.apk';
 
@@ -75,19 +74,19 @@ const CSS = `
 .rz-btn:focus-visible{outline:3px solid var(--ouro-claro);outline-offset:3px}
 .rz-btn.ouro{background:var(--ouro);color:#000}
 .rz-btn.ouro:hover{background:var(--ouro-claro)}
-.rz-btn.linha{border-color:rgba(251,248,241,.5);color:var(--marfim);background:transparent}
-.rz-btn.linha:hover{border-color:var(--marfim)}
+.rz-btn.linha{border-color:rgba(20,18,14,.25);color:var(--tinta);background:rgba(255,255,255,.6)}
+.rz-btn.linha:hover{border-color:var(--ouro)}
 .rz-btn.pequeno{padding:11px 18px;font-size:14px}
-.rz-hero{background:#000;color:var(--marfim);position:relative;overflow:hidden;min-height:100vh;display:flex;align-items:center;padding:120px 0 80px}
+.rz-hero{background:radial-gradient(ellipse at 72% 40%,#FFFFFF 0%,#FFF8E4 32%,#F8EBC8 62%,var(--marfim) 100%);color:var(--tinta);position:relative;overflow:hidden;min-height:100vh;display:flex;align-items:center;padding:120px 0 80px}
 .rz-hero .rz-wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;width:100%}
 .rz-hero h1{font:800 clamp(44px,6.4vw,92px)/.98 Unbounded,sans-serif;letter-spacing:-.02em;margin:0 0 26px}
-.rz-hero h1 span{display:block;color:var(--ouro-claro)}
-.rz-hero p{font-size:20px;line-height:1.55;color:rgba(251,248,241,.78);max-width:31em;margin:0 0 34px}
+.rz-hero h1 span{display:block;color:#B8860B}
+.rz-hero p{font-size:20px;line-height:1.55;color:var(--cinza);max-width:31em;margin:0 0 34px}
 .rz-acoes{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
-.rz-apk{margin-left:8px;font-weight:700;color:var(--ouro-claro)!important;text-underline-offset:4px}
+.rz-apk{margin-left:8px;font-weight:700;color:#8A6208!important;text-underline-offset:4px}
 .rz-lotus{position:relative;aspect-ratio:1;width:100%;max-width:520px;justify-self:center}
 .rz-lotus img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
-.rz-rays{opacity:.55;animation:rz-gira 60s linear infinite}
+.rz-rays{opacity:.8;filter:sepia(.6) saturate(2.2) hue-rotate(-8deg);animation:rz-gira 60s linear infinite}
 .rz-halo{opacity:.9;transform:scale(1.15)}
 @keyframes rz-gira{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.rz-rays{animation:none}}
@@ -98,25 +97,25 @@ const CSS = `
 .rz-area{border-top:2px solid var(--tinta);padding:24px 0 34px}
 .rz-area h3{font:700 28px/1.1 Unbounded,sans-serif;margin:0 0 10px}
 .rz-area p{margin:0;font-size:17px;line-height:1.55;color:var(--cinza);max-width:30em}
-.rz-escuro{background:#000;color:var(--marfim)}
-.rz-escuro .intro{color:rgba(251,248,241,.7)}
+.rz-escuro{background:linear-gradient(180deg,#FFFDF7 0%,#F6EDD6 100%);color:var(--tinta)}
+.rz-escuro .intro{color:var(--cinza)}
 .rz-passos{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:28px;counter-reset:p}
 .rz-passos li{counter-increment:p;border-left:2px solid var(--ouro);padding:4px 0 4px 24px}
 .rz-passos li::before{content:counter(p);display:block;font:800 64px/1 Unbounded,sans-serif;color:var(--ouro);margin-bottom:18px}
 .rz-passos h3{font:700 22px/1.2 Unbounded,sans-serif;margin:0 0 10px}
-.rz-passos p{margin:0;font-size:17px;line-height:1.6;color:rgba(251,248,241,.75)}
+.rz-passos p{margin:0;font-size:17px;line-height:1.6;color:var(--cinza)}
 .rz-lotus-sec .rz-wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:64px;align-items:center}
 .rz-chat{background:#fff;border-radius:28px;padding:28px;box-shadow:0 30px 60px -30px rgba(20,18,14,.35);display:flex;flex-direction:column;gap:14px;max-width:520px}
 .rz-fala{padding:14px 18px;border-radius:20px;font-size:17px;line-height:1.5;max-width:85%}
-.rz-fala.eu{align-self:flex-end;background:var(--tinta);color:var(--marfim);border-bottom-right-radius:6px}
+.rz-fala.eu{align-self:flex-end;background:var(--ouro-claro);color:var(--tinta);border-bottom-right-radius:6px}
 .rz-fala.lotus{align-self:flex-start;background:#F6EDD6;border-bottom-left-radius:6px}
 .rz-fala b{display:block;font-size:13px;margin-bottom:4px;color:#8A6208}
-.rz-final{background:var(--ouro);padding:90px 0}
+.rz-final{background:linear-gradient(120deg,#F2C14E 0%,#F8DB8A 50%,#F2C14E 100%);padding:90px 0}
 .rz-final .rz-wrap{display:flex;justify-content:space-between;align-items:center;gap:32px;flex-wrap:wrap}
 .rz-final h2{font:800 clamp(30px,3.6vw,48px)/1.08 Unbounded,sans-serif;margin:0;max-width:15em;color:#000}
-.rz-final .rz-btn{background:#000;color:var(--marfim)}
-.rz-final .rz-btn:hover{background:var(--tinta)}
-.rz-rodape{background:#000;color:rgba(251,248,241,.65);padding:48px 0;font-size:15px}
+.rz-final .rz-btn{background:#fff;color:var(--tinta);box-shadow:0 10px 30px -12px rgba(138,98,8,.5)}
+.rz-final .rz-btn:hover{background:var(--marfim)}
+.rz-rodape{background:var(--marfim);border-top:1px solid #EADFC6;color:var(--cinza);padding:48px 0;font-size:15px}
 .rz-rodape .rz-wrap{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
 .rz-rodape img{height:28px}
 .rz-rodape button{background:none;border:0;color:inherit;font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:4px;padding:0;margin-left:20px}
@@ -141,7 +140,7 @@ export default function Landing({ onEnter }) {
       <style>{CSS}</style>
       <header className="rz-top">
         <div className="rz-wrap">
-          <img src={MARCA_CLARA} alt="Realyz" />
+          <img src={MARCA_ESCURA} alt="Realyz" />
           <nav>
             <button className="rz-btn linha pequeno" onClick={() => onEnter('entrar')}>Entrar</button>
             <button className="rz-btn ouro pequeno" onClick={() => onEnter('cadastro')}>Criar conta</button>
@@ -224,7 +223,7 @@ export default function Landing({ onEnter }) {
 
       <footer className="rz-rodape">
         <div className="rz-wrap">
-          <img src={MARCA_CLARA} alt="Realyz" />
+          <img src={MARCA_ESCURA} alt="Realyz" />
           <div>
             realyz.com.br
             <button onClick={() => onEnter('entrar')}>Entrar</button>

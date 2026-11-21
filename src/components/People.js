@@ -2,7 +2,8 @@ import { privacyOf } from '../studioData';
 import { KeyboardLift } from '../keyboard';
 import { LiveNowBadge } from './LiveBits';
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, Platform } from 'react-native';
+import { CONTENT_MAX } from '../webFrame';
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -499,8 +500,9 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
   const open = (m) => dispatch({ type: 'OPEN_PROFILE', id: m.id });
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
-      <View style={{ flex: 1, backgroundColor: colors.bg }}>
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1, backgroundColor: colors.bg }}>
+      {/* No computador a busca fica numa coluna no meio (a pessoa e o botão Aceitar/Adicionar perto um do outro). */}
+      <View style={[{ flex: 1, backgroundColor: colors.bg }, Platform.OS === 'web' && { width: '100%', maxWidth: CONTENT_MAX, alignSelf: 'center' }]}>
         <View style={[styles.searchHead, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity onPress={onClose} style={styles.iconBtn} accessibilityLabel="Fechar busca">
             <Ionicons name="arrow-back" size={20} color={colors.text} />

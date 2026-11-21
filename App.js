@@ -591,6 +591,8 @@ function Shell({ inviteTick }) {
       onProfile={tapProfile}
       profileOn={current.key === 'perfil'}
       onOrders={() => pick({ tab: 'pedidos' })}
+      onGo={pick}
+      commTop={commTop}
       userName={state.user.name}
     >
     {/* Toda a tela sobe junto com o teclado: dá para ver o que está digitando (src/keyboard.js). */}
@@ -598,7 +600,8 @@ function Shell({ inviteTick }) {
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         {/* Só a logo (o R dentro do @), sem fundo dourado e sem o nome escrito: a palavra Realyz fica só na entrada do app. */}
         <View style={{ flexDirection: 'row', alignItems: 'center' }} accessibilityLabel="Realyz">
-          <Image source={require('./assets/logo-mark.png')} style={styles.logoImg} />
+          {/* No computador a logo fica no menu lateral (DeskShell), não em cima dos stories. */}
+          {desk ? null : <Image source={require('./assets/logo-mark.png')} style={styles.logoImg} />}
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {/* Troca de perfil: um símbolo só, pequeno. Mostra o perfil em uso; tocar troca trabalho ⇄ usuário. */}

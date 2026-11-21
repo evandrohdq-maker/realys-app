@@ -83,8 +83,8 @@ export function FeaturedStation({ s, kind = 'radio', onPlay, on }) {
   const cat = stationCat(kind, s);
   const cover = logoSource(s.cover);
   return (
-    <TouchableOpacity activeOpacity={0.9} onPress={() => openStation(kind, s.id)} style={[st.hero, { backgroundColor: cover ? '#000' : C.text }]} accessibilityLabel={`Abrir o perfil de ${s.name}`}>
-      {cover ? <Image source={cover} style={[StyleSheet.absoluteFill, { opacity: 0.55 }]} resizeMode="cover" /> : null}
+    <TouchableOpacity activeOpacity={0.9} onPress={() => openStation(kind, s.id)} style={st.hero} accessibilityLabel={`Abrir o perfil de ${s.name}`}>
+      {cover ? <Image source={cover} style={[StyleSheet.absoluteFill, { opacity: 0.22 }]} resizeMode="cover" /> : null}
       <StationLogo s={s} kind={kind} size={78} radius={20} />
       <View style={{ flex: 1, marginLeft: 14 }}>
         <Text style={st.heroTag}>★ RÁDIO PRINCIPAL</Text>
@@ -106,9 +106,10 @@ const st = StyleSheet.create({
   hint: { color: C.muted, fontSize: 11, marginTop: 4 },
   editBadge: { position: 'absolute', right: -4, bottom: -4, width: 22, height: 22, borderRadius: 11, backgroundColor: C.gold, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fff' },
   coverBox: { flex: 1, height: 72, marginLeft: 12, borderRadius: 14, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.line, borderStyle: 'dashed' },
-  hero: { flexDirection: 'row', alignItems: 'center', borderRadius: 20, padding: 14, marginBottom: 14, overflow: 'hidden' },
-  heroTag: { color: '#E2B649', fontWeight: '800', fontSize: 11, letterSpacing: 0.6 },
-  heroName: { color: '#fff', fontWeight: '800', fontSize: 20, marginTop: 2 },
-  heroMeta: { color: 'rgba(255,255,255,0.75)', fontSize: 12.5, marginTop: 2 },
+  // Claro e dourado (sem fundo preto).
+  hero: { flexDirection: 'row', alignItems: 'center', borderRadius: 20, padding: 14, marginBottom: 14, overflow: 'hidden', backgroundColor: '#FFF8E4', borderWidth: 1, borderColor: '#EAD7A4' },
+  heroTag: { color: '#B8860B', fontWeight: '800', fontSize: 11, letterSpacing: 0.6 },
+  heroName: { color: C.text, fontWeight: '800', fontSize: 20, marginTop: 2 },
+  heroMeta: { color: C.muted, fontSize: 12.5, marginTop: 2 },
   heroPlay: { width: 54, height: 54, borderRadius: 27, backgroundColor: C.gold, alignItems: 'center', justifyContent: 'center', marginLeft: 10 },
 });

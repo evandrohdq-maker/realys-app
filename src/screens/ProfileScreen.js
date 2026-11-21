@@ -341,12 +341,12 @@ export default function ProfileScreen({ navigate, explore }) {
       </>
       )}
 
-      {/* Carteira: o saldo só aparece aqui no Perfil. */}
+      {/* Carteira discreta: só o nome, sem o saldo (quem estiver do lado não vê o seu dinheiro).
+          O valor aparece só depois de abrir a carteira. */}
       <TouchableOpacity onPress={() => setWalletOpen(true)} activeOpacity={0.88} style={styles.wallet} accessibilityLabel="Abrir minha carteira">
-        <Ionicons name="wallet-outline" size={16} color={colors.menu} />
-        <Text style={{ color: colors.muted, fontSize: 12.5, fontWeight: '600', marginLeft: 6 }}>Carteira</Text>
-        <Text style={{ color: colors.text, fontWeight: '800', fontSize: 14, marginLeft: 6 }}>{brl(state.wallet)}</Text>
-        <Ionicons name="chevron-forward" size={14} color={colors.muted} style={{ marginLeft: 4 }} />
+        <Ionicons name="wallet-outline" size={14} color={colors.muted} />
+        <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '600', marginLeft: 5 }}>Carteira</Text>
+        <Ionicons name="eye-off-outline" size={12} color={colors.muted} style={{ marginLeft: 5 }} />
       </TouchableOpacity>
 
       {/* O que os amigos veem: destaques, fotos, vídeos e depoimentos aceitos. */}
