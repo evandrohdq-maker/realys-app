@@ -5,6 +5,14 @@ spec=importlib.util.spec_from_file_location('wm', '/tmp/wm/wm2.py')
 src=open('/tmp/wm/wm2.py').read().split('\nmake(')[0]   # só as funções, sem gerar a marca
 ns={}; exec(src, ns)
 sym=ns['letterA']((0,0,0,255),None,False)
+# pequeno R branco no centro da estrela, dentro do A
+from PIL import ImageFont
+F=ns['font']; h=ImageDraw.Draw(Image.new('RGBA',(5,5))).textbbox((0,0),'E',font=F); h=h[3]-h[1]
+rf=ImageFont.truetype('/usr/share/fonts/truetype/google-fonts/Poppins-Bold.ttf', int(F.size*0.30))
+d=ImageDraw.Draw(sym)
+cx=sym.width/2; cy=ns['TOP']+0.585*h
+b=d.textbbox((0,0),'R',font=rf)
+d.text((cx-(b[0]+b[2])/2, cy-(b[1]+b[3])/2),'R',font=rf,fill=(255,255,255,255))
 bb=sym.getbbox(); sym=sym.crop(bb)
 def fit(img, box):
     r=min(box/img.width, box/img.height)
