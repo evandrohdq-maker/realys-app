@@ -17,7 +17,8 @@ if (Platform.OS === 'web') {
   };
   if (typeof document !== 'undefined') {
     const s = document.createElement('style');
-    s.textContent = 'html,body{background:#F1EBDD;} body{overscroll-behavior:none;}';
+    // Rola com a roda do mouse e arrastando, mas sem mostrar a barra de rolagem.
+    s.textContent = 'html,body{background:#F1EBDD;} body{overscroll-behavior:none;} *{scrollbar-width:none;-ms-overflow-style:none;} *::-webkit-scrollbar{display:none;width:0;height:0;}';
     document.head.appendChild(s);
   }
 }
