@@ -16,6 +16,7 @@ import { CommunityHub, CommunityExtras, TopTabs, COMMUNITY_TOP, COMMUNITY_TOP_KE
 import { useBack } from '../back';
 import { TestimonialComposer } from '../components/SocialProfile';
 import { useOpenPerson, resolvePerson } from '../openPerson';
+import { realWidth, DESK_MIN, RAIL_MIN } from '../webFrame';
 
 // Página Community (botão "Community" na barra de baixo): stories e comunidade.
 // Em cima, a faixa de bolinhas como no Instagram; embaixo, a Comunidade: feed único de posts e
@@ -58,7 +59,10 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
   });
   // Faixa de stories: cabem 3 por vez na tela (o seu primeiro, em destaque); arrastando para o lado aparecem os outros.
   const { width: telaW } = useWindowDimensions();
-  const itemW = Math.floor((telaW - 24) / 3);
+  // No computador cabem 5 por vez, e os atalhos (News, Eventos, Stream, Lives) vão para a coluna da direita.
+  const wideWeb = Platform.OS === 'web' && realWidth() >= DESK_MIN;
+  const railWeb = Platform.OS === 'web' && realWidth() >= RAIL_MIN;
+  const itemW = Math.floor((telaW - 24) / (wideWeb ? 5 : 3));
   const av = Math.min(Math.round(itemW * 0.66), 96);
   const avMeu = Math.min(Math.round(itemW * 0.74), 106);
   const fresh = stories.filter((g) => !seen[g.id]);
@@ -86,7 +90,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
     });
   };
 
-  const menuBar = <TopTabs items={COMMUNITY_TOP.filter((t) => t.key !== 'comunidade' && !t.hidden)} value={top} onChange={(k) => (k === top ? setKick((n) => n + 1) : setTop(k))} />;
+  const menuBar = railWeb ? null : <TopTabs items={COMMUNITY_TOP.filter((t) => t.key !== 'comunidade' && !t.hidden)} value={top} onChange={(k) => (k === top ? setKick((n) => n + 1) : setTop(k))} />;
 
   const cta = (g) => {
     setView(null);
@@ -151,7 +155,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
             );
           })}
         </ScrollView>
-        <View style={{ marginHorizontal: -16 }}>{menuBar}</View>
+        {menuBar ? <View style={{ marginHorizontal: -16 }}>{menuBar}</View> : null}
           </View>
         }
       />

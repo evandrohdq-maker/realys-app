@@ -7,7 +7,7 @@
 //  3. Telas estreitas (menos de 392 de largura, a maioria dos Android): a letra diminui na proporção da tela.
 //  4. Títulos e números grandes são contidos, para o app ficar limpo e caber em qualquer celular.
 import React from 'react';
-import { Text as RNText, TextInput as RNTextInput, StyleSheet, Dimensions } from 'react-native';
+import { Text as RNText, TextInput as RNTextInput, StyleSheet, Dimensions, Platform } from 'react-native';
 import { useScreenSharePause } from './screenShare';
 
 // Até quanto a letra do sistema pode aumentar o texto do app (1 = tamanho normal).
@@ -70,7 +70,9 @@ export const TextInput = React.forwardRef(function TextInput({ style, sensitive,
       onFocus={(e) => (setFocused(true), onFocus && onFocus(e))}
       onBlur={(e) => (setFocused(false), onBlur && onBlur(e))}
       ref={ref}
-      style={fit(style)}
+      // No site, sem a borda preta do navegador em volta da caixa ao digitar.
+      style={Platform.OS === 'web' ? [fit(style), NO_OUTLINE] : fit(style)}
     />
   );
 });
+const NO_OUTLINE = { outlineStyle: 'none', outlineWidth: 0 };

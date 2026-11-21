@@ -8,7 +8,7 @@
 //   em cima da câmera deixava a tela preta ou cortada no meio, metade amarela).
 // - Foto: toque no botão. Vídeo: troque para "Vídeo" e toque para gravar e para parar (até 30 s).
 import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Modal, TouchableOpacity, ScrollView, Image, Alert, Animated } from 'react-native';
+import { View, StyleSheet, Modal, TouchableOpacity, ScrollView, Image, Alert, Animated, Platform } from 'react-native';
 import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +16,7 @@ import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo
 import { colors } from '../theme';
 import { STORY_EFFECTS, effectStyle, STORY_VIDEO_MAX_S } from '../storyEffects';
 import StoryEffectOverlay from './StoryEffectOverlay';
+import { realWidth, DESK_MIN } from '../webFrame';
 
 // Amostra para as bolinhas de efeito (a câmera não dá miniatura ao vivo).
 const SAMPLE = 'https://picsum.photos/seed/realys-fx-amostra/200/200';
@@ -130,9 +131,12 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
   };
 
   const granted = camPerm && camPerm.granted;
+  // No computador (webcam): a câmera numa caixa em pé no meio da tela, como um player, não a tela inteira.
+  const deskBox = Platform.OS === 'web' && realWidth() >= DESK_MIN;
   return (
-    <Modal visible={visible} animationType="fade" onRequestClose={close} statusBarTranslucent>
-      <View style={{ flex: 1, backgroundColor: '#000' }}>
+    <Modal visible={visible} animationType="fade" transparent={deskBox} onRequestClose={close} statusBarTranslucent>
+      <View style={deskBox ? st.deskBackdrop : { flex: 1 }}>
+      <View style={[{ flex: 1, backgroundColor: '#000' }, deskBox && st.deskBox]}>
         {visible && granted ? (
           <View style={StyleSheet.absoluteFill}>
             <CameraView
@@ -223,11 +227,14 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
           ) : null}
         </View>
       </View>
+      </View>
     </Modal>
   );
 }
 
 const st = StyleSheet.create({
+  deskBackdrop: { flex: 1, backgroundColor: 'rgba(241,235,221,0.88)', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  deskBox: { flex: 0, width: 380, height: '88%', maxHeight: 680, borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: '#EAD7A4', shadowColor: '#8A6208', shadowOpacity: 0.18, shadowRadius: 30, shadowOffset: { width: 0, height: 12 } },
   top: { position: 'absolute', top: 0, left: 0, right: 0, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   round: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.35)' },
   recChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: 14, paddingHorizontal: 10, paddingVertical: 5 },

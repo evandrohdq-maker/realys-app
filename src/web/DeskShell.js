@@ -1,5 +1,7 @@
 // Site no computador (tela larga): o mesmo app, com cara de computador.
-// Menu lateral à esquerda, as telas do app no centro e, à direita, carteira, carrinho, pedidos e a Lotus.
+// Menu lateral à esquerda, as telas do app no centro e, à direita, os atalhos da Community (News, Eventos,
+// Stream, Lives), carrinho, pedidos e a Lotus. Tudo claro, sem fundo preto. A carteira fica discreta:
+// só um link, sem mostrar o saldo (quem estiver do lado não vê o seu dinheiro).
 // No celular e no APK não aparece (useDesktop() é falso).
 import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, Image, ScrollView, Platform, StyleSheet } from 'react-native';
@@ -24,7 +26,8 @@ export function useDesktop() {
 function Side({ tabs, currentKey, onTab, onLotus, onMenu, onProfile, profileOn, userName }) {
   return (
     <View style={st.side}>
-      <Image source={require('../../assets/wordmark-escuro.png')} style={st.mark} resizeMode="contain" accessibilityLabel="Realyz" />
+      {/* A logo do app (o A com a estrela e o R): a mesma que ficava em cima dos stories. */}
+      <Image source={require('../../assets/logo-mark.png')} style={st.mark} resizeMode="contain" accessibilityLabel="Realyz" />
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 12 }}>
         {tabs.map((t) => {
           const on = t.key === currentKey;
@@ -56,7 +59,16 @@ function Side({ tabs, currentKey, onTab, onLotus, onMenu, onProfile, profileOn, 
   );
 }
 
-function Rail({ onOrders, onLotus }) {
+// Atalhos da Community, que no computador saem de baixo dos stories e vêm para cá.
+const SHORTCUTS = [
+  { top: 'comunidade', label: 'Feed da Community', icon: 'people-circle-outline' },
+  { top: 'noticias', label: 'News', icon: 'newspaper-outline' },
+  { top: 'eventos', label: 'Eventos', icon: 'sparkles-outline' },
+  { top: 'stream', label: 'Stream', icon: 'tv-outline' },
+  { top: 'lives', label: 'Lives', icon: 'radio-outline', red: true },
+];
+
+function Rail({ onOrders, onLotus, onGo, commTop, currentKey }) {
   const { state, dispatch } = useStore();
   const [wallet, setWallet] = useState(false);
   const count = state.cart.reduce((n, c) => n + c.qty, 0);
@@ -64,12 +76,16 @@ function Rail({ onOrders, onLotus }) {
   return (
     <ScrollView style={st.rail} contentContainerStyle={{ padding: 20, paddingTop: 24 }}>
       <View style={st.box}>
-        <Text style={st.boxLabel}>Carteira</Text>
-        <Text style={st.money}>{brl((state.wallet || 0) + (state.giftCredits || 0))}</Text>
-        {state.giftCredits ? <Text style={st.small}>{brl(state.giftCredits)} em créditos de presente</Text> : null}
-        <TouchableOpacity onPress={() => setWallet(true)} style={st.linkBtn} accessibilityLabel="Abrir a carteira">
-          <Text style={st.linkText}>Depositar, sacar e ver o extrato</Text>
-        </TouchableOpacity>
+        {SHORTCUTS.map((t) => {
+          const on = currentKey === 'stories' && commTop === t.top;
+          const red = t.red ? '#E5484D' : null;
+          return (
+            <TouchableOpacity key={t.top} onPress={() => onGo && onGo({ tab: 'stories', top: t.top })} style={[st.short, on && st.itemOn]} accessibilityLabel={t.label} accessibilityState={{ selected: on }}>
+              <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={20} color={red || (on ? colors.primary : colors.text)} />
+              <Text numberOfLines={1} style={[st.shortText, red && { color: red }, on && { fontWeight: '800', color: red || colors.primary }]}>{t.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       <View style={st.box}>
@@ -92,7 +108,7 @@ function Rail({ onOrders, onLotus }) {
           last.map((o) => (
             <TouchableOpacity key={o.id} onPress={onOrders} style={st.order} accessibilityLabel={`Pedido em ${o.store}`}>
               <Text numberOfLines={1} style={st.orderName}>{o.store}</Text>
-              <Text style={st.small}>{o.status} · {brl(o.total)}</Text>
+              <Text style={st.small}>{o.status}</Text>
             </TouchableOpacity>
           ))
         ) : (
@@ -104,8 +120,18 @@ function Rail({ onOrders, onLotus }) {
       </View>
 
       <TouchableOpacity onPress={onLotus} style={[st.box, st.lotusBox]} accessibilityLabel="Falar com a Lotus">
-        <Text style={st.lotusBig}>Diga Lotus.</Text>
-        <Text style={[st.small, { color: 'rgba(251,248,241,0.75)' }]}>Peça um eletricista, uma pizza ou o perfil de alguém. Ela mostra as opções e só confirma quando você mandar.</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+          <Image source={require('../../assets/lotus/fab_1.webp')} style={{ width: 30, height: 30, marginRight: 8 }} />
+          <Text style={st.lotusBig}>Diga Lotus.</Text>
+        </View>
+        <Text style={st.small}>Peça um eletricista, uma pizza ou o perfil de alguém. Ela mostra as opções e só confirma quando você mandar.</Text>
+      </TouchableOpacity>
+
+      {/* Carteira discreta: só o link, sem o saldo. O valor aparece só depois de abrir. */}
+      <TouchableOpacity onPress={() => setWallet(true)} style={st.walletLink} accessibilityLabel="Abrir a carteira">
+        <Ionicons name="wallet-outline" size={16} color={colors.muted} />
+        <Text style={st.walletText}>Carteira</Text>
+        <Ionicons name="eye-off-outline" size={14} color={colors.muted} />
       </TouchableOpacity>
       <WalletScreen visible={wallet} onClose={() => setWallet(false)} />
     </ScrollView>
@@ -129,7 +155,7 @@ export default function DeskShell({ desk, rail, children, ...p }) {
       <View style={st.center}>
         <View style={st.column}>{children}</View>
       </View>
-      {rail ? <Rail onOrders={p.onOrders} onLotus={p.onLotus} /> : null}
+      {rail ? <Rail onOrders={p.onOrders} onLotus={p.onLotus} onGo={p.onGo} commTop={p.commTop} currentKey={p.currentKey} /> : null}
     </View>
   );
 }
@@ -137,21 +163,20 @@ export default function DeskShell({ desk, rail, children, ...p }) {
 const st = StyleSheet.create({
   page: { flex: 1, flexDirection: 'row', backgroundColor: '#F1EBDD' },
   side: { width: 248, backgroundColor: colors.bg, borderRightWidth: 1, borderRightColor: colors.border, paddingTop: 22, paddingHorizontal: 14, paddingBottom: 16 },
-  mark: { width: 150, height: 46, marginLeft: 8, marginBottom: 22 },
+  mark: { width: 52, height: 52, marginLeft: 10, marginBottom: 22 },
   item: { flexDirection: 'row', alignItems: 'center', paddingVertical: 11, paddingHorizontal: 12, borderRadius: 12, marginBottom: 2 },
   itemOn: { backgroundColor: '#F6EDD6' },
   itemText: { marginLeft: 14, fontSize: 16, color: colors.text, fontWeight: '600' },
   itemTextOn: { color: colors.primary, fontWeight: '800' },
-  lotus: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#000', borderRadius: 16, padding: 12, marginTop: 8 },
-  lotusTitle: { color: '#FBF8F1', fontWeight: '800', fontSize: 14 },
-  lotusSub: { color: 'rgba(251,248,241,0.65)', fontSize: 12, marginTop: 1 },
+  lotus: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF8E4', borderWidth: 1, borderColor: '#EAD7A4', borderRadius: 16, padding: 12, marginTop: 8 },
+  lotusTitle: { color: colors.text, fontWeight: '800', fontSize: 14 },
+  lotusSub: { color: colors.muted, fontSize: 12, marginTop: 1 },
   user: { color: colors.muted, fontSize: 12.5, marginTop: 12, marginLeft: 6 },
   center: { flex: 1, alignItems: 'center' },
   column: { flex: 1, width: '100%', maxWidth: CONTENT_MAX, backgroundColor: colors.bg, borderLeftWidth: 1, borderRightWidth: 1, borderColor: colors.border },
   rail: { width: 340, flexGrow: 0, borderLeftWidth: 1, borderLeftColor: colors.border },
   box: { backgroundColor: colors.bg, borderRadius: 18, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: colors.border },
   boxLabel: { color: colors.muted, fontSize: 13, fontWeight: '700', marginBottom: 6 },
-  money: { color: colors.text, fontSize: 30, fontWeight: '800' },
   big: { color: colors.text, fontSize: 17, fontWeight: '800', marginBottom: 10 },
   small: { color: colors.muted, fontSize: 13.5, lineHeight: 19 },
   linkBtn: { marginTop: 10 },
@@ -160,6 +185,10 @@ const st = StyleSheet.create({
   goldText: { color: colors.onPrimary, fontWeight: '800' },
   order: { paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border },
   orderName: { color: colors.text, fontWeight: '700', fontSize: 14.5 },
-  lotusBox: { backgroundColor: '#000', borderColor: '#000' },
-  lotusBig: { color: '#F2C14E', fontSize: 24, fontWeight: '800', marginBottom: 6 },
+  lotusBox: { backgroundColor: '#FFF8E4', borderColor: '#EAD7A4' },
+  lotusBig: { color: '#B8860B', fontSize: 22, fontWeight: '800' },
+  short: { flexDirection: 'row', alignItems: 'center', paddingVertical: 9, paddingHorizontal: 10, borderRadius: 12 },
+  shortText: { marginLeft: 12, fontSize: 15, color: colors.text, fontWeight: '600' },
+  walletLink: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', paddingVertical: 6, paddingHorizontal: 8 },
+  walletText: { color: colors.muted, fontSize: 13, fontWeight: '600', marginLeft: 6, marginRight: 6 },
 });

@@ -674,8 +674,10 @@ const foreignCount = (said, her) => {
     .filter((w) => w.length >= 3 && !mine.has(w)).length;
 };
 
+// Microfone: no Android, o reconhecimento do celular; no site, o do navegador (Chrome e Edge têm).
 const speechOk = () => {
   try {
+    if (Platform.OS === 'web') return typeof window !== 'undefined' && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
     return Platform.OS === 'android' && ExpoSpeechRecognitionModule.isRecognitionAvailable();
   } catch (e) {
     return false;
@@ -834,8 +836,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
         contextualStrings: ['Lotus', 'Lótus', ...HINTS],
         // Volume do microfone: é assim que ela percebe a voz da pessoa por cima da dela.
         volumeChangeEventOptions: { enabled: true, intervalMillis: 100 },
-        ...(voiceGateOn() ? recordingFor('barge') : {}),
-        ...onDeviceOptions(),
+        ...(Platform.OS !== 'web' && voiceGateOn() ? recordingFor('barge') : {}),
+        ...(Platform.OS !== 'web' ? onDeviceOptions() : {}),
         // Em Androids mais antigos o "continuous" não existe e o microfone desliga sozinho depois de
         // cada frase que ouve (inclusive a voz da própria Lotus). Aqui ele aguenta mais tempo ligado.
         androidIntentOptions: {
@@ -1231,6 +1233,10 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
 
   // Microfone pelo diálogo do Google: só se o reconhecimento dentro do app não existir no celular.
   const legacyListen = async () => {
+    if (Platform.OS === 'web') {
+      setHistory((h) => [{ at: Date.now(), q: '🎙️', reply: 'Este navegador não libera o microfone para a Lotus. Digite o seu pedido abaixo, ou use o Chrome ou o Edge para falar.' }, ...h]);
+      return;
+    }
     if (Platform.OS !== 'android') return;
     setPhase('listening');
     try {
@@ -1261,9 +1267,10 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
         maxAlternatives: 3,
         contextualStrings: HINTS,
         volumeChangeEventOptions: { enabled: true, intervalMillis: 90 },
-        ...(voiceGateOn() ? recordingFor('cmd') : {}),
+        // Gravação para conferir a voz e o modo sem internet são só do celular.
+        ...(Platform.OS !== 'web' && voiceGateOn() ? recordingFor('cmd') : {}),
         // Sem internet: ouve pelo próprio celular (se ele tiver a voz em português no aparelho).
-        ...onDeviceOptions(),
+        ...(Platform.OS !== 'web' ? onDeviceOptions() : {}),
       });
     } catch (e) {
       session.current.active = false;
