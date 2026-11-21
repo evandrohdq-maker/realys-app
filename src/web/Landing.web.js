@@ -18,7 +18,34 @@ const IDLE = [
 const HALO = uri(require('../../assets/lotus/light_halo.webp'));
 const RAYS = uri(require('../../assets/lotus/light_rays.webp'));
 const MARCA_ESCURA = uri(require('../../assets/wordmark-escuro.png'));
+const TOUR = uri(require('../../assets/landing/tour.mp4'));
+const TOUR_CAPA = uri(require('../../assets/landing/tour-capa.jpg'));
 const APK = 'https://github.com/evandrohdq-maker/realys-app/releases/latest/download/realys-demo.apk';
+
+// Vídeo de apresentação: começa parado com a capa; o visitante dá o play (com som e controles).
+function Tour() {
+  const v = useRef(null);
+  const [tocando, setTocando] = useState(false);
+  return (
+    <div className="rz-video">
+      <video ref={v} src={TOUR} poster={TOUR_CAPA} preload="none" playsInline controls={tocando} onEnded={() => setTocando(false)} />
+      {!tocando ? (
+        <button
+          className="rz-play"
+          aria-label="Assistir ao vídeo de apresentação do Realyz"
+          onClick={() => {
+            setTocando(true);
+            v.current && v.current.play().catch(() => {});
+          }}
+        >
+          <span>
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="#B8860B" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+          </span>
+        </button>
+      ) : null}
+    </div>
+  );
+}
 
 // A flor da Lotus abrindo: o único movimento da página. Depois fica respirando devagar.
 function Lotus() {
@@ -51,12 +78,18 @@ function Lotus() {
 }
 
 const AREAS = [
-  ['Shop', 'Lojas de verdade, lançamentos e promoções. Pagou, o dinheiro fica protegido até chegar.'],
-  ['Food', 'Delivery e reservas de restaurantes, bares e mercados da sua cidade.'],
-  ['Serviços', 'Eletricista, diarista, motorista, aulas e atendimento online, com avaliação de quem já contratou.'],
-  ['Negócios', 'Imóveis, veículos e máquinas para comprar ou alugar, direto com quem anuncia.'],
-  ['Community', 'Stories, depoimentos, mensagens e chamadas com pessoas confirmadas.'],
-  ['Stream', 'Rádios, TV online e lives, com presentes para quem cria.'],
+  ['Shop', 'Marketplace com pagamento em custódia: o valor fica retido e só é liberado ao lojista quando você confirma a entrega.'],
+  ['Food', 'Delivery e reservas com rastreio em tempo real. Cada pedido já aciona a entrega na própria plataforma.'],
+  ['Serviços', 'Profissionais por geolocalização, com reputação auditada, chamada em minutos e pagamento protegido.'],
+  ['Negócios', 'Imóveis, veículos e máquinas com anúncio verificado, tour em vídeo e atendimento ao vivo no Hub de Negócios.'],
+  ['Community', 'Rede social sem perfil falso: feed, stories, Reels, mensagens e chamadas de vídeo entre pessoas confirmadas.'],
+  ['Stream', 'Lives, rádios e TV online, com presentes que viram renda para quem cria conteúdo.'],
+];
+const NUMEROS = [
+  ['1:1', 'uma pessoa, uma conta: biometria facial bloqueia duplicatas'],
+  ['100%', 'dos pagamentos em custódia até a entrega'],
+  ['IA', 'assistente por voz que entende, compara e executa'],
+  ['24/7', 'avisos em tempo real e notificações push'],
 ];
 
 const CSS = `
@@ -119,6 +152,21 @@ const CSS = `
 .rz-rodape .rz-wrap{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
 .rz-rodape img{height:28px}
 .rz-rodape button{background:none;border:0;color:inherit;font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:4px;padding:0;margin-left:20px}
+.rz-video-sec{padding:100px 0;background:linear-gradient(180deg,var(--marfim) 0%,#FFF8E4 100%)}
+.rz-video{position:relative;border-radius:28px;overflow:hidden;box-shadow:0 40px 80px -40px rgba(20,18,14,.45);border:1px solid #EFE6CC;background:#FFF8E4;aspect-ratio:16/9;max-width:1000px;margin:0 auto}
+.rz-video video{width:100%;height:100%;display:block;object-fit:cover}
+.rz-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(251,248,241,.18);border:0;cursor:pointer;width:100%}
+.rz-play span{width:92px;height:92px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 20px 40px -18px rgba(138,98,8,.6);display:flex;align-items:center;justify-content:center;transition:transform .2s}
+.rz-play:hover span{transform:scale(1.07)}
+.rz-play svg{margin-left:6px}
+.rz-video-sec h2,.rz-video-sec .intro{text-align:center;margin-left:auto;margin-right:auto}
+.rz-chip{display:inline-flex;align-items:center;gap:8px;font:700 13px/1 Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8A6208;background:rgba(255,255,255,.7);border:1px solid #EAD7A4;border-radius:999px;padding:9px 14px;margin-bottom:22px}
+.rz-chip i{width:8px;height:8px;border-radius:50%;background:#2FB463;box-shadow:0 0 0 4px rgba(47,180,99,.18)}
+.rz-nums{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:64px}
+.rz-num{background:#fff;border:1px solid #EFE6CC;border-radius:22px;padding:24px}
+.rz-num b{display:block;font:800 40px/1 Unbounded,sans-serif;color:#B8860B;margin-bottom:10px}
+.rz-num span{font-size:15px;line-height:1.5;color:var(--cinza)}
+@media (max-width:860px){.rz-nums{grid-template-columns:1fr 1fr}.rz-video-sec{padding:64px 0}.rz-play span{width:72px;height:72px}}
 @media (max-width:860px){
   .rz-hero{padding-top:100px;min-height:auto}
   .rz-hero .rz-wrap,.rz-lotus-sec .rz-wrap{grid-template-columns:1fr}
@@ -151,9 +199,11 @@ export default function Landing({ onEnter }) {
       <section className="rz-hero">
         <div className="rz-wrap">
           <div>
+            <div className="rz-chip"><i />Identidade verificada por biometria facial</div>
             <h1>Pessoas reais.<span>Negócios reais.</span></h1>
-            <p>Compre, contrate, venda e converse num app só. Todo mundo aqui confirmou o rosto no cadastro, e o seu dinheiro só chega a quem vendeu depois que você recebe.</p>
+            <p>O super app que une rede social, marketplace, delivery, serviços e pagamentos com identidade verificada. Cada conta é uma pessoa real, cada pagamento fica em custódia até a entrega, e a IA Lotus resolve tudo por voz.</p>
             <div className="rz-acoes">
+              <button className="rz-btn linha" onClick={() => document.getElementById('rz-tour') && document.getElementById('rz-tour').scrollIntoView({ behavior: 'smooth' })}>▶ Ver em 40 segundos</button>
               <button className="rz-btn ouro" onClick={() => onEnter('cadastro')}>Criar minha conta</button>
               <button className="rz-btn linha" onClick={() => onEnter('entrar')}>Entrar</button>
               <a className="rz-apk" href={APK}>Baixar o app para Android</a>
@@ -163,10 +213,23 @@ export default function Landing({ onEnter }) {
         </div>
       </section>
 
+      <section className="rz-video-sec" id="rz-tour">
+        <div className="rz-wrap">
+          <h2>Veja o Realyz em 40 segundos.</h2>
+          <p className="intro">Um tour pelas telas reais do app: Community, Shop, Food, Serviços, Negócios e a Lotus.</p>
+          <Tour />
+          <div className="rz-nums">
+            {NUMEROS.map(([n, t]) => (
+              <div className="rz-num" key={n}><b>{n}</b><span>{t}</span></div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="rz-sec">
         <div className="rz-wrap">
-          <h2>O seu dia inteiro, sem trocar de app.</h2>
-          <p className="intro">Do almoço ao eletricista, da roupa nova ao apartamento para alugar. Cada área com lojas e profissionais confirmados.</p>
+          <h2>Um ecossistema. Zero troca de app.</h2>
+          <p className="intro">Cada módulo conversa com o outro: um pedido no Food já gera a entrega, uma compra no Shop já aciona o frete, e tudo passa pela mesma carteira digital.</p>
           <div className="rz-areas">
             {AREAS.map(([t, d]) => (
               <div className="rz-area" key={t}>
@@ -180,20 +243,20 @@ export default function Landing({ onEnter }) {
 
       <section className="rz-sec rz-escuro">
         <div className="rz-wrap">
-          <h2>Aqui não entra perfil falso.</h2>
-          <p className="intro">A segurança vem antes de tudo. É assim que cada compra e cada contratação fica protegida.</p>
+          <h2>Confiança por design.</h2>
+          <p className="intro">Segurança não é um recurso extra: é a base da plataforma. Três camadas protegem cada interação.</p>
           <ol className="rz-passos">
             <li>
-              <h3>Cadastro com documento</h3>
-              <p>CPF para pessoas e CNPJ para empresas. Só maiores de 18 anos.</p>
+              <h3>KYC com documento</h3>
+              <p>CPF para pessoas e CNPJ para empresas, validados no cadastro. Só maiores de 18 anos.</p>
             </li>
             <li>
-              <h3>Rosto confirmado</h3>
-              <p>A biometria confere que você é você. Quem tenta criar outra conta é barrado.</p>
+              <h3>Biometria facial</h3>
+              <p>Prova de vida e reconhecimento facial: uma pessoa, uma conta. Dados biométricos criptografados.</p>
             </li>
             <li>
-              <h3>Pagamento protegido</h3>
-              <p>O valor fica retido pelo Realyz e só é liberado quando você confirma a entrega. Deu problema, o dinheiro volta.</p>
+              <h3>Pagamento em custódia</h3>
+              <p>O valor fica retido e só é liberado quando você confirma a entrega. Deu problema, o estorno é automático.</p>
             </li>
           </ol>
         </div>
@@ -203,20 +266,20 @@ export default function Landing({ onEnter }) {
         <div className="rz-wrap">
           <div>
             <h2>Diga Lotus.</h2>
-            <p className="intro">A assistente do Realyz entende o que você precisa, mostra as opções e só confirma quando você mandar.</p>
+            <p className="intro">A assistente de voz com inteligência artificial do Realyz entende linguagem natural, compara as melhores opções perto de você e só executa quando você confirmar.</p>
           </div>
           <div className="rz-chat" aria-label="Exemplo de conversa com a Lotus">
             <div className="rz-fala eu">Lotus, preciso de um eletricista ainda hoje.</div>
             <div className="rz-fala lotus"><b>Lotus</b>Achei três perto de você. O primeiro chega em uns 35 minutos e cobra R$ 150 pela visita. Quer ver os outros ou agendo esse?</div>
             <div className="rz-fala eu">Pode agendar.</div>
-            <div className="rz-fala lotus"><b>Lotus</b>Quer que eu confirme a visita para hoje?</div>
+            <div className="rz-fala lotus"><b>Lotus</b>Pronto! Visita confirmada para hoje. O pagamento fica em custódia até o serviço terminar.</div>
           </div>
         </div>
       </section>
 
       <section className="rz-final">
         <div className="rz-wrap">
-          <h2>Começando por Passo Fundo, para o Brasil inteiro.</h2>
+          <h2>Nasce em Passo Fundo. Feito para escalar no Brasil inteiro.</h2>
           <button className="rz-btn" onClick={() => onEnter('cadastro')}>Criar minha conta</button>
         </div>
       </section>
