@@ -64,6 +64,18 @@ await step('entrar', async () => {
   await shot('08-depois-de-entrar');
 });
 let n = 9;
+// Janelas no computador: abrem só na área do meio, com o menu lateral à vista (carteira, Explorar).
+for (const [nome, rotulo] of [['carteira', 'Abrir a carteira'], ['explorar', 'Explorar o Realyz: todas as áreas']]) {
+  try {
+    await page.getByLabel(rotulo).first().click({ timeout: 5000 });
+    await page.waitForTimeout(1200);
+    await shot(`janela-${nome}`);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(600);
+  } catch (e) {
+    logs.push(`[janela ${nome}] ` + e.message);
+  }
+}
 for (const aba of ['Shop', 'Food', 'Serviços', 'Negócios', 'Pedidos']) {
   await step('aba ' + aba, async () => {
     await page.getByText(aba, { exact: true }).first().click({ timeout: 5000 });

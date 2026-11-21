@@ -3,7 +3,8 @@
 // à Lotus ("abre meu carrinho"). dispatch({ type: 'OPEN_CART' }).
 import { optionsLabel } from '../productOptions';
 import React from 'react';
-import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
+import { realWidth, DESK_MIN } from '../webFrame';
 import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -61,7 +62,7 @@ export default function CartSheet({ onOrders }) {
 
   return (
     <Modal visible transparent animationType="slide" onRequestClose={close} statusBarTranslucent>
-      <View style={styles.backdrop}>
+      <View style={[styles.backdrop, Platform.OS === 'web' && realWidth() >= DESK_MIN && { backgroundColor: 'rgba(241,235,221,0.6)' }]}>
         <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={close} accessibilityLabel="Fechar carrinho" />
         <View style={[styles.sheet, { paddingBottom: 14 + insets.bottom }]}>
           <View style={styles.grip} />

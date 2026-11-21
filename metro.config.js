@@ -18,8 +18,13 @@ const original = config.resolver.resolveRequest;
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (platform === 'web' && WEB[moduleName]) return { type: 'sourceFile', filePath: WEB[moduleName] };
   // Telas do app no site: o Modal fica numa coluna no meio no computador (web-shims/react-native.js).
-  if (platform === 'web' && moduleName === 'react-native' && !/node_modules|web-shims/.test(context.originModulePath || '')) {
-    return { type: 'sourceFile', filePath: shim('react-native.js') };
+  // O Expo troca 'react-native' por 'react-native-web' (e às vezes pelo caminho direto do Modal) antes
+  // de chegar aqui, então os três nomes levam ao substituto. Só para o código do app (não para as
+  // bibliotecas nem para o próprio substituto).
+  const fromApp = !/node_modules|web-shims/.test(context.originModulePath || '');
+  if (platform === 'web' && fromApp) {
+    if (moduleName === 'react-native' || moduleName === 'react-native-web') return { type: 'sourceFile', filePath: shim('react-native.js') };
+    if (/^react-native-web\/dist\/(cjs\/)?exports\/Modal(\/index(\.js)?)?$/.test(moduleName)) return { type: 'sourceFile', filePath: shim('modal.js') };
   }
   return original ? original(context, moduleName, platform) : context.resolveRequest(context, moduleName, platform);
 };
