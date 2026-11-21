@@ -55,11 +55,12 @@ function demoUser(value, info) {
 
 const KIND_ICON = { empresa: 'business-outline', fornecedor: 'cube-outline', cliente: 'person-outline' };
 
-export default function LoginScreen() {
+// initialMode e onBack: usados pelo site (a página de abertura abre direto em Entrar ou em Cadastre-se).
+export default function LoginScreen({ initialMode, onBack } = {}) {
   useScreenSharePause(true, 'login');
   const [pendente, setPendente] = useState(null); // conta de aparelho novo: aguarda o reconhecimento facial
   const { dispatch } = useStore();
-  const [mode, setMode] = useState('entrar'); // entrar | cadastro
+  const [mode, setMode] = useState(initialMode || 'entrar'); // entrar | cadastro
   const [help, setHelp] = useState(false); // suporte por mensagem, sem precisar entrar
   const [saved, setSaved] = useState([]);
   const [showForm, setShowForm] = useState(false); // com contas salvas, o formulário fica atrás de "Entrar com outra conta"
@@ -219,6 +220,11 @@ export default function LoginScreen() {
   return (
     <KeyboardLift style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled">
+        {onBack ? (
+          <TouchableOpacity onPress={onBack} style={{ alignSelf: 'flex-start', paddingVertical: 8, marginBottom: 8 }} accessibilityLabel="Voltar para a página inicial">
+            <Text style={{ color: colors.muted, fontWeight: '700' }}>‹ Voltar</Text>
+          </TouchableOpacity>
+        ) : null}
         <View style={styles.brandBlock}>
           {/* Marca Realyz: o A unido à estrela dourada no fundo. */}
           <Image source={require('../../assets/wordmark-escuro.png')} style={styles.wordmark} resizeMode="contain" accessibilityLabel="Realyz" />

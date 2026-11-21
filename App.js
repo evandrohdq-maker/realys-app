@@ -54,7 +54,8 @@ import TermoReaceite from './src/components/TermoReaceite';
 import AccountBlocked from './src/components/AccountBlocked';
 import LotusSOS from './src/components/LotusSOS';
 import SecurityEvents from './src/components/SecurityEvents';
-import { WEB_MAX } from './src/webFrame';
+import DeskShell, { useDesktop } from './src/web/DeskShell';
+import Landing from './src/web/Landing';
 import ServerSync from './src/components/ServerSync';
 import { FavLiveAlerts } from './src/components/FavKit';
 import { useFavs } from './src/favorites';
@@ -311,6 +312,8 @@ function Shell({ inviteTick }) {
   const isAdmin = state.user.roles.includes('admin');
   const pendingTab = useRef(null);
   const insets = useSafeAreaInsets();
+  // Site no computador: menu lateral e coluna da direita (src/web/DeskShell.js).
+  const { desk, rail } = useDesktop();
 
   useEffect(() => {
     setTabRaw(pendingTab.current || TABS[state.activeRole][0].key);
@@ -463,20 +466,21 @@ function Shell({ inviteTick }) {
   const EMPRESA_TOP = ['negocios', 'rh', 'pagina'];
   const topMenu = splitMenu ? shownTabs.filter((t) => EMPRESA_TOP.includes(t.key)) : [];
   const bottomMenu = splitMenu ? shownTabs.filter((t) => !EMPRESA_TOP.includes(t.key)) : shownTabs;
+  const pressTab = (t) => {
+    // Prestador/fornecedor tocando em Community: entra no modo usuário, com as abas de baixo do app
+    // (Shop, Negócios, Food, Serviços, Pedidos). O botãozinho de troca do cabeçalho traz de volta.
+    if (t.key === 'stories' && canSwap && state.activeRole !== 'cliente') {
+      setExplore({ tab: 'stories', at: Date.now() });
+      return switchRole('cliente', 'stories');
+    }
+    // Community no rodapé sempre volta para o feed (sai de Eventos, Lives etc.).
+    if (t.key === 'stories') setExplore({ tab: 'stories', at: Date.now() });
+    setTab(t.key);
+  };
   const renderTab = (t, iconOnly) => {
     const on = t.key === current.key;
     return (
-      <TouchableOpacity key={t.key} style={styles.tab} accessibilityLabel={t.label} onPress={() => {
-        // Prestador/fornecedor tocando em Community: entra no modo usuário, com as abas de baixo do app
-        // (Shop, Negócios, Food, Serviços, Pedidos). O botãozinho de troca do cabeçalho traz de volta.
-        if (t.key === 'stories' && canSwap && state.activeRole !== 'cliente') {
-          setExplore({ tab: 'stories', at: Date.now() });
-          return switchRole('cliente', 'stories');
-        }
-        // Community no rodapé sempre volta para o feed (sai de Eventos, Lives etc.).
-        if (t.key === 'stories') setExplore({ tab: 'stories', at: Date.now() });
-        setTab(t.key);
-      }}>
+      <TouchableOpacity key={t.key} style={styles.tab} accessibilityLabel={t.label} onPress={() => pressTab(t)}>
         {/* Aba ativa: sem fundo, só o ícone e o nome em dourado */}
         <View style={styles.tabIcon}>
           {/* Menu de cima da empresa: no modelo das abas do topo da Community (News, Stream, Lives),
@@ -568,6 +572,19 @@ function Shell({ inviteTick }) {
 
   return (
     <BackProvider value={backStack}>
+    <DeskShell
+      desk={desk}
+      rail={rail}
+      tabs={shownTabs}
+      currentKey={current.key}
+      onTab={pressTab}
+      onLotus={() => setVoice(true)}
+      onMenu={openMenuAnywhere}
+      onProfile={tapProfile}
+      profileOn={current.key === 'perfil'}
+      onOrders={() => pick({ tab: 'pedidos' })}
+      userName={state.user.name}
+    >
     {/* Toda a tela sobe junto com o teclado: dá para ver o que está digitando (src/keyboard.js). */}
     <KeyboardLift style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
@@ -645,7 +662,7 @@ function Shell({ inviteTick }) {
       {/* Página inicial com arrastar para os lados (qualquer perfil):
           puxar para a direita → Reels, puxar para a esquerda → Perfil. De lá, o gesto contrário volta. */}
       {/* Empresa: primeiro menu, no alto da tela */}
-      {topMenu.length ? <View style={styles.topMenu}>{topMenu.map((t) => renderTab(t, true))}</View> : null}
+      {topMenu.length && !desk ? <View style={styles.topMenu}>{topMenu.map((t) => renderTab(t, true))}</View> : null}
       <SwipePages onLeft={swipe.left} onRight={swipe.right}>
         <Comp goTo={setTab} openVoice={() => setVoice(true)} explore={explore} openArea={openArea} navigate={pick} onTop={setCommTop} />
       </SwipePages>
@@ -696,7 +713,8 @@ function Shell({ inviteTick }) {
         </View>
       ) : null}
 
-      <View style={[styles.tabbar, { paddingBottom: 10 + insets.bottom }]}>{bottomMenu.map((t) => renderTab(t))}</View>
+      {/* No computador o menu fica na lateral (DeskShell). */}
+      {desk ? null : <View style={[styles.tabbar, { paddingBottom: 10 + insets.bottom }]}>{bottomMenu.map((t) => renderTab(t))}</View>}
 
       <VoiceAssistant
         visible={voice}
@@ -856,6 +874,7 @@ function Shell({ inviteTick }) {
       />
       {isAdmin ? <NoteModal visible={noting} where={where} onClose={() => setNoting(false)} /> : null}
     </KeyboardLift>
+    </DeskShell>
     </BackProvider>
   );
 }
@@ -883,6 +902,7 @@ function Root() {
   }, []);
   setTextBoost(!!state.bigText);
   const tk = state.bigText ? ':big' : '';
+  const [entrada, setEntrada] = useState(null); // site: 'entrar' | 'cadastro' depois da página de abertura
   return (
     <>
       <StatusBar style="dark" />
@@ -893,8 +913,11 @@ function Root() {
         </View>
       ) : state.user ? (
         <Shell key={state.user.name + tk} inviteTick={inviteTick} />
+      ) : Platform.OS === 'web' && !entrada ? (
+        // Site: quem chega sem conta vê a página de abertura; os botões levam para Entrar ou Cadastre-se.
+        <Landing onEnter={setEntrada} />
       ) : (
-        <LoginScreen key={'login' + tk} />
+        <LoginScreen key={'login' + tk + (entrada || '')} initialMode={entrada || undefined} onBack={Platform.OS === 'web' ? () => setEntrada(null) : undefined} />
       )}
       <UpdateChecker />
     </>
@@ -911,13 +934,7 @@ export default function App() {
       <SoftAlertHost />
     </SafeAreaProvider>
   );
-  // Site no computador: o app numa coluna do tamanho de um celular, no centro da tela.
-  if (Platform.OS !== 'web') return app;
-  return (
-    <View style={{ flex: 1, backgroundColor: '#EFE8D8', alignItems: 'center' }}>
-      <View style={{ flex: 1, width: '100%', maxWidth: WEB_MAX, backgroundColor: '#FBF8F1', overflow: 'hidden', boxShadow: '0 0 40px rgba(0,0,0,0.12)' }}>{app}</View>
-    </View>
-  );
+  return app;
 }
 
 const styles = StyleSheet.create({

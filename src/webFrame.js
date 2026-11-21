@@ -1,19 +1,23 @@
-// Site no computador: o Realyz é um app de celular, então no navegador largo ele fica numa coluna
-// central do tamanho de um celular (480 px), e as telas calculam a largura por essa coluna.
-// No APK e no celular (navegador estreito) nada muda.
+// Site no navegador. No computador (tela larga) o app ganha menu lateral e coluna da direita
+// (src/web/DeskShell.js); as telas do app ficam numa coluna central e calculam a largura por ela.
+// No celular (navegador estreito) e no APK nada muda.
 import { Platform, Dimensions } from 'react-native';
 
-export const WEB_MAX = 480;
+export const DESK_MIN = 1000; // a partir daqui: menu lateral
+export const RAIL_MIN = 1320; // a partir daqui: também a coluna da direita
+export const CONTENT_MAX = 760; // largura máxima das telas do app no computador
+
+export const realWidth = () => (Platform.OS === 'web' && typeof window !== 'undefined' ? window.innerWidth : Dimensions.get('window').width);
 
 if (Platform.OS === 'web') {
   const get = Dimensions.get.bind(Dimensions);
   Dimensions.get = (dim) => {
     const d = get(dim);
-    return d && d.width > WEB_MAX ? { ...d, width: WEB_MAX } : d;
+    return d && d.width > CONTENT_MAX ? { ...d, width: CONTENT_MAX } : d;
   };
   if (typeof document !== 'undefined') {
     const s = document.createElement('style');
-    s.textContent = 'html,body{background:#EFE8D8;} body{overscroll-behavior:none;}';
+    s.textContent = 'html,body{background:#F1EBDD;} body{overscroll-behavior:none;}';
     document.head.appendChild(s);
   }
 }
