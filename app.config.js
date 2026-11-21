@@ -8,5 +8,8 @@ module.exports = ({ config }) => {
       ...config.android,
       versionCode: build ? 10 + build : config.android.versionCode,
     },
+    // Site do Re@lys (mesmo app, no navegador). WEB_BASE = pasta onde o site fica publicado.
+    web: { ...(config.web || {}), bundler: 'metro', output: 'single', name: 'Re@lys', shortName: 'Re@lys', themeColor: '#B07A0C', backgroundColor: '#FBF8F1', favicon: './assets/icon.png' },
+    experiments: { ...(config.experiments || {}), baseUrl: process.env.WEB_BASE || '' },
   };
 };

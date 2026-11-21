@@ -1,0 +1,73 @@
+name: Publicar o site do Re@lys
+
+# O mesmo app do APK, no navegador. Roda a cada envio para a main (mudanças do app) ou pela aba "Actions".
+# Publica no GitHub Pages: https://evandrohdq-maker.github.io/realys-app/
+# Domínio próprio depois (ex.: realyz.com.br): mude WEB_BASE para "" e crie o arquivo CNAME (ver LEIA-ME do site).
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'server/**'
+      - 'PENDENCIAS.md'
+      - 'tools/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: site
+  cancel-in-progress: true
+
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      WEB_BASE: /realys-app
+      BUILD_NUMBER: ${{ github.run_number }}
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar dependências (com as do site)
+        run: |
+          npm install --legacy-peer-deps
+          if npx expo install --fix -- --legacy-peer-deps > /tmp/fix.log 2>&1; then cat /tmp/fix.log; else cat /tmp/fix.log; grep -q "Cannot automatically write to dynamic config" /tmp/fix.log; fi
+          npx expo install react-dom react-native-web @expo/metro-runtime -- --legacy-peer-deps || npm install --legacy-peer-deps react-dom react-native-web @expo/metro-runtime
+
+      - name: Gravar o número da versão
+        run: echo "{ \"build\": $BUILD_NUMBER }" > src/build.json
+
+      - name: Gerar o site
+        run: npx expo export --platform web --output-dir dist
+        env:
+          CI: 1
+
+      - name: Preparar para o GitHub Pages
+        run: |
+          cp dist/index.html dist/404.html   # qualquer endereço abre o app
+          touch dist/.nojekyll
+          ls -la dist
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  # Publicar: precisa do GitHub Pages ligado uma vez (Settings › Pages › Source: GitHub Actions).
+  publicar:
+    needs: site
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4
