@@ -24,6 +24,7 @@ import { isTransport, isWaiting, WaitCountdown, NO_SHOW_MIN } from '../../rideRu
 import { surgeText } from '../../pricing';
 import { SERVICE_TABS, SERVICE_TAB_KEYS, TAB_TYPES, isOnlineType, tabOfType, OnlineTab, CoursesTab, LiveClasses } from './ServiceTabs';
 import { teamOf } from '../../teams';
+import { chamarCorrida } from '../../serverServices';
 
 // Cartão do chamado (usado também pelo assistente de voz).
 // Demonstração (um celular só faz os dois lados): simula o motorista chegando no local.
@@ -264,6 +265,15 @@ export default function ServicesScreen({ explore, navigate }) {
       c.to = other.to.trim() || '-';
     }
     if (activeNeeds.length) c.needs = activeNeeds;
+    // Motorista ou motoboy do servidor: o chamado vai para o celular dele de verdade.
+    if (p.serverId) {
+      chamarCorrida(state, p, { address: c.from || address, when: undefined })
+        .then((call) => call && dispatch({ type: 'REQUEST_RIDE', ride: { ...c, serverId: call.id } }))
+        .catch((e) => Alert.alert('Chamado não enviado', e.message));
+      speakSoft(callReply(c));
+      setProfile(null);
+      return;
+    }
     dispatch({ type: 'REQUEST_RIDE', ride: c });
     speakSoft(callReply(c));
     setProfile(null);

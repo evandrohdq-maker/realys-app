@@ -219,7 +219,7 @@ test('prestadores: GPS, mais próximos, chamado, pagamento e avaliação', async
   await ok('PATCH', `/calls/${call.id}`, { who: 'beto', body: { status: 'Concluído' } });
   const before = (await ok('GET', '/wallet', { who: 'beto' })).balance;
   await ok('POST', `/calls/${call.id}/pay`, { who: 'ana', body: { amount: 18 } });
-  assert.equal((await ok('GET', '/wallet', { who: 'beto' })).balance, before + 18);
+  assert.equal((await ok('GET', '/wallet', { who: 'beto' })).balance, +(before + 14.76).toFixed(2)); // corrida: 18% do Realyz
   await ok('POST', '/ratings', { who: 'ana', body: { targetKind: 'call', targetId: call.id, stars: 4 } });
   assert.equal((await ok('GET', `/providers/${S.beto.id}`)).ratingCount, 1);
   assert.equal((await api('POST', '/ratings', { who: 'ana', body: { targetKind: 'call', targetId: call.id, stars: 5 } })).status, 409); // só uma vez

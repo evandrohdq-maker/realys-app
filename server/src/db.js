@@ -563,6 +563,16 @@ const MIGRATIONS = [
   `
   ALTER TABLE orders ADD COLUMN protection INTEGER NOT NULL DEFAULT 0;
   `,
+  // 18: taxa de visita dos serviços: o prestador define, o cliente paga ao pedir e o valor fica retido
+  // até o cliente confirmar que a visita aconteceu (aí o Realyz fica com a parte dele e o resto vai ao prestador).
+  `
+  ALTER TABLE providers ADD COLUMN visit_fee INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE service_calls ADD COLUMN visit_fee INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE service_calls ADD COLUMN visit_from_gift INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE service_calls ADD COLUMN visit_state TEXT;
+  ALTER TABLE service_calls ADD COLUMN problem TEXT DEFAULT '';
+  ALTER TABLE service_calls ADD COLUMN ride_fee INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export function openDb(file) {

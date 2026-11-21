@@ -26,6 +26,7 @@ const ORIGENS = {
   taxa_live: 'Serviço de presente em transmissão ao vivo',
   taxa_protecao: 'Taxa de proteção Realyz (garantia do pedido)',
   taxa_visita: 'Intermediação de serviço (taxa de visita)',
+  comissao_corrida: 'Intermediação de corrida e entrega',
   plano: 'Plano de divulgação para empresas',
   anuncio: 'Anúncio e destaque na plataforma',
   outro: 'Serviço de intermediação digital',

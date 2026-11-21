@@ -57,6 +57,9 @@ export function loadConfig(overrides = {}) {
     liveConvertMin: num(env.LIVE_CONVERT_MIN, 10),
     orderFeePct: num(env.ORDER_FEE_PCT, 0), // comissão do Realyz sobre vendas no Shop (0 na fase de testes; tabela: 10%)
     foodFeePct: num(env.FOOD_FEE_PCT, env.ORDER_FEE_PCT === undefined ? 0 : num(env.ORDER_FEE_PCT, 0)), // no Food (tabela: 10%)
+    // Serviços: o Realyz fica com 15% da taxa de visita e 18% do valor das corridas e entregas.
+    visitFeePct: num(env.VISIT_FEE_PCT, 15),
+    rideFeePct: num(env.RIDE_FEE_PCT, 18),
     // Taxa de proteção Realyz: valor fixo por compra (carrinho), pago pelo cliente, a qualquer hora (sem taxa noturna).
     protectionFee: num(env.PROTECTION_FEE, 0.99),
     withdrawMin: num(env.WITHDRAW_MIN, 10),

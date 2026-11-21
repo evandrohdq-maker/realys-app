@@ -12,6 +12,7 @@ import { useStore, serviceType } from '../store';
 import { colors, brl, soft } from '../theme';
 import { Photo, Input, Chip, Row } from './ui';
 import { visitFee, visitDiscount, splitFee, REALYS_FEE_PCT, VISIT_STATUS } from '../serviceVisits';
+import { pedirVisita, acaoVisita } from '../serverServices';
 
 const WHEN = ['Assim que possível', 'Hoje à tarde', 'Amanhã de manhã', 'Neste fim de semana'];
 
@@ -44,10 +45,12 @@ export function VisitRequestSheet({ provider: p, visible, onClose, address = '',
   const type = serviceType(p.service) || { label: 'Serviço' };
   const first = p.name.split(' ')[0];
 
-  const send = () => {
+  const send = async () => {
     if (!problem.trim()) return Alert.alert('Conte o que precisa', `Escreva em poucas palavras o problema, para ${first} saber o que levar.`);
     if (state.wallet + (state.giftCredits || 0) < fee) return Alert.alert('Saldo insuficiente', `A taxa de visita é ${brl(fee)}. Adicione saldo em Carteira.`);
-    dispatch({ type: 'VISIT_REQUEST', provider: p, serviceLabel: type.label, problem: problem.trim(), address: addr.trim(), when });
+    // Prestador do servidor: o pedido vai para o celular dele e a taxa fica retida no Realyz.
+    const r = await pedirVisita(state, dispatch, p, { serviceLabel: type.label, problem: problem.trim(), address: addr.trim(), when });
+    if (!r.ok) return Alert.alert('Pedido não enviado', r.message);
     onClose();
     Alert.alert(
       'Pedido enviado ✅',
@@ -125,7 +128,13 @@ export function VisitCard({ visit: v }) {
   const { dispatch } = useStore();
   const st = VISIT_STATUS[v.status] || VISIT_STATUS.aguardando;
   const first = v.provider.name.split(' ')[0];
-  const act = (type) => dispatch({ type, id: v.id });
+  // Visita com prestador do servidor: confirmar e "não veio" passam pelo servidor (o dinheiro está lá).
+  const act = (type) => {
+    if (v.serverId && (type === 'VISIT_CONFIRM' || type === 'VISIT_NO_SHOW')) {
+      return acaoVisita(dispatch, v, type).catch((e) => Alert.alert('Não deu certo', e.message));
+    }
+    dispatch({ type, id: v.id });
+  };
 
   const { state } = useStore();
   const showGuarantee = visitCovered(v) || (state.disputes || []).some((d) => d.refId === v.id);
@@ -149,7 +158,10 @@ export function VisitCard({ visit: v }) {
         </View>
       </Row>
 
-      {v.status === 'aguardando' ? (
+      {v.status === 'aguardando' && v.serverId ? (
+        <Text style={styles.hint}>A taxa está retida. {first} vai aceitar ou recusar, e você vê aqui na hora.</Text>
+      ) : null}
+      {v.status === 'aguardando' && !v.serverId ? (
         <>
           <Text style={styles.hint}>A taxa está retida. {first} vai aceitar ou recusar.</Text>
           <Text style={styles.demo}>Demonstração: simule a resposta do prestador</Text>
@@ -162,6 +174,9 @@ export function VisitCard({ visit: v }) {
 
       {v.status === 'aceita' ? (
         <>
+          {v.serverId ? (
+            <Text style={styles.hint}>{first} aceitou. Combinem os detalhes pelas mensagens do Realyz: contato e pagamento sempre por aqui.</Text>
+          ) : (
           <View style={styles.phone}>
             <Ionicons name="call-outline" size={15} color={colors.success} />
             <Text style={{ color: colors.text, marginLeft: 8, flex: 1, fontSize: 13 }}>
@@ -171,6 +186,7 @@ export function VisitCard({ visit: v }) {
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700' }}>Chat</Text>
             </TouchableOpacity>
           </View>
+          )}
           <Text style={styles.hint}>Depois que {first} passar aí, confirme a visita. Só então o valor é liberado.</Text>
           <Row>
             <Small title="Confirmar visita" onPress={() => act('VISIT_CONFIRM')} main />

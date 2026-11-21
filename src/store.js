@@ -496,6 +496,24 @@ function baseReducer(state, a) {
       const ids = new Set(products.map((p) => p.id));
       return { ...state, products, stores, cart: state.cart.filter((c) => ids.has(c.productId)) };
     }
+    case 'SERVER_PROVIDERS':
+      return { ...state, providers: [...state.providers.filter((p) => !isServerId(p.id)), ...a.providers.filter((p) => !(state.user && p.serverId === state.user.serverId))] };
+    case 'SERVER_VISIT_ADD':
+      return { ...state, visits: [a.visit, ...state.visits] };
+    // Status das visitas do servidor: mantém o prestador e o que já estava no cartão (avaliação etc.).
+    case 'SERVER_VISITS_SYNC': {
+      const byId = new Map(a.visits.map((v) => [v.serverId, v]));
+      const known = new Set(state.visits.filter((v) => v.serverId).map((v) => v.serverId));
+      const fresh = a.visits.filter((v) => !known.has(v.serverId));
+      const visits = state.visits.map((v) => {
+        const n = v.serverId && byId.get(v.serverId);
+        if (!n) return v;
+        // Concluída e avaliada no app continua assim.
+        const status = v.status === 'concluida' ? 'concluida' : n.status;
+        return { ...v, status, split: n.split || v.split };
+      });
+      return { ...state, visits: [...fresh, ...visits] };
+    }
     case 'SERVER_WALLET':
       return { ...state, wallet: a.balance, giftCredits: a.giftCredits };
     case 'SERVER_ORDERS_PLACED': {

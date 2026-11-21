@@ -14,13 +14,13 @@ export function distanceKm(lat1, lng1, lat2, lng2) {
   return 6371 * 2 * Math.asin(Math.sqrt(a));
 }
 
-export default function servicesRoutes(r, { db, wallet, hub, userById, biometria }) {
+export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biometria, fiscal }) {
   const providerView = (p, from) => {
     const u = userById(p.user_id);
     const km = from && p.lat != null ? distanceKm(from.lat, from.lng, p.lat, p.lng) : null;
     return {
       id: p.user_id, name: u.name, photo: u.photo, service: p.service, functions: JSON.parse(p.functions), price: toReais(p.price), priceUnit: p.price_unit,
-      available: !!p.available, vehicle: p.vehicle, rating: +p.rating.toFixed(1), ratingCount: p.rating_count,
+      available: !!p.available, vehicle: p.vehicle, visitFee: toReais(p.visit_fee || 0), rating: +p.rating.toFixed(1), ratingCount: p.rating_count,
       distanceKm: km == null ? null : +km.toFixed(1), etaMin: km == null ? null : Math.max(3, Math.round(km * (TRANSPORT.includes(p.service) ? 4 : 6))),
     };
   };
@@ -33,11 +33,15 @@ export default function servicesRoutes(r, { db, wallet, hub, userById, biometria
       service: str(body.service, 'o tipo de serviço', { max: 40 }).toLowerCase(), functions: JSON.stringify(functions), price: money(body.price, 'preço'),
       price_unit: str(body.priceUnit, 'a unidade do preço (hora, visita, corrida...)', { max: 30 }), vehicle: str(body.vehicle, 'o veículo', { optional: true, max: 80 }) || null,
     };
+    // Taxa de visita: quem define é o prestador. Sem informar, quem cobra "por visita" usa o próprio preço.
+    row.visit_fee = body.visitFee !== undefined && body.visitFee !== null && body.visitFee !== '' ? money(body.visitFee, 'taxa de visita', { min: 0 }) : /visita/i.test(row.price_unit) ? row.price : 0;
     tx(db, () => {
       if (db.prepare('SELECT 1 FROM providers WHERE user_id = ?').get(user.id)) {
+        db.prepare('UPDATE providers SET visit_fee = ? WHERE user_id = ?').run(row.visit_fee, user.id);
         db.prepare('UPDATE providers SET service = ?, functions = ?, price = ?, price_unit = ?, vehicle = ?, updated_at = ? WHERE user_id = ?').run(row.service, row.functions, row.price, row.price_unit, row.vehicle, now(), user.id);
       } else {
         db.prepare('INSERT INTO providers (user_id, service, functions, price, price_unit, vehicle, updated_at) VALUES (?,?,?,?,?,?,?)').run(user.id, row.service, row.functions, row.price, row.price_unit, row.vehicle, now());
+        db.prepare('UPDATE providers SET visit_fee = ? WHERE user_id = ?').run(row.visit_fee, user.id);
         const roles = JSON.parse(user.roles);
         if (!roles.includes('prestador')) db.prepare('UPDATE users SET roles = ? WHERE id = ?').run(JSON.stringify([...roles, 'prestador']), user.id);
       }
@@ -82,7 +86,7 @@ export default function servicesRoutes(r, { db, wallet, hub, userById, biometria
   }, { auth: false });
 
   // ── Chamados ──
-  const callView = (c) => ({ id: c.id, clientId: c.client_id, client: userById(c.client_id).name, providerId: c.provider_id, provider: userById(c.provider_id).name, service: c.service, address: c.address, when: c.when_text, status: c.status, createdAt: c.created_at, updatedAt: c.updated_at });
+  const callView = (c) => ({ visitFee: toReais(c.visit_fee || 0), visitState: c.visit_state || null, problem: c.problem || '', rideFee: toReais(c.ride_fee || 0), id: c.id, clientId: c.client_id, client: userById(c.client_id).name, providerId: c.provider_id, provider: userById(c.provider_id).name, service: c.service, address: c.address, when: c.when_text, status: c.status, createdAt: c.created_at, updatedAt: c.updated_at });
 
   // O cliente chama agora ou agenda ("amanhã às 9h"). Só depois que confirmou no app.
   r.post('/calls', ({ body, user }) => {
@@ -93,13 +97,63 @@ export default function servicesRoutes(r, { db, wallet, hub, userById, biometria
     if (!when && !p.available) fail(409, 'Esse prestador não está disponível agora. Você pode agendar.');
     const id = newId('ch');
     const t = now();
-    db.prepare('INSERT INTO service_calls (id, client_id, provider_id, service, address, when_text, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?)').run(
-      id, user.id, p.user_id, p.service, str(body.address, 'o endereço', { optional: true, max: 200 }), when, 'Solicitado', t, t
-    );
+    const problem = str(body.problem, 'o que você precisa', { optional: true, max: 500 }) || '';
+    // Serviço com visita (não é transporte): o cliente paga a taxa de visita agora e ela fica retida.
+    const fee = !TRANSPORT.includes(p.service) ? p.visit_fee || 0 : 0;
+    tx(db, () => {
+      let fromGift = 0;
+      if (fee) {
+        fromGift = wallet.pay(user.id, fee, 'Serviços', `Taxa de visita retida (${p.service})`, id).fromGift;
+        wallet.move('realys', 'saldo', fee, 'Visitas retidas', `Taxa de visita retida do chamado ${id}`, id);
+      }
+      db.prepare('INSERT INTO service_calls (id, client_id, provider_id, service, address, when_text, status, created_at, updated_at, visit_fee, visit_from_gift, visit_state, problem) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').run(
+        id, user.id, p.user_id, p.service, str(body.address, 'o endereço', { optional: true, max: 200 }), when, 'Solicitado', t, t, fee, fromGift, fee ? 'retida' : null, problem
+      );
+    });
     const call = callView(db.prepare('SELECT * FROM service_calls WHERE id = ?').get(id));
     hub.send(p.user_id, 'call', call);
     return call;
   }, { status: 201 });
+
+  // Taxa de visita retida volta para o cliente, no mesmo bolso de onde saiu (recusou, cancelou ou não apareceu).
+  const devolverVisita = (c, motivo) => {
+    if (c.visit_state !== 'retida' || !c.visit_fee) return;
+    wallet.move('realys', 'saldo', -c.visit_fee, 'Visitas retidas', `${motivo} (chamado ${c.id})`, c.id);
+    wallet.move(c.client_id, 'presente', c.visit_from_gift || 0, 'Estorno', `Taxa de visita devolvida: ${motivo}`, c.id);
+    wallet.move(c.client_id, 'saldo', c.visit_fee - (c.visit_from_gift || 0), 'Estorno', `Taxa de visita devolvida: ${motivo}`, c.id);
+    db.prepare("UPDATE service_calls SET visit_state = 'devolvida' WHERE id = ?").run(c.id);
+  };
+
+  // O cliente confirma que a visita aconteceu: o Realyz fica com a parte dele e o resto vai para o prestador.
+  r.post('/calls/:id/confirmar-visita', ({ params, user }) => {
+    const c = db.prepare('SELECT * FROM service_calls WHERE id = ? AND client_id = ?').get(params.id, user.id);
+    if (!c) fail(404, 'Chamado não encontrado.');
+    if (c.visit_state !== 'retida') fail(409, 'Essa visita não tem taxa retida para liberar.');
+    if (!['Aceito', 'A caminho', 'Chegou', 'Concluído'].includes(c.status)) fail(409, 'O prestador ainda não aceitou essa visita.');
+    const cut = Math.round((c.visit_fee * cfg.visitFeePct) / 100);
+    tx(db, () => {
+      wallet.move('realys', 'saldo', -(c.visit_fee - cut), 'Visitas retidas', `Visita confirmada (chamado ${c.id})`, c.id);
+      wallet.move(c.provider_id, 'saldo', c.visit_fee - cut, 'Serviços', `Taxa de visita de ${user.name}`, c.id);
+      if (cut) fiscal.registrar({ origem: 'taxa_visita', ref: c.id, tomadorId: c.provider_id, valorCents: cut });
+      db.prepare("UPDATE service_calls SET visit_state = 'liberada', updated_at = ? WHERE id = ?").run(now(), c.id);
+    });
+    hub.send(c.provider_id, 'payment', { callId: c.id, amount: toReais(c.visit_fee - cut), from: user.name });
+    return callView(db.prepare('SELECT * FROM service_calls WHERE id = ?').get(c.id));
+  });
+
+  // O prestador aceitou e não foi: a taxa volta e o chamado é cancelado.
+  r.post('/calls/:id/nao-compareceu', ({ params, user }) => {
+    const c = db.prepare('SELECT * FROM service_calls WHERE id = ? AND client_id = ?').get(params.id, user.id);
+    if (!c) fail(404, 'Chamado não encontrado.');
+    if (!['Aceito', 'A caminho'].includes(c.status)) fail(409, 'Só dá para avisar que o prestador não veio depois que ele aceitou.');
+    tx(db, () => {
+      devolverVisita(c, 'o prestador não compareceu');
+      db.prepare("UPDATE service_calls SET status = 'Cancelado', updated_at = ? WHERE id = ?").run(now(), c.id);
+    });
+    const call = callView(db.prepare('SELECT * FROM service_calls WHERE id = ?').get(c.id));
+    hub.send(c.provider_id, 'call', call);
+    return call;
+  });
 
   r.get('/calls', ({ user }) => db.prepare('SELECT * FROM service_calls WHERE client_id = ? OR provider_id = ? ORDER BY created_at DESC LIMIT 50').all(user.id, user.id).map(callView));
 
@@ -113,7 +167,10 @@ export default function servicesRoutes(r, { db, wallet, hub, userById, biometria
     // Verificação facial: o prestador confirma o rosto para aceitar e para finalizar cada serviço.
     if (c.provider_id === user.id && c.status === 'Solicitado' && body.status === 'Aceito') biometria.consume(user.id, 'aceite', c.id);
     if (c.provider_id === user.id && body.status === 'Concluído') biometria.consume(user.id, 'finalizacao', c.id);
-    db.prepare('UPDATE service_calls SET status = ?, updated_at = ? WHERE id = ?').run(body.status, now(), c.id);
+    tx(db, () => {
+      if (['Recusado', 'Cancelado'].includes(body.status)) devolverVisita(c, body.status === 'Recusado' ? 'o prestador recusou' : 'chamado cancelado');
+      db.prepare('UPDATE service_calls SET status = ?, updated_at = ? WHERE id = ?').run(body.status, now(), c.id);
+    });
     const call = callView(db.prepare('SELECT * FROM service_calls WHERE id = ?').get(c.id));
     hub.send(user.id === c.client_id ? c.provider_id : c.client_id, 'call', call);
     return call;
@@ -126,13 +183,21 @@ export default function servicesRoutes(r, { db, wallet, hub, userById, biometria
     if (['Recusado', 'Cancelado'].includes(c.status)) fail(409, 'Esse chamado foi cancelado.');
     const amount = money(body.amount, 'pagamento', { min: 1, max: 50000 });
     const provider = userById(c.provider_id);
+    // Corrida e entrega: o Realyz fica com a parte dele (18%). Nos outros serviços o valor combinado vai inteiro ao prestador
+    // (o Realyz já recebeu pela taxa de visita).
+    const fee = TRANSPORT.includes(c.service) ? Math.round((amount * cfg.rideFeePct) / 100) : 0;
     const paid = tx(db, () => {
       const r2 = wallet.pay(user.id, amount, 'Serviços', `${c.service} com ${provider.name}`, c.id);
-      wallet.move(provider.id, 'saldo', amount, 'Serviços', `Serviço para ${user.name}`, c.id);
+      wallet.move(provider.id, 'saldo', amount - fee, 'Serviços', `Serviço para ${user.name}`, c.id);
+      if (fee) {
+        wallet.move('realys', 'saldo', fee, 'Comissão', `Comissão da corrida ${c.id}`, c.id);
+        fiscal.registrar({ origem: 'comissao_corrida', ref: c.id, tomadorId: provider.id, valorCents: fee });
+        db.prepare('UPDATE service_calls SET ride_fee = ride_fee + ? WHERE id = ?').run(fee, c.id);
+      }
       return r2;
     });
-    hub.send(provider.id, 'payment', { callId: c.id, amount: toReais(amount), from: user.name });
-    return { amount: toReais(amount), fromGift: toReais(paid.fromGift), fromWallet: toReais(paid.fromWallet) };
+    hub.send(provider.id, 'payment', { callId: c.id, amount: toReais(amount - fee), from: user.name });
+    return { amount: toReais(amount), fee: toReais(fee), fromGift: toReais(paid.fromGift), fromWallet: toReais(paid.fromWallet) };
   });
 
   // ── Avaliações: depois de pedido entregue ou serviço concluído ──
