@@ -25,22 +25,17 @@ def letterA(color, starc, bg_is_dark):
     d.polygon([(X(0.5),Y(0.36)),(X(0.75),Y(1.01)),(X(0.25),Y(1.01))],fill=0)
     E=Image.new('L',size,0)
     # estrela saindo de dentro do A: a ponta de cima é o topo do A e as pontas de baixo correm pelas pernas
-    P=[(0.5,-0.02),(0.60,0.40),(1.20,0.30),(0.70,0.62),(0.86,1.0),(0.5,0.79),(0.14,1.0),(0.30,0.62),(-0.20,0.30),(0.40,0.40)]
+    P=[(0.5,0.10),(0.585,0.44),(1.16,0.34),(0.675,0.62),(0.80,0.93),(0.5,0.76),(0.20,0.93),(0.325,0.62),(-0.16,0.34),(0.415,0.44)]
     ImageDraw.Draw(E).polygon([(X(u),Y(v)) for u,v in P],fill=255)
-    from PIL import ImageChops
-    both=ImageChops.multiply(A,E)
-    onlyA=ImageChops.subtract(A,both); onlyE=ImageChops.subtract(E,both)
-    im=Image.new('RGBA',size,(0,0,0,0))
-    cA,cE,cM = starc
-    im.paste(Image.new('RGBA',size,cA),(0,0),onlyA)
-    im.paste(Image.new('RGBA',size,cE),(0,0),onlyE)
-    im.paste(Image.new('RGBA',size,cM),(0,0),both)
-    from PIL import ImageFilter
-    union=ImageChops.lighter(A,E)
-    ring=ImageChops.subtract(union.filter(ImageFilter.MaxFilter(2*SW+1)),union)
+    from PIL import ImageChops, ImageFilter
+    grow=lambda m: m.filter(ImageFilter.MaxFilter(2*SW+1))
     out=Image.new('RGBA',size,(0,0,0,0))
-    out.paste(Image.new('RGBA',size,GOLD),(0,0),ring)
-    out.alpha_composite(im)
+    # A: preto por dentro, borda dourada (como as outras letras)
+    out.paste(Image.new('RGBA',size,GOLD),(0,0),grow(A))
+    out.paste(Image.new('RGBA',size,(0,0,0,255)),(0,0),A)
+    # estrela por cima, saindo de dentro do A: preta por dentro, borda branca
+    out.paste(Image.new('RGBA',size,(255,255,255,255)),(0,0),grow(E))
+    out.paste(Image.new('RGBA',size,(0,0,0,255)),(0,0),E)
     return out
 def make(color, starc, path):
     d0=ImageDraw.Draw(Image.new('RGBA',(5,5)))
