@@ -8,6 +8,8 @@ import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, soft, brl } from '../../../theme';
 import { useStore } from '../../../store';
+import * as DocumentPicker from 'expo-document-picker';
+import { uploadMedia } from '../../../api';
 import { stopRadio, checkUrl } from '../../../radio';
 import { useRadioNow } from '../../../components/RadioKit';
 import { moderateText } from '../../../moderation';
@@ -16,7 +18,7 @@ import { Photo } from '../../../components/ui';
 import { FavHeart } from '../../../components/FavKit';
 import { useFavs, favList } from '../../../favorites';
 import {
-  useMusic, allTracks, trackById, publishTrack, removeTrack, registerSale, createPlaylist, removePlaylist, togglePlaylistTrack,
+  useMusic, allTracks, trackById, publishTrack, publishServerTrack, removeTrack, registerSale, createPlaylist, removePlaylist, togglePlaylistTrack,
   subscribePlan, cancelPlan, planInfo, playTrack, startTrack, setAdHook, setOwnedTracks, offlineInfo, isOffline, toggleOffline, savePlaylistOffline, offlineTracks, markOnline, OFFLINE_CHECK_DAYS, openArtist, artistGets, priceFor, MUSIC_FEE, MUSIC_ARTIST_MIN, MUSIC_ARTIST_SUGGESTED, MUSIC_PLAN_PRICE, MUSIC_PLAN_FREE_MONTHS, MUSIC_GENRES, ADS_EVERY,
 } from '../../../music';
 
@@ -350,6 +352,21 @@ function ArtistArea() {
   const [f, setF] = useState({ title: '', genre: MUSIC_GENRES[0], price: String(MUSIC_ARTIST_SUGGESTED.toFixed(2)).replace('.', ','), url: '' });
   // O artista digita quanto quer receber; o cliente paga isso + R$ 0,99 do Realyz.
   const mine = Number(String(f.price).replace(',', '.')) || 0;
+  // Enviar o MP3 do celular para o servidor do Realyz (fica no servidor de músicas).
+  const [enviando, setEnviando] = useState(false);
+  const escolherAudio = async () => {
+    try {
+      const r = await DocumentPicker.getDocumentAsync({ type: 'audio/*', copyToCacheDirectory: true });
+      if (r.canceled || !r.assets || !r.assets[0]) return;
+      setEnviando(true);
+      const url = await uploadMedia(r.assets[0].uri, r.assets[0].mimeType || 'audio/mpeg');
+      setF((x) => ({ ...x, url }));
+    } catch (e) {
+      Alert.alert('Áudio não enviado', e.message || 'Tente de novo.');
+    } finally {
+      setEnviando(false);
+    }
+  };
   const price = priceFor(mine);
   const publish = () => {
     if (!f.title.trim()) return Alert.alert('Falta o nome', 'Escreva o nome da música.');
@@ -358,6 +375,15 @@ function ArtistArea() {
     const bad = checkUrl(f.url);
     if (bad) return Alert.alert('Confira o endereço do áudio', bad);
     if (mine < MUSIC_ARTIST_MIN) return Alert.alert('Valor', `O mínimo para você receber é ${brl(MUSIC_ARTIST_MIN)} por música.`);
+    // Conta ligada ao servidor: a música vai para a Galeria de todo mundo e as vendas caem no saldo de verdade.
+    if (state.user && state.user.serverId) {
+      return publishServerTrack({ title: f.title.trim(), genre: f.genre, artistValue: mine, url: f.url.trim() })
+        .then(() => {
+          setF({ title: '', genre: f.genre, price: f.price, url: '' });
+          Alert.alert('Música publicada ✅', `Ela já está na Galeria do Realyz. A cada venda, você recebe ${brl(mine)} e o cliente paga ${brl(price)}.`);
+        })
+        .catch((e) => Alert.alert('Música não publicada', e.message));
+    }
     publishTrack({ title: f.title.trim(), artist: state.user.name, genre: f.genre, price, url: f.url });
     setF({ title: '', genre: f.genre, price: f.price, url: '' });
     Alert.alert('Música publicada ✅', `Ela já está na Galeria para todo mundo ouvir. A cada venda, você recebe ${brl(mine)} e o cliente paga ${brl(price)}.`);
@@ -380,6 +406,11 @@ function ArtistArea() {
           </TouchableOpacity>
         ))}
       </ScrollView>
+      {state.user && state.user.serverId ? (
+        <TouchableOpacity style={[st.chip, { alignSelf: 'flex-start', marginTop: 4 }]} onPress={escolherAudio} accessibilityLabel="Enviar arquivo de áudio">
+          <Text numberOfLines={1} style={st.chipText}>{enviando ? 'Enviando o áudio…' : f.url ? 'Áudio enviado ✓ (trocar)' : 'Enviar arquivo MP3'}</Text>
+        </TouchableOpacity>
+      ) : null}
       <TextInput value={f.url} onChangeText={(t) => setF({ ...f, url: t })} placeholder="Endereço do áudio (link do MP3)" placeholderTextColor={colors.muted} autoCapitalize="none" keyboardType="url" style={[st.field, { marginTop: 0 }]} />
       <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
         <Text style={{ color: colors.text, fontWeight: '700' }}>Você recebe R$</Text>

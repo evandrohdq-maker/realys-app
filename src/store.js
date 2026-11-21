@@ -516,6 +516,12 @@ function baseReducer(state, a) {
     }
     case 'SERVER_EVENTS':
       return { ...state, serverEvents: a.events };
+    // Músicas compradas no servidor: ficam como compradas e saem do carrinho de músicas.
+    case 'SERVER_MUSIC_BOUGHT': {
+      const bought = { ...(state.boughtMedia || {}) };
+      a.ids.forEach((id) => (bought[id] = true));
+      return { ...state, boughtMedia: bought, musicCart: (state.musicCart || []).filter((x) => !a.ids.includes(x.id)) };
+    }
     case 'SERVER_WALLET':
       return { ...state, wallet: a.balance, giftCredits: a.giftCredits };
     case 'SERVER_ORDERS_PLACED': {

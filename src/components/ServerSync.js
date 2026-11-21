@@ -9,6 +9,7 @@ import { usarConta } from '../serverAuth';
 import { carregarCatalogo, carregarCarteira, carregarPedidos, conectado } from '../serverShop';
 import { carregarPrestadores, carregarVisitas } from '../serverServices';
 import { carregarEventos } from '../serverEvents';
+import { loadServerTracks } from '../music';
 
 export default function ServerSync() {
   const { state, dispatch } = useStore();
@@ -21,6 +22,7 @@ export default function ServerSync() {
     if (!serverOn()) return;
     carregarCatalogo(dispatch).catch(() => {});
     carregarEventos(dispatch).catch(() => {});
+    loadServerTracks().catch(() => {});
     const t = setInterval(() => {
       carregarCatalogo(dispatch).catch(() => {});
       carregarEventos(dispatch).catch(() => {});

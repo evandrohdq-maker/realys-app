@@ -63,6 +63,9 @@ export function loadConfig(overrides = {}) {
     // Ingressos: 8% de cada ingresso, no mínimo R$ 1,99, pagos pelo produtor.
     ticketFeePct: num(env.TICKET_FEE_PCT, 8),
     ticketFeeMin: num(env.TICKET_FEE_MIN, 1.99),
+    // Músicas: R$ 0,99 fixos por download, somados ao valor do artista (mínimo R$ 0,50 para o artista).
+    musicFee: num(env.MUSIC_FEE, 0.99),
+    musicArtistMin: num(env.MUSIC_ARTIST_MIN, 0.5),
     // Taxa de proteção Realyz: valor fixo por compra (carrinho), pago pelo cliente, a qualquer hora (sem taxa noturna).
     protectionFee: num(env.PROTECTION_FEE, 0.99),
     withdrawMin: num(env.WITHDRAW_MIN, 10),

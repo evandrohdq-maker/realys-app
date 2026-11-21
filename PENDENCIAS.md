@@ -224,7 +224,12 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
       sessão, lojas e produtos do servidor aparecem no Shop/Food, carteira e depósitos são os do servidor,
       o carrinho paga no servidor (com a taxa de proteção) e a loja recebe e muda os pedidos no
       Painel da empresa › Pedidos do Re@lys. Produtos de demonstração viram pedido de demonstração, sem cobrar.
-- [ ] Ainda só no celular: serviços, corridas, presentes, ingressos, tele do Food e músicas (próximas ligações).
+- [x] Ligados ao servidor (nov/2026): serviços com taxa de visita retida (15% Realyz), corridas (18%),
+      presentes (pessoas, prestadores e lives), eventos e ingressos (8%, mín. R$ 1,99, portaria por código)
+      e músicas (artista recebe 100%, Realyz soma R$ 0,99 por download; envio do MP3 pelo app).
+- [ ] Ainda só no celular: tele do Food, plano de músicas (assinatura), Date, imóveis/veículos, CRM, Desapego.
+- [ ] Pagamentos de verdade: escolher a empresa de pagamentos (Pix por API + divisão) e ligar depósitos e saques.
+      Conta que recebe o lucro do Realyz: a do CNPJ (Nubank ou Santander). Chaves só no .env da VPS.
 - [ ] Primeiro teste sem o serviço biométrico: na VPS, `EXIGIR_BIOMETRIA=false` e `VERIFICACAO_FACIAL_ACOES=false`;
       voltar para `true` quando o server/biometria-ia estiver rodando.
 - [ ] Telas no app: "Minhas notas fiscais", painel fiscal do administrador e aviso de teto do MEI.

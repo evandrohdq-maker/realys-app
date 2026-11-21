@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TAXAS } from './taxas';
 import { playRadio, stopRadio, setOnEnded, radioNow } from './radio';
+import { api, serverOn, API_URL } from './api';
 
 export const MUSIC_FEE = TAXAS.musicaVenda.valor; // R$ 0,99 do Realyz por download, somado ao valor do artista
 export const MUSIC_ARTIST_MIN = TAXAS.musicaVenda.artistaMinimo;
@@ -36,7 +37,7 @@ const SEED = [
 ].map((t) => ({ ...t, cover: `https://picsum.photos/seed/realys-cd-${t.id}/400/400` })); // capa do CD/da música
 
 const KEY = 'realys.music.v1';
-let data = { mine: [], playlists: [], plan: null, sales: 0, earned: 0, heard: 0 };
+let data = { mine: [], playlists: [], plan: null, sales: 0, earned: 0, heard: 0, server: [] };
 let loaded = false;
 const subs = new Set();
 const emit = () => subs.forEach((fn) => fn());
@@ -78,7 +79,25 @@ export function useMusic() {
   return data;
 }
 
-export const allTracks = () => [...data.mine, ...SEED];
+export const allTracks = () => [...data.mine, ...(data.server || []), ...SEED];
+
+// ---------- Músicas de verdade (servidor do Realyz) ----------
+// Faixas publicadas pelos artistas no servidor: entram na Galeria para todo mundo (id "srv_").
+const full = (u) => (u && u.startsWith('/') ? API_URL + u : u);
+export async function loadServerTracks() {
+  if (!serverOn()) return;
+  const list = await api('GET', '/tracks');
+  data = { ...data, server: list.map((t) => ({ id: 'srv_' + t.id, serverId: t.id, title: t.title, artist: t.artist, artistId: t.artistId, genre: t.genre, emoji: '🎵', cover: full(t.cover), price: t.price, plays: t.plays, url: full(t.url), real: true })) };
+  emit();
+}
+// Artista com a conta ligada: publica no servidor (o valor é o que ele quer receber).
+export async function publishServerTrack({ title, genre, artistValue, url }) {
+  const rel = url && url.startsWith(API_URL) ? url.slice(API_URL.length) : url;
+  const t = await api('POST', '/tracks', { title, genre, artistValue, url: rel });
+  await loadServerTracks().catch(() => {});
+  return t;
+}
+export const serverArtistArea = () => api('GET', '/tracks/artista');
 export const trackById = (id) => allTracks().find((t) => t.id === id) || null;
 
 // ---------- Artista ----------

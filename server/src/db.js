@@ -606,6 +606,32 @@ const MIGRATIONS = [
   CREATE INDEX tickets_buyer ON tickets(buyer_id, created_at DESC);
   CREATE INDEX tickets_event ON tickets(event_id);
   `,
+  // 20: músicas à venda (o artista recebe o valor dele; o Realyz soma R$ 0,99 por download)
+  `
+  CREATE TABLE tracks (
+    id TEXT PRIMARY KEY,
+    artist_id TEXT NOT NULL REFERENCES users(id),
+    title TEXT NOT NULL,
+    genre TEXT DEFAULT 'Outros',
+    price INTEGER NOT NULL,
+    url TEXT NOT NULL,
+    cover TEXT,
+    plays INTEGER NOT NULL DEFAULT 0,
+    sales INTEGER NOT NULL DEFAULT 0,
+    active INTEGER NOT NULL DEFAULT 1,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX tracks_active ON tracks(active, created_at DESC);
+  CREATE TABLE track_sales (
+    id TEXT PRIMARY KEY,
+    track_id TEXT NOT NULL REFERENCES tracks(id),
+    buyer_id TEXT NOT NULL REFERENCES users(id),
+    price INTEGER NOT NULL,
+    fee INTEGER NOT NULL,
+    created_at INTEGER NOT NULL,
+    UNIQUE (track_id, buyer_id)
+  );
+  `,
 ];
 
 export function openDb(file) {

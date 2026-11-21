@@ -11,6 +11,7 @@ import { trackById, startTrack, artistGets } from '../music';
 import { stopRadio } from '../radio';
 import { useRadioNow } from './RadioKit';
 import { askPix } from './PixPay';
+import { api } from '../api';
 
 const NIGHT = '#0B1124';
 
@@ -32,8 +33,20 @@ export default function MusicCart({ onDone }) {
     dispatch({ type: 'MUSIC_CART_REPLAY', id: x.id });
     startTrack(t);
   };
-  const finish = () => {
-    dispatch({ type: 'CHECKOUT_MUSIC' });
+  const finish = async () => {
+    // Músicas de artistas do servidor: a compra passa pelo servidor (artista recebe na hora).
+    const srv = items.filter((x) => String(x.id).startsWith('srv_'));
+    if (srv.length) {
+      if (!(state.user && state.user.serverId)) return Alert.alert('Entre com a sua conta', 'Para comprar músicas dos artistas do Realyz, entre com a sua conta (cadastro com senha e biometria).');
+      try {
+        const r = await api('POST', '/tracks/comprar', { ids: srv.map((x) => x.id.slice(4)) });
+        dispatch({ type: 'SERVER_MUSIC_BOUGHT', ids: srv.map((x) => x.id) });
+        if (r.wallet) dispatch({ type: 'SERVER_WALLET', balance: r.wallet.balance, giftCredits: r.wallet.giftCredits });
+      } catch (e) {
+        return Alert.alert('Compra não feita', e.message);
+      }
+    }
+    if (items.some((x) => !String(x.id).startsWith('srv_'))) dispatch({ type: 'CHECKOUT_MUSIC' });
     Alert.alert('Compra confirmada ✅', items.length === 1 ? `"${items[0].title}" agora é sua: dá para baixar e ouvir sem propaganda.` : 'As músicas agora são suas: dá para baixar e ouvir sem propaganda.');
     onDone && onDone();
   };

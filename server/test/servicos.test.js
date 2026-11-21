@@ -97,3 +97,22 @@ test('ingressos: empresa publica, cliente compra, Realyz fica com 8% (mín. R$ 1
   assert.equal(ok.buyer, 'Bia Baladeira');
   await assert.rejects(call('POST', `/tickets/${r.codes[0]}/entrada`, bar.accessToken), /409/);
 });
+
+test('músicas: artista recebe 100% do valor dele, Realyz soma R$ 0,99 e ninguém paga duas vezes', async () => {
+  const art = await signup('Duda Cantora', '71428793860', 'duda');
+  const fa = await signup('Fã Fiel', '86288366757', 'fafiel');
+  const t = await call('POST', '/tracks', art.accessToken, { title: 'Estrada de Chão', genre: 'Sertanejo', artistValue: 2, url: '/media/abc' });
+  assert.equal(t.price, 2.99);
+  assert.ok((await call('GET', '/tracks')).some((x) => x.id === t.id));
+  await call('POST', '/wallet/deposit', fa.accessToken, { amount: 10 });
+  const r = await call('POST', '/tracks/comprar', fa.accessToken, { ids: [t.id] });
+  assert.deepEqual(r.bought, [t.id]);
+  assert.equal(await saldo(fa.accessToken), 7.01);
+  assert.equal(await saldo(art.accessToken), 2);
+  const r2 = await call('POST', '/tracks/comprar', fa.accessToken, { ids: [t.id] });
+  assert.deepEqual(r2.bought, []); // já é dela
+  assert.deepEqual(await call('GET', '/tracks/minhas', fa.accessToken), [t.id]);
+  const area = await call('GET', '/tracks/artista', art.accessToken);
+  assert.equal(area.sales, 1);
+  assert.equal(area.earned, 2);
+});
