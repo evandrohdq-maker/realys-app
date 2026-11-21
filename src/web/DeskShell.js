@@ -163,7 +163,7 @@ export default function DeskShell({ desk, rail, children, ...p }) {
 const st = StyleSheet.create({
   page: { flex: 1, flexDirection: 'row', backgroundColor: '#F1EBDD' },
   side: { width: 248, backgroundColor: colors.bg, borderRightWidth: 1, borderRightColor: colors.border, paddingTop: 22, paddingHorizontal: 14, paddingBottom: 16 },
-  mark: { width: 52, height: 52, marginLeft: 10, marginBottom: 22 },
+  mark: { width: 64, height: 64, alignSelf: 'center', marginBottom: 22 }, // só a logo, no centro da coluna
   item: { flexDirection: 'row', alignItems: 'center', paddingVertical: 11, paddingHorizontal: 12, borderRadius: 12, marginBottom: 2 },
   itemOn: { backgroundColor: '#F6EDD6' },
   itemText: { marginLeft: 14, fontSize: 16, color: colors.text, fontWeight: '600' },

@@ -17,6 +17,7 @@ import {
 } from '../../salas';
 import { useScreenShare, startScreenShare, stopScreenShare } from '../../screenShare';
 import { ScreenViewer } from '../../components/ScreenShareKit';
+import { useCamShare, startCam, stopCam } from '../../camShare';
 import { crmBoard } from '../../crm';
 
 const C = { bg: '#FFFFFF', soft: '#FAF7EF', line: '#EFE8D6', text: '#1B1B1F', muted: '#7A7468', gold: '#B8860B', green: '#2FB463', red: '#E5484D', amber: '#E0A92B' };
@@ -332,7 +333,7 @@ function Room({ sid, rid, me, isCompany, onLeave, onBack }) {
   const t = SALA_TIPOS[s.tipo] || SALA_TIPOS.loja;
   const share = useScreenShare();
   const [mic, setMic] = useState(true);
-  const [cam, setCam] = useState(false);
+  const camOn = useCamShare(); // câmera de verdade (src/camShare.js)
   const [watching, setWatching] = useState(null);
   const [prop, setProp] = useState(null); // { desc, value }
   const [draft, setDraft] = useState('');
@@ -346,6 +347,16 @@ function Room({ sid, rid, me, isCompany, onLeave, onBack }) {
   const owner = isCompany || s.mine || s.team.some((x) => x.name === me);
   const key = salaKey(sid, rid);
   const sharing = !!(share && share.sala === key);
+  const cam = !!(camOn && camOn.sala === key);
+  const setCam = async (on) => {
+    if (!on) return stopCam();
+    if (cam) return;
+    try {
+      await startCam({ sala: key, label: r.name, para: [] });
+    } catch (e) {
+      Alert.alert('Câmera não ligada', e.message);
+    }
+  };
   const someoneElse = r.screen && r.screen !== me ? r.screen : null;
 
   const toggleScreen = async () => {
@@ -362,6 +373,7 @@ function Room({ sid, rid, me, isCompany, onLeave, onBack }) {
   };
   const leave = () => {
     if (sharing) stopScreenShare();
+    if (cam) stopCam();
     onLeave();
   };
   const action = (a) => {

@@ -55,6 +55,7 @@ import AccountBlocked from './src/components/AccountBlocked';
 import LotusSOS from './src/components/LotusSOS';
 import SecurityEvents from './src/components/SecurityEvents';
 import DeskShell, { useDesktop } from './src/web/DeskShell';
+import CamBubble from './src/components/CamBubble';
 import Landing from './src/web/Landing';
 import ServerSync from './src/components/ServerSync';
 import ChatServidor from './src/components/ChatServidor';
@@ -697,6 +698,8 @@ function Shell({ inviteTick }) {
       <SupplierShowcaseHost />
       <PipManager />
       <LiveFloat bottom={150 + insets.bottom} />
+      {/* Sua câmera na sala (Arena/Hub): janelinha pequena por cima de qualquer tela, até minimizada. */}
+      <CamBubble bottom={160 + insets.bottom} />
       <TouchableOpacity
         style={[styles.fab, { bottom: 84 + insets.bottom }, (videoFull || desk) && { display: 'none' }]}
         onPress={() => setVoice(true)}

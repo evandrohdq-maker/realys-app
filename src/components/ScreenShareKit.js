@@ -7,6 +7,7 @@ import { View, StyleSheet, TouchableOpacity, Modal, ActivityIndicator } from 're
 import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useScreenShare, stopScreenShare, watchScreen, RTCView, PAUSE_LABEL } from '../screenShare';
+import { CamCorner } from './CamBubble';
 
 const C = { red: '#E5484D', gold: '#B8860B', text: '#1B1B1F', muted: '#7A7468', amber: '#E0A92B' };
 const mmss = (ms) => {
@@ -40,9 +41,24 @@ export function ScreenShareBar() {
 }
 
 // tela = { id?, by, demo } ; quem está mostrando e se é de verdade ou demonstração.
+// tela.camId: a câmera de quem está mostrando a tela, que aparece pequena no canto do jogo.
 export function ScreenViewer({ tela, onClose }) {
   const [stream, setStream] = useState(null);
+  const [camStream, setCamStream] = useState(null);
   const [err, setErr] = useState(null);
+  useEffect(() => {
+    if (!tela || tela.demo || !tela.camId) return;
+    let conn = null;
+    let alive = true;
+    setCamStream(null);
+    watchScreen(tela.camId, (s) => alive && setCamStream(s))
+      .then((c) => (alive ? (conn = c) : c.stop()))
+      .catch(() => {});
+    return () => {
+      alive = false;
+      conn && conn.stop();
+    };
+  }, [tela && tela.camId]);
   useEffect(() => {
     if (!tela || tela.demo || !tela.id) return;
     let conn = null;
@@ -71,7 +87,10 @@ export function ScreenViewer({ tela, onClose }) {
         </View>
         <View style={st.viewerBody}>
           {stream && RTCView ? (
-            <RTCView streamURL={stream.toURL()} style={{ flex: 1, width: '100%' }} objectFit="contain" />
+            <View style={{ flex: 1, width: '100%' }}>
+              <RTCView streamURL={stream.toURL()} style={{ flex: 1, width: '100%' }} objectFit="contain" />
+              <CamCorner stream={camStream} />
+            </View>
           ) : err ? (
             <Text style={st.viewerMsg}>{err}</Text>
           ) : tela.demo ? (
