@@ -1,3 +1,5 @@
+import PostActions from '../../components/PostActions';
+import FollowedStores from '../../components/FollowedStores';
 import { addOrChoose, openProduct } from '../../components/ProductSheet';
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
@@ -12,22 +14,11 @@ export default function FeedScreen({ goTo }) {
 
   return (
     <Screen>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
-        {state.stores.map((s) => (
-          <View key={s.id} style={styles.story}>
-            <View style={[styles.storyRing, s.sponsored && { borderColor: colors.sponsored }]}>
-              <Text style={{ color: colors.text, fontSize: 26 }}>{s.logo}</Text>
-            </View>
-            <Text numberOfLines={1} style={styles.storyName}>
-              {s.name.split(' ')[0]}
-            </Text>
-          </View>
-        ))}
-      </ScrollView>
+      {/* Lojas do Realyz: tocar abre a página da loja (as seguidas primeiro). */}
+      <FollowedStores />
 
       {state.posts.map((p) => {
         const product = p.productId ? state.products.find((x) => x.id === p.productId) : null;
-        const liked = !!state.liked[p.id];
         return (
           <View key={p.id} style={styles.post}>
             <TouchableOpacity
@@ -64,15 +55,7 @@ export default function FeedScreen({ goTo }) {
             </View>
 
             <View style={{ padding: 12 }}>
-              <Row style={{ marginBottom: 8 }}>
-                <TouchableOpacity onPress={() => dispatch({ type: 'TOGGLE_LIKE', id: p.id })}>
-                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.action}>
-                    {liked ? '💚' : '🤍'} {p.likes + (liked ? 1 : 0)}
-                  </Text>
-                </TouchableOpacity>
-                <Text style={styles.action}>💬 {p.comments}</Text>
-                <Text style={styles.action}>↗ Compartilhar</Text>
-              </Row>
+              <PostActions post={p} author={p.author} />
               <Text style={styles.text}>{p.text}</Text>
 
               {product ? (

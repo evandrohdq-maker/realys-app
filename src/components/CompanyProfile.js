@@ -212,11 +212,15 @@ export function CompanyProfileModal() {
               <Ionicons name={following ? 'checkmark' : 'add'} size={16} color={following ? colors.primary : '#FFFFFF'} />
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.btnText, following && { color: colors.primary }]}>{following ? 'Seguindo' : 'Seguir'}</Text>
             </TouchableOpacity>
-            {/* Pedir orçamento: o pedido chega como contato novo no CRM da empresa (aba Clientes). */}
+            {/* Cliente (usuário) não abre conversa direta com a loja: só compra pela vitrine e pelos produtos,
+                e curte, comenta e compartilha os posts. Pedir orçamento fica só entre empresas (fornecedor ↔ empresa).
+                Pedir orçamento: o pedido chega como contato novo no CRM da empresa (aba Clientes). */}
+{state.activeRole === 'empresa' ? (
             <TouchableOpacity style={[styles.btn, styles.btnOff, { marginLeft: 8 }]} onPress={lead.ask} accessibilityLabel={`Pedir orçamento para ${p.name}`}>
               <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary} />
               <Text numberOfLines={1} style={[styles.btnText, { color: colors.primary }]}>Pedir orçamento</Text>
             </TouchableOpacity>
+) : null}
           </Row>
           {lead.modal}
 
