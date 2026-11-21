@@ -2232,6 +2232,7 @@ export function callReply(call) {
   const p = call.provider;
   const plate = p.plate ? `, placa ${p.plate.split('').join(' ')}` : '';
   const vehicle = p.vehicle ? ` ${p.vehicle}${plate}.` : '';
+  if (call.combinar) return `Pronto, pedido enviado para ${p.name}. Vocês combinam o melhor horário pela conversa do pedido, e ele confirma por lá.`;
   if (call.when) return `Pronto, agendado para ${call.when}. ${call.serviceLabel} ${p.name}, nota ${String(p.rating).replace('.', ',')}.${vehicle}`;
   const fare = call.fare ? ` Corrida estimada em ${brl(call.fare.total)}${call.fare.mult > 1 ? ', um pouco acima do normal pelo horário e pela procura' : ''}.` : '';
   return `Ok, chamando agora. ${call.serviceLabel} ${p.name}, nota ${String(p.rating).replace('.', ',')}, chega em ${call.eta} minutos.${vehicle}${fare}`;

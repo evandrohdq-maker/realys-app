@@ -14,6 +14,7 @@ import { colors, brl, soft } from '../theme';
 import { ServiceCallCard } from './cliente/ServicesScreen';
 import { Photo } from '../components/ui';
 import ProviderPreview from '../components/ProviderPreview';
+import WhenPicker, { whenText, whenStart } from '../components/WhenPicker';
 import LotusFlower, { FlyingPetal, MOODS, SIDE_W } from '../components/LotusFlower';
 import StarField, { skyBg } from '../components/StarField';
 import { getWeather, skyOf, weatherIcon } from '../weather';
@@ -1500,12 +1501,26 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
   }, [wakeLive]);
 
   // Chamar um prestador sempre passa pela Lotus (contato taxado pela plataforma).
+  // Antes, pergunta PARA QUANDO: agora, um turno (manhã, tarde, noite), um horário exato ou a combinar.
+  const [whenFor, setWhenFor] = useState(null); // prestador esperando a escolha do horário
   const callProvider = (p) => {
     setPreview(null);
+    setWhenFor(p);
+  };
+  const confirmCallAt = (p, choice) => {
+    setWhenFor(null);
     const call = buildServiceCall(state, '', p.service);
     call.provider = p;
+    const when = whenText(choice);
+    if (when) {
+      call.when = when;
+      call.whenAt = whenStart(choice);
+      call.combinar = choice.kind === 'combinar';
+      call.status = call.combinar ? `${call.serviceLabel}: horário a combinar` : `${call.serviceLabel} agendado · ${when}`;
+    }
     dispatch({ type: 'REQUEST_RIDE', ride: call });
-    run(`Chamar ${p.name}`, { reply: `${doneLine('contrato')} ${callReply(call)}`, call });
+    const label = when ? `Chamar ${p.name} · ${when}` : `Chamar ${p.name} agora`;
+    run(label, { reply: `${doneLine('contrato')} ${callReply(call)}`, call });
   };
 
   const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [36, 0] });
@@ -1801,6 +1816,14 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
             )}
           </View>
           <ProviderPreview provider={preview} onClose={() => setPreview(null)} onCall={callProvider} />
+          {whenFor ? (
+            <WhenPicker
+              provider={whenFor}
+              eta={(buildServiceCall(state, '', whenFor.service) || {}).eta}
+              onClose={() => setWhenFor(null)}
+              onPick={(c) => confirmCallAt(whenFor, c)}
+            />
+          ) : null}
         </Animated.View>
         {/* Sai da flor (no meio da caixa) e voa até a sacola, no topo do app */}
         <FlyingPetal
