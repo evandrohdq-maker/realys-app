@@ -26,6 +26,9 @@ jobs:
       - name: Instalar dependências (app + web)
         run: |
           npm install --legacy-peer-deps
+          # Mesmas versões compatíveis com o Expo que o APK usa (o --fix termina tentando escrever no
+          # app.config.js, que é gerado na hora; as versões já ficaram certas).
+          npx expo install --fix -- --legacy-peer-deps || true
           npx expo install react-native-web react-dom @expo/metro-runtime -- --legacy-peer-deps || true
           npm ls react-native-web react-dom @expo/metro-runtime || true
       - name: Gerar o site
