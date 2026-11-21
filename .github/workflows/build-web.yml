@@ -1,0 +1,39 @@
+name: Gerar o site do Re@lys
+
+# O site é gerado do MESMO código do APK (React Native Web): tudo que tem no app aparece no site,
+# e toda mudança no app já vale para o site.
+on:
+  push:
+    branches: [main, site]
+    paths-ignore:
+      - 'server/**'
+      - 'PENDENCIAS.md'
+      - 'tools/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instalar dependências (app + web)
+        run: |
+          npm install --legacy-peer-deps
+          npx expo install react-native-web react-dom @expo/metro-runtime -- --legacy-peer-deps || true
+          npm ls react-native-web react-dom @expo/metro-runtime || true
+      - name: Gerar o site
+        run: npx expo export --platform web --output-dir dist
+        env:
+          CI: 1
+      - name: Guardar o site
+        uses: actions/upload-artifact@v4
+        with:
+          name: realys-site
+          path: dist
