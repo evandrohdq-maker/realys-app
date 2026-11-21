@@ -655,10 +655,13 @@ function Shell({ inviteTick }) {
               </View>
             ) : null}
           </TouchableOpacity>
-          {/* ⋮ no canto direito, em qualquer tela: Menu com Minha conta e Explorar. */}
-          <TouchableOpacity onPress={openMenuAnywhere} style={styles.iconBtn} accessibilityLabel="Abrir menu: minha conta e explorar o Realyz">
-            <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
-          </TouchableOpacity>
+          {/* ⋮ no canto direito, em qualquer tela: Menu com Minha conta e Explorar.
+              No computador não precisa: o "Explorar" do menu lateral faz a mesma coisa. */}
+          {desk ? null : (
+            <TouchableOpacity onPress={openMenuAnywhere} style={styles.iconBtn} accessibilityLabel="Abrir menu: minha conta e explorar o Realyz">
+              <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
       {/* Faixa de avisos: só aparece quando há algo (comanda do evento, mãos livres). */}

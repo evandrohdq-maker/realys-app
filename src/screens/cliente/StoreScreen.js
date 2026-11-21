@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
   // Food: as duas classes (Delivery e Reservas) e as subclasses de lugar
   modes: { flexDirection: 'row', marginBottom: 10 },
   mode: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 18, borderWidth: 1.5, borderColor: colors.borderStrong, paddingVertical: 12, paddingHorizontal: 12, marginHorizontal: 3 },
-  modeOn: { backgroundColor: colors.gold, borderColor: colors.gold },
+  modeOn: { backgroundColor: '#F6EDD6', borderColor: colors.gold }, // escolhido: dourado suave
   modeTitle: { color: colors.text, fontWeight: '800', fontSize: 15 },
   modeHint: { color: colors.menu, fontSize: 11, marginTop: 1 },
   tipos: { paddingHorizontal: 12, marginBottom: 8, marginTop: 2 },
