@@ -43,7 +43,8 @@ export default function ServerProviderPanel() {
     const stop = connectEvents((e) => {
       if (e.type !== 'call') return;
       load();
-      if (e.status === 'Solicitado' && e.providerId === me) Alert.alert('Novo chamado! 🔔', `${e.client} pediu ${e.service}${e.problem ? `: ${e.problem}` : ''}.`);
+      const d = e.data || {};
+      if (d.status === 'Solicitado' && d.providerId === me) Alert.alert('Novo chamado! 🔔', `${d.client} pediu ${d.service}${d.problem ? `: ${d.problem}` : ''}.`);
     });
     return () => {
       clearInterval(t);

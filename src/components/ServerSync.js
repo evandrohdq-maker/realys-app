@@ -48,7 +48,8 @@ export default function ServerSync() {
       if (e.type !== 'order') return;
       tudo();
       // Loja: chegou pedido novo pelo Realyz.
-      if (e.buyer) Alert.alert('Novo pedido! 🛍️', `${e.buyer} fez um pedido de R$ ${Number(e.total || 0).toFixed(2).replace('.', ',')}. Veja em Painel da empresa › Pedidos do Realyz.`);
+      const d = e.data || {};
+      if (d.buyer) Alert.alert('Novo pedido! 🛍️', `${d.buyer} fez um pedido de R$ ${Number(d.total || 0).toFixed(2).replace('.', ',')}. Veja em Painel da empresa › Pedidos do Realyz.`);
     });
     return () => {
       clearInterval(t);

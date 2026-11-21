@@ -639,6 +639,34 @@ const MIGRATIONS = [
   ALTER TABLE deposits ADD COLUMN expira_em INTEGER;
   CREATE INDEX deposits_txid ON deposits(txid);
   `,
+  // 22: atendente IA (ficha da empresa, conversas atendidas pela IA, mensagens escritas pela IA)
+  `
+  CREATE TABLE ia_fichas (
+    owner_id TEXT PRIMARY KEY REFERENCES users(id),
+    ligado INTEGER NOT NULL DEFAULT 0,
+    horario TEXT DEFAULT '',
+    entrega TEXT DEFAULT '',
+    pagamento TEXT DEFAULT '',
+    politicas TEXT DEFAULT '',
+    sobre TEXT DEFAULT '',
+    tom TEXT DEFAULT '',
+    faq TEXT,
+    ia_negocia INTEGER NOT NULL DEFAULT 0,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE TABLE ia_conversas (
+    owner_id TEXT NOT NULL REFERENCES users(id),
+    client_id TEXT NOT NULL REFERENCES users(id),
+    estado TEXT NOT NULL CHECK (estado IN ('ia','humano')),
+    etapa TEXT NOT NULL DEFAULT 'novo',
+    motivo TEXT,
+    resumo TEXT,
+    ia_msgs INTEGER NOT NULL DEFAULT 0,
+    updated_at INTEGER NOT NULL,
+    PRIMARY KEY (owner_id, client_id)
+  );
+  ALTER TABLE messages ADD COLUMN ia INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export function openDb(file) {

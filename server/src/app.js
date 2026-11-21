@@ -31,6 +31,9 @@ import { makeMatcher } from './biometria/matcher.js';
 import { makeBiometria } from './biometria/service.js';
 import { makeMaintenance } from './maintenance.js';
 import { makePix } from './pagamentos/pix.js';
+import { makeIA } from './ia/index.js';
+import { makeAtendente } from './ia/atendente.js';
+import iaRoutes from './routes/ia.js';
 
 // Dados públicos de uma pessoa (nunca devolve hash de senha nem documento completo).
 export function publicUser(u, { self = false } = {}) {
@@ -71,6 +74,9 @@ export function createApp(cfg) {
   // Pix de verdade dos depósitos (Santander). Sem credenciais no .env, fica desligado.
   const pix = cfg.pix || makePix(cfg);
   const deps = { db, cfg, wallet, hub, userById, publicUser, cipher, matcher, biometria, fiscal, pix };
+  // IA do Realyz (atendente das empresas e copiloto de vendas).
+  deps.ia = cfg.ia || makeIA(cfg);
+  deps.atendente = makeAtendente(deps);
   // Tentativas de login por IP (proteção contra quem tenta adivinhar senha).
   const attempts = new Map();
   deps.limitLogin = (key) => {
@@ -81,7 +87,7 @@ export function createApp(cfg) {
     attempts.set(key, a);
   };
   deps.clearLogin = (key) => attempts.delete(key);
-  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes].forEach((r) => r(router, deps));
+  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes].forEach((r) => r(router, deps));
   router.get('/health', () => ({ ok: true, name: 'Realyz', time: now() }), { auth: false });
 
   // Administrador inicial (ADMIN_PASSWORD no .env).

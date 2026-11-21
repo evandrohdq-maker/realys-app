@@ -9,6 +9,7 @@ import { serviceTypes } from '../../data';
 import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Button, Stat, Section, Empty, Badge, Input, Chip } from '../../components/ui';
 import ServerProviderPanel from '../../components/ServerProviderPanel';
+import AtendenteIA from '../../components/AtendenteIA';
 import {
   isVisitService,
   visitFee,
@@ -201,6 +202,7 @@ function DriverMain({ goTo, onCadastro }) {
       <Title sub="Motorista, motoboy, eletricista, mecânico, diarista e qualquer MEI">Painel do prestador</Title>
       {/* Chamados de clientes de verdade, pelo servidor do Realyz (só com a conta ligada ao servidor). */}
       <ServerProviderPanel />
+      <AtendenteIA />
       <BoostButton target="prestador" label="Boost: trabalho mais rápido" hint="Fique no topo das indicações da sua região por algumas horas" />
       <Button title="Cadastro, empresa e mandados de serviço" variant="light" onPress={onCadastro} style={{ marginBottom: 12 }} />
       <UnmetServices />

@@ -7,6 +7,7 @@ import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf, cartTotal } from '../../store';
 import { finalizarCompra, aPagar } from '../../serverShop';
+import { api } from '../../api';
 import { colors, brl, soft } from '../../theme';
 import { SearchBar, GlobalResults } from '../../components/Search';
 import { Screen, Photo, Badge, Row, Button, Input, ProductThumb, Chip, Card, Section, Empty } from '../../components/ui';
@@ -230,6 +231,21 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
           <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.back}>‹ {food ? 'Todos os restaurantes e bares' : 'Todas as lojas'}</Text>
         </TouchableOpacity>
         <Photo uri={s.cover} style={styles.cover} fallback={s.logo} />
+        {/* Loja de verdade (servidor): conversa com a loja pelo Realyz (o atendente IA responde na hora, se ela ligou). */}
+        {s.serverId ? (
+          <TouchableOpacity
+            onPress={() =>
+              api('GET', `/companies/${s.serverId}`)
+                .then((c) => dispatch({ type: 'OPEN_SERVER_CHAT', userId: c.ownerId, name: c.name }))
+                .catch((e) => Alert.alert('Não deu para abrir a conversa', e.message))
+            }
+            style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', marginTop: 10, paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, backgroundColor: '#F6EDD6' }}
+            accessibilityLabel="Conversar com a loja"
+          >
+            <Ionicons name="chatbubbles-outline" size={16} color={colors.text} />
+            <Text style={{ marginLeft: 6, fontWeight: '700', color: colors.text }}>Conversar com a loja</Text>
+          </TouchableOpacity>
+        ) : null}
         <Row style={{ marginTop: 12, marginBottom: 4 }}>
           <Text style={styles.h1}>
             {s.logo} {s.name}

@@ -425,3 +425,12 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
 - [ ] Quando o domínio estiver definido: ligar os App Links do Android (o link https abrir o app direto,
       sem passar pela página). Hoje a página tem o botão "Já tenho o Re@lys: entrar na chamada".
 - [ ] Voz real da Arena entre celulares (hoje a sala de voz e o "aceitou o convite" são demonstração).
+
+## IA própria do Realyz (nov/2026)
+- [x] Atendente IA (SDR) para empresas e prestadores: ficha da empresa + catálogo, IA leve sem modelo,
+      modelo aberto gratuito no servidor (Ollama, qwen2.5:3b), passagem para a equipe (pedido, reclamação,
+      negociação), conversas no painel, assumir/devolver, copiloto do closer (sugestão que a pessoa revisa).
+- [x] Conversa cliente ⇄ loja pelo servidor ("Conversar com a loja" nas lojas de verdade).
+- [ ] Na VPS: bash deploy/ia.sh e IA_URL/IA_MODEL no .env (precisa de ~3 GB de memória livre).
+- [ ] Próximo: suporte do próprio Realyz pela mesma IA (base de conhecimento do app e dos termos),
+      relatórios do atendente (quantas conversas, quantas viraram venda) e plano pago para empresas.

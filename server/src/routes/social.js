@@ -4,7 +4,7 @@ import { fail, newId, now, str, oneOf } from '../http.js';
 
 const pair = (a, b) => (a < b ? [a, b] : [b, a]);
 
-export default function socialRoutes(r, { db, hub, userById, publicUser }) {
+export default function socialRoutes(r, { db, hub, userById, publicUser, atendente }) {
   const friendship = (a, b) => {
     const [x, y] = pair(a, b);
     return db.prepare('SELECT * FROM friends WHERE a_id = ? AND b_id = ?').get(x, y);
@@ -164,6 +164,8 @@ export default function socialRoutes(r, { db, hub, userById, publicUser }) {
     }
     db.prepare('INSERT INTO messages (id, from_id, to_id, text, created_at) VALUES (?,?,?,?,?)').run(id, user.id, to.id, msg.text, msg.at);
     hub.send(to.id, 'message', { ...msg, fromName: user.name });
+    // Atendente IA da empresa/prestador (se estiver ligado): responde em seguida, sem travar esta mensagem.
+    if (atendente) setImmediate(() => atendente.aoReceber(msg).catch(() => {}));
     return msg;
   }, { status: 201 });
 
@@ -183,7 +185,7 @@ export default function socialRoutes(r, { db, hub, userById, publicUser }) {
     const other = String(params.userId);
     const before = Number(query.before || now() + 1);
     db.prepare('UPDATE messages SET read_at = ? WHERE from_id = ? AND to_id = ? AND read_at IS NULL').run(now(), other, user.id);
-    return db.prepare('SELECT id, from_id AS "from", to_id AS "to", text, created_at AS at, read_at AS readAt FROM messages WHERE ((from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?)) AND created_at < ? ORDER BY created_at DESC LIMIT 100')
+    return db.prepare('SELECT id, from_id AS "from", to_id AS "to", text, created_at AS at, read_at AS readAt, ia FROM messages WHERE ((from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?)) AND created_at < ? ORDER BY created_at DESC LIMIT 100')
       .all(user.id, other, other, user.id, before).reverse();
   });
 

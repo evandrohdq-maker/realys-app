@@ -522,6 +522,10 @@ function baseReducer(state, a) {
       a.ids.forEach((id) => (bought[id] = true));
       return { ...state, boughtMedia: bought, musicCart: (state.musicCart || []).filter((x) => !a.ids.includes(x.id)) };
     }
+    case 'OPEN_SERVER_CHAT':
+      return { ...state, serverChat: { userId: a.userId, name: a.name } };
+    case 'CLOSE_SERVER_CHAT':
+      return { ...state, serverChat: null };
     case 'SERVER_WALLET':
       return { ...state, wallet: a.balance, giftCredits: a.giftCredits };
     case 'SERVER_ORDERS_PLACED': {

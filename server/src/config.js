@@ -66,6 +66,10 @@ export function loadConfig(overrides = {}) {
     // Músicas: R$ 0,99 fixos por download, somados ao valor do artista (mínimo R$ 0,50 para o artista).
     musicFee: num(env.MUSIC_FEE, 0.99),
     musicArtistMin: num(env.MUSIC_ARTIST_MIN, 0.5),
+    // IA própria do Realyz: modelo aberto no servidor (Ollama). Vazio = IA leve (ficha e catálogo, sem modelo).
+    iaUrl: env.IA_URL || '',
+    iaModel: env.IA_MODEL || 'qwen2.5:3b',
+    iaTimeoutMs: num(env.IA_TIMEOUT_MS, 45000),
     // Taxa de proteção Realyz: valor fixo por compra (carrinho), pago pelo cliente, a qualquer hora (sem taxa noturna).
     protectionFee: num(env.PROTECTION_FEE, 0.99),
     withdrawMin: num(env.WITHDRAW_MIN, 10),

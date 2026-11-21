@@ -57,6 +57,7 @@ import SecurityEvents from './src/components/SecurityEvents';
 import DeskShell, { useDesktop } from './src/web/DeskShell';
 import Landing from './src/web/Landing';
 import ServerSync from './src/components/ServerSync';
+import ChatServidor from './src/components/ChatServidor';
 import { FavLiveAlerts } from './src/components/FavKit';
 import { useFavs } from './src/favorites';
 import { SoftAlertHost, installSoftAlert } from './src/components/SoftAlert';
@@ -747,6 +748,7 @@ function Shell({ inviteTick }) {
       <LotusSOS />
       <SecurityEvents />
       <ServerSync />
+      <ChatServidor />
       <FavLiveAlerts />
       <AccountBlocked />
       <WakeWordListener
