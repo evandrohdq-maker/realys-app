@@ -1,8 +1,8 @@
 name: Publicar o site do Re@lys
 
 # O mesmo app do APK, no navegador. Roda a cada envio para a main (mudanças do app) ou pela aba "Actions".
-# Publica no GitHub Pages: https://evandrohdq-maker.github.io/realys-app/
-# Domínio próprio depois (ex.: realyz.com.br): mude WEB_BASE para "" e crie o arquivo CNAME (ver LEIA-ME do site).
+# Publica no GitHub Pages, no domínio próprio https://realyz.com.br
+# (Settings › Pages › Custom domain = realyz.com.br; DNS no Registro.br apontando para o GitHub Pages).
 on:
   push:
     branches: [main]
@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      WEB_BASE: /realys-app
+      WEB_BASE: ''
       BUILD_NUMBER: ${{ github.run_number }}
     steps:
       - name: Baixar o código
@@ -56,6 +56,7 @@ jobs:
         run: |
           cp dist/index.html dist/404.html   # qualquer endereço abre o app
           touch dist/.nojekyll
+          echo "realyz.com.br" > dist/CNAME
           ls -la dist
 
       - name: Testar o site no navegador (erros e fotos da tela vão para a branch site-check)
