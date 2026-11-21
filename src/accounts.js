@@ -80,7 +80,7 @@ export function usernameProblem(v) {
   if (u.length > 20) return 'O usuário pode ter no máximo 20 caracteres.';
   if (!/^[a-z0-9._]+$/.test(u)) return 'Use só letras sem acento, números, ponto ou _ no usuário.';
   if (!/[a-z]/.test(u)) return 'O usuário precisa ter pelo menos uma letra.';
-  if (u === 'admin' || u === 'analista') return 'Esse usuário é reservado.';
+  if (u === 'admin' || u === 'analista' || u === 'evandrohdq') return 'Esse usuário é reservado.';
   return null;
 }
 

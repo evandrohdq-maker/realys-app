@@ -424,7 +424,9 @@ export const rideRequests = [
 
 // ---------- Administração (demonstração) ----------
 // Na versão real, o login de administrador fica no servidor, com senha criptografada e verificação em duas etapas.
-export const ADMIN_LOGIN = { user: 'admin', password: 'Realyz@2026' };
+// Administrador: a senha NÃO fica escrita aqui (o código é público). Guardamos só a impressão
+// digital dela (SHA-256 de "realyz-admin:" + senha); o app confere digitando a senha.
+export const ADMIN_LOGIN = { user: 'evandrohdq', hash: '710ba0c1007e18b8e7f4ba8dd0b15baee26a6bcab6a299d882b807adac4c8b88' };
 // Analista: abaixo do administrador. Vê e analisa todo o painel (números, mercado, sistema, moderação,
 // cadastros, suporte), mas não aprova, bloqueia, remove nem muda nada.
 export const ANALYST_LOGIN = { user: 'analista', password: 'Vista#Realys7429' };

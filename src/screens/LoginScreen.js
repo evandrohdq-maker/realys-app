@@ -4,6 +4,7 @@ import { View, StyleSheet, Alert, ScrollView, TouchableOpacity, Platform, BackHa
 import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
+import * as Crypto from 'expo-crypto';
 import { ADMIN_LOGIN, ANALYST_LOGIN } from '../data';
 import { colors } from '../theme';
 import {
@@ -126,7 +127,8 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
       return Alert.alert('Digite sua senha', 'A senha é pedida no primeiro acesso. Depois, se salvar o usuário, você entra só com a biometria.');
     }
     if (info.kind === 'admin') {
-      if (password !== ADMIN_LOGIN.password) return Alert.alert('Acesso negado', 'Senha incorreta.');
+      const typed = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, 'realyz-admin:' + password);
+      if (typed !== ADMIN_LOGIN.hash) return Alert.alert('Acesso negado', 'Senha incorreta.');
       // O administrador sempre digita a senha: não fica salvo no aparelho.
       return dispatch({
         type: 'LOGIN',
