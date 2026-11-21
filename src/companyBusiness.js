@@ -1,7 +1,7 @@
 // Página empresarial: onde cada empresa atua, os segmentos de cada área, onde atende,
 // vitrine, depoimentos de quem comprou e vídeos de propaganda.
 // Tudo fictício, para demonstração. A minha empresa (MY_COMPANY_ID) edita na aba Página.
-import { MY_COMPANY_ID } from './data';
+import { MY_COMPANY_ID, isFoodStore } from './data';
 
 const pic = (seed, w = 640, h = 360) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
 
@@ -287,3 +287,14 @@ export const ratingOf = (reviews) => {
   if (!list.length) return null;
   return +(list.reduce((s, x) => s + x.stars, 0) / list.length).toFixed(1);
 };
+
+// A minha empresa é do ramo de alimentação? Vale o que ela marcou em "Onde atua" (Alimentação ou
+// Mercado). Sem nada marcado ainda, vale a categoria da loja. Só empresa de alimentação vê o que é
+// de comida (cardápio, tele grátis, dicas de compra de alimentos): as outras ficam sem nada disso.
+export const FOOD_SECTOR_KEYS = ['alimentacao', 'mercado'];
+export function isFoodBusiness(state) {
+  const b = businessOf(state, MY_COMPANY_ID);
+  const keys = Object.keys(b.sectors || {}).filter((k) => sectorByKey(k));
+  if (keys.length) return keys.some((k) => FOOD_SECTOR_KEYS.includes(k));
+  return isFoodStore((state.stores || []).find((s) => s.id === MY_COMPANY_ID));
+}

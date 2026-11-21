@@ -53,6 +53,10 @@ export const POINT_SHOP = [
   { id: 'bl1', target: 'live', icon: '🔴', title: 'Boost de live 30 min', desc: 'Sua live no "Em destaque" do assunto', hours: 0.5, points: 300, money: 4.9 },
   { id: 'ba1', target: 'anuncio', icon: '📺', title: 'Anúncio de 30 s · horário padrão', desc: 'Entre os clipes do Shop e do Food, horário comercial', hours: 24, points: 1000, money: 19.9 },
   { id: 'ba2', target: 'anuncio', icon: '🌟', title: 'Anúncio de 30 s · horário nobre', desc: 'Das 18h às 22h, quando mais gente está no app', hours: 24, points: 2500, money: 49.9 },
+  // Vitrine de shows do artista (src/artistShows.js): primeiro em Artistas e nas buscas por show.
+  { id: 'bh1', target: 'artista', icon: '🎤', title: 'Vitrine de shows em destaque · 24 h', desc: 'Primeiro em Artistas › Contrate para o seu evento e nas buscas por show', hours: 24, points: 990, money: 9.9 },
+  { id: 'bh2', target: 'artista', icon: '🌟', title: 'Vitrine de shows em destaque · 7 dias', desc: 'A semana inteira no topo, com o selo Em destaque', hours: 168, points: 4990, money: 49.9 },
+  { id: 'bh3', target: 'artista', icon: '⭕', title: 'Story patrocinado do show · 24 h', desc: 'A arte do seu show na faixa de stories da Community, com o botão Contratar', hours: 24, points: 990, money: 9.9 },
   // Espaços de publicidade (valores definidos em 14/11/2026; referências em src/taxas.js › publicidade).
   { id: 'bs1', target: 'anuncio', icon: '⭕', title: 'Story patrocinado · 24 h', desc: 'Seu story na faixa da Community, com botão de oferta', hours: 24, points: 990, money: 9.9 },
   { id: 'bb1', target: 'anuncio', icon: '🔎', title: 'Patrocinado nas buscas · 24 h', desc: 'Sua loja em primeiro lugar nas buscas e na lista da categoria', hours: 24, points: 1490, money: 14.9 },
@@ -71,6 +75,7 @@ export const BOOST_TARGETS = {
   post: 'Community',
   live: 'Lives',
   anuncio: 'Anúncios',
+  artista: 'Vitrine de shows',
 };
 export const pointOffer = (id) => POINT_SHOP.find((o) => o.id === id);
 // Boost ainda valendo para este alvo (o mais longo).

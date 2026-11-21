@@ -797,7 +797,7 @@ function HighlightComposer({ visible, onClose }) {
   }, [visible]);
 
   const options = [
-    ...state.myStories.map((s) => ({ key: 'st-' + s.id, story: s, preview: s.image, label: 'Seu story' })),
+    ...state.myStories.map((s) => ({ key: 'st-' + s.id, story: s, preview: s.image || (s.showCard && s.showCard.foto), label: 'Seu story' })),
     ...state.myGallery.photos.map((p) => ({ key: 'ph-' + p.id, preview: p.uri, label: 'Galeria' })),
     ...STORY_SAMPLE_PHOTOS.map((u, i) => ({ key: 'sm-' + i, preview: u, label: 'Exemplo' })),
   ];

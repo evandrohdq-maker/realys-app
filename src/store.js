@@ -1847,6 +1847,20 @@ function baseReducer(state, a) {
     case 'ONLINE_CANCEL':
       return { ...state, onlineAppts: (state.onlineAppts || []).filter((x) => x.id !== a.id) };
 
+    // ---------- Contratação de artistas (src/artistShows.js) ----------
+    // Cachê pago: sai do saldo (presentes primeiro) e fica retido até o show acontecer.
+    case 'SHOW_HOLD': {
+      if (state.wallet + state.giftCredits < a.amount) return state;
+      const fromGift = +Math.min(state.giftCredits, a.amount).toFixed(2);
+      return { ...state, wallet: +(state.wallet - (a.amount - fromGift)).toFixed(2), giftCredits: +(state.giftCredits - fromGift).toFixed(2) };
+    }
+    // Recusado ou cancelado no prazo: o dinheiro volta para o mesmo bolso de onde saiu.
+    case 'SHOW_REFUND':
+      return { ...state, wallet: +(state.wallet + a.amount - (a.fromGift || 0)).toFixed(2), giftCredits: +(state.giftCredits + (a.fromGift || 0)).toFixed(2) };
+    // Show realizado na minha vitrine: o cachê (menos 10%) e o deslocamento entram no meu saldo.
+    case 'SHOW_PAYOUT':
+      return { ...state, wallet: +(state.wallet + a.amount).toFixed(2) };
+
     // ---------- Serviços por visita (src/serviceVisits.js) ----------
     // Cliente pede a visita: a taxa sai do saldo e fica retida até a visita ser confirmada.
     case 'VISIT_REQUEST': {

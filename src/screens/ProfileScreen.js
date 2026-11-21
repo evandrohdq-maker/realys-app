@@ -27,6 +27,7 @@ import WalletScreen from './WalletScreen';
 import BiometriaScreen from './BiometriaScreen';
 import DemoScreen from './DemoScreen';
 import { ProfileEditor, PrivacyPanel, StudioPanel, FutureIcon, audienceLabel, coverTone } from '../components/ProfileStudio';
+import { ShowsPanel } from '../components/ArtistShowEditor';
 import { Photo } from '../components/ui';
 import { myPages, MAX_PAGES } from '../userPages';
 import Credentials from '../components/Credentials';
@@ -397,6 +398,12 @@ export default function ProfileScreen({ navigate, explore }) {
         {state.activeRole !== 'empresa' ? (
           <Item open={open} onToggle={toggle} k="estudio" icon="rocket-outline" title="Estúdio Realyz" sub="Para artistas, músicos e criadores de conteúdo">
             <StudioPanel />
+          </Item>
+        ) : null}
+        {/* Shows e contratação: vitrine de shows da classe Artistas (cachês, agenda, onde atende, divulgação e pedidos). */}
+        {state.activeRole !== 'empresa' ? (
+          <Item open={open} onToggle={toggle} k="shows" icon="mic-outline" title="Shows e contratação" sub="Cachês, agenda e pedidos de show">
+            <ShowsPanel />
           </Item>
         ) : (
           <Item open={open} onToggle={toggle} icon="megaphone-outline" title="Anúncios e propaganda" sub="Espaços de anúncio e reels de anúncio" onPress={() => nav({ tab: 'anuncie' })} />

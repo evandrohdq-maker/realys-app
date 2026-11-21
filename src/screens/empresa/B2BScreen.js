@@ -5,6 +5,7 @@ import { View, Alert, TouchableOpacity, ScrollView, StyleSheet } from 'react-nat
 import { Text } from '../../responsive';
 import { useStore } from '../../store';
 import { MY_COMPANY_ID } from '../../data';
+import { isFoodBusiness } from '../../companyBusiness';
 import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Button, Input, Badge, Section, Photo } from '../../components/ui';
 import { hasPromo, unitPriceOf, coverOf } from '../../supplierShop';
@@ -133,6 +134,8 @@ export default function B2BScreen() {
         })}
       </Section>
 
+      {/* Compra coletiva de exemplo (óleo de soja): só para empresa do ramo de alimentação. */}
+      {isFoodBusiness(state) ? (
       <Card style={{ backgroundColor: '#EFEAFF', borderColor: '#CFC6FF' }}>
         <Text style={{ fontWeight: '700', color: colors.sponsored }}>🤝 Compra coletiva aberta</Text>
         <Text style={{ marginTop: 4, color: colors.text, fontSize: 13 }}>
@@ -144,13 +147,17 @@ export default function B2BScreen() {
         </View>
         <Button small title="Participar" variant="dark" onPress={() => Alert.alert('Você entrou na compra coletiva!')} />
       </Card>
+      ) : null}
 
+      {/* Dica de compra de alimento: só para empresa do ramo de alimentação. */}
+      {isFoodBusiness(state) ? (
       <Card style={{ backgroundColor: '#FFF4DC', borderColor: '#E9CF95' }}>
         <Text style={{ fontSize: 13, color: colors.text }}>
           🤖 Você paga {brl(6.1)} no Feijão Carioca. A Distribuidora Real Alimentos, a 92 km, vende por {brl(5.6)} e dá até
           10% em volume.
         </Text>
       </Card>
+      ) : null}
 
       <Section title="Catálogo atacado">
         {catalog.map((item) => {

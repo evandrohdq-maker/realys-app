@@ -1,3 +1,5 @@
+import { HireButton } from './ArtistBooking';
+import { artistByRef } from '../artistShows';
 import { addOrChoose, openProduct } from './ProductSheet';
 import React, { useState, useEffect } from 'react';
 import { LiveNowBadge } from './LiveBits';
@@ -223,6 +225,7 @@ export function CompanyProfileModal() {
 ) : null}
           </Row>
           {lead.modal}
+          {isArtist ? <HireButton artist={artistByRef('company', p.id)} before={close} /> : null}
 
           <Row style={styles.tabs}>
             {tabs.map(([k, label]) => (
