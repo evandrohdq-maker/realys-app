@@ -339,7 +339,7 @@ function ProductCard({ x, onAdd, big }) {
   return (
     <View style={[styles.pCard, big && styles.pCardBig]}>
       {big ? <View style={styles.pGlow} /> : null}
-      <ProductThumb product={x} size={big ? 110 : 84} />
+      <TouchableOpacity activeOpacity={0.85} onPress={() => openProduct(x)} accessibilityLabel={`Ver ${x.name}`}><ProductThumb product={x} size={big ? 110 : 84} /></TouchableOpacity>
       {x.launch ? <Text style={styles.launch}>LANÇAMENTO</Text> : null}
       <Text style={[styles.title, { textAlign: 'center', marginTop: 4 }]} numberOfLines={2}>{x.name}</Text>
       {big && x.launch ? <Text style={[styles.sub, { textAlign: 'center' }]} numberOfLines={2}>{x.launch.note}</Text> : null}

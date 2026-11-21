@@ -1,3 +1,4 @@
+import { openProduct } from '../../../components/ProductSheet';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Share, Platform, ToastAndroid, Dimensions } from 'react-native';
 import { Text, TextInput } from '../../../responsive';
@@ -502,7 +503,7 @@ function PromoTab() {
         return (
           <View key={p.id} style={styles.promo}>
             <View>
-              <ProductThumb product={p} size={74} />
+              <TouchableOpacity activeOpacity={0.85} onPress={() => openProduct(p)} accessibilityLabel={`Ver ${p.name}`}><ProductThumb product={p} size={74} /></TouchableOpacity>
               <View style={styles.offBadge}>
                 <Text style={styles.offText}>-{off}%</Text>
               </View>

@@ -33,20 +33,21 @@ export function LaunchStrip({ title = '🚀 Lançamentos das lojas', only }) {
           const store = storeOf(state, p.storeId) || {};
           return (
             <View key={p.id} style={styles.card}>
-              <View style={styles.media}>
+              {/* Tocar no produto abre a prévia dele (fotos, opções, ficha), no app e no site. */}
+              <TouchableOpacity activeOpacity={0.88} style={styles.media} onPress={() => openProduct(p)} accessibilityLabel={`Ver ${p.name}`}>
                 <ProductThumb product={p} size={92} />
                 <View style={styles.newTag}>
                   <Text style={styles.newText}>NOVO</Text>
                 </View>
                 <TouchableOpacity
                   style={styles.play}
-                  onPress={() => Alert.alert('Vídeo de lançamento', `${store.name} apresenta: ${p.name}.\n\nNa versão real, a loja grava um vídeo curto mostrando o produto.`)}
-                  accessibilityLabel={`Ver vídeo do lançamento ${p.name}`}
+                  onPress={() => openProduct(p)}
+                  accessibilityLabel={`Ver o lançamento ${p.name}`}
                 >
                   <Ionicons name="play" size={14} color={colors.onPrimary} />
                 </TouchableOpacity>
-              </View>
-              <Text numberOfLines={2} style={styles.name}>{p.name}</Text>
+              </TouchableOpacity>
+              <Text numberOfLines={2} style={styles.name} onPress={() => openProduct(p)}>{p.name}</Text>
               <TouchableOpacity onPress={() => dispatch({ type: 'OPEN_COMPANY', id: p.storeId })}>
                 <Text numberOfLines={1} style={styles.store}>{store.logo} {store.name}</Text>
               </TouchableOpacity>
