@@ -130,7 +130,8 @@ export function UserProfileModal() {
   return (
     <Modal visible animationType="slide" onRequestClose={close}><KeyboardLift style={{ flex: 1 }}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
-        <Photo uri={`https://picsum.photos/seed/realys-cover-${m.id}/900/400`} style={{ width: '100%', height: 150 }} />
+        {/* Capa no formato 3:1 (acompanha a largura sem esticar nem distorcer) e em resolução maior. */}
+        <Photo uri={`https://picsum.photos/seed/realys-cover-${m.id}/1500/500`} style={{ width: '100%', aspectRatio: 3, maxHeight: 260 }} />
         <TouchableOpacity onPress={close} style={[styles.back, { top: insets.top + 10 }]} accessibilityLabel="Voltar">
           <Ionicons name="arrow-back" size={20} color={colors.text} />
         </TouchableOpacity>

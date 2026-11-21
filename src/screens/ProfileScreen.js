@@ -575,7 +575,8 @@ export default function ProfileScreen({ navigate, explore }) {
 }
 
 const styles = StyleSheet.create({
-  banner: { height: 120, borderRadius: 22, overflow: 'hidden', marginTop: 4 },
+  // Capa 3:1: acompanha a largura (celular ou computador) sem distorcer.
+  banner: { width: '100%', aspectRatio: 3, minHeight: 110, maxHeight: 260, borderRadius: 22, overflow: 'hidden', marginTop: 4 },
   bannerImg: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
   coverEdit: { position: 'absolute', left: 12, top: 12, width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(20,18,14,0.45)', alignItems: 'center', justifyContent: 'center' },
   bannerGlow: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(255,240,190,0.25)' },
