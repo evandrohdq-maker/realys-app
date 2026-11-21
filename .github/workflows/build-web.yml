@@ -44,7 +44,8 @@ jobs:
           npx expo install react-dom react-native-web @expo/metro-runtime -- --legacy-peer-deps || npm install --legacy-peer-deps react-dom react-native-web @expo/metro-runtime
 
       - name: Gravar o número da versão
-        run: echo "{ \"build\": $BUILD_NUMBER }" > src/build.json
+        run: |
+          echo "{ \"build\": $BUILD_NUMBER }" > src/build.json
 
       - name: Gerar o site
         run: npx expo export --platform web --output-dir dist
