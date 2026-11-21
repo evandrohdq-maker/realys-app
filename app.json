@@ -87,6 +87,13 @@
         {
           "locationWhenInUsePermission": "O Realyz usa sua localização para mostrar o tempo e a temperatura onde você está e os prestadores mais próximos."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#B8860B",
+          "defaultChannel": "geral"
+        }
       ]
     ],
     "icon": "./assets/icon.png",

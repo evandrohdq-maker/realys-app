@@ -94,6 +94,12 @@ export class Hub {
   }
   // Envia um aviso para todos os aparelhos conectados de uma pessoa.
   send(userId, type, data) {
+    // Também vira notificação push (app fechado, site fora da tela). Ver push.js.
+    if (this.push) {
+      try {
+        this.push.notify(userId, type, data);
+      } catch (e) {}
+    }
     const set = this.clients.get(userId);
     if (!set) return;
     const f = frame(JSON.stringify({ type, data, at: Date.now() }));

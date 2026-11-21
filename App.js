@@ -117,6 +117,7 @@ import { ElectronicsScreen, FashionScreen, HomeGoodsScreen, AppliancesScreen, Fu
 import { SHOP_SECTORS } from './src/shopSectorsData';
 import SwipePages from './src/components/SwipePages';
 import { KeyboardLift } from './src/keyboard';
+import { ligarPush, onPushOpen } from './src/push';
 
 // Cada perfil enxerga abas diferentes dentro do MESMO app.
 const TABS = {
@@ -433,6 +434,25 @@ function Shell({ inviteTick }) {
     return () => sub.remove();
   }, []);
 
+  // Notificações push: liga quando a pessoa entra na conta do servidor. Tocar numa notificação abre
+  // a tela certa (mensagem, pedido, chamada, carteira...).
+  const logado = !!(state.user && state.user.serverId);
+  const pickRef = useRef(null);
+  useEffect(() => {
+    if (!logado) return;
+    ligarPush();
+    onPushOpen(({ type }) => {
+      const go =
+        type === 'order' || type === 'ticket' ? { tab: 'pedidos' }
+        : type === 'gift' || type === 'payment' || type === 'deposit' || type === 'withdrawal' ? { tab: 'perfil' }
+        : type === 'call' ? { tab: 'servicos' }
+        : { tab: 'inicio' };
+      try {
+        pickRef.current && pickRef.current(go);
+      } catch (e) {}
+    });
+  }, [logado]);
+
   // Site (realyz.com.br) no celular: o voltar do Android/navegador volta dentro do app (fecha a
   // janela aberta, a rádio, a sub-aba, a aba) em vez de sair do site. Guardamos sempre um passo
   // "de reserva" no histórico do navegador; só sai do site com dois toques seguidos na tela inicial.
@@ -588,6 +608,7 @@ function Shell({ inviteTick }) {
     }
     switchRole(role, go.tab);
   };
+  pickRef.current = pick;
 
 
   // Teste automático do site (?teste=1): deixa o robô navegar por todas as áreas e perfis.

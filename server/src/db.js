@@ -667,6 +667,16 @@ const MIGRATIONS = [
   );
   ALTER TABLE messages ADD COLUMN ia INTEGER NOT NULL DEFAULT 0;
   `,
+  // Notificações push: um registro por aparelho (FCM no APK, assinatura Web Push no site).
+  `
+  CREATE TABLE IF NOT EXISTS push_tokens (
+    token TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS push_tokens_user ON push_tokens (user_id);
+  `,
 ];
 
 export function openDb(file) {

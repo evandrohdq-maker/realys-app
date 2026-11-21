@@ -66,7 +66,8 @@ export async function entrarOuMigrar(loginText, password, acc) {
 
 // Troca a conta usada nas chamadas ao servidor (cada conta salva tem a sua sessão).
 export const usarConta = (user) => setServerAccount(user && user.serverId);
-export const sairDoServidor = () => (serverOn() ? apiLogout() : Promise.resolve());
+// Sair: antes, este aparelho para de receber as notificações push da conta.
+export const sairDoServidor = () => (serverOn() ? require('./push').desligarPush().then(() => apiLogout()) : Promise.resolve());
 
 // Conta que existe no servidor mas não neste celular (cadastrada em outro aparelho).
 export function userFromServer(u) {

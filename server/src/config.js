@@ -76,6 +76,10 @@ export function loadConfig(overrides = {}) {
     // Servidor de vídeo próprio (MediaMTX + coturn numa VPS, ver deploy/video/LEIA-ME.md).
     // Vazio = ainda não contratado: as lives ficam no modo demonstração.
     // E-mail (código do e-mail institucional). Serviço Resend: RESEND_API_KEY e EMAIL_FROM.
+    // Notificações push. FCM_SERVICE_ACCOUNT: arquivo JSON da conta de serviço do Firebase (APK).
+    // O site usa Web Push com chaves criadas sozinhas em DATA_DIR/vapid.json.
+    fcmServiceAccount: env.FCM_SERVICE_ACCOUNT || '',
+    pushContato: env.PUSH_CONTATO || 'mailto:contato@realyz.com.br',
     resendKey: env.RESEND_API_KEY || '',
     emailFrom: env.EMAIL_FROM || 'Realyz <nao-responda@realyz.com.br>',
     // Consulta de médicos do CFM (contratada à parte). Sem chave, a conferência fica manual.

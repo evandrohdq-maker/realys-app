@@ -54,6 +54,17 @@ jobs:
           echo "{ \"build\": $BUILD_NUMBER }" > src/build.json
           cat src/build.json
 
+      - name: Arquivo do Firebase (notificações push)
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            printf '%s' "$GOOGLE_SERVICES_JSON" > google-services.json
+            echo "Firebase: ligado (push no APK)"
+          else
+            echo "Firebase: segredo GOOGLE_SERVICES_JSON ainda não cadastrado; APK sem push"
+          fi
+
       - name: Gerar projeto Android
         run: npx expo prebuild --platform android --no-install
         env:
