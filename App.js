@@ -58,6 +58,7 @@ import DeskShell, { useDesktop } from './src/web/DeskShell';
 import Landing from './src/web/Landing';
 import ServerSync from './src/components/ServerSync';
 import ChatServidor from './src/components/ChatServidor';
+import TelaSegura from './src/components/TelaSegura';
 import { FavLiveAlerts } from './src/components/FavKit';
 import { useFavs } from './src/favorites';
 import { SoftAlertHost, installSoftAlert } from './src/components/SoftAlert';
@@ -553,6 +554,12 @@ function Shell({ inviteTick }) {
   };
 
 
+  // Teste automático do site (?teste=1): deixa o robô navegar por todas as áreas e perfis.
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined' || !/teste=1/.test(window.location.search)) return;
+    window.__rz = { pick, switchRole, tabs: TABS, roles: state.user.roles };
+  });
+
   // Componentes (carrinho, cartões de aviso...) pedem para ir a uma área: dispatch({ type: 'NAV_REQUEST', go }).
   useEffect(() => {
     if (state.navReq) pick(state.navReq.go);
@@ -665,7 +672,9 @@ function Shell({ inviteTick }) {
       {/* Empresa: primeiro menu, no alto da tela */}
       {topMenu.length && !desk ? <View style={styles.topMenu}>{topMenu.map((t) => renderTab(t, true))}</View> : null}
       <SwipePages onLeft={swipe.left} onRight={swipe.right}>
-        <Comp goTo={setTab} openVoice={() => setVoice(true)} explore={explore} openArea={openArea} navigate={pick} onTop={setCommTop} />
+        <TelaSegura nome={state.activeRole + ':' + current.key} onInicio={backHome}>
+          <Comp goTo={setTab} openVoice={() => setVoice(true)} explore={explore} openArea={openArea} navigate={pick} onTop={setCommTop} />
+        </TelaSegura>
       </SwipePages>
 
       {/* Rádio tocando: barrinha em qualquer tela (o player é um só no app). */}

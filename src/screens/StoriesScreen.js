@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { KeyboardLift } from '../keyboard';
 import { PHOTO_RULE } from '../moderation';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Pressable, Image, Alert, Platform } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Pressable, Image, Alert, Platform, useWindowDimensions } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -56,6 +56,11 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
     if (!p || p.mine || p.author === userName || postSeen[p.id]) return;
     newPostBy[p.author] = true;
   });
+  // Faixa de stories: cabem 3 por vez na tela (o seu primeiro, em destaque); arrastando para o lado aparecem os outros.
+  const { width: telaW } = useWindowDimensions();
+  const itemW = Math.floor((telaW - 24) / 3);
+  const av = Math.min(Math.round(itemW * 0.66), 96);
+  const avMeu = Math.min(Math.round(itemW * 0.74), 106);
   const fresh = stories.filter((g) => !seen[g.id]);
   const old = stories.filter((g) => seen[g.id]);
   const open = (g) => setView({ groups: stories, start: stories.indexOf(g), mine: false });
@@ -101,34 +106,45 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
         top={
           <View>
         {/* Faixa de bolinhas (no alto da Community) */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={styles.strip}>
-          {/* Primeiro da faixa: a sua foto com o "+". Abre publicação, Reel, story ou depoimento. */}
-          <TouchableOpacity style={styles.item} onPress={() => setAdding(true)} activeOpacity={0.85} accessibilityLabel="Adicionar conteúdo">
-            <View style={styles.outer}>
-            <View style={[styles.ring, { borderColor: lastStory ? colors.gold : colors.border, borderWidth: lastStory ? 2.5 : 1.5 }]}>
-              {myPhoto ? (
-                <Photo uri={myPhoto} style={styles.avatar} fallback="🙂" />
-              ) : (
-                <View style={[styles.avatar, { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }]}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginHorizontal: -16 }}
+          contentContainerStyle={styles.strip}
+          snapToInterval={itemW}
+          decelerationRate="fast"
+        >
+          {/* Primeiro da faixa, em destaque: o seu story (anel dourado mais grosso e um pouco maior).
+              Tocar na foto vê o seu story (ou cria, se ainda não tem); o "+" abre publicação, Reel, story ou depoimento. */}
+          <View style={[styles.item, { width: itemW }]}>
+            <TouchableOpacity onPress={openMine} activeOpacity={0.85} accessibilityLabel={mine.items.length ? 'Ver o seu story' : 'Criar o seu story'}>
+              <View style={[styles.outer, { width: avMeu + 18, height: avMeu + 18, borderRadius: (avMeu + 18) / 2, borderColor: colors.gold, borderWidth: 2 }]}>
+                <View style={[styles.ring, { width: avMeu + 8, height: avMeu + 8, borderRadius: (avMeu + 8) / 2, borderColor: colors.gold, borderWidth: 3 }]}>
+                  {myPhoto ? (
+                    <Photo uri={myPhoto} style={{ width: avMeu, height: avMeu, borderRadius: avMeu / 2 }} fallback="🙂" />
+                  ) : (
+                    <View style={{ width: avMeu, height: avMeu, borderRadius: avMeu / 2, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
                   <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 22 }}>{userName.charAt(0).toUpperCase()}</Text>
+                    </View>
+                  )}
                 </View>
-              )}
-              <View style={styles.mePlus}>
-                <Ionicons name="add" size={14} color="#fff" />
               </View>
-            </View>
-            </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setAdding(true)} style={[styles.mePlus, { width: 28, height: 28, borderRadius: 14, right: Math.max(4, (itemW - avMeu - 18) / 2 - 2), bottom: 22 }]} accessibilityLabel="Adicionar conteúdo">
+              <Ionicons name="add" size={18} color="#fff" />
+            </TouchableOpacity>
+            <Text numberOfLines={1} style={[styles.name, { color: colors.primary, fontWeight: '800', maxWidth: itemW - 8 }]}>Seu story</Text>
+          </View>
           {[...fresh, ...old].map((g) => {
             const isSeen = !!seen[g.id];
             return (
-              <TouchableOpacity key={g.id} style={styles.item} onPress={() => open(g)} activeOpacity={0.85} accessibilityLabel={`Story de ${g.name}`}>
-                <View style={[styles.outer, !g.sponsored && newPostBy[g.name] && styles.outerNew]}>
-                  <View style={[styles.ring, { borderColor: isSeen ? colors.border : g.sponsored ? colors.sponsored : colors.gold, borderWidth: isSeen ? 1.5 : 2.5 }]}>
-                    <Photo uri={g.avatar} style={styles.avatar} fallback="🙂" />
+              <TouchableOpacity key={g.id} style={[styles.item, { width: itemW }]} onPress={() => open(g)} activeOpacity={0.85} accessibilityLabel={`Story de ${g.name}`}>
+                <View style={[styles.outer, { width: av + 16, height: av + 16, borderRadius: (av + 16) / 2 }, !g.sponsored && newPostBy[g.name] && styles.outerNew]}>
+                  <View style={[styles.ring, { width: av + 8, height: av + 8, borderRadius: (av + 8) / 2, borderColor: isSeen ? colors.border : g.sponsored ? colors.sponsored : colors.gold, borderWidth: isSeen ? 1.5 : 2.5 }]}>
+                    <Photo uri={g.avatar} style={{ width: av, height: av, borderRadius: av / 2 }} fallback="🙂" />
                   </View>
                 </View>
-                <Text numberOfLines={1} style={[styles.name, isSeen && { color: colors.muted }]}>
+                <Text numberOfLines={1} style={[styles.name, { maxWidth: itemW - 8 }, isSeen && { color: colors.muted }]}>
                   {g.name.split(' ')[0]}
                 </Text>
               </TouchableOpacity>
@@ -442,7 +458,7 @@ const styles = StyleSheet.create({
   sub: { color: colors.muted, fontSize: 12, marginTop: 2 },
   newBtn: { flexDirection: 'row', alignItems: 'center', height: 38, paddingHorizontal: 14, borderRadius: 19, backgroundColor: colors.primary, marginLeft: 10 },
   strip: { paddingHorizontal: 12, paddingVertical: 14 },
-  item: { width: 82, alignItems: 'center', marginRight: 2 },
+  item: { width: 82, alignItems: 'center' },
   ring: { width: AV + 8, height: AV + 8, borderRadius: (AV + 8) / 2, borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
   // Borda de fora: transparente; fica roxa quando o amigo tem post novo (por fora da dourada do story).
   outer: { width: AV + 16, height: AV + 16, borderRadius: (AV + 16) / 2, borderWidth: 2.5, borderColor: 'transparent', alignItems: 'center', justifyContent: 'center' },
