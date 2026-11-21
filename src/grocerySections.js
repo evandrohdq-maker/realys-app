@@ -6,10 +6,11 @@
 // então a ordem importa (ex.: "leite em pó" cai em Não perecíveis antes de "leite" cair em Frios).
 const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
+// As três classes também são o menu do Mercado (mesmo modelo de Delivery e Reservas no Cardápio).
 export const GROCERY_GROUPS = [
-  { key: 'nao_perecivel', label: 'Não perecíveis' },
-  { key: 'perecivel', label: 'Perecíveis' },
-  { key: 'demais', label: 'Demais' },
+  { key: 'nao_perecivel', label: 'Não perecíveis', icon: 'cube-outline', hint: 'Pra despensa', sub: 'Arroz, café, massas e o rancho do mês' },
+  { key: 'perecivel', label: 'Perecíveis', icon: 'leaf-outline', hint: 'Fresquinhos', sub: 'Hortifruti, carnes, frios e pão quentinho' },
+  { key: 'demais', label: 'Demais', icon: 'wine-outline', hint: 'Bebidas e casa', sub: 'Bebidas, limpeza, higiene e o que faltar' },
 ];
 
 export const GROCERY_SECTIONS = [

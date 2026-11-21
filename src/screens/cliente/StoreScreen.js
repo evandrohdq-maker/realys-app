@@ -24,7 +24,7 @@ import { ShopHero, CircleShortcuts, ShopHead, ShopProductCard as ProductCard, Sh
 import { SegTabs, SpotlightCarousel, ClipStrip, PromoSector } from '../../components/AdKit';
 import {
   FOOD_SPOTLIGHT, FOOD_CLIPS, FOOD_FLASH, FOOD_COUPONS, FOOD_COMBOS,
-  MERCADO_SPOTLIGHT, MERCADO_CLIPS, MERCADO_FLASH, MERCADO_COUPONS, MERCADO_COMBOS, MERCADO_AISLES,
+  MERCADO_SPOTLIGHT, MERCADO_CLIPS, MERCADO_FLASH, MERCADO_COUPONS, MERCADO_COMBOS,
 } from '../../adsData';
 
 // Promoções do Food juntam as dos restaurantes e as do Mercado.
@@ -442,10 +442,15 @@ function MarketTab({ onOpenStore, onAdd, onPromos }) {
   const { state, dispatch } = useStore();
   const [q, setQ] = useState('');
   const [aisle, setAisle] = useState('todos');
+  // Classe do Mercado (como Delivery/Reservas no Cardápio): Não perecíveis, Perecíveis ou Demais.
+  const [grupo, setGrupo] = useState(GROCERY_GROUPS[0].key);
+  const g0 = GROCERY_GROUPS.find((x) => x.key === grupo) || GROCERY_GROUPS[0];
+  // Subclasses da classe escolhida: "Tudo" + os corredores dela.
+  const corredores = [{ key: 'todos', label: 'Tudo', icon: 'basket-outline' }, ...GROCERY_SECTIONS.filter((x) => x.group === grupo).map((x) => ({ key: x.key, label: x.short, icon: x.icon }))];
   const markets = state.stores.filter(isMarket).sort(byStoreTrust(state));
   const ids = markets.map((m) => m.id);
   const term = q.trim().toLowerCase();
-  const a = MERCADO_AISLES.find((x) => x.key === aisle) || {};
+  const a = GROCERY_SECTIONS.find((x) => x.key === aisle) || {};
   const list = state.products
     .filter((p) => ids.includes(p.storeId))
     .filter((p) => !term || p.name.toLowerCase().includes(term));
@@ -462,10 +467,46 @@ function MarketTab({ onOpenStore, onAdd, onPromos }) {
   };
   return (
     <View>
-      <SearchBar value={q} onChangeText={setQ} onSubmit={setQ} placeholder="Buscar arroz, café, leite…" voicePrompt="O que você quer do mercado?" style={{ marginBottom: 12 }} />
+      <SearchBar value={q} onChangeText={setQ} onSubmit={setQ} placeholder="Buscar arroz, café, leite…" voicePrompt="O que você quer do mercado?" style={{ marginBottom: 0 }} />
+      <View style={{ height: 12 }} />
+      {/* Mesmo menu do Cardápio: as classes em botões e, embaixo, a faixa das subclasses (corredores). */}
+      <View style={styles.modes}>
+        {GROCERY_GROUPS.map((m) => {
+          const on = grupo === m.key;
+          return (
+            <TouchableOpacity
+              key={m.key}
+              style={[styles.mode, styles.modeSm, on && styles.modeOn]}
+              activeOpacity={0.85}
+              accessibilityLabel={`${m.label}: ${m.hint}`}
+              onPress={() => {
+                setGrupo(m.key);
+                setAisle('todos');
+              }}
+            >
+              <Ionicons name={on ? m.icon.replace('-outline', '') : m.icon} size={20} color={colors.text} />
+              <View style={{ flex: 1, marginLeft: 6 }}>
+                <Text style={[styles.modeTitle, styles.modeTitleSm]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>{m.label}</Text>
+                <Text style={styles.modeHint} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>{m.hint}</Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={styles.tipos}>
+        {corredores.map((t) => {
+          const on = aisle === t.key;
+          return (
+            <TouchableOpacity key={t.key} style={styles.tipo} onPress={() => setAisle(t.key)} activeOpacity={0.7} accessibilityLabel={t.label}>
+              <Ionicons name={on ? t.icon.replace('-outline', '') : t.icon} size={22} color={on ? colors.primary : colors.menu} />
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.tipoText, on && styles.tipoTextOn]}>{t.label}</Text>
+              <View style={[styles.tipoBar, on && styles.tipoBarOn]} />
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
       {!term ? <SpotlightCarousel ads={MERCADO_SPOTLIGHT} onOpen={openAd} /> : null}
-      {!term ? <ShopHero title="Mercado" sub="Do pãozinho ao rancho do mês, direto na sua casa" icon="basket-outline" /> : null}
-      <CircleShortcuts items={MERCADO_AISLES} value={aisle} onPress={setAisle} />
+      {!term ? <ShopHero title="Mercado" sub={g0.sub} icon="basket-outline" /> : null}
       {!term ? <ClipStrip title="🎬 Reels do mercado" clips={MERCADO_CLIPS} food /> : null}
       {!term ? (
         <TouchableOpacity style={styles.promoTeaser} activeOpacity={0.9} onPress={onPromos}>
@@ -488,7 +529,7 @@ function MarketTab({ onOpenStore, onAdd, onPromos }) {
         </>
       )}
       {grouped
-        ? GROCERY_GROUPS.map((g) => {
+        ? GROCERY_GROUPS.filter((g) => g.key === grupo).map((g) => {
             const secs = GROCERY_SECTIONS.filter((s) => s.group === g.key).filter((s) => oneSection(s.key).length);
             if (!secs.length) return null;
             return (
@@ -508,7 +549,7 @@ function MarketTab({ onOpenStore, onAdd, onPromos }) {
             );
           })
         : null}
-      {!list.length ? <Empty text="Nada encontrado no mercado." /> : null}
+      {!(grouped ? list.filter((p) => (GROCERY_SECTIONS.find((x) => x.key === sectionOf(p.name)) || {}).group === grupo) : term ? list : oneSection(aisle)).length ? <Empty text="Nada encontrado no mercado." /> : null}
       <ShopHead title="Mercados perto de você" />
       {markets.map((m) => (
         <StoreRow key={m.id} s={m} onPress={() => onOpenStore(m.id)} />
@@ -589,6 +630,8 @@ const styles = StyleSheet.create({
   modes: { flexDirection: 'row', marginBottom: 10 },
   mode: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 18, borderWidth: 1.5, borderColor: colors.borderStrong, paddingVertical: 12, paddingHorizontal: 12, marginHorizontal: 3 },
   modeOn: { backgroundColor: '#F6EDD6', borderColor: colors.gold }, // escolhido: dourado suave
+  modeSm: { paddingHorizontal: 8, marginHorizontal: 2 }, // Mercado: três classes na mesma linha
+  modeTitleSm: { fontSize: 13 },
   modeTitle: { color: colors.text, fontWeight: '800', fontSize: 15 },
   modeHint: { color: colors.menu, fontSize: 11, marginTop: 1 },
   tipos: { paddingHorizontal: 12, marginBottom: 8, marginTop: 2 },
