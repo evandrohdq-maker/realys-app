@@ -34,12 +34,15 @@ export function payloadOf(state) {
     // Galeria (fotos, vídeos, destaques): os amigos veem pelo perfil. Os exemplos de demonstração não sobem.
     myGallery: galeriaReal(state.myGallery),
     gamer: state.gamer || undefined,
+    // Stories salvos: só o dono vê (o servidor não devolve isto no perfil dos outros).
+    storyArchive: (state.storyArchive || []).slice(0, 200),
     extraPerfil: state.extraPerfil,
   };
   // Muito grande (muitas criações com imagens embutidas): guarda o essencial do perfil.
   if (JSON.stringify(data).length > 850 * 1024) {
     delete data.creations;
   }
+  if (JSON.stringify(data).length > 850 * 1024) delete data.storyArchive;
   if (JSON.stringify(data).length > 850 * 1024) delete data.mural;
   return data;
 }
@@ -128,7 +131,11 @@ export async function uploadLocalGallery(g) {
     }
     let x = h.cover ? await troca(h, 'cover') : h;
     const items = [];
-    for (const i of x.items || []) items.push(i.image ? await troca(i, 'image') : i);
+    for (const i of x.items || []) {
+      let y = i.image ? await troca(i, 'image') : i;
+      if (y.video) y = await troca(y, 'video', true);
+      items.push(y);
+    }
     highlights.push({ ...x, items });
   }
   return mudou ? { ...g, photos, videos, highlights } : null;
@@ -140,9 +147,16 @@ export async function uploadLocalMural(m) {
   let mudou = false;
   const items = [];
   for (const it of m.items) {
+    let x = it;
     const url = it && it.type === 'foto' ? await subir(it.uri) : null;
-    if (url) mudou = true;
-    items.push(url ? { ...it, uri: url } : it);
+    if (url) x = { ...x, uri: url };
+    // Atalho de post/story/reel no mural: a imagem/vídeo do original também precisa estar no servidor.
+    const img = it && it.type === 'post' ? await subir(it.image) : null;
+    if (img) x = { ...x, image: img };
+    const vid = it && it.type === 'post' ? await subir(it.video, true) : null;
+    if (vid) x = { ...x, video: vid };
+    if (x !== it) mudou = true;
+    items.push(x);
   }
   return mudou ? { ...m, items } : null;
 }

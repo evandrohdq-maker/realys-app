@@ -52,7 +52,7 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
       gallery: {
         photos: arr(g.photos).filter((x) => x && midia(x.uri)).slice(0, 120),
         videos: arr(g.videos).filter((x) => x && midia(x.uri || x.video)).slice(0, 60),
-        highlights: arr(g.highlights).filter((h) => h && h.title).slice(0, 30).map((h) => ({ ...h, items: arr(h.items).filter((i) => i && midia(i.image)) })).filter((h) => h.items.length),
+        highlights: arr(g.highlights).filter((h) => h && h.title).slice(0, 30).map((h) => ({ ...h, items: arr(h.items).filter((i) => i && (midia(i.image) || midia(i.video))) })).filter((h) => h.items.length),
       },
       gamer: d.gamer && typeof d.gamer === 'object'
         ? {
@@ -63,7 +63,7 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
           }
         : null,
       mural: d.mural && Array.isArray(d.mural.items)
-        ? { theme: d.mural.theme || 'aurora', items: d.mural.items.filter((x) => x && (x.type === 'recado' || (x.type === 'foto' && midia(x.uri)))).slice(0, 80) }
+        ? { theme: d.mural.theme || 'aurora', items: d.mural.items.filter((x) => x && (x.type === 'recado' || (x.type === 'foto' && midia(x.uri)) || (x.type === 'post' && (x.text || midia(x.image) || midia(x.video))))).slice(0, 80) }
         : null,
     };
   };

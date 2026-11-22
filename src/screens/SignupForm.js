@@ -21,7 +21,7 @@ import {
 } from '../accounts';
 import { saveAccepted } from '../termsAccept';
 import TermoAdesaoModal from '../components/TermoAdesaoModal';
-import { ProfileQuiz } from '../components/SocialClass';
+import { ProfileQuiz, calcSocial } from '../components/SocialClass';
 import { classifyProfile } from '../socialClasses';
 
 // Cadastro de clientes (CPF) e empresas (CNPJ). A biometria confirma que é uma pessoa real
@@ -84,7 +84,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
       const bio = later === true ? 'depois' : await confirmBiometric('Confirme sua biometria para criar a conta Realyz');
       if (bio === 'falhou') return Alert.alert('Biometria não confirmada', 'Não deu para confirmar que é você. Tente de novo ou crie a conta sem biometria por enquanto.');
       // Pessoa: o perfil social sai do questionário (Gamer, Artista, Estudante...).
-      const social = empresa ? null : quiz.manual && quiz.social ? quiz.social : classifyProfile(`${quiz.about} ${quiz.work}`, quiz.hobbies);
+      const social = empresa ? null : quiz.manual && quiz.social ? quiz.social : calcSocial(quiz);
       const { account, error } = await createAccount({ kind, name, doc, username, email, phone, password, birth: empresa ? null : birth, social, about: empresa ? '' : quiz.about, work: empresa ? '' : quiz.work, bio: bio === 'ok' });
       if (error) return Alert.alert('Não foi possível cadastrar', error);
       await saveAccepted(account.id); // versão e data do aceite do termo

@@ -21,6 +21,7 @@ import { memberById } from '../people';
 import { galleryOf } from '../testimonialsData';
 import * as ImagePicker from 'expo-image-picker';
 import { getDevicePoint, addressOf } from '../geo';
+import { openMedia } from './MediaViewer';
 
 const NOTE_COLORS = ['#FFF3C4', '#DDF4FF', '#FFE1EC', '#E3FBE6', '#EDE4FF', '#FFFFFF'];
 const first = (n) => String(n || '').split(' ')[0];
@@ -139,8 +140,8 @@ export function MuralPeek({ ownerId, ownerName, limit = 3, onMore }) {
 function MuralCard({ it, th, mine, onEdit }) {
   const { dispatch } = useStore();
   const canEdit = mine && it.type !== 'dep';
-  const head = it.type === 'dep' ? 'Depoimento' : it.type === 'post' ? 'Post curtido' : it.type === 'foto' ? 'Foto' : 'Recado';
-  const icon = it.type === 'dep' ? 'chatbox-ellipses' : it.type === 'post' ? 'heart' : it.type === 'foto' ? 'image' : 'create';
+  const head = it.type === 'dep' ? 'Depoimento' : it.type === 'post' ? (it.ref ? `${it.author} · destaque` : 'Post curtido') : it.type === 'foto' ? 'Foto' : 'Recado';
+  const icon = it.type === 'dep' ? 'chatbox-ellipses' : it.type === 'post' ? (it.ref ? 'star' : 'heart') : it.type === 'foto' ? 'image' : 'create';
   const note = it.type === 'recado';
   const bg = note ? it.color || NOTE_COLORS[0] : th.card;
   const ink = note ? '#1B1B1F' : th.text;
@@ -168,9 +169,18 @@ function MuralCard({ it, th, mine, onEdit }) {
       ) : null}
       {it.type === 'post' ? (
         <>
-          <Text style={[st.by, { color: sub, marginTop: 0 }]}>{it.author}</Text>
+          {it.ref ? null : <Text style={[st.by, { color: sub, marginTop: 0 }]}>{it.author}</Text>}
           <Text style={[st.cardText, { color: ink }]} numberOfLines={it.big ? 8 : 4}>{it.text}</Text>
-          {it.image ? <Photo uri={it.image} style={[st.img, it.big && { height: 220 }]} /> : null}
+          {/* Atalho: toca e abre o original (foto ou vídeo do post/story/reel). */}
+          {it.image ? (
+            <TouchableOpacity activeOpacity={0.92} onPress={() => openMedia([it.video ? { video: it.video, photo: it.image } : { photo: it.image, title: it.text }])}>
+              <Photo uri={it.image} style={[st.img, it.big && { height: 220 }]} />
+            </TouchableOpacity>
+          ) : it.video ? (
+            <TouchableOpacity activeOpacity={0.92} onPress={() => openMedia([{ video: it.video, title: it.text }])} style={[st.img, { backgroundColor: '#14120E', alignItems: 'center', justifyContent: 'center' }]} accessibilityLabel="Ver o vídeo">
+              <Ionicons name="play-circle" size={48} color="#F5C331" />
+            </TouchableOpacity>
+          ) : null}
         </>
       ) : null}
       {it.type === 'foto' ? (

@@ -21,6 +21,7 @@ import { useBack } from '../back';
 import { TestimonialComposer } from '../components/SocialProfile';
 import { useOpenPerson, resolvePerson } from '../openPerson';
 import { realWidth, DESK_MIN, RAIL_MIN } from '../webFrame';
+import { DestaqueOpcoes, DESTAQUE_VAZIO, aplicarDestaque } from '../components/Destacar';
 
 // Página Community (botão "Community" na barra de baixo): stories e comunidade.
 // Em cima, a faixa de bolinhas como no Instagram; embaixo, a Comunidade: feed único de posts e
@@ -216,11 +217,13 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
       <PostComposer
         visible={posting}
         onClose={() => setPosting(false)}
-        onPublish={(post) => {
+        onPublish={(post, destaque) => {
           dispatch({ type: 'POST_PUBLISH', post: { ...post, author: userName } });
           setPosting(false);
           // A IA verificadora confere antes de publicar (ver src/lm/factCheck.js).
           const check = checkText(post.text);
+          // Destaque escolhido na hora: atalho para este post no mural, na vitrine e nas pastas.
+          if (check.verdict !== 'falso') aplicarDestaque(dispatch, { kind: 'post', id: post.id, image: post.image, text: post.text }, destaque);
           if (check.verdict === 'falso')
             Alert.alert('Publicação não feita', `A IA do Realyz verificou este conteúdo como informação falsa (${check.reasons.join(', ')}). Ele não foi publicado.`);
           else if (check.verdict === 'suspeito')
@@ -231,13 +234,14 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
       <ReelComposer
         visible={reeling}
         onClose={() => setReeling(false)}
-        onPublish={(reel) => {
+        onPublish={(reel, destaque) => {
           setReeling(false);
           // A IA verificadora confere a legenda antes de publicar, como nas publicações.
           const check = checkText(reel.title);
           if (check.verdict === 'falso')
             return Alert.alert('Reel não publicado', `A IA do Realyz verificou a legenda como informação falsa (${check.reasons.join(', ')}). O Reel não foi publicado.`);
           dispatch({ type: 'PUBLISH_REEL', reel: { ...reel, user: userName } });
+          aplicarDestaque(dispatch, { kind: 'reel', id: reel.id, video: reel.video, text: reel.title }, destaque);
           Alert.alert('Reel publicado ✅', 'Ele já aparece nos Reels. Para ver, puxe a página inicial para a direita.', [
             { text: 'Ok' },
             { text: 'Ver Reels', onPress: () => navigate && navigate({ tab: 'reels' }) },
@@ -293,10 +297,12 @@ function PostComposer({ visible, onClose, onPublish }) {
   const insets = useSafeAreaInsets();
   const [text, setText] = useState('');
   const [image, setImage] = useState(null);
+  const [destaque, setDestaque] = useState(DESTAQUE_VAZIO);
   useEffect(() => {
     if (!visible) return;
     setText('');
     setImage(null);
+    setDestaque(DESTAQUE_VAZIO);
   }, [visible]);
   const pick = async () => {
     try {
@@ -319,7 +325,7 @@ function PostComposer({ visible, onClose, onPublish }) {
           <Text style={styles.sheetTitle}>Nova publicação</Text>
           <TouchableOpacity
             disabled={!ok}
-            onPress={() => onPublish({ id: 'n' + Date.now(), text: text.trim(), image, likes: 0, comments: 0, time: 'agora' })}
+            onPress={() => onPublish({ id: 'n' + Date.now(), text: text.trim(), image, likes: 0, comments: 0, time: 'agora' }, destaque)}
             style={[styles.publishBtn, !ok && { opacity: 0.4 }]}
           >
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '800' }}>Publicar</Text>
@@ -347,6 +353,7 @@ function PostComposer({ visible, onClose, onPublish }) {
             <Ionicons name="image-outline" size={18} color={colors.primary} />
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>{image ? 'Trocar foto' : 'Adicionar foto'}</Text>
           </TouchableOpacity>
+          <DestaqueOpcoes value={destaque} onChange={setDestaque} />
           <Text style={{ color: colors.muted, fontSize: 11, marginTop: 10 }}>Só pessoas verificadas por biometria veem e comentam.</Text>
           <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6 }}>{PHOTO_RULE}</Text>
         </ScrollView>
@@ -360,10 +367,12 @@ export function ReelComposer({ visible, onClose, onPublish }) {
   const insets = useSafeAreaInsets();
   const [title, setTitle] = useState('');
   const [video, setVideo] = useState(null); // { uri, secs }
+  const [destaque, setDestaque] = useState(DESTAQUE_VAZIO);
   useEffect(() => {
     if (!visible) return;
     setTitle('');
     setVideo(null);
+    setDestaque(DESTAQUE_VAZIO);
   }, [visible]);
   const pick = async () => {
     try {
@@ -390,7 +399,7 @@ export function ReelComposer({ visible, onClose, onPublish }) {
           <Text style={styles.sheetTitle}>Novo Reel</Text>
           <TouchableOpacity
             disabled={!ok}
-            onPress={() => onPublish({ id: 'r' + Date.now(), title: title.trim() || 'Meu Reel', video: video.uri, likes: 0, views: 0, kind: 'user' })}
+            onPress={() => onPublish({ id: 'r' + Date.now(), title: title.trim() || 'Meu Reel', video: video.uri, likes: 0, views: 0, kind: 'user' }, destaque)}
             style={[styles.publishBtn, !ok && { opacity: 0.4 }]}
           >
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '800' }}>Publicar</Text>
@@ -411,6 +420,7 @@ export function ReelComposer({ visible, onClose, onPublish }) {
             maxLength={120}
             style={[styles.postInput, { marginTop: 14, minHeight: 70 }]}
           />
+          <DestaqueOpcoes value={destaque} onChange={setDestaque} />
           <Text style={{ color: colors.muted, fontSize: 11, marginTop: 10 }}>Só pessoas verificadas por biometria veem e comentam.</Text>
           <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6 }}>{PHOTO_RULE}</Text>
         </ScrollView>

@@ -47,7 +47,7 @@ export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biom
     const u = userById(p.user_id);
     const km = from && p.lat != null ? distanceKm(from.lat, from.lng, p.lat, p.lng) : null;
     return {
-      id: p.user_id, name: own ? u.name : publicName(u.name), fullName: own ? u.name : undefined, photo: u.photo, service: p.service, functions: JSON.parse(p.functions), price: toReais(p.price), priceUnit: p.price_unit,
+      id: p.user_id, name: own ? u.name : publicName(u.name), fullName: own ? u.name : undefined, photo: u.photo, service: p.service, outros: JSON.parse(p.outros || '[]'), functions: JSON.parse(p.functions), price: toReais(p.price), priceUnit: p.price_unit,
       available: !!p.available, vehicle: p.vehicle, visitFee: toReais(p.visit_fee || 0), rating: +p.rating.toFixed(1), ratingCount: p.rating_count,
       distanceKm: km == null ? null : +km.toFixed(1), etaMin: km == null ? null : Math.max(3, Math.round(km * (TRANSPORT.includes(p.service) ? 4 : 6))),
     };
@@ -61,15 +61,17 @@ export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biom
       service: str(body.service, 'o tipo de serviço', { max: 40 }).toLowerCase(), functions: JSON.stringify(functions), price: money(body.price, 'preço'),
       price_unit: str(body.priceUnit, 'a unidade do preço (hora, visita, corrida...)', { max: 30 }), vehicle: str(body.vehicle, 'o veículo', { optional: true, max: 80 }) || null,
     };
+    // Outras profissões (botão "Adicionar outra profissão"): até 4, sem repetir a principal.
+    row.outros = JSON.stringify([...new Set((Array.isArray(body.outros) ? body.outros : []).map((x) => String(x).trim().toLowerCase().slice(0, 40)).filter((x) => x && x !== row.service))].slice(0, 4));
     // Taxa de visita: quem define é o prestador. Sem informar, quem cobra "por visita" usa o próprio preço.
     row.visit_fee = body.visitFee !== undefined && body.visitFee !== null && body.visitFee !== '' ? money(body.visitFee, 'taxa de visita', { min: 0 }) : /visita/i.test(row.price_unit) ? row.price : 0;
     tx(db, () => {
       if (db.prepare('SELECT 1 FROM providers WHERE user_id = ?').get(user.id)) {
-        db.prepare('UPDATE providers SET visit_fee = ? WHERE user_id = ?').run(row.visit_fee, user.id);
+        db.prepare('UPDATE providers SET visit_fee = ?, outros = ? WHERE user_id = ?').run(row.visit_fee, row.outros, user.id);
         db.prepare('UPDATE providers SET service = ?, functions = ?, price = ?, price_unit = ?, vehicle = ?, updated_at = ? WHERE user_id = ?').run(row.service, row.functions, row.price, row.price_unit, row.vehicle, now(), user.id);
       } else {
         db.prepare('INSERT INTO providers (user_id, service, functions, price, price_unit, vehicle, updated_at) VALUES (?,?,?,?,?,?,?)').run(user.id, row.service, row.functions, row.price, row.price_unit, row.vehicle, now());
-        db.prepare('UPDATE providers SET visit_fee = ? WHERE user_id = ?').run(row.visit_fee, user.id);
+        db.prepare('UPDATE providers SET visit_fee = ?, outros = ? WHERE user_id = ?').run(row.visit_fee, row.outros, user.id);
         const roles = JSON.parse(user.roles);
         if (!roles.includes('prestador')) db.prepare('UPDATE users SET roles = ? WHERE id = ?').run(JSON.stringify([...roles, 'prestador']), user.id);
       }
@@ -133,8 +135,8 @@ export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biom
     const max = Math.min(20, Number(query.max || 5));
     const fresh = now() - 15 * 60 * 1000;
     const dia = now() - 24 * 60 * 60 * 1000;
-    const rows = db.prepare(`SELECT p.* FROM providers p JOIN users u ON u.id = p.user_id WHERE p.lat IS NOT NULL AND u.status = 'ativo' AND ((p.available = 1 AND p.updated_at > ?) OR (p.auto_horario = 1 AND p.updated_at > ?)) ${query.service ? 'AND p.service = ?' : ''}`)
-      .all(...(query.service ? [fresh, dia, String(query.service).toLowerCase()] : [fresh, dia]))
+    const rows = db.prepare(`SELECT p.* FROM providers p JOIN users u ON u.id = p.user_id WHERE p.lat IS NOT NULL AND u.status = 'ativo' AND ((p.available = 1 AND p.updated_at > ?) OR (p.auto_horario = 1 AND p.updated_at > ?)) ${query.service ? 'AND (p.service = ? OR EXISTS (SELECT 1 FROM json_each(p.outros) WHERE value = ?))' : ''}`)
+      .all(...(query.service ? [fresh, dia, String(query.service).toLowerCase(), String(query.service).toLowerCase()] : [fresh, dia]))
       .filter((p) => (p.available === 1 && p.updated_at > fresh) || (emHorario(lerHorario(p)) && (!TRANSPORT.includes(p.service) || biometria.periodicOk(p.user_id))));
     return rows.map((p) => providerView(p, from)).sort((a, b) => a.distanceKm - b.distanceKm).slice(0, max);
   });

@@ -53,3 +53,85 @@ export function segOfService(service) {
   const s = SEGMENTS.find((x) => x.professions.some((p) => p.key === service));
   return s ? s.key : 'casa';
 }
+
+// ---------- Busca de profissão (cadastro do prestador) ----------
+// A pessoa digita ("eletri", "cantor", "uber", "unha") e aparecem só as 4 profissões que mais
+// combinam, cada uma com o segmento e um exemplo do que faz. Ela toca e pronto.
+const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+const segLabelOf = (key) => {
+  const sg = SEGMENTS.find((x) => x.key === segOfService(key));
+  return sg ? sg.label : '';
+};
+export function buscarProfissoes(q, n = 4) {
+  const t = norm(q);
+  if (t.length < 2) return [];
+  const out = [];
+  serviceTypes.forEach((p) => {
+    const label = norm(p.label);
+    const words = (p.words || []).map(norm);
+    let score = 0;
+    if (label === t) score = 100;
+    else if (label.startsWith(t)) score = 80;
+    else if (label.split(/[\s(),/]+/).some((w) => w.startsWith(t))) score = 65;
+    else if (words.some((w) => w === t)) score = 55;
+    else if (words.some((w) => w.startsWith(t))) score = 45;
+    else if (label.includes(t) || words.some((w) => w.includes(t))) score = 30;
+    if (score) out.push({ ...p, score, segmento: segLabelOf(p.key), exemplo: funcoesSugeridas(p.key).slice(0, 3).join(', ') });
+  });
+  return out.sort((a, b) => b.score - a.score || a.label.length - b.label.length).slice(0, n);
+}
+export const profissaoPorKey = (key) => serviceTypes.find((p) => p.key === key) || null;
+
+// O que cada profissão costuma fazer: vira sugestões para tocar (e a pessoa ainda escreve as dela).
+const FUNCOES = {
+  eletricista: ['Tomadas e interruptores', 'Chuveiro', 'Disjuntor e quadro', 'Fiação nova', 'Iluminação', 'Padrão de energia'],
+  encanador: ['Vazamentos', 'Torneiras e registros', 'Desentupimento', 'Caixa d’água', 'Descarga', 'Instalação hidráulica'],
+  diarista: ['Faxina completa', 'Limpeza pós-obra', 'Passar roupa', 'Limpeza de vidros', 'Organização'],
+  pintor: ['Pintura interna', 'Pintura externa', 'Textura e grafiato', 'Massa corrida', 'Portões e grades'],
+  chaveiro: ['Abertura de portas', 'Cópia de chaves', 'Troca de fechaduras', 'Chave de carro'],
+  motorista: ['Corridas na cidade', 'Aeroporto e rodoviária', 'Viagens', 'Levar crianças', 'Cadeirinha infantil'],
+  motoboy: ['Entregas rápidas', 'Documentos', 'Delivery de restaurante', 'Farmácia', 'Compras'],
+  frete: ['Mudanças', 'Pequenos fretes', 'Móveis e eletros', 'Entulho', 'Ajudante incluso'],
+  mecanico: ['Revisão', 'Freios', 'Suspensão', 'Elétrica do carro', 'Troca de óleo', 'Socorro na rua'],
+  psicologo: ['Ansiedade', 'Depressão', 'Terapia de casal', 'Adolescentes', 'Atendimento online'],
+  nutricionista: ['Emagrecimento', 'Nutrição esportiva', 'Gestantes', 'Reeducação alimentar', 'Atendimento online'],
+  personal: ['Musculação', 'Emagrecimento', 'Treino em casa', 'Idosos', 'Funcional'],
+  professor: ['Reforço escolar', 'Matemática', 'Inglês', 'Preparação para o ENEM', 'Aulas online'],
+  dev: ['Sites', 'Aplicativos', 'Lojas virtuais', 'Sistemas sob medida', 'Manutenção'],
+  tecnico: ['Formatação', 'Conserto de PC e notebook', 'Redes e Wi-Fi', 'Celulares', 'Câmeras'],
+  dj: ['Casamentos', 'Aniversários', 'Formaturas', 'Som e iluminação', 'Festas de empresa'],
+  fotografo: ['Casamentos', 'Ensaios', 'Aniversários', 'Produtos', 'Eventos de empresa'],
+  buffet: ['Festas', 'Casamentos', 'Coffee break', 'Churrasco', 'Salgados e doces'],
+  decoracao: ['Festas infantis', 'Casamentos', 'Balões', 'Mesa posta', 'Eventos de empresa'],
+  advogado: ['Trabalhista', 'Família e divórcio', 'Previdenciário', 'Consumidor', 'Contratos'],
+  contador: ['MEI', 'Imposto de renda', 'Abertura de empresa', 'Folha de pagamento', 'Contabilidade mensal'],
+  cantor: ['Sertanejo', 'Pagode', 'Gospel', 'Acústico (voz e violão)', 'Casamentos', 'Bares e restaurantes'],
+  musico: ['Banda para festa', 'Casamentos', 'Bailes', 'Bares e restaurantes', 'Eventos de empresa'],
+  instrumentista: ['Violino em casamento', 'Sax', 'Piano', 'Gaita e sanfona', 'Gravações'],
+  humorista: ['Stand-up', 'Eventos de empresa', 'Festas', 'Mestre de cerimônias'],
+  dancarino: ['Shows de dança', 'Coreografia de casamento', 'Aulas', 'Eventos'],
+  ator: ['Animação de festa infantil', 'Personagens', 'Teatro', 'Comerciais'],
+  artistavisual: ['Pintura ao vivo', 'Grafite e murais', 'Caricatura em eventos', 'Quadros sob encomenda'],
+  streamer: ['Publi na live', 'Reels patrocinado', 'Stories com a marca', 'Lives de jogo'],
+  coachgame: ['Aulas de Free Fire', 'Aulas de LoL', 'Análise de partidas', 'Treino de mira'],
+  proplayer: ['Jogar no seu time', 'Campeonatos', 'Partidas em dupla', 'Presença em eventos'],
+  caster: ['Narração de campeonato', 'Comentarista', 'Apresentação de evento'],
+  gamecreator: ['Vídeos de gameplay', 'Review de jogos', 'Publi em vídeo', 'Edição'],
+};
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+export function funcoesSugeridas(key) {
+  if (FUNCOES[key]) return FUNCOES[key];
+  const p = profissaoPorKey(key);
+  if (!p) return [];
+  const nome = norm(p.label);
+  return (p.words || []).filter((w) => !nome.includes(norm(w)) && w.length > 3).slice(0, 6).map(cap);
+}
+
+// Classe do perfil social que combina com a profissão (artista e gamer têm a sua; o resto o app
+// entende pelas palavras; se não achar, fica "Prestador de serviços").
+const CLASSE_DA_PROFISSAO = {
+  cantor: ['musico', 'cantor'], musico: ['musico', 'banda'], instrumentista: ['musico', 'instrumentista'], dj: ['musico', 'dj'],
+  humorista: ['cenicas', 'standup'], dancarino: ['cenicas', 'danca'], ator: ['cenicas', 'ator'], artistavisual: ['artista', 'grafite'],
+  streamer: ['gamer', 'streamer'], coachgame: ['gamer', 'coach'], proplayer: ['gamer', 'esports'], caster: ['gamer', 'caster'], gamecreator: ['gamer', 'streamer'],
+};
+export const classeDaProfissao = (key) => (CLASSE_DA_PROFISSAO[key] ? { cls: CLASSE_DA_PROFISSAO[key][0], sub: CLASSE_DA_PROFISSAO[key][1] } : null);

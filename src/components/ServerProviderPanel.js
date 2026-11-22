@@ -4,15 +4,17 @@
 // 3. Chamados: aceitar ou recusar (recusar devolve a taxa ao cliente e não pune), a caminho, chegou, concluído.
 // Aceitar e concluir pedem a confirmação do rosto quando o servidor exige.
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Alert, TouchableOpacity } from 'react-native';
-import { Text } from '../responsive';
+import { View, Alert, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, TextInput } from '../responsive';
+import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
 import { api, connectEvents } from '../api';
 import { getDevicePoint } from '../geo';
 import { colors, brl } from '../theme';
 import { Card, Row, Button, Badge, Input, Chip } from './ui';
 import FaceCheck from './FaceCheck';
-import { SEGMENTS, segConfig, segOfService } from '../providerSegments';
+import { segConfig, segOfService, buscarProfissoes, profissaoPorKey, funcoesSugeridas } from '../providerSegments';
+import ProfissaoBusca from './ProfissaoBusca';
 import { conectado, carregarCarteira } from '../serverShop';
 
 const NEXT = { Solicitado: 'Aceito', Aceito: 'A caminho', 'A caminho': 'Chegou', Chegou: 'Concluído' };
@@ -26,7 +28,27 @@ export default function ServerProviderPanel() {
   const [perfil, setPerfil] = useState(undefined); // undefined = carregando; null = ainda não cadastrado
   const [calls, setCalls] = useState([]);
   const [face, setFace] = useState(null);
-  const [form, setForm] = useState({ seg: 'casa', service: 'eletricista', functions: '', price: '', priceUnit: 'visita', visitFee: '', vehicle: '' });
+  // A profissão principal vem do perfil (escolhida no cadastro); as outras só pelo botão "Adicionar outra profissão".
+  const profDoPerfil = () => {
+    const soc = state.myProfile && state.myProfile.social;
+    if (soc && soc.prof && profissaoPorKey(soc.prof)) return soc.prof;
+    const m = buscarProfissoes((state.myProfile && state.myProfile.profession) || '', 1)[0];
+    return m ? m.key : null;
+  };
+  const novoForm = () => {
+    const service = profDoPerfil();
+    const c = segConfig(segOfService(service));
+    return { service, outros: [], functions: [], novaFuncao: '', price: '', priceUnit: c.units[0], visitFee: '', vehicle: '' };
+  };
+  const [form, setForm] = useState(novoForm);
+  const [addOutra, setAddOutra] = useState(false);
+  const [trocando, setTrocando] = useState(false);
+  // O perfil carregou depois: a profissão dele entra sozinha no cadastro.
+  useEffect(() => {
+    if (form.service || perfil) return;
+    const k = profDoPerfil();
+    if (k) setForm((f) => ({ ...f, service: k, priceUnit: segConfig(segOfService(k)).units[0] }));
+  }, [state.myProfile && state.myProfile.social, state.myProfile && state.myProfile.profession, perfil]);
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -54,13 +76,14 @@ export default function ServerProviderPanel() {
   if (!on) return null;
 
   const salvar = async () => {
-    const functions = form.functions.split(/[,;\n]/).map((x) => x.trim()).filter(Boolean);
-    if (!functions.length) return Alert.alert('O que você faz?', `Escreva pelo menos uma, separadas por vírgula. ${cfg.ph.replace(/^[^(]*/, '')}`);
+    if (!form.service) return Alert.alert('Sua profissão', 'Digite e escolha a sua profissão.');
+    const functions = form.functions;
+    if (!functions.length) return Alert.alert('O que você faz?', 'Toque nas sugestões ou escreva o que você faz.');
     if (!toNum(form.price)) return Alert.alert('Seu preço', 'Informe quanto você cobra.');
     setBusy(true);
     try {
       const p = await api('PUT', '/providers/me', {
-        service: form.service, functions, price: toNum(form.price), priceUnit: form.priceUnit,
+        service: form.service, outros: form.outros, functions, price: toNum(form.price), priceUnit: form.priceUnit,
         visitFee: form.visitFee ? toNum(form.visitFee) : undefined, vehicle: form.vehicle || undefined,
       });
       setPerfil(p);
@@ -99,15 +122,22 @@ export default function ServerProviderPanel() {
   };
 
   const abertos = calls.filter((c) => !['Concluído', 'Recusado', 'Cancelado'].includes(c.status));
-  // O formulário segue o segmento escolhido: só as profissões, cobranças e campos dele.
-  const cfg = segConfig(form.seg);
-  const seg = SEGMENTS.find((x) => x.key === form.seg) || SEGMENTS[0];
-  const escolherSeg = (k) => {
-    const c = segConfig(k);
-    const sg = SEGMENTS.find((x) => x.key === k);
-    setForm({ ...form, seg: k, service: sg && sg.professions[0] ? sg.professions[0].key : form.service, priceUnit: c.units[0], visitFee: c.visit ? form.visitFee : '', vehicle: c.vehicle ? form.vehicle : '' });
+  // O formulário segue a profissão: só as cobranças e os campos dela.
+  const cfg = segConfig(segOfService(form.service));
+  const prof = form.service ? profissaoPorKey(form.service) : null;
+  const escolherProf = (p) => {
+    if (!p || !p.key) return setForm({ ...form, service: null });
+    const c = segConfig(segOfService(p.key));
+    setTrocando(false);
+    setForm({ ...form, service: p.key, outros: form.outros.filter((x) => x !== p.key), priceUnit: c.units.includes(form.priceUnit) ? form.priceUnit : c.units[0], visitFee: c.visit ? form.visitFee : '', vehicle: c.vehicle ? form.vehicle : '' });
   };
-
+  const sugestoes = [...new Set([form.service, ...form.outros].filter(Boolean).flatMap((k) => funcoesSugeridas(k)))].slice(0, 10);
+  const toggleFuncao = (f) => setForm({ ...form, functions: form.functions.includes(f) ? form.functions.filter((x) => x !== f) : [...form.functions, f].slice(0, 15) });
+  const addFuncao = () => {
+    const f = form.novaFuncao.trim();
+    if (!f) return;
+    setForm({ ...form, functions: form.functions.includes(f) ? form.functions : [...form.functions, f].slice(0, 15), novaFuncao: '' });
+  };
   return (
     <Card>
       <Row style={{ justifyContent: 'space-between', marginBottom: 6 }}>
@@ -119,41 +149,107 @@ export default function ServerProviderPanel() {
 
       {perfil === null || editing ? (
         <View>
-          <Text style={{ color: colors.muted, marginBottom: 8 }}>
-            {perfil === null ? 'Faça seu cadastro de prestador para receber chamados de clientes de verdade.' : 'Atualize seu cadastro.'}
+          <Text style={{ color: colors.muted, marginBottom: 10 }}>
+            {perfil === null ? 'Complete seu cadastro de prestador para receber chamados de clientes de verdade.' : 'Atualize seu cadastro.'}
           </Text>
-          <Text style={{ fontWeight: '700', color: colors.text, marginBottom: 4 }}>Seu segmento</Text>
-          <Row style={{ flexWrap: 'wrap', marginBottom: 8 }}>
-            {SEGMENTS.map((g) => (
-              <View key={g.key} style={{ marginRight: 6, marginBottom: 6 }}>
-                <Chip label={`${g.emoji} ${g.label}`} active={form.seg === g.key} onPress={() => escolherSeg(g.key)} />
+
+          <Text style={ps.h}>Sua profissão</Text>
+          {prof && !trocando ? (
+            <View style={ps.prof}>
+              <Text style={{ fontSize: 26 }}>{prof.icon || '🧰'}</Text>
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={ps.profNome} numberOfLines={1}>{prof.label}</Text>
+                <Text style={ps.small} numberOfLines={1}>{perfil ? prof.group : `Do seu perfil · ${prof.group}`}</Text>
               </View>
-            ))}
-          </Row>
-          <Text style={{ fontWeight: '700', color: colors.text, marginBottom: 4 }}>{form.seg === 'artistas' ? 'Que artista você é' : 'Sua profissão'}</Text>
-          <Row style={{ flexWrap: 'wrap', marginBottom: 8 }}>
-            {seg.professions.map((t) => (
-              <View key={t.key} style={{ marginRight: 6, marginBottom: 6 }}>
-                <Chip label={t.label} active={form.service === t.key} onPress={() => setForm({ ...form, service: t.key })} />
+              <TouchableOpacity onPress={() => setTrocando(true)} accessibilityLabel="Trocar profissão" style={{ padding: 6 }}>
+                <Text style={ps.link}>Trocar</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <ProfissaoBusca value={null} onPick={escolherProf} autoFocus={trocando} />
+          )}
+
+          {form.outros.map((k) => {
+            const o = profissaoPorKey(k);
+            return o ? (
+              <View key={k} style={[ps.prof, ps.outra]}>
+                <Text style={{ fontSize: 20 }}>{o.icon || '🧰'}</Text>
+                <Text style={[ps.profNome, { flex: 1, marginLeft: 10, fontSize: 14 }]} numberOfLines={1}>{o.label}</Text>
+                <TouchableOpacity onPress={() => setForm({ ...form, outros: form.outros.filter((x) => x !== k) })} accessibilityLabel={`Tirar ${o.label}`} style={{ padding: 4 }}>
+                  <Ionicons name="close" size={18} color={colors.muted} />
+                </TouchableOpacity>
               </View>
-            ))}
-          </Row>
-          <Input placeholder={cfg.ph} value={form.functions} onChangeText={(v) => setForm({ ...form, functions: v })} />
-          <Row style={{ marginTop: 8 }}>
-            <Input style={{ flex: 1, marginRight: cfg.visit ? 8 : 0 }} placeholder={cfg.price} keyboardType="decimal-pad" value={form.price} onChangeText={(v) => setForm({ ...form, price: v })} />
-            {cfg.visit ? <Input style={{ flex: 1 }} placeholder="Taxa de visita (R$)" keyboardType="decimal-pad" value={form.visitFee} onChangeText={(v) => setForm({ ...form, visitFee: v })} /> : null}
-          </Row>
-          <Row style={{ flexWrap: 'wrap', marginTop: 8 }}>
-            {cfg.units.map((u) => (
-              <View key={u} style={{ marginRight: 6, marginBottom: 6 }}>
-                <Chip label={`por ${u}`} active={form.priceUnit === u} onPress={() => setForm({ ...form, priceUnit: u })} />
+            ) : null;
+          })}
+          {addOutra ? (
+            <View style={{ marginTop: 8 }}>
+              <ProfissaoBusca
+                value={null}
+                autoFocus
+                placeholder="Digite a outra profissão"
+                onPick={(p) => {
+                  setAddOutra(false);
+                  if (p && p.key && p.key !== form.service && !form.outros.includes(p.key)) setForm({ ...form, outros: [...form.outros, p.key].slice(0, 4) });
+                }}
+              />
+            </View>
+          ) : prof && form.outros.length < 4 ? (
+            <TouchableOpacity onPress={() => setAddOutra(true)} style={ps.add} accessibilityLabel="Adicionar outra profissão">
+              <Ionicons name="add-circle-outline" size={18} color={colors.primary} />
+              <Text style={[ps.link, { marginLeft: 6 }]}>Adicionar outra profissão</Text>
+            </TouchableOpacity>
+          ) : null}
+
+          {prof ? (
+            <>
+              <Text style={ps.h}>O que você faz</Text>
+              <View style={ps.wrap}>
+                {[...sugestoes, ...form.functions.filter((f) => !sugestoes.includes(f))].map((f) => {
+                  const on = form.functions.includes(f);
+                  return (
+                    <TouchableOpacity key={f} onPress={() => toggleFuncao(f)} style={[ps.tag, on && ps.tagOn]} accessibilityLabel={f} accessibilityState={{ selected: on }}>
+                      {on ? <Ionicons name="checkmark" size={14} color={colors.primaryDark} /> : null}
+                      <Text numberOfLines={1} style={[ps.tagText, on && { color: colors.primaryDark, fontWeight: '800' }]}>{f}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
-            ))}
-          </Row>
-          {cfg.vehicle ? <Input style={{ marginTop: 4 }} placeholder="Veículo (modelo, cor, placa, cadeirinha...)" value={form.vehicle} onChangeText={(v) => setForm({ ...form, vehicle: v })} /> : null}
-          {cfg.note ? <Text style={{ color: colors.muted, fontSize: 12, marginTop: 6 }}>{cfg.note}</Text> : null}
-          {cfg.visit ? <Text style={{ color: colors.muted, fontSize: 12, marginTop: 6 }}>A taxa de visita é sua: o cliente paga ao pedir, fica retida e é liberada quando ele confirma a visita. O Realyz fica com 15% dela.</Text> : null}
-          <Button title={busy ? 'Salvando…' : 'Salvar cadastro'} onPress={salvar} disabled={busy} style={{ marginTop: 10 }} />
+              <View style={ps.novo}>
+                <TextInput style={ps.novoInput} value={form.novaFuncao} onChangeText={(t) => setForm({ ...form, novaFuncao: t })} onSubmitEditing={addFuncao} placeholder="Escrever outro serviço" placeholderTextColor={colors.muted} returnKeyType="done" />
+                <TouchableOpacity onPress={addFuncao} accessibilityLabel="Adicionar serviço" style={{ padding: 6 }}>
+                  <Ionicons name="add-circle" size={26} color={colors.primary} />
+                </TouchableOpacity>
+              </View>
+
+              <Text style={ps.h}>Quanto você cobra</Text>
+              <View style={ps.wrap}>
+                {cfg.units.map((u) => {
+                  const on = form.priceUnit === u;
+                  return (
+                    <TouchableOpacity key={u} onPress={() => setForm({ ...form, priceUnit: u })} style={[ps.unit, on && ps.unitOn]} accessibilityLabel={`por ${u}`}>
+                      <Text numberOfLines={1} style={[ps.unitText, on && { color: colors.onPrimary }]}>por {u}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <Row style={{ marginTop: 4 }}>
+                <Input style={{ flex: 1, marginRight: cfg.visit ? 8 : 0 }} placeholder={cfg.price} keyboardType="decimal-pad" value={form.price} onChangeText={(v) => setForm({ ...form, price: v })} />
+                {cfg.visit ? <Input style={{ flex: 1 }} placeholder="Taxa de visita (R$)" keyboardType="decimal-pad" value={form.visitFee} onChangeText={(v) => setForm({ ...form, visitFee: v })} /> : null}
+              </Row>
+              {cfg.vehicle ? <Input style={{ marginTop: 8 }} placeholder="Seu veículo (modelo, cor, placa, cadeirinha…)" value={form.vehicle} onChangeText={(v) => setForm({ ...form, vehicle: v })} /> : null}
+              {cfg.note ? <Text style={[ps.small, { marginTop: 8 }]}>{cfg.note}</Text> : null}
+              {cfg.visit ? <Text style={[ps.small, { marginTop: 8 }]}>A taxa de visita é sua: o cliente paga ao pedir, fica retida e é liberada quando ele confirma a visita. O Realyz fica com 15% dela.</Text> : null}
+
+              {/* Como o cliente vai ver. */}
+              <View style={ps.preview}>
+                <Text style={ps.previewKicker}>COMO O CLIENTE VÊ VOCÊ</Text>
+                <Text style={ps.profNome} numberOfLines={1}>{prof.icon} {prof.label}{form.outros.length ? ` + ${form.outros.length}` : ''}</Text>
+                <Text style={ps.small} numberOfLines={2}>{form.functions.length ? form.functions.slice(0, 4).join(' · ') : 'Marque o que você faz'}</Text>
+                <Text style={[ps.profNome, { color: colors.primaryDark, fontSize: 14, marginTop: 4 }]}>{toNum(form.price) ? `${brl(toNum(form.price))} por ${form.priceUnit}` : 'Informe o preço'}</Text>
+              </View>
+              <Button title={busy ? 'Salvando…' : 'Salvar cadastro'} onPress={salvar} disabled={busy} style={{ marginTop: 12 }} />
+            </>
+          ) : null}
         </View>
       ) : perfil ? (
         <View>
@@ -161,7 +257,7 @@ export default function ServerProviderPanel() {
             <Text style={{ color: colors.text, flex: 1 }} numberOfLines={2}>
               {perfil.service} · {brl(perfil.price)} por {perfil.priceUnit}{perfil.visitFee ? ` · visita ${brl(perfil.visitFee)}` : ''}
             </Text>
-            <TouchableOpacity onPress={() => { setForm({ seg: segOfService(perfil.service), service: perfil.service, functions: (perfil.functions || []).join(', '), price: String(perfil.price).replace('.', ','), priceUnit: perfil.priceUnit, visitFee: perfil.visitFee ? String(perfil.visitFee).replace('.', ',') : '', vehicle: perfil.vehicle || '' }); setEditing(true); }}>
+            <TouchableOpacity onPress={() => { setForm({ service: perfil.service, outros: perfil.outros || [], functions: perfil.functions || [], novaFuncao: '', price: String(perfil.price).replace('.', ','), priceUnit: perfil.priceUnit, visitFee: perfil.visitFee ? String(perfil.visitFee).replace('.', ',') : '', vehicle: perfil.vehicle || '' }); setTrocando(false); setAddOutra(false); setEditing(true); }}>
               <Text style={{ color: colors.primary, fontWeight: '700' }}>Editar</Text>
             </TouchableOpacity>
           </Row>
@@ -221,3 +317,24 @@ export default function ServerProviderPanel() {
     </Card>
   );
 }
+
+const ps = StyleSheet.create({
+  h: { color: colors.text, fontWeight: '800', fontSize: 15, marginTop: 14, marginBottom: 8 },
+  small: { color: colors.muted, fontSize: 12.5 },
+  link: { color: colors.primary, fontWeight: '800' },
+  prof: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 14, borderWidth: 1.5, borderColor: colors.primary, backgroundColor: '#FFFBEF' },
+  outra: { marginTop: 8, borderWidth: 1, borderColor: colors.border, backgroundColor: '#fff', paddingVertical: 9 },
+  profNome: { color: colors.text, fontWeight: '800', fontSize: 15 },
+  add: { flexDirection: 'row', alignItems: 'center', marginTop: 10, paddingVertical: 4, alignSelf: 'flex-start' },
+  wrap: { flexDirection: 'row', flexWrap: 'wrap' },
+  tag: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: '#fff', marginRight: 6, marginBottom: 6, maxWidth: '100%' },
+  tagOn: { borderColor: colors.primary, backgroundColor: '#FFFBEF' },
+  tagText: { color: colors.text, fontSize: 13, marginLeft: 3 },
+  novo: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingLeft: 12, backgroundColor: '#fff', marginTop: 2 },
+  novoInput: { flex: 1, paddingVertical: 9, color: colors.text, fontSize: 14 },
+  unit: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18, borderWidth: 1, borderColor: colors.border, backgroundColor: '#fff', marginRight: 6, marginBottom: 6 },
+  unitOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  unitText: { color: colors.text, fontWeight: '700', fontSize: 13 },
+  preview: { marginTop: 14, padding: 12, borderRadius: 14, backgroundColor: colors.cardAlt },
+  previewKicker: { color: colors.muted, fontSize: 10, fontWeight: '800', letterSpacing: 0.8, marginBottom: 4 },
+});

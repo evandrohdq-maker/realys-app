@@ -7,6 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, soft } from '../theme';
 import { CLASSES, QUIZ_HOBBIES, classById, subOf, classifyProfile } from '../socialClasses';
+import { classeDaProfissao, profissaoPorKey } from '../providerSegments';
+import ProfissaoBusca from './ProfissaoBusca';
 
 // Selo com ícone em anel, no estilo futurista do app. size: 'sm' (listas) ou 'md' (perfil).
 export function SocialBadge({ social, size = 'md', showExtra = true, onPress, style }) {
@@ -47,27 +49,42 @@ export function SocialBadge({ social, size = 'md', showExtra = true, onPress, st
   );
 }
 
-// Questionário simples: a pessoa se descreve, marca o que gosta de fazer e o app define o perfil.
-// value = { about, work, hobbies, social, manual }  ·  onChange(novoValor)
+// Perfil no cadastro, direto ao ponto:
+//  1. Profissão: digita e escolhe entre as 4 que mais combinam (ou usa o que escreveu).
+//  2. Uma frase sobre você (opcional).
+//  3. O Realyz mostra o selo do perfil (ex.: Música · Cantor). Não é isso? Escolhe outro.
+//  Interesses ficam num botão opcional, para não encher a tela.
+// value = { about, work, prof, hobbies, social, manual }  ·  onChange(novoValor)
+// A profissão escolhida aqui já vale para o painel de prestador (não precisa escolher de novo).
+export function calcSocial(v) {
+  const hobbies = v.hobbies || [];
+  const fixa = v.prof ? classeDaProfissao(v.prof) : null;
+  if (fixa) return { ...fixa, extra: [], why: [], prof: v.prof };
+  const prof = v.prof ? profissaoPorKey(v.prof) : null;
+  const palavras = prof ? `${prof.label} ${(prof.words || []).join(' ')}` : '';
+  const r = classifyProfile(`${v.about || ''} ${v.work || ''} ${palavras}`, hobbies);
+  const semClasse = !r || !r.cls || r.cls === 'membro';
+  return { ...(semClasse && (v.prof || (v.work || '').trim()) ? { cls: 'servicos', sub: null, extra: [], why: [] } : r), prof: v.prof || null };
+}
+
 export function ProfileQuiz({ value, onChange }) {
   const v = value || {};
   const hobbies = v.hobbies || [];
   const [picker, setPicker] = useState(false);
+  const [interesses, setInteresses] = useState(hobbies.length > 0);
 
-  // Sempre que a descrição muda, o perfil é recalculado (a não ser que a pessoa tenha escolhido à mão).
-  const auto = useMemo(() => classifyProfile(`${v.about || ''} ${v.work || ''}`, hobbies), [v.about, v.work, hobbies.join(',')]);
+  const auto = useMemo(() => calcSocial(v), [v.about, v.work, v.prof, hobbies.join(',')]);
   const social = v.manual && v.social ? v.social : auto;
-
   const set = (patch) => {
     const next = { ...v, ...patch };
-    if (!next.manual) next.social = classifyProfile(`${next.about || ''} ${next.work || ''}`, next.hobbies || []);
+    if (!next.manual) next.social = calcSocial(next);
     onChange(next);
   };
   const toggleHobby = (id) => set({ hobbies: hobbies.includes(id) ? hobbies.filter((h) => h !== id) : [...hobbies, id] });
 
   const c = classById(social.cls);
   const s = subOf(c, social.sub);
-  const empty = !`${v.about || ''}${v.work || ''}`.trim() && !hobbies.length;
+  const empty = !v.prof && !`${v.about || ''}${v.work || ''}`.trim() && !hobbies.length;
 
   return (
     <View style={styles.quiz}>
@@ -76,68 +93,71 @@ export function ProfileQuiz({ value, onChange }) {
           <Ionicons name="planet" size={16} color={colors.primary} />
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={styles.qTitle}>Seu perfil social</Text>
-          <Text style={styles.qSub}>Responda rapidinho. O Realyz entende quem você é e cria seu selo.</Text>
+          <Text style={styles.qTitle}>Seu perfil</Text>
+          <Text style={styles.qSub}>Duas respostas rápidas e o Realyz monta o seu selo.</Text>
         </View>
       </View>
 
-      <Text style={styles.q}>1. Como você se descreve?</Text>
+      <Text style={styles.q}>Qual é a sua profissão ou o que você faz?</Text>
+      <ProfissaoBusca
+        value={v.prof || null}
+        livre
+        placeholder="Digite (ex.: eletricista, cantora, estudante)"
+        onPick={(p) => set(p ? { prof: p.key || null, work: p.label } : { prof: null, work: '' })}
+      />
+      {!v.prof && (v.work || '').trim() ? <Text style={styles.why}>Você escreveu: {v.work}</Text> : null}
+
+      <Text style={styles.q}>Uma frase sobre você (opcional)</Text>
       <TextInput
-        style={styles.area}
+        style={[styles.area, { minHeight: 54 }]}
         multiline
-        placeholder="Ex.: Jogo battle royale todo dia e faço live. Também gravo vídeos curtos."
+        placeholder="Ex.: Toco em casamentos e bares da região."
         placeholderTextColor={colors.muted}
         value={v.about || ''}
         onChangeText={(t) => set({ about: t })}
-        maxLength={240}
+        maxLength={160}
       />
 
-      <Text style={styles.q}>2. O que você mais gosta de fazer?</Text>
-      <View style={styles.chips}>
-        {QUIZ_HOBBIES.map((h) => {
-          const on = hobbies.includes(h.id);
-          return (
-            <TouchableOpacity key={h.id} onPress={() => toggleHobby(h.id)} style={[styles.chip, on && styles.chipOn]} activeOpacity={0.85}>
-              <Ionicons name={h.icon} size={14} color={on ? colors.onPrimary : colors.primary} />
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, on && { color: colors.onPrimary }]}>{h.label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+      {interesses ? (
+        <>
+          <Text style={styles.q}>Interesses (opcional)</Text>
+          <View style={styles.chips}>
+            {QUIZ_HOBBIES.map((h) => {
+              const on = hobbies.includes(h.id);
+              return (
+                <TouchableOpacity key={h.id} onPress={() => toggleHobby(h.id)} style={[styles.chip, on && styles.chipOn]} activeOpacity={0.85}>
+                  <Ionicons name={h.icon} size={14} color={on ? colors.onPrimary : colors.primary} />
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.chipText, on && { color: colors.onPrimary }]}>{h.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </>
+      ) : (
+        <TouchableOpacity onPress={() => setInteresses(true)} style={styles.change} activeOpacity={0.8}>
+          <Ionicons name="add-circle-outline" size={15} color={colors.primary} />
+          <Text style={[styles.changeText, { color: colors.primary }]}>Adicionar interesses</Text>
+        </TouchableOpacity>
+      )}
 
-      <Text style={styles.q}>3. Trabalha ou estuda com o quê? (opcional)</Text>
-      <TextInput
-        style={[styles.area, { minHeight: 44 }]}
-        placeholder="Ex.: professora de inglês, estudante de direito, eletricista"
-        placeholderTextColor={colors.muted}
-        value={v.work || ''}
-        onChangeText={(t) => set({ work: t })}
-        maxLength={80}
-      />
-
-      {/* Resultado ao vivo. */}
       <View style={[styles.result, { borderColor: c.color + '66' }]}>
         <View style={[styles.bigRing, { borderColor: c.color, shadowColor: c.color }]}>
           <Ionicons name={c.icon} size={26} color={c.color} />
         </View>
         <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={styles.resultKicker}>{empty ? 'SEU PERFIL APARECE AQUI' : v.manual ? 'VOCÊ ESCOLHEU' : 'O RE@LYS ENTENDEU QUE VOCÊ É'}</Text>
+          <Text style={styles.resultKicker}>{empty ? 'SEU SELO APARECE AQUI' : v.manual ? 'VOCÊ ESCOLHEU' : 'SEU SELO NO REALYZ'}</Text>
           <Text style={[styles.resultTitle, { color: c.color }]}>{c.label}</Text>
-          {s ? <Text style={styles.resultSub}>Subclasse: {s.label}</Text> : null}
-          {(social.extra || []).length ? (
-            <Text style={styles.resultSub}>Também: {social.extra.map((id) => classById(id).label).join(', ')}</Text>
-          ) : null}
-          {!v.manual && social.why && social.why.length ? <Text style={styles.why}>Pelas palavras: {social.why.join(', ')}</Text> : null}
+          {s ? <Text style={styles.resultSub}>{s.label}</Text> : null}
         </View>
       </View>
       <TouchableOpacity onPress={() => setPicker(true)} style={styles.change} activeOpacity={0.8}>
         <Ionicons name="swap-horizontal" size={15} color={colors.accent} />
-        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.changeText}>{v.manual ? 'Trocar perfil' : 'Não é isso? Escolher outro'}</Text>
+        <Text numberOfLines={1} style={styles.changeText}>{v.manual ? 'Trocar selo' : 'Não é isso? Escolher outro'}</Text>
       </TouchableOpacity>
       {v.manual ? (
         <TouchableOpacity onPress={() => set({ manual: false })} style={[styles.change, { marginTop: 0 }]}>
           <Ionicons name="sparkles" size={15} color={colors.primary} />
-          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.changeText, { color: colors.primary }]}>Voltar para o automático</Text>
+          <Text numberOfLines={1} style={[styles.changeText, { color: colors.primary }]}>Voltar para o automático</Text>
         </TouchableOpacity>
       ) : null}
 
@@ -147,7 +167,7 @@ export function ProfileQuiz({ value, onChange }) {
         onClose={() => setPicker(false)}
         onPick={(cls, sub) => {
           setPicker(false);
-          onChange({ ...v, manual: true, social: { cls, sub, extra: (social.extra || []).filter((x) => x !== cls), why: [] } });
+          onChange({ ...v, manual: true, social: { cls, sub, extra: [], why: [], prof: v.prof || null } });
         }}
       />
     </View>
@@ -209,7 +229,7 @@ export function ProfileQuizModal({ visible, initial, onClose, onSave }) {
   React.useEffect(() => {
     if (visible) setV(initial || {});
   }, [visible]);
-  const result = v.manual && v.social ? v.social : classifyProfile(`${v.about || ''} ${v.work || ''}`, v.hobbies || []);
+  const result = v.manual && v.social ? v.social : calcSocial(v);
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: 16, paddingTop: 16 + insets.top, paddingBottom: 40 + insets.bottom }} keyboardShouldPersistTaps="handled">

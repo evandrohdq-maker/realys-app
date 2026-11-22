@@ -113,6 +113,7 @@ import { ArtistSheetHost } from './src/components/ArtistSheet';
 import { ArtistShowHost } from './src/components/ArtistBooking';
 import { MediaViewerHost } from './src/components/MediaViewer';
 import { ServerProfileHost } from './src/components/ServerProfile';
+import { DestacarHost } from './src/components/Destacar';
 import { installCameraPick } from './src/web/cameraPick';
 // Site: escolhe a webcam de verdade sozinho (pula DroidCam, OBS e outras câmeras virtuais).
 if (Platform.OS === 'web') installCameraPick();
@@ -912,6 +913,8 @@ function Shell({ inviteTick }) {
       <CompanyProfileModal />
       {/* Perfil de conta real: montado depois da busca e dos outros perfis, para abrir sempre por cima. */}
       <ServerProfileHost />
+      {/* Destacar (atalho de post/story/reel no perfil): por cima de tudo, inclusive do story aberto. */}
+      <DestacarHost />
       <GiftSheet />
       <CartSheet onOrders={() => pick({ tab: 'pedidos' })} />
       {/* Compra sem saldo: janela do Pix (valor inteiro ou saldo + restante). */}

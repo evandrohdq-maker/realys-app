@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { openMedia } from '../../../components/MediaViewer';
 import { openServerProfile } from '../../../components/ServerProfile';
 import { mediaUrl } from '../../../api';
+import { abrirDestacar } from '../../../components/Destacar';
 import ServerInbox from '../../../components/ServerInbox';
 import { useServerFeed, curtir, comentarios, comentar } from '../../../serverSocial';
 import { CampanhaCard, OngPage } from '../OngsScreen';
@@ -930,10 +931,14 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
                     <Ionicons name="chatbubble-outline" size={17} color={colors.muted} />
                     <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.postActText}>{it.p.server ? it.p.comments : it.p.comments + (cmts[it.p.id] || []).length}</Text>
                   </TouchableOpacity>
-                  {/* Fixar no mural do meu perfil (posts que curti) */}
+                  {/* Meu post: destacar (atalho no mural, na vitrine ou numa pasta de destaques).
+                      Post dos outros: fixar no mural do meu perfil (posts que curti). */}
                   <TouchableOpacity
                     style={styles.postAct}
                     onPress={() => {
+                      if (it.p.author === userName || (it.p.server && state.user && it.p.authorId === state.user.serverId)) {
+                        return abrirDestacar({ kind: 'post', id: it.p.serverId || it.p.id, image: it.p.image || null, video: it.p.video || null, text: it.p.text || '' });
+                      }
                       dispatch({ type: 'MURAL_ADD', item: { id: 'm' + Date.now(), at: Date.now(), time: 'agora', type: 'post', postId: it.p.id, author: it.p.author, text: it.p.text, image: it.p.image } });
                       if (Platform.OS === 'android') ToastAndroid.show('Fixado no seu mural', ToastAndroid.SHORT);
                     }}

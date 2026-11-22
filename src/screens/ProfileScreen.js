@@ -32,6 +32,7 @@ import { ProfileEditor, PrivacyPanel, StudioPanel, FutureIcon, audienceLabel, co
 import { ShowsPanel } from '../components/ArtistShowEditor';
 import { isArtistClass } from '../artistShows';
 import { GamerPanel } from '../components/GamerProfile';
+import { StoriesSalvos } from '../components/Destacar';
 import { segOfService } from '../providerSegments';
 
 // Perfil responsivo pela função: cada classe vê só as ferramentas dela.
@@ -420,6 +421,12 @@ export default function ProfileScreen({ navigate, explore }) {
         {state.activeRole !== 'empresa' && (ESTUDIO_CLASSES.includes(socialCls && socialCls.cls) || ehArtista || ehGamer) ? (
           <Item open={open} onToggle={toggle} k="estudio" icon="rocket-outline" title="Estúdio Realyz" sub="Para artistas, músicos e criadores de conteúdo">
             <StudioPanel />
+          </Item>
+        ) : null}
+        {/* Stories salvos: arquivo dos stories publicados (só o dono vê), para destacar depois. */}
+        {state.activeRole !== 'empresa' ? (
+          <Item open={open} onToggle={toggle} k="salvos" icon="archive-outline" title="Stories salvos" sub={`${(state.storyArchive || []).length} guardados · só você vê`}>
+            <StoriesSalvos />
           </Item>
         ) : null}
         {/* Perfil gamer: jogos, nick, rank, plataformas, procurando time e contratação (só classe Gamer). */}

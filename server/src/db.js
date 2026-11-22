@@ -863,6 +863,10 @@ const MIGRATIONS = [
   );
   CREATE INDEX post_comments_post ON post_comments(post_id, created_at);
   `,
+  // 30: outras profissões do prestador (além da principal, que vem do perfil). Aparece também nelas.
+  `
+  ALTER TABLE providers ADD COLUMN outros TEXT NOT NULL DEFAULT '[]';
+  `,
 ];
 
 export function openDb(file) {

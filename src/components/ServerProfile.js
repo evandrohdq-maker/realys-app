@@ -186,7 +186,7 @@ function Galeria({ g, first, width }) {
       {highlights.length ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
           {highlights.map((h) => (
-            <TouchableOpacity key={h.id} style={{ alignItems: 'center', marginRight: 14, width: 68 }} onPress={() => openMedia(h.items.map((i) => ({ photo: full(i.image), title: i.caption || h.title })))} accessibilityLabel={`Destaque ${h.title}`}>
+            <TouchableOpacity key={h.id} style={{ alignItems: 'center', marginRight: 14, width: 68 }} onPress={() => openMedia(h.items.map((i) => (i.video ? { video: full(i.video), photo: full(i.image), title: i.caption || h.title } : { photo: full(i.image), title: i.caption || h.title })))} accessibilityLabel={`Destaque ${h.title}`}>
               <Photo uri={full(h.cover || (h.items[0] && h.items[0].image))} style={st.hl} fallback="✨" />
               <Text numberOfLines={1} style={{ color: colors.text, fontSize: 12, marginTop: 4 }}>{h.title}</Text>
             </TouchableOpacity>
@@ -225,12 +225,19 @@ function MuralAmigo({ m, first }) {
       {items.map((x) => (
         <View key={x.id} style={[st.muralItem, { backgroundColor: x.type === 'recado' ? x.color || '#FFF3C4' : t.card || 'rgba(255,255,255,0.1)' }]}>
           {x.pinned ? <Ionicons name="pin" size={13} color="#8A6208" style={{ alignSelf: 'flex-end' }} /> : null}
+          {x.type === 'post' && (x.image || x.video) ? (
+            <TouchableOpacity activeOpacity={0.92} onPress={() => openMedia([x.video ? { video: full(x.video), photo: full(x.image) } : { photo: full(x.image), title: x.text }])}>
+              {x.image ? <Photo uri={full(x.image)} style={{ width: '100%', height: x.big ? 240 : 170, borderRadius: 10 }} fallback="🖼️" /> : (
+                <View style={{ height: 150, borderRadius: 10, backgroundColor: '#14120E', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="play-circle" size={44} color="#F5C331" /></View>
+              )}
+            </TouchableOpacity>
+          ) : null}
           {x.type === 'foto' ? (
             <TouchableOpacity activeOpacity={0.92} onPress={() => openMedia([{ photo: full(x.uri), title: x.text }])}>
               <Photo uri={full(x.uri)} style={{ width: '100%', height: x.big ? 240 : 170, borderRadius: 10 }} fallback="🖼️" />
             </TouchableOpacity>
           ) : null}
-          {x.text ? <Text style={{ color: x.type === 'recado' ? '#1B1B1B' : t.text || '#fff', marginTop: x.type === 'foto' ? 6 : 0, fontSize: x.big ? 17 : 15, lineHeight: 21 }}>{x.text}</Text> : null}
+          {x.text ? <Text style={{ color: x.type === 'recado' ? '#1B1B1B' : t.text || '#fff', marginTop: x.type === 'recado' ? 0 : 6, fontSize: x.big ? 17 : 15, lineHeight: 21 }}>{x.text}</Text> : null}
           {x.time ? <Text style={{ color: x.type === 'recado' ? '#6B6B6B' : t.muted || '#ccc', fontSize: 11, marginTop: 4 }}>{x.time}</Text> : null}
         </View>
       ))}

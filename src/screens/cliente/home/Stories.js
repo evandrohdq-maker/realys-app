@@ -16,6 +16,7 @@ import StoryCamera from '../../../components/StoryCamera';
 import StoryEffectOverlay from '../../../components/StoryEffectOverlay';
 import StoryFrame, { storyDesk } from '../../../components/StoryFrame';
 import { ShowStoryCard } from '../../../components/ArtistBooking';
+import { abrirDestacar } from '../../../components/Destacar';
 
 // Story só de texto sem cor escolhida: fundo claro (marfim) e letra escura. A cor de fundo é opção.
 export const STORY_PLAIN = '#FBF8F1';
@@ -218,9 +219,25 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
             </TouchableOpacity>
           ) : null}
           {group.mine ? (
-            <View style={styles.seenBy}>
-              <Ionicons name="eye-outline" size={16} color="#fff" />
-              <Text style={{ color: '#fff', marginLeft: 6, fontWeight: '600' }}>Visto por {item.views || 0} pessoas verificadas</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={[styles.seenBy, { flex: 1 }]}>
+                <Ionicons name="eye-outline" size={16} color="#fff" />
+                <Text numberOfLines={1} style={{ color: '#fff', marginLeft: 6, fontWeight: '600' }}>Visto por {item.views || 0} pessoas verificadas</Text>
+              </View>
+              {/* Destacar: atalho deste story nas pastas de destaque, no mural ou na vitrine. */}
+              {item.time !== 'destaque' && !item.ref ? (
+                <TouchableOpacity
+                  onPress={() => {
+                    setPaused(true);
+                    abrirDestacar({ kind: 'story', id: item.id, image: item.image || null, video: item.video || null, text: item.text || '' });
+                  }}
+                  style={styles.destacarBtn}
+                  accessibilityLabel="Destacar este story"
+                >
+                  <Ionicons name="star-outline" size={18} color="#fff" />
+                  <Text numberOfLines={1} style={{ color: '#fff', fontWeight: '700', fontSize: 12, marginLeft: 4 }}>Destacar</Text>
+                </TouchableOpacity>
+              ) : null}
             </View>
           ) : (
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -458,6 +475,7 @@ const styles = StyleSheet.create({
   headAvatar: { width: 36, height: 36, borderRadius: 18, borderWidth: 1.5, borderColor: '#fff' },
   headName: { color: '#fff', fontWeight: '700', fontSize: 14, textShadowColor: 'rgba(0,0,0,0.5)', textShadowRadius: 4 },
   headTime: { color: 'rgba(255,255,255,0.85)', fontSize: 11 },
+  destacarBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.35)', marginLeft: 8 },
   close: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.25)' },
   bottom: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 14 },
   caption: {
