@@ -19,8 +19,8 @@ export const AVISOS = {
   order: (d) => ({ title: 'Pedido', body: d.status ? `Seu pedido está: ${d.status}` : 'Você recebeu um pedido novo', go: { tab: 'pedidos' } }),
   payment: (d) => ({ title: 'Pagamento recebido 💰', body: `${brl(d.amount)}${d.from ? ` de ${d.from}` : ''}`, go: { tab: 'perfil' } }),
   gift: (d) => ({ title: 'Você ganhou um presente 🎁', body: d.fromName ? `De ${d.fromName}` : 'Abra a carteira para ver', go: { tab: 'perfil' } }),
-  friend_request: (d) => ({ title: 'Pedido de amizade', body: `${d.fromName || d.name || 'Alguém'} quer ser seu amigo no Realyz`, go: { tab: 'stories' } }),
-  friend_accepted: (d) => ({ title: 'Amizade aceita', body: `${d.name || d.fromName || 'Seu amigo'} aceitou o seu pedido`, go: { tab: 'stories' } }),
+  friend_request: (d) => ({ title: 'Pedido de amizade', body: `${(d.from && d.from.name) || d.fromName || d.name || 'Alguém'} quer ser seu amigo no Realyz`, go: { tab: 'stories' } }),
+  friend_accepted: (d) => ({ title: 'Amizade aceita', body: `${(d.by && d.by.name) || d.name || d.fromName || 'Seu amigo'} aceitou o seu pedido`, go: { tab: 'stories' } }),
   'live-favorito': (d) => ({ title: 'Ao vivo agora 🔴', body: `${d.hostName || d.name || 'Seu favorito'} entrou ao vivo`, go: { tab: 'stories', top: 'lives' } }),
   show: (d) => ({
     title: d.lado === 'artista' ? 'Pedido de show 🎤' : `Show · ${d.artista || 'artista'}`,
@@ -29,7 +29,7 @@ export const AVISOS = {
   }),
   show_msg: (d) => ({ title: d.fromName || 'Mensagem do show', body: short(d.text), go: { tab: 'pedidos', seg: 'shows' } }),
   ticket: () => ({ title: 'Ingresso confirmado 🎟️', body: 'Seu ingresso está em Pedidos', go: { tab: 'pedidos', seg: 'ingressos' } }),
-  testimonial: (d) => ({ title: 'Novo depoimento', body: `${d.fromName || 'Alguém'} deixou um depoimento para você aprovar`, go: { tab: 'perfil' } }),
+  testimonial: (d) => ({ title: 'Novo depoimento', body: `${(d.from && d.from.name) || d.fromName || 'Alguém'} deixou um depoimento para você aprovar`, go: { tab: 'perfil' } }),
   music_sale: (d) => ({ title: 'Música vendida 🎶', body: d.title ? `"${d.title}" foi comprada` : 'Alguém comprou sua música', go: { tab: 'perfil' } }),
   deposit: (d) => ({ title: 'Depósito confirmado', body: `${brl(d.amount)} na sua carteira`, go: { tab: 'perfil' } }),
 };
