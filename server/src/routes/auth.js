@@ -187,6 +187,28 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
     provider: db.prepare('SELECT * FROM providers WHERE user_id = ?').get(user.id) || null,
   }));
 
+  // Perfil completo da conta (o que a pessoa preencheu no app ou no site). O mais novo vale.
+  r.get('/me/dados', ({ user }) => {
+    const row = db.prepare('SELECT data, updated_at FROM user_dados WHERE user_id = ?').get(user.id);
+    return row ? { data: JSON.parse(row.data), updatedAt: row.updated_at } : { data: null, updatedAt: 0 };
+  });
+  r.put('/me/dados', ({ body, user }) => {
+    if (!body || typeof body.data !== 'object' || !body.data || Array.isArray(body.data)) fail(400, 'Dados do perfil inválidos.');
+    const json = JSON.stringify(body.data);
+    if (json.length > 900 * 1024) fail(413, 'Perfil grande demais para salvar.');
+    const at = now();
+    db.prepare('INSERT INTO user_dados (user_id, data, updated_at) VALUES (?,?,?) ON CONFLICT(user_id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at').run(user.id, json, at);
+    // Foto e "sobre" também vão para o perfil público (busca, amigos, conversas).
+    const p = body.data.myProfile || {};
+    const foto = typeof p.photo === 'string' ? p.photo.replace(/^https?:\/\/[^/]+(?=\/media\/)/, '') : null;
+    const fields = {};
+    if (foto && /^\/media\/[A-Za-z0-9_-]+$/.test(foto)) fields.photo = foto;
+    if (typeof p.bio === 'string') fields.about = p.bio.trim().slice(0, 300);
+    const keys = Object.keys(fields);
+    if (keys.length) db.prepare(`UPDATE users SET ${keys.map((k) => `${k} = ?`).join(', ')} WHERE id = ?`).run(...keys.map((k) => fields[k]), user.id);
+    return { updatedAt: at };
+  });
+
   r.patch('/me', ({ body, user }) => {
     const fields = {};
     if (body.name !== undefined) fields.name = str(body.name, 'o nome', { min: 2, max: 80 });
