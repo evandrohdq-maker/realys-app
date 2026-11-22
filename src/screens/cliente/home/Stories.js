@@ -17,6 +17,7 @@ import StoryEffectOverlay from '../../../components/StoryEffectOverlay';
 import StoryFrame, { storyDesk } from '../../../components/StoryFrame';
 import { ShowStoryCard } from '../../../components/ArtistBooking';
 import { abrirDestacar } from '../../../components/Destacar';
+import { useServerProfileOpen } from '../../../profileOpen';
 
 // Story só de texto sem cor escolhida: fundo claro (marfim) e letra escura. A cor de fundo é opção.
 export const STORY_PLAIN = '#FBF8F1';
@@ -34,11 +35,27 @@ try {
 
 // Vídeo do story: toca uma vez, com som, e para quando o story pausa.
 // Com música escolhida, o som do vídeo fica mudo (toca só a música).
-function StoryVideo({ uri, paused, style, loop, muted }) {
+function StoryVideo({ uri, paused, style, loop, muted, onDuration, onEnd }) {
   const player = EV.useVideoPlayer({ uri }, (p) => {
     p.loop = !!loop;
     p.muted = !!muted;
+    p.play();
   });
+  // Duração de verdade (vídeo do servidor não traz) e fim do vídeo: o story passa para o próximo.
+  useEffect(() => {
+    const subs = [];
+    try {
+      subs.push(player.addListener('sourceLoad', (e) => {
+        const d = e && e.duration ? e.duration : player.duration;
+        if (d > 0 && onDuration) onDuration(d);
+      }));
+      subs.push(player.addListener('playToEnd', () => onEnd && onEnd()));
+      subs.push(player.addListener('statusChange', (e) => {
+        if (e && e.status === 'readyToPlay' && player.duration > 0 && onDuration) onDuration(player.duration);
+      }));
+    } catch (e) {}
+    return () => subs.forEach((x) => x && x.remove && x.remove());
+  }, [player]);
   useEffect(() => {
     try {
       player.muted = !!muted;
@@ -60,7 +77,8 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
   const insets = useSafeAreaInsets();
   const { state } = useStore();
   // Prévia ou perfil aberto por cima (tocou no nome): o story espera parado.
-  const covered = !!onProfile && !!(state.viewProfile || state.viewCompany);
+  const srvProfileOpen = useServerProfileOpen();
+  const covered = !!onProfile && !!(state.viewProfile || state.viewCompany || srvProfileOpen);
   const [gi, setGi] = useState(0);
   const [ii, setIi] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -84,7 +102,10 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
   const group = groups[gi];
   // Foto e texto ficam 5 s; vídeo fica o tempo dele (até 30 s).
   const cur = group ? group.items[Math.min(ii, group.items.length - 1)] : null;
-  const dur = cur && cur.video ? Math.min(STORY_VIDEO_MAX_S, cur.secs || STORY_VIDEO_MAX_S) * 1000 : STORY_MS;
+  // Vídeo sem a duração salva (veio do servidor): usa a que o player descobre ao carregar.
+  const [vidSecs, setVidSecs] = useState({});
+  const secsOf = (it) => it.secs || vidSecs[it.id] || STORY_VIDEO_MAX_S;
+  const dur = cur && cur.video ? Math.min(STORY_VIDEO_MAX_S, secsOf(cur)) * 1000 : STORY_MS;
 
   useEffect(() => {
     if (visible && group) onSeen && onSeen(group.id);
@@ -141,7 +162,15 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
       <KeyboardLift style={{ flex: 1, backgroundColor: '#000' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {item.video && EV ? (
           <View style={StyleSheet.absoluteFill}>
-            <StoryVideo key={item.id} uri={item.video} muted={!!item.music} paused={paused || typing || covered} style={StyleSheet.absoluteFill} />
+            <StoryVideo
+              key={item.id}
+              uri={item.video}
+              muted={!!item.music}
+              paused={paused || typing || covered}
+              style={StyleSheet.absoluteFill}
+              onDuration={(d) => !item.secs && setVidSecs((v) => (v[item.id] ? v : { ...v, [item.id]: Math.ceil(d) }))}
+              onEnd={next}
+            />
             <StoryEffectOverlay effect={item.effect} />
           </View>
         ) : item.showCard ? (
@@ -318,7 +347,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
   const ready = !!(text.trim() || media);
   const publish = () => {
     if (!ready) return;
-    const item = { id: 'me' + Date.now(), text: text.trim(), bg: bg || STORY_PLAIN, time: 'agora', views: 0 };
+    const item = { id: 'me' + Date.now(), at: Date.now(), text: text.trim(), bg: bg || STORY_PLAIN, time: 'agora', views: 0 };
     if (music) item.music = music;
     if (media && media.kind === 'image') Object.assign(item, { image: media.uri, effect });
     if (media && media.kind === 'video') Object.assign(item, { video: media.uri, secs: media.secs, effect });

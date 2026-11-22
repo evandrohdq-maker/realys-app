@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Share, AppState } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Share, AppState, Linking } from 'react-native';
+import * as Location from 'expo-location';
+import { addressOf } from '../../geo';
 import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, brl, soft } from '../../theme';
@@ -37,10 +39,46 @@ export default function SosScreen({ explore }) {
     if (!ok) Alert.alert('Sem permissão', 'Tudo bem: quando você tocar em ligar, o Realyz abre o discador com o número pronto.');
   };
 
-  const shareLocation = () =>
-    Share.share({ message: `🚨 Preciso de ajuda. Minha localização agora (GPS Realyz): ${MY_SPOT}` }).catch(() => {});
+  // Localização de verdade (GPS do celular, com a melhor precisão que der) para mandar a alguém.
+  const [spot, setSpot] = useState(null); // { lat, lon, address }
+  const [locating, setLocating] = useState(false);
+  const locate = async () => {
+    setLocating(true);
+    try {
+      const perm = await Location.requestForegroundPermissionsAsync();
+      if (perm.status !== 'granted') {
+        Alert.alert('GPS desligado', 'Permita a localização para o Realyz mandar onde você está. Em risco de vida, ligue 192 ou 193.');
+        return null;
+      }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High }).catch(() => Location.getLastKnownPositionAsync({}));
+      if (!pos) return null;
+      const p = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+      const address = await addressOf(p).catch(() => null);
+      const out = { ...p, address: address || null };
+      setSpot(out);
+      return out;
+    } finally {
+      setLocating(false);
+    }
+  };
+  const shareLocation = async () => {
+    const p = spot || (await locate());
+    if (!p) return;
+    const link = `https://maps.google.com/?q=${p.lat.toFixed(6)},${p.lon.toFixed(6)}`;
+    Share.share({ message: `🚨 Preciso de ajuda. Minha localização agora: ${p.address ? p.address + ' · ' : ''}${link}` }).catch(() => {});
+  };
+  // Hospitais, UPAs e farmácias de verdade, perto de onde a pessoa está (abre o mapa do celular).
+  const nearby = async (what) => {
+    const p = spot || (await locate());
+    const url = p
+      ? `https://www.google.com/maps/search/${encodeURIComponent(what)}/@${p.lat},${p.lon},14z`
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(what + ' perto de mim')}`;
+    Linking.openURL(url).catch(() => Alert.alert('Mapa', 'Não deu para abrir o mapa do celular.'));
+  };
 
-  const docs = specialists.filter((d) => spec === 'Todos' || d.specialty === spec).sort((a, b) => a.distanceKm - b.distanceKm);
+  // Só médicos de verdade, com registro conferido (os de exemplo saíram: saúde não pode ter cadastro fictício).
+  // Quando os profissionais se cadastrarem pelo servidor, entram aqui.
+  const docs = [];
 
   return (
     <Screen>
@@ -122,7 +160,9 @@ export default function SosScreen({ explore }) {
               <Ionicons name="location" size={18} color={colors.accent} />
               <Text style={{ fontWeight: '700', color: colors.text, marginLeft: 6, flex: 1 }}>Sua localização pelo GPS</Text>
             </Row>
-            <Text style={{ color: colors.muted, marginTop: 4 }}>{MY_SPOT}</Text>
+            <Text style={{ color: colors.muted, marginTop: 4 }}>
+              {locating ? 'Procurando você pelo GPS…' : spot ? spot.address || `${spot.lat.toFixed(5)}, ${spot.lon.toFixed(5)}` : 'Toque abaixo para mandar onde você está agora.'}
+            </Text>
             <TouchableOpacity style={styles.shareBtn} onPress={shareLocation}>
               <Ionicons name="share-social-outline" size={16} color={colors.accent} />
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.accent, fontWeight: '700', marginLeft: 6 }}>Enviar minha localização para alguém</Text>
@@ -135,32 +175,26 @@ export default function SosScreen({ explore }) {
       {seg === 'hospitais' ? (
         <>
           <SusCard />
-          <Text style={styles.gpsLine}>📍 Mais próximos de você pelo GPS</Text>
-          {[...hospitals].sort((a, b) => a.distanceKm - b.distanceKm).map((h) => (
-            <Card key={h.id}>
-              <Row>
-                <Photo uri={h.photo} style={styles.hPhoto} fallback="🏥" />
-                <View style={{ flex: 1, marginLeft: 10 }}>
-                  <Text style={styles.name}>{h.name}</Text>
-                  <Text style={styles.sub}>{h.type} · {h.network}</Text>
-                  <Text style={styles.sub}>
-                    {km(h.distanceKm)}
-                    {h.waitMin != null ? ` · espera ~${h.waitMin} min` : ''}
-                  </Text>
-                </View>
-              </Row>
-              <Row style={{ marginTop: 8 }}>
-                {h.open24 ? <Badge label="Aberto 24h" color={colors.success} /> : <Badge label="Horário comercial" color={colors.muted} />}
-              </Row>
-              <Row style={{ marginTop: 10 }}>
-                <Action icon="call" label="Ligar" color={colors.danger} onPress={() => demoCall(h.name, h.phone)} />
-                <Action icon="navigate" label="Rota" color={colors.accent} onPress={() => openRoute(h.name.replace(' (demo)', '') + ' São Paulo')} />
-                {h.network === 'SUS' ? (
-                  <Action icon="business" label="Perfil" color={colors.primary} onPress={() => dispatch({ type: 'OPEN_PUBLIC', id: /UPA/.test(h.name) ? 'pub-upa' : 'pub-hospital' })} />
-                ) : null}
-              </Row>
-            </Card>
+          <Text style={styles.gpsLine}>📍 Perto de você agora (pelo GPS, no mapa)</Text>
+          {[
+            ['Hospitais', 'hospital', 'medkit'],
+            ['UPA e pronto-socorro', 'UPA pronto socorro', 'pulse'],
+            ['Posto de saúde (UBS)', 'UBS posto de saúde', 'business'],
+            ['Farmácias 24 horas', 'farmácia 24 horas', 'bandage'],
+          ].map(([label, q, icon]) => (
+            <TouchableOpacity key={q} onPress={() => nearby(q)} activeOpacity={0.85} accessibilityLabel={`${label} perto de mim`}>
+              <Card>
+                <Row>
+                  <View style={styles.rIcon}>
+                    <Ionicons name={icon} size={20} color={colors.danger} />
+                  </View>
+                  <Text style={[styles.name, { flex: 1, marginLeft: 10 }]}>{label}</Text>
+                  <Ionicons name="navigate" size={18} color={colors.accent} />
+                </Row>
+              </Card>
+            </TouchableOpacity>
           ))}
+          <Text style={styles.note}>Os hospitais e unidades com perfil oficial no Realyz aparecem em Serviços públicos, no alto desta tela.</Text>
         </>
       ) : null}
 
@@ -207,7 +241,7 @@ export default function SosScreen({ explore }) {
 
       {seg === 'socorristas' ? (
         <>
-          <Text style={styles.gpsLine}>📍 Prestadores de emergência com GPS ligado perto de você</Text>
+          <Text style={styles.gpsLine}>📍 Socorro perto de você</Text>
           <Card style={{ borderColor: colors.danger, borderWidth: 1.5 }}>
             <Row>
               <Ionicons name="medkit" size={20} color={colors.danger} />
@@ -218,31 +252,6 @@ export default function SosScreen({ explore }) {
               <Action icon="call" label="192" color={colors.danger} onPress={() => confirmCall('o SAMU', '192')} />
             </Row>
           </Card>
-          {responders.map((r) => (
-            <Card key={r.id}>
-              <Row>
-                <View style={styles.rIcon}>
-                  <Ionicons name={r.icon} size={20} color={colors.danger} />
-                </View>
-                <View style={{ flex: 1, marginLeft: 10 }}>
-                  <Text style={styles.name}>{r.name}</Text>
-                  <Text style={styles.sub}>{r.kind}</Text>
-                  <Text style={styles.sub}>
-                    {km(r.distanceKm)} · chega em ~{r.etaMin} min · {r.price} · ★ {r.rating.toFixed(1).replace('.', ',')}
-                  </Text>
-                </View>
-              </Row>
-              <Row style={{ marginTop: 10 }}>
-                <Action icon="call" label="Ligar" color={colors.danger} onPress={() => demoCall(r.name, r.phone)} />
-                <Action
-                  icon="navigate-circle"
-                  label="Chamar"
-                  color={colors.primary}
-                  onPress={() => Alert.alert('Pedido enviado', `${r.name} recebeu sua localização pelo GPS e está a caminho (demonstração).`)}
-                />
-              </Row>
-            </Card>
-          ))}
           <Text style={styles.note}>Empresas de ambulância, enfermagem e socorro: cadastre-se como prestador e ligue o GPS para aparecer aqui.</Text>
         </>
       ) : null}

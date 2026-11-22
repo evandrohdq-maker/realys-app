@@ -10,6 +10,10 @@ const TYPES = {
   'video/mp4': 'video', 'video/quicktime': 'video', 'audio/mpeg': 'audio', 'audio/mp4': 'audio', 'audio/aac': 'audio',
 };
 
+const EXT = { 'video/mp4': '.mp4', 'video/quicktime': '.mov', 'audio/mpeg': '.mp3', 'audio/mp4': '.m4a', 'audio/aac': '.aac' };
+// "/media/md_x.mp4" e "/media/md_x" são o mesmo arquivo.
+export const mediaIdOf = (v) => String(v || '').replace(/^.*\/media\//, '').replace(/\.[A-Za-z0-9]{2,4}$/, '');
+
 export default function mediaRoutes(r, { db, cfg, hub }) {
   const mod = cfg.imageModerator || makeImageModerator(cfg);
   const dir = join(cfg.dataDir, 'media');
@@ -42,7 +46,10 @@ export default function mediaRoutes(r, { db, cfg, hub }) {
       db.prepare('INSERT INTO moderacao_log (id, user_id, kind, ref, nudez, decisao, created_at) VALUES (?,?,?,?,?,?,?)').run(newId('ml'), user.id, TYPES[mime] === 'video' ? 'video' : 'foto', id, res.nudez == null ? null : res.nudez, res.decisao, now());
     }
     db.prepare('INSERT INTO media (id, owner_id, mime, size, created_at, uso, moderacao, nudez) VALUES (?,?,?,?,?,?,?,?)').run(id, user.id, mime, raw.length, now(), uso, moderacao, res.nudez == null ? null : res.nudez);
-    return { id, url: `/media/${id}`, type: TYPES[mime], size: raw.length, moderacao };
+    // Vídeo e música levam a extensão no endereço (/media/md_x.mp4): o app e o navegador sabem
+    // pelo endereço que é vídeo/som e já abrem no player certo (foto fica sem extensão, como antes).
+    const ext = EXT[mime] || '';
+    return { id, url: `/media/${id}${ext}`, type: TYPES[mime], size: raw.length, moderacao };
   }, { raw: true, status: 201 });
 
   // Fila de revisão humana (só o administrador): liberar ou remover.
@@ -71,7 +78,7 @@ export default function mediaRoutes(r, { db, cfg, hub }) {
   // Público: as fotos e vídeos aparecem no app sem precisar de token. Vídeo e música aceitam "Range"
   // (o player do celular pede pedaços do arquivo para começar a tocar rápido).
   r.get('/media/:id', ({ params, req, res }) => {
-    const m = db.prepare('SELECT * FROM media WHERE id = ?').get(params.id);
+    const m = db.prepare('SELECT * FROM media WHERE id = ?').get(mediaIdOf(params.id));
     const file = m && join(dir, m.id);
     if (!m || !existsSync(file)) fail(404, 'Arquivo não encontrado.');
     // Em revisão ou removido: não aparece para ninguém até a equipe liberar.

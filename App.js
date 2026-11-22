@@ -113,6 +113,8 @@ import { ArtistSheetHost } from './src/components/ArtistSheet';
 import { ArtistShowHost } from './src/components/ArtistBooking';
 import { MediaViewerHost } from './src/components/MediaViewer';
 import { ServerProfileHost } from './src/components/ServerProfile';
+import { ComprasGateModal, useComprasStatus } from './src/components/ComprasGate';
+import { useCarteiraReal } from './src/serverShop';
 import { DestacarHost } from './src/components/Destacar';
 import { atualizarMeiValores } from './src/meiValoresSync';
 import { installCameraPick } from './src/web/cameraPick';
@@ -250,6 +252,8 @@ function Shell({ inviteTick }) {
   // Conta sem biometria usa só o perfil de usuário (modo social).
   const verified = isVerified(state);
   useServerBio();
+  useComprasStatus();
+  useCarteiraReal(state, dispatch); // conta real: saldo e extrato de verdade (servidor)
   usePush(); // notificações com o app fechado (src/pushNotifications.js)
   // Prestador: pedidos de visita e visitas aceitas entram sozinhos no CRM (aba Clientes).
   const hasProvider = !!state.myProvider;
@@ -748,6 +752,7 @@ function Shell({ inviteTick }) {
 
       {/* Rádio tocando: barrinha em qualquer tela (o player é um só no app). */}
       <BioGateModal />
+      <ComprasGateModal />
       {/* Rádio ao vivo: sem barrinha dentro do app (o play/parar fica na página das rádios; a capa
           aparece só ao minimizar). Músicas: mini player com a capa e o botão do perfil do artista. */}
       {/* Rádio e músicas: playerzinho pequeno logo abaixo do cabeçalho, no meio da tela (pretinho com

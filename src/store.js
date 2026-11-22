@@ -19,6 +19,9 @@ import { INTEL_PLAN, subPlan } from './engage';
 import { fareQuote, TARIFFS, surgeText } from './pricing';
 import { protectionFee } from './guarantee';
 import { usarConta } from './serverAuth';
+import { serverOn } from './api';
+import { comprasTravadas } from './compras';
+export { comprasTravadas };
 import { canSync, payloadOf, pullProfile, pushProfile, uploadLocalPhotos, uploadLocalGallery, uploadLocalMural, richness } from './profileSync';
 import { publicar } from './serverSocial';
 import { isServerId } from './serverShop';
@@ -99,6 +102,10 @@ const initialState = {
   susBookings: [],
   docsOpen: null, // { mode: 'lista' | 'contrato' | 'receita', draft? } — tela de contratos e receitas
   activeRole: null,
+  // Com o servidor ligado, as compras começam travadas até o servidor dizer que estão liberadas.
+  comprasBloqueadas: serverOn(),
+  comprasAviso: null,
+  comprasGate: null,
   wallet: 750, // saldo em moeda Realyz (1 RLS = R$ 1,00 na demonstração)
   walletTx: initialWalletTx, // extrato da carteira
   // Créditos de presente: chegam sem precisar aceitar, não podem ser sacados e só servem para
@@ -367,6 +374,21 @@ function comEmpresaReal(state, user) {
   if (!user || !user.serverId) return state;
   return {
     ...state,
+    // Conta real: nada de pessoas, conversas, depoimentos ou dinheiro de exemplo. Tudo isso vem do
+    // servidor (amigos, mensagens, feed, stories, depoimentos e a carteira de verdade).
+    ...(state.realLimpo ? {} : {
+      realLimpo: true,
+      conversations: [],
+      friends: {},
+      communityPosts: [],
+      testimonials: [],
+      wallet: 0,
+      walletTx: [],
+      giftCredits: 0,
+      gifts: [],
+      liveCredits: 0,
+      liveGifts: [],
+    }),
     myCompanyReal: true,
     stores: state.stores.map((x) => (x.id === D.MY_COMPANY_ID ? { ...x, name: user.name || 'Minha empresa', category: (user.company && user.company.segment) || '', city: user.city || '', rating: null, recommended: false, sponsored: false, cover: null, logo: '🏪' } : x)),
     products: state.products.filter((p) => p.storeId !== D.MY_COMPANY_ID || p.server),
@@ -420,6 +442,30 @@ const NEEDS_BIO = new Set([
 ]);
 export const needsBio = (type) => NEEDS_BIO.has(type);
 
+// Compras temporariamente bloqueadas (o servidor diz em GET /status; ver server/src/comprasGate.js).
+// Navegar, ver preços, montar o carrinho e conversar continuam liberados; o que para é o pagamento:
+// estas ações e qualquer outra que tire dinheiro ou crédito da carteira.
+const COMPRA = new Set([
+  'CHECKOUT', 'SECTOR_ORDER', 'BUY_TICKET', 'BUY_MEDIA', 'CHECKOUT_MUSIC', 'MEDIA_UPLOAD', 'MEDIA_PLAN', 'VENUE_ORDER', 'VENUE_RESERVE',
+  'REQUEST_RIDE', 'VISIT_REQUEST', 'ONLINE_BOOK', 'GROUP_JOIN', 'SUB_START', 'REVERSE_ACCEPT', 'NEG_REQUEST', 'NEG_PLAN', 'NEG_LEAD_UNLOCK',
+  'DESAPEGO_BUY', 'ONG_DOAR', 'INTEL_PLAN', 'SEND_GIFT', 'SEND_LIVE_GIFT', 'CONVERT_LIVE_CREDITS', 'GIFT_CASHOUT', 'WALLET_DEPOSIT',
+  'WALLET_WITHDRAW', 'DATE_SUBSCRIBE', 'SET_HIGHLIGHT',
+]);
+export const isCompra = (type) => COMPRA.has(type);
+// Quando a compra é barrada, a tela que pediu pode mostrar "Pedido confirmado!" logo em seguida.
+// Por um instante depois da trava, os avisos dessas telas não aparecem (só o "Temporariamente bloqueado").
+let silenciarAvisosAte = 0;
+if (!Alert.__realyzCompras) {
+  const original = Alert.alert.bind(Alert);
+  Alert.alert = (...args) => (Date.now() < silenciarAvisosAte ? undefined : original(...args));
+  Alert.__realyzCompras = true;
+}
+const travarCompra = (state) => {
+  silenciarAvisosAte = Date.now() + 1500;
+  return { ...state, comprasGate: Date.now() };
+};
+
+
 const DEFAULT_CHAT_LISTS = [{ id: 'familia', name: 'Família' }, { id: 'trabalho', name: 'Trabalho' }, { id: 'clientes', name: 'Clientes' }];
 // Ações do painel do administrador que o analista (acesso só de leitura) não pode fazer.
 export const ANALYST_BLOCKED = new Set([
@@ -431,8 +477,12 @@ function reducer(state, a) {
   if (state.user && state.user.readOnly && ANALYST_BLOCKED.has(a.type)) return state;
   // (A primeira página é gratuita e faz parte do perfil social: essa a conta sem biometria pode criar.)
   if (state.user && state.user.verified === false && NEEDS_BIO.has(a.type) && !(a.type === 'PAGE_CREATE' && pagePrice(state) === 0)) return { ...state, bioGate: Date.now() };
+  if (comprasTravadas(state) && COMPRA.has(a.type)) return travarCompra(state);
   const next = baseReducer(state, a);
-  if (!next || next === state || next.wallet === state.wallet || next.walletTx !== state.walletTx || a.type === 'LOGOUT') return next;
+  // Rede de segurança: qualquer ação que gaste saldo ou crédito de presente também para.
+  if (comprasTravadas(state) && next && next !== state && a.type !== 'LOGOUT' && a.type !== 'SERVER_WALLET' && (next.wallet < state.wallet || next.giftCredits < state.giftCredits)) return travarCompra(state);
+  // Saldo vindo do servidor não vira linha nova no extrato (o extrato também vem do servidor).
+  if (!next || next === state || next.wallet === state.wallet || next.walletTx !== state.walletTx || a.type === 'LOGOUT' || a.type === 'SERVER_WALLET' || a.type === 'LOGIN' || a.type === 'RESTORE_SESSION') return next;
   const diff = +(next.wallet - state.wallet).toFixed(2);
   const [cat, desc] = WALLET_CAT[a.type] || [diff > 0 ? 'Entrada' : 'Outros gastos', () => (diff > 0 ? 'Entrada na carteira' : 'Pagamento no Realyz')];
   const tx = { id: newId('w'), ts: Date.now(), kind: diff > 0 ? 'recebido' : 'gasto', cat, desc: desc(a), amount: Math.abs(diff) };
@@ -568,6 +618,8 @@ function baseReducer(state, a) {
       return { ...state, serverChat: null };
     case 'SERVER_WALLET':
       return { ...state, wallet: a.balance, giftCredits: a.giftCredits };
+    case 'SERVER_WALLET_TX':
+      return { ...state, walletTx: a.tx };
     // Indicação de produto: guarda quem indicou (vale para a próxima compra) e limpa depois de comprar.
     case 'SET_INDICACAO':
       return { ...state, indicacao: a.ref ? { ref: a.ref, at: Date.now() } : null };
@@ -1062,7 +1114,7 @@ function baseReducer(state, a) {
     case 'SET_PRIVACY':
       return { ...state, privacy: { ...state.privacy, ...a.privacy } };
     case 'LOAD_PROFILE':
-      return { ...state, chatLists: a.data.chatLists || state.chatLists, chatMeta: a.data.chatMeta || state.chatMeta, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, userPages: a.data.myUserPages ? [...a.data.myUserPages, ...(state.userPages || []).filter((p) => p.ownerId !== 'me')] : state.userPages, followingPages: a.data.followingPages || state.followingPages, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, autoHorario: a.data.autoHorario != null ? a.data.autoHorario : state.autoHorario, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind, mural: a.data.mural || state.mural, myGallery: a.data.myGallery ? { ...state.myGallery, ...a.data.myGallery } : state.myGallery, gamer: a.data.gamer || state.gamer, storyArchive: a.data.storyArchive || state.storyArchive, savedReels: a.data.savedReels || state.savedReels, extraPerfil: a.data.extraPerfil ? { ...state.extraPerfil, ...a.data.extraPerfil } : state.extraPerfil };
+      return { ...state, chatLists: a.data.chatLists || state.chatLists, chatMeta: a.data.chatMeta || state.chatMeta, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, userPages: a.data.myUserPages ? [...a.data.myUserPages, ...(state.userPages || []).filter((p) => p.ownerId !== 'me')] : state.userPages, followingPages: a.data.followingPages || state.followingPages, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, autoHorario: a.data.autoHorario != null ? a.data.autoHorario : state.autoHorario, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind, mural: a.data.mural || state.mural, myGallery: a.data.myGallery ? { ...state.myGallery, ...a.data.myGallery } : state.myGallery, gamer: a.data.gamer || state.gamer, storyArchive: a.data.storyArchive || state.storyArchive, myStories: Array.isArray(a.data.myStories) ? a.data.myStories.filter((x) => x && (!x.at || Date.now() - x.at < 86400000)) : state.myStories, savedReels: a.data.savedReels || state.savedReels, extraPerfil: a.data.extraPerfil ? { ...state.extraPerfil, ...a.data.extraPerfil } : state.extraPerfil };
     case 'ADD_CREATION':
       return { ...state, creations: [a.item, ...state.creations] };
     case 'UPDATE_CREATION':
@@ -1178,6 +1230,12 @@ function baseReducer(state, a) {
       return { ...state, bigText: !!a.on };
     case 'BIO_GATE':
       return { ...state, bioGate: Date.now() };
+    case 'COMPRAS_STATUS':
+      return { ...state, comprasBloqueadas: !!a.bloqueadas, comprasAviso: a.aviso || state.comprasAviso };
+    case 'COMPRAS_GATE':
+      return { ...state, comprasGate: Date.now() };
+    case 'COMPRAS_GATE_CLOSE':
+      return { ...state, comprasGate: null };
     case 'BIO_GATE_CLOSE':
       return { ...state, bioGate: null };
     case 'LIVE_MINIMIZE':
@@ -2307,7 +2365,7 @@ export function StoreProvider({ children }) {
   }, [profileKey]);
   useEffect(() => {
     if (!profileKey || profileLoaded.current !== profileKey) return;
-    AsyncStorage.setItem(profileKey, JSON.stringify({ _at: Date.now(), chatLists: state.chatLists, chatMeta: state.chatMeta, myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myUserPages: (state.userPages || []).filter((p) => p.ownerId === 'me'), followingPages: state.followingPages, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, autoHorario: state.autoHorario, agendaRemind: state.agendaRemind, mural: state.mural, myGallery: state.myGallery, gamer: state.gamer, storyArchive: state.storyArchive, savedReels: state.savedReels, extraPerfil: state.extraPerfil })).catch(() => {});
+    AsyncStorage.setItem(profileKey, JSON.stringify({ _at: Date.now(), chatLists: state.chatLists, chatMeta: state.chatMeta, myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myUserPages: (state.userPages || []).filter((p) => p.ownerId === 'me'), followingPages: state.followingPages, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, autoHorario: state.autoHorario, agendaRemind: state.agendaRemind, mural: state.mural, myGallery: state.myGallery, gamer: state.gamer, storyArchive: state.storyArchive, myStories: (state.myStories || []).filter((x) => x && (!x.at || Date.now() - x.at < 86400000)), savedReels: state.savedReels, extraPerfil: state.extraPerfil })).catch(() => {});
     // Sobe para a conta só o que mudou (alguns segundos depois da última alteração).
     if (!canSync(state.user) || syncBase.current == null) return;
     const data = payloadOf(state);
@@ -2348,7 +2406,7 @@ export function StoreProvider({ children }) {
         .catch(() => {})
         .finally(() => (pending.current = false));
     }, 2500);
-  }, [profileReady, state.autoHorario, state.extraPerfil, state.mural, state.myGallery, state.gamer, state.storyArchive, state.savedReels, state.chatLists, state.chatMeta, state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
+  }, [profileReady, state.autoHorario, state.extraPerfil, state.mural, state.myGallery, state.gamer, state.storyArchive, state.myStories, state.savedReels, state.chatLists, state.chatMeta, state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
   // Conta real: o que eu publico (post na Community e story) vai para o servidor, para os amigos verem.
   // Só o que foi publicado nesta sessão (os exemplos e o que já estava salvo não sobem).
   const jaVistos = useRef(null);

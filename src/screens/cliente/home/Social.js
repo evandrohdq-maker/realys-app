@@ -221,9 +221,9 @@ export function VideoCallModal({ contact, visible, onClose, audio = false, onEnd
   const { dispatch: callDispatch } = useStore();
   useEffect(() => {
     if (!visible) return;
-    // Contato com conta no servidor e vídeo disponível: chamada de verdade, direto entre os celulares.
-    if (!audio && contact && contact.serverId && serverOn() && webrtcOk()) {
-      callDispatch({ type: 'START_VIDEO_CALL', to: contact.serverId, name: contact.name, ctx: contact.ctx || null });
+    // Contato com conta no servidor: chamada de verdade (vídeo ou só voz), direto entre os celulares.
+    if (contact && contact.serverId && serverOn() && webrtcOk()) {
+      callDispatch({ type: 'START_VIDEO_CALL', to: contact.serverId, name: contact.name, kind: audio ? 'audio' : 'video', ctx: contact.ctx || null });
       onClose();
       return;
     }
@@ -275,7 +275,6 @@ export function VideoCallModal({ contact, visible, onClose, audio = false, onEnd
           ) : (
             <>
               <CallBtn icon={cam ? 'videocam' : 'videocam-off'} on={!cam} onPress={() => setCam(!cam)} label="Câmera" />
-              <CallBtn icon="camera-reverse" onPress={() => {}} label="Virar câmera" />
             </>
           )}
           <TouchableOpacity style={[styles.callBtn, { backgroundColor: '#FF5A5F' }]} onPress={hang} accessibilityLabel="Encerrar chamada">

@@ -37,6 +37,8 @@ import { SHOP_SECTORS, SHOP_SECTOR_KEYS } from '../../../shopSectorsData';
 import { askPix } from '../../../components/PixPay';
 import { useBack } from '../../../back';
 import { TestimonialCard, DepCenter } from '../../../components/SocialProfile';
+import { ServerTestimonialCard, ServerPendingTestimonials } from '../../../components/ServerTestimonials';
+import { useServerTestimonials } from '../../../serverTestimonials';
 import NotifList, { buildNotifs, unseenNotifs } from '../../../components/Notifications';
 import { ShopHero, CircleShortcuts, ShopProductCard, ShopGrid, StoreRow, CategoryPicker } from '../../../components/ShopKit';
 import { SegTabs, SpotlightCarousel, ClipStrip, PromoSector } from '../../../components/AdKit';
@@ -758,7 +760,11 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
   // Conta real: posts dos amigos (servidor) primeiro, depois os do app. Os meus que já subiram não repetem.
   const srv = useServerFeed(conectado(state));
   const meusNoServidor = new Set((state.communityPosts || []).map((p) => p.serverId).filter(Boolean));
-  const posts = [...srv.posts.filter((p) => !meusNoServidor.has(p.serverId)), ...state.communityPosts];
+  // Conta real: o feed é só de gente de verdade (servidor) + o que eu publiquei e ainda está subindo.
+  // Os posts de exemplo ficam só no modo demonstração (sem conta no servidor).
+  const meuNome = state.user ? state.user.name : null;
+  const locais = conectado(state) ? (state.communityPosts || []).filter((p) => !p.serverId && (p.mine || p.author === meuNome)) : state.communityPosts;
+  const posts = [...srv.posts.filter((p) => !meusNoServidor.has(p.serverId)), ...locais];
   const [srvCmts, setSrvCmts] = useState({}); // comentários carregados do servidor: { postId: [...] }
   const [liked, setLiked] = useState({});
   const [cmts, setCmts] = useState({}); // comentários feitos aqui: { postId: [texto] }
@@ -766,8 +772,11 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
   const [cmtText, setCmtText] = useState('');
   const [shared, setShared] = useState({});
   // Anúncio pago pedindo doação não entra: pedido de doação só pelo perfil da ONG (src/ongs.js).
-  const ads = useMemo(() => state.posts.filter((p) => p.sponsored && !pedeDoacao(p.text)), [state.posts]);
-  const testimonials = state.testimonials.filter((t) => t.status === 'aprovado');
+  // Conta real: anúncios e campanhas de exemplo não aparecem (só os de anunciantes de verdade, quando houver).
+  const ads = useMemo(() => (conectado(state) ? [] : state.posts.filter((p) => p.sponsored && !pedeDoacao(p.text))), [state.posts, state.user]);
+  // Depoimentos: conta real = os aceitos no servidor; sem conta = os de exemplo.
+  const srvDeps = useServerTestimonials(conectado(state));
+  const testimonials = conectado(state) ? srvDeps.feed : state.testimonials.filter((t) => t.status === 'aprovado');
   const pendingMine = state.testimonials.filter((t) => t.to === 'me' && t.status === 'pendente').length;
   const sharePost = async (p) => {
     try {
@@ -800,7 +809,7 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
   // Feed único: posts da comunidade e depoimentos aprovados, intercalados.
   // A cada 2 posts entra 1 anúncio: é aqui que a publicidade chega ao usuário.
   const feed = [];
-  const ongFeed = campanhaDoFeed(state.ongs, new Date().getDate());
+  const ongFeed = conectado(state) ? null : campanhaDoFeed(state.ongs, new Date().getDate());
   const n = Math.max(posts.length, testimonials.length);
   for (let i = 0; i < n; i++) {
     if (posts[i]) feed.push({ type: 'post', p: posts[i] });
@@ -862,11 +871,12 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
 
       {seg === 'posts' ? (
         <View onLayout={(e) => (feedY.current = e.nativeEvent.layout.y)}>
+          <ServerPendingTestimonials pending={srvDeps.pending} />
           {feed.map((it, idx) =>
             it.type === 'ong' ? (
               <CampanhaCard key={'ong' + it.o.ong.id} ong={it.o.ong} c={it.o.c} compacto onOpen={() => setOngAberta(it.o.ong)} />
             ) : it.type === 'dep' ? (
-              <TestimonialCard key={it.t.id} t={it.t} />
+              it.t.server ? <ServerTestimonialCard key={it.t.id} t={it.t} /> : <TestimonialCard key={it.t.id} t={it.t} />
             ) : it.type === 'post' ? (
               <View
                 key={it.p.id}

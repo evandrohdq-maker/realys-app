@@ -9,6 +9,7 @@ import { Text, TextInput } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
+import { ComprasAviso } from '../components/ComprasGate';
 import { conectado } from '../serverShop';
 import { askPix } from '../components/PixPay';
 import { api } from '../api';
@@ -143,6 +144,7 @@ export default function WalletScreen({ visible, onClose }) {
         </View>
 
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 + insets.bottom }}>
+          <ComprasAviso />
           {/* Saldo */}
           <View style={styles.balanceCard}>
             <Text style={{ color: colors.muted, fontWeight: '600' }}>Saldo disponível</Text>
