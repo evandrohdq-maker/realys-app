@@ -26,7 +26,7 @@ export default function MyStoryButton() {
       <TouchableOpacity
         onPress={() => (last ? setViewing(true) : setComposing(true))}
         activeOpacity={0.85}
-        accessibilityLabel={last ? 'Ver seus Now' : 'Criar seu primeiro Now'}
+        accessibilityLabel={last ? 'Ver seus stories' : 'Criar seu primeiro story'}
         style={[styles.ring, { borderColor: last ? colors.gold : colors.border }]}
       >
         {last && last.image ? (
@@ -43,7 +43,7 @@ export default function MyStoryButton() {
           </View>
         )}
       </TouchableOpacity>
-      <TouchableOpacity style={styles.plus} onPress={() => setComposing(true)} accessibilityLabel="Criar novo Now" hitSlop={8}>
+      <TouchableOpacity style={styles.plus} onPress={() => setComposing(true)} accessibilityLabel="Criar novo story" hitSlop={8}>
         <Ionicons name="add" size={12} color="#fff" />
       </TouchableOpacity>
 

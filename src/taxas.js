@@ -21,7 +21,7 @@ export const TAXAS = {
   anuncioRevenda: { valor: 99, unidade: 'R$ por mês, com as conversas liberadas', quemPaga: 'revenda de veículos ou máquinas', mercado: 'OLX: planos profissionais sem preço publicado; Viva Real para imobiliárias: R$ 400 a R$ 1.000 por mês', argumento: 'R$ 99 por mês com as conversas liberadas' },
   contatoVeiculo: { valor: 4.9, unidade: 'R$ por conversa liberada', quemPaga: 'particular (veículo ou máquina)', mercado: 'Webmotors: anúncio a partir de R$ 9,90, pago antes de aparecer interessado', argumento: 'anunciar é grátis; R$ 4,90 só quando aparece um interessado verificado' },
   // Espaços de publicidade (preços por pacote em src/rewards.js › POINT_SHOP).
-  publicidade: { valor: 14.9, unidade: 'R$ por dia para aparecer em primeiro nas buscas (Now R$ 9,90; banner da vitrine R$ 39,90)', quemPaga: 'anunciante', mercado: 'iFood Anúncios: orçamento mínimo de R$ 25 por dia, cobrado por clique', argumento: 'R$ 14,90 por dia, preço fechado, sem leilão e sem surpresa' },
+  publicidade: { valor: 14.9, unidade: 'R$ por dia para aparecer em primeiro nas buscas (story R$ 9,90; banner da vitrine R$ 39,90)', quemPaga: 'anunciante', mercado: 'iFood Anúncios: orçamento mínimo de R$ 25 por dia, cobrado por clique', argumento: 'R$ 14,90 por dia, preço fechado, sem leilão e sem surpresa' },
   // Músicas (Stream › Músicas): o artista vende a faixa e o Realyz fica com uma parte. Ouvir é grátis, com propaganda.
   // Base de mercado (nov/2026): Bandcamp fica com 15% da venda digital, mais 4 a 7% de taxa de pagamento;
   // lojas de app como a iTunes ficam com cerca de 30% e vendem a faixa por R$ 1,90 a R$ 2,90.

@@ -76,7 +76,7 @@ export function MusicSticker({ music, onPress, style }) {
     </View>
   );
   return onPress ? (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.85} accessibilityLabel={`Música do Now: ${music.title}, de ${music.artist}`}>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.85} accessibilityLabel={`Música do story: ${music.title}, de ${music.artist}`}>
       {body}
     </TouchableOpacity>
   ) : (
@@ -115,7 +115,7 @@ export function MusicPicker({ visible, current, onPick, onRemove, onClose }) {
         <View style={[st.sheet, { paddingBottom: 14 + insets.bottom }]}>
           <View style={st.grip} />
           <View style={st.head}>
-            <Text style={st.title}>Música no Now</Text>
+            <Text style={st.title}>Música no story</Text>
             <TouchableOpacity onPress={onClose} hitSlop={10} accessibilityLabel="Fechar">
               <Ionicons name="close" size={22} color="#fff" />
             </TouchableOpacity>

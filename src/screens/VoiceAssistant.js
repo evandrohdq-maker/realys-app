@@ -44,7 +44,7 @@ import { onDeviceOptions, noteVoiceError, isNetError, worksOffline } from '../of
 const EXAMPLES = [
   'Me leva pro Agro',
   'Abre o Food',
-  'Abre o Feed',
+  'Abre o Community',
   'Festa mais próxima',
   'Abre o perfil da Ana',
   'Tem eletricista perto de mim?',
@@ -57,7 +57,7 @@ const EXAMPLES = [
 ];
 
 // Palavras que ajudam o reconhecimento de voz a acertar os nomes do app.
-const HINTS = ['Lotus', 'Realyz', 'Feed', 'Now', 'Food', 'Date', 'Shop', 'Agro', 'Lives', 'Tecnologia', 'Pedidos', 'Perfil', 'Serviços'];
+const HINTS = ['Lotus', 'Realyz', 'Community', 'Stories', 'Food', 'Date', 'Shop', 'Agro', 'Lives', 'Tecnologia', 'Pedidos', 'Perfil', 'Serviços'];
 
 const norm = (s) =>
   s

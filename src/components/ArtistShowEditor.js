@@ -252,20 +252,20 @@ export function ShowsPanel() {
 
       {step === 'divulgar' ? (
         <View>
-          <Text style={st.p}>Sua arte de divulgação, pronta para os Now, com a sua marca e o link para contratar.</Text>
+          <Text style={st.p}>Sua arte de divulgação, pronta para os stories, com a sua marca e o link para contratar.</Text>
           <ShowStoryCard card={storyCard(draft)} style={{ marginTop: 10, width: '78%', alignSelf: 'center' }} />
-          <TouchableOpacity style={[st.gold, { alignSelf: 'stretch', justifyContent: 'center' }]} onPress={() => { dispatch({ type: 'PUBLISH_STORY', item: { id: 'show' + Date.now(), text: '', showCard: storyCard(draft), time: 'agora', views: 0 } }); Alert.alert('Now publicado 📣', 'Sua vitrine de shows está nos seus Now.'); }}>
+          <TouchableOpacity style={[st.gold, { alignSelf: 'stretch', justifyContent: 'center' }]} onPress={() => { dispatch({ type: 'PUBLISH_STORY', item: { id: 'show' + Date.now(), text: '', showCard: storyCard(draft), time: 'agora', views: 0 } }); Alert.alert('Story publicado 📣', 'Sua vitrine de shows está nos seus stories.'); }}>
             <Ionicons name="add-circle" size={16} color="#120F1A" />
-            <Text style={st.goldText}>Postar no meu Now</Text>
+            <Text style={st.goldText}>Postar no meu story</Text>
           </TouchableOpacity>
-          <BoostButton target="artista" label="Impulsionar minha vitrine de shows" hint="Primeiro em Artistas e nas buscas por show, ou Now patrocinado." style={{ marginTop: 10 }} />
-          <Text style={[st.small, { marginTop: 8 }]}>Show fechado: o pedido traz a arte com data e local, e vocês dois se comprometem a divulgar (você: anúncio e "é hoje"; quem contratou: 1 Now).</Text>
+          <BoostButton target="artista" label="Impulsionar minha vitrine de shows" hint="Primeiro em Artistas e nas buscas por show, ou story patrocinado." style={{ marginTop: 10 }} />
+          <Text style={[st.small, { marginTop: 8 }]}>Show fechado: o pedido traz a arte com data e local, e vocês dois se comprometem a divulgar (você: anúncio e "é hoje"; quem contratou: 1 story).</Text>
         </View>
       ) : null}
 
       {step === 'pedidos' ? (
         <View>
-          {recebidos.length ? recebidos.map((p) => <ShowPedidoCard key={p.id} p={p} />) : <Text style={st.p}>Nenhum pedido ainda. Ligue a vitrine e divulgue nos Now.</Text>}
+          {recebidos.length ? recebidos.map((p) => <ShowPedidoCard key={p.id} p={p} />) : <Text style={st.p}>Nenhum pedido ainda. Ligue a vitrine e divulgue nos stories.</Text>}
           {/* Demonstração: um cliente pedindo show para você. */}
           <TouchableOpacity
             style={[st.outline, { marginTop: 8 }]}
