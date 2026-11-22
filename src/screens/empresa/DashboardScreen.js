@@ -10,6 +10,7 @@ import { ALL_ADS, shortNum } from '../../adsData';
 import { MY_COMPANY_ID } from '../../data';
 import PlanoLojaCard from '../../components/PlanoLojaCard';
 import ServerShopOrders from '../../components/ServerShopOrders';
+import { CargasLoja, OfertasFornecedor } from '../../components/Logistica';
 import ServerEventsPanel from '../../components/ServerEventsPanel';
 import AtendenteIA from '../../components/AtendenteIA';
 import { ReelComposer } from '../StoriesScreen';
@@ -46,6 +47,8 @@ export default function DashboardScreen({ goTo, navigate }) {
 
       {/* Pedidos de clientes de verdade, pelo servidor do Realyz. */}
       <ServerShopOrders />
+      <CargasLoja />
+      <OfertasFornecedor />
       <ServerEventsPanel />
       <AtendenteIA />
 

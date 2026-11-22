@@ -1,3 +1,4 @@
+import { EntregasCliente } from '../../components/Logistica';
 import React, { useEffect, useState } from 'react';
 import { GuaranteeButton } from '../../components/Guarantee';
 import { orderCovered, protectionFee, PROTECTION_TEXT } from '../../guarantee';
@@ -394,6 +395,7 @@ export default function OrdersScreen({ navigate, explore }) {
   return (
     <Screen>
       <Title sub="Pagamento só é liberado para a loja ou o prestador quando você confirma a entrega">Meus pedidos</Title>
+      <EntregasCliente />
       <View style={styles.viewRow}>
         {[['andamento', 'Em andamento'], ['concluidos', 'Concluídos'], ['despesas', 'Despesas']].map(([k, l]) => (
           <TouchableOpacity key={k} onPress={() => setView(k)} style={[styles.viewItem, view === k && styles.viewOn]} accessibilityLabel={l}>

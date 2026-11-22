@@ -36,6 +36,14 @@ export const AVISOS = {
   vaga_convite: (d) => ({ title: 'Convite para vaga 💼', body: `${d.empresa || 'Uma empresa'} te convidou: ${d.titulo}`, go: { tab: 'vagas', seg: 'minhas' } }),
   candidatura: (d) => ({ title: d.convite ? 'Convite aceito' : 'Nova candidatura', body: `${d.nome || 'Alguém'} · ${d.titulo}`, go: { tab: 'rh' } }),
   candidatura_status: (d) => ({ title: 'Sua candidatura', body: `${d.titulo}: ${({ vista: 'vista pela empresa', entrevista: 'entrevista marcada', contratado: 'você foi contratado! 🎉', recusado: 'não seguiu desta vez' })[d.status] || d.status}`, go: { tab: 'vagas', seg: 'minhas' } }),
+  entrega_oferta: (d) => ({ title: 'Entrega perto de você 🛵', body: `${d.loja || 'Loja'} · R$ ${Number(d.valor || 0).toFixed(2).replace('.', ',')}${d.km ? ` · ${String(d.km).replace('.', ',')} km` : ''}. Toque para aceitar.`, go: { tab: 'prestar' } }),
+  entrega_rota: (d) => ({ title: 'Rota inteligente: mesma direção 🧭', body: `${d.loja || 'Loja'} vai para o mesmo lado da sua entrega. Rode ${String(d.economiaKm || '').replace('.', ',')} km a menos e receba R$ ${Number(d.recebe || 0).toFixed(2).replace('.', ',')}.`, go: { tab: 'prestar' } }),
+  entrega: (d) => ({ title: 'Sua entrega', body: ({ procurando: `Procurando entregador. Seu código de entrega: ${d.codigo || ''}`, aceita: `${d.entregador || 'Entregador'} aceitou e está indo buscar`, coletada: 'Saiu para entrega 🛵', entregue: 'Entregue ✅' })[d.status] || d.status, go: { tab: 'pedidos' } }),
+  carga_oferta: (d) => ({ title: 'Frete disponível 🚚', body: `${d.loja || 'Empresa'} · R$ ${Number(d.valor || 0).toFixed(2).replace('.', ',')}. Aceite ou mande sua proposta.`, go: { tab: 'prestar' } }),
+  carga_proposta: (d) => ({ title: 'Proposta de frete', body: `${d.transportador || 'Transportadora'}: R$ ${Number(d.valor || 0).toFixed(2).replace('.', ',')}`, go: { tab: 'painel' } }),
+  carga_escolhida: (d) => ({ title: 'Seu frete foi escolhido 🚚', body: `${d.loja || 'Empresa'} · R$ ${Number(d.valor || 0).toFixed(2).replace('.', ',')}`, go: { tab: 'prestar' } }),
+  oferta_fornecedor: (d) => ({ title: `Oferta de fornecedor: ${d.produto || ''}`, body: `${d.fornecedor || 'Fornecedor'} · R$ ${Number(d.preco || 0).toFixed(2).replace('.', ',')} / ${d.unidade || 'un'}`, go: { tab: 'painel' } }),
+  pedido_fornecedor: (d) => ({ title: 'Pedido de fornecedor', body: d.status ? `Pedido ${({ confirmado: 'confirmado', recusado: 'recusado', recebido: 'recebido' })[d.status] || d.status}` : `${d.comprador || 'Empresa'} pediu ${d.qtd || ''} de ${d.produto || ''}`, go: { tab: 'painel' } }),
   deposit: (d) => ({ title: 'Depósito confirmado', body: `${brl(d.amount)} na sua carteira`, go: { tab: 'perfil' } }),
 };
 

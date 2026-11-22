@@ -11,6 +11,7 @@ import { Screen, Title, Card, Row, Button, Stat, Section, Empty, Badge, Input, C
 import ServerProviderPanel from '../../components/ServerProviderPanel';
 import AtendenteIA from '../../components/AtendenteIA';
 import HorarioTrabalho from '../../components/HorarioTrabalho';
+import { EntregasEntregador } from '../../components/Logistica';
 import {
   isVisitService,
   visitFee,
@@ -365,6 +366,8 @@ function DriverMain({ goTo, onCadastro }) {
 
       {me && isVisitService(me.service) ? <VisitPanel /> : null}
 
+      {/* Conta real: entregas e fretes das lojas do Realyz (central de entregas no servidor). */}
+      <EntregasEntregador />
       <RotaInteligente accepted={accepted} pedidos={state.available ? state.rideRequests : []} />
 
       <Section title="Pedidos perto de você">

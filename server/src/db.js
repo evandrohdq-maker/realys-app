@@ -782,6 +782,70 @@ const MIGRATIONS = [
     ultimo_at INTEGER NOT NULL
   );
   `,
+  // 28: Central de entregas (pedido pronto → entregador mais perto, rota inteligente, código de
+  // entrega), cargas para transportadoras (com propostas) e ofertas de fornecedores para empresas.
+  `
+  ALTER TABLE orders ADD COLUMN dest_lat REAL;
+  ALTER TABLE orders ADD COLUMN dest_lng REAL;
+  CREATE TABLE entregas (
+    id TEXT PRIMARY KEY,
+    tipo TEXT NOT NULL CHECK (tipo IN ('pedido','carga')),
+    order_id TEXT,
+    loja_id TEXT NOT NULL REFERENCES users(id),
+    cliente_id TEXT REFERENCES users(id),
+    coleta TEXT NOT NULL,
+    destino TEXT NOT NULL,
+    col_lat REAL, col_lng REAL, des_lat REAL, des_lng REAL,
+    veiculo TEXT NOT NULL,
+    descricao TEXT DEFAULT '',
+    km REAL,
+    valor INTEGER NOT NULL,
+    taxa_pct INTEGER NOT NULL,
+    codigo TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('aberta','aceita','coletada','entregue','cancelada')),
+    entregador_id TEXT REFERENCES users(id),
+    rota_com TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE INDEX entregas_status ON entregas(status, created_at);
+  CREATE INDEX entregas_entregador ON entregas(entregador_id, status);
+  CREATE TABLE entrega_propostas (
+    id TEXT PRIMARY KEY,
+    entrega_id TEXT NOT NULL REFERENCES entregas(id),
+    transportador_id TEXT NOT NULL REFERENCES users(id),
+    valor INTEGER NOT NULL,
+    prazo TEXT DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'enviada',
+    created_at INTEGER NOT NULL,
+    UNIQUE (entrega_id, transportador_id)
+  );
+  CREATE TABLE ofertas_fornecedor (
+    id TEXT PRIMARY KEY,
+    fornecedor_id TEXT NOT NULL REFERENCES users(id),
+    dados TEXT NOT NULL,
+    lat REAL, lng REAL,
+    status TEXT NOT NULL DEFAULT 'ativa',
+    validade INTEGER NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+  CREATE TABLE pedidos_fornecedor (
+    id TEXT PRIMARY KEY,
+    oferta_id TEXT NOT NULL REFERENCES ofertas_fornecedor(id),
+    fornecedor_id TEXT NOT NULL REFERENCES users(id),
+    comprador_id TEXT NOT NULL REFERENCES users(id),
+    qtd REAL NOT NULL,
+    total INTEGER NOT NULL,
+    taxa INTEGER NOT NULL,
+    status TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE TABLE avisos_oferta (
+    user_id TEXT PRIMARY KEY REFERENCES users(id),
+    ultimo_at INTEGER NOT NULL
+  );
+  `,
 ];
 
 export function openDb(file) {

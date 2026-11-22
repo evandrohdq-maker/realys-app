@@ -94,6 +94,10 @@ export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biom
     for (const c of db.prepare(`SELECT id, client_id FROM service_calls WHERE provider_id = ? AND status IN ('Aceito','A caminho')`).all(user.id)) {
       hub.send(c.client_id, 'tracking', { callId: c.id, lat, lng });
     }
+    // Entregas em andamento: o cliente e a loja veem o entregador no mapa.
+    for (const e of db.prepare(`SELECT id, order_id, loja_id, cliente_id FROM entregas WHERE entregador_id = ? AND status IN ('aceita','coletada')`).all(user.id)) {
+      [e.loja_id, e.cliente_id].filter(Boolean).forEach((u) => hub.send(u, 'tracking', { entregaId: e.id, orderId: e.order_id, lat, lng }));
+    }
     return { ok: true };
   });
 

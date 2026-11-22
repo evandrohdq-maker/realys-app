@@ -9,6 +9,7 @@ import { api } from '../api';
 import { colors, brl } from '../theme';
 import { Card, Row, Button, Badge } from './ui';
 import FaceCheck from './FaceCheck';
+import { ChamarEntregador } from './Logistica';
 import { conectado, carregarCarteira } from '../serverShop';
 
 const NEXT = { Recebido: 'Preparando', Preparando: 'A caminho', 'A caminho': 'Entregue' };
@@ -69,6 +70,7 @@ export default function ServerShopOrders() {
             {o.items.map((i) => `${i.qty}× ${i.name}`).join(' · ')}{o.address ? ` · ${o.address}` : ''}
           </Text>
           <Text style={{ color: colors.text, fontWeight: '700', marginTop: 2 }}>{brl(o.total)}</Text>
+          {o.status !== 'Cancelado' && o.status !== 'Entregue' ? <ChamarEntregador order={o} /> : null}
           {NEXT[o.status] ? (
             <Row style={{ marginTop: 6 }}>
               <Button small title={LABEL[NEXT[o.status]]} onPress={() => mudar(o.id, NEXT[o.status])} />
