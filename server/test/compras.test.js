@@ -65,3 +65,22 @@ test('vídeo do story: endereço com .mp4, abre pelo endereço e o story diz que
   const meu = st.data.find((g) => g.author.id === reg.data.user.id);
   assert.equal(meu.items[0].mediaType, 'video');
 });
+
+test('conta de teste: admin cria sem CPF, ela entra, aparece com selo e pode ser desativada', async () => {
+  const adm = await call('POST', '/auth/login', { login: 'chefe', password: 'Admin12345' });
+  const at = adm.data.accessToken;
+  const sem = await call('POST', '/admin/contas-teste', { name: 'Teste Um', username: 'teste1', password: 'senha1234' });
+  assert.equal(sem.status, 401, 'sem login não cria');
+  const c = await call('POST', '/admin/contas-teste', { name: 'Teste Um', username: 'teste1', password: 'senha1234' }, at);
+  assert.equal(c.status, 201, JSON.stringify(c.data));
+  const login = await call('POST', '/auth/login', { login: 'teste1', password: 'senha1234' });
+  assert.equal(login.status, 200, JSON.stringify(login.data));
+  const perfil = await call('GET', `/users/${c.data.id}`, null, login.data.accessToken);
+  assert.equal(perfil.data.teste, true);
+  const story = await call('POST', '/posts', { kind: 'story', text: 'oi' }, login.data.accessToken);
+  assert.equal(story.status, 201);
+  const off = await call('DELETE', `/admin/contas-teste/${c.data.id}`, null, at);
+  assert.equal(off.status, 200);
+  const depois = await call('POST', '/auth/login', { login: 'teste1', password: 'senha1234' });
+  assert.notEqual(depois.status, 200);
+});

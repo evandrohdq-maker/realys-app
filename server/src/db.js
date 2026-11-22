@@ -944,6 +944,10 @@ const MIGRATIONS = [
     PRIMARY KEY (boost_id, user_id, tipo)
   );
   `,
+  // Contas de teste (criadas pelo administrador, sem CPF, marcadas como "Teste"): src/contasTeste.js
+  `
+  ALTER TABLE users ADD COLUMN teste INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export function openDb(file) {
