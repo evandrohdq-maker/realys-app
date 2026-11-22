@@ -26,7 +26,7 @@ import { HireButton } from './ArtistBooking';
 import { api, serverOn, API_URL } from '../api';
 import { conectado } from '../serverShop';
 import { openServerProfile } from './ServerProfile';
-import { refreshFriends } from '../serverFriends';
+import { refreshFriends, useServerFriends } from '../serverFriends';
 import { artistByRef } from '../artistShows';
 
 // Foto do perfil: tocar abre os stories da pessoa (anel dourado = tem story novo);
@@ -661,6 +661,7 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
             </>
           ) : null}
           {q.trim() && srv.loading && !srv.found.length ? <Text style={styles.tip}>Procurando nas contas do Realyz…</Text> : null}
+          {q.trim() && srv.err ? <Text style={styles.tip}>Não consegui buscar nas contas do Realyz ({srv.err}). Puxe para atualizar ou tente de novo.</Text> : null}
           {!q.trim() && srv.requests.length ? (
             <>
               <Text style={styles.section}>Pedidos de amizade de contas reais ({srv.requests.length})</Text>
@@ -725,15 +726,24 @@ function useServerPeople(q) {
   const [found, setFound] = useState([]);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
-  const term = q.trim().replace(/^[@*]/, '');
+  const [err, setErr] = useState(null); // a busca no servidor falhou: mostra o motivo
+  const term = q.trim().replace(/^[@*#]/, '');
   useEffect(() => {
-    if (!on || term.length < 2) return setFound([]);
+    if (!on || term.length < 2) {
+      setLoading(false);
+      return setFound([]);
+    }
     let alive = true;
     setLoading(true);
+    setErr(null);
     const t = setTimeout(() => {
       api('GET', `/users?q=${encodeURIComponent(term)}`)
         .then((l) => alive && setFound((l || []).filter((u) => u.id !== me).map((u) => ({ ...u, photo: u.photo && u.photo.startsWith('/') ? API_URL + u.photo : u.photo }))))
-        .catch(() => alive && setFound([]))
+        .catch((e) => {
+          if (!alive) return;
+          setFound([]);
+          setErr(e && e.message ? e.message : 'sem conexão');
+        })
         .finally(() => alive && setLoading(false));
     }, 350);
     return () => ((alive = false), clearTimeout(t));
@@ -747,7 +757,13 @@ function useServerPeople(q) {
     setFound((l) => l.map((u) => (u.id === id ? { ...u, friend } : u)));
     if (friend !== 'recebido') setRequests((l) => l.filter((u) => u.id !== id));
   };
-  return { on, found, requests, loading, setFriend };
+  // Amigos e pedidos já conhecidos aparecem na hora, sem esperar o servidor responder.
+  const { friends: myFriends, sent, received } = useServerFriends(on);
+  const low = term.toLowerCase();
+  const known = term.length >= 2 ? [...myFriends, ...received, ...sent].filter((u) => `${u.name} ${u.username || ''}`.toLowerCase().includes(low)) : [];
+  const ids = new Set(found.map((u) => u.id));
+  const all = [...found, ...known.filter((u) => !ids.has(u.id))];
+  return { on, found: all, requests, loading, err, setFriend };
 }
 
 function ServerPersonRow({ u, onFriend }) {
