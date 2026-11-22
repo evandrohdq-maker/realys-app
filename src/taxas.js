@@ -7,6 +7,8 @@ export const TAXAS = {
   protecao: { valor: 0.99, unidade: 'R$ por pedido', quemPaga: 'cliente', mercado: 'iFood: R$ 0,99 de dia e até R$ 1,99 à noite', argumento: 'R$ 0,99 a qualquer hora, sem taxa noturna' },
   food: { pct: 10, quemPaga: 'restaurante', mercado: 'iFood Básico: 12% + 3,2% de pagamento online + R$ 110 de mensalidade', argumento: '10% com pagamento incluído, e o plano só começa depois do primeiro pedido' },
   shop: { pct: 10, quemPaga: 'loja', mercado: 'Mercado Livre Clássico: 10% a 14% + custo fixo; Shopee: até 20% + R$ 4 por item', argumento: '10% sem taxa fixa por item' },
+  // Rota inteligente: a entrega extra que o Realyz encaixa no mesmo caminho de outra (src/rotaInteligente.js).
+  rotaInteligente: { pct: 25, quemPaga: 'motoboy (só na entrega extra)', mercado: 'iFood e Rappi agrupam pedidos sem dizer quanto o entregador ganha a mais', argumento: 'o motoboy vê antes quanto roda a menos e quanto recebe, e só aceita se quiser' },
   corrida: { pct: 18, quemPaga: 'motorista e motoboy', mercado: 'Uber: 20% a 35%; 99: 20% a 30%', argumento: 'o motorista fica com 82% da corrida' },
   visita: { pct: 15, quemPaga: 'prestador', mercado: 'GetNinjas cobra pacotes de moedas por contato, mesmo sem fechar o serviço', argumento: 'só paga quando a visita acontece, e o valor do serviço é todo seu' },
   ingresso: { pct: 8, minimo: 1.99, quemPaga: 'produtor (pode repassar ao comprador)', mercado: 'Sympla: 10%, mínimo de R$ 2,50', argumento: '8%, mínimo de R$ 1,99' },
