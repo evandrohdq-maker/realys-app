@@ -11,6 +11,7 @@ import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme';
+import { avisosSilenciados } from '../compras';
 
 const nativeAlert = Alert.alert.bind(Alert);
 let push = null; // ligado quando o SoftAlertHost está na tela
@@ -27,6 +28,7 @@ function toneOf(title, message) {
 }
 
 export function softAlert(title, message, buttons, options) {
+  if (avisosSilenciados()) return; // compra barrada agora: não mostra o "sucesso" da tela
   const item = { id: Date.now() + Math.random(), title: String(title || ''), message: message != null ? String(message) : '', buttons: buttons || [], options: options || {} };
   if (!push) return nativeAlert(title, message, buttons, options);
   push(item);
