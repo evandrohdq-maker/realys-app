@@ -45,6 +45,7 @@ export const AVISOS = {
   oferta_fornecedor: (d) => ({ title: `Oferta de fornecedor: ${d.produto || ''}`, body: `${d.fornecedor || 'Fornecedor'} · R$ ${Number(d.preco || 0).toFixed(2).replace('.', ',')} / ${d.unidade || 'un'}`, go: { tab: 'painel' } }),
   pedido_fornecedor: (d) => ({ title: 'Pedido de fornecedor', body: d.status ? `Pedido ${({ confirmado: 'confirmado', recusado: 'recusado', recebido: 'recebido' })[d.status] || d.status}` : `${d.comprador || 'Empresa'} pediu ${d.qtd || ''} de ${d.produto || ''}`, go: { tab: 'painel' } }),
   comentario: (d) => ({ title: `${d.fromName || 'Alguém'} comentou no seu post`, body: short(d.text), go: { tab: 'stories' } }),
+  limpeza_conversas: (d) => ({ title: 'Suas conversas antigas vão ser apagadas', body: `No dia ${d.data || '1º'}, as mensagens do mês passado saem do Realyz. Quer guardar? Abra Mensagens e toque em Salvar minhas conversas.`, go: { tab: 'stories' } }),
   deposit: (d) => ({ title: 'Depósito confirmado', body: `${brl(d.amount)} na sua carteira`, go: { tab: 'perfil' } }),
 };
 

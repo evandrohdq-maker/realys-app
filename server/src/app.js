@@ -30,6 +30,7 @@ import { makeCipher, parseKeys } from './crypto.js';
 import { makeMatcher } from './biometria/matcher.js';
 import { makeBiometria } from './biometria/service.js';
 import { makeMaintenance } from './maintenance.js';
+import { makeLimpezaConversas, proximoCorte, diaDoMes, DIA_AVISO } from './limpezaConversas.js';
 import { makePix } from './pagamentos/pix.js';
 import { makeIA } from './ia/index.js';
 import { makeAtendente } from './ia/atendente.js';
@@ -109,7 +110,20 @@ export function createApp(cfg) {
   }
 
 
-  const maintenance = makeMaintenance({ db, cfg, cipher, biometria, matcher });
+  const limpeza = makeLimpezaConversas({ db, hub });
+  const maintenance = makeMaintenance({ db, cfg, cipher, biometria, matcher, limpeza });
+  // Conversas: exportar (salvar no celular ou mandar por e-mail) e a data da próxima limpeza.
+  router.get('/conversas/exportar', ({ user }) => limpeza.exportar(user, userById));
+  router.get('/conversas/limpeza', () => ({ proxima: proximoCorte(), avisoAtivo: diaDoMes() >= DIA_AVISO }));
+  // Administrador: preservar uma conversa (ordem judicial, autoridade ou denúncia), até uma data.
+  router.post('/admin/preservacoes', ({ body }) => {
+    const a = String(body.userA || '');
+    if (!db.prepare('SELECT 1 FROM users WHERE id = ?').get(a)) throw new HttpError(404, 'Pessoa não encontrada.');
+    const dias = Math.max(1, Math.min(3650, Number(body.dias) || 180));
+    const id = newId('pv');
+    db.prepare('INSERT INTO preservacoes (id, user_a, user_b, motivo, ate, created_at) VALUES (?,?,?,?,?,?)').run(id, a, body.userB ? String(body.userB) : null, String(body.motivo || 'Ordem judicial').slice(0, 300), now() + dias * 86400000, now());
+    return { id, ate: now() + dias * 86400000 };
+  }, { auth: 'admin' });
   router.get('/admin/manutencao', () => maintenance.history(), { auth: 'admin' });
   router.post('/admin/manutencao/:job', ({ params }) => maintenance.run(params.job), { auth: 'admin' });
 

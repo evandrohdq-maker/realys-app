@@ -845,7 +845,8 @@ const MIGRATIONS = [
     user_id TEXT PRIMARY KEY REFERENCES users(id),
     ultimo_at INTEGER NOT NULL
   );
-  `,  // 29: curtidas e comentários dos posts (contas reais).
+  `,
+  // 29: curtidas e comentários dos posts (contas reais).
   `
   CREATE TABLE post_likes (
     post_id TEXT NOT NULL REFERENCES posts(id),
@@ -862,6 +863,24 @@ const MIGRATIONS = [
     created_at INTEGER NOT NULL
   );
   CREATE INDEX post_comments_post ON post_comments(post_id, created_at);
+  `,
+  // 30: limpeza mensal das conversas (controle de cada mês) e pedidos de preservação de conversa
+  // (ordem judicial, autoridade ou denúncia em apuração: a conversa não é apagada até a data).
+  `
+  CREATE TABLE limpezas (
+    mes TEXT PRIMARY KEY,
+    aviso_at INTEGER,
+    limpeza_at INTEGER,
+    apagadas INTEGER
+  );
+  CREATE TABLE preservacoes (
+    id TEXT PRIMARY KEY,
+    user_a TEXT NOT NULL REFERENCES users(id),
+    user_b TEXT REFERENCES users(id),
+    motivo TEXT NOT NULL,
+    ate INTEGER NOT NULL,
+    created_at INTEGER NOT NULL
+  );
   `,
 ];
 

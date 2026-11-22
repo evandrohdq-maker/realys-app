@@ -11,6 +11,7 @@ import { conectado } from '../serverShop';
 import { useServerFriends } from '../serverFriends';
 import { openServerProfile } from './ServerProfile';
 import { Photo } from './ui';
+import { salvarConversas } from '../salvarConversas';
 import { colors } from '../theme';
 
 const fotoDe = (p) => (p && p.startsWith('/') ? API_URL + p : p);
@@ -57,8 +58,17 @@ export default function ServerInbox() {
   const lista = convs.filter((c) => c.with && match(c.with));
   const novos = friends.filter((u) => !has.has(u.id) && match(u));
   if (!convs.length && !friends.length) return null;
+  // Limpeza mensal: as conversas do mês anterior saem do servidor no dia 1º (aviso a partir do dia 24).
+  const hoje = new Date();
+  const avisoLimpeza = hoje.getDate() >= 24 && convs.length;
   return (
     <View style={{ marginBottom: 10 }}>
+      {avisoLimpeza ? (
+        <View style={st.aviso}>
+          <Ionicons name="time-outline" size={18} color="#A0670B" />
+          <Text style={{ flex: 1, color: '#7A5A20', fontSize: 12.5, marginLeft: 8 }}>No dia 1º, as conversas antigas saem do Realyz. Quer guardar? Salve no celular ou mande por e-mail.</Text>
+        </View>
+      ) : null}
       <View style={st.search}>
         <Ionicons name="search" size={17} color={colors.muted} />
         <TextInput value={q} onChangeText={setQ} placeholder="Buscar amigo ou conversa no Realyz" placeholderTextColor={colors.muted} style={st.input} />
@@ -102,6 +112,11 @@ export default function ServerInbox() {
         </TouchableOpacity>
       ))}
       {q.trim() && !lista.length && !novos.length ? <Text style={{ color: colors.muted, marginVertical: 6 }}>Nenhum amigo com esse nome. Use a lupa lá em cima para achar e adicionar pessoas.</Text> : null}
+      <TouchableOpacity onPress={salvarConversas} style={st.salvar} accessibilityLabel="Salvar minhas conversas">
+        <Ionicons name="download-outline" size={16} color={colors.primary} />
+        <Text style={{ color: colors.primary, fontWeight: '800', marginLeft: 6 }}>Salvar minhas conversas</Text>
+        <Text style={{ color: colors.muted, fontSize: 11.5, marginLeft: 6, flex: 1 }} numberOfLines={1}>no celular ou por e-mail</Text>
+      </TouchableOpacity>
       <Text style={[st.title, { marginTop: 12 }]}>Outras conversas</Text>
     </View>
   );
@@ -114,5 +129,7 @@ const st = StyleSheet.create({
   chip: { alignItems: 'center', width: 66, marginRight: 8 },
   chipName: { color: colors.text, fontSize: 12, marginTop: 4, fontWeight: '600' },
   row: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 14, padding: 10, marginBottom: 8 },
+  aviso: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FBF1E1', borderRadius: 12, padding: 10, marginBottom: 8 },
+  salvar: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
   badge: { backgroundColor: colors.primary, borderRadius: 10, minWidth: 20, paddingHorizontal: 6, height: 20, alignItems: 'center', justifyContent: 'center', marginLeft: 6 },
 });
