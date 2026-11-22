@@ -4,6 +4,7 @@
 //    picture-in-picture do Android: ele continua num canto da tela, por cima dos outros apps.
 //  - LiveFloat: a live que a pessoa minimizou, numa janelinha; um toque abre de novo.
 // (A rádio tem a barrinha dela em RadioKit.js, que também é flutuante.)
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Alert, useWindowDimensions } from 'react-native';
 import { Text } from '../responsive';
@@ -120,6 +121,9 @@ export function TvFloat({ bottom = 150 }) {
   const w = Math.round(Math.min(260, win.width * 0.62));
   const h = Math.round((w * 9) / 16);
   const showUi = !inPip && (!full || ui);
+  // Tela cheia vai até o entalhe da câmera: os botões ficam fora dele, em qualquer celular.
+  const ins = useSafeAreaInsets();
+  const side = full ? { paddingLeft: Math.max(18, ins.left), paddingRight: Math.max(18, ins.right) } : null;
   // Janelinha por cima dos outros apps: só o vídeo do canal (src/pip.js).
   // Minimizar: o Realyz sai da frente e o vídeo fica numa janelinha; o som continua.
   const pip = () => minimizeApp('tv');
@@ -141,7 +145,7 @@ export function TvFloat({ bottom = 150 }) {
       {/* Tela cheia: um toque no vídeo mostra ou esconde os controles. */}
       {full && !inPip ? <TouchableOpacity activeOpacity={1} style={StyleSheet.absoluteFill} onPress={() => setUi((v) => !v)} accessibilityLabel="Mostrar os controles" /> : null}
       {/* Em cima: nome do canal e os botões da janela (na janelinha do Android, os botões são dele) */}
-      {!showUi ? null : <View style={[st.top, full && st.topFull]}>
+      {!showUi ? null : <View style={[st.top, full && st.topFull, side]}>
         {full ? null : <Ionicons name="move" size={13} color="rgba(255,255,255,0.75)" />}
         <Text style={[st.name, full && st.nameFull]} numberOfLines={1}>{ch.name}</Text>
         <FavHeart kind="tv" item={ch} size={15} color="#fff" style={st.btn} hitSlop={6} />
@@ -172,7 +176,7 @@ export function TvFloat({ bottom = 150 }) {
         </TouchableOpacity>
       </View>}
       {EV && !failed && showUi ? (
-        <TouchableOpacity onPress={() => ctl.current && ctl.current.toggle()} style={[st.play, full && st.playFull]} hitSlop={8} accessibilityLabel={playing ? 'Pausar' : 'Continuar'}>
+        <TouchableOpacity onPress={() => ctl.current && ctl.current.toggle()} style={[st.play, full && st.playFull, full && { left: Math.max(18, ins.left) }]} hitSlop={8} accessibilityLabel={playing ? 'Pausar' : 'Continuar'}>
           <Ionicons name={playing ? 'pause' : 'play'} size={16} color="#fff" />
         </TouchableOpacity>
       ) : null}
