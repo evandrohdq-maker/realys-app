@@ -25,6 +25,7 @@ export function payloadOf(state) {
     myBusiness: state.myBusiness,
     agenda: state.agenda,
     workHours: state.workHours,
+    autoHorario: state.autoHorario,
     agendaRemind: state.agendaRemind,
     chatLists: state.chatLists,
     chatMeta: state.chatMeta,

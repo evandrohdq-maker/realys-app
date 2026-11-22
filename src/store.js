@@ -184,6 +184,7 @@ const initialState = {
   workHours: DEFAULT_HOURS,
   agendaRemind: 30,
   available: false,
+  autoHorario: false, // prestador: ficar disponível sozinho no horário de trabalho
   myProvider: null, // cadastro profissional de quem usa o perfil Prestador
   cart: [], // [{ productId, qty }]
   cartOpen: false, // janela do carrinho aberta
@@ -1029,7 +1030,7 @@ function baseReducer(state, a) {
     case 'SET_PRIVACY':
       return { ...state, privacy: { ...state.privacy, ...a.privacy } };
     case 'LOAD_PROFILE':
-      return { ...state, chatLists: a.data.chatLists || state.chatLists, chatMeta: a.data.chatMeta || state.chatMeta, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, userPages: a.data.myUserPages ? [...a.data.myUserPages, ...(state.userPages || []).filter((p) => p.ownerId !== 'me')] : state.userPages, followingPages: a.data.followingPages || state.followingPages, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind, mural: a.data.mural || state.mural };
+      return { ...state, chatLists: a.data.chatLists || state.chatLists, chatMeta: a.data.chatMeta || state.chatMeta, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, userPages: a.data.myUserPages ? [...a.data.myUserPages, ...(state.userPages || []).filter((p) => p.ownerId !== 'me')] : state.userPages, followingPages: a.data.followingPages || state.followingPages, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, autoHorario: a.data.autoHorario != null ? a.data.autoHorario : state.autoHorario, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind, mural: a.data.mural || state.mural };
     case 'ADD_CREATION':
       return { ...state, creations: [a.item, ...state.creations] };
     case 'UPDATE_CREATION':
@@ -1297,6 +1298,13 @@ function baseReducer(state, a) {
       return closeDeal(state, p, p.counter);
     }
 
+    case 'SET_AUTO_HORARIO':
+      return { ...state, autoHorario: !!a.on };
+    case 'SET_AVAILABLE': {
+      if (!!a.on === !!state.available) return state;
+      const others = state.providers.filter((p) => p.id !== 'me');
+      return { ...state, available: !!a.on, providers: a.on && state.myProvider ? [...others, forClients(state.myProvider)] : others };
+    }
     case 'TOGGLE_AVAILABLE': {
       const available = !state.available;
       // Ao ficar disponível com cadastro feito, o prestador aparece para os clientes (e para a voz da Lotus).
@@ -2181,7 +2189,7 @@ export function StoreProvider({ children }) {
   }, [profileKey]);
   useEffect(() => {
     if (!profileKey || profileLoaded.current !== profileKey) return;
-    AsyncStorage.setItem(profileKey, JSON.stringify({ _at: Date.now(), chatLists: state.chatLists, chatMeta: state.chatMeta, myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myUserPages: (state.userPages || []).filter((p) => p.ownerId === 'me'), followingPages: state.followingPages, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, agendaRemind: state.agendaRemind, mural: state.mural })).catch(() => {});
+    AsyncStorage.setItem(profileKey, JSON.stringify({ _at: Date.now(), chatLists: state.chatLists, chatMeta: state.chatMeta, myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myUserPages: (state.userPages || []).filter((p) => p.ownerId === 'me'), followingPages: state.followingPages, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, autoHorario: state.autoHorario, agendaRemind: state.agendaRemind, mural: state.mural })).catch(() => {});
     // Sobe para a conta só o que mudou (alguns segundos depois da última alteração).
     if (!canSync(state.user) || syncBase.current == null) return;
     const data = payloadOf(state);
@@ -2214,7 +2222,7 @@ export function StoreProvider({ children }) {
         .catch(() => {})
         .finally(() => (pending.current = false));
     }, 2500);
-  }, [profileReady, state.mural, state.chatLists, state.chatMeta, state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
+  }, [profileReady, state.autoHorario, state.mural, state.chatLists, state.chatMeta, state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
   // Mudou em outro aparelho (foto nova no app, por exemplo): ao voltar para o app ou para a aba do
   // site, e a cada minuto, busca a versão da conta e aplica se for mais nova.
   useEffect(() => {
