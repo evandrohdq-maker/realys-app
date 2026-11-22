@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { api, API_URL, uploadMedia, serverOn } from './api';
 
 const full = (u) => (u && u.startsWith('/') ? API_URL + u : u);
-const isVideo = (u) => /\.(mp4|mov|webm|m3u8)(\?|$)/i.test(u || '') || /video/i.test(u || '');
+const isVideo = (u, tipo) => tipo === 'video' || /\.(mp4|mov|webm|m3u8)(\?|$)/i.test(u || '');
 const isLocal = (u) => typeof u === 'string' && /^(file|content|blob|data|ph|assets-library):/i.test(u);
 export const quando = (t) => {
   const s = Math.max(0, Math.round((Date.now() - t) / 1000));
@@ -23,8 +23,8 @@ export const postLocal = (p) => ({
   authorId: p.author.id,
   authorPhoto: full(p.author.photo),
   text: p.text || '',
-  image: p.media && !isVideo(p.media) ? full(p.media) : null,
-  video: p.media && isVideo(p.media) ? full(p.media) : null,
+  image: p.media && !isVideo(p.media, p.mediaType) ? full(p.media) : null,
+  video: p.media && isVideo(p.media, p.mediaType) ? full(p.media) : null,
   likes: p.likes || 0,
   liked: !!p.liked,
   comments: p.comments || 0,
@@ -59,6 +59,18 @@ export function useServerFeed(on) {
   return on ? { posts: feed, stories } : { posts: [], stories: [] };
 }
 
+// Um story do servidor no formato do visualizador.
+const storyItem = (s) => ({
+  id: 'srv_' + s.id,
+  serverId: s.id,
+  image: s.media && !isVideo(s.media, s.mediaType) ? full(s.media) : null,
+  video: s.media && isVideo(s.media, s.mediaType) ? full(s.media) : null,
+  text: s.text || '',
+  time: quando(s.createdAt),
+  at: s.createdAt,
+  expiresAt: s.expiresAt,
+});
+
 // Grupos de stories no formato da faixa do app (sem os meus, que já aparecem no "seu story").
 export const storyGroups = (groups, myId) =>
   (groups || [])
@@ -69,8 +81,19 @@ export const storyGroups = (groups, myId) =>
       authorId: g.author.id,
       name: g.author.name,
       avatar: full(g.author.photo),
-      items: g.items.map((s) => ({ id: 'srv_' + s.id, image: s.media && !isVideo(s.media) ? full(s.media) : null, video: s.media && isVideo(s.media) ? full(s.media) : null, text: s.text || '', caption: s.text || '', time: quando(s.createdAt) })),
+      items: g.items.map(storyItem),
     }));
+
+// Os meus stories que estão no servidor (das últimas 24 h): aparecem no "seu story" mesmo depois
+// de fechar o app ou trocar de celular. Junta com os deste aparelho sem repetir.
+export const myServerStories = (groups, myId, local = []) => {
+  const g = (groups || []).find((x) => x.author && x.author.id === myId);
+  const doServidor = g ? g.items.map(storyItem) : [];
+  const ids = new Set(doServidor.map((x) => x.serverId));
+  const agora = Date.now();
+  const locais = (local || []).filter((x) => x && !(x.serverId && ids.has(x.serverId)) && !(x.at && agora - x.at > 86400000));
+  return [...doServidor, ...locais].sort((a, b) => (a.at || 0) - (b.at || 0));
+};
 
 async function subir(uri, video) {
   if (!uri) return null;

@@ -11,6 +11,9 @@ import { useStore } from '../store';
 import { colors, soft } from '../theme';
 import { Photo, Empty } from './ui';
 import { members, memberById, searchMembers } from '../people';
+import { conectado } from '../serverShop';
+import { useServerFriends } from '../serverFriends';
+import { sendTestimonial, refreshTestimonials } from '../serverTestimonials';
 import { listenOnce } from './Search';
 import { analyzeTestimonial, galleryOf } from '../testimonialsData';
 import { GamerCard } from './GamerProfile';
@@ -199,16 +202,34 @@ export function TestimonialComposer({ visible, onClose, toId }) {
     setFind('');
   }, [visible, toId]);
 
-  const friends = members.filter((m) => state.friends[m.id] === 'amigo');
+  // Conta real: os amigos de verdade (servidor). Sem conta no servidor: os de exemplo.
+  const real = conectado(state);
+  const srvFriends = useServerFriends(real);
+  const friends = real
+    ? srvFriends.friends.map((u) => ({ id: u.id, name: u.name, photo: u.photo, handle: u.username || '' }))
+    : members.filter((m) => state.friends[m.id] === 'amigo');
   const found = find.trim() ? friendsMatching(friends, find) : friends;
   // Quem bate com a busca mas ainda não é amigo: aparece para adicionar (depoimento é só entre amigos).
-  const notFriends = find.trim().length >= 2 ? searchMembers(find).filter((m) => state.friends[m.id] !== 'amigo').slice(0, 4) : [];
-  const target = to ? memberById(to) : null;
+  const notFriends = !real && find.trim().length >= 2 ? searchMembers(find).filter((m) => state.friends[m.id] !== 'amigo').slice(0, 4) : [];
+  const target = to ? (real ? friends.find((f) => f.id === to) || { id: to, name: 'Amigo', handle: '' } : memberById(to)) : null;
+  const [sending, setSending] = useState(false);
 
   const send = () => {
     const r = analyzeTestimonial(text);
     if (!r.ok) return setError(r.reason);
     setError('');
+    if (real) {
+      // Vai para o servidor: fica pendente até o amigo aceitar (ele recebe o aviso na hora).
+      setSending(true);
+      sendTestimonial(to, text.trim())
+        .then(() => {
+          setSent(target);
+          refreshTestimonials();
+        })
+        .catch((e) => setError(e.message || 'Não deu para enviar. Tente de novo.'))
+        .finally(() => setSending(false));
+      return;
+    }
     dispatch({ type: 'T_SEND', to, text: text.trim() });
     setSent(target);
     // Demonstração: o amigo analisa e aprova alguns segundos depois.
@@ -365,7 +386,7 @@ export function TestimonialComposer({ visible, onClose, toId }) {
                 </Text>
               </View>
 
-              <TouchableOpacity style={[styles.primaryBtn, !(to && text.trim()) && { opacity: 0.5 }]} disabled={!(to && text.trim())} onPress={send}>
+              <TouchableOpacity style={[styles.primaryBtn, !(to && text.trim() && !sending) && { opacity: 0.5 }]} disabled={!(to && text.trim()) || sending} onPress={send}>
                 <Ionicons name="send" size={16} color={colors.onPrimary} />
                 <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.primaryTxt, { marginLeft: 8 }]}>Enviar para análise</Text>
               </TouchableOpacity>

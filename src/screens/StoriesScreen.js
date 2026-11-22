@@ -11,7 +11,7 @@ import { colors, soft } from '../theme';
 import { Photo, PostPhoto } from '../components/ui';
 import { checkText } from '../lm/factCheck';
 import { stories, contacts } from '../homeData';
-import { useServerFeed, storyGroups } from '../serverSocial';
+import { useServerFeed, storyGroups, myServerStories } from '../serverSocial';
 import { openServerProfile } from '../components/ServerProfile';
 import { api } from '../api';
 import { conectado } from '../serverShop';
@@ -64,9 +64,14 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
   useEffect(() => () => onTop && onTop('comunidade'), []);
   const userName = state.user ? state.user.name : 'Você';
   const seen = state.storySeen;
-  const mine = { id: 'mine', mine: true, name: userName, items: state.myStories };
+  // Conta real: stories dos amigos (servidor) antes dos de exemplo; os meus vêm do servidor também
+  // (continuam aparecendo depois de fechar o app ou em outro aparelho, por 24 h).
+  const srv = useServerFeed(conectado(state));
+  const myId = state.user && state.user.serverId;
+  const myItems = conectado(state) ? myServerStories(srv.stories, myId, state.myStories) : state.myStories;
+  const mine = { id: 'mine', mine: true, name: userName, avatar: (state.myProfile && state.myProfile.photo) || null, items: myItems };
   // Foto do botão de postagem: a do perfil; sem ela, a imagem do último story publicado.
-  const lastStory = state.myStories.length ? state.myStories[state.myStories.length - 1] : null;
+  const lastStory = myItems.length ? myItems[myItems.length - 1] : null;
   const myPhoto = (state.myProfile && state.myProfile.photo) || (lastStory && lastStory.image) || null;
 
   // Amigo com post novo na Community (que ainda não passou na sua tela): borda roxa por fora da dourada.
@@ -85,9 +90,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
   const itemW = Math.floor((telaW - 24) / (wideWeb ? 5 : 3));
   const av = Math.min(Math.round(itemW * 0.66), 96);
   const avMeu = Math.min(Math.round(itemW * 0.74), 106);
-  // Conta real: stories dos amigos (servidor) antes dos de exemplo.
-  const srv = useServerFeed(conectado(state));
-  const todos = [...storyGroups(srv.stories, state.user && state.user.serverId), ...stories];
+  const todos = [...storyGroups(srv.stories, myId), ...(conectado(state) ? [] : stories)];
   const fresh = todos.filter((g) => !seen[g.id]);
   const old = todos.filter((g) => seen[g.id]);
   const open = (g) => setView({ groups: todos, start: todos.indexOf(g), mine: false });

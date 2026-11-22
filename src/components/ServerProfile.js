@@ -17,17 +17,16 @@ import { addFriend, removeFriend } from '../serverFriends';
 import { openMedia } from './MediaViewer';
 import { futureTheme } from './ThemeArt';
 import { GamerCard } from './GamerProfile';
+import { TestimonialComposer } from './SocialProfile';
 
-let openListener = null;
-export const openServerProfile = (id) => openListener && openListener(id);
+import { openServerProfile, useServerProfileOpen, bindProfileHost, setOpenNow } from '../profileOpen';
+export { openServerProfile, useServerProfileOpen };
 const full = (u) => (u && u.startsWith('/') ? API_URL + u : u || null);
 
 export function ServerProfileHost() {
   const [id, setId] = useState(null);
-  useEffect(() => {
-    openListener = setId;
-    return () => (openListener = null);
-  }, []);
+  useEffect(() => bindProfileHost(setId), []);
+  useEffect(() => setOpenNow(!!id), [id]);
   if (!id) return null;
   return <ServerProfile id={id} onClose={() => setId(null)} />;
 }
@@ -39,6 +38,7 @@ function ServerProfile({ id, onClose }) {
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
   const [aba, setAba] = useState('posts');
+  const [depOpen, setDepOpen] = useState(false); // escrever depoimento para esta pessoa (só amigos)
   const { width } = useWindowDimensions();
   const load = () => {
     setErr(null);
@@ -102,6 +102,7 @@ function ServerProfile({ id, onClose }) {
               {p.friend === 'amigos' ? (
                 <>
                   <Btn icon="chatbubble-ellipses" label="Mensagem" solid onPress={() => (onClose(), dispatch({ type: 'OPEN_SERVER_CHAT', userId: p.id, name: p.name }))} />
+                  <Btn icon="create-outline" label="Depoimento" onPress={() => setDepOpen(true)} />
                   <Btn icon="people" label="Amigos" onPress={unfriend} />
                 </>
               ) : p.friend === 'enviado' ? (
@@ -169,6 +170,7 @@ function ServerProfile({ id, onClose }) {
           </View>
         ) : null}
       </ScrollView>
+      {p ? <TestimonialComposer visible={depOpen} toId={p.id} onClose={() => setDepOpen(false)} /> : null}
     </Modal>
   );
 }

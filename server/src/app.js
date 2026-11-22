@@ -26,6 +26,7 @@ import livesRoutes from './routes/lives.js';
 import mediaRoutes from './routes/media.js';
 import adminRoutes from './routes/admin.js';
 import { exigirBiometria } from './bioGate.js';
+import { exigirComprasLiberadas, MSG_COMPRAS_BLOQUEADAS } from './comprasGate.js';
 import biometriaRoutes from './routes/biometria.js';
 import videoRoutes from './routes/video.js';
 import { makeCipher, parseKeys } from './crypto.js';
@@ -101,6 +102,12 @@ export function createApp(cfg) {
   deps.clearLogin = (key) => attempts.delete(key);
   [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes, noticiasRoutes, showsRoutes, pushRoutes, empregosRoutes, logisticaRoutes, profissoesRoutes, turbinarRoutes].forEach((r) => r(router, deps));
   router.get('/health', () => ({ ok: true, name: 'Realyz', time: now() }), { auth: false });
+  // O que está ligado agora (o app pergunta ao abrir e mostra o aviso de compras bloqueadas).
+  router.get('/status', () => ({
+    compras: cfg.comprasLiberadas ? 'liberadas' : 'bloqueadas',
+    comprasAviso: cfg.comprasLiberadas ? null : MSG_COMPRAS_BLOQUEADAS,
+    pix: pix && pix.ready ? 'pronto' : 'aguardando_conta',
+  }), { auth: false });
 
   // Administrador inicial (ADMIN_PASSWORD no .env).
   if (cfg.adminPassword && !db.prepare('SELECT 1 FROM users WHERE username = ?').get(cfg.adminUsername)) {
@@ -150,6 +157,8 @@ export function createApp(cfg) {
         if (route.opts.auth === 'admin' && !ctx.roles.includes('admin')) throw new HttpError(403, 'Só o administrador pode fazer isso.');
         // Compra, contratação e carteira: só com a biometria aprovada (src/bioGate.js).
         exigirBiometria(db, cfg, route, req.method, ctx.user, ctx.roles);
+        // Compras temporariamente bloqueadas (src/comprasGate.js).
+        exigirComprasLiberadas(cfg, route, req.method, ctx.roles);
       }
       if (route.opts.raw) ctx.raw = await readBody(req, cfg.maxUploadMb * 1024 * 1024);
       else if (req.method !== 'GET' && req.method !== 'DELETE') {

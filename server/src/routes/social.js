@@ -16,7 +16,15 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     if (!u || u.kind === 'sistema' || u.status !== 'ativo') fail(404, 'Pessoa não encontrada.');
     return u;
   };
-  const postView = (p) => ({ id: p.id, kind: p.kind, text: p.text, media: p.media, visibility: p.visibility, flagged: !!p.flagged, createdAt: p.created_at, expiresAt: p.expires_at, author: { id: p.author_id, name: p.author_name, username: p.author_username, photo: p.author_photo } });
+  // Tipo da mídia (foto ou vídeo) pelo arquivo guardado: posts antigos têm o endereço sem extensão.
+  const tipoMidia = (media) => {
+    if (!media) return null;
+    if (/\.(mp4|mov|webm|m3u8)(\?|$)/i.test(media)) return 'video';
+    const id = String(media).replace(/^.*\/media\//, '').replace(/\.[A-Za-z0-9]{2,4}$/, '');
+    const m = /^\/media\//.test(media) ? db.prepare('SELECT mime FROM media WHERE id = ?').get(id) : null;
+    return m && /^video\//.test(m.mime) ? 'video' : 'imagem';
+  };
+  const postView = (p) => ({ id: p.id, kind: p.kind, text: p.text, media: p.media, mediaType: tipoMidia(p.media), visibility: p.visibility, flagged: !!p.flagged, createdAt: p.created_at, expiresAt: p.expires_at, author: { id: p.author_id, name: p.author_name, username: p.author_username, photo: p.author_photo } });
   const POST_SQL = 'SELECT p.*, u.name AS author_name, u.username AS author_username, u.photo AS author_photo FROM posts p JOIN users u ON u.id = p.author_id';
 
   // ── Pessoas ──

@@ -1,0 +1,67 @@
+// Compras temporariamente bloqueadas: o servidor recusa tudo que mexe com dinheiro e o resto funciona.
+import { test, before, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { createApp } from '../src/app.js';
+import { loadConfig } from '../src/config.js';
+import { TERMO_ADESAO_VERSAO } from '../src/termos.js';
+
+let app, base, dir;
+before(async () => {
+  dir = mkdtempSync(join(tmpdir(), 'realys-compras-'));
+  app = createApp(loadConfig({ dataDir: dir, jwtSecret: 'segredo-de-teste', adminUsername: 'chefe', adminPassword: 'Admin12345', testDeposits: true, comprasLiberadas: false }));
+  await new Promise((r) => app.server.listen(0, r));
+  base = `http://127.0.0.1:${app.server.address().port}`;
+});
+after(async () => {
+  await app.close();
+  rmSync(dir, { recursive: true, force: true });
+});
+const call = async (method, path, body, token) => {
+  const res = await fetch(base + path, { method, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: body ? JSON.stringify(body) : undefined });
+  return { status: res.status, data: await res.json() };
+};
+
+test('status avisa que as compras estão bloqueadas e o Pix aguarda a conta', async () => {
+  const r = await call('GET', '/status');
+  assert.equal(r.status, 200);
+  assert.equal(r.data.compras, 'bloqueadas');
+  assert.match(r.data.comprasAviso, /temporariamente bloqueados/);
+  assert.equal(r.data.pix, 'aguardando_conta');
+});
+
+test('com compras bloqueadas: depósito, presente e pedido são recusados; post e story funcionam', async () => {
+  const reg = await call('POST', '/auth/signup', { kind: 'pessoa', name: 'Teste Compras', username: 'testecompras', doc: '52998224725', email: 'tc@t.com', password: 'senha1234', nascimento: '10/05/1990', aceiteTermos: TERMO_ADESAO_VERSAO });
+  assert.ok([200, 201].includes(reg.status), JSON.stringify(reg.data));
+  const token = reg.data.accessToken;
+  assert.ok(token, 'login devolve token');
+  for (const [m, p, b] of [['POST', '/wallet/deposit', { amount: 10 }], ['POST', '/gifts', { toId: 'x', amount: 5 }], ['POST', '/orders', { items: [] }]]) {
+    const r = await call(m, p, b, token);
+    assert.equal(r.status, 403, `${p} deveria ser bloqueado`);
+    assert.equal(r.data.code, 'compras_bloqueadas');
+  }
+  const post = await call('POST', '/posts', { kind: 'story', text: 'Meu primeiro story' }, token);
+  assert.equal(post.status, 201);
+  const st = await call('GET', '/stories', null, token);
+  assert.equal(st.data.length, 1);
+});
+
+test('vídeo do story: endereço com .mp4, abre pelo endereço e o story diz que é vídeo', async () => {
+  const reg = await call('POST', '/auth/signup', { kind: 'pessoa', name: 'Vida Video', username: 'vidavideo', doc: '11144477735', email: 'vv@t.com', password: 'senha1234', nascimento: '10/05/1990', aceiteTermos: TERMO_ADESAO_VERSAO });
+  const token = reg.data.accessToken;
+  const up = await fetch(base + '/media', { method: 'PUT', headers: { 'Content-Type': 'video/mp4', Authorization: `Bearer ${token}` }, body: Buffer.from('00000020667479706d703432', 'hex') });
+  const m = await up.json();
+  assert.equal(up.status, 201, JSON.stringify(m));
+  assert.match(m.url, /^\/media\/md_[\w-]+\.mp4$/);
+  const got = await fetch(base + m.url);
+  assert.equal(got.status, 200);
+  assert.equal(got.headers.get('content-type'), 'video/mp4');
+  const semExt = await fetch(base + m.url.replace(/\.mp4$/, ''));
+  assert.equal(semExt.status, 200);
+  await call('POST', '/posts', { kind: 'story', media: m.url.replace(/\.mp4$/, '') }, token); // story antigo, sem extensão
+  const st = await call('GET', '/stories', null, token);
+  const meu = st.data.find((g) => g.author.id === reg.data.user.id);
+  assert.equal(meu.items[0].mediaType, 'video');
+});

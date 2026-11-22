@@ -9,6 +9,7 @@ import { serviceTypes } from '../../data';
 import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Button, Stat, Section, Empty, Badge, Input, Chip } from '../../components/ui';
 import ServerProviderPanel from '../../components/ServerProviderPanel';
+import { conectado } from '../../serverShop';
 import AtendenteIA from '../../components/AtendenteIA';
 import HorarioTrabalho from '../../components/HorarioTrabalho';
 import { EntregasEntregador } from '../../components/Logistica';
@@ -227,7 +228,8 @@ function DriverMain({ goTo, onCadastro }) {
       <ServerProviderPanel />
       <AtendenteIA />
       <BoostButton target="prestador" label="Boost: trabalho mais rápido" hint="Fique no topo das indicações da sua região por algumas horas" />
-      <Button title="Cadastro, empresa e mandados de serviço" variant="light" onPress={onCadastro} style={{ marginBottom: 12 }} />
+      {/* Tela de cadastro/mandados de exemplo: só na demonstração. Conta real usa o painel acima (servidor). */}
+      {conectado(state) ? null : <Button title="Cadastro, empresa e mandados de serviço" variant="light" onPress={onCadastro} style={{ marginBottom: 12 }} />}
       <UnmetServices />
       <OpenRequests kind="servico" service={state.myProvider && state.myProvider.service} />
 

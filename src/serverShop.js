@@ -1,3 +1,6 @@
+import { useEffect } from 'react';
+import { AppState } from 'react-native';
+import { comprasTravadas } from './compras';
 // Compras de verdade pelo servidor do Realyz (api.realyz.com.br).
 //
 // - Lojas e produtos cadastrados no servidor aparecem no Shop e no Food junto com os de demonstração
@@ -73,7 +76,35 @@ export async function carregarCatalogo(dispatch) {
 export async function carregarCarteira(dispatch) {
   const w = await api('GET', '/wallet');
   dispatch({ type: 'SERVER_WALLET', balance: w.balance, giftCredits: w.giftCredits });
+  // Extrato de verdade (saldo): o mesmo formato do extrato do app.
+  api('GET', '/wallet/statement?bucket=saldo')
+    .then((rows) =>
+      dispatch({
+        type: 'SERVER_WALLET_TX',
+        tx: (rows || []).map((x) => ({
+          id: 'srv_' + x.id,
+          ts: x.at,
+          kind: x.cat === 'Depósito' ? 'deposito' : x.cat === 'Saque' ? 'saque' : x.amount > 0 ? 'recebido' : 'gasto',
+          cat: x.cat || (x.amount > 0 ? 'Entrada' : 'Pagamento'),
+          desc: x.description || '',
+          amount: Math.abs(x.amount),
+        })),
+      })
+    )
+    .catch(() => {});
   return w;
+}
+
+// Conta real: carrega a carteira do servidor ao abrir o app e quando ele volta para a tela.
+export function useCarteiraReal(state, dispatch) {
+  const on = conectado(state);
+  useEffect(() => {
+    if (!on) return undefined;
+    const go = () => carregarCarteira(dispatch).catch(() => {});
+    go();
+    const sub = AppState.addEventListener('change', (st) => st === 'active' && go());
+    return () => sub && sub.remove && sub.remove();
+  }, [on]);
 }
 
 const orderFromServer = (o) => ({
@@ -123,6 +154,10 @@ export function totalServidor(state) {
 // Finaliza o carrinho: primeiro o que é do servidor (dinheiro de verdade), depois o de demonstração.
 // Devolve { ok, message }. Não lança erro.
 export async function finalizarCompra(state, dispatch, { address } = {}) {
+  // Compras temporariamente bloqueadas: nada é cobrado e o carrinho fica guardado.
+  if (comprasTravadas(state)) {
+    return { ok: false, message: state.comprasAviso || 'Compras e pagamentos estão temporariamente bloqueados no Realyz. Seu carrinho fica guardado.' };
+  }
   if (!conectado(state) && linhasDoServidor(state).length) {
     return { ok: false, message: 'Para comprar nas lojas do Realyz, entre com a sua conta (cadastro com senha e biometria).' };
   }

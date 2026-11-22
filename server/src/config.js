@@ -46,6 +46,8 @@ export function loadConfig(overrides = {}) {
     // Conta sem biometria aprovada é só perfil social: não compra, não contrata e não usa a carteira.
     // Em produção já vem ligado; nos testes locais fica desligado para não travar a demonstração.
     exigirBiometria: bool(env.EXIGIR_BIOMETRIA, production),
+    // Compras e pagamentos (src/comprasGate.js). Em produção começam bloqueadas até COMPRAS_LIBERADAS=true.
+    comprasLiberadas: bool(env.COMPRAS_LIBERADAS, !production),
     // Conferência do rosto nas ações (venda, saque, aceite...). Precisa do serviço biométrico
     // (BIOMETRIA_SERVICE_URL). Só para o primeiro teste, sem esse serviço: VERIFICACAO_FACIAL_ACOES=false.
     verificacaoAcoes: bool(env.VERIFICACAO_FACIAL_ACOES, true),
