@@ -8,7 +8,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
 import { colors, soft } from '../theme';
-import { Photo } from '../components/ui';
+import { Photo, PostPhoto } from '../components/ui';
 import { checkText } from '../lm/factCheck';
 import { stories, contacts } from '../homeData';
 import { StoryViewer, StoryComposer } from './cliente/home/Stories';
@@ -324,7 +324,7 @@ function PostComposer({ visible, onClose, onPublish }) {
           />
           {image ? (
             <View style={{ marginTop: 12 }}>
-              <Image source={{ uri: image }} style={{ width: '100%', height: 260, borderRadius: 14 }} />
+              <PostPhoto uri={image} style={{ borderRadius: 14 }} />
               <TouchableOpacity onPress={() => setImage(null)} style={styles.removeImg} accessibilityLabel="Tirar foto">
                 <Ionicons name="close" size={16} color="#fff" />
               </TouchableOpacity>

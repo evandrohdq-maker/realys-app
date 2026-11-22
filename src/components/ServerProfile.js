@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { colors, soft } from '../theme';
-import { Photo } from './ui';
+import { Photo, PostPhoto } from './ui';
 import { api, API_URL } from '../api';
 import { addFriend, removeFriend } from '../serverFriends';
 import { openMedia } from './MediaViewer';
@@ -113,7 +113,7 @@ function ServerProfile({ id, onClose }) {
                 {x.text ? <Text style={{ color: colors.text, lineHeight: 20 }}>{x.text}</Text> : null}
                 {x.media ? (
                   <TouchableOpacity activeOpacity={0.92} onPress={() => openMedia([/\.(mp4|mov|webm|m3u8)(\?|$)/i.test(x.media) ? { video: full(x.media) } : { photo: full(x.media) }])}>
-                    <Photo uri={full(x.media)} style={st.postImg} fallback="🖼️" />
+                    <PostPhoto uri={full(x.media)} style={st.postImg} fallback="🖼️" />
                   </TouchableOpacity>
                 ) : null}
               </View>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, ScrollView, Image, PixelRatio } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { colors, soft } from '../theme';
@@ -164,7 +164,8 @@ function fitPhoto(uri, style) {
   return w >= Number(m[2]) || h >= Number(m[3]) ? uri : `${m[1]}/${w}/${h}`;
 }
 
-export function Photo({ uri, style, fallback = '🖼️' }) {
+// fit: 'cover' (preenche, pode cortar a borda) ou 'contain' (mostra a foto inteira). blur: desfoque.
+export function Photo({ uri, style, fallback = '🖼️', fit, blur }) {
   const [failed, setFailed] = useState(false);
   if (failed || !uri)
     return (
@@ -172,7 +173,53 @@ export function Photo({ uri, style, fallback = '🖼️' }) {
         <Text style={{ color: colors.text, fontSize: 34 }}>{fallback}</Text>
       </View>
     );
-  return <Image source={{ uri: fitPhoto(uri, style) }} style={[style, { backgroundColor: colors.cardAlt }]} onError={() => setFailed(true)} />;
+  return <Image source={{ uri: fitPhoto(uri, style) }} resizeMode={fit} blurRadius={blur} style={[style, { backgroundColor: colors.cardAlt }]} onError={() => setFailed(true)} />;
+}
+
+// Proporção real de uma foto (largura / altura), ou null enquanto não sabe.
+export function usePhotoRatio(uri) {
+  const [ratio, setRatio] = useState(null);
+  useEffect(() => {
+    if (!uri) return undefined;
+    let alive = true;
+    setRatio(null);
+    Image.getSize(uri, (w, h) => alive && w && h && setRatio(w / h), () => {});
+    return () => {
+      alive = false;
+    };
+  }, [uri]);
+  return ratio;
+}
+
+// Foto de post: a caixa toma o formato da própria foto (de 4:5 em pé até 1.91:1 deitada), então ela
+// cabe inteira, sem cortar e sem passar do post. Mais comprida que isso: aparece inteira com fundo
+// desfocado da própria foto nas sobras.
+export function PostPhoto({ uri, style, fallback }) {
+  const ratio = usePhotoRatio(uri);
+  const box = ratio ? Math.min(1.91, Math.max(0.8, ratio)) : 4 / 3;
+  const exact = ratio && Math.abs(box - ratio) < 0.01;
+  return (
+    <View style={[{ width: '100%', aspectRatio: box, overflow: 'hidden' }, style, { height: undefined }]}>
+      {exact || !uri ? (
+        <Photo uri={uri} style={{ width: '100%', height: '100%' }} fallback={fallback} />
+      ) : (
+        <>
+          <Photo uri={uri} style={StyleSheet.absoluteFill} blur={18} fallback={fallback} />
+          <Photo uri={uri} style={StyleSheet.absoluteFill} fit="contain" fallback={fallback} />
+        </>
+      )}
+    </View>
+  );
+}
+
+// Foto de story (tela em pé): a foto aparece inteira; as sobras ficam com ela mesma desfocada atrás.
+export function StoryPhoto({ uri, style, fallback, extra }) {
+  return (
+    <View style={[StyleSheet.absoluteFill, { overflow: 'hidden', backgroundColor: '#000' }]}>
+      <Photo uri={uri} style={[StyleSheet.absoluteFill, { opacity: 0.55 }]} blur={24} fallback={fallback} />
+      <Photo uri={uri} style={[StyleSheet.absoluteFill, extra, { backgroundColor: 'transparent' }]} fit="contain" fallback={fallback} />
+    </View>
+  );
 }
 
 export function Chip({ label, active, onPress }) {
