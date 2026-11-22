@@ -138,6 +138,12 @@ export async function logout() {
   await SecureStore.deleteItemAsync(sessionKey).catch(() => {});
 }
 
+// Acesso atual (renova se precisar): para baixar um arquivo protegido (ex.: currículo).
+export async function authToken() {
+  if (!accessToken) await refresh().catch(() => {});
+  return accessToken;
+}
+
 // Envia uma foto, vídeo ou música e devolve o endereço completo.
 export async function uploadMedia(uri, mime) {
   const file = await fetch(uri);

@@ -31,6 +31,11 @@ export const AVISOS = {
   ticket: () => ({ title: 'Ingresso confirmado 🎟️', body: 'Seu ingresso está em Pedidos', go: { tab: 'pedidos', seg: 'ingressos' } }),
   testimonial: (d) => ({ title: 'Novo depoimento', body: `${(d.from && d.from.name) || d.fromName || 'Alguém'} deixou um depoimento para você aprovar`, go: { tab: 'perfil' } }),
   music_sale: (d) => ({ title: 'Música vendida 🎶', body: d.title ? `"${d.title}" foi comprada` : 'Alguém comprou sua música', go: { tab: 'perfil' } }),
+  vaga_indicada: (d) => ({ title: 'Vaga que combina com você 💼', body: `${d.titulo}${d.empresa ? ` · ${d.empresa}` : ''}${d.pct ? ` · ${d.pct}% compatível` : ''}`, go: { tab: 'vagas', seg: 'vagas' } }),
+  vaga_sugerida: (d) => ({ title: `Tem vaga de ${d.funcao || 'trabalho'} perto de você`, body: `${d.titulo}. Ative seu currículo em 1 toque e receba as indicações.`, go: { tab: 'vagas', seg: 'vagas' } }),
+  vaga_convite: (d) => ({ title: 'Convite para vaga 💼', body: `${d.empresa || 'Uma empresa'} te convidou: ${d.titulo}`, go: { tab: 'vagas', seg: 'minhas' } }),
+  candidatura: (d) => ({ title: d.convite ? 'Convite aceito' : 'Nova candidatura', body: `${d.nome || 'Alguém'} · ${d.titulo}`, go: { tab: 'rh' } }),
+  candidatura_status: (d) => ({ title: 'Sua candidatura', body: `${d.titulo}: ${({ vista: 'vista pela empresa', entrevista: 'entrevista marcada', contratado: 'você foi contratado! 🎉', recusado: 'não seguiu desta vez' })[d.status] || d.status}`, go: { tab: 'vagas', seg: 'minhas' } }),
   deposit: (d) => ({ title: 'Depósito confirmado', body: `${brl(d.amount)} na sua carteira`, go: { tab: 'perfil' } }),
 };
 

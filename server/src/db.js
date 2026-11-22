@@ -746,6 +746,42 @@ const MIGRATIONS = [
   ALTER TABLE providers ADD COLUMN horario TEXT;
   ALTER TABLE providers ADD COLUMN auto_horario INTEGER NOT NULL DEFAULT 0;
   `,
+  // 27: Empregos: currículo (com o arquivo que a pessoa anexou), vagas, candidaturas e convites,
+  // e o controle dos avisos de vaga (no máximo 1 por dia, ou 1 por semana para quem não tem currículo).
+  `
+  CREATE TABLE curriculos (
+    user_id TEXT PRIMARY KEY REFERENCES users(id),
+    dados TEXT NOT NULL,
+    aberto INTEGER NOT NULL DEFAULT 1,
+    arquivo_tipo TEXT,
+    arquivo_nome TEXT,
+    lat REAL, lng REAL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE TABLE vagas (
+    id TEXT PRIMARY KEY,
+    empresa_id TEXT NOT NULL REFERENCES users(id),
+    dados TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'aberta' CHECK (status IN ('aberta','fechada')),
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX vagas_status ON vagas(status, created_at);
+  CREATE TABLE candidaturas (
+    id TEXT PRIMARY KEY,
+    vaga_id TEXT NOT NULL REFERENCES vagas(id),
+    user_id TEXT NOT NULL REFERENCES users(id),
+    origem TEXT NOT NULL CHECK (origem IN ('candidatou','convite')),
+    status TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    UNIQUE (vaga_id, user_id)
+  );
+  CREATE INDEX candidaturas_user ON candidaturas(user_id);
+  CREATE TABLE avisos_vaga (
+    user_id TEXT PRIMARY KEY REFERENCES users(id),
+    ultimo_at INTEGER NOT NULL
+  );
+  `,
 ];
 
 export function openDb(file) {

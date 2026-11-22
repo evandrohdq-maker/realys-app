@@ -18,6 +18,8 @@ import { getSavedUsers, forgetUser } from '../accounts';
 import { ProfileSocial, ProfilePreviewModal, TestimonialsTab, DepCenter } from '../components/SocialProfile';
 import { PeopleSearchModal } from '../components/People';
 import { UnverifiedBanner, isVerified, hasIdBadge } from '../components/BioGate';
+import { CurriculoEditor } from '../components/Empregos';
+import { conectado } from '../serverShop';
 import ThemeArt from '../components/ThemeArt';
 import SupportCenter from '../components/SupportCenter';
 import TaxasModal from '../components/TaxasModal';
@@ -144,6 +146,7 @@ export default function ProfileScreen({ navigate, explore }) {
   const u = state.user;
   const [checking, setChecking] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
+  const [cvOpen, setCvOpen] = useState(false); // Meu currículo (conta real)
   const [editing, setEditing] = useState(false);
   const [previewing, setPreviewing] = useState(false); // ver o perfil como os outros veem
   const [friendsOpen, setFriendsOpen] = useState(false);
@@ -342,6 +345,14 @@ export default function ProfileScreen({ navigate, explore }) {
       </>
       )}
 
+      {/* Currículo (conta real): discreto, ao lado da carteira. Abre o mesmo cadastro de Negócios › Empregos. */}
+      {conectado(state) ? (
+        <TouchableOpacity onPress={() => setCvOpen(true)} activeOpacity={0.88} style={[styles.wallet, { marginBottom: 6 }]} accessibilityLabel="Meu currículo">
+          <Ionicons name="document-text-outline" size={14} color={colors.muted} />
+          <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '600', marginLeft: 5 }}>Meu currículo</Text>
+        </TouchableOpacity>
+      ) : null}
+      {cvOpen ? <CurriculoEditor onClose={() => setCvOpen(false)} /> : null}
       {/* Carteira discreta: só o nome, sem o saldo (quem estiver do lado não vê o seu dinheiro).
           O valor aparece só depois de abrir a carteira. */}
       <TouchableOpacity onPress={() => setWalletOpen(true)} activeOpacity={0.88} style={styles.wallet} accessibilityLabel="Abrir minha carteira">
