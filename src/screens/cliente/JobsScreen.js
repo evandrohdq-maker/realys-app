@@ -12,6 +12,7 @@ import { useStore, allJobs } from '../../store';
 import { colors, soft } from '../../theme';
 import { Screen, Title, Empty, Photo } from '../../components/ui';
 import { SearchBar } from '../../components/Search';
+import ExtrasTab from '../../components/Extras';
 import { JOB_AREAS, salaryText, matchScore, APP_STEPS, AVAILABILITY, SKILL_SUGGESTIONS } from '../../jobsData';
 
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -86,6 +87,7 @@ export default function JobsScreen({ explore }) {
   const done = resumeDone(resume);
   const tabs = [
     { key: 'vagas', label: 'Para você' },
+    { key: 'extras', label: 'Extras' },
     { key: 'salvas', label: `Salvas${savedList.length ? ` · ${savedList.length}` : ''}` },
     { key: 'minhas', label: `Candidaturas${applied.length ? ` · ${applied.length}` : ''}` },
   ];
@@ -156,6 +158,8 @@ export default function JobsScreen({ explore }) {
           {!list.length ? <Empty text="Nenhuma vaga com esses filtros. Tire algum filtro para ver mais." /> : null}
         </>
       ) : null}
+
+      {seg === 'extras' ? <ExtrasTab /> : null}
 
       {seg === 'salvas' ? (
         <>

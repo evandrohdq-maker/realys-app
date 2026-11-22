@@ -30,6 +30,7 @@ export function payloadOf(state) {
     chatMeta: state.chatMeta,
     creations: state.creations,
     mural: state.mural,
+    extraPerfil: state.extraPerfil,
   };
   // Muito grande (muitas criações com imagens embutidas): guarda o essencial do perfil.
   if (JSON.stringify(data).length > 850 * 1024) {
