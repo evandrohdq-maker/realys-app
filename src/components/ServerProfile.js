@@ -77,7 +77,7 @@ function ServerProfile({ id, onClose }) {
               )}
             </TouchableOpacity>
             <Text style={st.name}>
-              {p.name} <Ionicons name="shield-checkmark" size={16} color={colors.primary} />
+              {p.name}{p.verified ? <> <Ionicons name="shield-checkmark" size={16} color={colors.primary} /></> : null}
             </Text>
             {p.username ? <Text style={st.handle}>*{p.username}</Text> : null}
             {p.about ? <Text style={st.about}>{p.about}</Text> : null}

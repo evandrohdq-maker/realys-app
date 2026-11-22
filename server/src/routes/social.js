@@ -20,11 +20,15 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
   const POST_SQL = 'SELECT p.*, u.name AS author_name, u.username AS author_username, u.photo AS author_photo FROM posts p JOIN users u ON u.id = p.author_id';
 
   // ── Pessoas ──
+  // Selo de identidade verificada: só quem teve a biometria aprovada (não vale para conta sem biometria).
+  const verificado = (id) => !!db.prepare(`SELECT 1 FROM biometria WHERE user_id = ? AND status = 'aprovado'`).get(id);
+  const pub = (u, o) => (u ? { ...publicUser(u, o), verified: verificado(u.id) } : u);
+
   r.get('/users', ({ query, user }) => {
     const q = String(query.q || '').trim();
     if (q.length < 2) return [];
     return db.prepare(`SELECT * FROM users WHERE kind != 'sistema' AND status = 'ativo' AND (name LIKE ? OR username LIKE ?) ORDER BY name LIMIT 30`).all(`%${q}%`, `%${q.replace(/^@/, '')}%`)
-      .map((u) => ({ ...publicUser(u), friend: friendship(user.id, u.id)?.status || null }));
+      .map((u) => ({ ...pub(u), friend: friendship(user.id, u.id)?.status || null }));
   });
 
   r.get('/users/:id', ({ params, user }) => {
@@ -32,7 +36,7 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     const f = friendship(user.id, u.id);
     const visible = canSeeSocial(user, u);
     return {
-      ...publicUser(u),
+      ...pub(u),
       friend: f ? (f.status === 'amigos' ? 'amigos' : f.requested_by === user.id ? 'enviado' : 'recebido') : null,
       visible,
       posts: visible ? db.prepare(`${POST_SQL} WHERE p.author_id = ? AND p.kind = 'post' AND p.removed = 0 ORDER BY p.created_at DESC LIMIT 30`).all(u.id).filter((p) => p.visibility === 'todos' || areFriends(user.id, u.id)).map(postView) : [],
@@ -49,12 +53,12 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     const [a, b] = pair(user.id, u.id);
     if (!f) {
       db.prepare('INSERT INTO friends (a_id, b_id, status, requested_by, created_at) VALUES (?,?,?,?,?)').run(a, b, 'pendente', user.id, now());
-      hub.send(u.id, 'friend_request', { from: publicUser(user) });
+      hub.send(u.id, 'friend_request', { from: pub(user) });
       return { status: 'enviado' };
     }
     if (f.status === 'pendente' && f.requested_by !== user.id) {
       db.prepare(`UPDATE friends SET status = 'amigos' WHERE a_id = ? AND b_id = ?`).run(a, b);
-      hub.send(u.id, 'friend_accepted', { by: publicUser(user) });
+      hub.send(u.id, 'friend_accepted', { by: pub(user) });
       return { status: 'amigos' };
     }
     return { status: f.status === 'amigos' ? 'amigos' : 'enviado' };
@@ -65,7 +69,7 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
   });
   r.get('/friends', ({ user }) =>
     db.prepare(`SELECT u.*, f.status AS f_status, f.requested_by AS f_by FROM friends f JOIN users u ON u.id = CASE WHEN f.a_id = ? THEN f.b_id ELSE f.a_id END WHERE (f.a_id = ? OR f.b_id = ?)`).all(user.id, user.id, user.id)
-      .map((x) => ({ ...publicUser(x), friend: x.f_status === 'amigos' ? 'amigos' : x.f_by === user.id ? 'enviado' : 'recebido' }))
+      .map((x) => ({ ...pub(x), friend: x.f_status === 'amigos' ? 'amigos' : x.f_by === user.id ? 'enviado' : 'recebido' }))
   );
 
   // ── Posts e stories ──
@@ -118,7 +122,7 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     if (!mt.ok) fail(422, mt.why, mt.kind);
     const id = newId('dp');
     db.prepare('INSERT INTO testimonials (id, from_id, to_id, text, status, created_at) VALUES (?,?,?,?,?,?)').run(id, user.id, to.id, str(body.text, 'o depoimento', { min: 5, max: 600 }), 'pendente', now());
-    hub.send(to.id, 'testimonial', { id, from: publicUser(user) });
+    hub.send(to.id, 'testimonial', { id, from: pub(user) });
     return { id, status: 'pendente' };
   }, { status: 201 });
   r.get('/testimonials/pending', ({ user }) =>
@@ -176,7 +180,7 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     ).all(user.id, user.id, user.id).map((c) => {
       const last = db.prepare('SELECT * FROM messages WHERE (from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?) ORDER BY created_at DESC LIMIT 1').get(user.id, c.other, c.other, user.id);
       const unread = db.prepare('SELECT COUNT(*) AS n FROM messages WHERE from_id = ? AND to_id = ? AND read_at IS NULL').get(c.other, user.id).n;
-      return { with: publicUser(userById(c.other)), last: { text: last.text, from: last.from_id, at: last.created_at }, unread };
+      return { with: pub(userById(c.other)), last: { text: last.text, from: last.from_id, at: last.created_at }, unread };
     })
   );
 
