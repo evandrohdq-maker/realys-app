@@ -24,7 +24,7 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     const m = /^\/media\//.test(media) ? db.prepare('SELECT mime FROM media WHERE id = ?').get(id) : null;
     return m && /^video\//.test(m.mime) ? 'video' : 'imagem';
   };
-  const postView = (p) => ({ id: p.id, kind: p.kind, text: p.text, media: p.media, mediaType: tipoMidia(p.media), visibility: p.visibility, flagged: !!p.flagged, createdAt: p.created_at, expiresAt: p.expires_at, author: { id: p.author_id, name: p.author_name, username: p.author_username, photo: p.author_photo } });
+  const postView = (p) => ({ id: p.id, kind: p.kind, text: p.text, media: p.media, mediaType: tipoMidia(p.media), bg: p.bg || null, visibility: p.visibility, flagged: !!p.flagged, createdAt: p.created_at, expiresAt: p.expires_at, author: { id: p.author_id, name: p.author_name, username: p.author_username, photo: p.author_photo } });
   const POST_SQL = 'SELECT p.*, u.name AS author_name, u.username AS author_username, u.photo AS author_photo FROM posts p JOIN users u ON u.id = p.author_id';
 
   // ── Pessoas ──
@@ -148,8 +148,9 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     if (!m.ok) fail(422, m.why, m.kind);
     const id = newId('ps');
     const t = now();
-    db.prepare('INSERT INTO posts (id, author_id, kind, text, media, visibility, created_at, expires_at) VALUES (?,?,?,?,?,?,?,?)').run(
-      id, user.id, kind, text, media, body.visibility === 'amigos' ? 'amigos' : 'todos', t, kind === 'story' ? t + 86400000 : null
+    const bg = typeof body.bg === 'string' && /^#[0-9a-f]{6}$/i.test(body.bg) ? body.bg : null;
+    db.prepare('INSERT INTO posts (id, author_id, kind, text, media, visibility, created_at, expires_at, bg) VALUES (?,?,?,?,?,?,?,?,?)').run(
+      id, user.id, kind, text, media, body.visibility === 'amigos' ? 'amigos' : 'todos', t, kind === 'story' ? t + 86400000 : null, bg
     );
     return postView(db.prepare(`${POST_SQL} WHERE p.id = ?`).get(id));
   }, { status: 201 });

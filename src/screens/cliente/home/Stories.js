@@ -146,6 +146,9 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
 
   if (!group) return null;
   const item = group.items[Math.min(ii, group.items.length - 1)];
+  // Story só de texto com fundo claro: barrinhas e nome escuros (brancos sumiam no fundo).
+  const claro = !item.image && !item.video && !item.showCard && isLightBg(item.bg);
+  const ink = claro ? colors.text : '#fff';
 
   const send = () => {
     const t = reply.trim();
@@ -203,8 +206,8 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
         <View style={[styles.top, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">
           <View style={styles.bars}>
             {group.items.map((it, k) => (
-              <View key={it.id} style={styles.barTrack}>
-                <View style={[styles.barFill, { width: `${(k < ii ? 1 : k === ii ? progress : 0) * 100}%` }]} />
+              <View key={it.id} style={[styles.barTrack, claro && { backgroundColor: 'rgba(0,0,0,0.15)' }]}>
+                <View style={[styles.barFill, claro && { backgroundColor: colors.text }, { width: `${(k < ii ? 1 : k === ii ? progress : 0) * 100}%` }]} />
               </View>
             ))}
           </View>
@@ -225,15 +228,15 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
                 <Photo uri={group.avatar} style={styles.headAvatar} fallback="🙂" />
               )}
               <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={styles.headName} numberOfLines={1}>
+                <Text style={[styles.headName, claro && { color: ink, textShadowRadius: 0 }]} numberOfLines={1}>
                   {group.name} <Ionicons name="shield-checkmark" size={12} color={colors.gold} />
                 </Text>
-                <Text style={styles.headTime}>{group.sponsored ? 'Patrocinado' : item.time}</Text>
+                <Text style={[styles.headTime, claro && { color: colors.muted }]}>{group.sponsored ? 'Patrocinado' : item.time}</Text>
               </View>
             </TouchableOpacity>
             {paused ? <Ionicons name="pause" size={18} color="#fff" style={{ marginRight: 10 }} /> : null}
             <TouchableOpacity style={styles.close} onPress={onClose} accessibilityLabel="Fechar story">
-              <Ionicons name="close" size={24} color="#fff" />
+              <Ionicons name="close" size={24} color={ink} />
             </TouchableOpacity>
           </View>
           {item.music ? <MusicSticker music={item.music} style={{ marginTop: 10, marginLeft: 4 }} /> : null}

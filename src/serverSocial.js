@@ -66,6 +66,7 @@ const storyItem = (s) => ({
   image: s.media && !isVideo(s.media, s.mediaType) ? full(s.media) : null,
   video: s.media && isVideo(s.media, s.mediaType) ? full(s.media) : null,
   text: s.text || '',
+  bg: s.bg || undefined,
   time: quando(s.createdAt),
   at: s.createdAt,
   expiresAt: s.expiresAt,
@@ -106,7 +107,7 @@ async function subir(uri, video) {
 export async function publicar(kind, item) {
   const media = await subir(item.video || item.image, !!item.video);
   if (!media && !String(item.text || item.caption || '').trim()) return null;
-  const p = await api('POST', '/posts', { kind, text: String(item.text || item.caption || '').slice(0, 2200), media: media || undefined, visibility: item.visibility === 'amigos' ? 'amigos' : 'todos' });
+  const p = await api('POST', '/posts', { kind, text: String(item.text || item.caption || '').slice(0, 2200), media: media || undefined, bg: !media && item.bg ? item.bg : undefined, visibility: item.visibility === 'amigos' ? 'amigos' : 'todos' });
   refreshFeed();
   return p.id;
 }

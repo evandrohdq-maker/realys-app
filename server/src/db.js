@@ -948,6 +948,10 @@ const MIGRATIONS = [
   `
   ALTER TABLE users ADD COLUMN teste INTEGER NOT NULL DEFAULT 0;
   `,
+  // Cor de fundo do story só de texto (antes se perdia ao voltar do servidor).
+  `
+  ALTER TABLE posts ADD COLUMN bg TEXT;
+  `,
 ];
 
 export function openDb(file) {
