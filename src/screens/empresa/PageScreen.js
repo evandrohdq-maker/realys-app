@@ -12,6 +12,7 @@ import { Switch } from 'react-native';
 import { profileById, mediaOf } from '../../components/CompanyProfile';
 import { Stars, reviewer } from '../../components/BusinessPage';
 import { SECTORS, ROLES, SERVE_MODES, GALLERY_TYPES, businessOf, showcaseOf, isFoodBusiness } from '../../companyBusiness';
+import { buscarAtividades, atividadePorId, cnaeTexto } from '../../companyActivities';
 
 const NIGHT = '#0B1124';
 const MAX_SHOWCASE = 6;
@@ -106,6 +107,30 @@ export default function PageScreen() {
     const list = sectors[openSector] || [];
     if (!list.includes(sg)) setBiz({ sectors: { ...sectors, [openSector]: [...list, sg] } });
     setCustom('');
+  };
+  // Atividade pelo CNAE: a empresa digita o que faz e escolhe; a atividade liga a área certa, o
+  // segmento e o papel na cadeia. Nada de lista enorme de áreas para escolher.
+  const atividades = (biz.atividades || []).map(atividadePorId).filter(Boolean);
+  const [qAtv, setQAtv] = useState('');
+  const [addAtv, setAddAtv] = useState(false);
+  const addAtividade = (a) => {
+    const lista = sectors[a.area] || [];
+    setBiz({
+      atividades: [...new Set([...(biz.atividades || []), a.id])],
+      cnae: biz.cnae || a.cnae,
+      sectors: { ...sectors, [a.area]: lista.includes(a.segmento) ? lista : [...lista, a.segmento] },
+      roles: [...new Set([...roles, ...a.papeis])],
+    });
+    setOpenSector(a.area);
+    setQAtv('');
+    setAddAtv(false);
+  };
+  const tirarAtividade = (a) => {
+    const resto = atividades.filter((x) => x.id !== a.id);
+    const next = { ...sectors };
+    // A área sai se nenhuma outra atividade usa ela.
+    if (!resto.some((x) => x.area === a.area)) delete next[a.area];
+    setBiz({ atividades: resto.map((x) => x.id), cnae: resto[0] ? resto[0].cnae : '', sectors: next });
   };
   const toggleMode = (k) => setBiz({ modes: modes.includes(k) ? modes.filter((x) => x !== k) : [...modes, k] });
 
@@ -327,13 +352,39 @@ export default function PageScreen() {
         ) : null}
       </Card>
 
-      <Head icon="grid-outline" title="Onde a empresa atua" sub="Escolha as áreas em que você trabalha. Em cada uma, marque os segmentos que descrevem a sua empresa." />
+      <Head icon="grid-outline" title="O que a empresa faz" sub="Digite a atividade (ou o número do CNAE do seu cartão CNPJ) e escolha. O Realyz monta o resto pela sua atividade." />
       <Card>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-          {SECTORS.map((sec) => (
-            <Pick key={sec.key} icon={sec.icon} label={sec.label} on={!!sectors[sec.key]} onPress={() => toggleSector(sec.key)} />
-          ))}
-        </View>
+        {atividades.map((a) => (
+          <View key={a.id} style={styles.atv}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.name} numberOfLines={1}>{a.nome}</Text>
+              <Text style={styles.sub}>{cnaeTexto(a.cnae)}</Text>
+            </View>
+            <TouchableOpacity onPress={() => tirarAtividade(a)} accessibilityLabel={`Tirar ${a.nome}`} style={{ padding: 4 }}>
+              <Ionicons name="close" size={18} color={colors.muted} />
+            </TouchableOpacity>
+          </View>
+        ))}
+        {!atividades.length || addAtv ? (
+          <>
+            <Input value={qAtv} onChangeText={setQAtv} placeholder={atividades.length ? 'Digite a outra atividade' : 'Ex.: loja de celulares, restaurante, 4752'} autoFocus={addAtv} />
+            {buscarAtividades(qAtv).map((a) => (
+              <TouchableOpacity key={a.id} style={styles.atvOpc} onPress={() => addAtividade(a)} accessibilityLabel={`Escolher ${a.nome}`}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.name} numberOfLines={1}>{a.nome}</Text>
+                  <Text style={styles.sub}>{cnaeTexto(a.cnae)}</Text>
+                </View>
+                <Ionicons name="add-circle-outline" size={22} color={colors.primary} />
+              </TouchableOpacity>
+            ))}
+            {qAtv.trim().length >= 2 && !buscarAtividades(qAtv).length ? <Text style={styles.sub}>Não achei. Tente outra palavra (ex.: mercado, roupas, oficina).</Text> : null}
+          </>
+        ) : (
+          <TouchableOpacity onPress={() => setAddAtv(true)} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }} accessibilityLabel="Adicionar outra atividade">
+            <Ionicons name="add-circle-outline" size={18} color={colors.primary} />
+            <Text style={{ color: colors.primary, fontWeight: '800', marginLeft: 6 }}>Adicionar outra atividade</Text>
+          </TouchableOpacity>
+        )}
       </Card>
       {sectorKeys.map((k) => {
         const sec = SECTORS.find((x) => x.key === k);
@@ -513,6 +564,8 @@ export default function PageScreen() {
 }
 
 const styles = StyleSheet.create({
+  atv: { flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 12, borderWidth: 1.5, borderColor: colors.primary, backgroundColor: '#FFFBEF', marginBottom: 8 },
+  atvOpc: { flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: '#fff', marginTop: 6 },
   name: { fontWeight: '700', color: colors.text },
   sub: { color: colors.muted, fontSize: 12, marginTop: 2 },
   label: { color: colors.muted, fontSize: 12, fontWeight: '700', marginBottom: 4 },
