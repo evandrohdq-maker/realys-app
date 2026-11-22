@@ -1032,7 +1032,13 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
       {seg === 'msgs' ? (
         <>
           <ServerInbox />
-          <ConvList convs={convs} contactOf={contactOf} onChat={onChat} />
+          {/* Conversas guardadas só neste aparelho (exemplos e respostas antigas): conta real sem nenhuma não vê a seção. */}
+          {conectado(state) && !(convs || []).length ? null : (
+            <>
+              {conectado(state) ? <Text style={styles.contactsTitle}>Outras conversas</Text> : null}
+              <ConvList convs={convs} contactOf={contactOf} onChat={onChat} />
+            </>
+          )}
         </>
       ) : null}
 

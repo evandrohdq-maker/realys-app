@@ -189,13 +189,28 @@ export function VideoCallHost() {
     setMute(false);
     setCam(true);
   };
+  const [kind, setKind] = useState('video');
   const begin = async (opts, name) => {
     setWho(name || 'Chamada');
+    setKind(opts.kind === 'audio' ? 'audio' : 'video');
+    // A tela da chamada aparece na hora ("Chamando…"), enquanto o aparelho libera microfone/câmera.
+    let cancelada = false;
+    const nada = () => {};
+    setCall({ pendente: true, local: null, mute: nada, camera: nada, flip: nada, end: () => ((cancelada = true), reset()) });
     try {
       const s = await startCall({ ...opts, onRemote: setRemote, onEnd: reset });
+      if (cancelada) return s.end();
       setCall(s);
     } catch (e) {
       reset();
+      if (cancelada) return;
+      const negado = e && /NotAllowed|Permission|denied/i.test(`${e.name} ${e.message}`);
+      Alert.alert(
+        'Não deu para ligar',
+        negado
+          ? `Permita ${opts.kind === 'audio' ? 'o microfone' : 'a câmera e o microfone'} para o Realyz (no aviso do navegador ou nas configurações do celular) e tente de novo.`
+          : (e && e.message) || 'Confira a internet e tente de novo.'
+      );
     }
   };
 
@@ -261,20 +276,26 @@ export function VideoCallHost() {
   return (
     <Modal visible animationType="fade" onRequestClose={() => call.end()}>
       <View style={{ flex: 1, backgroundColor: '#03050A' }}>
-        {remote ? <RTCView streamURL={remote.toURL()} style={StyleSheet.absoluteFill} objectFit="cover" /> : null}
+        {remote && kind !== 'audio' ? <RTCView streamURL={remote.toURL()} style={StyleSheet.absoluteFill} objectFit="cover" /> : null}
+        {/* Ligação de voz: o som do outro lado toca pelo player escondido (sem imagem). */}
+        {remote && kind === 'audio' ? <RTCView streamURL={remote.toURL()} style={{ width: 1, height: 1, opacity: 0 }} /> : null}
         <View style={{ paddingTop: insets.top + 24, alignItems: 'center' }}>
           <Text style={st.callName}>{who}</Text>
-          <Text style={st.callStatus}>{remote ? `Chamada de vídeo · ${mmss(secs)}` : 'Chamando…'}</Text>
+          <Text style={st.callStatus}>{remote ? `${kind === 'audio' ? 'Chamada de voz' : 'Chamada de vídeo'} · ${mmss(secs)}` : call.pendente ? `Liberando ${kind === 'audio' ? 'o microfone' : 'a câmera e o microfone'}…` : 'Chamando…'}</Text>
         </View>
-        {call.local && cam ? (
+        {call.local && cam && kind !== 'audio' ? (
           <View style={[st.self, { top: insets.top + 90 }]}>
             <RTCView streamURL={call.local.toURL()} style={{ flex: 1 }} objectFit="cover" mirror zOrder={1} />
           </View>
         ) : null}
         <View style={[st.bar, { bottom: 30 + insets.bottom }]}>
           <Btn icon={mute ? 'mic-off' : 'mic'} on={mute} onPress={() => (call.mute(!mute), setMute(!mute))} />
-          <Btn icon={cam ? 'videocam' : 'videocam-off'} on={!cam} onPress={() => (call.camera(!cam), setCam(!cam))} />
-          <Btn icon="camera-reverse" onPress={() => call.flip()} />
+          {kind === 'audio' ? null : (
+            <>
+              <Btn icon={cam ? 'videocam' : 'videocam-off'} on={!cam} onPress={() => (call.camera(!cam), setCam(!cam))} />
+              <Btn icon="camera-reverse" onPress={() => call.flip()} />
+            </>
+          )}
           <TouchableOpacity style={[st.round, { backgroundColor: '#FF5A5F' }]} onPress={() => call.end()} accessibilityLabel="Encerrar">
             <Ionicons name="call" size={24} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
           </TouchableOpacity>
