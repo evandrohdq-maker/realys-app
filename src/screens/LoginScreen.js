@@ -155,9 +155,11 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
       }
       // Servidor ligado: entra também no servidor (compras, carteira e pedidos de verdade).
       // Conta antiga só deste celular é criada lá na primeira entrada.
+      let viaServidor = false;
       if (serverOn()) {
         try {
           const srv = await entrarOuMigrar(value, password, acc);
+          viaServidor = !!srv;
           if (srv) {
             if (acc) {
               user = { ...user, serverId: srv.id };
@@ -174,7 +176,10 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
       // Conta sem biometria feita neste aparelho: a pessoa dona da conta faz o reconhecimento facial.
       const conhecido = (await getSavedUsers()).some((x) => x.key === savedKey(value));
       // No site não há o scan do aparelho: quem confere é o servidor (senha + rosto quando o navegador é novo).
-      if (!conhecido && Platform.OS !== 'web') return setPendente({ user, login: value, remember });
+      // Só pede o rosto aqui quando a conta TEM biometria e o servidor não conferiu (ele já confere o rosto
+      // de aparelho novo). Conta sem biometria entra normal, no modo social: navega, publica e conversa,
+      // e só faz a biometria quando for comprar ou contratar.
+      if (!conhecido && Platform.OS !== 'web' && !viaServidor && user.verified !== false) return setPendente({ user, login: value, remember });
       await login(user, value, remember);
     } finally {
       setBusy(false);
@@ -250,7 +255,7 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
         ) : !showForm && saved.length ? (
           <View style={styles.panel}>
             <Text style={styles.label}>Quem vai usar o Realyz?</Text>
-            <Text style={styles.sub}>Contas salvas neste aparelho. Toque e confirme com a biometria.</Text>
+            <Text style={styles.sub}>Contas salvas neste aparelho. Toque no seu nome para entrar.</Text>
             {saved.map((s) => {
               const icon = KIND_ICON[s.user.roles[0]] || 'person-outline';
               return (
@@ -265,7 +270,7 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
                       <Text style={styles.savedLogin}>{maskLogin(s.login)}</Text>
                     </View>
                   </View>
-                  <Ionicons name="finger-print" size={26} color={colors.primary} />
+                  <Ionicons name="chevron-forward" size={22} color={colors.primary} />
                   <TouchableOpacity onPress={() => remove(s)} style={styles.trash} hitSlop={8} accessibilityLabel={`Remover ${s.user.name} deste aparelho`}>
                     <Ionicons name="close" size={18} color={colors.muted} />
                   </TouchableOpacity>
@@ -325,14 +330,14 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
                 <Ionicons name={remember ? 'checkbox' : 'square-outline'} size={22} color={remember ? colors.primary : colors.muted} />
                 <View style={{ flex: 1, marginLeft: 8 }}>
                   <Text style={styles.checkText}>Salvar usuário neste aparelho</Text>
-                  <Text style={styles.checkSub}>Da próxima vez, é só tocar no seu nome e usar a biometria.</Text>
+                  <Text style={styles.checkSub}>Da próxima vez, é só tocar no seu nome.</Text>
                 </View>
               </TouchableOpacity>
             ) : null}
 
             <TouchableOpacity style={[styles.btn, busy && { opacity: 0.6 }]} onPress={enter} disabled={busy} activeOpacity={0.85}>
-              <Ionicons name={info.kind === 'admin' || info.kind === 'analista' ? 'log-in-outline' : 'finger-print'} size={20} color={colors.onPrimary} />
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.btnText}>{busy ? 'Verificando…' : info.kind === 'admin' || info.kind === 'analista' ? 'Entrar' : 'Entrar com biometria'}</Text>
+              <Ionicons name="log-in-outline" size={20} color={colors.onPrimary} />
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.btnText}>{busy ? 'Verificando…' : 'Entrar'}</Text>
             </TouchableOpacity>
 
             {saved.length ? (
