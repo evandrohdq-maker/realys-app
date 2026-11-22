@@ -111,6 +111,7 @@ import { RadioHost, RadioHeadChip } from './src/components/RadioKit';
 import { ArtistSheetHost } from './src/components/ArtistSheet';
 import { ArtistShowHost } from './src/components/ArtistBooking';
 import { MediaViewerHost } from './src/components/MediaViewer';
+import { ServerProfileHost } from './src/components/ServerProfile';
 import { installCameraPick } from './src/web/cameraPick';
 // Site: escolhe a webcam de verdade sozinho (pula DroidCam, OBS e outras câmeras virtuais).
 if (Platform.OS === 'web') installCameraPick();
@@ -745,6 +746,7 @@ function Shell({ inviteTick }) {
       <ArtistSheetHost />
       <ArtistShowHost />
       <MediaViewerHost />
+      <ServerProfileHost />
       {/* TV da aba Stream e live minimizada: janelinhas flutuantes (segure e arraste). */}
       <TvFloat bottom={150 + insets.bottom} />
       {/* Perfil de rádio/TV (abre ao tocar no nome) e a janelinha por cima dos outros apps. */}

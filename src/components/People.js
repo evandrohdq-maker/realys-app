@@ -25,6 +25,8 @@ import { StoryViewer } from '../screens/cliente/home/Stories';
 import { HireButton } from './ArtistBooking';
 import { api, serverOn } from '../api';
 import { conectado } from '../serverShop';
+import { openServerProfile } from './ServerProfile';
+import { refreshFriends } from '../serverFriends';
 import { artistByRef } from '../artistShows';
 
 // Foto do perfil: tocar abre os stories da pessoa (anel dourado = tem story novo);
@@ -755,7 +757,7 @@ function ServerPersonRow({ u, onFriend }) {
   const act = (fn, next) => {
     setBusy(true);
     fn()
-      .then(() => onFriend(u.id, next))
+      .then(() => (onFriend(u.id, next), refreshFriends()))
       .catch((e) => Alert.alert('Não deu certo', e.message))
       .finally(() => setBusy(false));
   };
@@ -763,6 +765,8 @@ function ServerPersonRow({ u, onFriend }) {
   const refuse = () => act(() => api('DELETE', `/friends/${u.id}`), null);
   return (
     <View style={styles.row}>
+      {/* Tocar na foto ou no nome abre o perfil da conta real. */}
+      <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }} onPress={() => openServerProfile(u.id)} activeOpacity={0.8} accessibilityLabel={`Ver perfil de ${u.name}`}>
       {u.photo ? (
         <Photo uri={u.photo} style={styles.rowAvatar} fallback="🙂" />
       ) : (
@@ -779,6 +783,7 @@ function ServerPersonRow({ u, onFriend }) {
           {u.friend === 'amigos' ? ' · amigos' : u.friend === 'enviado' ? ' · pedido enviado' : u.friend === 'recebido' ? ' · quer ser seu amigo' : ''}
         </Text>
       </View>
+      </TouchableOpacity>
       {u.friend === 'amigos' ? (
         <Btn compact icon="chatbubble-ellipses-outline" label="Mensagem" onPress={() => dispatch({ type: 'OPEN_SERVER_CHAT', userId: u.id, name: u.name })} />
       ) : u.friend === 'enviado' ? (

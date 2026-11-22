@@ -1,6 +1,9 @@
 import { openProduct } from '../../../components/ProductSheet';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { openMedia } from '../../../components/MediaViewer';
+import { openServerProfile } from '../../../components/ServerProfile';
+import { useServerFriends, addFriend, removeFriend } from '../../../serverFriends';
+import { conectado } from '../../../serverShop';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Share, Platform, ToastAndroid, Dimensions } from 'react-native';
 import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -653,6 +656,57 @@ export function CommunityHub({ top, explore }) {
   );
 }
 
+// Contato de conta real: toca para abrir o perfil; amigo tem Mensagem; pedido recebido tem Aceitar/Recusar;
+// pedido enviado mostra "Aguardando" e dá para cancelar.
+function RealContact({ u, onChat }) {
+  const [busy, setBusy] = useState(false);
+  const first = (u.name || '').split(' ')[0];
+  const run = (fn) => {
+    setBusy(true);
+    fn()
+      .catch((e) => Alert.alert('Não deu certo', e.message))
+      .finally(() => setBusy(false));
+  };
+  return (
+    <View style={styles.convRow}>
+      <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }} onPress={() => openServerProfile(u.id)} activeOpacity={0.7} accessibilityLabel={`Ver perfil de ${u.name}`}>
+        {u.photo ? (
+          <Photo uri={u.photo} style={styles.convAvatar} fallback="🙂" />
+        ) : (
+          <View style={[styles.convAvatar, { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }]}>
+            <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>{first.charAt(0).toUpperCase()}</Text>
+          </View>
+        )}
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>{u.name}</Text>
+          <Text style={{ color: colors.muted, fontSize: 12 }} numberOfLines={1}>
+            {u.username ? `*${u.username} · ` : ''}
+            {u.friend === 'amigos' ? 'amigo no Realyz' : u.friend === 'enviado' ? 'aguardando resposta' : 'quer ser seu amigo'}
+          </Text>
+        </View>
+      </TouchableOpacity>
+      {u.friend === 'amigos' ? (
+        <TouchableOpacity style={styles.roundSm} onPress={onChat} accessibilityLabel={`Mensagem para ${u.name}`}>
+          <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.primary} />
+        </TouchableOpacity>
+      ) : u.friend === 'recebido' ? (
+        <>
+          <TouchableOpacity style={[styles.roundSm, { backgroundColor: colors.primary }]} onPress={busy ? undefined : () => run(() => addFriend(u.id))} accessibilityLabel={`Aceitar ${u.name}`}>
+            <Ionicons name="checkmark" size={18} color={colors.onPrimary} />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.roundSm, { marginLeft: 8 }]} onPress={busy ? undefined : () => run(() => removeFriend(u.id))} accessibilityLabel={`Recusar ${u.name}`}>
+            <Ionicons name="close" size={18} color={colors.muted} />
+          </TouchableOpacity>
+        </>
+      ) : (
+        <TouchableOpacity style={styles.roundSm} onPress={() => Alert.alert('Cancelar o pedido?', `${first} ainda não respondeu.`, [{ text: 'Manter', style: 'cancel' }, { text: 'Cancelar pedido', style: 'destructive', onPress: () => run(() => removeFriend(u.id)) }])} accessibilityLabel={`Pedido para ${u.name} aguardando resposta`}>
+          <Ionicons name="time-outline" size={18} color={colors.muted} />
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
+
 function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive, userName }) {
   const { state, dispatch } = useStore();
   // Tocar em Community (ou na logo) de novo: o feed volta para o topo e se reorganiza, com as
@@ -677,6 +731,8 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
     if (store) dispatch({ type: 'OPEN_COMPANY', id: store.id });
   };
   const requests = members.filter((m) => state.friends[m.id] === 'recebido');
+  // Amizades das contas reais (servidor): amigos, pedidos recebidos e pedidos aguardando resposta.
+  const real = useServerFriends(conectado(state));
   const [depOpen, setDepOpen] = useState(false);
   const notifCount = unseenNotifs(state);
   // Abriu o sininho: o que está na lista passa a contar como visto (o pontinho some na próxima vez).
@@ -757,7 +813,7 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
         <SegTabs
           items={[
             { key: 'msgs', label: 'Conversas', icon: 'chatbubbles-outline', badge: convs.reduce((n, c) => n + c.unread, 0) || null },
-            { key: 'contatos', label: 'Contatos', icon: 'people-outline', badge: requests.length || null },
+            { key: 'contatos', label: 'Contatos', icon: 'people-outline', badge: requests.length + real.received.length || null },
           ]}
           value={seg}
           onChange={setSeg}
@@ -915,7 +971,32 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
               ))}
             </>
           ) : null}
-          <Text style={styles.contactsTitle}>Amigos e contatos ({people.length})</Text>
+          {/* Contas reais: pedidos recebidos, amigos e pedidos que você mandou (aguardando). */}
+          {real.received.length ? (
+            <>
+              <Text style={styles.contactsTitle}>Pedidos de amizade recebidos ({real.received.length})</Text>
+              {real.received.map((u) => (
+                <RealContact key={u.id} u={u} onChat={() => dispatch({ type: 'OPEN_SERVER_CHAT', userId: u.id, name: u.name })} />
+              ))}
+            </>
+          ) : null}
+          {real.friends.length ? (
+            <>
+              <Text style={styles.contactsTitle}>Seus amigos no Realyz ({real.friends.length})</Text>
+              {real.friends.map((u) => (
+                <RealContact key={u.id} u={u} onChat={() => dispatch({ type: 'OPEN_SERVER_CHAT', userId: u.id, name: u.name })} />
+              ))}
+            </>
+          ) : null}
+          {real.sent.length ? (
+            <>
+              <Text style={styles.contactsTitle}>Aguardando resposta ({real.sent.length})</Text>
+              {real.sent.map((u) => (
+                <RealContact key={u.id} u={u} />
+              ))}
+            </>
+          ) : null}
+          <Text style={styles.contactsTitle}>{real.friends.length || real.sent.length || real.received.length ? 'Perfis de exemplo' : 'Amigos e contatos'} ({people.length})</Text>
           <TouchableOpacity
             style={styles.announce}
             onPress={() => Alert.alert('Convidar amigos', 'Mande o convite: quem entra no Realyz passa pela verificação por biometria.')}
