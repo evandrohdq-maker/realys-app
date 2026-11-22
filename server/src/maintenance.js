@@ -7,10 +7,15 @@ import { fail, newId, now } from './http.js';
 
 const DAY = 86400000;
 
-export function makeMaintenance({ db, cfg, cipher, biometria, matcher }) {
+export function makeMaintenance({ db, cfg, cipher, biometria, matcher, limpeza }) {
   const mediaDir = join(cfg.dataDir, 'media');
 
   const jobs = {
+    // Conversas: aviso a partir do dia 24 e limpeza no dia 1º (src/limpezaConversas.js).
+    'limpeza-conversas'() {
+      if (!limpeza) return { ok: false, motivo: 'limpeza não ligada' };
+      return { aviso: limpeza.avisar(), limpeza: limpeza.limpar() };
+    },
     // Cópia do banco inteira (VACUUM INTO gera um arquivo novo e consistente, mesmo com o servidor no ar).
     // A chave de criptografia NÃO entra no backup: fica guardada à parte (BIOMETRIA_KEYS).
     backup() {
