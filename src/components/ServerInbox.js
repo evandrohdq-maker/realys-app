@@ -114,7 +114,6 @@ export default function ServerInbox() {
         </TouchableOpacity>
       ))}
       {q.trim() && !lista.length && !novos.length ? <Text style={{ color: colors.muted, marginVertical: 6 }}>Nenhum amigo com esse nome. Use a lupa lá em cima para achar e adicionar pessoas.</Text> : null}
-      <Text style={[st.title, { marginTop: 12 }]}>Outras conversas</Text>
     </View>
   );
 }
