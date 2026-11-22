@@ -32,6 +32,7 @@ import { panicConfig, savePanic, onPanicChange, phraseOk, PANIC_EXAMPLES } from 
 import { askCallPermission } from '../../phone';
 import { isTransport, isWaiting, WaitCountdown, NO_SHOW_MIN } from '../../rideRules';
 import { checkFair, priceRef, refText, fareQuote, driverEarnings, TARIFFS, RIDE_FEE_PCT, SURGE_MAX } from '../../pricing';
+import { ofertasDeRota, TAXA_ROTA_PCT } from '../../rotaInteligente';
 
 // Tarifa do Realyz para motorista e motoboy: quanto o cliente paga e quanto fica com o prestador.
 function RideEarnings({ service }) {
@@ -362,6 +363,8 @@ function DriverMain({ goTo, onCadastro }) {
 
       {me && isVisitService(me.service) ? <VisitPanel /> : null}
 
+      <RotaInteligente accepted={accepted} pedidos={state.available ? state.rideRequests : []} />
+
       <Section title="Pedidos perto de você">
         {!state.available ? <Empty text="Fique disponível para receber pedidos." /> : null}
         {state.available && !state.rideRequests.length ? <Empty text="Sem novos pedidos agora." /> : null}
@@ -416,6 +419,53 @@ function DriverMain({ goTo, onCadastro }) {
         {!accepted.length ? <Empty text="Nenhum serviço em andamento." /> : null}
       </Section>
     </Screen>
+  );
+}
+
+// Rota inteligente: com uma entrega em andamento, mostra as entregas novas que vão para o mesmo
+// lado. Pegando junto, roda menos e ganha a segunda sem voltar vazio (taxa de rota inteligente).
+function RotaInteligente({ accepted, pedidos }) {
+  const { dispatch } = useStore();
+  const ofertas = ofertasDeRota(accepted, pedidos);
+  if (!ofertas.length) return null;
+  const vistos = new Set();
+  const lista = ofertas.filter((o) => (vistos.has(o.nova.id) ? false : (vistos.add(o.nova.id), true))).slice(0, 3);
+  const pegar = (o) =>
+    Alert.alert(
+      'Pegar as duas juntas?',
+      `Ordem: ${o.ordem.join(' → ')}.\n\nVocê roda ${String(o.kmJunto).replace('.', ',')} km em vez de ${String(o.kmSeparado).replace('.', ',')} km e economiza cerca de ${brl(o.combustivel)} de combustível.\n\nEntrega: ${brl(o.preco)}. Taxa de rota inteligente do Realyz: ${o.taxaPct}% (${brl(o.taxa)}). Você recebe ${brl(o.motoboy)}.`,
+      [
+        { text: 'Agora não', style: 'cancel' },
+        { text: 'Pegar junto', onPress: () => dispatch({ type: 'ACCEPT_RIDE_REQUEST', id: o.nova.id, rota: { junto: o.atual.client || 'sua entrega', preco: o.preco, taxa: o.taxa, taxaPct: o.taxaPct, motoboy: o.motoboy, economiaKm: o.economiaKm, ordem: o.ordem } }) },
+      ]
+    );
+  return (
+    <Section title="Rota inteligente · mesmo caminho">
+      <Text style={{ color: colors.muted, fontSize: 12, marginBottom: 8 }}>
+        Entregas que vão para o mesmo lado da que você já está levando. Pegue junto e aproveite a viagem: taxa de rota inteligente de {TAXA_ROTA_PCT}% sobre a entrega extra.
+      </Text>
+      {lista.map((o) => (
+        <Card key={o.nova.id} style={{ borderWidth: 1.5, borderColor: colors.primary }}>
+          <Row style={{ justifyContent: 'space-between' }}>
+            <Row style={{ flex: 1 }}>
+              <Ionicons name="git-merge-outline" size={18} color={colors.primary} />
+              <Text style={{ color: colors.text, fontWeight: '800', marginLeft: 6, flex: 1 }} numberOfLines={1}>{o.nova.client}</Text>
+            </Row>
+            <Badge label={`−${String(o.economiaKm).replace('.', ',')} km`} color={colors.primary} />
+          </Row>
+          <Text style={{ color: colors.muted, fontSize: 13, marginTop: 4 }}>📍 {o.nova.from} → {o.nova.to}</Text>
+          <Text style={{ color: colors.text, fontSize: 12.5, marginTop: 4 }}>
+            Junto com {o.atual.client} · desvio de {String(o.desvioKm).replace('.', ',')} km · economiza ~{brl(o.combustivel)} de combustível
+          </Text>
+          <Row style={{ justifyContent: 'space-between', marginTop: 8 }}>
+            <Text style={{ fontWeight: '800', color: colors.primary }}>
+              Você recebe {brl(o.motoboy)} <Text style={{ color: colors.muted, fontWeight: '600', fontSize: 12 }}>de {brl(o.preco)}</Text>
+            </Text>
+            <Button small title="Pegar junto" onPress={() => pegar(o)} />
+          </Row>
+        </Card>
+      ))}
+    </Section>
   );
 }
 

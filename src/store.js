@@ -1436,16 +1436,19 @@ function baseReducer(state, a) {
     // Prestador aceita o pedido: o valor do serviço entra na carteira (pagamento protegido liberado).
     case 'ACCEPT_RIDE_REQUEST': {
       const req = state.rideRequests.find((r) => r.id === a.id);
-      const price = (req && Number(req.price)) || 0;
       if (!req) return state;
+      // Rota inteligente (a.rota): a segunda entrega no mesmo caminho paga a taxa de rota inteligente.
+      const rota = a.rota || null;
+      const price = rota ? rota.motoboy : (Number(req.price)) || 0;
+      const desc = rota
+        ? `Rota inteligente: ${req.client || 'entrega'} junto com ${rota.junto} (${brl(rota.preco)} − ${rota.taxaPct}% de rota inteligente)`
+        : `Serviço: ${req.service || req.kind || req.from || 'pedido aceito'}${req.client ? ` para ${req.client}` : ''}`;
       return {
         ...state,
         wallet: +(state.wallet + price).toFixed(2),
-        walletTx: price
-          ? [{ id: newId('w'), ts: Date.now(), kind: 'recebido', cat: 'Serviço prestado', desc: `Serviço: ${req.service || req.kind || req.from || 'pedido aceito'}${req.client ? ` para ${req.client}` : ''}`, amount: price }, ...state.walletTx]
-          : state.walletTx,
+        walletTx: price ? [{ id: newId('w'), ts: Date.now(), kind: 'recebido', cat: 'Serviço prestado', desc, amount: price }, ...state.walletTx] : state.walletTx,
         rideRequests: state.rideRequests.filter((r) => r.id !== a.id),
-        rides: [{ ...req, status: 'Em andamento', acceptedAt: Date.now() }, ...state.rides],
+        rides: [{ ...req, status: rota ? `Rota inteligente com ${rota.junto}` : 'Em andamento', acceptedAt: Date.now(), rota }, ...state.rides],
       };
     }
     // Serviço terminado (cliente confirmou e pagou pelo Realyz): abre a avaliação do prestador.
