@@ -21,6 +21,24 @@ const NEGOCIA = /\b(desconto|negociar|negocia|abaixa|baixar|mais barato|menor pr
 const FECHAR = /\b(quero comprar|vou levar|fechado|fecha|pode mandar|quero contratar|como pago|como pagar|pode agendar)\b/;
 const RECLAMA = /\b(problema|reclama|errado|veio errado|nao chegou|atrasou|estragado|quebrado|devolver|reembolso|golpe)\b/;
 
+// Respostas que robô nenhum pode ignorar (nada de ficar repetindo a pergunta em looping):
+//  - despedida/agradecimento: se despede em uma frase e não pergunta mais nada;
+//  - recusa ("não", "nenhuma dessas", "outro dia"): aceita o não e pergunta o que fica melhor.
+const DESPEDIDA = /\b(tchau|tchauzinho|bye|ate mais|ate logo|ate breve|ate amanha|falou|flw|valeu|obrigad[oa]s?|brigad[oa]|agradeco|era so isso|so isso|nada mais|e so|pode encerrar|encerrar)\b/;
+const RECUSA = /^(nao|n|nao quero|nao obrigad[oa]|nenhum[a]?|nenhuma dessas|nenhum desses|nenhuma delas|nenhum deles|outro dia|outra data|outro horario|outra hora|nao posso|nao da|nao consigo|nao serve|nenhuma serve|nao me serve|deixa|deixa pra la|desisto|cancela|cancelar)\b/;
+export function intencaoSimples(texto) {
+  const t = norm(texto);
+  if (!t) return null;
+  if (RECUSA.test(t)) return 'recusa';
+  // "tchau", "obrigado!", "valeu, era só isso" (mensagem curta: não é pergunta escondida).
+  if (DESPEDIDA.test(t) && t.split(' ').length <= 8 && !/\?/.test(String(texto))) return 'despedida';
+  return null;
+}
+export const respostaDespedida = (empresa) => `Combinado! Obrigado pelo contato${empresa ? ` com a ${empresa}` : ''}. Quando precisar, é só chamar aqui no Realyz. Até mais! 👋`;
+export const respostaRecusa = () => 'Sem problema! Me diz o que fica melhor para você (outro dia, outro horário ou outra opção) que eu ajeito. Se preferir, chamo uma pessoa da equipe.';
+// Duas mensagens "iguais" (para não mandar a mesma coisa de novo).
+export const mesmaMensagem = (a, b) => !!a && !!b && norm(a) === norm(b);
+
 // Etapas do CRM (as mesmas do app): novo → conversa → proposta → negociacao → fechado.
 export function proximaEtapa(atual, texto) {
   const t = norm(texto);
@@ -112,6 +130,9 @@ export function promptSistema({ ficha, produtos, empresa }) {
     '3. Nunca passe telefone, WhatsApp, Pix ou contato por fora do Realyz.',
     '4. Faça perguntas para entender o que o cliente precisa (o quê, quantidade, quando, onde).',
     '5. Diga que é um assistente virtual se perguntarem.',
+    '6. Se o cliente se despedir ou agradecer, despeça-se em UMA frase e não faça nenhuma pergunta.',
+    '7. Se o cliente disser não, nenhuma das opções ou outro dia, aceite e pergunte o que fica melhor para ele. Toda vez que der opções (dias, horários, produtos), inclua também "ou outra opção que fique melhor para você".',
+    '8. Nunca repita a mesma mensagem que você já mandou. Se não entender, diga que vai chamar uma pessoa da equipe.',
     '',
     `Horário: ${ficha.horario || 'não informado'}`,
     `Entrega/região: ${ficha.entrega || 'não informado'}`,

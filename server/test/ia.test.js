@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { loadConfig } from '../src/config.js';
 import { createApp } from '../src/app.js';
-import { makeIA, respostaLeve, precisaHumano } from '../src/ia/index.js';
+import { makeIA, respostaLeve, precisaHumano, intencaoSimples } from '../src/ia/index.js';
 import { TERMO_ADESAO_VERSAO } from '../src/termos.js';
 
 let app, base, dir;
@@ -93,4 +93,35 @@ test('atendente IA na conversa: catálogo, passagem para a equipe e copiloto', a
   // Testar a IA pelo painel.
   const t = await call('POST', '/ia/testar', loja.accessToken, { texto: 'tem opção sem glúten?' });
   assert.ok(t.resposta.length > 5);
+});
+
+test('atendente não fica em looping: tchau, não e mensagem repetida', async () => {
+  assert.equal(intencaoSimples('Tchau'), 'despedida');
+  assert.equal(intencaoSimples('valeu, era só isso'), 'despedida');
+  assert.equal(intencaoSimples('Não'), 'recusa');
+  assert.equal(intencaoSimples('nenhuma dessas'), 'recusa');
+  assert.equal(intencaoSimples('outro dia'), 'recusa');
+  assert.equal(intencaoSimples('obrigado, vocês entregam no centro?'), null);
+  modeloLigado = false;
+  const loja = await call('POST', '/auth/signup', null, { kind: 'empresa', name: 'Loja do Bairro', doc: '11444777000161', username: 'lojabairro', email: 'lb@teste.com', password: 'senha1234', aceiteTermos: TERMO_ADESAO_VERSAO });
+  const cli = await call('POST', '/auth/signup', null, { kind: 'pessoa', name: 'Davi Cliente', doc: '39053344705', username: 'davicli', email: 'd@teste.com', password: 'senha1234', nascimento: '10/05/1990', aceiteTermos: TERMO_ADESAO_VERSAO });
+  await call('PUT', '/ia/ficha', loja.accessToken, { ligado: true });
+  const manda = async (text) => {
+    await call('POST', '/messages', cli.accessToken, { toId: loja.user.id, text });
+    await espera(120);
+    return call('GET', `/messages/${loja.user.id}`, cli.accessToken);
+  };
+  // Tchau: despede uma vez; tchau de novo, fica quieto.
+  let m = await manda('Tchau');
+  assert.match(m[m.length - 1].text, /Até mais/);
+  const n = m.length;
+  m = await manda('Bye');
+  assert.equal(m.length, n + 1); // só a do cliente
+  // Não: aceita e pergunta o que fica melhor; não de novo: chama a equipe (sem repetir).
+  m = await manda('Não');
+  assert.match(m[m.length - 1].text, /o que fica melhor/);
+  m = await manda('nenhuma dessas');
+  assert.match(m[m.length - 1].text, /pessoa da nossa equipe/);
+  const conv = await call('GET', '/ia/conversas', loja.accessToken);
+  assert.equal(conv[0].estado, 'humano'); // a única conversa desta loja
 });

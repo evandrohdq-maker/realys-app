@@ -3,7 +3,7 @@
 // pelas etapas do CRM e passa a conversa para uma pessoa da equipe na hora certa.
 import { newId, now } from '../http.js';
 import { antiDesvio } from '../moderacaoTexto.js';
-import { precisaHumano, proximaEtapa, respostaLeve } from './index.js';
+import { precisaHumano, proximaEtapa, respostaLeve, intencaoSimples, respostaDespedida, respostaRecusa, mesmaMensagem } from './index.js';
 
 export function makeAtendente({ db, hub, ia, userById }) {
   const ficha = (ownerId) => {
@@ -47,6 +47,13 @@ export function makeAtendente({ db, hub, ia, userById }) {
     conversa,
     catalogo,
     historico,
+    // Passa a conversa para uma pessoa da equipe (avisa o cliente e a empresa).
+    passarParaEquipe(msg, motivo) {
+      db.prepare("UPDATE ia_conversas SET estado = 'humano', motivo = ?, resumo = ?, updated_at = ? WHERE owner_id = ? AND client_id = ?").run(motivo, String(msg.text).slice(0, 200), now(), msg.to, msg.from);
+      enviar(msg.to, msg.from, 'Acho que não estou te entendendo direito. Vou chamar uma pessoa da nossa equipe para continuar com você, só um instante.');
+      hub.send(msg.to, 'ia_handoff', { clientId: msg.from, motivo });
+      return { handoff: motivo };
+    },
     // Chamado depois que a mensagem do cliente foi gravada. Não trava a resposta da mensagem.
     async aoReceber(msg) {
       const f = ficha(msg.to);
@@ -63,9 +70,31 @@ export function makeAtendente({ db, hub, ia, userById }) {
       }
       const { empresa, produtos } = catalogo(msg.to);
       const primeira = !db.prepare('SELECT 1 FROM messages WHERE from_id = ? AND to_id = ? LIMIT 1').get(msg.to, msg.from);
+      // Últimas mensagens que o assistente mandou (para não repetir e não insistir).
+      const minhas = db.prepare('SELECT text FROM messages WHERE from_id = ? AND to_id = ? ORDER BY created_at DESC LIMIT 3').all(msg.to, msg.from).map((m) => m.text);
+      const ja = (txt) => minhas.some((m) => mesmaMensagem(m, txt));
+      // Tchau / obrigado: despede uma vez só; se o cliente repetir o tchau, o assistente fica quieto.
+      const intencao = intencaoSimples(msg.text);
+      if (intencao === 'despedida') {
+        const tchau = respostaDespedida(empresa);
+        if (ja(tchau)) return { silencio: true };
+        enviar(msg.to, msg.from, tchau);
+        db.prepare('UPDATE ia_conversas SET ia_msgs = ia_msgs + 1, resumo = ?, updated_at = ? WHERE owner_id = ? AND client_id = ?').run(String(msg.text).slice(0, 200), now(), msg.to, msg.from);
+        return { resposta: tchau, fonte: 'despedida' };
+      }
+      // Não / nenhuma dessas / outro dia: aceita o não (nada de repetir as mesmas opções).
+      if (intencao === 'recusa') {
+        const ok = respostaRecusa();
+        if (ja(ok)) return this.passarParaEquipe(msg, 'O cliente recusou as opções mais de uma vez.');
+        enviar(msg.to, msg.from, ok);
+        db.prepare('UPDATE ia_conversas SET ia_msgs = ia_msgs + 1, resumo = ?, updated_at = ? WHERE owner_id = ? AND client_id = ?').run(String(msg.text).slice(0, 200), now(), msg.to, msg.from);
+        return { resposta: ok, fonte: 'recusa' };
+      }
       let r = await ia.responder({ texto: msg.text, ficha: f, produtos, empresa, historico: historico(msg.to, msg.from), primeira });
       // A resposta passa pelo mesmo filtro de contato por fora que as mensagens das pessoas.
       if (!antiDesvio(r.texto).ok) r = { texto: respostaLeve({ texto: msg.text, ficha: f, produtos, empresa, primeira }), fonte: 'leve' };
+      // Ia mandar a mesma mensagem de novo: em vez de repetir (looping), chama uma pessoa da equipe.
+      if (ja(r.texto)) return this.passarParaEquipe(msg, 'O assistente não entendeu o cliente (ia repetir a mesma resposta).');
       const etapa = proximaEtapa(c.etapa, msg.text);
       db.prepare('UPDATE ia_conversas SET etapa = ?, ia_msgs = ia_msgs + 1, resumo = ?, updated_at = ? WHERE owner_id = ? AND client_id = ?').run(etapa, String(msg.text).slice(0, 200), now(), msg.to, msg.from);
       enviar(msg.to, msg.from, r.texto);
