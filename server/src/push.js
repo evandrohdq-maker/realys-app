@@ -45,7 +45,8 @@ export const AVISOS = {
   oferta_fornecedor: (d) => ({ title: `Oferta de fornecedor: ${d.produto || ''}`, body: `${d.fornecedor || 'Fornecedor'} · R$ ${Number(d.preco || 0).toFixed(2).replace('.', ',')} / ${d.unidade || 'un'}`, go: { tab: 'painel' } }),
   pedido_fornecedor: (d) => ({ title: 'Pedido de fornecedor', body: d.status ? `Pedido ${({ confirmado: 'confirmado', recusado: 'recusado', recebido: 'recebido' })[d.status] || d.status}` : `${d.comprador || 'Empresa'} pediu ${d.qtd || ''} de ${d.produto || ''}`, go: { tab: 'painel' } }),
   comentario: (d) => ({ title: `${d.fromName || 'Alguém'} comentou no seu post`, body: short(d.text), go: { tab: 'stories' } }),
-  limpeza_conversas: (d) => ({ title: 'Suas conversas antigas vão ser apagadas', body: `No dia ${d.data || '1º'}, as mensagens do mês passado saem do Realyz. Quer guardar? Abra Mensagens e toque em Salvar minhas conversas.`, go: { tab: 'stories' } }),
+  limpeza_grupos: (d) => ({ title: 'Os canais de grupo vão ser limpos', body: `No dia ${d.data || '1º'}, as mensagens antigas dos canais (Arena, Hub) saem do Realyz. Quer guardar? Abra o canal e toque em Salvar canal.`, go: { tab: 'stories' } }),
+  limite_conversa: (d) => ({ title: 'Conversa chegou ao limite de espaço', body: `Essa conversa já tem ${d.mb || ''} MB de fotos e vídeos. Salve o que quiser até ${d.data || ''}: depois, as mídias mais antigas saem (o texto fica).`, go: { tab: 'stories' } }),
   deposit: (d) => ({ title: 'Depósito confirmado', body: `${brl(d.amount)} na sua carteira`, go: { tab: 'perfil' } }),
 };
 

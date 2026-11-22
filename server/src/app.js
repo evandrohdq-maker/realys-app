@@ -97,6 +97,9 @@ export function createApp(cfg) {
     attempts.set(key, a);
   };
   deps.clearLogin = (key) => attempts.delete(key);
+  // Espaço das conversas (grupos, limite das particulares, limpar para mim): src/limpezaConversas.js
+  const limpeza = makeLimpezaConversas({ db, hub, cfg });
+  deps.limpeza = limpeza;
   [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes, noticiasRoutes, showsRoutes, pushRoutes, empregosRoutes, logisticaRoutes].forEach((r) => r(router, deps));
   router.get('/health', () => ({ ok: true, name: 'Realyz', time: now() }), { auth: false });
 
@@ -110,18 +113,17 @@ export function createApp(cfg) {
   }
 
 
-  const limpeza = makeLimpezaConversas({ db, hub });
   const maintenance = makeMaintenance({ db, cfg, cipher, biometria, matcher, limpeza });
-  // Conversas: exportar (salvar no celular ou mandar por e-mail) e a data da próxima limpeza.
-  router.get('/conversas/exportar', ({ user }) => limpeza.exportar(user, userById));
-  router.get('/conversas/limpeza', () => ({ proxima: proximoCorte(), avisoAtivo: diaDoMes() >= DIA_AVISO }));
-  // Administrador: preservar uma conversa (ordem judicial, autoridade ou denúncia), até uma data.
+  router.get('/conversas/limpeza', () => ({ proxima: proximoCorte(), avisoAtivo: diaDoMes() >= DIA_AVISO, limiteMb: cfg.conversaLimiteMb }));
+  // Administrador: preservar uma conversa ou um canal (ordem judicial, autoridade ou denúncia), até uma data.
   router.post('/admin/preservacoes', ({ body }) => {
-    const a = String(body.userA || '');
-    if (!db.prepare('SELECT 1 FROM users WHERE id = ?').get(a)) throw new HttpError(404, 'Pessoa não encontrada.');
+    const a = body.userA ? String(body.userA) : null;
+    const grupo = body.grupo ? String(body.grupo).slice(0, 100) : null;
+    if (!a && !grupo) throw new HttpError(400, 'Diga a pessoa ou o canal.');
+    if (a && !db.prepare('SELECT 1 FROM users WHERE id = ?').get(a)) throw new HttpError(404, 'Pessoa não encontrada.');
     const dias = Math.max(1, Math.min(3650, Number(body.dias) || 180));
     const id = newId('pv');
-    db.prepare('INSERT INTO preservacoes (id, user_a, user_b, motivo, ate, created_at) VALUES (?,?,?,?,?,?)').run(id, a, body.userB ? String(body.userB) : null, String(body.motivo || 'Ordem judicial').slice(0, 300), now() + dias * 86400000, now());
+    db.prepare('INSERT INTO preservacoes (id, user_a, user_b, grupo, motivo, ate, created_at) VALUES (?,?,?,?,?,?,?)').run(id, a, body.userB ? String(body.userB) : null, grupo, String(body.motivo || 'Ordem judicial').slice(0, 300), now() + dias * 86400000, now());
     return { id, ate: now() + dias * 86400000 };
   }, { auth: 'admin' });
   router.get('/admin/manutencao', () => maintenance.history(), { auth: 'admin' });

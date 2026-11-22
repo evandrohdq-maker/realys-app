@@ -4,7 +4,7 @@ import { fail, newId, now, str, oneOf } from '../http.js';
 
 const pair = (a, b) => (a < b ? [a, b] : [b, a]);
 
-export default function socialRoutes(r, { db, hub, userById, publicUser, atendente }) {
+export default function socialRoutes(r, { db, hub, userById, publicUser, atendente, limpeza }) {
   const friendship = (a, b) => {
     const [x, y] = pair(a, b);
     return db.prepare('SELECT * FROM friends WHERE a_id = ? AND b_id = ?').get(x, y);
@@ -191,7 +191,11 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     const to = target(body.toId);
     if (to.id === user.id) fail(400, 'Escolha outra pessoa.');
     const id = newId('m');
-    const msg = { id, from: user.id, to: to.id, text: str(body.text, 'a mensagem', { max: 2000 }), at: now() };
+    // Anexo (foto ou vídeo enviado antes com PUT /media?uso=privado pela própria pessoa).
+    const mid = body.media ? String(body.media).replace(/^.*\/media\//, '') : null;
+    const anexo = mid ? db.prepare(`SELECT * FROM media WHERE id = ? AND owner_id = ? AND uso = 'privado'`).get(mid, user.id) : null;
+    if (mid && !anexo) fail(400, 'Anexo não encontrado. Envie a foto ou o vídeo de novo.');
+    const msg = { id, from: user.id, to: to.id, text: str(body.text, 'a mensagem', { max: 2000, optional: !!anexo }) || '', at: now(), media: anexo ? `/media/${anexo.id}` : null };
     // Conversa privada: o conteúdo é das duas pessoas, mas racismo, ódio e sexual com menores nunca passam.
     const mm = moderateText(msg.text, 'privado');
     if (!mm.ok) fail(422, mm.why, mm.kind);
@@ -211,7 +215,7 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
       const jaPediu = db.prepare('SELECT 1 FROM messages WHERE from_id = ? AND to_id = ? LIMIT 1').get(user.id, to.id);
       if (!respondeu && jaPediu) fail(403, 'Aguarde a pessoa aceitar o contato. Até lá, só vai o primeiro pedido de contato.', 'contato_pendente');
     }
-    db.prepare('INSERT INTO messages (id, from_id, to_id, text, created_at) VALUES (?,?,?,?,?)').run(id, user.id, to.id, msg.text, msg.at);
+    db.prepare('INSERT INTO messages (id, from_id, to_id, text, created_at, media_id, media_url, media_size) VALUES (?,?,?,?,?,?,?,?)').run(id, user.id, to.id, msg.text, msg.at, anexo ? anexo.id : null, msg.media, anexo ? anexo.size : null);
     hub.send(to.id, 'message', { ...msg, fromName: user.name });
     // Atendente IA da empresa/prestador (se estiver ligado): responde em seguida, sem travar esta mensagem.
     if (atendente) setImmediate(() => atendente.aoReceber(msg).catch(() => {}));
@@ -221,9 +225,9 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
   // Conversas: a última mensagem de cada pessoa e quantas não lidas.
   r.get('/conversations', ({ user }) =>
     db.prepare(
-      `SELECT other, MAX(created_at) AS at FROM (SELECT CASE WHEN from_id = ? THEN to_id ELSE from_id END AS other, created_at FROM messages WHERE from_id = ? OR to_id = ?) GROUP BY other ORDER BY at DESC LIMIT 50`
+      `SELECT other, MAX(created_at) AS at FROM (SELECT CASE WHEN from_id = ? THEN to_id ELSE from_id END AS other, created_at FROM messages WHERE (from_id = ? AND hidden_from = 0) OR (to_id = ? AND hidden_to = 0)) GROUP BY other ORDER BY at DESC LIMIT 50`
     ).all(user.id, user.id, user.id).map((c) => {
-      const last = db.prepare('SELECT * FROM messages WHERE (from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?) ORDER BY created_at DESC LIMIT 1').get(user.id, c.other, c.other, user.id);
+      const last = db.prepare('SELECT * FROM messages WHERE (from_id = ? AND to_id = ? AND hidden_from = 0) OR (from_id = ? AND to_id = ? AND hidden_to = 0) ORDER BY created_at DESC LIMIT 1').get(user.id, c.other, c.other, user.id);
       const unread = db.prepare('SELECT COUNT(*) AS n FROM messages WHERE from_id = ? AND to_id = ? AND read_at IS NULL').get(c.other, user.id).n;
       return { with: pub(userById(c.other)), last: { text: last.text, from: last.from_id, at: last.created_at }, unread };
     })
@@ -234,8 +238,46 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     const other = String(params.userId);
     const before = Number(query.before || now() + 1);
     db.prepare('UPDATE messages SET read_at = ? WHERE from_id = ? AND to_id = ? AND read_at IS NULL').run(now(), other, user.id);
-    return db.prepare('SELECT id, from_id AS "from", to_id AS "to", text, created_at AS at, read_at AS readAt, ia FROM messages WHERE ((from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?)) AND created_at < ? ORDER BY created_at DESC LIMIT 100')
+    return db.prepare('SELECT m.id, m.from_id AS "from", m.to_id AS "to", m.text, m.created_at AS at, m.read_at AS readAt, m.ia, m.media_url AS media, md.mime AS mediaTipo FROM messages m LEFT JOIN media md ON md.id = m.media_id WHERE ((m.from_id = ? AND m.to_id = ? AND m.hidden_from = 0) OR (m.from_id = ? AND m.to_id = ? AND m.hidden_to = 0)) AND m.created_at < ? ORDER BY m.created_at DESC LIMIT 100')
       .all(user.id, other, other, user.id, before).reverse();
+  });
+
+  // Limpar a conversa para mim (a outra pessoa continua vendo, até ela limpar também).
+  r.post('/messages/:userId/limpar', ({ params, user }) => limpeza.limparParaMim(user.id, String(params.userId)));
+  // Salvar a conversa (texto, com o endereço dos anexos) e o espaço que ela usa.
+  r.get('/messages/:userId/exportar', ({ params, user }) => ({
+    ...limpeza.exportarParticular(user, String(params.userId), userById),
+    usoMb: Math.round(limpeza.usoDoPar(user.id, String(params.userId)) / 1048576),
+    limiteMb: Math.round(limpeza.limite / 1048576),
+  }));
+
+  // ── Canais de grupo (Arena Gamer, Hub de Negócios, salas): chave "arena:SERVIDOR:CANAL" ──
+  const chaveOk = (k) => /^(arena|hub|sala):[A-Za-z0-9_-]{1,40}:[A-Za-z0-9_-]{1,40}$/.test(k);
+  const grupoView = (m) => ({ id: m.id, text: m.text, media: m.media_url, at: m.created_at, who: m.name, whoId: m.user_id, photo: m.photo });
+  r.get('/grupos/:chave/msgs', ({ params, query }) => {
+    const k = String(params.chave);
+    if (!chaveOk(k)) fail(400, 'Canal inválido.');
+    const depois = Number(query.depois || 0);
+    return db.prepare('SELECT g.*, u.name, u.photo FROM grupo_msgs g JOIN users u ON u.id = g.user_id WHERE g.grupo = ? AND g.created_at > ? ORDER BY g.created_at DESC LIMIT 200').all(k, depois).reverse().map(grupoView);
+  });
+  r.post('/grupos/:chave/msgs', ({ params, body, user }) => {
+    const k = String(params.chave);
+    if (!chaveOk(k)) fail(400, 'Canal inválido.');
+    const mid = body.media ? String(body.media).replace(/^.*\/media\//, '') : null;
+    const anexo = mid ? db.prepare('SELECT * FROM media WHERE id = ? AND owner_id = ?').get(mid, user.id) : null;
+    if (mid && !anexo) fail(400, 'Anexo não encontrado.');
+    const text = str(body.text, 'a mensagem', { max: 2000, optional: !!anexo }) || '';
+    const m = moderateText(text, 'publico');
+    if (!m.ok) fail(422, m.why, m.kind);
+    const id = newId('gm');
+    db.prepare('INSERT INTO grupo_msgs (id, grupo, user_id, text, media_id, media_url, media_size, created_at) VALUES (?,?,?,?,?,?,?,?)').run(id, k, user.id, text, anexo ? anexo.id : null, anexo ? `/media/${anexo.id}` : null, anexo ? anexo.size : null, now());
+    limpeza.limitarGrupo(k);
+    return grupoView(db.prepare('SELECT g.*, u.name, u.photo FROM grupo_msgs g JOIN users u ON u.id = g.user_id WHERE g.id = ?').get(id));
+  }, { status: 201 });
+  r.get('/grupos/:chave/exportar', ({ params, query }) => {
+    const k = String(params.chave);
+    if (!chaveOk(k)) fail(400, 'Canal inválido.');
+    return limpeza.exportarGrupo(k, String(query.nome || '').slice(0, 80), userById);
   });
 
   // ── Denúncias (fake news, golpe, perfil falso) ──

@@ -18,6 +18,8 @@ import { useBack } from '../../back';
 import { useArena, arenaPref, joinArenaVoice } from '../../arena';
 import ArenaUserSheet from '../../components/ArenaUserSheet';
 import { CallPersonSheet, InviteSheet } from '../../components/ArenaCallInvite';
+import { useGrupoMsgs, chaveGrupo, GrupoAviso } from '../../serverGrupos';
+import { conectado } from '../../serverShop';
 import { useScreenShare, startScreenShare, stopScreenShare } from '../../screenShare';
 import { ScreenViewer } from '../../components/ScreenShareKit';
 import { useCamShare, startCam, stopCam } from '../../camShare';
@@ -137,6 +139,9 @@ export default function ArenaScreen({ explore }) {
 
   const sv = servers.find((s) => s.id === sid) || servers[0];
   const ch = cid ? sv.channels.find((c) => c.id === cid) : null;
+  // Conta real: o canal de texto passa pelo servidor (chega para todo mundo do canal).
+  const chaveCanal = ch && ch.kind === 'text' && sv && conectado(state) ? chaveGrupo('arena', sv.id, ch.id) : null;
+  const real = useGrupoMsgs(chaveCanal);
   const iAmIn = (s) => s.members.some((x) => x.name === me);
   const myRole = (sv.members.find((x) => x.name === me) || {}).role;
   const update = (fn) => setServers((list) => list.map((s) => (s.id === sid ? fn(s) : s)));
@@ -170,6 +175,12 @@ export default function ArenaScreen({ explore }) {
     if (mod && mod.ok === false) return Alert.alert('Mensagem não enviada', mod.why || 'A mensagem não segue as regras do Realyz.');
     if (!iAmIn(sv)) return gate();
     if (sv.cfg && sv.cfg.moderada && (sv.cfg.silenciados || []).includes(me)) return Alert.alert('Você está silenciado', 'Um moderador desta sala silenciou você.');
+    if (real.on) {
+      real.enviar(t).catch((e) => Alert.alert('Mensagem não enviada', e.message));
+      setDraft('');
+      setTimeout(() => scroll.current && scroll.current.scrollToEnd({ animated: true }), 50);
+      return;
+    }
     update((s) => ({ ...s, channels: s.channels.map((c) => (c.id === cid ? { ...c, msgs: [...c.msgs, { who: me, text: t, at: Date.now() }] } : c)) }));
     setDraft('');
     setTimeout(() => scroll.current && scroll.current.scrollToEnd({ animated: true }), 50);
@@ -268,7 +279,8 @@ export default function ArenaScreen({ explore }) {
             <Text style={st.chanIntroTitle}>Bem-vindo a #{ch.name}!</Text>
             <Text style={{ color: D.muted, textAlign: 'center' }}>Este é o começo do canal. Seja gentil: aqui todo mundo é pessoa real.</Text>
           </View>
-          {ch.msgs.map((msg, i) => {
+          <GrupoAviso chave={chaveCanal} nome={ch.name} cor={D.muted} />
+          {[...ch.msgs, ...real.msgs].map((msg, i) => {
             const mem = sv.members.find((x) => x.name === msg.who) || {};
             const role = ROLE[mem.role] || ROLE.membro;
             const mention = (msg.text.includes('*' + me) || msg.text.includes('@' + me));
@@ -283,7 +295,7 @@ export default function ArenaScreen({ explore }) {
                 </TouchableOpacity>
               );
             return (
-              <TouchableOpacity key={i} activeOpacity={0.8} onPress={() => openUser(msg.who)} onLongPress={() => setReact({ i })} style={[st.msg, mention && st.msgMention]}>
+              <TouchableOpacity key={i} activeOpacity={0.8} onPress={() => openUser(msg.who)} onLongPress={() => i < ch.msgs.length && setReact({ i })} style={[st.msg, mention && st.msgMention]}>
                 <Avatar name={msg.who} size={38} />
                 <View style={{ flex: 1, marginLeft: 10 }}>
                   <Text>

@@ -11,6 +11,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
 import { useBack } from '../../back';
 import RealFriendsInvite from '../../components/RealFriendsInvite';
+import { useGrupoMsgs, chaveGrupo, GrupoAviso } from '../../serverGrupos';
+import { conectado } from '../../serverShop';
 import { moderateText, antiDesvio } from '../../moderation';
 import {
   useSalas, salaOf, roomOf, salaKey, SALA_TIPOS, ACOES, enterQueue, leaveQueue, queuePos, callFromQueue,
@@ -187,6 +189,7 @@ function SalaCard({ s, onPress }) {
 // ---------- Recepção ----------
 function Reception({ sid, me, isCompany, myQueue, onBack, onRoom, cfgFirst, onCfgDone }) {
   useSalas();
+  const { state } = useStore();
   const s = salaOf(sid);
   const [cfgOpen, setCfgOpen] = useState(!!cfgFirst);
   const [modOpen, setModOpen] = useState(false);
@@ -202,6 +205,9 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom, cfgFirst, onCf
   const att = s.team.find((x) => x.online) || s.team[0];
   const ch = canal ? s.canais.find((c) => c.id === canal) : null;
   useBack(!!canal, () => setCanal(null));
+  // Conta real: o canal da equipe passa pelo servidor.
+  const chaveCanal = ch && conectado(state) ? chaveGrupo('hub', sid, ch.id) : null;
+  const real = useGrupoMsgs(chaveCanal);
 
   if (ch) {
     const send = () => {
@@ -209,14 +215,16 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom, cfgFirst, onCf
       if (!txt) return;
       const mod = moderateText ? moderateText(txt) : { ok: true };
       if (mod && mod.ok === false) return Alert.alert('Mensagem não enviada', mod.why || 'A mensagem não segue as regras do Realyz.');
-      channelPost(sid, ch.id, me, txt);
+      if (real.on) real.enviar(txt).catch((e) => Alert.alert('Mensagem não enviada', e.message));
+      else channelPost(sid, ch.id, me, txt);
       setDraft('');
     };
     return (
       <View style={{ flex: 1, backgroundColor: C.bg }}>
         <Head title={`# ${ch.name}`} sub={`${s.emoji} ${s.name} · só a equipe`} onBack={() => setCanal(null)} />
         <ScrollView contentContainerStyle={{ padding: 14 }}>
-          {ch.msgs.length ? ch.msgs.map((m, i) => (
+          <GrupoAviso chave={chaveCanal} nome={ch.name} />
+          {ch.msgs.length + real.msgs.length ? [...ch.msgs, ...real.msgs].map((m, i) => (
             <View key={i} style={st.msg}>
               <Avatar name={m.who} size={32} />
               <View style={{ marginLeft: 10, flex: 1 }}>

@@ -112,6 +112,8 @@ export function loadConfig(overrides = {}) {
     // Manutenção: backups, retenção e rotina diária.
     backupDir: resolve(ROOT, env.BACKUP_DIR || 'data/backups'),
     backupKeep: num(env.BACKUP_KEEP, 14),
+    // Limite de espaço (fotos e vídeos) de cada conversa particular, em MB.
+    conversaLimiteMb: num(env.CONVERSA_LIMITE_MB, 500),
     backupRemoteDir: env.BACKUP_REMOTE_DIR ? resolve(env.BACKUP_REMOTE_DIR) : '',
     maintenanceEnabled: bool(env.MAINTENANCE_ENABLED, true),
     maintenanceHours: num(env.MAINTENANCE_HOURS, 24),

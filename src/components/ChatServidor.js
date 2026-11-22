@@ -8,7 +8,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, TextInput } from '../responsive';
 import { KeyboardLift } from '../keyboard';
 import { useStore } from '../store';
-import { api, connectEvents } from '../api';
+import { api, connectEvents, uploadMedia, API_URL } from '../api';
+import * as ImagePicker from 'expo-image-picker';
+import { salvarConversa } from '../salvarConversas';
+import { Photo } from './ui';
+import { openMedia } from './MediaViewer';
 import { colors } from '../theme';
 
 export default function ChatServidor() {
@@ -40,6 +44,39 @@ export default function ChatServidor() {
 
   if (!open) return null;
   const close = () => dispatch({ type: 'CLOSE_SERVER_CHAT' });
+  const full = (u) => (u && u.startsWith('/') ? API_URL + u : u);
+  const ehVideo = (u) => /video|\.(mp4|mov)(\?|$)/i.test(u || '');
+  // Foto ou vídeo na conversa (anexo privado: só vocês dois veem).
+  const anexar = async () => {
+    const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images', 'videos'], quality: 0.8, videoMaxDuration: 180 });
+    if (r.canceled || !r.assets || !r.assets[0]) return;
+    const a = r.assets[0];
+    setBusy(true);
+    try {
+      const url = await uploadMedia(a.uri, a.mimeType || (a.type === 'video' ? 'video/mp4' : 'image/jpeg'), 'privado');
+      await api('POST', '/messages', { toId: open.userId, media: url.slice(API_URL.length), text: txt.trim() || undefined });
+      setTxt('');
+      await load();
+    } catch (e) {
+      Alert.alert('Anexo não enviado', e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const opcoes = () =>
+    Alert.alert(open.name, 'O que você quer fazer com esta conversa?', [
+      { text: 'Salvar conversa', onPress: () => salvarConversa(`/messages/${open.userId}/exportar`, `conversa-${open.name}`) },
+      {
+        text: 'Limpar conversa',
+        style: 'destructive',
+        onPress: () =>
+          Alert.alert('Limpar conversa?', 'As mensagens somem para você. A outra pessoa continua vendo, até ela limpar também. Se quiser guardar, salve antes.', [
+            { text: 'Voltar', style: 'cancel' },
+            { text: 'Limpar', style: 'destructive', onPress: () => api('POST', `/messages/${open.userId}/limpar`).then(load).catch((e) => Alert.alert('Não deu certo', e.message)) },
+          ]),
+      },
+      { text: 'Fechar', style: 'cancel' },
+    ]);
   const enviar = async () => {
     const t = txt.trim();
     if (!t || busy) return;
@@ -69,6 +106,9 @@ export default function ChatServidor() {
             <Text style={st.title} numberOfLines={1}>{open.name}</Text>
             <Text style={st.sub} numberOfLines={1}>Conversa protegida pelo Realyz: contato e pagamento sempre por aqui</Text>
           </View>
+          <TouchableOpacity onPress={opcoes} style={{ padding: 6 }} accessibilityLabel="Salvar ou limpar conversa">
+            <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
+          </TouchableOpacity>
         </View>
         <ScrollView ref={scroll} style={{ flex: 1 }} contentContainerStyle={{ padding: 14 }}>
           {!msgs.length ? <Text style={st.empty}>Mande sua dúvida. A loja responde por aqui.</Text> : null}
@@ -77,12 +117,24 @@ export default function ChatServidor() {
             return (
               <View key={m.id} style={[st.bubble, mine ? st.mine : st.theirs]}>
                 {!mine && m.ia ? <Text style={st.ia}>Assistente virtual</Text> : null}
-                <Text style={[st.text, mine && { color: '#FBF8F1' }]}>{m.text}</Text>
+                {m.media ? (
+                  <TouchableOpacity onPress={() => openMedia([ehVideo(m.mediaTipo || m.media) ? { video: full(m.media) } : { photo: full(m.media) }])} accessibilityLabel="Abrir anexo">
+                    {ehVideo(m.mediaTipo || m.media) ? (
+                      <View style={[st.anexo, { alignItems: 'center', justifyContent: 'center', backgroundColor: '#14120E' }]}><Ionicons name="play-circle" size={44} color="#F5C331" /></View>
+                    ) : (
+                      <Photo uri={full(m.media)} style={st.anexo} />
+                    )}
+                  </TouchableOpacity>
+                ) : null}
+                {m.text ? <Text style={[st.text, mine && { color: '#FBF8F1' }]}>{m.text}</Text> : null}
               </View>
             );
           })}
         </ScrollView>
         <View style={[st.bar, { paddingBottom: 10 + insets.bottom }]}>
+          <TouchableOpacity onPress={busy ? undefined : anexar} style={{ padding: 8, marginRight: 2 }} accessibilityLabel="Mandar foto ou vídeo">
+            <Ionicons name="image-outline" size={22} color={colors.primary} />
+          </TouchableOpacity>
           <TextInput value={txt} onChangeText={setTxt} placeholder="Escreva sua mensagem" placeholderTextColor={colors.muted} style={st.input} multiline onSubmitEditing={enviar} />
           <TouchableOpacity onPress={enviar} disabled={busy || !txt.trim()} style={[st.send, (busy || !txt.trim()) && { opacity: 0.5 }]} accessibilityLabel="Enviar">
             <Ionicons name="send" size={18} color={colors.onPrimary} />
@@ -105,5 +157,6 @@ const st = StyleSheet.create({
   text: { color: colors.text, fontSize: 15, lineHeight: 21 },
   bar: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 10, paddingTop: 8, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.bg },
   input: { flex: 1, minHeight: 42, maxHeight: 120, borderRadius: 21, backgroundColor: '#fff', borderWidth: 1, borderColor: colors.border, paddingHorizontal: 14, paddingVertical: 10, color: colors.text, fontSize: 15 },
+  anexo: { width: 220, height: 220, borderRadius: 12, marginBottom: 4 },
   send: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
 });

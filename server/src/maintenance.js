@@ -11,10 +11,10 @@ export function makeMaintenance({ db, cfg, cipher, biometria, matcher, limpeza }
   const mediaDir = join(cfg.dataDir, 'media');
 
   const jobs = {
-    // Conversas: aviso a partir do dia 24 e limpeza no dia 1º (src/limpezaConversas.js).
+    // Conversas: grupos (aviso no dia 24, limpeza no dia 1º) e limite de espaço das particulares.
     'limpeza-conversas'() {
       if (!limpeza) return { ok: false, motivo: 'limpeza não ligada' };
-      return { aviso: limpeza.avisar(), limpeza: limpeza.limpar() };
+      return limpeza.rodar();
     },
     // Cópia do banco inteira (VACUUM INTO gera um arquivo novo e consistente, mesmo com o servidor no ar).
     // A chave de criptografia NÃO entra no backup: fica guardada à parte (BIOMETRIA_KEYS).

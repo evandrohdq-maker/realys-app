@@ -864,19 +864,42 @@ const MIGRATIONS = [
   );
   CREATE INDEX post_comments_post ON post_comments(post_id, created_at);
   `,
-  // 30: limpeza mensal das conversas (controle de cada mês) e pedidos de preservação de conversa
-  // (ordem judicial, autoridade ou denúncia em apuração: a conversa não é apagada até a data).
+  // 30: espaço das conversas: canais de grupo no servidor (com limpeza mensal e limite de mensagens),
+  // anexos nas conversas particulares (com limite de espaço por conversa), limpar conversa para mim
+  // e pedidos de preservação (ordem judicial, autoridade ou denúncia em apuração).
   `
+  CREATE TABLE grupo_msgs (
+    id TEXT PRIMARY KEY,
+    grupo TEXT NOT NULL,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    text TEXT NOT NULL DEFAULT '',
+    media_id TEXT,
+    media_url TEXT,
+    media_size INTEGER,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX grupo_msgs_grupo ON grupo_msgs(grupo, created_at);
+  ALTER TABLE messages ADD COLUMN media_id TEXT;
+  ALTER TABLE messages ADD COLUMN media_url TEXT;
+  ALTER TABLE messages ADD COLUMN media_size INTEGER;
+  ALTER TABLE messages ADD COLUMN hidden_from INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE messages ADD COLUMN hidden_to INTEGER NOT NULL DEFAULT 0;
   CREATE TABLE limpezas (
     mes TEXT PRIMARY KEY,
     aviso_at INTEGER,
     limpeza_at INTEGER,
     apagadas INTEGER
   );
+  CREATE TABLE avisos_espaco (
+    par TEXT PRIMARY KEY,
+    aviso_at INTEGER NOT NULL,
+    apagar_em INTEGER NOT NULL
+  );
   CREATE TABLE preservacoes (
     id TEXT PRIMARY KEY,
-    user_a TEXT NOT NULL REFERENCES users(id),
+    user_a TEXT REFERENCES users(id),
     user_b TEXT REFERENCES users(id),
+    grupo TEXT,
     motivo TEXT NOT NULL,
     ate INTEGER NOT NULL,
     created_at INTEGER NOT NULL
