@@ -297,8 +297,9 @@ function AddSheet({ visible, onClose, onPick, anchor }) {
   const left = anchor ? Math.max(8, Math.min(width - W - 8, anchor.x + anchor.w / 2 - 24)) : 16;
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={{ flex: 1 }} onPress={onClose}>
-        <View style={[styles.miniMenu, { top, left, width: W }]}>
+      {/* Sem o "+" na tela (ex.: botão Publicar do meio da Community no computador): o menu abre no centro. */}
+      <Pressable style={[{ flex: 1 }, !anchor && { alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.25)' }]} onPress={onClose}>
+        <View style={[styles.miniMenu, anchor ? { top, left, width: W } : { position: 'relative', width: W + 40 }]}>
           {opts.map(([k, title, icon], i) => (
             <TouchableOpacity key={k} onPress={() => onPick(k)} activeOpacity={0.8} style={[styles.miniOpt, i > 0 && { borderTopWidth: 1, borderTopColor: colors.border }]} accessibilityLabel={`Criar ${title}`}>
               <Ionicons name={icon} size={18} color={colors.primary} />

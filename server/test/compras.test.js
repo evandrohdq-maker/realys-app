@@ -84,3 +84,15 @@ test('conta de teste: admin cria sem CPF, ela entra, aparece com selo e pode ser
   const depois = await call('POST', '/auth/login', { login: 'teste1', password: 'senha1234' });
   assert.notEqual(depois.status, 200);
 });
+
+test('story só de texto guarda a cor de fundo', async () => {
+  const reg = await call('POST', '/auth/signup', { kind: 'pessoa', name: 'Cor Fundo', username: 'corfundo', doc: '39053344705', email: 'cf@t.com', password: 'senha1234', nascimento: '10/05/1990', aceiteTermos: TERMO_ADESAO_VERSAO });
+  const token = reg.data.accessToken;
+  const p = await call('POST', '/posts', { kind: 'story', text: 'verde', bg: '#1E9E63' }, token);
+  assert.equal(p.status, 201);
+  assert.equal(p.data.bg, '#1E9E63');
+  const ruim = await call('POST', '/posts', { kind: 'story', text: 'x', bg: 'javascript:alert(1)' }, token);
+  assert.equal(ruim.data.bg, null);
+  const st = await call('GET', '/stories', null, token);
+  assert.equal(st.data.find((g) => g.author.id === reg.data.user.id).items[0].bg, '#1E9E63');
+});
