@@ -2,6 +2,7 @@ import { openProduct } from '../../../components/ProductSheet';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { openMedia } from '../../../components/MediaViewer';
 import { openServerProfile } from '../../../components/ServerProfile';
+import ServerInbox from '../../../components/ServerInbox';
 import { useServerFriends, addFriend, removeFriend } from '../../../serverFriends';
 import { conectado } from '../../../serverShop';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Share, Platform, ToastAndroid, Dimensions } from 'react-native';
@@ -954,7 +955,12 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
         </View>
       ) : null}
 
-      {seg === 'msgs' ? <ConvList convs={convs} contactOf={contactOf} onChat={onChat} /> : null}
+      {seg === 'msgs' ? (
+        <>
+          <ServerInbox />
+          <ConvList convs={convs} contactOf={contactOf} onChat={onChat} />
+        </>
+      ) : null}
 
       {seg === 'contatos' ? (
         <View>

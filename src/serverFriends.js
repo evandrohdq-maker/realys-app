@@ -2,7 +2,7 @@
 // Carrega ao abrir e se atualiza sozinho quando chega um pedido ou um aceite (WebSocket).
 // Usado nos Contatos (Feed › Conversas), na busca de pessoas e no perfil das contas reais.
 import { useEffect, useState } from 'react';
-import { api, serverOn, connectEvents } from './api';
+import { api, serverOn, connectEvents, API_URL } from './api';
 
 let data = { list: [], loaded: false };
 const subs = new Set();
@@ -15,7 +15,7 @@ export function refreshFriends() {
   if (loading) return loading;
   loading = api('GET', '/friends')
     .then((l) => {
-      data = { list: l || [], loaded: true };
+      data = { list: (l || []).map((u) => ({ ...u, photo: u.photo && u.photo.startsWith('/') ? API_URL + u.photo : u.photo })), loaded: true };
       emit();
       return data.list;
     })
