@@ -732,6 +732,20 @@ const MIGRATIONS = [
   );
   CREATE INDEX push_tokens_user ON push_tokens(user_id);
   `,
+  // 25: perfil da conta (foto, capa, sobre, página, agenda, Estúdio...) guardado no servidor:
+  // é o mesmo no app e no site, em qualquer aparelho.
+  `
+  CREATE TABLE user_dados (
+    user_id TEXT PRIMARY KEY REFERENCES users(id),
+    data TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  `,
+  // 26: horário de trabalho do prestador: no horário ele fica disponível sozinho (mesmo com o app fechado).
+  `
+  ALTER TABLE providers ADD COLUMN horario TEXT;
+  ALTER TABLE providers ADD COLUMN auto_horario INTEGER NOT NULL DEFAULT 0;
+  `,
   // 27: Empregos: currículo (com o arquivo que a pessoa anexou), vagas, candidaturas e convites,
   // e o controle dos avisos de vaga (no máximo 1 por dia, ou 1 por semana para quem não tem currículo).
   `
@@ -766,15 +780,6 @@ const MIGRATIONS = [
   CREATE TABLE avisos_vaga (
     user_id TEXT PRIMARY KEY REFERENCES users(id),
     ultimo_at INTEGER NOT NULL
-  );
-  `,
-  // 25: perfil da conta (foto, capa, sobre, página, agenda, Estúdio...) guardado no servidor:
-  // é o mesmo no app e no site, em qualquer aparelho.
-  `
-  CREATE TABLE user_dados (
-    user_id TEXT PRIMARY KEY REFERENCES users(id),
-    data TEXT NOT NULL,
-    updated_at INTEGER NOT NULL
   );
   `,
 ];

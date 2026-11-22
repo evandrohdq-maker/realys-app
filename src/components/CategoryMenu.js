@@ -228,6 +228,16 @@ export const CATEGORIES = [
     ],
   },
   {
+    key: 'ongs',
+    title: 'ONGs e doações',
+    hint: 'Doe direto para ONGs verificadas, sem taxa',
+    icon: 'heart-outline',
+    subs: [
+      { label: 'Campanhas do mês', hint: 'Problema, objetivo e para onde vai o dinheiro', icon: 'heart-circle-outline', go: { tab: 'ongs' } },
+      { label: 'Criar perfil de ONG', hint: 'Com CNPJ: doações e uma campanha grátis por mês', icon: 'business-outline', go: { tab: 'ongs' } },
+    ],
+  },
+  {
     key: 'desapego',
     title: 'Desapego',
     hint: 'Usados entre pessoas verificadas, com a Garantia Realyz',
@@ -322,6 +332,7 @@ const TINT = {
   arena: '#7B6CF6',
   radios: '#C77D0A',
   desapego: '#1E9E63',
+  ongs: '#1E9E63',
 };
 const tintOf = (key) => TINT[key] || '#6C5CE7';
 
@@ -333,7 +344,7 @@ const MEGA = [
   { key: 'servicos', title: 'Serviços e aluguéis', hint: 'Profissionais, imóveis, veículos e transporte', icon: 'construct', tint: '#B8860B', keys: ['servicos', 'imoveis', 'locacao', 'transporte'] },
   { key: 'lazer', title: 'Lazer e diversão', hint: 'Festas, lives, gamers, rádios e artistas', icon: 'sparkles', tint: '#D9468F', keys: ['eventos', 'social', 'arena', 'radios', 'artistas'] },
   { key: 'trabalho', title: 'Trabalho e estudo', hint: 'Vagas, cursos, tecnologia e agro', icon: 'school', tint: '#0D9488', keys: ['empregos', 'aulas', 'tecnologia', 'agro'] },
-  { key: 'saude', title: 'Saúde e segurança', hint: 'SOS, hospitais, SAMU e especialistas', icon: 'medkit', tint: '#D9534F', keys: ['socorro'] },
+  { key: 'saude', title: 'Saúde, segurança e solidariedade', hint: 'SOS, hospitais, SAMU e ONGs', icon: 'medkit', tint: '#D9534F', keys: ['socorro', 'ongs'] },
   { key: 'empresa', title: 'Minha empresa', hint: 'Estoque, caixa, vendas, RH e negociações', icon: 'business', tint: '#14120E', keys: ['empresa'] },
 ];
 const megaWithRest = () => {

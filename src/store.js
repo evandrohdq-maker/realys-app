@@ -3,6 +3,7 @@ import { ORDER_DEADLINE, foodLateRefund, canCancel, cancelInfo } from './orderCo
 import { forClients } from './providerName';
 import { moderateAction } from './moderation';
 import { DESAPEGO_DEMO } from './desapego';
+import { ongsDemo, podeNovaCampanha, faltaNaCampanha, mesDe, campanhaAtual } from './ongs';
 import { MANDADOS_DEMO } from './empresaDemo';
 import { Alert, AppState, Platform } from 'react-native';
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
@@ -24,6 +25,7 @@ import { pointsFor, pointOffer, giftPoints, initialPoints, promoDiscount, POINT_
 import { initialLoyalty, onDelivered } from './loyalty';
 import { conversations as initialConversations, communityPosts as initialCommunityPosts } from './homeData';
 import * as J from './jobsData';
+import { extrasDemo, PERFIL_VAZIO, faltaPara } from './extras';
 import { initialTestimonials, myInitialGallery } from './testimonialsData';
 import { visitFee, visitDiscount, providerStats, splitFee, SAMPLE_VISIT_REQUESTS, HIGHLIGHT_PLAN } from './serviceVisits';
 import { teleDoCarrinho, somarGasto } from './teleGratis';
@@ -63,6 +65,7 @@ const initialWalletTx = [
 
 // Que tipo de gasto cada ação do app gera no extrato (quando mexe no saldo).
 const WALLET_CAT = {
+  ONG_DOAR: ['Doações', (a) => `Doação para ${a.nome || 'ONG'}`],
   CHECKOUT: ['Compras', () => 'Compra nas lojas do Realyz'],
   BUY_MEDIA: ['Artistas', () => 'Compra de música ou obra'],
   MEDIA_UPLOAD: ['Servidor', (a) => `Servidor Realyz - ${(a.item && a.item.file) || 'arquivo'}`],
@@ -184,6 +187,7 @@ const initialState = {
   workHours: DEFAULT_HOURS,
   agendaRemind: 30,
   available: false,
+  autoHorario: false, // prestador: ficar disponível sozinho no horário de trabalho
   myProvider: null, // cadastro profissional de quem usa o perfil Prestador
   cart: [], // [{ productId, qty }]
   cartOpen: false, // janela do carrinho aberta
@@ -273,6 +277,13 @@ const initialState = {
   // RH: vagas de outras empresas, vagas da minha empresa (com candidatos) e candidaturas do cliente.
   jobs: J.jobs,
   myJobs: J.myJobs,
+  // ONGs: perfis com CNPJ, doações diretas e a campanha grátis do mês.
+  ongs: ongsDemo(),
+  doacoes: [],
+  // Extras (trabalho de um dia/turno): perfil de extra da pessoa, vagas abertas e as que a empresa chamou.
+  extraPerfil: PERFIL_VAZIO,
+  extras: extrasDemo(),
+  myExtras: [],
   applications: {}, // { jobId: 'enviada' }
   resume: J.defaultResume, // currículo do usuário para as vagas
   savedJobs: {}, // vagas salvas { jobId: true }
@@ -384,7 +395,7 @@ function giftPointsPatch(state, amount, desc) {
 const NEEDS_BIO = new Set([
   'ADD_TO_CART', 'OPEN_CART', 'CHECKOUT', 'ADD_COMBO', 'COLLECT_COUPON', 'SECTOR_ORDER', 'BUY_TICKET', 'BUY_MEDIA', 'ADD_MUSIC_CART', 'CHECKOUT_MUSIC', 'MEDIA_UPLOAD', 'MEDIA_PLAN',
   'VENUE_RESERVE', 'VENUE_ORDER', 'REQUEST_RIDE', 'VISIT_REQUEST', 'ONLINE_BOOK', 'REVERSE_POST', 'REVERSE_ACCEPT', 'GROUP_JOIN', 'SUB_START', 'SUS_BOOK', 'DOC_SIGN',
-  'NEG_REQUEST', 'NEG_PLAN', 'NEG_AD_CREATE', 'NEG_LEAD_UNLOCK', 'DESAPEGO_ADD', 'DESAPEGO_BUY', 'APPLY_JOB', 'PAGE_CREATE', 'REDEEM_POINTS', 'INTEL_PLAN',
+  'NEG_REQUEST', 'NEG_PLAN', 'NEG_AD_CREATE', 'NEG_LEAD_UNLOCK', 'DESAPEGO_ADD', 'DESAPEGO_BUY', 'APPLY_JOB', 'EXTRA_APPLY', 'ONG_DOAR', 'PAGE_CREATE', 'REDEEM_POINTS', 'INTEL_PLAN',
   'OPEN_GIFT', 'SEND_GIFT', 'SEND_LIVE_GIFT', 'CONVERT_LIVE_CREDITS', 'GIFT_CASHOUT', 'WALLET_DEPOSIT', 'WALLET_WITHDRAW', 'DATE_SUBSCRIBE', 'SET_HIGHLIGHT',
   'SAVE_MY_PROVIDER', 'TOGGLE_AVAILABLE', 'SET_ROLE',
 ]);
@@ -1029,7 +1040,7 @@ function baseReducer(state, a) {
     case 'SET_PRIVACY':
       return { ...state, privacy: { ...state.privacy, ...a.privacy } };
     case 'LOAD_PROFILE':
-      return { ...state, chatLists: a.data.chatLists || state.chatLists, chatMeta: a.data.chatMeta || state.chatMeta, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, userPages: a.data.myUserPages ? [...a.data.myUserPages, ...(state.userPages || []).filter((p) => p.ownerId !== 'me')] : state.userPages, followingPages: a.data.followingPages || state.followingPages, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind, mural: a.data.mural || state.mural };
+      return { ...state, chatLists: a.data.chatLists || state.chatLists, chatMeta: a.data.chatMeta || state.chatMeta, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, userPages: a.data.myUserPages ? [...a.data.myUserPages, ...(state.userPages || []).filter((p) => p.ownerId !== 'me')] : state.userPages, followingPages: a.data.followingPages || state.followingPages, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, autoHorario: a.data.autoHorario != null ? a.data.autoHorario : state.autoHorario, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind, mural: a.data.mural || state.mural, extraPerfil: a.data.extraPerfil ? { ...state.extraPerfil, ...a.data.extraPerfil } : state.extraPerfil };
     case 'ADD_CREATION':
       return { ...state, creations: [a.item, ...state.creations] };
     case 'UPDATE_CREATION':
@@ -1297,6 +1308,13 @@ function baseReducer(state, a) {
       return closeDeal(state, p, p.counter);
     }
 
+    case 'SET_AUTO_HORARIO':
+      return { ...state, autoHorario: !!a.on };
+    case 'SET_AVAILABLE': {
+      if (!!a.on === !!state.available) return state;
+      const others = state.providers.filter((p) => p.id !== 'me');
+      return { ...state, available: !!a.on, providers: a.on && state.myProvider ? [...others, forClients(state.myProvider)] : others };
+    }
     case 'TOGGLE_AVAILABLE': {
       const available = !state.available;
       // Ao ficar disponível com cadastro feito, o prestador aparece para os clientes (e para a voz da Lotus).
@@ -1436,16 +1454,19 @@ function baseReducer(state, a) {
     // Prestador aceita o pedido: o valor do serviço entra na carteira (pagamento protegido liberado).
     case 'ACCEPT_RIDE_REQUEST': {
       const req = state.rideRequests.find((r) => r.id === a.id);
-      const price = (req && Number(req.price)) || 0;
       if (!req) return state;
+      // Rota inteligente (a.rota): a segunda entrega no mesmo caminho paga a taxa de rota inteligente.
+      const rota = a.rota || null;
+      const price = rota ? rota.motoboy : (Number(req.price)) || 0;
+      const desc = rota
+        ? `Rota inteligente: ${req.client || 'entrega'} junto com ${rota.junto} (${brl(rota.preco)} − ${rota.taxaPct}% de rota inteligente)`
+        : `Serviço: ${req.service || req.kind || req.from || 'pedido aceito'}${req.client ? ` para ${req.client}` : ''}`;
       return {
         ...state,
         wallet: +(state.wallet + price).toFixed(2),
-        walletTx: price
-          ? [{ id: newId('w'), ts: Date.now(), kind: 'recebido', cat: 'Serviço prestado', desc: `Serviço: ${req.service || req.kind || req.from || 'pedido aceito'}${req.client ? ` para ${req.client}` : ''}`, amount: price }, ...state.walletTx]
-          : state.walletTx,
+        walletTx: price ? [{ id: newId('w'), ts: Date.now(), kind: 'recebido', cat: 'Serviço prestado', desc, amount: price }, ...state.walletTx] : state.walletTx,
         rideRequests: state.rideRequests.filter((r) => r.id !== a.id),
-        rides: [{ ...req, status: 'Em andamento', acceptedAt: Date.now() }, ...state.rides],
+        rides: [{ ...req, status: rota ? `Rota inteligente com ${rota.junto}` : 'Em andamento', acceptedAt: Date.now(), rota }, ...state.rides],
       };
     }
     // Serviço terminado (cliente confirmou e pagou pelo Realyz): abre a avaliação do prestador.
@@ -2021,6 +2042,57 @@ function baseReducer(state, a) {
         myJobs: state.myJobs.map((j) => (j.id === a.id ? { ...j, candidates: j.candidates.filter((c) => c.id !== 'cand-me') } : j)),
       };
     }
+    // ---------- ONGs ----------
+    case 'ONG_DOAR': {
+      const v = +Number(a.valor || 0).toFixed(2);
+      const o = state.ongs.find((x) => x.id === a.id);
+      if (!o || !(v >= 1)) return state;
+      if (state.wallet < v) {
+        Alert.alert('Saldo insuficiente', 'Adicione saldo na Carteira (Pix) para doar.');
+        return state;
+      }
+      const mes = mesDe();
+      return {
+        ...state,
+        wallet: +(state.wallet - v).toFixed(2),
+        doacoes: [{ id: newId('d'), ongId: o.id, nome: o.nome, valor: v, at: Date.now() }, ...(state.doacoes || [])],
+        ongs: state.ongs.map((x) =>
+          x.id !== a.id
+            ? x
+            : { ...x, arrecadado: +(x.arrecadado + v).toFixed(2), doadores: x.doadores + 1, campanhas: (x.campanhas || []).map((c) => (c.mes === mes ? { ...c, arrecadado: +((c.arrecadado || 0) + v).toFixed(2) } : c)) }
+        ),
+      };
+    }
+    case 'ONG_CRIAR':
+      return { ...state, ongs: [{ id: 'minha-ong', mine: true, verificada: false, arrecadado: 0, doadores: 0, contas: [], campanhas: [], ...a.ong }, ...state.ongs.filter((x) => x.id !== 'minha-ong')] };
+    case 'ONG_EDITAR':
+      return { ...state, ongs: state.ongs.map((x) => (x.id === a.id ? { ...x, ...a.patch } : x)) };
+    case 'ONG_CAMPANHA': {
+      const o = state.ongs.find((x) => x.id === a.id);
+      if (!o || !podeNovaCampanha(o) || faltaNaCampanha(a.campanha).length) return state;
+      return { ...state, ongs: state.ongs.map((x) => (x.id === a.id ? { ...x, campanhas: [{ id: newId('c'), mes: mesDe(), arrecadado: 0, ...a.campanha }, ...(x.campanhas || [])] } : x)) };
+    }
+    // ---------- Extras ----------
+    case 'SET_EXTRA_PERFIL':
+      return { ...state, extraPerfil: { ...state.extraPerfil, ...a.perfil } };
+    case 'EXTRA_APPLY': {
+      const x = [...state.extras, ...state.myExtras].find((e) => e.id === a.id);
+      // A regra vale aqui também: sem os requisitos, a candidatura não entra.
+      if (!x || faltaPara(state.extraPerfil, x).length) return state;
+      const me = { id: 'cand-me', name: state.user ? state.user.name : 'Você', perfil: state.extraPerfil, status: 'candidato', at: Date.now() };
+      const add = (e) => (e.id === a.id ? { ...e, candidatos: [me, ...(e.candidatos || []).filter((c) => c.id !== 'cand-me')] } : e);
+      return { ...state, extras: state.extras.map(add), myExtras: state.myExtras.map(add) };
+    }
+    case 'EXTRA_DESISTIR': {
+      const rm = (e) => (e.id === a.id ? { ...e, candidatos: (e.candidatos || []).filter((c) => c.id !== 'cand-me') } : e);
+      return { ...state, extras: state.extras.map(rm), myExtras: state.myExtras.map(rm) };
+    }
+    case 'EXTRA_POST':
+      return { ...state, myExtras: [{ id: newId('x'), candidatos: [], ...a.extra, mine: true }, ...state.myExtras] };
+    case 'EXTRA_CANDIDATO': // empresa: confirmar ou dispensar um candidato
+      return { ...state, myExtras: state.myExtras.map((e) => (e.id === a.id ? { ...e, candidatos: (e.candidatos || []).map((c) => (c.id === a.cid ? { ...c, status: a.status } : c)) } : e)) };
+    case 'EXTRA_REMOVE':
+      return { ...state, myExtras: state.myExtras.filter((e) => e.id !== a.id) };
     case 'POST_JOB':
       return {
         ...state,
@@ -2178,7 +2250,7 @@ export function StoreProvider({ children }) {
   }, [profileKey]);
   useEffect(() => {
     if (!profileKey || profileLoaded.current !== profileKey) return;
-    AsyncStorage.setItem(profileKey, JSON.stringify({ _at: Date.now(), chatLists: state.chatLists, chatMeta: state.chatMeta, myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myUserPages: (state.userPages || []).filter((p) => p.ownerId === 'me'), followingPages: state.followingPages, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, agendaRemind: state.agendaRemind, mural: state.mural })).catch(() => {});
+    AsyncStorage.setItem(profileKey, JSON.stringify({ _at: Date.now(), chatLists: state.chatLists, chatMeta: state.chatMeta, myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myUserPages: (state.userPages || []).filter((p) => p.ownerId === 'me'), followingPages: state.followingPages, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, autoHorario: state.autoHorario, agendaRemind: state.agendaRemind, mural: state.mural, extraPerfil: state.extraPerfil })).catch(() => {});
     // Sobe para a conta só o que mudou (alguns segundos depois da última alteração).
     if (!canSync(state.user) || syncBase.current == null) return;
     const data = payloadOf(state);
@@ -2211,7 +2283,7 @@ export function StoreProvider({ children }) {
         .catch(() => {})
         .finally(() => (pending.current = false));
     }, 2500);
-  }, [profileReady, state.mural, state.chatLists, state.chatMeta, state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
+  }, [profileReady, state.autoHorario, state.extraPerfil, state.mural, state.chatLists, state.chatMeta, state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
   // Mudou em outro aparelho (foto nova no app, por exemplo): ao voltar para o app ou para a aba do
   // site, e a cada minuto, busca a versão da conta e aplica se for mais nova.
   useEffect(() => {

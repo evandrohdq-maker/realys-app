@@ -25,11 +25,13 @@ export function payloadOf(state) {
     myBusiness: state.myBusiness,
     agenda: state.agenda,
     workHours: state.workHours,
+    autoHorario: state.autoHorario,
     agendaRemind: state.agendaRemind,
     chatLists: state.chatLists,
     chatMeta: state.chatMeta,
     creations: state.creations,
     mural: state.mural,
+    extraPerfil: state.extraPerfil,
   };
   // Muito grande (muitas criações com imagens embutidas): guarda o essencial do perfil.
   if (JSON.stringify(data).length > 850 * 1024) {
