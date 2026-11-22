@@ -83,7 +83,7 @@ const WORK_LINKS = {
   ],
   fornecedor: [
     ['propostas', 'Propostas', 'cube-outline'],
-    ['inicio', 'Feed', 'home-outline'],
+    ['inicio', 'Início', 'home-outline'],
   ],
 };
 const WORK_TITLE = { empresa: 'Perfil empresarial', prestador: 'Perfil profissional', fornecedor: 'Perfil de fornecedor' };

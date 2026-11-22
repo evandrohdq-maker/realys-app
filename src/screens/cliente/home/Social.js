@@ -734,7 +734,7 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
             </ScrollView>
             <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>O que transmitir</Text>
             <View style={{ flexDirection: 'row', marginBottom: 4 }}>
-              {[['camera', 'Câmera', 'videocam-outline'], ['tela', 'Tela do celular (jogos)', 'phone-portrait-outline']].map(([k, label, icon]) => {
+              {[['camera', 'Câmera', 'videocam-outline'], Platform.OS === 'web' ? ['tela', 'Tela do computador (jogos)', 'desktop-outline'] : ['tela', 'Tela do celular (jogos)', 'phone-portrait-outline']].map(([k, label, icon]) => {
                 const on = source === k;
                 return (
                   <TouchableOpacity key={k} style={[styles.typeChip, on && styles.typeChipOn]} onPress={() => setSource(k)} accessibilityLabel={`Transmitir ${label}`}>
@@ -746,10 +746,12 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
             </View>
             {source === 'tela' ? (
               <Text style={{ color: colors.muted, fontSize: 11, marginBottom: 10 }}>
-                O celular vai pedir para liberar a transmissão da tela. Depois é só abrir o jogo: quem assiste vê a sua tela e ouve você pelo microfone.
+                {Platform.OS === 'web'
+                  ? 'O navegador vai perguntar o que mostrar: escolha "Janela" e o jogo, ou "Tela inteira". Se o jogo não aparecer na lista ou ficar preto, coloque o jogo em "Janela sem bordas" (nas opções de vídeo do jogo) ou use "Tela inteira".'
+                  : 'O celular vai pedir para liberar a transmissão da tela. Depois é só abrir o jogo: quem assiste vê a sua tela e ouve você pelo microfone.'}
               </Text>
             ) : <View style={{ height: 6 }} />}
-            {source === 'tela' ? (
+            {source === 'tela' && Platform.OS !== 'web' ? (
               <View style={{ marginBottom: 10 }}>
                 <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 2 }}>Esconder a tela ao abrir o jogo</Text>
                 <Text style={{ color: colors.muted, fontSize: 11, marginBottom: 6 }}>Quem assiste não vê seus aplicativos nem a tela inicial: só o jogo. Enquanto o Realyz estiver aberto, a tela também fica escondida.</Text>
