@@ -21,9 +21,14 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
 
   // ── Pessoas ──
   r.get('/users', ({ query, user }) => {
-    const q = String(query.q || '').trim();
+    // Acha por nome, por *usuário (com ou sem *, @ ou #) ou pelo ID da conta. Quem bate exato vem primeiro.
+    const q = String(query.q || '').trim().replace(/^[@*#]+/, '');
     if (q.length < 2) return [];
-    return db.prepare(`SELECT * FROM users WHERE kind != 'sistema' AND status = 'ativo' AND (name LIKE ? OR username LIKE ?) ORDER BY name LIMIT 30`).all(`%${q}%`, `%${q.replace(/^@/, '')}%`)
+    const like = `%${q.replace(/[\\%_]/g, (c) => '\\' + c)}%`;
+    return db.prepare(
+      `SELECT * FROM users WHERE kind != 'sistema' AND status = 'ativo' AND (id = ? OR lower(username) = lower(?) OR name LIKE ? ESCAPE '\\' OR username LIKE ? ESCAPE '\\')
+       ORDER BY (id = ? OR lower(username) = lower(?)) DESC, name LIMIT 30`
+    ).all(q, q, like, like, q, q)
       .map((u) => ({ ...publicUser(u), friend: friendship(user.id, u.id)?.status || null }));
   });
 
