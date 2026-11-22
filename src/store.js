@@ -24,6 +24,7 @@ import { pointsFor, pointOffer, giftPoints, initialPoints, promoDiscount, POINT_
 import { initialLoyalty, onDelivered } from './loyalty';
 import { conversations as initialConversations, communityPosts as initialCommunityPosts } from './homeData';
 import * as J from './jobsData';
+import { extrasDemo, PERFIL_VAZIO, faltaPara } from './extras';
 import { initialTestimonials, myInitialGallery } from './testimonialsData';
 import { visitFee, visitDiscount, providerStats, splitFee, SAMPLE_VISIT_REQUESTS, HIGHLIGHT_PLAN } from './serviceVisits';
 import { teleDoCarrinho, somarGasto } from './teleGratis';
@@ -274,6 +275,10 @@ const initialState = {
   // RH: vagas de outras empresas, vagas da minha empresa (com candidatos) e candidaturas do cliente.
   jobs: J.jobs,
   myJobs: J.myJobs,
+  // Extras (trabalho de um dia/turno): perfil de extra da pessoa, vagas abertas e as que a empresa chamou.
+  extraPerfil: PERFIL_VAZIO,
+  extras: extrasDemo(),
+  myExtras: [],
   applications: {}, // { jobId: 'enviada' }
   resume: J.defaultResume, // currículo do usuário para as vagas
   savedJobs: {}, // vagas salvas { jobId: true }
@@ -385,7 +390,7 @@ function giftPointsPatch(state, amount, desc) {
 const NEEDS_BIO = new Set([
   'ADD_TO_CART', 'OPEN_CART', 'CHECKOUT', 'ADD_COMBO', 'COLLECT_COUPON', 'SECTOR_ORDER', 'BUY_TICKET', 'BUY_MEDIA', 'ADD_MUSIC_CART', 'CHECKOUT_MUSIC', 'MEDIA_UPLOAD', 'MEDIA_PLAN',
   'VENUE_RESERVE', 'VENUE_ORDER', 'REQUEST_RIDE', 'VISIT_REQUEST', 'ONLINE_BOOK', 'REVERSE_POST', 'REVERSE_ACCEPT', 'GROUP_JOIN', 'SUB_START', 'SUS_BOOK', 'DOC_SIGN',
-  'NEG_REQUEST', 'NEG_PLAN', 'NEG_AD_CREATE', 'NEG_LEAD_UNLOCK', 'DESAPEGO_ADD', 'DESAPEGO_BUY', 'APPLY_JOB', 'PAGE_CREATE', 'REDEEM_POINTS', 'INTEL_PLAN',
+  'NEG_REQUEST', 'NEG_PLAN', 'NEG_AD_CREATE', 'NEG_LEAD_UNLOCK', 'DESAPEGO_ADD', 'DESAPEGO_BUY', 'APPLY_JOB', 'EXTRA_APPLY', 'PAGE_CREATE', 'REDEEM_POINTS', 'INTEL_PLAN',
   'OPEN_GIFT', 'SEND_GIFT', 'SEND_LIVE_GIFT', 'CONVERT_LIVE_CREDITS', 'GIFT_CASHOUT', 'WALLET_DEPOSIT', 'WALLET_WITHDRAW', 'DATE_SUBSCRIBE', 'SET_HIGHLIGHT',
   'SAVE_MY_PROVIDER', 'TOGGLE_AVAILABLE', 'SET_ROLE',
 ]);
@@ -1030,7 +1035,7 @@ function baseReducer(state, a) {
     case 'SET_PRIVACY':
       return { ...state, privacy: { ...state.privacy, ...a.privacy } };
     case 'LOAD_PROFILE':
-      return { ...state, chatLists: a.data.chatLists || state.chatLists, chatMeta: a.data.chatMeta || state.chatMeta, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, userPages: a.data.myUserPages ? [...a.data.myUserPages, ...(state.userPages || []).filter((p) => p.ownerId !== 'me')] : state.userPages, followingPages: a.data.followingPages || state.followingPages, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, autoHorario: a.data.autoHorario != null ? a.data.autoHorario : state.autoHorario, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind, mural: a.data.mural || state.mural };
+      return { ...state, chatLists: a.data.chatLists || state.chatLists, chatMeta: a.data.chatMeta || state.chatMeta, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, userPages: a.data.myUserPages ? [...a.data.myUserPages, ...(state.userPages || []).filter((p) => p.ownerId !== 'me')] : state.userPages, followingPages: a.data.followingPages || state.followingPages, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, autoHorario: a.data.autoHorario != null ? a.data.autoHorario : state.autoHorario, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind, mural: a.data.mural || state.mural, extraPerfil: a.data.extraPerfil ? { ...state.extraPerfil, ...a.data.extraPerfil } : state.extraPerfil };
     case 'ADD_CREATION':
       return { ...state, creations: [a.item, ...state.creations] };
     case 'UPDATE_CREATION':
@@ -2032,6 +2037,27 @@ function baseReducer(state, a) {
         myJobs: state.myJobs.map((j) => (j.id === a.id ? { ...j, candidates: j.candidates.filter((c) => c.id !== 'cand-me') } : j)),
       };
     }
+    // ---------- Extras ----------
+    case 'SET_EXTRA_PERFIL':
+      return { ...state, extraPerfil: { ...state.extraPerfil, ...a.perfil } };
+    case 'EXTRA_APPLY': {
+      const x = [...state.extras, ...state.myExtras].find((e) => e.id === a.id);
+      // A regra vale aqui também: sem os requisitos, a candidatura não entra.
+      if (!x || faltaPara(state.extraPerfil, x).length) return state;
+      const me = { id: 'cand-me', name: state.user ? state.user.name : 'Você', perfil: state.extraPerfil, status: 'candidato', at: Date.now() };
+      const add = (e) => (e.id === a.id ? { ...e, candidatos: [me, ...(e.candidatos || []).filter((c) => c.id !== 'cand-me')] } : e);
+      return { ...state, extras: state.extras.map(add), myExtras: state.myExtras.map(add) };
+    }
+    case 'EXTRA_DESISTIR': {
+      const rm = (e) => (e.id === a.id ? { ...e, candidatos: (e.candidatos || []).filter((c) => c.id !== 'cand-me') } : e);
+      return { ...state, extras: state.extras.map(rm), myExtras: state.myExtras.map(rm) };
+    }
+    case 'EXTRA_POST':
+      return { ...state, myExtras: [{ id: newId('x'), candidatos: [], ...a.extra, mine: true }, ...state.myExtras] };
+    case 'EXTRA_CANDIDATO': // empresa: confirmar ou dispensar um candidato
+      return { ...state, myExtras: state.myExtras.map((e) => (e.id === a.id ? { ...e, candidatos: (e.candidatos || []).map((c) => (c.id === a.cid ? { ...c, status: a.status } : c)) } : e)) };
+    case 'EXTRA_REMOVE':
+      return { ...state, myExtras: state.myExtras.filter((e) => e.id !== a.id) };
     case 'POST_JOB':
       return {
         ...state,
@@ -2189,7 +2215,7 @@ export function StoreProvider({ children }) {
   }, [profileKey]);
   useEffect(() => {
     if (!profileKey || profileLoaded.current !== profileKey) return;
-    AsyncStorage.setItem(profileKey, JSON.stringify({ _at: Date.now(), chatLists: state.chatLists, chatMeta: state.chatMeta, myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myUserPages: (state.userPages || []).filter((p) => p.ownerId === 'me'), followingPages: state.followingPages, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, autoHorario: state.autoHorario, agendaRemind: state.agendaRemind, mural: state.mural })).catch(() => {});
+    AsyncStorage.setItem(profileKey, JSON.stringify({ _at: Date.now(), chatLists: state.chatLists, chatMeta: state.chatMeta, myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myUserPages: (state.userPages || []).filter((p) => p.ownerId === 'me'), followingPages: state.followingPages, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, autoHorario: state.autoHorario, agendaRemind: state.agendaRemind, mural: state.mural, extraPerfil: state.extraPerfil })).catch(() => {});
     // Sobe para a conta só o que mudou (alguns segundos depois da última alteração).
     if (!canSync(state.user) || syncBase.current == null) return;
     const data = payloadOf(state);
@@ -2222,7 +2248,7 @@ export function StoreProvider({ children }) {
         .catch(() => {})
         .finally(() => (pending.current = false));
     }, 2500);
-  }, [profileReady, state.autoHorario, state.mural, state.chatLists, state.chatMeta, state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
+  }, [profileReady, state.autoHorario, state.extraPerfil, state.mural, state.chatLists, state.chatMeta, state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
   // Mudou em outro aparelho (foto nova no app, por exemplo): ao voltar para o app ou para a aba do
   // site, e a cada minuto, busca a versão da conta e aplica se for mais nova.
   useEffect(() => {
