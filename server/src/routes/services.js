@@ -8,6 +8,31 @@ import { publicName } from '../providerName.js';
 const CALL_STATUS = ['Solicitado', 'Aceito', 'A caminho', 'Chegou', 'Concluído', 'Recusado', 'Cancelado'];
 const TRANSPORT = ['motorista', 'motoboy', 'frete', 'carro', 'moto', 'van'];
 
+// Horário de trabalho: 7 dias (domingo = 0), cada um { on, from, to } em horas. "to" pode passar da
+// meia-noite (ex.: 18 às 2). As horas são de Brasília, não do servidor.
+const FUSO = 'America/Sao_Paulo';
+const DIAS_SEMANA = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+function agoraLocal(at) {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: FUSO, weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(at)).map((p) => [p.type, p.value]));
+  return { dia: DIAS_SEMANA[parts.weekday], hora: Number(parts.hour) + Number(parts.minute) / 60 };
+}
+export function emHorario(horario, at = Date.now()) {
+  if (!Array.isArray(horario) || horario.length !== 7) return false;
+  const { dia, hora } = agoraLocal(at);
+  const hoje = horario[dia];
+  if (hoje && hoje.on && (hoje.to > hoje.from ? hora >= hoje.from && hora < hoje.to : hora >= hoje.from)) return true;
+  // Turno de ontem que passa da meia-noite (ex.: sexta 18 às 2 vale até sábado 2h).
+  const ontem = horario[(dia + 6) % 7];
+  return !!(ontem && ontem.on && ontem.to <= ontem.from && hora < ontem.to);
+}
+const lerHorario = (p) => {
+  try {
+    return p && p.horario ? JSON.parse(p.horario) : null;
+  } catch (e) {
+    return null;
+  }
+};
+
 // Distância em km entre dois pontos (fórmula de haversine).
 export function distanceKm(lat1, lng1, lat2, lng2) {
   const rad = (d) => (d * Math.PI) / 180;
@@ -72,13 +97,41 @@ export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biom
     return { ok: true };
   });
 
+  // Horário de trabalho: o prestador programa os dias e as horas e liga "ficar disponível sozinho".
+  // No horário, ele aparece para os clientes e recebe os chamados (notificação mesmo com o app fechado).
+  r.get('/providers/me/horario', ({ user }) => {
+    const p = db.prepare('SELECT horario, auto_horario FROM providers WHERE user_id = ?').get(user.id);
+    if (!p) fail(404, 'Cadastre-se como prestador primeiro.');
+    const horario = lerHorario(p);
+    return { auto: !!p.auto_horario, horario, agora: emHorario(horario) };
+  });
+  r.put('/providers/me/horario', ({ body, user }) => {
+    const p = db.prepare('SELECT * FROM providers WHERE user_id = ?').get(user.id);
+    if (!p) fail(404, 'Cadastre-se como prestador primeiro.');
+    const h = body.horario;
+    if (!Array.isArray(h) || h.length !== 7) fail(400, 'Mande os 7 dias da semana.');
+    const horario = h.map((d, i) => {
+      const from = Number(d && d.from);
+      const to = Number(d && d.to);
+      if (!(from >= 0 && from < 24 && to >= 0 && to <= 24) || from === to) fail(400, `Horário inválido no dia ${i}.`);
+      return { on: !!(d && d.on), from, to };
+    });
+    const auto = !!body.auto;
+    db.prepare('UPDATE providers SET horario = ?, auto_horario = ?, updated_at = updated_at WHERE user_id = ?').run(JSON.stringify(horario), auto ? 1 : 0, user.id);
+    return { auto, horario, agora: emHorario(horario) };
+  });
+
   // Os mais próximos de um tipo de serviço, com nota, funções, preço e tempo para chegar.
+  // Entram: quem ligou o "disponível" com o GPS atualizado nos últimos 15 minutos, e quem está no
+  // horário de trabalho programado (última posição das últimas 24 h; transporte com o rosto em dia).
   r.get('/providers/nearby', ({ query }) => {
     const from = { lat: coord(query.lat, 'latitude'), lng: coord(query.lng, 'longitude') };
     const max = Math.min(20, Number(query.max || 5));
-    const fresh = now() - 15 * 60 * 1000; // posição atualizada nos últimos 15 minutos
-    const rows = db.prepare(`SELECT p.* FROM providers p JOIN users u ON u.id = p.user_id WHERE p.available = 1 AND p.lat IS NOT NULL AND p.updated_at > ? AND u.status = 'ativo' ${query.service ? 'AND p.service = ?' : ''}`)
-      .all(...(query.service ? [fresh, String(query.service).toLowerCase()] : [fresh]));
+    const fresh = now() - 15 * 60 * 1000;
+    const dia = now() - 24 * 60 * 60 * 1000;
+    const rows = db.prepare(`SELECT p.* FROM providers p JOIN users u ON u.id = p.user_id WHERE p.lat IS NOT NULL AND u.status = 'ativo' AND ((p.available = 1 AND p.updated_at > ?) OR (p.auto_horario = 1 AND p.updated_at > ?)) ${query.service ? 'AND p.service = ?' : ''}`)
+      .all(...(query.service ? [fresh, dia, String(query.service).toLowerCase()] : [fresh, dia]))
+      .filter((p) => (p.available === 1 && p.updated_at > fresh) || (emHorario(lerHorario(p)) && (!TRANSPORT.includes(p.service) || biometria.periodicOk(p.user_id))));
     return rows.map((p) => providerView(p, from)).sort((a, b) => a.distanceKm - b.distanceKm).slice(0, max);
   });
 
