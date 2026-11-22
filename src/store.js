@@ -20,7 +20,7 @@ import { fareQuote, TARIFFS, surgeText } from './pricing';
 import { protectionFee } from './guarantee';
 import { usarConta } from './serverAuth';
 import { serverOn } from './api';
-import { comprasTravadas } from './compras';
+import { comprasTravadas, silenciarAvisos } from './compras';
 export { comprasTravadas };
 import { canSync, payloadOf, pullProfile, pushProfile, uploadLocalPhotos, uploadLocalGallery, uploadLocalMural, richness } from './profileSync';
 import { publicar } from './serverSocial';
@@ -452,16 +452,11 @@ const COMPRA = new Set([
   'WALLET_WITHDRAW', 'DATE_SUBSCRIBE', 'SET_HIGHLIGHT',
 ]);
 export const isCompra = (type) => COMPRA.has(type);
+const SEM_TRAVA = /^(LOGIN|LOGOUT|RESTORE_SESSION|SERVER_|LOAD_|SET_ROLE|SWITCH|SUS_LOAD)/;
 // Quando a compra é barrada, a tela que pediu pode mostrar "Pedido confirmado!" logo em seguida.
-// Por um instante depois da trava, os avisos dessas telas não aparecem (só o "Temporariamente bloqueado").
-let silenciarAvisosAte = 0;
-if (!Alert.__realyzCompras) {
-  const original = Alert.alert.bind(Alert);
-  Alert.alert = (...args) => (Date.now() < silenciarAvisosAte ? undefined : original(...args));
-  Alert.__realyzCompras = true;
-}
+// Por um instante depois da trava, esses avisos não aparecem (o SoftAlert confere em src/compras.js).
 const travarCompra = (state) => {
-  silenciarAvisosAte = Date.now() + 1500;
+  silenciarAvisos(1500);
   return { ...state, comprasGate: Date.now() };
 };
 
@@ -479,8 +474,13 @@ function reducer(state, a) {
   if (state.user && state.user.verified === false && NEEDS_BIO.has(a.type) && !(a.type === 'PAGE_CREATE' && pagePrice(state) === 0)) return { ...state, bioGate: Date.now() };
   if (comprasTravadas(state) && COMPRA.has(a.type)) return travarCompra(state);
   const next = baseReducer(state, a);
-  // Rede de segurança: qualquer ação que gaste saldo ou crédito de presente também para.
-  if (comprasTravadas(state) && next && next !== state && a.type !== 'LOGOUT' && a.type !== 'SERVER_WALLET' && (next.wallet < state.wallet || next.giftCredits < state.giftCredits)) return travarCompra(state);
+  // Rede de segurança: uma ação da pessoa que gaste saldo ou crédito de presente também para.
+  // Nunca vale para entrar, sair, trocar de conta ou receber dados do servidor (o login zera o saldo
+  // de exemplo e isso não é compra).
+  if (
+    comprasTravadas(state) && next && next !== state && state.ready && state.user && next.user === state.user &&
+    !SEM_TRAVA.test(a.type) && (next.wallet < state.wallet || next.giftCredits < state.giftCredits)
+  ) return travarCompra(state);
   // Saldo vindo do servidor não vira linha nova no extrato (o extrato também vem do servidor).
   if (!next || next === state || next.wallet === state.wallet || next.walletTx !== state.walletTx || a.type === 'LOGOUT' || a.type === 'SERVER_WALLET' || a.type === 'LOGIN' || a.type === 'RESTORE_SESSION') return next;
   const diff = +(next.wallet - state.wallet).toFixed(2);
