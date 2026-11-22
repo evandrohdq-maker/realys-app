@@ -186,6 +186,7 @@ test('social: amizade, depoimento aceito, mensagens com aviso em tempo real', as
       highlights: [{ id: 'hl1', title: 'Viagens', cover: '/media/foto1', items: [{ id: 'hl1-0', image: '/media/foto1' }] }],
     },
     mural: { theme: 'neon', items: [{ id: 'r1', type: 'recado', text: 'Oi, amigos!' }, { id: 'f1', type: 'foto', uri: '/media/foto1' }] },
+    gamer: { jogos: [{ nome: 'Free Fire', nick: 'AnaFF', rank: 'Mestre' }], plataformas: ['Celular'], estilo: 'Competitivo', procuraTime: true },
     agenda: [{ segredo: true }],
   } } });
   const perfilAna = await ok('GET', `/users/${S.ana.id}`, { who: 'beto' });
@@ -197,6 +198,8 @@ test('social: amizade, depoimento aceito, mensagens com aviso em tempo real', as
   assert.equal(perfilAna.mural.items.length, 2);
   assert.equal(perfilAna.agenda, undefined); // só o social sai do perfil
   assert.equal(perfilAna.negocio, false);
+  assert.equal(perfilAna.gamer.jogos[0].nick, 'AnaFF');
+  assert.equal(perfilAna.gamer.procuraTime, true);
 
   const t = await ok('POST', '/testimonials', { who: 'ana', body: { toId: S.beto.id, text: 'Motorista nota 10, super educado!' } });
   assert.equal((await ok('GET', `/users/${S.beto.id}`, { who: 'ana' })).testimonials.length, 0); // ainda pendente

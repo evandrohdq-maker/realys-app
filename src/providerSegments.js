@@ -21,6 +21,11 @@ export const SEG_CONFIG = {
     ph: 'Seu estilo e o que você apresenta (ex.: Sertanejo, Acústico, Casamentos)',
     note: 'Artista cobra por show, por hora, por serviço (jingle, gravação, arte) ou por publicidade (divulgar uma marca nos seus reels e stories). Monte cachês, agenda e vitrine em Perfil › Shows e contratação.',
   },
+  gamers: {
+    units: ['publicidade', 'hora', 'partida', 'evento'], visit: false, vehicle: false, price: 'Preço (R$)',
+    ph: 'Seus jogos e o que oferece (ex.: Free Fire, Coaching, Publi na live)',
+    note: 'Gamer cobra por publicidade (sua marca na live, no reels e nos stories), por hora (coaching), por partida (jogar em dupla ou no time de quem contrata) ou por evento (campeonato, narração, presença). Monte seu cartão em Perfil › Perfil gamer.',
+  },
   aulas: { units: ['aula', 'hora', 'mês'], visit: false, vehicle: false, price: 'Preço (R$)', ph: 'O que você ensina (ex.: Matemática, Violão, Inglês)' },
   tecnologia: { units: ['hora', 'serviço', 'projeto', 'visita'], visit: true, vehicle: false, price: 'Preço (R$)', ph: 'O que você faz (ex.: Formatação, Sites, Redes)' },
   criativos: { units: ['serviço', 'projeto', 'hora', 'publicidade'], visit: false, vehicle: false, price: 'Preço (R$)', ph: 'O que você faz (ex.: Logo, Social media, Vídeos)' },
@@ -33,11 +38,13 @@ export const SEG_CONFIG = {
 };
 export const segConfig = (key) => SEG_CONFIG[key] || BASE;
 
+// Artista e Gamer no começo, para quem se apresenta ou transmite achar fácil.
+const TOPO = { artistas: 0, gamers: 1 };
 const typeByKey = Object.fromEntries(serviceTypes.map((t) => [t.key, t]));
 // Segmentos na ordem do catálogo (Artistas logo no começo, para quem se apresenta achar fácil).
 export const SEGMENTS = [...PROF_CLASSES]
-  .sort((a, b) => (a.key === 'artistas' ? -1 : b.key === 'artistas' ? 1 : 0))
-  .map((c) => ({ key: c.key, label: c.label === 'Artistas' ? 'Artista' : c.label, emoji: c.emoji, professions: c.subs.map(([k]) => typeByKey[k]).filter(Boolean) }));
+  .sort((a, b) => (TOPO[a.key] ?? 99) - (TOPO[b.key] ?? 99))
+  .map((c) => ({ key: c.key, label: { Artistas: 'Artista', 'Gamers e streamers': 'Gamer' }[c.label] || c.label, emoji: c.emoji, professions: c.subs.map(([k]) => typeByKey[k]).filter(Boolean) }));
 
 // Segmento de uma profissão já cadastrada (DJ e banda contam como Artista).
 export function segOfService(service) {

@@ -33,6 +33,7 @@ export function payloadOf(state) {
     mural: state.mural,
     // Galeria (fotos, vídeos, destaques): os amigos veem pelo perfil. Os exemplos de demonstração não sobem.
     myGallery: galeriaReal(state.myGallery),
+    gamer: state.gamer || undefined,
     extraPerfil: state.extraPerfil,
   };
   // Muito grande (muitas criações com imagens embutidas): guarda o essencial do perfil.

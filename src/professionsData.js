@@ -149,6 +149,17 @@ export const PROF_CLASSES = [
     ],
   },
   {
+    // Gamers: contratados para publicidade em live, coaching, partida em dupla/time e eventos.
+    key: 'gamers', label: 'Gamers e streamers', ion: 'game-controller-outline', emoji: '🎮',
+    subs: [
+      ['streamer', 'Streamer', '📺', 'videocam-outline', ['streamer', 'live de jogo', 'publi em live', 'divulgar na live']],
+      ['coachgame', 'Coach de jogos', '🎯', 'school-outline', ['coach de jogo', 'coaching', 'aula de free fire', 'aula de lol', 'melhorar no jogo', 'treinador de e-sports']],
+      ['proplayer', 'Pro player e e-sports', '🏆', 'trophy-outline', ['pro player', 'jogador profissional', 'e-sports', 'esports', 'campeonato']],
+      ['caster', 'Narrador e caster', '🎙️', 'mic-outline', ['narrador de jogo', 'caster', 'narrar campeonato', 'comentarista de e-sports']],
+      ['gamecreator', 'Criador de conteúdo gamer', '🎬', 'film-outline', ['youtuber de jogos', 'criador de conteudo gamer', 'review de jogo', 'video de gameplay']],
+    ],
+  },
+  {
     key: 'aulas', label: 'Aulas', ion: 'school-outline', emoji: '📚',
     subs: [
       ['professor'], ['personal'],

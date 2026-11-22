@@ -31,6 +31,7 @@ import DemoScreen from './DemoScreen';
 import { ProfileEditor, PrivacyPanel, StudioPanel, FutureIcon, audienceLabel, coverTone } from '../components/ProfileStudio';
 import { ShowsPanel } from '../components/ArtistShowEditor';
 import { isArtistClass } from '../artistShows';
+import { GamerPanel } from '../components/GamerProfile';
 import { segOfService } from '../providerSegments';
 
 // Perfil responsivo pela função: cada classe vê só as ferramentas dela.
@@ -152,6 +153,7 @@ export default function ProfileScreen({ navigate, explore }) {
   const { state, dispatch } = useStore();
   const u = state.user;
   const socialCls = state.myProfile && state.myProfile.social;
+  const ehGamer = (socialCls && socialCls.cls === 'gamer') || (!!state.myProvider && segOfService(state.myProvider.service) === 'gamers');
   const ehArtista = isArtistClass(socialCls) || (!!state.myProvider && segOfService(state.myProvider.service) === 'artistas');
   const [checking, setChecking] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
@@ -415,9 +417,15 @@ export default function ProfileScreen({ navigate, explore }) {
         </Item>
         {/* Estúdio Realyz: para artistas, músicos e criadores de conteúdo. Não aparece no perfil de empresa
             (a empresa divulga por anúncios, propagandas e reels de anúncio, no Painel). */}
-        {state.activeRole !== 'empresa' && (ESTUDIO_CLASSES.includes(socialCls && socialCls.cls) || ehArtista) ? (
+        {state.activeRole !== 'empresa' && (ESTUDIO_CLASSES.includes(socialCls && socialCls.cls) || ehArtista || ehGamer) ? (
           <Item open={open} onToggle={toggle} k="estudio" icon="rocket-outline" title="Estúdio Realyz" sub="Para artistas, músicos e criadores de conteúdo">
             <StudioPanel />
+          </Item>
+        ) : null}
+        {/* Perfil gamer: jogos, nick, rank, plataformas, procurando time e contratação (só classe Gamer). */}
+        {state.activeRole !== 'empresa' && ehGamer ? (
+          <Item open={open} onToggle={toggle} k="gamer" icon="game-controller-outline" title="Perfil gamer" sub="Jogos, nick, rank e procurando time">
+            <GamerPanel navigate={nav} />
           </Item>
         ) : null}
         {/* Shows e contratação: vitrine de shows da classe Artistas (cachês, agenda, onde atende, divulgação e pedidos). */}

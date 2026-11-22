@@ -13,6 +13,7 @@ import { Photo, Empty } from './ui';
 import { members, memberById, searchMembers } from '../people';
 import { listenOnce } from './Search';
 import { analyzeTestimonial, galleryOf } from '../testimonialsData';
+import { GamerCard } from './GamerProfile';
 import { openMedia } from './MediaViewer';
 import { storyDesk } from './StoryFrame';
 import { STORY_SAMPLE_PHOTOS } from '../homeData';
@@ -1068,6 +1069,7 @@ export function ProfileSocial({ ownerId, postsSlot, postsCount, ownerName, focus
 
   return (
     <View>
+      {own && showSocial && state.gamer ? <GamerCard g={state.gamer} /> : null}
       {showSocial ? <HighlightsRow ownerId={ownerId} /> : <LockedPanel name={ownerName} audience={priv.social} exposed={priv.exposed} />}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 14, marginBottom: 12 }}>
         {tabs.map((t) => {

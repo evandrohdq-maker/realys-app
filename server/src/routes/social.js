@@ -54,6 +54,14 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
         videos: arr(g.videos).filter((x) => x && midia(x.uri || x.video)).slice(0, 60),
         highlights: arr(g.highlights).filter((h) => h && h.title).slice(0, 30).map((h) => ({ ...h, items: arr(h.items).filter((i) => i && midia(i.image)) })).filter((h) => h.items.length),
       },
+      gamer: d.gamer && typeof d.gamer === 'object'
+        ? {
+            jogos: arr(d.gamer.jogos).filter((j) => j && j.nome).slice(0, 12).map((j) => ({ nome: String(j.nome).slice(0, 40), nick: String(j.nick || '').slice(0, 30), rank: String(j.rank || '').slice(0, 30) })),
+            plataformas: arr(d.gamer.plataformas).map((x) => String(x).slice(0, 20)).slice(0, 6),
+            estilo: String(d.gamer.estilo || '').slice(0, 20), horarios: String(d.gamer.horarios || '').slice(0, 60),
+            procuraTime: !!d.gamer.procuraTime, contratavel: !!d.gamer.contratavel,
+          }
+        : null,
       mural: d.mural && Array.isArray(d.mural.items)
         ? { theme: d.mural.theme || 'aurora', items: d.mural.items.filter((x) => x && (x.type === 'recado' || (x.type === 'foto' && midia(x.uri)))).slice(0, 80) }
         : null,

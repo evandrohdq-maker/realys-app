@@ -16,6 +16,7 @@ import { api, API_URL } from '../api';
 import { addFriend, removeFriend } from '../serverFriends';
 import { openMedia } from './MediaViewer';
 import { futureTheme } from './ThemeArt';
+import { GamerCard } from './GamerProfile';
 
 let openListener = null;
 export const openServerProfile = (id) => openListener && openListener(id);
@@ -121,6 +122,8 @@ function ServerProfile({ id, onClose }) {
                 <Text style={[st.small, { marginLeft: 8, flex: 1 }]}>{first} mostra as publicações só para amigos.</Text>
               </View>
             ) : null}
+
+            {p.visible !== false && p.gamer ? <GamerCard g={p.gamer} /> : null}
 
             {p.visible !== false ? (
               <View style={st.tabs}>
