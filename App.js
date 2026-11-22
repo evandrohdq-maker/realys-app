@@ -111,6 +111,9 @@ import { RadioHost, RadioHeadChip } from './src/components/RadioKit';
 import { ArtistSheetHost } from './src/components/ArtistSheet';
 import { ArtistShowHost } from './src/components/ArtistBooking';
 import { MediaViewerHost } from './src/components/MediaViewer';
+import { installCameraPick } from './src/web/cameraPick';
+// Site: escolhe a webcam de verdade sozinho (pula DroidCam, OBS e outras câmeras virtuais).
+if (Platform.OS === 'web') installCameraPick();
 import { usePush } from './src/pushNotifications';
 import { TvFloat, LiveFloat } from './src/components/FloatPlayers';
 import { BioGateModal, LockedScreen, canOpenTab, isVerified, useServerBio } from './src/components/BioGate';
