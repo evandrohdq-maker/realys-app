@@ -1,9 +1,9 @@
 // Termo de adesão do Realyz (texto igual ao do servidor: server/src/termos.js). Gerado a partir dele.
-export const TERMO_ADESAO_VERSAO = "2026-11-adesao-v19";
+export const TERMO_ADESAO_VERSAO = "2026-11-adesao-v20";
 export const TERMO_ADESAO = {
-  "versao": "2026-11-adesao-v19",
+  "versao": "2026-11-adesao-v20",
   "titulo": "Termo de Adesão ao aplicativo Realyz",
-  "atualizado": "16 de novembro de 2026",
+  "atualizado": "21 de novembro de 2026",
   "itens": [
     {
       "titulo": "1. Objeto",
@@ -47,7 +47,11 @@ export const TERMO_ADESAO = {
     },
     {
       "titulo": "11. Alterações e atualização automática",
-      "texto": "Este termo pode ser atualizado. Quando houver mudança relevante, você será convidado a ler e aceitar a nova versão antes de continuar usando o aplicativo ou as funções afetadas. Atualização automática do aplicativo: para manter a segurança e o bom funcionamento, o Realyz se atualiza sozinho. Ao abrir o aplicativo com internet, ele confere se há versão nova, baixa e instala por cima da atual, mostrando apenas uma barra de avanço, sem pedir confirmação a cada vez. A atualização não apaga a sua conta nem os seus dados. O download usa a internet do aparelho (Wi-Fi ou dados móveis), e o sistema do celular pode pedir, uma única vez, a permissão para o Realyz instalar as próprias atualizações. Ao aceitar este termo, você concorda com a atualização automática; quem não quiser mais recebê-la pode desligar essa permissão nas configurações do aparelho ou desinstalar o aplicativo, ciente de que versões antigas podem deixar de funcionar. A versão e a data do seu aceite ficam registradas na sua conta."
+      "texto": "Este termo pode ser atualizado. Quando houver mudança relevante, você será convidado a ler e aceitar a nova versão antes de continuar usando o aplicativo ou as funções afetadas. Atualização automática do aplicativo: para manter a segurança e o bom funcionamento, o Realyz se atualiza sozinho. Ao abrir o aplicativo com internet, ele confere se há versão nova, baixa e instala por cima da atual, mostrando apenas uma barra de avanço, sem pedir confirmação a cada vez. A atualização não apaga a sua conta nem os seus dados. A conferência acontece logo na abertura, antes da entrada na conta, mesmo que você ainda não tenha entrado: havendo versão nova, ela é instalada primeiro e, depois, o aplicativo segue para a tela de entrada. Sem versão nova ou sem internet, o aplicativo abre normalmente. O download usa a internet do aparelho (Wi-Fi ou dados móveis), e o sistema do celular pode pedir, uma única vez, a permissão para o Realyz instalar as próprias atualizações (\"Permitir desta fonte\" ou \"Instalar apps desconhecidos\"). Se a instalação automática não for aceita pelo aparelho, o Realyz abre a tela de instalação do próprio Android, e basta tocar em \"Atualizar\". Ao aceitar este termo, você concorda com a atualização automática; quem não quiser mais recebê-la pode desligar essa permissão nas configurações do aparelho ou desinstalar o aplicativo, ciente de que versões antigas podem deixar de funcionar. A versão e a data do seu aceite ficam registradas na sua conta."
+    },
+    {
+      "titulo": "11-A. Permissões do aparelho",
+      "texto": "Para funcionar, o Realyz pede ao sistema do celular as permissões abaixo, sempre explicando para que servem. Cada uma pode ser negada ou desligada a qualquer momento nas configurações do aparelho; a função que depende dela deixa de funcionar, e o resto do aplicativo continua. (a) Câmera: reconhecimento facial (cadastro, aparelho novo e confirmações), fotos e vídeos que você publica, stories, chamadas de vídeo e lives. (b) Microfone: comandos de voz da Lotus, chamadas, lives e salas de voz; o microfone só é usado com o aplicativo aberto. (c) Biometria do aparelho (digital ou rosto do celular): confirmar que é você antes de compras, contratações e saques; a digital fica no celular e não é enviada ao Realyz. (d) Localização (GPS): mostrar prestadores, lojas e motoristas perto de você, acompanhar entregas e corridas e enviar sua posição no socorro (SOS); prestadores e motoristas compartilham a posição só enquanto estão disponíveis ou em atendimento. (e) Notificações: avisos de mensagens, pedidos, chamados, pagamentos, presentes, lives e shows, inclusive com o aplicativo fechado; para isso, o código do aparelho no serviço de notificações do Google (Firebase Cloud Messaging) fica guardado na sua conta e é apagado quando você sai dela. (f) Ligações: chamar o SAMU, os Bombeiros, a polícia e os contatos de socorro direto pelo aplicativo, só quando você toca para ligar. (g) Instalar atualizações: permitir que o Realyz instale as próprias versões novas, conforme o item 11. (h) Compartilhar a tela e serviço em primeiro plano: transmitir a tela nas lives e salas, e manter o player e a transmissão funcionando com o aplicativo minimizado, com um aviso fixo enquanto estiver ativo. (i) Internet: necessária para todas as funções que usam o servidor do Realyz."
     },
     {
       "titulo": "12. Prazos de guarda e suporte",
