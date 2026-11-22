@@ -10,6 +10,7 @@
 import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 import * as Crypto from 'expo-crypto';
+import { AppState, Platform } from 'react-native';
 
 const SESSION_KEY = 'realys.session';
 export const API_URL = String((Constants.expoConfig && Constants.expoConfig.extra && Constants.expoConfig.extra.apiUrl) || '').replace(/\/$/, '');
@@ -147,19 +148,34 @@ export async function uploadMedia(uri, mime) {
 
 // Avisos em tempo real: mensagens, presentes, pedidos, chamados, presentes de live...
 // onEvent({ type, data }). Reconecta sozinho se a internet cair. Devolve uma função para desligar.
+// No celular, app fechado ou em segundo plano = desconectado do servidor. Assim o servidor sabe que
+// a pessoa não está vendo o app e manda a notificação pelo Firebase (chega mesmo com o app fechado).
+// Voltou para o app: reconecta na hora.
+const liveSockets = new Set();
+let appAtivo = true;
+if (Platform.OS !== 'web') {
+  AppState.addEventListener('change', (st) => {
+    const ativo = st === 'active';
+    if (ativo === appAtivo) return;
+    appAtivo = ativo;
+    liveSockets.forEach((c) => (ativo ? c.resume() : c.pause()));
+  });
+}
+
 export function connectEvents(onEvent) {
   let ws = null;
   let stopped = false;
+  let paused = false;
   let wait = 1000;
   let ping = null;
   const open = async () => {
-    if (stopped) return;
+    if (stopped || paused || !appAtivo) return;
     try {
       if (!accessToken) await refresh();
     } catch (e) {
       return setTimeout(open, 15000);
     }
-    ws = new WebSocket(`${API_URL.replace(/^http/, 'ws')}/ws?token=${accessToken}`);
+    ws = new WebSocket(`${API_URL.replace(/^http/, 'ws')}/ws?token=${accessToken}${Platform.OS === 'web' ? '' : `&app=${Platform.OS}`}`);
     ws.onopen = () => {
       wait = 1000;
       ping = setInterval(() => ws && ws.readyState === 1 && ws.send('ping'), 25000);
@@ -172,14 +188,30 @@ export function connectEvents(onEvent) {
     };
     ws.onclose = () => {
       clearInterval(ping);
-      if (stopped) return;
+      if (stopped || paused) return;
       accessToken = null; // o acesso pode ter expirado: renova antes de reconectar
       setTimeout(open, (wait = Math.min(wait * 2, 30000)));
     };
   };
+  const ctl = {
+    pause: () => {
+      paused = true;
+      clearInterval(ping);
+      if (ws) ws.close();
+      ws = null;
+    },
+    resume: () => {
+      if (!paused) return;
+      paused = false;
+      wait = 1000;
+      open();
+    },
+  };
+  liveSockets.add(ctl);
   open();
   return () => {
     stopped = true;
+    liveSockets.delete(ctl);
     clearInterval(ping);
     if (ws) ws.close();
   };

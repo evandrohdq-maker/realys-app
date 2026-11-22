@@ -43,6 +43,8 @@ export class Hub {
       const accept = createHash('sha1').update(key + GUID).digest('base64');
       socket.write(`HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ${accept}\r\n\r\n`);
       socket.setNoDelay(true);
+      // app=android|ios: o celular com o app na frente. Fechou ou foi para o segundo plano, ele desconecta.
+      socket.rzApp = /^(android|ios)$/.test(url.searchParams.get('app') || '') ? url.searchParams.get('app') : 'web';
       this.add(userId, socket);
       let buf = Buffer.alloc(0);
       socket.on('data', (chunk) => {
@@ -94,12 +96,12 @@ export class Hub {
   }
   // Envia um aviso para todos os aparelhos conectados de uma pessoa.
   // Quem não está com o app aberto recebe o aviso como notificação no celular (this.offline, em push.js).
+  // Com o site aberto no computador, o celular ainda recebe a notificação (o celular não está na frente).
   send(userId, type, data) {
     const set = this.clients.get(userId);
-    if (!set) {
-      if (this.offline) this.offline(userId, type, data);
-      return;
-    }
+    const celularNaFrente = !!set && [...set].some((s) => s.rzApp && s.rzApp !== 'web');
+    if (!celularNaFrente && this.offline) this.offline(userId, type, data);
+    if (!set) return;
     const f = frame(JSON.stringify({ type, data, at: Date.now() }));
     for (const s of set) {
       try {
