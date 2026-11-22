@@ -3,6 +3,7 @@ import { ORDER_DEADLINE, foodLateRefund, canCancel, cancelInfo } from './orderCo
 import { forClients } from './providerName';
 import { moderateAction } from './moderation';
 import { DESAPEGO_DEMO } from './desapego';
+import { ongsDemo, podeNovaCampanha, faltaNaCampanha, mesDe, campanhaAtual } from './ongs';
 import { MANDADOS_DEMO } from './empresaDemo';
 import { Alert, AppState, Platform } from 'react-native';
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
@@ -64,6 +65,7 @@ const initialWalletTx = [
 
 // Que tipo de gasto cada ação do app gera no extrato (quando mexe no saldo).
 const WALLET_CAT = {
+  ONG_DOAR: ['Doações', (a) => `Doação para ${a.nome || 'ONG'}`],
   CHECKOUT: ['Compras', () => 'Compra nas lojas do Realyz'],
   BUY_MEDIA: ['Artistas', () => 'Compra de música ou obra'],
   MEDIA_UPLOAD: ['Servidor', (a) => `Servidor Realyz - ${(a.item && a.item.file) || 'arquivo'}`],
@@ -275,6 +277,9 @@ const initialState = {
   // RH: vagas de outras empresas, vagas da minha empresa (com candidatos) e candidaturas do cliente.
   jobs: J.jobs,
   myJobs: J.myJobs,
+  // ONGs: perfis com CNPJ, doações diretas e a campanha grátis do mês.
+  ongs: ongsDemo(),
+  doacoes: [],
   // Extras (trabalho de um dia/turno): perfil de extra da pessoa, vagas abertas e as que a empresa chamou.
   extraPerfil: PERFIL_VAZIO,
   extras: extrasDemo(),
@@ -390,7 +395,7 @@ function giftPointsPatch(state, amount, desc) {
 const NEEDS_BIO = new Set([
   'ADD_TO_CART', 'OPEN_CART', 'CHECKOUT', 'ADD_COMBO', 'COLLECT_COUPON', 'SECTOR_ORDER', 'BUY_TICKET', 'BUY_MEDIA', 'ADD_MUSIC_CART', 'CHECKOUT_MUSIC', 'MEDIA_UPLOAD', 'MEDIA_PLAN',
   'VENUE_RESERVE', 'VENUE_ORDER', 'REQUEST_RIDE', 'VISIT_REQUEST', 'ONLINE_BOOK', 'REVERSE_POST', 'REVERSE_ACCEPT', 'GROUP_JOIN', 'SUB_START', 'SUS_BOOK', 'DOC_SIGN',
-  'NEG_REQUEST', 'NEG_PLAN', 'NEG_AD_CREATE', 'NEG_LEAD_UNLOCK', 'DESAPEGO_ADD', 'DESAPEGO_BUY', 'APPLY_JOB', 'EXTRA_APPLY', 'PAGE_CREATE', 'REDEEM_POINTS', 'INTEL_PLAN',
+  'NEG_REQUEST', 'NEG_PLAN', 'NEG_AD_CREATE', 'NEG_LEAD_UNLOCK', 'DESAPEGO_ADD', 'DESAPEGO_BUY', 'APPLY_JOB', 'EXTRA_APPLY', 'ONG_DOAR', 'PAGE_CREATE', 'REDEEM_POINTS', 'INTEL_PLAN',
   'OPEN_GIFT', 'SEND_GIFT', 'SEND_LIVE_GIFT', 'CONVERT_LIVE_CREDITS', 'GIFT_CASHOUT', 'WALLET_DEPOSIT', 'WALLET_WITHDRAW', 'DATE_SUBSCRIBE', 'SET_HIGHLIGHT',
   'SAVE_MY_PROVIDER', 'TOGGLE_AVAILABLE', 'SET_ROLE',
 ]);
@@ -2036,6 +2041,36 @@ function baseReducer(state, a) {
         applications,
         myJobs: state.myJobs.map((j) => (j.id === a.id ? { ...j, candidates: j.candidates.filter((c) => c.id !== 'cand-me') } : j)),
       };
+    }
+    // ---------- ONGs ----------
+    case 'ONG_DOAR': {
+      const v = +Number(a.valor || 0).toFixed(2);
+      const o = state.ongs.find((x) => x.id === a.id);
+      if (!o || !(v >= 1)) return state;
+      if (state.wallet < v) {
+        Alert.alert('Saldo insuficiente', 'Adicione saldo na Carteira (Pix) para doar.');
+        return state;
+      }
+      const mes = mesDe();
+      return {
+        ...state,
+        wallet: +(state.wallet - v).toFixed(2),
+        doacoes: [{ id: newId('d'), ongId: o.id, nome: o.nome, valor: v, at: Date.now() }, ...(state.doacoes || [])],
+        ongs: state.ongs.map((x) =>
+          x.id !== a.id
+            ? x
+            : { ...x, arrecadado: +(x.arrecadado + v).toFixed(2), doadores: x.doadores + 1, campanhas: (x.campanhas || []).map((c) => (c.mes === mes ? { ...c, arrecadado: +((c.arrecadado || 0) + v).toFixed(2) } : c)) }
+        ),
+      };
+    }
+    case 'ONG_CRIAR':
+      return { ...state, ongs: [{ id: 'minha-ong', mine: true, verificada: false, arrecadado: 0, doadores: 0, contas: [], campanhas: [], ...a.ong }, ...state.ongs.filter((x) => x.id !== 'minha-ong')] };
+    case 'ONG_EDITAR':
+      return { ...state, ongs: state.ongs.map((x) => (x.id === a.id ? { ...x, ...a.patch } : x)) };
+    case 'ONG_CAMPANHA': {
+      const o = state.ongs.find((x) => x.id === a.id);
+      if (!o || !podeNovaCampanha(o) || faltaNaCampanha(a.campanha).length) return state;
+      return { ...state, ongs: state.ongs.map((x) => (x.id === a.id ? { ...x, campanhas: [{ id: newId('c'), mes: mesDe(), arrecadado: 0, ...a.campanha }, ...(x.campanhas || [])] } : x)) };
     }
     // ---------- Extras ----------
     case 'SET_EXTRA_PERFIL':

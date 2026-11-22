@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { openMedia } from '../../../components/MediaViewer';
 import { openServerProfile } from '../../../components/ServerProfile';
 import ServerInbox from '../../../components/ServerInbox';
+import { CampanhaCard, OngPage } from '../OngsScreen';
+import { campanhaDoFeed, pedeDoacao } from '../../../ongs';
 import { useServerFriends, addFriend, removeFriend } from '../../../serverFriends';
 import { conectado } from '../../../serverShop';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Share, Platform, ToastAndroid, Dimensions } from 'react-native';
@@ -710,6 +712,7 @@ function RealContact({ u, onChat }) {
 
 function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive, userName }) {
   const { state, dispatch } = useStore();
+  const [ongAberta, setOngAberta] = useState(null);
   // Tocar em Community (ou na logo) de novo: o feed volta para o topo e se reorganiza, com as
   // publicações novas (ainda não vistas) primeiro.
   const feedRef = useRef(null);
@@ -751,7 +754,8 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
   const [openCmt, setOpenCmt] = useState(null);
   const [cmtText, setCmtText] = useState('');
   const [shared, setShared] = useState({});
-  const ads = useMemo(() => state.posts.filter((p) => p.sponsored), [state.posts]);
+  // Anúncio pago pedindo doação não entra: pedido de doação só pelo perfil da ONG (src/ongs.js).
+  const ads = useMemo(() => state.posts.filter((p) => p.sponsored && !pedeDoacao(p.text)), [state.posts]);
   const testimonials = state.testimonials.filter((t) => t.status === 'aprovado');
   const pendingMine = state.testimonials.filter((t) => t.to === 'me' && t.status === 'pendente').length;
   const sharePost = async (p) => {
@@ -771,11 +775,14 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
   // Feed único: posts da comunidade e depoimentos aprovados, intercalados.
   // A cada 2 posts entra 1 anúncio: é aqui que a publicidade chega ao usuário.
   const feed = [];
+  const ongFeed = campanhaDoFeed(state.ongs, new Date().getDate());
   const n = Math.max(posts.length, testimonials.length);
   for (let i = 0; i < n; i++) {
     if (posts[i]) feed.push({ type: 'post', p: posts[i] });
     if (testimonials[i]) feed.push({ type: 'dep', t: testimonials[i] });
     if (i % 2 === 1 && ads.length) feed.push({ type: 'ad', p: ads[Math.floor(i / 2) % ads.length] });
+    // Uma campanha de ONG por vez no feed (a do mês, girando entre as ONGs), depois do 3º post.
+    if (i === 2 && ongFeed) feed.push({ type: 'ong', o: ongFeed });
   }
 
   // Post que passou na tela (rolando o feed) conta como visto: some a borda roxa do amigo
@@ -826,11 +833,14 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
         <NotifList onDep={() => setDepOpen(true)} onGo={(go) => dispatch({ type: 'NAV_REQUEST', go })} />
       ) : null}
       <DepCenter visible={depOpen} onClose={() => setDepOpen(false)} />
+      {ongAberta ? <OngPage ong={ongAberta} onClose={() => setOngAberta(null)} /> : null}
 
       {seg === 'posts' ? (
         <View onLayout={(e) => (feedY.current = e.nativeEvent.layout.y)}>
           {feed.map((it, idx) =>
-            it.type === 'dep' ? (
+            it.type === 'ong' ? (
+              <CampanhaCard key={'ong' + it.o.ong.id} ong={it.o.ong} c={it.o.c} compacto onOpen={() => setOngAberta(it.o.ong)} />
+            ) : it.type === 'dep' ? (
               <TestimonialCard key={it.t.id} t={it.t} />
             ) : it.type === 'post' ? (
               <View
