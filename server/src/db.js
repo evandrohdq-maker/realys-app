@@ -893,6 +893,17 @@ const MIGRATIONS = [
     updated_at INTEGER NOT NULL
   );
   `,
+  // 33: quem abre o perfil de quem (vira sugestão de amizade e opção no Enviar; nunca é mostrado como "viu seu perfil").
+  `
+  CREATE TABLE profile_views (
+    viewer_id TEXT NOT NULL REFERENCES users(id),
+    owner_id TEXT NOT NULL REFERENCES users(id),
+    vezes INTEGER NOT NULL DEFAULT 1,
+    ultimo_at INTEGER NOT NULL,
+    PRIMARY KEY (viewer_id, owner_id)
+  );
+  CREATE INDEX profile_views_owner ON profile_views(owner_id, ultimo_at DESC);
+  `,
 ];
 
 export function openDb(file) {

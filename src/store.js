@@ -130,6 +130,8 @@ const initialState = {
   friends: initialFriends, // amizades: { id: 'amigo' | 'enviado' | 'recebido' }
   viewProfile: null, // id do membro cujo perfil está aberto (abre por cima de qualquer tela)
   myStories: [], // stories que o próprio usuário publicou
+  savedReels: {}, // Reels salvos (botão Salvar)
+  repostedReels: {},
   storyArchive: [], // Stories salvos: todo story publicado fica aqui (só o dono vê), como no Instagram
   myReels: [], // Reels que o próprio usuário publicou (opção Reel do botão de publicação)
   communityPosts: initialCommunityPosts, // feed da Comunidade (na página de Stories)
@@ -1057,7 +1059,7 @@ function baseReducer(state, a) {
     case 'SET_PRIVACY':
       return { ...state, privacy: { ...state.privacy, ...a.privacy } };
     case 'LOAD_PROFILE':
-      return { ...state, chatLists: a.data.chatLists || state.chatLists, chatMeta: a.data.chatMeta || state.chatMeta, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, userPages: a.data.myUserPages ? [...a.data.myUserPages, ...(state.userPages || []).filter((p) => p.ownerId !== 'me')] : state.userPages, followingPages: a.data.followingPages || state.followingPages, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, autoHorario: a.data.autoHorario != null ? a.data.autoHorario : state.autoHorario, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind, mural: a.data.mural || state.mural, myGallery: a.data.myGallery ? { ...state.myGallery, ...a.data.myGallery } : state.myGallery, gamer: a.data.gamer || state.gamer, storyArchive: a.data.storyArchive || state.storyArchive, extraPerfil: a.data.extraPerfil ? { ...state.extraPerfil, ...a.data.extraPerfil } : state.extraPerfil };
+      return { ...state, chatLists: a.data.chatLists || state.chatLists, chatMeta: a.data.chatMeta || state.chatMeta, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, userPages: a.data.myUserPages ? [...a.data.myUserPages, ...(state.userPages || []).filter((p) => p.ownerId !== 'me')] : state.userPages, followingPages: a.data.followingPages || state.followingPages, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, autoHorario: a.data.autoHorario != null ? a.data.autoHorario : state.autoHorario, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind, mural: a.data.mural || state.mural, myGallery: a.data.myGallery ? { ...state.myGallery, ...a.data.myGallery } : state.myGallery, gamer: a.data.gamer || state.gamer, storyArchive: a.data.storyArchive || state.storyArchive, savedReels: a.data.savedReels || state.savedReels, extraPerfil: a.data.extraPerfil ? { ...state.extraPerfil, ...a.data.extraPerfil } : state.extraPerfil };
     case 'ADD_CREATION':
       return { ...state, creations: [a.item, ...state.creations] };
     case 'UPDATE_CREATION':
@@ -1339,6 +1341,18 @@ function baseReducer(state, a) {
       }
       const nova = { id: 'hl' + Date.now(), title: a.newTitle, cover: a.cover || a.item.image || null, items: [a.item] };
       return { ...state, myGallery: { ...state.myGallery, highlights: [nova, ...hl] } };
+    }
+    // Reels salvos (Perfil › Salvos) e repost (vai para o seu perfil e para a Community).
+    case 'SAVE_REEL': {
+      const sv = { ...(state.savedReels || {}) };
+      if (sv[a.reel.id]) delete sv[a.reel.id];
+      else sv[a.reel.id] = { ...a.reel, at: Date.now() };
+      return { ...state, savedReels: sv };
+    }
+    case 'REPOST_REEL': {
+      if ((state.repostedReels || {})[a.reel.id]) return state;
+      const post = { id: 'rp' + Date.now(), author: a.author, text: `🔁 Repostou o Reel de ${a.reel.user || 'um perfil'}: ${a.reel.title}`, video: typeof a.reel.video === 'string' ? a.reel.video : null, likes: 0, comments: 0, time: 'agora', repost: a.reel.id };
+      return { ...state, repostedReels: { ...(state.repostedReels || {}), [a.reel.id]: true }, communityPosts: [post, ...state.communityPosts] };
     }
     case 'PUBLISH_REEL':
       return { ...state, myReels: [a.reel, ...(state.myReels || [])] };
@@ -2290,7 +2304,7 @@ export function StoreProvider({ children }) {
   }, [profileKey]);
   useEffect(() => {
     if (!profileKey || profileLoaded.current !== profileKey) return;
-    AsyncStorage.setItem(profileKey, JSON.stringify({ _at: Date.now(), chatLists: state.chatLists, chatMeta: state.chatMeta, myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myUserPages: (state.userPages || []).filter((p) => p.ownerId === 'me'), followingPages: state.followingPages, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, autoHorario: state.autoHorario, agendaRemind: state.agendaRemind, mural: state.mural, myGallery: state.myGallery, gamer: state.gamer, storyArchive: state.storyArchive, extraPerfil: state.extraPerfil })).catch(() => {});
+    AsyncStorage.setItem(profileKey, JSON.stringify({ _at: Date.now(), chatLists: state.chatLists, chatMeta: state.chatMeta, myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myUserPages: (state.userPages || []).filter((p) => p.ownerId === 'me'), followingPages: state.followingPages, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, autoHorario: state.autoHorario, agendaRemind: state.agendaRemind, mural: state.mural, myGallery: state.myGallery, gamer: state.gamer, storyArchive: state.storyArchive, savedReels: state.savedReels, extraPerfil: state.extraPerfil })).catch(() => {});
     // Sobe para a conta só o que mudou (alguns segundos depois da última alteração).
     if (!canSync(state.user) || syncBase.current == null) return;
     const data = payloadOf(state);
@@ -2331,7 +2345,7 @@ export function StoreProvider({ children }) {
         .catch(() => {})
         .finally(() => (pending.current = false));
     }, 2500);
-  }, [profileReady, state.autoHorario, state.extraPerfil, state.mural, state.myGallery, state.gamer, state.storyArchive, state.chatLists, state.chatMeta, state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
+  }, [profileReady, state.autoHorario, state.extraPerfil, state.mural, state.myGallery, state.gamer, state.storyArchive, state.savedReels, state.chatLists, state.chatMeta, state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
   // Conta real: o que eu publico (post na Community e story) vai para o servidor, para os amigos verem.
   // Só o que foi publicado nesta sessão (os exemplos e o que já estava salvo não sobem).
   const jaVistos = useRef(null);

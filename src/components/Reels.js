@@ -1,5 +1,6 @@
 // Reels do Realyz (estilo Instagram): vídeo vertical em tela cheia, arrasta para cima para o próximo.
-// Toque pausa, toque duplo curte. Do lado: loja, curtir, comentar, enviar e som.
+// Toque pausa, toque duplo curte. Do lado: curtir, comentar, repostar, enviar (para amigos), salvar, mais e som.
+// Embaixo: foto com anel dourado, nome verificado e Seguir.
 // Embaixo: loja verificada, título e o produto com o botão Comprar (Shop) ou Pedir (Food).
 // Assistiu até o fim, ganha pontos Realyz (uma vez por Reel).
 import { addOrChoose, openProduct } from './ProductSheet';
@@ -19,6 +20,9 @@ import { Photo, ProductThumb } from './ui';
 import { CLIP_POINTS, shortNum } from '../adsData';
 import { useOpenPerson } from '../openPerson';
 import { memberById, memberByName } from '../people';
+import EnviarSheet from './EnviarSheet';
+import { isServerUserId } from '../openPerson';
+import { api } from '../api';
 
 // expo-video só existe no APK novo: sem ele, os Reels mostram a capa (não fecham o app).
 let EV = null;
@@ -92,6 +96,8 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
   const [comments, setComments] = useState(null); // null = fechado
   const [list, setList] = useState(SEED_COMMENTS);
   const [draft, setDraft] = useState('');
+  const [enviar, setEnviar] = useState(false);
+  const [seguindo, setSeguindo] = useState(false);
   const prog = useRef(new Animated.Value(0)).current;
   const lastTap = useRef(0);
   const tapTimer = useRef(null);
@@ -176,6 +182,35 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
       { text: 'Ver carrinho', onPress: () => { onClose && onClose(); dispatch({ type: 'OPEN_CART' }); } },
     ]);
   };
+  // Salvar, repostar e seguir (como no Instagram, com as cores do Realyz).
+  const salvo = !!(state.savedReels || {})[reel.id];
+  const repostado = !!(state.repostedReels || {})[reel.id];
+  const salvar = () => dispatch({ type: 'SAVE_REEL', reel: { id: reel.id, title: reel.title, user: owner, poster: typeof reel.poster === 'string' ? reel.poster : null, video: typeof reel.video === 'string' ? reel.video : null } });
+  const repostar = () => {
+    if (repostado) return Alert.alert('Repost', 'Você já repostou este Reel no seu perfil.');
+    dispatch({ type: 'REPOST_REEL', reel, author: (state.user && state.user.name) || 'Você' });
+    Alert.alert('Repostado 🔁', 'Este Reel foi para o seu perfil e para a Community.');
+  };
+  const pessoaId = reel.userId || null;
+  const jaSegue = reel.user ? seguindo || (pessoaId && ['amigo', 'enviado'].includes((state.friends || {})[pessoaId])) : !!(state.following || {})[reel.storeId];
+  const seguir = () => {
+    if (reel.user) {
+      setSeguindo(true);
+      if (isServerUserId(pessoaId)) return api('POST', `/friends/${pessoaId}`).catch(() => setSeguindo(false));
+      return;
+    }
+    if (reel.storeId) dispatch({ type: 'FOLLOW', id: reel.storeId });
+  };
+  const mais = () =>
+    Alert.alert('Reel', reel.title, [
+      { text: salvo ? 'Tirar dos salvos' : 'Salvar', onPress: salvar },
+      { text: muted ? 'Ligar o som' : 'Tirar o som', onPress: onMute },
+      { text: 'Não tenho interesse', onPress: () => Alert.alert('Entendido', 'Vamos mostrar menos Reels assim para você.') },
+      { text: 'Denunciar', style: 'destructive', onPress: () => Alert.alert('Denúncia enviada', 'Obrigado. A equipe do Realyz vai analisar este Reel.') },
+      { text: 'Fechar', style: 'cancel' },
+    ]);
+  const n = (base, extra) => shortNum((base || 0) + (extra ? 1 : 0));
+
   const send = () => {
     const t = draft.trim();
     if (!t) return;
@@ -207,55 +242,58 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
         </View>
       ) : null}
 
-      {/* Lado direito */}
-      <View style={[styles.side, { bottom: 150 + (p || prov || ad ? 0 : -60) }]}>
-        {reel.user ? (
-          <TouchableOpacity style={styles.avatar} onPress={openUser} accessibilityLabel={`Ver perfil de ${reel.user}`}>
-            {userM && userM.photo ? (
-              <Photo uri={userM.photo} style={{ width: '100%', height: '100%', borderRadius: 999 }} fallback="🙂" />
-            ) : (
-              <Text style={{ fontSize: 20, fontWeight: '800', color: colors.primaryDark }}>{String(reel.user).charAt(0).toUpperCase()}</Text>
-            )}
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity style={styles.avatar} onPress={openOwner} accessibilityLabel={`Abrir ${owner}`}>
-            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontSize: 22 }}>{prov ? '🛠️' : ad ? '🏷️' : s.logo || '🏪'}</Text>
-          </TouchableOpacity>
-        )}
+      {/* Lado direito (como no Instagram): curtir, comentar, repostar, enviar, salvar, mais e o som. */}
+      <View style={[styles.side, { bottom: 120 + (p || prov || ad ? 60 : 0) }]}>
         <TouchableOpacity style={styles.sideBtn} onPress={like} accessibilityLabel="Curtir">
           <Ionicons name={liked ? 'heart' : 'heart-outline'} size={31} color={liked ? '#FF3B5C' : '#fff'} />
-          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.sideText}>{shortNum((reel.likes || 0) + (liked ? 1 : 0))}</Text>
+          <Text numberOfLines={1} style={styles.sideText}>{n(reel.likes, liked)}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.sideBtn} onPress={() => setComments(true)} accessibilityLabel="Comentários">
           <Ionicons name="chatbubble-outline" size={28} color="#fff" />
-          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.sideText}>{list.length}</Text>
+          <Text numberOfLines={1} style={styles.sideText}>{shortNum((reel.comments || 0) + list.length)}</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.sideBtn}
-          onPress={() => Share.share({ message: `${reel.title} · ${owner} no Realyz\nRealyz · Pessoas reais. Negócios reais.` }).catch(() => {})}
-          accessibilityLabel="Enviar"
-        >
+        <TouchableOpacity style={styles.sideBtn} onPress={repostar} accessibilityLabel="Repostar">
+          <Ionicons name="repeat" size={29} color={repostado ? '#F5C331' : '#fff'} />
+          <Text numberOfLines={1} style={styles.sideText}>{n(reel.reposts, repostado)}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.sideBtn} onPress={() => (setPaused(true), setEnviar(true))} accessibilityLabel="Enviar para amigos">
           <Ionicons name="paper-plane-outline" size={27} color="#fff" />
-          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.sideText}>Enviar</Text>
+          <Text numberOfLines={1} style={styles.sideText}>{shortNum(reel.shares || 0)}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.sideBtn} onPress={onMute} accessibilityLabel={muted ? 'Ligar o som' : 'Tirar o som'}>
-          <Ionicons name={muted ? 'volume-mute-outline' : 'volume-high-outline'} size={26} color="#fff" />
+        <TouchableOpacity style={styles.sideBtn} onPress={salvar} accessibilityLabel={salvo ? 'Tirar dos salvos' : 'Salvar'}>
+          <Ionicons name={salvo ? 'bookmark' : 'bookmark-outline'} size={27} color={salvo ? '#F5C331' : '#fff'} />
+          <Text numberOfLines={1} style={styles.sideText}>{n(reel.saves, salvo)}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.sideBtn} onPress={mais} accessibilityLabel="Mais opções">
+          <Ionicons name="ellipsis-vertical" size={22} color="#fff" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.som} onPress={onMute} accessibilityLabel={muted ? 'Ligar o som' : 'Tirar o som'}>
+          {reel.poster ? <Image source={reel.poster} style={StyleSheet.absoluteFill} resizeMode="cover" /> : null}
+          <Ionicons name={muted ? 'volume-mute' : 'musical-notes'} size={15} color="#fff" />
         </TouchableOpacity>
       </View>
 
       {/* Embaixo: loja, título e produto */}
       <View style={styles.bottom}>
-        {reel.user ? (
-          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start' }} onPress={openUser} accessibilityLabel={`Ver perfil de ${reel.user}`}>
-            <Text numberOfLines={1} style={styles.store}>{reel.user}</Text>
-            <Ionicons name="shield-checkmark" size={13} color="#F5C331" style={{ marginLeft: 5 }} />
+        {/* Quem postou: foto com o anel dourado, nome, selo de verificado e Seguir. */}
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity style={styles.ring} onPress={reel.user ? openUser : openOwner} accessibilityLabel={`Abrir ${owner}`}>
+            {reel.user ? (
+              userM && userM.photo ? <Photo uri={userM.photo} style={styles.ringImg} fallback="🙂" /> : <View style={[styles.ringImg, { backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }]}><Text style={{ fontWeight: '800', color: colors.primaryDark }}>{String(reel.user).charAt(0).toUpperCase()}</Text></View>
+            ) : (
+              <View style={[styles.ringImg, { backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }]}><Text style={{ fontSize: 18 }}>{prov ? '🛠️' : ad ? '🏷️' : s.logo || '🏪'}</Text></View>
+            )}
           </TouchableOpacity>
-        ) : (
-          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={openOwner}>
-            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.store}>{owner}</Text>
-            <Ionicons name="shield-checkmark" size={13} color="#F5C331" style={{ marginLeft: 5 }} />
+          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 1 }} onPress={reel.user ? openUser : openOwner}>
+            <Text numberOfLines={1} style={styles.store}>{owner}</Text>
+            <Ionicons name="shield-checkmark" size={14} color="#F5C331" style={{ marginLeft: 5 }} />
           </TouchableOpacity>
-        )}
+          {(reel.user || reel.storeId) && reel.kind !== 'user-me' && reel.user !== (state.user && state.user.name) ? (
+            <TouchableOpacity style={[styles.seguir, jaSegue && { borderColor: 'rgba(255,255,255,0.4)' }]} onPress={jaSegue ? undefined : seguir} accessibilityLabel={jaSegue ? 'Seguindo' : `Seguir ${owner}`}>
+              <Text style={styles.seguirText}>{jaSegue ? 'Seguindo' : 'Seguir'}</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
         <Text style={styles.sponsor}>{reel.user ? 'Pessoa verificada por biometria' : prov ? 'Patrocinado · prestador verificado' : ad ? 'Patrocinado · anunciante verificado' : 'Patrocinado · CNPJ verificado'}</Text>
         {reel.ia ? <Text style={{ color: '#C9C2FF', fontWeight: '800', fontSize: 12, marginTop: 2 }}>✦ Feito com IA</Text> : null}
         <Text style={styles.title} numberOfLines={2}>{reel.title}</Text>
@@ -290,6 +328,8 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
       <View style={styles.progBg}>
         <Animated.View style={[styles.progFill, { width: prog.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'], extrapolate: 'clamp' }) }]} />
       </View>
+
+      <EnviarSheet visible={enviar} onClose={() => (setEnviar(false), setPaused(false))} titulo={reel.title} texto={`🎬 Reel de ${owner}: ${reel.title}`} />
 
       <Modal visible={!!comments} transparent animationType="slide" onRequestClose={() => setComments(null)}>
         <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' }} onPress={() => setComments(null)} />
@@ -402,8 +442,13 @@ const styles = StyleSheet.create({
   side: { position: 'absolute', right: 10, alignItems: 'center' },
   avatar: { width: 46, height: 46, borderRadius: 23, overflow: 'hidden', backgroundColor: '#fff', borderWidth: 2, borderColor: '#F5C331', alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
   sideBtn: { alignItems: 'center', marginBottom: 18 },
-  sideText: { color: '#fff', fontSize: 12, fontWeight: '700', marginTop: 2 },
-  bottom: { position: 'absolute', left: 14, right: 74, bottom: 22 },
+  sideText: { color: '#fff', fontSize: 12, fontWeight: '700', marginTop: 2, textShadowColor: 'rgba(0,0,0,0.5)', textShadowRadius: 3 },
+  som: { width: 34, height: 34, borderRadius: 8, borderWidth: 2, borderColor: '#fff', overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: '#14120E' },
+  ring: { width: 44, height: 44, borderRadius: 22, borderWidth: 2.5, borderColor: '#F5C331', padding: 2, marginRight: 8 },
+  ringImg: { width: '100%', height: '100%', borderRadius: 999, overflow: 'hidden' },
+  seguir: { marginLeft: 10, borderWidth: 1.5, borderColor: '#fff', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 4 },
+  seguirText: { color: '#fff', fontWeight: '800', fontSize: 13 },
+  bottom: { position: 'absolute', left: 14, right: 70, bottom: 22 },
   store: { color: '#fff', fontWeight: '800', fontSize: 15 },
   sponsor: { color: 'rgba(255,255,255,0.8)', fontSize: 11, marginTop: 1 },
   title: { color: '#fff', fontSize: 14, marginTop: 6, fontWeight: '600' },

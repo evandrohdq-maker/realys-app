@@ -70,6 +70,10 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
 
   r.get('/users/:id', ({ params, user }) => {
     const u = target(params.id);
+    // Conta a visita ao perfil (para sugestões de amizade). Nunca conta a própria.
+    if (u.id !== user.id) {
+      db.prepare('INSERT INTO profile_views (viewer_id, owner_id, vezes, ultimo_at) VALUES (?,?,1,?) ON CONFLICT(viewer_id, owner_id) DO UPDATE SET vezes = vezes + 1, ultimo_at = excluded.ultimo_at').run(user.id, u.id, now());
+    }
     const f = friendship(user.id, u.id);
     const visible = canSeeSocial(user, u);
     return {
@@ -86,6 +90,18 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
       ...(visible ? perfilSocial(u.id) : {}),
     };
   });
+
+  // Sugestões de amizade: quem abre o seu perfil (mais vezes e mais recente primeiro) e ainda não é
+  // seu amigo nem tem pedido pendente. Aparece como "Pessoas que talvez você conheça", sem dizer quem
+  // viu o perfil de quem.
+  r.get('/me/sugestoes', ({ user }) =>
+    db.prepare(
+      `SELECT u.*, v.vezes, v.ultimo_at FROM profile_views v JOIN users u ON u.id = v.viewer_id
+       WHERE v.owner_id = ? AND u.status = 'ativo' AND u.kind != 'sistema'
+         AND NOT EXISTS (SELECT 1 FROM friends f WHERE (f.a_id = v.viewer_id AND f.b_id = v.owner_id) OR (f.a_id = v.owner_id AND f.b_id = v.viewer_id))
+       ORDER BY v.vezes DESC, v.ultimo_at DESC LIMIT 12`
+    ).all(user.id).map((u) => ({ ...pub(u), friend: null }))
+  );
 
   // ── Amizades ──
   r.post('/friends/:id', ({ params, user }) => {

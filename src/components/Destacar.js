@@ -4,7 +4,7 @@
 // Dá para escolher já na hora de publicar (Nova publicação, Novo Reel) ou depois: no story
 // (botão Destacar), no post (ícone de destaque) e nos Stories salvos (arquivo).
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, Image as RNImage } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, TextInput } from '../responsive';
@@ -185,3 +185,31 @@ Object.assign(st, StyleSheet.create({
   destBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 4, paddingVertical: 3 },
   destText: { color: colors.primary, fontWeight: '700', fontSize: 12, marginLeft: 3 },
 }));
+
+// Reels salvos (botão Salvar dos Reels e do Trends): só o dono vê. Toca e abre o Reel.
+export function ReelsSalvos() {
+  const { state } = useStore();
+  const { ReelsViewer } = require('./Reels');
+  const ads = require('../adsData');
+  const [abrir, setAbrir] = useState(null);
+  const todos = [...(state.myReels || []), ...ads.COMMUNITY_CLIPS, ...ads.SHOP_CLIPS, ...ads.FOOD_CLIPS, ...ads.MERCADO_CLIPS, ...ads.SERVICE_CLIPS, ...ads.NEGOCIO_CLIPS];
+  const salvos = Object.values(state.savedReels || {}).sort((a, b) => (b.at || 0) - (a.at || 0));
+  const lista = salvos.map((x) => todos.find((r) => r.id === x.id) || x).filter((r) => r.video || r.poster);
+  if (!salvos.length) return <Text style={st.small}>Toque no marcador dos Reels para salvar. Eles ficam aqui, só para você.</Text>;
+  return (
+    <View>
+      <View style={st.wrap}>
+        {lista.slice(0, 60).map((r, i) => (
+          <TouchableOpacity key={r.id} style={st.cel} onPress={() => setAbrir(i)} accessibilityLabel={`Abrir ${r.title}`}>
+            <View style={[st.thumb, { backgroundColor: '#14120E' }]}>
+              {r.poster ? (typeof r.poster === 'string' ? <ImageThumb uri={r.poster} /> : <RNImage source={r.poster} style={StyleSheet.absoluteFill} resizeMode="cover" />) : null}
+              <Ionicons name="play" size={22} color="#fff" />
+            </View>
+            <Text numberOfLines={1} style={[st.small, { marginTop: 3 }]}>{r.title}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <ReelsViewer reels={lista} index={abrir} onClose={() => setAbrir(null)} />
+    </View>
+  );
+}

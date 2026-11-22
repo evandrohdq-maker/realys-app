@@ -32,7 +32,7 @@ import { ProfileEditor, PrivacyPanel, StudioPanel, FutureIcon, audienceLabel, co
 import { ShowsPanel } from '../components/ArtistShowEditor';
 import { isArtistClass } from '../artistShows';
 import { GamerPanel } from '../components/GamerProfile';
-import { StoriesSalvos } from '../components/Destacar';
+import { StoriesSalvos, ReelsSalvos } from '../components/Destacar';
 import { segOfService } from '../providerSegments';
 
 // Perfil responsivo pela função: cada classe vê só as ferramentas dela.
@@ -427,6 +427,11 @@ export default function ProfileScreen({ navigate, explore }) {
         {state.activeRole !== 'empresa' ? (
           <Item open={open} onToggle={toggle} k="salvos" icon="archive-outline" title="Stories salvos" sub={`${(state.storyArchive || []).length} guardados · só você vê`}>
             <StoriesSalvos />
+          </Item>
+        ) : null}
+        {state.activeRole !== 'empresa' ? (
+          <Item open={open} onToggle={toggle} k="reelsSalvos" icon="bookmark-outline" title="Salvos" sub={`${Object.keys(state.savedReels || {}).length} Reels salvos · só você vê`}>
+            <ReelsSalvos />
           </Item>
         ) : null}
         {/* Perfil gamer: jogos, nick, rank, plataformas, procurando time e contratação (só classe Gamer). */}

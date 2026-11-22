@@ -662,6 +662,14 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
           ) : null}
           {q.trim() && srv.loading && !srv.found.length ? <Text style={styles.tip}>Procurando nas contas do Realyz…</Text> : null}
           {q.trim() && srv.err ? <Text style={styles.tip}>Não consegui buscar nas contas do Realyz ({srv.err}). Puxe para atualizar ou tente de novo.</Text> : null}
+          {!q.trim() && srv.sugestoes.length ? (
+            <>
+              <Text style={styles.section}>Pessoas que talvez você conheça</Text>
+              {srv.sugestoes.map((u) => (
+                <ServerPersonRow key={u.id} u={u} onFriend={srv.setFriend} />
+              ))}
+            </>
+          ) : null}
           {!q.trim() && srv.requests.length ? (
             <>
               <Text style={styles.section}>Pedidos de amizade de contas reais ({srv.requests.length})</Text>
@@ -749,6 +757,11 @@ function useServerPeople(q) {
     return () => ((alive = false), clearTimeout(t));
   }, [on, term]);
   const loadRequests = () => (on ? api('GET', '/friends').then((l) => setRequests((l || []).filter((u) => u.friend === 'recebido'))).catch(() => {}) : null);
+  // Sugestões de amizade: quem abre o seu perfil e ainda não é seu amigo (sem dizer quem viu).
+  const [sugestoes, setSugestoes] = useState([]);
+  useEffect(() => {
+    if (on) api('GET', '/me/sugestoes').then((l) => setSugestoes((l || []).map((u) => ({ ...u, photo: u.photo && u.photo.startsWith('/') ? API_URL + u.photo : u.photo })))).catch(() => {});
+  }, [on]);
   useEffect(() => {
     loadRequests();
   }, [on]);
@@ -763,7 +776,7 @@ function useServerPeople(q) {
   const known = term.length >= 2 ? [...myFriends, ...received, ...sent].filter((u) => `${u.name} ${u.username || ''}`.toLowerCase().includes(low)) : [];
   const ids = new Set(found.map((u) => u.id));
   const all = [...found, ...known.filter((u) => !ids.has(u.id))];
-  return { on, found: all, requests, loading, err, setFriend };
+  return { on, found: all, requests, sugestoes: sugestoes.filter((u) => !requests.some((r) => r.id === u.id)), loading, err, setFriend: (id, friend) => (setFriend(id, friend), friend && setSugestoes((l) => l.filter((u) => u.id !== id))) };
 }
 
 function ServerPersonRow({ u, onFriend }) {
