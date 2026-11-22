@@ -54,7 +54,7 @@ function MyStory({ onGo }) {
       <TouchableOpacity onPress={() => onGo && onGo({ tab: 'stories', top: 'comunidade', story: 'add' })} style={st.myPlus} accessibilityLabel="Publicar: post, Reel, story ou depoimento">
         <Ionicons name="add" size={18} color="#fff" />
       </TouchableOpacity>
-      <Text style={st.myLabel} numberOfLines={1}>Seu story</Text>
+      <Text style={st.myLabel} numberOfLines={1}>Stories</Text>
     </View>
   );
 }

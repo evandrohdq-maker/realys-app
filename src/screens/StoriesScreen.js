@@ -146,7 +146,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
             <TouchableOpacity onPress={() => setAdding(true)} style={[styles.mePlus, { width: 28, height: 28, borderRadius: 14, right: Math.max(4, (itemW - avMeu - 18) / 2 - 2), bottom: 22 }]} accessibilityLabel="Adicionar conteúdo">
               <Ionicons name="add" size={18} color="#fff" />
             </TouchableOpacity>
-            <Text numberOfLines={1} style={[styles.name, { color: colors.primary, fontWeight: '800', maxWidth: itemW - 8 }]}>Seu story</Text>
+            <Text numberOfLines={1} style={[styles.name, { color: colors.primary, fontWeight: '800', maxWidth: itemW - 8 }]}>Stories</Text>
           </View>
           )}
           {[...fresh, ...old].map((g) => {
