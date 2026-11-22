@@ -10,7 +10,7 @@ import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf } from '../../../store';
 import { soft, colors, brl } from '../../../theme';
-import { Screen, Photo, ProductThumb, Badge } from '../../../components/ui';
+import { Screen, Photo, PostPhoto, ProductThumb, Badge } from '../../../components/ui';
 import { venueOfEvent, freeTable, ticketPrice } from '../../../venueData';
 import { promos, listings, LISTING_KINDS, LISTING_CTA, communityPosts, contacts, lives, events, EVENT_GROUPS } from '../../../homeData';
 import { comprarIngresso } from '../../../serverEvents';
@@ -876,7 +876,7 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
                 {/* Tocar na foto abre ela grande, em destaque (src/components/MediaViewer.js). */}
                 {it.p.image ? (
                   <TouchableOpacity activeOpacity={0.92} onPress={() => openMedia([{ photo: it.p.image, title: it.p.author, sub: it.p.text }])} accessibilityLabel={`Ver a foto de ${it.p.author}`}>
-                    <Photo uri={it.p.image} style={styles.postImg} />
+                    <PostPhoto uri={it.p.image} style={styles.postImg} />
                   </TouchableOpacity>
                 ) : null}
                 {it.p.video ? (
@@ -947,7 +947,7 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
                   <Text style={{ color: colors.text, fontWeight: '700' }}>{it.p.author}</Text>
                   <Badge label="Patrocinado" color={colors.sponsored} />
                 </View>
-                <Photo uri={it.p.image} style={styles.postImg} />
+                <PostPhoto uri={it.p.image} style={styles.postImg} />
                 <Text style={{ color: colors.text, marginTop: 8 }}>{it.p.text}</Text>
               </View>
             )
@@ -1185,7 +1185,7 @@ const styles = StyleSheet.create({
   publish: { alignSelf: 'flex-end', height: 36, paddingHorizontal: 16, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
   post: { backgroundColor: colors.card, borderRadius: 18, padding: 12, marginBottom: 12, ...soft },
   avatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  postImg: { width: '100%', height: 200, borderRadius: 14, marginTop: 10 },
+  postImg: { width: '100%', height: 200, borderRadius: 14, marginTop: 10, overflow: 'hidden' },
   postAct: { flexDirection: 'row', alignItems: 'center', marginRight: 18 },
   postActText: { color: colors.muted, fontSize: 12, marginLeft: 5 },
   convRow: {

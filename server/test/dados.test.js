@@ -43,3 +43,16 @@ test('perfil salvo num aparelho volta igual no outro, e foto/sobre vão para o p
   assert.equal((await call('GET', '/me', ana.accessToken)).user.photo, '/media/md_abc123');
   await assert.rejects(call('PUT', '/me/dados', ana.accessToken, { data: [] }), /400/);
 });
+
+test('busca de pessoas: por nome, *usuário, #usuário e ID', async () => {
+  const ana = await call('POST', '/auth/login', null, { login: 'anasouza', password: 'senha1234' }).catch(() => null);
+  const edu = await call('POST', '/auth/signup', null, { kind: 'pessoa', name: 'Eduardo Horveler', doc: '11144477735', username: 'eduardo_ph', email: 'edu@teste.com', password: 'senha1234', nascimento: '10/05/1990', aceiteTermos: TERMO_ADESAO_VERSAO });
+  const tok = edu.accessToken;
+  const bia = await call('POST', '/auth/signup', null, { kind: 'pessoa', name: 'Bia Lopes', doc: '39053344705', username: 'bialopes', email: 'bia@teste.com', password: 'senha1234', nascimento: '10/05/1990', aceiteTermos: TERMO_ADESAO_VERSAO });
+  for (const q of ['edu', 'Eduardo Horveler', '*eduardo_ph', '#eduardo_ph', '@EDUARDO_PH', edu.user.id]) {
+    const l = await call('GET', `/users?q=${encodeURIComponent(q)}`, bia.accessToken);
+    assert.equal(l[0] && l[0].id, edu.user.id, `achou com "${q}"`);
+  }
+  assert.equal((await call('GET', '/users?q=e_p', tok)).length, 0, '_ não vira coringa');
+  void ana;
+});

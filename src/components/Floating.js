@@ -2,7 +2,7 @@
 // Para arrastar: segure o dedo em cima dela (um instante) e arraste. Um toque rápido continua
 // valendo para os botões de dentro. Ao soltar, ela para dentro da tela.
 import React, { useMemo, useRef, useState } from 'react';
-import { Animated, PanResponder, useWindowDimensions } from 'react-native';
+import { Animated, PanResponder, useWindowDimensions, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const HOLD_MS = 300; // tempo segurando para "pegar" a janela
@@ -64,8 +64,22 @@ export default function Floating({ place, style, children, bottomGap = 0, full =
     [],
   );
 
+  // Tela cheia: presa nas quatro bordas (não pela medida da janela, que no giro do celular chega
+  // atrasada e deixava uma faixa vazia de um lado). No site, ocupa a janela inteira do navegador.
   if (full)
-    return <Animated.View style={[style, { position: 'absolute', top: 0, left: 0, width: win.width, height: win.height, borderRadius: 0, borderWidth: 0, zIndex: 9999, elevation: 99 }]}>{children}</Animated.View>;
+    return (
+      <Animated.View
+        style={[
+          style,
+          Platform.OS === 'web'
+            ? { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh' }
+            : { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: undefined, height: undefined },
+          { borderRadius: 0, borderWidth: 0, margin: 0, zIndex: 9999, elevation: 99 },
+        ]}
+      >
+        {children}
+      </Animated.View>
+    );
   return (
     <Animated.View
       {...pan.panHandlers}

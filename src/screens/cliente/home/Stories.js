@@ -6,7 +6,7 @@ import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../../theme';
-import { Photo } from '../../../components/ui';
+import { Photo, StoryPhoto } from '../../../components/ui';
 import { STORY_BACKGROUNDS, STORY_SAMPLE_PHOTOS } from '../../../homeData';
 import { useStore } from '../../../store';
 import * as ImagePicker from 'expo-image-picker';
@@ -149,7 +149,7 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
           </View>
         ) : item.image ? (
           <View style={StyleSheet.absoluteFill}>
-            <Photo uri={item.image} style={[StyleSheet.absoluteFill, effectStyle(item.effect)]} fallback="🌅" />
+            <StoryPhoto uri={item.image} extra={effectStyle(item.effect)} fallback="🌅" />
             <StoryEffectOverlay effect={item.effect} onImage />
           </View>
         ) : (
@@ -324,7 +324,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
       <View style={{ flex: 1, backgroundColor: media ? '#000' : bg || STORY_PLAIN }}>
         {media && media.kind === 'video' && EV ? <View style={StyleSheet.absoluteFill}><StoryVideo key={media.uri} uri={media.uri} loop muted={!!music} paused={false} style={StyleSheet.absoluteFill} /><StoryEffectOverlay effect={effect} /></View> : null}
         {visible && music && !picking ? <StoryMusicPlayer music={music} paused={false} /> : null}
-        {media && media.kind === 'image' ? <View style={StyleSheet.absoluteFill}><Image source={{ uri: media.uri }} style={[StyleSheet.absoluteFill, fx]} /><StoryEffectOverlay effect={effect} onImage /></View> : null}
+        {media && media.kind === 'image' ? <View style={StyleSheet.absoluteFill}><StoryPhoto uri={media.uri} extra={fx} /><StoryEffectOverlay effect={effect} onImage /></View> : null}
         <View style={[styles.composerTop, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity style={styles.close} onPress={media ? () => setMedia(null) : onClose} accessibilityLabel={media ? 'Tirar a foto ou o vídeo' : 'Cancelar'}>
             <Ionicons name={media ? 'arrow-back' : 'close'} size={24} color={ink} />
