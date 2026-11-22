@@ -22,7 +22,7 @@ import { stem } from '../search';
 import { businessOf, ratingOf } from '../companyBusiness';
 import { members } from '../people';
 import { checkText, matchFalse, ASK_TRUTH } from './factCheck';
-import { profExplica, MEI_PASSOS } from '../professionsKnowledge';
+import { profExplica, MEI_PASSOS, MEI_VALORES, formatReais } from '../professionsKnowledge';
 import { buscarProfissoes } from '../providerSegments';
 
 // O que a Lotus pode e não pode fazer com o que aprende. Aparece para o administrador.
@@ -397,6 +397,14 @@ const PROF_Q = /\b(como (funciona|trabalha)|o que (faz|fazem)|que faz|precisa de
 const MEI_Q = /\b(abrir|abro|criar|fazer|tirar)\b.*\bmei\b|\bmei\b.*\b(abrir|abro|criar|tirar)\b|\bcomo (ter|tirar) (um )?cnpj\b/;
 export function professionAnswer(state, text) {
   const t = norm(text);
+  // Quanto paga / quanto pode faturar no MEI (aproximado).
+  if (/\bmei\b/.test(t) && /\b(das|quanto (paga|custa|e|fica)|mensalidade|imposto|faturar|faturamento|limite|teto)\b/.test(t)) {
+    const V = MEI_VALORES;
+    return {
+      knowledge: true,
+      reply: `Em ${V.ano}, o DAS do MEI fica em torno de ${formatReais(V.das.servico)} por mês para quem presta serviço e de ${formatReais(V.das.comercio)} a ${formatReais(V.das.misto)} para comércio ou indústria. O limite de faturamento é ${formatReais(V.limiteAno)} por ano, uns ${formatReais(V.limiteAno / 12)} por mês, e sobe para ${formatReais(V.proximos[0].limite)} em ${V.proximos[0].ano}. São valores aproximados: o exato aparece no Portal do Empreendedor.`,
+    };
+  }
   if (MEI_Q.test(t)) {
     return { knowledge: true, reply: `Abrir o MEI é grátis e sai na hora. ${MEI_PASSOS.slice(1, 5).map((p, i) => `${i + 1}. ${p.t}`).join('. ')}. O endereço oficial é gov.br/mei. Quer que eu diga a ocupação certa da sua profissão?` };
   }

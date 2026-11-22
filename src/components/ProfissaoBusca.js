@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text, TextInput } from '../responsive';
 import { colors } from '../theme';
 import { buscarProfissoes, profissaoPorKey, funcoesSugeridas } from '../providerSegments';
-import { profInfo, MEI_PASSOS } from '../professionsKnowledge';
+import { profInfo, MEI_PASSOS, MEI_VALORES, dasDaProfissao, calcFaturamento, formatReais } from '../professionsKnowledge';
 
 // value = chave da profissão escolhida (ou null). onPick(prof | null). livre: aceita o que digitou.
 export default function ProfissaoBusca({ value, onPick, placeholder = 'Digite sua profissão (ex.: eletricista, cantor)', livre, autoFocus }) {
@@ -142,6 +142,45 @@ export function ProfissaoInfo({ profKey, onMei }) {
   );
 }
 
+// Conta aproximada: quanto fica o DAS da profissão e se o faturamento cabe no MEI.
+function MeiConta({ profKey }) {
+  const [mes, setMes] = useState('');
+  const [meses, setMeses] = useState(12);
+  const das = dasDaProfissao(profKey);
+  const v = Number(String(mes).replace(/\./g, '').replace(',', '.')) || 0;
+  const r = v ? calcFaturamento(v, meses) : null;
+  const cor = r ? (r.situacao === 'cabe' ? colors.success : r.situacao === 'passou_pouco' ? '#B7791F' : colors.danger) : colors.text;
+  return (
+    <View style={st.conta}>
+      <Text style={st.passoT}>Quanto custa por mês (aproximado)</Text>
+      <Text style={st.infoText}>DAS {MEI_VALORES.ano}: {das.texto}. É 5% do salário mínimo (R$ {MEI_VALORES.salarioMinimo.toLocaleString('pt-BR')}) para o INSS, mais o imposto fixo da atividade.</Text>
+      <Text style={[st.passoT, { marginTop: 10 }]}>Quanto você pode faturar</Text>
+      <Text style={st.infoText}>Até {formatReais(MEI_VALORES.limiteAno)} por ano em {MEI_VALORES.ano} (média de {formatReais(MEI_VALORES.limiteAno / 12)} por mês). Sobe para {MEI_VALORES.proximos.map((p) => `${formatReais(p.limite)} em ${p.ano}`).join(' e ')}.</Text>
+      <View style={[st.novo, { marginTop: 8, marginBottom: 6 }]}>
+        <Text style={{ color: colors.muted }}>R$</Text>
+        <TextInput style={[st.novoInput, { marginLeft: 6 }]} value={mes} onChangeText={setMes} keyboardType="decimal-pad" placeholder="Quanto você fatura por mês (mais ou menos)" placeholderTextColor={colors.muted} />
+      </View>
+      <View style={st.wrap}>
+        {[12, 6, 3].map((n) => (
+          <TouchableOpacity key={n} onPress={() => setMeses(n)} style={[st.tag, meses === n && st.tagOn]} accessibilityLabel={`${n} meses`}>
+            <Text style={[st.tagText, meses === n && { color: colors.primaryDark, fontWeight: '800' }]}>{n === 12 ? 'Ano inteiro' : `Abro e trabalho ${n} meses`}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      {r ? (
+        <Text style={{ color: cor, fontWeight: '700', marginTop: 4 }}>
+          {r.situacao === 'cabe'
+            ? `Cabe no MEI: ${formatReais(r.ano)} no período, limite de ${formatReais(r.limite)}.`
+            : r.situacao === 'passou_pouco'
+            ? `Passa do limite (${formatReais(r.ano)} de ${formatReais(r.limite)}), mas até 20%: paga a diferença do imposto e sai do MEI no ano seguinte.`
+            : `Passa muito do limite (${formatReais(r.ano)} de ${formatReais(r.limite)}): o melhor é abrir uma microempresa (ME) com um contador.`}
+        </Text>
+      ) : null}
+      <Text style={[st.infoText, { marginTop: 6, fontSize: 11.5 }]}>Valores aproximados de {MEI_VALORES.ano}. O valor exato da sua guia aparece no Portal do Empreendedor.</Text>
+    </View>
+  );
+}
+
 // Passo a passo para abrir o MEI (gratuito, no gov.br), com a ocupação certa da profissão.
 export function MeiGuia({ visible, onClose, profKey }) {
   const i = profKey ? profInfo(profKey) : null;
@@ -157,6 +196,7 @@ export function MeiGuia({ visible, onClose, profKey }) {
         <Text style={st.infoText}>É grátis, pelo celular, e o CNPJ sai na hora. Com o CNPJ você vende e presta serviço no Realyz com nota e mais confiança.</Text>
         {i && i.mei === false ? <Text style={[st.aviso]}>Sua profissão é regulamentada e não pode ser MEI. Você pode trabalhar no Realyz com o seu registro profissional.</Text> : null}
         {i && i.mei ? <Text style={st.aviso}>Sua ocupação no MEI: {i.mei.ocupacao} (CNAE {i.mei.cnae}).</Text> : null}
+        <MeiConta profKey={profKey} />
         {MEI_PASSOS.map((p, n) => (
           <View key={p.t} style={st.passo}>
             <View style={st.num}><Text style={{ color: colors.onPrimary, fontWeight: '900' }}>{n + 1}</Text></View>
@@ -188,5 +228,6 @@ Object.assign(st, StyleSheet.create({
   passo: { flexDirection: 'row', marginTop: 14 },
   num: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   passoT: { color: colors.text, fontWeight: '800', fontSize: 15, marginBottom: 2 },
+  conta: { marginTop: 14, padding: 12, borderRadius: 14, backgroundColor: '#fff', borderWidth: 1, borderColor: colors.border },
   cta: { backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 20 },
 }));

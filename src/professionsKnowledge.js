@@ -237,6 +237,40 @@ export function profExplica(key, label) {
   return `${label}: ${i.como} No Realyz, ${i.atendeTexto}, e cobra por ${i.cobra.join(' ou por ')}. Faz, por exemplo: ${i.funcoes.slice(0, 4).join(', ')}.${i.exige ? ` Exige: ${i.exige}.` : ''}${meiTxt}`;
 }
 
+// Valores do MEI (aproximados; o oficial é sempre o do Portal do Empreendedor).
+// DAS = 5% do salário mínimo (INSS) + R$ 1 de ICMS (comércio/indústria) e/ou R$ 5 de ISS (serviços).
+// 2026: salário mínimo R$ 1.621 → INSS R$ 81,05. Limite de faturamento R$ 81 mil/ano (média R$ 6.750/mês),
+// proporcional aos meses de atividade; passou até 20% (R$ 97.200), paga a diferença e sai do MEI no ano seguinte.
+// Lei Complementar 238/2026: limite sobe para R$ 110 mil em 2027 e R$ 140 mil em 2028.
+export const MEI_VALORES = {
+  ano: 2026,
+  salarioMinimo: 1621,
+  inss: 81.05,
+  das: { servico: 86.05, comercio: 82.05, misto: 87.05 },
+  limiteAno: 81000,
+  tolerancia: 97200,
+  proximos: [{ ano: 2027, limite: 110000 }, { ano: 2028, limite: 140000 }],
+  caminhoneiro: { inss: 194.52 },
+};
+const reais = (v) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+// Tipo de DAS da ocupação: CNAE de indústria (começa com 1, 2 ou 3) ou de comércio (47) paga ICMS;
+// o resto é serviço (ISS). É uma conta aproximada: o portal mostra o valor exato da sua guia.
+export function dasDaProfissao(key) {
+  const i = profInfo(key);
+  const cnae = i && i.mei ? i.mei.cnae : '';
+  const tipo = /^[123]/.test(cnae) || /^47/.test(cnae) ? 'misto' : 'servico';
+  return { tipo, valor: MEI_VALORES.das[tipo], texto: tipo === 'servico' ? `${reais(MEI_VALORES.das.servico)} por mês (serviços: INSS + ISS)` : `de ${reais(MEI_VALORES.das.comercio)} a ${reais(MEI_VALORES.das.misto)} por mês (fabrica/vende e presta serviço)` };
+}
+// Faturamento: cabe no MEI? meses = meses de atividade no ano.
+export function calcFaturamento(porMes, meses = 12) {
+  const limite = Math.round((MEI_VALORES.limiteAno / 12) * meses);
+  const ano = Math.round(porMes * meses);
+  const tol = Math.round(limite * 1.2);
+  const situacao = ano <= limite ? 'cabe' : ano <= tol ? 'passou_pouco' : 'passou_muito';
+  return { ano, limite, tolerancia: tol, situacao, reais };
+}
+export const formatReais = reais;
+
 // Passo a passo oficial e gratuito para abrir o MEI (Portal do Empreendedor, gov.br).
 export const MEI_PASSOS = [
   { t: 'Confira se a sua ocupação pode ser MEI', d: 'Profissões com conselho de classe (médico, advogado, psicólogo, engenheiro, arquiteto, dentista, contador…) não podem ser MEI. O Realyz já diz isso quando você escolhe a profissão.' },
@@ -244,5 +278,5 @@ export const MEI_PASSOS = [
   { t: 'Entre no Portal do Empreendedor', d: 'Acesse gov.br/mei, toque em "Quero ser MEI" e depois em "Formalize-se". É gratuito: desconfie de qualquer site que cobre para abrir.' },
   { t: 'Preencha seus dados e a atividade', d: 'Escolha a ocupação principal (e até 15 secundárias), o endereço e se vai atender em local fixo ou não. O Realyz mostra a ocupação certa da sua profissão.' },
   { t: 'Baixe o certificado (CCMEI)', d: 'O CNPJ sai na hora. Guarde o Certificado da Condição de MEI e volte aqui para colocar o seu CNPJ.' },
-  { t: 'Pague o DAS todo mês', d: 'É a contribuição mensal do MEI (inclui o INSS). Dá para pagar pelo app MEI ou pelo Portal do Simples Nacional, até com débito automático.' },
+  { t: 'Pague o DAS todo mês', d: 'É a contribuição mensal do MEI (inclui o INSS): em 2026, cerca de R$ 86,05 para quem presta serviço e de R$ 82,05 a R$ 87,05 para quem fabrica ou vende. Dá para pagar pelo app MEI ou pelo Portal do Simples Nacional, até com débito automático.' },
 ];
