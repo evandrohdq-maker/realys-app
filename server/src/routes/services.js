@@ -1,6 +1,7 @@
 // Prestadores de serviço (eletricista, motorista, motoboy, hotelaria...), chamados e avaliações.
 // O prestador liga o GPS e fica disponível; o cliente vê os mais próximos com nota, o que faz e
 // quanto cobra, escolhe, chama ou agenda e acompanha o prestador chegando.
+import { exigirParceiroDeTeste } from '../teste.js';
 import { fail, newId, now, str, money, int, coord, toReais } from '../http.js';
 import { tx } from '../db.js';
 import { publicName } from '../providerName.js';
@@ -155,6 +156,7 @@ export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biom
     const p = db.prepare('SELECT * FROM providers WHERE user_id = ?').get(String(body.providerId || ''));
     if (!p) fail(404, 'Prestador não encontrado.');
     if (p.user_id === user.id) fail(400, 'Você não pode chamar a si mesmo.');
+    exigirParceiroDeTeste(db, p.user_id);
     const when = str(body.when, 'o horário', { optional: true, max: 60 }) || null;
     if (!when && !p.available) fail(409, 'Esse prestador não está disponível agora. Você pode agendar.');
     const id = newId('ch');

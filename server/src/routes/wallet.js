@@ -58,6 +58,14 @@ export default function walletRoutes(r, { db, cfg, wallet, hub, userById, biomet
     const amount = money(body.amount, 'depósito', { min: 1, max: 10000 });
     const method = ['pix', 'cartao', 'boleto'].includes(body.method) ? body.method : 'pix';
     const id = newId('dp');
+    // Conta de teste: depósito fictício na hora, nunca gera cobrança no banco.
+    if (user.teste) {
+      tx(db, () => {
+        db.prepare('INSERT INTO deposits (id, user_id, amount, method, status, created_at, decided_at) VALUES (?,?,?,?,?,?,?)').run(id, user.id, amount, method, 'confirmado', now(), now());
+        wallet.move(user.id, 'saldo', amount, 'Depósito', 'Depósito fictício (conta de teste)', id);
+      });
+      return { id, status: 'confirmado', teste: true, wallet: view(user.id) };
+    }
     if (pix && pix.ready && method === 'pix') {
       const c = await pix.cobrar(amount, `Depósito na carteira Realyz (${user.name})`);
       db.prepare('INSERT INTO deposits (id, user_id, amount, method, status, created_at, txid, pix_copia, expira_em) VALUES (?,?,?,?,?,?,?,?,?)').run(id, user.id, amount, 'pix', 'pendente', now(), c.txid, c.copiaECola, c.expiraEm);
@@ -75,6 +83,7 @@ export default function walletRoutes(r, { db, cfg, wallet, hub, userById, biomet
   // Saque: só do saldo (créditos de presente não sacam). O dinheiro sai na hora da carteira
   // e o pagamento por Pix é feito pelo administrador (até haver integração com o banco).
   r.post('/wallet/withdraw', ({ user, body }) => {
+    if (user.teste) fail(403, 'Conta de teste não saca: o dinheiro dela é fictício.', 'conta_teste');
     // Saque: confirma o rosto antes de sair dinheiro da carteira.
     biometria.consume(user.id, 'saque', null);
     const amount = money(body.amount, 'saque', { min: cfg.withdrawMin, max: 50000 });

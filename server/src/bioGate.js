@@ -32,6 +32,8 @@ export const MSG_SEM_BIOMETRIA = 'Biometria não cadastrada. Por favor, cadastre
 export function podeComprar(db, cfg, user, roles = []) {
   if (!cfg.exigirBiometria) return true;
   if (roles.includes('admin') || user.kind === 'empresa') return true;
+  // Conta de teste (dinheiro fictício): testa compras e serviços sem biometria.
+  if (user.teste) return true;
   const b = db.prepare('SELECT status FROM biometria WHERE user_id = ?').get(user.id);
   return !!b && b.status === 'aprovado';
 }

@@ -1,6 +1,7 @@
 // Lives: abrir, encerrar, listar por assunto e presentes ao vivo.
 // O vídeo em si passa por um serviço de transmissão (ex.: LiveKit) ligado depois; aqui ficam
 // as lives no ar, quem transmite e o dinheiro dos presentes.
+import { exigirParceiroDeTeste } from '../teste.js';
 import { fail, newId, now, str, int, toReais } from '../http.js';
 import { tx } from '../db.js';
 
@@ -119,6 +120,7 @@ export default function livesRoutes(r, { db, wallet, hub, fiscal }) {
     const l = db.prepare(`SELECT * FROM lives WHERE id = ?`).get(params.id);
     if (!l || l.status !== 'ao_vivo') fail(404, 'Essa live já terminou.');
     if (l.host_id === user.id) fail(400, 'Você não pode presentear a sua própria live.');
+    exigirParceiroDeTeste(db, l.host_id);
     const unit = LIVE_GIFTS[body.gift];
     if (!unit) fail(400, 'Presente inválido.');
     const qty = int(body.qty ?? 1, 'quantidade', { min: 1, max: 100 });

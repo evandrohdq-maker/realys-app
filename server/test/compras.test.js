@@ -96,3 +96,38 @@ test('story só de texto guarda a cor de fundo', async () => {
   const st = await call('GET', '/stories', null, token);
   assert.equal(st.data.find((g) => g.author.id === reg.data.user.id).items[0].bg, '#1E9E63');
 });
+
+test('conta de teste: sem trava, dinheiro fictício só entre contas de teste, sem saque', async () => {
+  const adm = (await call('POST', '/auth/login', { login: 'chefe', password: 'Admin12345' })).data.accessToken;
+  await call('POST', '/admin/contas-teste', { name: 'Fic Um', username: 'fic1', password: 'senha1234' }, adm);
+  await call('POST', '/admin/contas-teste', { name: 'Fic Dois', username: 'fic2', password: 'senha1234' }, adm);
+  const a = (await call('POST', '/auth/login', { login: 'fic1', password: 'senha1234' })).data;
+  const b = (await call('POST', '/auth/login', { login: 'fic2', password: 'senha1234' })).data;
+  const real = await call('POST', '/auth/signup', { kind: 'pessoa', name: 'Pessoa Real', username: 'pessoareal', doc: '86288366757', email: 'pr@t.com', password: 'senha1234', nascimento: '10/05/1990', aceiteTermos: TERMO_ADESAO_VERSAO });
+  const me = await call('GET', '/me', null, a.accessToken);
+  assert.equal(me.data.teste, true);
+  assert.equal(me.data.comprasLiberadas, true);
+  assert.equal(me.data.podeComprar, true);
+  // Depósito fictício entra na hora, mesmo com compras bloqueadas para o resto.
+  const dep = await call('POST', '/wallet/deposit', { amount: 100 }, a.accessToken);
+  assert.equal(dep.status, 201, JSON.stringify(dep.data));
+  assert.equal(dep.data.wallet.balance, 100);
+  // Presente para outra conta de teste: passa.
+  const g = await call('POST', '/gifts', { toId: b.user.id, amount: 10 }, a.accessToken);
+  assert.equal(g.status, 201, JSON.stringify(g.data));
+  // Presente para conta real: recusado e o saldo não muda.
+  const g2 = await call('POST', '/gifts', { toId: real.data.user.id, amount: 10 }, a.accessToken);
+  assert.equal(g2.status, 403);
+  assert.equal(g2.data.code, 'conta_teste');
+  const w = await call('GET', '/wallet', null, a.accessToken);
+  assert.equal(w.data.balance, 90);
+  // Saque: não existe em conta de teste.
+  const s = await call('POST', '/wallet/withdraw', { amount: 50, pixKey: 'chave@teste.com' }, a.accessToken);
+  assert.equal(s.status, 403);
+  // Caixa do Realyz não recebeu taxa fictícia.
+  const caixa = app.db.prepare("SELECT balance FROM wallets WHERE user_id = 'realys'").get();
+  assert.equal(caixa ? caixa.balance : 0, 0);
+  // Conta real continua bloqueada.
+  const r2 = await call('POST', '/wallet/deposit', { amount: 10 }, real.data.accessToken);
+  assert.equal(r2.status, 403);
+});

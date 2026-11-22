@@ -185,6 +185,9 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
     // O app usa isto para saber se a conta está completa ou no modo social (sem biometria).
     podeComprar: podeComprar(db, cfg, user, roles || []),
     exigeBiometria: !!cfg.exigirBiometria,
+    // Conta de teste: compras liberadas com dinheiro fictício (o app tira o aviso de bloqueado).
+    teste: !!user.teste,
+    comprasLiberadas: !!cfg.comprasLiberadas || !!user.teste || (roles || []).includes('admin'),
     company: db.prepare('SELECT * FROM companies WHERE owner_id = ?').get(user.id) || null,
     provider: db.prepare('SELECT * FROM providers WHERE user_id = ?').get(user.id) || null,
   }));

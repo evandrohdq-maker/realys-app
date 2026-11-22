@@ -38,6 +38,8 @@ export function useServerBio() {
       .then((me) => {
         if (!alive || !me) return;
         if (me.verificado != null) dispatch({ type: 'SET_ID_VERIFIED', on: me.verificado });
+        // Conta de teste: compra com dinheiro fictício (sem o aviso de compras bloqueadas).
+        dispatch({ type: 'SET_CONTA_TESTE', on: !!me.teste });
         if (!me.exigeBiometria) return;
         dispatch({ type: me.podeComprar ? 'SET_VERIFIED' : 'SET_UNVERIFIED' });
       })

@@ -35,9 +35,11 @@ export const rotaDeCompra = (method, path) => TRAVADAS.has(chave(method, path));
 export const MSG_COMPRAS_BLOQUEADAS = 'Compras e pagamentos estão temporariamente bloqueados no Realyz. Em breve liberamos. Todo o resto do app já funciona.';
 
 // O administrador continua podendo testar (ele vê tudo e pode conferir o fluxo).
-export function exigirComprasLiberadas(cfg, route, method, roles = []) {
+export function exigirComprasLiberadas(cfg, route, method, roles = [], user = null) {
   if (cfg.comprasLiberadas) return;
   if (!rotaDeCompra(method, route.path)) return;
   if (roles.includes('admin')) return;
+  // Conta de teste compra com dinheiro fictício (src/teste.js).
+  if (user && user.teste) return;
   throw new HttpError(403, MSG_COMPRAS_BLOQUEADAS, 'compras_bloqueadas');
 }
