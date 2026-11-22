@@ -96,6 +96,7 @@ function ServerProfile({ id, onClose }) {
               {p.name}{p.verified ? <> <Ionicons name="shield-checkmark" size={16} color={colors.primary} /></> : null}
             </Text>
             {p.username ? <Text style={st.handle}>*{p.username}</Text> : null}
+            {p.teste ? <Text style={st.teste}>Conta de teste</Text> : null}
             {p.about ? <Text style={st.about}>{p.about}</Text> : null}
 
             <View style={st.row}>
@@ -269,6 +270,7 @@ const st = StyleSheet.create({
   btnSolid: { backgroundColor: colors.primary },
   btnLine: { borderWidth: 1.5, borderColor: colors.primary, backgroundColor: '#fff' },
   btnText: { fontWeight: '700', marginLeft: 6 },
+  teste: { alignSelf: 'flex-start', marginTop: 4, color: '#7A5806', backgroundColor: '#FFF4D6', fontSize: 11, fontWeight: '800', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, overflow: 'hidden' },
   locked: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, borderRadius: 12, padding: 12, marginTop: 8 },
   h: { color: colors.text, fontWeight: '800', fontSize: 16, marginTop: 18, marginBottom: 8 },
   post: { backgroundColor: '#fff', borderRadius: 14, padding: 12, marginBottom: 10, ...soft },
