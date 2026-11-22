@@ -13,7 +13,7 @@ import { getDevicePoint } from '../geo';
 import { colors, brl } from '../theme';
 import { Card, Row, Button, Badge, Input, Chip } from './ui';
 import FaceCheck from './FaceCheck';
-import { profConfig, buscarProfissoes, profissaoPorKey } from '../providerSegments';
+import { profConfig, buscarProfissoes, profissaoPorKey, infoProfissao } from '../providerSegments';
 import ProfissaoBusca, { FuncoesTags, ProfissaoInfo, MeiGuia } from './ProfissaoBusca';
 import { conectado, carregarCarteira } from '../serverShop';
 
@@ -31,7 +31,7 @@ export default function ServerProviderPanel() {
   // A profissão principal vem do perfil (escolhida no cadastro); as outras só pelo botão "Adicionar outra profissão".
   const profDoPerfil = () => {
     const soc = state.myProfile && state.myProfile.social;
-    if (soc && soc.prof && profissaoPorKey(soc.prof)) return soc.prof;
+    if (soc && soc.prof) return soc.prof;
     const m = buscarProfissoes((state.myProfile && state.myProfile.profession) || '', 1)[0];
     return m ? m.key : null;
   };
@@ -125,7 +125,7 @@ export default function ServerProviderPanel() {
   const abertos = calls.filter((c) => !['Concluído', 'Recusado', 'Cancelado'].includes(c.status));
   // O formulário segue a profissão: só as cobranças e os campos dela.
   const cfg = profConfig(form.service);
-  const prof = form.service ? profissaoPorKey(form.service) : null;
+  const prof = form.service ? infoProfissao(form.service) : null;
   const escolherProf = (p) => {
     if (!p || !p.key) return setForm({ ...form, service: null });
     const c = profConfig(p.key);
@@ -167,7 +167,7 @@ export default function ServerProviderPanel() {
           <MeiGuia visible={mei} onClose={() => setMei(false)} profKey={form.service} />
 
           {form.outros.map((k) => {
-            const o = profissaoPorKey(k);
+            const o = infoProfissao(k);
             return o ? (
               <View key={k} style={[ps.prof, ps.outra]}>
                 <Text style={{ fontSize: 20 }}>{o.icon || '🧰'}</Text>

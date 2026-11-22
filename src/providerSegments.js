@@ -92,6 +92,15 @@ export function buscarProfissoes(q, n = 4) {
   return out.sort((a, b) => b.score - a.score || a.label.length - b.label.length).slice(0, n);
 }
 export const profissaoPorKey = (key) => serviceTypes.find((p) => p.key === key) || null;
+// Profissão que a pessoa ADICIONOU (não estava nas opções): a chave é o próprio texto.
+export const chaveLivre = (texto) => String(texto || '').trim().toLowerCase().replace(/\s+/g, ' ').slice(0, 40);
+export function infoProfissao(key) {
+  if (!key) return null;
+  const p = profissaoPorKey(key);
+  if (p) return p;
+  const label = String(key).charAt(0).toUpperCase() + String(key).slice(1);
+  return { key, label, icon: '🧰', group: 'Outra profissão', custom: true, words: [] };
+}
 
 // O que cada profissão costuma fazer: vira sugestões para tocar (e a pessoa ainda escreve as dela).
 const FUNCOES = {

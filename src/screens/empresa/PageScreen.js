@@ -110,10 +110,17 @@ export default function PageScreen() {
   };
   // Atividade pelo CNAE: a empresa digita o que faz e escolhe; a atividade liga a área certa, o
   // segmento e o papel na cadeia. Nada de lista enorme de áreas para escolher.
-  const atividades = (biz.atividades || []).map(atividadePorId).filter(Boolean);
+  // Atividades do catálogo + as que a empresa adicionou com as próprias palavras.
+  const atividades = (biz.atividades || []).map((id) => atividadePorId(id) || (String(id).startsWith('livre:') ? { id, nome: String(id).slice(6), cnae: '', area: null, livre: true } : null)).filter(Boolean);
   const [qAtv, setQAtv] = useState('');
   const [addAtv, setAddAtv] = useState(false);
   const addAtividade = (a) => {
+    if (a.livre) {
+      setBiz({ atividades: [...new Set([...(biz.atividades || []), a.id])] });
+      setQAtv('');
+      setAddAtv(false);
+      return;
+    }
     const lista = sectors[a.area] || [];
     setBiz({
       atividades: [...new Set([...(biz.atividades || []), a.id])],
@@ -129,8 +136,8 @@ export default function PageScreen() {
     const resto = atividades.filter((x) => x.id !== a.id);
     const next = { ...sectors };
     // A área sai se nenhuma outra atividade usa ela.
-    if (!resto.some((x) => x.area === a.area)) delete next[a.area];
-    setBiz({ atividades: resto.map((x) => x.id), cnae: resto[0] ? resto[0].cnae : '', sectors: next });
+    if (a.area && !resto.some((x) => x.area === a.area)) delete next[a.area];
+    setBiz({ atividades: resto.map((x) => x.id), cnae: (resto.find((x) => x.cnae) || {}).cnae || '', sectors: next });
   };
   const toggleMode = (k) => setBiz({ modes: modes.includes(k) ? modes.filter((x) => x !== k) : [...modes, k] });
 
@@ -358,7 +365,7 @@ export default function PageScreen() {
           <View key={a.id} style={styles.atv}>
             <View style={{ flex: 1 }}>
               <Text style={styles.name} numberOfLines={1}>{a.nome}</Text>
-              <Text style={styles.sub}>{cnaeTexto(a.cnae)}</Text>
+              <Text style={styles.sub}>{a.livre ? 'Atividade escrita por você' : cnaeTexto(a.cnae)}</Text>
             </View>
             <TouchableOpacity onPress={() => tirarAtividade(a)} accessibilityLabel={`Tirar ${a.nome}`} style={{ padding: 4 }}>
               <Ionicons name="close" size={18} color={colors.muted} />
@@ -377,7 +384,13 @@ export default function PageScreen() {
                 <Ionicons name="add-circle-outline" size={22} color={colors.primary} />
               </TouchableOpacity>
             ))}
-            {qAtv.trim().length >= 2 && !buscarAtividades(qAtv).length ? <Text style={styles.sub}>Não achei. Tente outra palavra (ex.: mercado, roupas, oficina).</Text> : null}
+            {/* Nenhuma das opções serve? Adiciona o que a empresa escreveu. */}
+            {qAtv.trim().length >= 2 ? (
+              <TouchableOpacity style={[styles.atvOpc, { borderStyle: 'dashed' }]} onPress={() => addAtividade({ id: 'livre:' + qAtv.trim().slice(0, 60), nome: qAtv.trim(), livre: true })} accessibilityLabel={`Adicionar ${qAtv.trim()}`}>
+                <Ionicons name="add-circle" size={22} color={colors.primary} />
+                <Text style={[styles.name, { marginLeft: 8, flex: 1 }]} numberOfLines={1}>Adicionar "{qAtv.trim()}"</Text>
+              </TouchableOpacity>
+            ) : null}
           </>
         ) : (
           <TouchableOpacity onPress={() => setAddAtv(true)} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }} accessibilityLabel="Adicionar outra atividade">

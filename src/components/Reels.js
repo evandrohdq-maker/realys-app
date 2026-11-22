@@ -257,6 +257,7 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
           </TouchableOpacity>
         )}
         <Text style={styles.sponsor}>{reel.user ? 'Pessoa verificada por biometria' : prov ? 'Patrocinado · prestador verificado' : ad ? 'Patrocinado · anunciante verificado' : 'Patrocinado · CNPJ verificado'}</Text>
+        {reel.ia ? <Text style={{ color: '#C9C2FF', fontWeight: '800', fontSize: 12, marginTop: 2 }}>✦ Feito com IA</Text> : null}
         <Text style={styles.title} numberOfLines={2}>{reel.title}</Text>
         {p ? (
           <View style={styles.prodBox}>

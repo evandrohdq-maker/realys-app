@@ -561,6 +561,8 @@ function Shell({ inviteTick }) {
   // Puxando a tela para a direita abre os Reels; puxando para a esquerda abre o Perfil.
   const homeKey = tabs[0].key;
   const onNews = current.key === 'stories' && commTop === 'noticias';
+  const onTrends = current.key === 'stories' && commTop === 'trends';
+  const openTrends = () => pick({ tab: 'stories', top: 'trends' });
   const onCommunityFeed = current.key === 'stories' && commTop === 'comunidade';
   const isHome = current.key === homeKey && (current.key !== 'stories' || commTop === 'comunidade');
   const openNews = () => pick({ tab: 'stories', top: 'noticias' });
@@ -570,8 +572,8 @@ function Shell({ inviteTick }) {
   const openReels = () => pick({ tab: 'reels' });
   const swipe =
     isHome || onCommunityFeed
-      ? { left: openProfile, right: hasReels ? openReels : undefined }
-      : onNews
+      ? { left: openTrends, right: hasReels ? openReels : undefined } // um lado Trends, o outro Reels (o Perfil fica na barra)
+      : onNews || onTrends
       ? { right: backHome }
       : current.key === 'perfil'
       ? { right: backHome }
@@ -587,7 +589,7 @@ function Shell({ inviteTick }) {
     if (!go || go.tab !== 'home') return go;
     // Imóveis, veículos e máquinas agora têm a aba Negócios.
     if (go.top === 'anuncios' && NEGOCIOS_KINDS.includes(go.kind)) return { ...go, tab: 'bens', top: undefined };
-    return ['noticias', 'eventos', 'stream', 'promo', 'anuncios', 'lives', 'comunidade'].includes(go.top) ? { ...go, tab: 'stories' } : go;
+    return ['noticias', 'eventos', 'stream', 'promo', 'anuncios', 'trends', 'lives', 'comunidade'].includes(go.top) ? { ...go, tab: 'stories' } : go;
   };
 
   // Escolha feita no menu ⋮: vai para a aba certa (trocando de perfil se precisar).

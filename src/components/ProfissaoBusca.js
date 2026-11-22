@@ -6,14 +6,14 @@ import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Linking } from '
 import { Ionicons } from '@expo/vector-icons';
 import { Text, TextInput } from '../responsive';
 import { colors } from '../theme';
-import { buscarProfissoes, profissaoPorKey, funcoesSugeridas } from '../providerSegments';
+import { buscarProfissoes, infoProfissao, chaveLivre, funcoesSugeridas } from '../providerSegments';
 import { atualizarMeiValores } from '../meiValoresSync';
 import { profInfo, MEI_PASSOS, MEI_VALORES, dasDaProfissao, calcFaturamento, formatReais } from '../professionsKnowledge';
 
 // value = chave da profissão escolhida (ou null). onPick(prof | null). livre: aceita o que digitou.
-export default function ProfissaoBusca({ value, onPick, placeholder = 'Digite sua profissão (ex.: eletricista, cantor)', livre, autoFocus }) {
+export default function ProfissaoBusca({ value, onPick, placeholder = 'Digite sua profissão (ex.: eletricista, cantor)', livre = true, autoFocus }) {
   const [q, setQ] = useState('');
-  const escolhida = value ? profissaoPorKey(value) : null;
+  const escolhida = value ? infoProfissao(value) : null;
   if (escolhida) {
     return (
       <View style={st.pill}>
@@ -52,10 +52,11 @@ export default function ProfissaoBusca({ value, onPick, placeholder = 'Digite su
         </TouchableOpacity>
       ))}
       {texto.length >= 2 && !achou.length && !livre ? <Text style={st.vazio}>Não achei "{texto}". Tente outra palavra (ex.: pintor, motorista, DJ).</Text> : null}
-      {livre && texto.length >= 2 ? (
-        <TouchableOpacity style={[st.row, { borderStyle: 'dashed' }]} onPress={() => (setQ(''), onPick({ key: null, label: texto }))} accessibilityLabel={`Usar ${texto}`}>
-          <Ionicons name="create-outline" size={20} color={colors.muted} />
-          <Text style={[st.sub, { marginLeft: 10, flex: 1 }]} numberOfLines={1}>Usar "{texto}" como escrevi</Text>
+      {/* Nenhuma das opções serve? Adiciona o que a pessoa escreveu. */}
+      {livre && texto.length >= 2 && !achou.some((p) => p.label.toLowerCase() === texto.toLowerCase()) ? (
+        <TouchableOpacity style={[st.row, { borderStyle: 'dashed' }]} onPress={() => (setQ(''), onPick({ key: chaveLivre(texto), label: texto, custom: true }))} accessibilityLabel={`Adicionar ${texto}`}>
+          <Ionicons name="add-circle" size={22} color={colors.primary} />
+          <Text style={[st.nome, { marginLeft: 10, flex: 1, fontSize: 14 }]} numberOfLines={1}>Adicionar "{texto}"</Text>
         </TouchableOpacity>
       ) : null}
     </View>

@@ -69,6 +69,7 @@ export const NAV_TARGETS = [
   T('Score Realyz', { tab: 'perfil' }, ['score', 'meu score', 'score realys', 'minha reputacao']),
   T('Reels', { tab: 'reels' }, ['reels', 'reel', 'videos curtos', 'ver videos', 'videos das lojas']),
   T('Compra coletiva', { tab: 'negocios' }, ['compra coletiva', 'compras coletivas', 'comprar junto']),
+  T('Trends', { tab: 'stories', top: 'trends' }, ['trends', 'trend', 'tendencias', 'em alta', 'o que ta bombando', 'o que esta bombando', 'viral', 'virais', 'conteudo de ia', 'videos de ia', 'animes de ia']),
   T('News', { tab: 'stories', top: 'noticias' }, ['news', 'nius', 'nils', 'noticias', 'noticia', 'jornal', 'ultimas noticias', 'o que esta acontecendo']),
   T('Alertas', { tab: 'stories', top: 'noticias' }, ['alertas', 'alerta', 'defesa civil', 'alerta de chuva', 'catastrofe', 'enchente', 'deslizamento', 'alagamento']),
   T('Atrasos de voos e trânsito', { tab: 'transporte' }, ['voos atrasados', 'atraso de voo', 'meu voo', 'aeroporto', 'estrada interditada', 'transito', 'rodovia']),

@@ -26,7 +26,7 @@ import {
 } from '../../serviceVisits';
 
 import ProfissaoBusca, { FuncoesTags, ProfissaoInfo, MeiGuia } from '../../components/ProfissaoBusca';
-import { profConfig, buscarProfissoes, profissaoPorKey } from '../../providerSegments';
+import { profConfig, buscarProfissoes, profissaoPorKey, infoProfissao } from '../../providerSegments';
 import PrestacaoScreen from './PrestacaoScreen';
 import { BoostButton } from '../../components/Boost';
 import { CAR_FEATURES, featuresOf, featureIcon, featureLabel } from '../../vehicleInfo';
@@ -147,7 +147,7 @@ function DriverMain({ goTo, onCadastro }) {
   // A profissão vem do perfil (escolhida no cadastro); as outras só pelo botão "Adicionar outra profissão".
   const doPerfil = () => {
     const soc = state.myProfile && state.myProfile.social;
-    if (soc && soc.prof && profissaoPorKey(soc.prof)) return soc.prof;
+    if (soc && soc.prof) return soc.prof;
     const m = buscarProfissoes((state.myProfile && state.myProfile.profession) || '', 1)[0];
     return m ? m.key : null; // sem profissão no perfil: começa vazio (a pessoa digita)
   };
@@ -269,12 +269,12 @@ function DriverMain({ goTo, onCadastro }) {
               de mim?".
             </Text>
             <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Sua profissão</Text>
-            {service && profissaoPorKey(service) && !trocando ? (
+            {service && infoProfissao(service) && !trocando ? (
               <View style={dz.prof}>
-                <Text style={{ fontSize: 26 }}>{profissaoPorKey(service).icon || '🧰'}</Text>
+                <Text style={{ fontSize: 26 }}>{infoProfissao(service).icon || '🧰'}</Text>
                 <View style={{ flex: 1, marginLeft: 10 }}>
-                  <Text style={dz.profNome} numberOfLines={1}>{profissaoPorKey(service).label}</Text>
-                  <Text style={{ color: colors.muted, fontSize: 12.5 }} numberOfLines={1}>{me ? profissaoPorKey(service).group : `Do seu perfil · ${profissaoPorKey(service).group}`}</Text>
+                  <Text style={dz.profNome} numberOfLines={1}>{infoProfissao(service).label}</Text>
+                  <Text style={{ color: colors.muted, fontSize: 12.5 }} numberOfLines={1}>{me ? infoProfissao(service).group : `Do seu perfil · ${infoProfissao(service).group}`}</Text>
                 </View>
                 <TouchableOpacity onPress={() => setTrocando(true)} style={{ padding: 6 }} accessibilityLabel="Trocar profissão">
                   <Text style={dz.link}>Trocar</Text>
@@ -286,7 +286,7 @@ function DriverMain({ goTo, onCadastro }) {
             {service && !trocando ? <ProfissaoInfo profKey={service} onMei={() => setMei(true)} /> : null}
             <MeiGuia visible={mei} onClose={() => setMei(false)} profKey={service} />
             {outros.map((k) => {
-              const o = profissaoPorKey(k);
+              const o = infoProfissao(k);
               return o ? (
                 <View key={k} style={[dz.prof, dz.outra]}>
                   <Text style={{ fontSize: 20 }}>{o.icon || '🧰'}</Text>

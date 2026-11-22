@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { KeyboardLift } from '../keyboard';
 import { PHOTO_RULE } from '../moderation';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Pressable, Image, Alert, Platform, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Pressable, Image, Alert, Platform, useWindowDimensions, Switch } from 'react-native';
 import { Text, TextInput } from '../responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -298,8 +298,10 @@ function PostComposer({ visible, onClose, onPublish }) {
   const [text, setText] = useState('');
   const [image, setImage] = useState(null);
   const [destaque, setDestaque] = useState(DESTAQUE_VAZIO);
+  const [ia, setIa] = useState(false);
   useEffect(() => {
     if (!visible) return;
+    setIa(false);
     setText('');
     setImage(null);
     setDestaque(DESTAQUE_VAZIO);
@@ -325,7 +327,7 @@ function PostComposer({ visible, onClose, onPublish }) {
           <Text style={styles.sheetTitle}>Nova publicação</Text>
           <TouchableOpacity
             disabled={!ok}
-            onPress={() => onPublish({ id: 'n' + Date.now(), text: text.trim(), image, likes: 0, comments: 0, time: 'agora' }, destaque)}
+            onPress={() => onPublish({ id: 'n' + Date.now(), text: text.trim(), image, likes: 0, comments: 0, time: 'agora', ...(ia ? { ia: true } : {}) }, destaque)}
             style={[styles.publishBtn, !ok && { opacity: 0.4 }]}
           >
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '800' }}>Publicar</Text>
@@ -353,6 +355,12 @@ function PostComposer({ visible, onClose, onPublish }) {
             <Ionicons name="image-outline" size={18} color={colors.primary} />
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '700', marginLeft: 8 }}>{image ? 'Trocar foto' : 'Adicionar foto'}</Text>
           </TouchableOpacity>
+          {/* Feito com IA: vídeos, animes e artes de inteligência artificial (aparece na aba IA do Trends). */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 14 }}>
+            <Ionicons name="sparkles" size={18} color="#7B6CF6" />
+            <Text style={{ color: colors.text, fontWeight: '700', flex: 1, marginLeft: 8 }}>Feito com IA (vídeo, anime ou arte)</Text>
+            <Switch value={ia} onValueChange={setIa} />
+          </View>
           <DestaqueOpcoes value={destaque} onChange={setDestaque} />
           <Text style={{ color: colors.muted, fontSize: 11, marginTop: 10 }}>Só pessoas verificadas por biometria veem e comentam.</Text>
           <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6 }}>{PHOTO_RULE}</Text>
@@ -368,8 +376,10 @@ export function ReelComposer({ visible, onClose, onPublish }) {
   const [title, setTitle] = useState('');
   const [video, setVideo] = useState(null); // { uri, secs }
   const [destaque, setDestaque] = useState(DESTAQUE_VAZIO);
+  const [ia, setIa] = useState(false);
   useEffect(() => {
     if (!visible) return;
+    setIa(false);
     setTitle('');
     setVideo(null);
     setDestaque(DESTAQUE_VAZIO);
@@ -399,7 +409,7 @@ export function ReelComposer({ visible, onClose, onPublish }) {
           <Text style={styles.sheetTitle}>Novo Reel</Text>
           <TouchableOpacity
             disabled={!ok}
-            onPress={() => onPublish({ id: 'r' + Date.now(), title: title.trim() || 'Meu Reel', video: video.uri, likes: 0, views: 0, kind: 'user' }, destaque)}
+            onPress={() => onPublish({ id: 'r' + Date.now(), title: title.trim() || 'Meu Reel', video: video.uri, likes: 0, views: 0, kind: 'user', ...(ia ? { ia: true } : {}) }, destaque)}
             style={[styles.publishBtn, !ok && { opacity: 0.4 }]}
           >
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '800' }}>Publicar</Text>
@@ -420,6 +430,12 @@ export function ReelComposer({ visible, onClose, onPublish }) {
             maxLength={120}
             style={[styles.postInput, { marginTop: 14, minHeight: 70 }]}
           />
+          {/* Feito com IA: vídeos, animes e artes de inteligência artificial (aparece na aba IA do Trends). */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 14 }}>
+            <Ionicons name="sparkles" size={18} color="#7B6CF6" />
+            <Text style={{ color: colors.text, fontWeight: '700', flex: 1, marginLeft: 8 }}>Feito com IA (vídeo, anime ou arte)</Text>
+            <Switch value={ia} onValueChange={setIa} />
+          </View>
           <DestaqueOpcoes value={destaque} onChange={setDestaque} />
           <Text style={{ color: colors.muted, fontSize: 11, marginTop: 10 }}>Só pessoas verificadas por biometria veem e comentam.</Text>
           <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6 }}>{PHOTO_RULE}</Text>

@@ -21,6 +21,7 @@ import { promos, listings, LISTING_KINDS, LISTING_CTA, communityPosts, contacts,
 import { comprarIngresso } from '../../../serverEvents';
 import { ChatModal, VideoCallModal, LiveModal } from './Social';
 import LivesTab from './LivesTab';
+import TrendsTab from './TrendsTab';
 import NewsTab from './NewsTab';
 import StreamTab from './StreamTab';
 import { StationLogo } from '../../../components/RadioKit';
@@ -63,6 +64,8 @@ export const COMMUNITY_TOP = [
   { key: 'eventos', label: 'Eventos', icon: 'sparkles-outline' },
   // Stream: rádios e TV online (entrou no lugar dos botões Promoções e Anúncios).
   { key: 'stream', label: 'Stream', icon: 'tv-outline' },
+  // Trends: o que está em alta (Reels, publicações, IA e assuntos). Também abre arrastando para o lado.
+  { key: 'trends', label: 'Trends', icon: 'flame-outline' },
   { key: 'lives', label: 'Lives', icon: 'radio-outline', red: true }, // em vermelho, como AO VIVO
   // Sem botão no topo: continuam abrindo pelo menu ⋮, pela busca e pela Lotus.
   { key: 'promo', label: 'Promoções', icon: 'pricetags-outline', hidden: true },
@@ -134,6 +137,7 @@ export function CommunityExtras({ top, explore, navigate }) {
       {top === 'anuncios' ? <AdsTab kind={kind} setKind={setKind} onContact={contactAdvertiser} /> : null}
       {top === 'noticias' ? <NewsTab onWatch={(l) => setLive({ live: l, mine: false })} navigate={navigate} /> : null}
       {top === 'stream' ? <StreamTab seg={streamSeg} setSeg={setStreamSeg} navigate={navigate} /> : null}
+      {top === 'trends' ? <TrendsTab navigate={navigate} /> : null}
       {top === 'lives' ? <LivesTab filter={liveFilter} setFilter={setLiveFilter} onWatch={(l) => setLive({ live: l, mine: false })} onGoLive={() => setLive({ live: null, mine: true })} navigate={navigate} /> : null}
 
       <ChatModal
