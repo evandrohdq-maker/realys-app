@@ -798,7 +798,7 @@ function HighlightComposer({ visible, onClose }) {
   }, [visible]);
 
   const options = [
-    ...state.myStories.map((s) => ({ key: 'st-' + s.id, story: s, preview: s.image || (s.showCard && s.showCard.foto), label: 'Seu story' })),
+    ...state.myStories.map((s) => ({ key: 'st-' + s.id, story: s, preview: s.image || (s.showCard && s.showCard.foto), label: 'Seu Now' })),
     ...state.myGallery.photos.map((p) => ({ key: 'ph-' + p.id, preview: p.uri, label: 'Galeria' })),
     ...STORY_SAMPLE_PHOTOS.map((u, i) => ({ key: 'sm-' + i, preview: u, label: 'Exemplo' })),
   ];
@@ -830,7 +830,7 @@ function HighlightComposer({ visible, onClose }) {
           <Text style={styles.label}>Nome do destaque</Text>
           <TextInput value={title} onChangeText={setTitle} maxLength={18} placeholder="Ex.: Viagens, Família, Fé" placeholderTextColor={colors.muted} style={styles.input} />
           <Text style={[styles.label, { marginTop: 12 }]}>Escolha o que vai ficar no destaque ({chosen.length})</Text>
-          <Text style={styles.hint}>Os stories somem em 24 h, mas o que estiver em destaque fica no seu perfil.</Text>
+          <Text style={styles.hint}>Os Now somem em 24 h, mas o que estiver em destaque fica no seu perfil.</Text>
           <View style={styles.grid3}>
             {options.map((o) => {
               const on = !!picked[o.key];

@@ -40,7 +40,7 @@ function MyStory({ onGo }) {
   const photo = (state.myProfile && state.myProfile.photo) || (last && last.image) || null;
   return (
     <View style={st.myStory}>
-      <TouchableOpacity onPress={() => onGo && onGo({ tab: 'stories', top: 'comunidade', story: 'mine' })} activeOpacity={0.85} accessibilityLabel={last ? 'Ver o seu story' : 'Criar o seu story'}>
+      <TouchableOpacity onPress={() => onGo && onGo({ tab: 'stories', top: 'comunidade', story: 'mine' })} activeOpacity={0.85} accessibilityLabel={last ? 'Ver o seu Now' : 'Criar o seu Now'}>
         <View style={st.myRing}>
           {photo ? (
             <Image source={{ uri: photo }} style={st.myImg} />
@@ -51,10 +51,10 @@ function MyStory({ onGo }) {
           )}
         </View>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => onGo && onGo({ tab: 'stories', top: 'comunidade', story: 'add' })} style={st.myPlus} accessibilityLabel="Publicar: post, Reel, story ou depoimento">
+      <TouchableOpacity onPress={() => onGo && onGo({ tab: 'stories', top: 'comunidade', story: 'add' })} style={st.myPlus} accessibilityLabel="Publicar: post, Reel, Now ou depoimento">
         <Ionicons name="add" size={18} color="#fff" />
       </TouchableOpacity>
-      <Text style={st.myLabel} numberOfLines={1}>Seu story</Text>
+      <Text style={st.myLabel} numberOfLines={1}>Seu Now</Text>
     </View>
   );
 }
@@ -96,7 +96,7 @@ function Side({ tabs, currentKey, onTab, onLotus, onMenu, onProfile, profileOn, 
 
 // Atalhos da Community, que no computador saem de baixo dos stories e vêm para cá.
 const SHORTCUTS = [
-  { top: 'comunidade', label: 'Feed da Community', icon: 'people-circle-outline' },
+  { top: 'comunidade', label: 'Feed do Feed', icon: 'people-circle-outline' },
   { top: 'noticias', label: 'News', icon: 'newspaper-outline' },
   { top: 'eventos', label: 'Eventos', icon: 'sparkles-outline' },
   { top: 'stream', label: 'Stream', icon: 'tv-outline' },

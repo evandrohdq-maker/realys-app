@@ -12,7 +12,7 @@ export const NAV_TARGETS = [
   // Barra de baixo (Usuário)
   T('Início', { tab: 'stories' }, ['inicio', 'home', 'pagina inicial', 'tela inicial', 'comeco', 'principal']),
   T('Shop', { tab: 'home', top: 'shop', seg: 'vitrine' }, ['shop', 'shopping', 'xop', 'chop', 'shope', 'shopi']),
-  T('Community', { tab: 'stories' }, ['community', 'comunity', 'comuniti', 'comiuniti', 'kamiuniti', 'stories', 'storys', 'story', 'storis', 'stori', 'historias', 'historia', 'histories', 'history', 'historys', 'estorias', 'estoria', 'estoris', 'istoris', 'istori', 'storie', 'stores', 'status']),
+  T('Feed', { tab: 'stories' }, ['feed', 'fid', 'fidi', 'community', 'comunity', 'now', 'nau', 'naw', 'comuniti', 'comiuniti', 'kamiuniti', 'stories', 'storys', 'story', 'storis', 'stori', 'historias', 'historia', 'histories', 'history', 'historys', 'estorias', 'estoria', 'estoris', 'istoris', 'istori', 'storie', 'stores', 'status']),
   T('Páginas', { tab: 'paginas' }, ['paginas', 'minhas paginas', 'paginas de usuarios', 'paginas dos usuarios', 'paginas da comunidade']),
   T('Criar página', { tab: 'paginas', seg: 'minhas', create: true }, ['criar pagina', 'criar uma pagina', 'nova pagina', 'fazer uma pagina']),
   T('Date', { tab: 'encontros' }, ['date', 'deite', 'deit', 'deiti', 'deyt', 'dates', 'encontros', 'encontro', 'namoro', 'namorar', 'match', 'relacionamentos', 'relacionamento', 'paquera']),
@@ -31,7 +31,7 @@ export const NAV_TARGETS = [
   // Carrinho é uma janela (não uma aba): a Lotus abre a janela sobre a tela atual
   T('Carrinho', { tab: 'home', cart: true }, ['carrinho', 'meu carrinho', 'cesta', 'minha cesta', 'sacola', 'minha sacola']),
   T('Biometria facial', { tab: 'perfil', biometria: true }, ['biometria', 'biometria facial', 'reconhecimento facial', 'minha biometria', 'fazer biometria', 'fazer minha biometria', 'gerenciar biometria']),
-  T('Feed', { tab: 'inicio' }, ['feed', 'meu feed', 'feeds']),
+  T('Início', { tab: 'inicio' }, ['meu inicio', 'inicio do trabalho']),
   T('Visão geral', { tab: 'geral' }, ['visao geral', 'painel geral', 'resumo do sistema']),
   T('Mercado admin', { tab: 'mercado' }, ['mercado admin', 'gestao do mercado', 'painel do mercado']),
 
