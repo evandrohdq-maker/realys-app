@@ -12,14 +12,14 @@ import { Photo } from './ui';
 import { BoostButton } from './Boost';
 import { MonthCalendar, ShowPedidoCard, ShowStoryCard, openArtistShow, durText } from './ArtistBooking';
 import {
-  useShows, isArtistClass, blankProfile, saveMine, createPedido, storyCard, EVENT_TYPES, ATENDE, WEEK, SHOW_FEE_PCT, findCity, keyLabel, dayKey,
+  useShows, isArtistClass, COBRANCAS, cobrancaOf, blankProfile, saveMine, createPedido, storyCard, EVENT_TYPES, ATENDE, WEEK, SHOW_FEE_PCT, findCity, keyLabel, dayKey,
 } from '../artistShows';
 import { conectado } from '../serverShop';
 import { salvarVitrine, sincronizarPedidos } from '../serverShows';
 
 const STEPS = [
   ['vitrine', 'Vitrine'],
-  ['caches', 'Cachês'],
+  ['caches', 'Cachês e valores'],
   ['atende', 'Onde atende'],
   ['agenda', 'Agenda'],
   ['divulgar', 'Divulgar'],
@@ -65,7 +65,7 @@ export function ShowsPanel() {
   const save = async (extra = {}) => {
     const next = { ...draft, ...extra };
     if (!next.nome.trim()) return Alert.alert('Nome artístico', 'Como você quer aparecer para quem contrata?');
-    if (!(next.pacotes || []).length) return Alert.alert('Cachês', 'Cadastre pelo menos um show com valor.');
+    if (!(next.pacotes || []).length) return Alert.alert('Cachês e valores', 'Cadastre pelo menos uma opção com valor: por show, por hora, por serviço ou publicidade.');
     if (!findCity(next.cidade)) Alert.alert('Cidade', `Não achei "${next.cidade}" na tabela de distâncias. A vitrine funciona, mas o deslocamento vai por orçamento. Use o formato "Passo Fundo - RS".`);
     setDraft(next);
     saveMine(next);
@@ -144,35 +144,48 @@ export function ShowsPanel() {
 
       {step === 'caches' ? (
         <View>
-          <Text style={st.small}>Cada show com o seu valor. Quem contrata não paga taxa; o Realyz fica com {SHOW_FEE_PCT}% do cachê só quando o show acontece.</Text>
+          <Text style={st.small}>Cada opção com a sua forma de cobrar: por show, por hora, por serviço (jingle, gravação, arte) ou publicidade (divulgar a marca de quem contrata). Quem contrata não paga taxa; o Realyz fica com {SHOW_FEE_PCT}% só quando o trabalho acontece.</Text>
           {(draft.pacotes || []).map((p, i) => {
             const up = (patch) => set({ pacotes: draft.pacotes.map((x, j) => (j === i ? { ...x, ...patch } : x)) });
             return (
               <View key={p.id} style={st.pack}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <TextInput style={[st.input, { flex: 1 }]} value={p.nome} onChangeText={(t) => up({ nome: t })} placeholder="Nome do show" placeholderTextColor={colors.muted} />
+                  <TextInput style={[st.input, { flex: 1 }]} value={p.nome} onChangeText={(t) => up({ nome: t })} placeholder={{ show: 'Nome do show', hora: 'Ex.: Voz e violão', servico: 'Ex.: Gravação de jingle', publicidade: 'Ex.: 1 reels + 3 stories' }[cobrancaOf(p).key]} placeholderTextColor={colors.muted} />
                   <TouchableOpacity onPress={() => set({ pacotes: draft.pacotes.filter((_, j) => j !== i) })} style={{ marginLeft: 8 }} accessibilityLabel="Remover show">
                     <Ionicons name="trash-outline" size={18} color={colors.danger} />
                   </TouchableOpacity>
                 </View>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 }}>
+                  {COBRANCAS.map((c) => {
+                    const on = cobrancaOf(p).key === c.key;
+                    return (
+                      <TouchableOpacity key={c.key} onPress={() => up({ cobranca: c.key, duracao: c.key === 'show' ? p.duracao || 60 : p.duracao })} style={[st.unit, on && st.unitOn]} accessibilityLabel={c.label}>
+                        <Ionicons name={c.icon} size={13} color={on ? colors.primaryDark : colors.muted} />
+                        <Text numberOfLines={1} style={[st.unitText, on && { color: colors.primaryDark, fontWeight: '800' }]}>{c.label}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
                 <View style={{ flexDirection: 'row', marginTop: 6 }}>
+                  {cobrancaOf(p).key === 'show' ? (
                   <View style={{ flex: 1, marginRight: 6 }}>
                     <Text style={st.small}>Duração (min)</Text>
                     <TextInput style={st.input} value={String(p.duracao || '')} onChangeText={(t) => up({ duracao: parseInt(t, 10) || 0 })} keyboardType="number-pad" />
                   </View>
+                  ) : null}
                   <View style={{ flex: 1 }}>
-                    <Text style={st.small}>Cachê (R$)</Text>
+                    <Text style={st.small}>{{ show: 'Cachê do show (R$)', hora: 'Valor por hora (R$)', servico: 'Valor do serviço (R$)', publicidade: 'Valor da publi (R$)' }[cobrancaOf(p).key]}</Text>
                     <TextInput style={st.input} value={String(p.valor || '')} onChangeText={(t) => up({ valor: parseFloat(t.replace(',', '.')) || 0 })} keyboardType="decimal-pad" />
                   </View>
                 </View>
-                <TextInput style={[st.input, { marginTop: 6 }]} value={p.desc} onChangeText={(t) => up({ desc: t })} placeholder="O que inclui (músicos, som, luz…)" placeholderTextColor={colors.muted} />
-                <Text style={[st.small, { marginTop: 4 }]}>{durText(p.duracao)} · você recebe {brl((p.valor || 0) * (1 - SHOW_FEE_PCT / 100))}</Text>
+                <TextInput style={[st.input, { marginTop: 6 }]} value={p.desc} onChangeText={(t) => up({ desc: t })} placeholder={cobrancaOf(p).key === 'publicidade' ? 'O que entrega (reels, stories, marca no palco…)' : 'O que inclui (músicos, som, luz…)'} placeholderTextColor={colors.muted} />
+                <Text style={[st.small, { marginTop: 4 }]}>{[cobrancaOf(p).key === 'show' ? durText(p.duracao) : cobrancaOf(p).unit].filter(Boolean).join(' · ')} · você recebe {brl((p.valor || 0) * (1 - SHOW_FEE_PCT / 100))}{cobrancaOf(p).key === 'hora' ? ' por hora' : ''}</Text>
               </View>
             );
           })}
-          <TouchableOpacity style={st.outline} onPress={() => set({ pacotes: [...(draft.pacotes || []), { id: 'p' + Date.now(), nome: '', duracao: 60, valor: 0, desc: '' }] })}>
+          <TouchableOpacity style={st.outline} onPress={() => set({ pacotes: [...(draft.pacotes || []), { id: 'p' + Date.now(), nome: '', cobranca: 'show', duracao: 60, valor: 0, desc: '' }] })}>
             <Ionicons name="add" size={16} color={colors.primary} />
-            <Text style={st.outlineText}>Adicionar show</Text>
+            <Text style={st.outlineText}>Adicionar opção</Text>
           </TouchableOpacity>
         </View>
       ) : null}
@@ -332,4 +345,7 @@ const st = StyleSheet.create({
   pack: { backgroundColor: '#fff', borderRadius: 14, padding: 10, marginTop: 8, borderWidth: 1, borderColor: colors.border },
   mode: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 14, padding: 12, marginTop: 8, borderWidth: 1.5, borderColor: colors.border },
   modeOn: { borderColor: colors.gold, backgroundColor: '#FFFBEF' },
+  unit: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14, backgroundColor: colors.cardAlt, marginRight: 6, marginBottom: 6 },
+  unitOn: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.primary },
+  unitText: { color: colors.muted, fontSize: 12.5, marginLeft: 4 },
 });

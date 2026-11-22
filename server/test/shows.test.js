@@ -99,3 +99,36 @@ test('shows: vitrine, contratar, recusar, orçamento, conversa, cancelar e show 
   const meus = await call('GET', '/shows/pedidos', art.accessToken);
   assert.equal(meus.find((x) => x.id === o.id).status, 'realizado');
 });
+
+test('shows: cobrança por show, por hora, por serviço e publicidade', async () => {
+  const art = await signup('Duda Cantora', '39053344705', 'dudacanta');
+  const cli = await signup('Marca Parceira', '15350946056', 'marcapar');
+  await call('PATCH', '/me', art.accessToken, { socialClass: 'musico' });
+  const v = await call('PUT', '/shows/me', art.accessToken, {
+    ...vitrine, nome: 'Duda',
+    pacotes: [
+      { id: 'sh', nome: 'Show acústico', cobranca: 'show', duracao: 90, valor: 800 },
+      { id: 'hr', nome: 'Voz e violão', cobranca: 'hora', valor: 300 },
+      { id: 'sv', nome: 'Gravação de jingle', cobranca: 'servico', valor: 600 },
+      { id: 'pb', nome: '1 reels + 3 stories', cobranca: 'publicidade', valor: 400, desc: 'Sua marca no meu perfil' },
+    ],
+  });
+  assert.deepEqual(v.pacotes.map((p) => p.cobranca), ['show', 'hora', 'servico', 'publicidade']);
+  assert.equal(v.pacotes[1].duracao, null);
+  await call('POST', '/wallet/deposit', cli.accessToken, { amount: 5000 });
+
+  // Por hora: 3 horas × R$ 300.
+  const h = await call('POST', '/shows/pedidos', cli.accessToken, { artistaId: art.user.id, tipo: 'contratacao', pacoteId: 'hr', horas: 3, data: dia(20) });
+  assert.equal(h.total, 900);
+  assert.equal(h.pacote.horas, 3);
+  await call('POST', `/shows/pedidos/${h.id}/responder`, art.accessToken, { aceitar: true });
+
+  // Publicidade: não ocupa o dia do show nem cobra deslocamento.
+  const pb = await call('POST', '/shows/pedidos', cli.accessToken, { artistaId: art.user.id, tipo: 'contratacao', pacoteId: 'pb', data: dia(20), km: 25 });
+  assert.equal(pb.total, 400);
+  await call('POST', `/shows/pedidos/${pb.id}/responder`, art.accessToken, { aceitar: true });
+  // Show no mesmo dia continua bloqueado por causa do show por hora, não da publicidade.
+  await assert.rejects(call('POST', '/shows/pedidos', cli.accessToken, { artistaId: art.user.id, tipo: 'contratacao', pacoteId: 'sh', data: dia(20) }), /409/);
+  const livre = await call('GET', `/shows/artistas/${art.user.id}`, null);
+  assert.deepEqual(livre.ocupados, [dia(20)]);
+});

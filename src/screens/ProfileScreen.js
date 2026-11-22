@@ -30,6 +30,13 @@ import BiometriaScreen from './BiometriaScreen';
 import DemoScreen from './DemoScreen';
 import { ProfileEditor, PrivacyPanel, StudioPanel, FutureIcon, audienceLabel, coverTone } from '../components/ProfileStudio';
 import { ShowsPanel } from '../components/ArtistShowEditor';
+import { isArtistClass } from '../artistShows';
+import { segOfService } from '../providerSegments';
+
+// Perfil responsivo pela função: cada classe vê só as ferramentas dela.
+// Estúdio: artistas, músicos, criadores de conteúdo, influenciadores e gamers.
+// Shows e contratação: classe Artistas ou prestador cadastrado no segmento Artista.
+const ESTUDIO_CLASSES = ['musico', 'artista', 'cenicas', 'criador', 'influenciador', 'gamer'];
 import { Photo } from '../components/ui';
 import { myPages, MAX_PAGES } from '../userPages';
 import Credentials from '../components/Credentials';
@@ -144,6 +151,8 @@ function WorkHead({ role, navigate }) {
 export default function ProfileScreen({ navigate, explore }) {
   const { state, dispatch } = useStore();
   const u = state.user;
+  const socialCls = state.myProfile && state.myProfile.social;
+  const ehArtista = isArtistClass(socialCls) || (!!state.myProvider && segOfService(state.myProvider.service) === 'artistas');
   const [checking, setChecking] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
   const [cvOpen, setCvOpen] = useState(false); // Meu currículo (conta real)
@@ -406,17 +415,18 @@ export default function ProfileScreen({ navigate, explore }) {
         </Item>
         {/* Estúdio Realyz: para artistas, músicos e criadores de conteúdo. Não aparece no perfil de empresa
             (a empresa divulga por anúncios, propagandas e reels de anúncio, no Painel). */}
-        {state.activeRole !== 'empresa' ? (
+        {state.activeRole !== 'empresa' && (ESTUDIO_CLASSES.includes(socialCls && socialCls.cls) || ehArtista) ? (
           <Item open={open} onToggle={toggle} k="estudio" icon="rocket-outline" title="Estúdio Realyz" sub="Para artistas, músicos e criadores de conteúdo">
             <StudioPanel />
           </Item>
         ) : null}
         {/* Shows e contratação: vitrine de shows da classe Artistas (cachês, agenda, onde atende, divulgação e pedidos). */}
-        {state.activeRole !== 'empresa' ? (
+        {state.activeRole === 'empresa' ? null : ehArtista ? (
           <Item open={open} onToggle={toggle} k="shows" icon="mic-outline" title="Shows e contratação" sub="Cachês, agenda e pedidos de show">
             <ShowsPanel />
           </Item>
-        ) : (
+        ) : null}
+        {state.activeRole !== 'empresa' ? null : (
           <Item open={open} onToggle={toggle} icon="megaphone-outline" title="Anúncios e propaganda" sub="Espaços de anúncio e reels de anúncio" onPress={() => nav({ tab: 'anuncie' })} />
         )}
         <Item open={open} onToggle={toggle} icon="albums-outline" title={`Minhas páginas · ${myPages(state).length}/${MAX_PAGES}`} sub="Assinadas ou anônimas" onPress={() => nav({ tab: 'paginas', seg: 'minhas' })} />

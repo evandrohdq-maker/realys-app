@@ -22,6 +22,7 @@ import {
   useShows, artistById, coverage, atendeText, agendaText, fromPrice, nextFreeDays, dayState, monthDays, keyLabel, dayKey, cityName,
   createPedido, respond, markPaid, markCanceled, markDone, addMsg, markStory, rate, canCancel, showPassed, storyDone, storyCard,
   STATUS, EVENT_TYPES, DIVULGA, SHOW_FEE_PCT, artistGets, showFee, CANCEL_DAYS, WEEK, getShows, pedidoById,
+  cobrancaOf, valorDo, isPubli,
 } from '../artistShows';
 
 const GOLD = '#F5C331';
@@ -119,14 +120,14 @@ export function ArtistShowcase({ artist, hideHead }) {
         </ScrollView>
       ) : null}
 
-      <Text style={st.sub2}>CACHÊS</Text>
+      <Text style={st.sub2}>CACHÊS E VALORES</Text>
       {(artist.pacotes || []).map((p) => (
         <View key={p.id} style={st.pack}>
           <View style={{ flex: 1 }}>
             <Text style={st.packName} numberOfLines={1}>{p.nome}</Text>
-            <Text style={st.small} numberOfLines={2}>{[durText(p.duracao), p.desc].filter(Boolean).join(' · ')}</Text>
+            <Text style={st.small} numberOfLines={2}>{[cobrancaOf(p).label, cobrancaOf(p).key === 'show' ? durText(p.duracao) : null, p.desc].filter(Boolean).join(' · ')}</Text>
           </View>
-          <Text style={st.packPrice}>{brl(p.valor)}</Text>
+          <Text style={st.packPrice}>{brl(p.valor)}{cobrancaOf(p).key === 'hora' ? '/h' : ''}</Text>
         </View>
       ))}
       {artist.estrutura ? <Text style={[st.small, { marginTop: 2 }]}>🎛️ {artist.estrutura}</Text> : null}
@@ -270,15 +271,21 @@ function BookSheet({ artist, mode, onClose }) {
   const insets = useSafeAreaInsets();
   const [pacote, setPacote] = useState((artist.pacotes || [])[0] || null);
   const [dia, setDia] = useState(null);
+  const [horas, setHoras] = useState(2);
   const [hora, setHora] = useState('21:00');
   const [cidade, setCidade] = useState(artist.cidade);
   const [local, setLocal] = useState('');
   const [evento, setEvento] = useState((artist.eventos || [])[0] || EVENT_TYPES[0]);
   const [publico, setPublico] = useState('');
   const [msg, setMsg] = useState('');
-  const cov = useMemo(() => coverage(artist, cidade), [artist, cidade]);
   const contratar = mode === 'contratar';
-  const total = contratar && pacote && cov.ok && cov.desloc != null ? pacote.valor + cov.desloc : null;
+  // Publicidade não tem deslocamento nem depende de onde o artista atende.
+  const publi = contratar && isPubli(pacote);
+  const cov0 = useMemo(() => coverage(artist, cidade), [artist, cidade]);
+  const cov = publi ? { ok: true, km: 0, desloc: 0 } : cov0;
+  const porHora = contratar && cobrancaOf(pacote).key === 'hora';
+  const valor = contratar && pacote ? valorDo(pacote, porHora ? horas : 1) : null;
+  const total = contratar && pacote && cov.ok && cov.desloc != null ? valor + cov.desloc : null;
   const title = { contratar: 'Contratar', orcamento: 'Fazer orçamento', contato: 'Entrar em contato' }[mode];
 
   const send = () => {
@@ -290,7 +297,7 @@ function BookSheet({ artist, mode, onClose }) {
     if (artist.server && conectado(state)) {
       if (mode === 'contato' && !msg.trim()) return Alert.alert('Escreva a sua mensagem', 'Conte o que você quer saber do artista.');
       if (mode !== 'contato' && !dia) return Alert.alert('Escolha o dia', 'Toque em um dia livre na agenda.');
-      return enviarPedido({ artistaId: artist.id, tipo: mode === 'contratar' ? 'contratacao' : mode, pacoteId: pacote && pacote.id, data: dia, hora, cidade, local, evento, publico: parseInt(publico, 10) || null, mensagem: msg.trim(), km: cov.km || 0 })
+      return enviarPedido({ artistaId: artist.id, tipo: mode === 'contratar' ? 'contratacao' : mode, pacoteId: pacote && pacote.id, horas: porHora ? horas : undefined, data: dia, hora, cidade, local, evento, publico: parseInt(publico, 10) || null, mensagem: msg.trim(), km: cov.km || 0 })
         .then(() => {
           onClose();
           Alert.alert('Pedido enviado ✅', 'Acompanhe em Pedidos › Aguardando.');
@@ -309,18 +316,18 @@ function BookSheet({ artist, mode, onClose }) {
       onClose();
       return Alert.alert('Orçamento pedido 📝', `${artist.nome} vai responder com o valor. Você acompanha em Pedidos › Aguardando.`);
     }
-    if (!pacote) return Alert.alert('Escolha o show', 'Toque em um dos cachês.');
+    if (!pacote) return Alert.alert('Escolha a opção', 'Toque em um dos cachês.');
     if (!cov.ok || cov.desloc == null) return Alert.alert('Fora da área do artista', `${cov.why || ''}\n\nPeça um orçamento: o artista pode aceitar e informar o deslocamento.`);
     const pay = () => {
       const fromGift = +Math.min(state.giftCredits, total).toFixed(2);
       dispatch({ type: 'SHOW_HOLD', amount: total });
-      createPedido({ artista: artist, tipo: 'contratacao', pacote, data: dia, hora, cidade, local, evento, publico: parseInt(publico, 10) || null, mensagem: msg.trim(), desloc: cov.desloc, km: cov.km, fromGift });
+      createPedido({ artista: artist, tipo: 'contratacao', pacote, horas: porHora ? horas : null, data: dia, hora, cidade, local, evento, publico: parseInt(publico, 10) || null, mensagem: msg.trim(), desloc: cov.desloc, km: cov.km, fromGift });
       onClose();
       Alert.alert('Pedido enviado 🎤', `${brl(total)} retido pela Garantia Realyz. ${artist.nome} confirma o show; se recusar, o dinheiro volta na hora.`);
     };
     const avail = state.wallet + state.giftCredits;
     if (total > avail) return askPix({ amount: total, available: avail, label: `Show de ${artist.nome}`, onPaid: pay });
-    Alert.alert('Confirmar contratação', `${pacote.nome} · ${keyLabel(dia)} às ${hora}\n${cityName(cidade)}${cov.desloc ? `\nDeslocamento: ${brl(cov.desloc)}` : ''}\n\nTotal: ${brl(total)}`, [{ text: 'Voltar', style: 'cancel' }, { text: 'Pagar e enviar', onPress: pay }]);
+    Alert.alert('Confirmar contratação', `${pacote.nome}${porHora ? ` · ${horas} h` : ''} · ${keyLabel(dia)} às ${hora}\n${cityName(cidade)}${cov.desloc ? `\nDeslocamento: ${brl(cov.desloc)}` : ''}\n\nTotal: ${brl(total)}`, [{ text: 'Voltar', style: 'cancel' }, { text: 'Pagar e enviar', onPress: pay }]);
   };
 
   return (
@@ -333,21 +340,33 @@ function BookSheet({ artist, mode, onClose }) {
             <>
               {contratar ? (
                 <>
-                  <Text style={st.label}>Qual show</Text>
+                  <Text style={st.label}>O que você quer contratar</Text>
                   {(artist.pacotes || []).map((p) => (
                     <TouchableOpacity key={p.id} style={[st.pack, pacote && pacote.id === p.id && st.packOn]} onPress={() => setPacote(p)}>
                       <Ionicons name={pacote && pacote.id === p.id ? 'radio-button-on' : 'radio-button-off'} size={18} color={colors.primary} />
                       <View style={{ flex: 1, marginLeft: 8 }}>
                         <Text style={st.packName} numberOfLines={1}>{p.nome}</Text>
-                        <Text style={st.small} numberOfLines={1}>{durText(p.duracao)}</Text>
+                        <Text style={st.small} numberOfLines={1}>{[cobrancaOf(p).label, cobrancaOf(p).key === 'show' ? durText(p.duracao) : null].filter(Boolean).join(' · ')}</Text>
                       </View>
-                      <Text style={st.packPrice}>{brl(p.valor)}</Text>
+                      <Text style={st.packPrice}>{brl(p.valor)}{cobrancaOf(p).key === 'hora' ? '/h' : ''}</Text>
                     </TouchableOpacity>
                   ))}
+                  {porHora ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                      <Text style={[st.label, { marginTop: 0, flex: 1 }]}>Quantas horas</Text>
+                      <TouchableOpacity onPress={() => setHoras(Math.max(1, horas - 1))} style={{ padding: 6 }} accessibilityLabel="Menos uma hora">
+                        <Ionicons name="remove-circle-outline" size={24} color={colors.primary} />
+                      </TouchableOpacity>
+                      <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16, minWidth: 40, textAlign: 'center' }}>{horas} h</Text>
+                      <TouchableOpacity onPress={() => setHoras(Math.min(24, horas + 1))} style={{ padding: 6 }} accessibilityLabel="Mais uma hora">
+                        <Ionicons name="add-circle-outline" size={24} color={colors.primary} />
+                      </TouchableOpacity>
+                    </View>
+                  ) : null}
                 </>
               ) : null}
-              <Text style={st.label}>Dia {dia ? `· ${keyLabel(dia)}` : ''}</Text>
-              <MonthCalendar artist={artist} pedidos={shows.pedidos} selected={dia} onDay={(k, s) => (s === 'livre' || mode === 'orcamento' ? setDia(k) : Alert.alert(keyLabel(k), s === 'bloqueado' ? 'Dia bloqueado pelo artista.' : 'O artista não toca nesse dia da semana. Peça um orçamento para propor.'))} />
+              <Text style={st.label}>{publi ? 'Dia da publicação' : 'Dia'} {dia ? `· ${keyLabel(dia)}` : ''}</Text>
+              <MonthCalendar artist={artist} pedidos={shows.pedidos} selected={dia} onDay={(k, s) => (s === 'livre' || mode === 'orcamento' || publi ? setDia(k) : Alert.alert(keyLabel(k), s === 'bloqueado' ? 'Dia bloqueado pelo artista.' : 'O artista não toca nesse dia da semana. Peça um orçamento para propor.'))} />
               <View style={{ flexDirection: 'row' }}>
                 <View style={{ flex: 1, marginRight: 8 }}>
                   <Text style={st.label}>Horário</Text>
@@ -380,9 +399,9 @@ function BookSheet({ artist, mode, onClose }) {
           <Text style={[st.small, { marginTop: 6 }]}>🔒 Telefone, rede social e pagamento por fora não passam: fora do Realyz não tem garantia.</Text>
           {total != null ? (
             <View style={st.totalBox}>
-              <Text style={st.small}>Cachê {brl(pacote.valor)}{cov.desloc ? ` + deslocamento ${brl(cov.desloc)}` : ''}</Text>
+              <Text style={st.small}>{porHora ? `${horas} h × ${brl(pacote.valor)}` : publi ? `Publicidade ${brl(valor)}` : `Cachê ${brl(valor)}`}{cov.desloc ? ` + deslocamento ${brl(cov.desloc)}` : ''}</Text>
               <Text style={st.total}>{brl(total)}</Text>
-              <Text style={st.small}>Sem taxa para quem contrata. Fica retido até o show.</Text>
+              <Text style={st.small}>Sem taxa para quem contrata. Fica retido até {publi ? 'a publicação' : 'o show'}.</Text>
             </View>
           ) : null}
           <TouchableOpacity style={[st.cta, { marginTop: 14 }]} onPress={send} activeOpacity={0.88}>

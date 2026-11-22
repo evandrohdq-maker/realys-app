@@ -17,6 +17,11 @@ export const ARTIST_CLASSES = ['musico', 'cenicas', 'artista'];
 export const CANCEL_DAYS = 7;
 export const DIVULGA = { artista: 2, contratante: 1 };
 const MODOS = ['cidade', 'regiao', 'viaja'];
+// Como o artista cobra cada opção: por show (fechado), por hora, por serviço (ex.: arte, gravação)
+// ou publicidade (divulga a marca de quem contrata: reels, stories, presença). Publicidade não ocupa
+// o dia na agenda de shows e não tem deslocamento.
+export const COBRANCAS = ['show', 'hora', 'servico', 'publicidade'];
+const NAO_PUBLI = "(pacote IS NULL OR json_extract(pacote, '$.cobranca') IS NULL OR json_extract(pacote, '$.cobranca') != 'publicidade')";
 const DAY = 86400000;
 const isDate = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s || '');
 const dayTs = (k) => {
@@ -41,7 +46,7 @@ export default function showsRoutes(r, { db, cfg, wallet, hub, userById, fiscal 
       pacotes: parse(row.pacotes, []).map((p) => ({ ...p, valor: toReais(p.valor) })),
       eventos: parse(row.eventos, []), atende: { ...at, porKm: toReais(at.porKm || 0) }, diasSemana: parse(row.dias_semana, []), agendaAte: row.agenda_ate,
       bloqueados: parse(row.bloqueados, []), vitrine: parse(row.vitrine, []), estrutura: row.estrutura,
-      ocupados: db.prepare("SELECT data FROM show_pedidos WHERE artist_id = ? AND status IN ('confirmado','realizado') AND data IS NOT NULL").all(row.user_id).map((x) => x.data),
+      ocupados: db.prepare(`SELECT data FROM show_pedidos WHERE artist_id = ? AND status IN ('confirmado','realizado') AND data IS NOT NULL AND ${NAO_PUBLI}`).all(row.user_id).map((x) => x.data),
     };
   };
   const pedidoView = (p, me) => {
@@ -61,7 +66,7 @@ export default function showsRoutes(r, { db, cfg, wallet, hub, userById, fiscal 
     return p;
   };
   const ocupado = (artistId, data, exceptId = '') =>
-    !!db.prepare("SELECT 1 FROM show_pedidos WHERE artist_id = ? AND data = ? AND status = 'confirmado' AND id != ?").get(artistId, data, exceptId);
+    !!db.prepare(`SELECT 1 FROM show_pedidos WHERE artist_id = ? AND data = ? AND status = 'confirmado' AND id != ? AND ${NAO_PUBLI}`).get(artistId, data, exceptId);
   const precisaBio = (user) => {
     if (!podeComprar(db, cfg, user, JSON.parse(user.roles || '[]'))) fail(403, MSG_SEM_BIOMETRIA, 'biometria');
   };
@@ -96,10 +101,13 @@ export default function showsRoutes(r, { db, cfg, wallet, hub, userById, fiscal 
   r.put('/shows/me', ({ body, user }) => {
     if (!isArtist(user)) fail(403, 'A vitrine de shows é da classe Artistas (música, artes cênicas e artes visuais). Troque a sua classe no perfil.', 'classe');
     const pacotes = (Array.isArray(body.pacotes) ? body.pacotes : []).slice(0, 10).map((p, i) => ({
-      id: String(p.id || 'p' + i).slice(0, 20), nome: str(p.nome, 'o nome do show', { max: 60 }), duracao: int(p.duracao, 'a duração', { min: 10, max: 720 }),
-      valor: money(p.valor, 'o cachê', { min: 50, max: 1e6 }), desc: str(p.desc, 'a descrição', { optional: true, max: 160 }),
+      id: String(p.id || 'p' + i).slice(0, 20), nome: str(p.nome, 'o nome da opção', { max: 60 }),
+      cobranca: COBRANCAS.includes(p.cobranca) ? p.cobranca : 'show',
+      // Duração só conta no show fechado; nas outras é opcional (por hora o cliente escolhe as horas).
+      duracao: (p.cobranca || 'show') === 'show' || !COBRANCAS.includes(p.cobranca) ? int(p.duracao, 'a duração', { min: 10, max: 720 }) : p.duracao ? int(p.duracao, 'a duração', { min: 0, max: 720 }) : null,
+      valor: money(p.valor, 'o valor', { min: p.cobranca === 'hora' ? 20 : 50, max: 1e6 }), desc: str(p.desc, 'a descrição', { optional: true, max: 160 }),
     }));
-    if (!pacotes.length) fail(400, 'Cadastre pelo menos um show com valor.');
+    if (!pacotes.length) fail(400, 'Cadastre pelo menos uma opção com valor (por show, por hora, por serviço ou publicidade).');
     const at = body.atende || {};
     const atende = {
       modo: oneOf(at.modo, 'onde atende', MODOS), raioKm: at.modo === 'regiao' ? int(at.raioKm, 'o raio', { min: 1, max: 2000 }) : null,
@@ -158,21 +166,25 @@ export default function showsRoutes(r, { db, cfg, wallet, hub, userById, fiscal 
     let pacote = null;
     let valor = null;
     let desloc = 0;
+    const escolhido = tipo === 'contratacao' ? parse(row.pacotes, []).find((x) => x.id === String(body.pacoteId || '')) : null;
+    const publi = !!escolhido && escolhido.cobranca === 'publicidade';
     if (tipo !== 'contato') {
       data = String(body.data || '');
-      if (!isDate(data)) fail(400, 'Escolha o dia do show.');
+      if (!isDate(data)) fail(400, publi ? 'Escolha o dia da publicação.' : 'Escolha o dia do show.');
       if (dayTs(data) < t - DAY) fail(400, 'Esse dia já passou.');
-      if (ocupado(row.user_id, data) || parse(row.bloqueados, []).includes(data)) fail(409, 'Esse dia não está livre na agenda do artista.', 'data_ocupada');
+      if (!publi && (ocupado(row.user_id, data) || parse(row.bloqueados, []).includes(data))) fail(409, 'Esse dia não está livre na agenda do artista.', 'data_ocupada');
     }
     if (tipo === 'contratacao') {
       precisaBio(user);
-      const pk = parse(row.pacotes, []).find((x) => x.id === String(body.pacoteId || ''));
-      if (!pk) fail(400, 'Escolha um dos shows do artista.');
-      pacote = pk;
-      valor = pk.valor;
+      const pk = escolhido;
+      if (!pk) fail(400, 'Escolha uma das opções do artista.');
+      // Por hora: quem contrata escolhe quantas horas (o valor é por hora).
+      const horas = pk.cobranca === 'hora' ? int(body.horas || 1, 'as horas', { min: 1, max: 24 }) : null;
+      pacote = horas ? { ...pk, horas } : pk;
+      valor = pk.valor * (horas || 1);
       // Deslocamento: o app calcula pela distância e o servidor limita ao que o artista cobra.
       const at = parse(row.atende, { modo: 'cidade' });
-      const km = body.km == null ? 0 : int(body.km, 'a distância', { min: 0, max: 6000 });
+      const km = publi || body.km == null ? 0 : int(body.km, 'a distância', { min: 0, max: 6000 });
       if (km > 0 && at.modo === 'cidade') fail(409, 'Esse artista só atende na cidade dele. Peça um orçamento.', 'fora_da_area');
       if (at.modo === 'regiao' && km > (at.raioKm || 0)) fail(409, `Esse artista atende até ${at.raioKm} km. Peça um orçamento.`, 'fora_da_area');
       desloc = Math.round(km * 2 * (at.porKm || 0));
@@ -205,7 +217,8 @@ export default function showsRoutes(r, { db, cfg, wallet, hub, userById, fiscal 
         estornar(p, 'o artista recusou');
         db.prepare("UPDATE show_pedidos SET status = 'recusado', updated_at = ? WHERE id = ?").run(now(), p.id);
       } else if (p.tipo === 'contratacao') {
-        if (ocupado(p.artist_id, p.data, p.id)) fail(409, 'Você já tem show fechado nesse dia.', 'data_ocupada');
+        const ehPubli = (parse(p.pacote, {}) || {}).cobranca === 'publicidade';
+        if (!ehPubli && ocupado(p.artist_id, p.data, p.id)) fail(409, 'Você já tem show fechado nesse dia.', 'data_ocupada');
         db.prepare("UPDATE show_pedidos SET status = 'confirmado', updated_at = ? WHERE id = ?").run(now(), p.id);
       } else {
         const valor = money(body.valor, 'o cachê', { min: 50, max: 1e6 });

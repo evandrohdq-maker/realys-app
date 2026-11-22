@@ -33,6 +33,22 @@ export const SHOW_FEE_PCT = TAXAS.show.pct;
 export const ARTIST_CLASSES = ['musico', 'cenicas', 'artista'];
 export const isArtistClass = (social) => !!social && ARTIST_CLASSES.includes(social.cls);
 
+// Como o artista cobra cada opção (o mesmo do servidor: server/src/routes/shows.js › COBRANCAS).
+//  - show: valor fechado pelo show (com duração);
+//  - hora: valor por hora, quem contrata escolhe quantas horas;
+//  - servico: um trabalho (arte, gravação de jingle, pintura de mural, ensaio…);
+//  - publicidade: divulga a marca de quem contrata (reels, stories, presença). Não ocupa a agenda.
+export const COBRANCAS = [
+  { key: 'show', label: 'Por show', unit: 'por show', icon: 'mic-outline' },
+  { key: 'hora', label: 'Por hora', unit: 'por hora', icon: 'time-outline' },
+  { key: 'servico', label: 'Por serviço', unit: 'por serviço', icon: 'construct-outline' },
+  { key: 'publicidade', label: 'Publicidade', unit: 'por publi', icon: 'megaphone-outline' },
+];
+export const cobrancaOf = (p) => COBRANCAS.find((c) => c.key === (p && p.cobranca)) || COBRANCAS[0];
+export const isPubli = (p) => !!p && p.cobranca === 'publicidade';
+// Valor do que foi escolhido (por hora multiplica pelas horas).
+export const valorDo = (p, horas = 1) => (!p ? null : Math.round(p.valor * (cobrancaOf(p).key === 'hora' ? Math.max(1, horas || 1) : 1) * 100) / 100);
+
 export const EVENT_TYPES = ['Casa de show', 'Bar e restaurante', 'Casamento', 'Aniversário', 'Formatura', 'Empresa', 'Igreja', 'Festa particular', 'Evento público'];
 export const ATENDE = [
   { key: 'cidade', label: 'Só na minha cidade', icon: 'home-outline' },
@@ -149,7 +165,7 @@ export const fromPrice = (p) => ((p.pacotes || []).length ? Math.min(...p.pacote
 
 // ---------- Artistas de exemplo ----------
 const pic = (seed, w = 900, h = 600) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
-const pk = (id, nome, duracao, valor, desc) => ({ id, nome, duracao, valor, desc });
+const pk = (id, nome, duracao, valor, desc, cobranca = 'show') => ({ id, nome, duracao, valor, desc, cobranca });
 export const SEED_ARTISTS = [
   {
     id: 'a2', ref: { company: 'a2' }, nome: 'Duda Viola', genero: 'Sertanejo', cidade: 'Goiânia - GO', logo: '🎸', foto: pic('realys-art-viola'),
@@ -271,8 +287,9 @@ export function toggleBlock(key) {
 const newId = (p) => `${p}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 const snap = (a) => ({ id: a.id, nome: a.nome, foto: a.foto, logo: a.logo, genero: a.genero, cidade: a.cidade });
 // lado: 'cliente' (eu pedi) ou 'artista' (pediram para mim). Na demonstração os dois lados ficam no mesmo celular.
-export function createPedido({ artista, tipo, pacote, data: dia, hora, evento, local, cidade, publico, mensagem, cliente, desloc = 0, km = null, fromGift = 0 }) {
-  const valor = pacote ? pacote.valor : null;
+export function createPedido({ artista, tipo, pacote: pk0, horas = null, data: dia, hora, evento, local, cidade, publico, mensagem, cliente, desloc = 0, km = null, fromGift = 0 }) {
+  const pacote = pk0 && cobrancaOf(pk0).key === 'hora' ? { ...pk0, horas: Math.max(1, horas || 1) } : pk0;
+  const valor = pacote ? valorDo(pacote, pacote.horas) : null;
   const p = {
     id: newId('sh'), artistaId: artista.id, artista: snap(artista), lado: artista.id === 'me' ? 'artista' : 'cliente', cliente: cliente || 'Você',
     tipo, status: tipo === 'contato' ? 'conversa' : 'aguardando', pacote: pacote || null, data: dia || null, hora: hora || '', evento: evento || '', local: local || '',

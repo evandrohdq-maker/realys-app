@@ -12,12 +12,11 @@ import { getDevicePoint } from '../geo';
 import { colors, brl } from '../theme';
 import { Card, Row, Button, Badge, Input, Chip } from './ui';
 import FaceCheck from './FaceCheck';
-import { serviceTypes } from '../data';
+import { SEGMENTS, segConfig, segOfService } from '../providerSegments';
 import { conectado, carregarCarteira } from '../serverShop';
 
 const NEXT = { Solicitado: 'Aceito', Aceito: 'A caminho', 'A caminho': 'Chegou', Chegou: 'Concluído' };
 const LABEL = { Aceito: 'Aceitar', 'A caminho': 'Estou a caminho', Chegou: 'Cheguei', Concluído: 'Serviço concluído' };
-const UNITS = ['visita', 'hora', 'corrida', 'km', 'diária', 'serviço'];
 const toNum = (t) => Number(String(t || '').replace(/[^\d,.]/g, '').replace(/\./g, '').replace(',', '.')) || 0;
 
 export default function ServerProviderPanel() {
@@ -27,7 +26,7 @@ export default function ServerProviderPanel() {
   const [perfil, setPerfil] = useState(undefined); // undefined = carregando; null = ainda não cadastrado
   const [calls, setCalls] = useState([]);
   const [face, setFace] = useState(null);
-  const [form, setForm] = useState({ service: 'eletricista', functions: '', price: '', priceUnit: 'visita', visitFee: '', vehicle: '' });
+  const [form, setForm] = useState({ seg: 'casa', service: 'eletricista', functions: '', price: '', priceUnit: 'visita', visitFee: '', vehicle: '' });
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -56,7 +55,7 @@ export default function ServerProviderPanel() {
 
   const salvar = async () => {
     const functions = form.functions.split(/[,;\n]/).map((x) => x.trim()).filter(Boolean);
-    if (!functions.length) return Alert.alert('O que você faz?', 'Escreva pelo menos uma função, separadas por vírgula (ex.: Tomadas, Chuveiro).');
+    if (!functions.length) return Alert.alert('O que você faz?', `Escreva pelo menos uma, separadas por vírgula. ${cfg.ph.replace(/^[^(]*/, '')}`);
     if (!toNum(form.price)) return Alert.alert('Seu preço', 'Informe quanto você cobra.');
     setBusy(true);
     try {
@@ -100,7 +99,14 @@ export default function ServerProviderPanel() {
   };
 
   const abertos = calls.filter((c) => !['Concluído', 'Recusado', 'Cancelado'].includes(c.status));
-  const tipos = serviceTypes.slice(0, 40);
+  // O formulário segue o segmento escolhido: só as profissões, cobranças e campos dele.
+  const cfg = segConfig(form.seg);
+  const seg = SEGMENTS.find((x) => x.key === form.seg) || SEGMENTS[0];
+  const escolherSeg = (k) => {
+    const c = segConfig(k);
+    const sg = SEGMENTS.find((x) => x.key === k);
+    setForm({ ...form, seg: k, service: sg && sg.professions[0] ? sg.professions[0].key : form.service, priceUnit: c.units[0], visitFee: c.visit ? form.visitFee : '', vehicle: c.vehicle ? form.vehicle : '' });
+  };
 
   return (
     <Card>
@@ -116,28 +122,37 @@ export default function ServerProviderPanel() {
           <Text style={{ color: colors.muted, marginBottom: 8 }}>
             {perfil === null ? 'Faça seu cadastro de prestador para receber chamados de clientes de verdade.' : 'Atualize seu cadastro.'}
           </Text>
-          <Text style={{ fontWeight: '700', color: colors.text, marginBottom: 4 }}>Tipo de serviço</Text>
+          <Text style={{ fontWeight: '700', color: colors.text, marginBottom: 4 }}>Seu segmento</Text>
           <Row style={{ flexWrap: 'wrap', marginBottom: 8 }}>
-            {tipos.map((t) => (
+            {SEGMENTS.map((g) => (
+              <View key={g.key} style={{ marginRight: 6, marginBottom: 6 }}>
+                <Chip label={`${g.emoji} ${g.label}`} active={form.seg === g.key} onPress={() => escolherSeg(g.key)} />
+              </View>
+            ))}
+          </Row>
+          <Text style={{ fontWeight: '700', color: colors.text, marginBottom: 4 }}>{form.seg === 'artistas' ? 'Que artista você é' : 'Sua profissão'}</Text>
+          <Row style={{ flexWrap: 'wrap', marginBottom: 8 }}>
+            {seg.professions.map((t) => (
               <View key={t.key} style={{ marginRight: 6, marginBottom: 6 }}>
                 <Chip label={t.label} active={form.service === t.key} onPress={() => setForm({ ...form, service: t.key })} />
               </View>
             ))}
           </Row>
-          <Input placeholder="O que você faz (ex.: Tomadas, Chuveiro, Disjuntor)" value={form.functions} onChangeText={(v) => setForm({ ...form, functions: v })} />
+          <Input placeholder={cfg.ph} value={form.functions} onChangeText={(v) => setForm({ ...form, functions: v })} />
           <Row style={{ marginTop: 8 }}>
-            <Input style={{ flex: 1, marginRight: 8 }} placeholder="Preço (R$)" keyboardType="decimal-pad" value={form.price} onChangeText={(v) => setForm({ ...form, price: v })} />
-            <Input style={{ flex: 1 }} placeholder="Taxa de visita (R$)" keyboardType="decimal-pad" value={form.visitFee} onChangeText={(v) => setForm({ ...form, visitFee: v })} />
+            <Input style={{ flex: 1, marginRight: cfg.visit ? 8 : 0 }} placeholder={cfg.price} keyboardType="decimal-pad" value={form.price} onChangeText={(v) => setForm({ ...form, price: v })} />
+            {cfg.visit ? <Input style={{ flex: 1 }} placeholder="Taxa de visita (R$)" keyboardType="decimal-pad" value={form.visitFee} onChangeText={(v) => setForm({ ...form, visitFee: v })} /> : null}
           </Row>
           <Row style={{ flexWrap: 'wrap', marginTop: 8 }}>
-            {UNITS.map((u) => (
+            {cfg.units.map((u) => (
               <View key={u} style={{ marginRight: 6, marginBottom: 6 }}>
                 <Chip label={`por ${u}`} active={form.priceUnit === u} onPress={() => setForm({ ...form, priceUnit: u })} />
               </View>
             ))}
           </Row>
-          <Input style={{ marginTop: 4 }} placeholder="Veículo (motorista e motoboy: modelo, cor, cadeirinha...)" value={form.vehicle} onChangeText={(v) => setForm({ ...form, vehicle: v })} />
-          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 6 }}>A taxa de visita é sua: o cliente paga ao pedir, fica retida e é liberada quando ele confirma a visita. O Realyz fica com 15% dela.</Text>
+          {cfg.vehicle ? <Input style={{ marginTop: 4 }} placeholder="Veículo (modelo, cor, placa, cadeirinha...)" value={form.vehicle} onChangeText={(v) => setForm({ ...form, vehicle: v })} /> : null}
+          {cfg.note ? <Text style={{ color: colors.muted, fontSize: 12, marginTop: 6 }}>{cfg.note}</Text> : null}
+          {cfg.visit ? <Text style={{ color: colors.muted, fontSize: 12, marginTop: 6 }}>A taxa de visita é sua: o cliente paga ao pedir, fica retida e é liberada quando ele confirma a visita. O Realyz fica com 15% dela.</Text> : null}
           <Button title={busy ? 'Salvando…' : 'Salvar cadastro'} onPress={salvar} disabled={busy} style={{ marginTop: 10 }} />
         </View>
       ) : perfil ? (
@@ -146,7 +161,7 @@ export default function ServerProviderPanel() {
             <Text style={{ color: colors.text, flex: 1 }} numberOfLines={2}>
               {perfil.service} · {brl(perfil.price)} por {perfil.priceUnit}{perfil.visitFee ? ` · visita ${brl(perfil.visitFee)}` : ''}
             </Text>
-            <TouchableOpacity onPress={() => { setForm({ service: perfil.service, functions: (perfil.functions || []).join(', '), price: String(perfil.price).replace('.', ','), priceUnit: perfil.priceUnit, visitFee: perfil.visitFee ? String(perfil.visitFee).replace('.', ',') : '', vehicle: perfil.vehicle || '' }); setEditing(true); }}>
+            <TouchableOpacity onPress={() => { setForm({ seg: segOfService(perfil.service), service: perfil.service, functions: (perfil.functions || []).join(', '), price: String(perfil.price).replace('.', ','), priceUnit: perfil.priceUnit, visitFee: perfil.visitFee ? String(perfil.visitFee).replace('.', ',') : '', vehicle: perfil.vehicle || '' }); setEditing(true); }}>
               <Text style={{ color: colors.primary, fontWeight: '700' }}>Editar</Text>
             </TouchableOpacity>
           </Row>

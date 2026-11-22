@@ -136,6 +136,19 @@ export const PROF_CLASSES = [
     ],
   },
   {
+    // Artistas: quem se apresenta e é contratado por show, por hora, por serviço ou publicidade.
+    key: 'artistas', label: 'Artistas', ion: 'mic-outline', emoji: '🎤',
+    subs: [
+      ['cantor', 'Cantor(a)', '🎤', 'mic-outline', ['cantor', 'cantora', 'cantor para festa', 'cantor para casamento', 'voz e violao']],
+      ['musico'], ['dj'],
+      ['instrumentista', 'Instrumentista', '🎻', 'musical-note-outline', ['violinista', 'saxofonista', 'pianista', 'tecladista', 'violonista', 'gaiteiro', 'sanfoneiro']],
+      ['humorista', 'Humorista e stand-up', '🎭', 'happy-outline', ['humorista', 'stand up', 'comediante', 'show de comedia']],
+      ['dancarino', 'Dançarino(a) e grupo de dança', '💃', 'body-outline', ['dancarino', 'dancarina', 'grupo de danca', 'show de danca']],
+      ['ator', 'Ator, atriz e animador', '🎬', 'film-outline', ['ator', 'atriz', 'animador de festa', 'personagem para festa', 'teatro']],
+      ['artistavisual', 'Artista visual (pintura, grafite, caricatura)', '🎨', 'color-palette-outline', ['grafite', 'grafiteiro', 'pintura ao vivo', 'caricaturista', 'mural', 'pintor artistico']],
+    ],
+  },
+  {
     key: 'aulas', label: 'Aulas', ion: 'school-outline', emoji: '📚',
     subs: [
       ['professor'], ['personal'],
