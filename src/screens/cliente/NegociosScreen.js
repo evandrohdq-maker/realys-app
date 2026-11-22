@@ -5,6 +5,8 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
+import EmpregosReal from '../../components/Empregos';
+import { conectado } from '../../serverShop';
 import { useStore } from '../../store';
 import { colors, soft } from '../../theme';
 import { Screen, Photo } from '../../components/ui';
@@ -72,17 +74,40 @@ export default function NegociosScreen({ explore }) {
   const chatLead = (lead) => openChat({ id: 'lead-' + lead.id, name: lead.name, status: 'interessado verificado', photo: `https://picsum.photos/seed/${encodeURIComponent(lead.name)}/200/200` });
   const chatConv = chatWith ? convs.find((c) => c.contactId === chatWith.id) : null;
 
+  const abas = (
+        <SegTabs
+      items={[...NEGOCIOS_GROUPS, { key: 'empregos', label: 'Empregos', icon: 'briefcase-outline' }]}
+      value={group}
+      onChange={(k) => {
+        setGroup(k);
+        setKind('todos');
+      }}
+    />
+  );
+  // Empregos (dentro de Negócios): vagas, currículo, convites e as vagas da empresa.
+  if (group === 'empregos') {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.bg }}>
+        <Screen>
+          {abas}
+          {conectado(state) ? (
+            <EmpregosReal />
+          ) : (
+            <View style={{ backgroundColor: colors.card, borderRadius: 16, padding: 16, alignItems: 'center' }}>
+              <Ionicons name="briefcase-outline" size={28} color={colors.primary} />
+              <Text style={{ color: colors.text, fontWeight: '800', marginTop: 6, textAlign: 'center' }}>Entre com a sua conta para ver as vagas reais e ativar o currículo.</Text>
+              <Text style={{ color: colors.muted, marginTop: 4, textAlign: 'center' }}>No modo demonstração, as vagas de exemplo ficam em Menu › Trabalho e estudo › Empregos.</Text>
+            </View>
+          )}
+        </Screen>
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <Screen>
-        <SegTabs
-          items={NEGOCIOS_GROUPS}
-          value={group}
-          onChange={(k) => {
-            setGroup(k);
-            setKind('todos');
-          }}
-        />
+        {abas}
 
         {/* Comprar ou alugar (só aparece quando o setor tem as duas opções) */}
         {g.kinds.length > 1 ? (

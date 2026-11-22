@@ -12,6 +12,8 @@ import { useStore, allJobs } from '../../store';
 import { colors, soft } from '../../theme';
 import { Screen, Title, Empty, Photo } from '../../components/ui';
 import { SearchBar } from '../../components/Search';
+import EmpregosReal from '../../components/Empregos';
+import { conectado } from '../../serverShop';
 import { JOB_AREAS, salaryText, matchScore, APP_STEPS, AVAILABILITY, SKILL_SUGGESTIONS } from '../../jobsData';
 
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -89,6 +91,20 @@ export default function JobsScreen({ explore }) {
     { key: 'salvas', label: `Salvas${savedList.length ? ` · ${savedList.length}` : ''}` },
     { key: 'minhas', label: `Candidaturas${applied.length ? ` · ${applied.length}` : ''}` },
   ];
+
+  // Conta real: vagas, currículo, convites e indicações do servidor. As de exemplo ficam num botão.
+  const [exemplos, setExemplos] = useState(false);
+  if (conectado(state) && !exemplos) {
+    return (
+      <Screen>
+        <Title sub="Vagas de empresas reais, com indicação automática">Empregos</Title>
+        <EmpregosReal inicio={explore && explore.seg === 'minhas' ? 'minhas' : 'vagas'} />
+        <TouchableOpacity onPress={() => setExemplos(true)} style={{ alignSelf: 'center', padding: 12 }}>
+          <Text style={{ color: colors.primary, fontWeight: '800' }}>Ver vagas e extras de exemplo</Text>
+        </TouchableOpacity>
+      </Screen>
+    );
+  }
 
   return (
     <Screen>
