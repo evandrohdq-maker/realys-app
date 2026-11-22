@@ -96,6 +96,7 @@ import ArtistsScreen from './src/screens/cliente/ArtistsScreen';
 import PageScreen from './src/screens/empresa/PageScreen';
 import JobsScreen from './src/screens/cliente/JobsScreen';
 import DesapegoScreen from './src/screens/cliente/DesapegoScreen';
+import OngsScreen from './src/screens/cliente/OngsScreen';
 import ReelsScreen from './src/screens/cliente/ReelsScreen';
 import ArenaScreen from './src/screens/cliente/ArenaScreen';
 import SalasScreen from './src/screens/empresa/SalasScreen';
@@ -161,6 +162,7 @@ const TABS = {
     { key: 'vagas', label: 'Empregos', icon: 'briefcase-outline', Comp: JobsScreen, hidden: true },
     { key: 'paginas', label: 'Páginas', icon: 'albums-outline', Comp: PagesScreen, hidden: true },
     { key: 'desapego', label: 'Desapego', icon: 'pricetags-outline', Comp: DesapegoScreen, hidden: true },
+    { key: 'ongs', label: 'ONGs', icon: 'heart-outline', Comp: OngsScreen, hidden: true },
     { key: 'arena', label: 'Arena Gamer', icon: 'game-controller-outline', Comp: ArenaScreen, hidden: true },
     // Hub de Negócios: atendimento ao vivo e reuniões das empresas (separado da Arena Gamer).
     { key: 'salas', label: 'Hub de Negócios', icon: 'headset-outline', Comp: SalasScreen, hidden: true },
