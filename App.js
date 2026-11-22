@@ -39,7 +39,7 @@ import SupplierScreen from './src/screens/fornecedor/SupplierScreen';
 import { AdminOverview, AdminModeration, AdminSignups } from './src/screens/admin/AdminScreens';
 import AdminMarket from './src/screens/admin/AdminMarket';
 import CategoryMenu from './src/components/CategoryMenu';
-import UpdateChecker from './src/components/UpdateChecker';
+import UpdateGate from './src/components/UpdateGate';
 import { AdminSystem, NoteModal, SYSTEM_MAP } from './src/screens/admin/AdminSystem';
 import { WakeWordListener } from './src/wakeWord';
 import { loadVoicePrint } from './src/voicePrint';
@@ -976,6 +976,8 @@ function Root() {
   return (
     <>
       <StatusBar style="dark" />
+      {/* Abriu o app: primeiro a atualização (se tiver versão nova), depois a senha ou a conta salva. */}
+      <UpdateGate>
       {!state.ready ? (
         <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
           <Image source={require('./assets/wordmark-escuro.png')} style={{ width: 200, height: 62, marginBottom: 16 }} resizeMode="contain" accessibilityLabel="Realyz" />
@@ -989,7 +991,7 @@ function Root() {
       ) : (
         <LoginScreen key={'login' + tk + (entrada || '')} initialMode={entrada || undefined} onBack={Platform.OS === 'web' ? () => setEntrada(null) : undefined} />
       )}
-      <UpdateChecker />
+      </UpdateGate>
     </>
   );
 }
