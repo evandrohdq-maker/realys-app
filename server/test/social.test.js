@@ -63,3 +63,24 @@ test('post do amigo: aparece no feed e no perfil, curtir e comentar', async () =
   assert.ok(!(await call('GET', '/feed', ana.accessToken)).some((x) => x.id === p.id));
   await assert.rejects(call('POST', `/posts/${p.id}/curtir`, ana.accessToken), /404/);
 });
+
+test('conversa entre amigos: foto, vídeo e áudio; com quem não é amigo, mídia não passa', async () => {
+  const a = await pessoa('Midia Um', '12345678143', 'midia_um');
+  const b = await pessoa('Midia Dois', '23456789254', 'midia_dois');
+  const c = await pessoa('Midia Tres', '34567891309', 'midia_tres');
+  await call('POST', `/friends/${b.user.id}`, a.accessToken);
+  await call('POST', `/friends/${a.user.id}`, b.accessToken);
+  const up = await fetch(base + '/media?uso=privado', { method: 'PUT', headers: { 'Content-Type': 'audio/webm', Authorization: `Bearer ${a.accessToken}` }, body: Buffer.from('1a45dfa3', 'hex') });
+  const m = await up.json();
+  assert.equal(up.status, 201, JSON.stringify(m));
+  assert.match(m.url, /\.webm$/);
+  await call('POST', '/messages', a.accessToken, { toId: b.user.id, media: m.url, mediaType: 'audio' });
+  const hist = await call('GET', `/messages/${a.user.id}`, b.accessToken);
+  const last = hist[hist.length - 1];
+  assert.equal(last.mediaType, 'audio');
+  assert.equal(last.media, m.url);
+  const convs = await call('GET', '/conversations', b.accessToken);
+  assert.equal(convs[0].last.text, '🎤 Áudio');
+  await assert.rejects(call('POST', '/messages', a.accessToken, { toId: c.user.id, media: m.url, mediaType: 'audio' }), /403/);
+  await assert.rejects(call('POST', '/messages', a.accessToken, { toId: b.user.id, media: 'https://site-estranho.com/x.jpg', mediaType: 'foto' }), /400/);
+});

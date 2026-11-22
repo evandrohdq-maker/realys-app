@@ -37,6 +37,7 @@ export default function ServerInbox() {
   const { friends } = useServerFriends(on);
   const [convs, setConvs] = useState([]);
   const [q, setQ] = useState('');
+  const [filtro, setFiltro] = useState(null);
   const me = state.user && state.user.serverId;
   const chatOpen = !!state.serverChat;
   useEffect(() => {
@@ -54,8 +55,11 @@ export default function ServerInbox() {
   const chat = (u) => dispatch({ type: 'OPEN_SERVER_CHAT', userId: u.id, name: u.name });
   const has = new Set(convs.map((c) => c.with && c.with.id));
   const match = (u) => !q.trim() || `${u.name} ${u.username || ''}`.toLowerCase().includes(q.trim().toLowerCase().replace(/^[*@]/, ''));
-  const lista = convs.filter((c) => c.with && match(c.with));
-  const novos = friends.filter((u) => !has.has(u.id) && match(u));
+  // Filtro pelas listas (Família, Trabalho, Clientes...) que a pessoa marcou em cada conversa.
+  const listas = state.chatLists || [{ id: 'familia', name: 'Família' }, { id: 'trabalho', name: 'Trabalho' }, { id: 'clientes', name: 'Clientes' }];
+  const naLista = (id) => !filtro || (((state.chatMeta || {})[id] || {}).lists || []).includes(filtro);
+  const lista = convs.filter((c) => c.with && match(c.with) && naLista(c.with.id));
+  const novos = friends.filter((u) => !has.has(u.id) && match(u) && naLista(u.id));
   if (!convs.length && !friends.length) return null;
   return (
     <View style={{ marginBottom: 10 }}>
@@ -63,6 +67,14 @@ export default function ServerInbox() {
         <Ionicons name="search" size={17} color={colors.muted} />
         <TextInput value={q} onChangeText={setQ} placeholder="Buscar amigo ou conversa no Realyz" placeholderTextColor={colors.muted} style={st.input} />
       </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 6 }}>
+        {[{ id: null, name: 'Todas' }, ...listas].map((l) => (
+          <TouchableOpacity key={l.id || 'todas'} onPress={() => setFiltro(l.id)} style={[st.filtro, filtro === l.id && st.filtroOn]} accessibilityLabel={`Mostrar ${l.name}`}>
+            <Text numberOfLines={1} style={[st.filtroTxt, filtro === l.id && { color: colors.onPrimary }]}>{l.name}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+      {filtro && !lista.length && !novos.length ? <Text style={{ color: colors.muted, fontSize: 13, marginVertical: 8 }}>Ninguém nesta lista ainda. Abra uma conversa e toque na etiqueta 🏷️ para classificar.</Text> : null}
       {novos.length ? (
         <>
           <Text style={st.title}>Começar conversa</Text>
@@ -108,6 +120,9 @@ export default function ServerInbox() {
 }
 
 const st = StyleSheet.create({
+  filtro: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 14, borderWidth: 1, borderColor: colors.border, marginRight: 6, backgroundColor: colors.card },
+  filtroOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  filtroTxt: { color: colors.text, fontWeight: '700', fontSize: 13 },
   search: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 10, marginBottom: 8, borderWidth: 1, borderColor: '#EFE6CC' },
   input: { flex: 1, paddingVertical: 9, marginLeft: 6, color: colors.text },
   title: { color: colors.muted, fontSize: 12, fontWeight: '800', letterSpacing: 0.4, marginBottom: 6, marginTop: 4 },
