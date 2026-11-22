@@ -4,7 +4,7 @@ import { forClients } from './providerName';
 import { moderateAction } from './moderation';
 import { DESAPEGO_DEMO } from './desapego';
 import { MANDADOS_DEMO } from './empresaDemo';
-import { Alert } from 'react-native';
+import { Alert, AppState, Platform } from 'react-native';
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { unitPriceOf } from './supplierShop';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -2137,6 +2137,8 @@ export function StoreProvider({ children }) {
   // Conta do servidor: o perfil também fica na conta, igual no app e no site. Vale o mais novo.
   const syncBase = useRef(null); // o que já está igual no servidor (só sobe quando muda de verdade)
   const syncTimer = useRef(null);
+  const srvAt = useRef(0); // última versão do servidor que este aparelho já tem
+  const pending = useRef(false); // alteração deste aparelho esperando para subir
   const [profileReady, setProfileReady] = React.useState(null);
   useEffect(() => {
     if (!profileKey) return;
@@ -2160,6 +2162,7 @@ export function StoreProvider({ children }) {
         if (!alive) return;
         // Aparelho com perfil salvo antes desta versão (sem data): vale o lado mais preenchido.
         const serverWins = srv && srv.data && (localAt ? srv.updatedAt > localAt : richness(srv.data) >= richness(localData));
+        if (srv && srv.updatedAt) srvAt.current = srv.updatedAt;
         if (serverWins) dispatch({ type: 'LOAD_PROFILE', data: srv.data });
         // Servidor sem nada ainda: o que já está neste aparelho sobe na primeira vez.
         syncBase.current = !canSync(state.user) ? null : !(srv && srv.data) ? 'vazio' : serverWins ? 'servidor' : 'subir';
@@ -2192,6 +2195,7 @@ export function StoreProvider({ children }) {
       return;
     }
     clearTimeout(syncTimer.current);
+    pending.current = true;
     syncTimer.current = setTimeout(async () => {
       const fotos = await uploadLocalPhotos(data.myProfile);
       if (fotos) {
@@ -2200,10 +2204,49 @@ export function StoreProvider({ children }) {
         return;
       }
       pushProfile(data)
-        .then(() => (syncBase.current = json))
-        .catch(() => {});
+        .then((r) => {
+          syncBase.current = json;
+          if (r && r.updatedAt) srvAt.current = r.updatedAt;
+        })
+        .catch(() => {})
+        .finally(() => (pending.current = false));
     }, 2500);
   }, [profileReady, state.mural, state.chatLists, state.chatMeta, state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
+  // Mudou em outro aparelho (foto nova no app, por exemplo): ao voltar para o app ou para a aba do
+  // site, e a cada minuto, busca a versão da conta e aplica se for mais nova.
+  useEffect(() => {
+    if (!profileReady || !canSync(state.user)) return undefined;
+    let busy = false;
+    const check = () => {
+      if (busy || pending.current) return;
+      busy = true;
+      pullProfile()
+        .then((srv) => {
+          if (!srv || !srv.data || !(srv.updatedAt > srvAt.current) || pending.current) return;
+          srvAt.current = srv.updatedAt;
+          syncBase.current = 'servidor';
+          dispatch({ type: 'LOAD_PROFILE', data: srv.data });
+        })
+        .catch(() => {})
+        .finally(() => (busy = false));
+    };
+    const t = setInterval(check, 60000);
+    const sub = AppState.addEventListener('change', (st) => st === 'active' && check());
+    const web = Platform.OS === 'web' && typeof window !== 'undefined';
+    const vis = () => typeof document !== 'undefined' && document.visibilityState === 'visible' && check();
+    if (web) {
+      window.addEventListener('focus', check);
+      document.addEventListener('visibilitychange', vis);
+    }
+    return () => {
+      clearInterval(t);
+      sub && sub.remove && sub.remove();
+      if (web) {
+        window.removeEventListener('focus', check);
+        document.removeEventListener('visibilitychange', vis);
+      }
+    };
+  }, [profileReady]);
   // Cartão do SUS e agendamentos: dado de saúde, guardado no cofre criptografado do Android, por conta.
   const susKey = state.user ? `realys_sus_${String(state.user.id || state.user.cpf || state.user.cnpj || state.user.name).replace(/[^A-Za-z0-9._-]/g, '_')}` : null;
   const susLoaded = useRef(null);

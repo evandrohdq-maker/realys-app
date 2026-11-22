@@ -272,7 +272,7 @@ export default function ProfileScreen({ navigate, explore }) {
         <TouchableOpacity onPress={() => setEditing(true)} activeOpacity={0.85} accessibilityLabel="Trocar foto e editar perfil" style={{ marginTop: -58 }}>
           <View style={styles.avatarRing}>
             {prof.photo ? (
-              <Photo uri={prof.photo} style={styles.avatar} />
+              <Photo uri={prof.photo} style={styles.avatar} fallback="🙂" />
             ) : (
               <View style={[styles.avatar, { backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' }]}>
                 <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontSize: 34, fontWeight: '800' }}>{u.name[0]}</Text>
