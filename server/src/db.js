@@ -732,6 +732,15 @@ const MIGRATIONS = [
   );
   CREATE INDEX push_tokens_user ON push_tokens(user_id);
   `,
+  // 25: perfil da conta (foto, capa, sobre, página, agenda, Estúdio...) guardado no servidor:
+  // é o mesmo no app e no site, em qualquer aparelho.
+  `
+  CREATE TABLE user_dados (
+    user_id TEXT PRIMARY KEY REFERENCES users(id),
+    data TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  `,
 ];
 
 export function openDb(file) {

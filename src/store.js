@@ -18,6 +18,7 @@ import { INTEL_PLAN, subPlan } from './engage';
 import { fareQuote, TARIFFS, surgeText } from './pricing';
 import { protectionFee } from './guarantee';
 import { usarConta } from './serverAuth';
+import { canSync, payloadOf, pullProfile, pushProfile, uploadLocalPhotos, richness } from './profileSync';
 import { isServerId } from './serverShop';
 import { pointsFor, pointOffer, giftPoints, initialPoints, promoDiscount, POINT_RULES, watchedToday } from './rewards';
 import { initialLoyalty, onDelivered } from './loyalty';
@@ -2130,18 +2131,76 @@ export function StoreProvider({ children }) {
   // Perfil, privacidade e Estúdio ficam salvos no celular (por conta).
   const profileKey = state.user ? `${PROFILE_KEY}.${state.user.id || state.user.cpf || state.user.cnpj || state.user.name}` : null;
   const profileLoaded = useRef(null);
+  // Conta do servidor: o perfil também fica na conta, igual no app e no site. Vale o mais novo.
+  const syncBase = useRef(null); // o que já está igual no servidor (só sobe quando muda de verdade)
+  const syncTimer = useRef(null);
+  const [profileReady, setProfileReady] = React.useState(null);
   useEffect(() => {
     if (!profileKey) return;
     profileLoaded.current = null;
+    syncBase.current = null;
+    setProfileReady(null);
+    let localAt = 0;
+    let localData = null;
+    let alive = true;
     AsyncStorage.getItem(profileKey)
-      .then((raw) => raw && dispatch({ type: 'LOAD_PROFILE', data: JSON.parse(raw) }))
+      .then((raw) => {
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        localAt = data._at || 0;
+        localData = data;
+        dispatch({ type: 'LOAD_PROFILE', data });
+      })
       .catch(() => {})
-      .finally(() => (profileLoaded.current = profileKey));
+      .then(() => (canSync(state.user) ? pullProfile().catch(() => null) : null))
+      .then((srv) => {
+        if (!alive) return;
+        // Aparelho com perfil salvo antes desta versão (sem data): vale o lado mais preenchido.
+        const serverWins = srv && srv.data && (localAt ? srv.updatedAt > localAt : richness(srv.data) >= richness(localData));
+        if (serverWins) dispatch({ type: 'LOAD_PROFILE', data: srv.data });
+        // Servidor sem nada ainda: o que já está neste aparelho sobe na primeira vez.
+        syncBase.current = !canSync(state.user) ? null : !(srv && srv.data) ? 'vazio' : serverWins ? 'servidor' : 'subir';
+      })
+      .finally(() => {
+        if (!alive) return;
+        profileLoaded.current = profileKey;
+        setProfileReady(profileKey);
+      });
+    return () => {
+      alive = false;
+    };
   }, [profileKey]);
   useEffect(() => {
     if (!profileKey || profileLoaded.current !== profileKey) return;
-    AsyncStorage.setItem(profileKey, JSON.stringify({ chatLists: state.chatLists, chatMeta: state.chatMeta, myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myUserPages: (state.userPages || []).filter((p) => p.ownerId === 'me'), followingPages: state.followingPages, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, agendaRemind: state.agendaRemind, mural: state.mural })).catch(() => {});
-  }, [state.mural, state.chatLists, state.chatMeta, state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
+    AsyncStorage.setItem(profileKey, JSON.stringify({ _at: Date.now(), chatLists: state.chatLists, chatMeta: state.chatMeta, myProfile: state.myProfile, privacy: state.privacy, creations: state.creations, myPage: state.myPage, myUserPages: (state.userPages || []).filter((p) => p.ownerId === 'me'), followingPages: state.followingPages, myBusiness: state.myBusiness, agenda: state.agenda, workHours: state.workHours, agendaRemind: state.agendaRemind, mural: state.mural })).catch(() => {});
+    // Sobe para a conta só o que mudou (alguns segundos depois da última alteração).
+    if (!canSync(state.user) || syncBase.current == null) return;
+    const data = payloadOf(state);
+    const json = JSON.stringify(data);
+    if (syncBase.current === 'servidor') {
+      syncBase.current = json; // acabou de vir do servidor: nada para subir
+      return;
+    }
+    if (syncBase.current === json) return;
+    const vazioAntes = syncBase.current === 'vazio';
+    const temAlgo = !!(state.myProfile && (state.myProfile.photo || state.myProfile.bio || state.myProfile.cover || state.myProfile.city || state.myProfile.profession || state.myProfile.social));
+    if (vazioAntes && !temAlgo) {
+      syncBase.current = json; // aparelho vazio não apaga o que está em outro aparelho
+      return;
+    }
+    clearTimeout(syncTimer.current);
+    syncTimer.current = setTimeout(async () => {
+      const fotos = await uploadLocalPhotos(data.myProfile);
+      if (fotos) {
+        // As fotos viraram endereço do servidor: atualiza e a próxima rodada sobe com elas.
+        dispatch({ type: 'SET_MY_PROFILE', profile: fotos });
+        return;
+      }
+      pushProfile(data)
+        .then(() => (syncBase.current = json))
+        .catch(() => {});
+    }, 2500);
+  }, [profileReady, state.mural, state.chatLists, state.chatMeta, state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
   // Cartão do SUS e agendamentos: dado de saúde, guardado no cofre criptografado do Android, por conta.
   const susKey = state.user ? `realys_sus_${String(state.user.id || state.user.cpf || state.user.cnpj || state.user.name).replace(/[^A-Za-z0-9._-]/g, '_')}` : null;
   const susLoaded = useRef(null);
