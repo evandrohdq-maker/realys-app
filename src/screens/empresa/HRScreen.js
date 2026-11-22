@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
 import { colors, soft } from '../../theme';
 import { Screen, Title, Photo, Empty } from '../../components/ui';
+import { ExtrasEmpresa } from '../../components/ExtrasEmpresa';
 import { JOB_AREAS, JOB_TYPES, CANDIDATE_STATUS, salaryText, BENEFITS, SKILL_SUGGESTIONS, TALENTS } from '../../jobsData';
 
 const EMPTY = { title: '', salary: '', shift: '', desc: '', reqs: '', area: 'Comércio', type: 'CLT', benefits: [], skills: [], noExp: false, sponsored: false };
@@ -118,6 +119,8 @@ export default function HRScreen() {
           <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.bigBtnText, { color: colors.primary }]}>Banco de talentos</Text>
         </TouchableOpacity>
       </View>
+
+      <ExtrasEmpresa />
 
       {!state.myJobs.length ? <Empty text="Nenhuma vaga anunciada ainda." /> : null}
 

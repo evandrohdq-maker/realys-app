@@ -419,7 +419,10 @@ export const initialOrders = [
 // Pedidos que chegam para o prestador (no perfil Prestador da demonstração).
 export const rideRequests = [
   { id: 'r1', client: 'Beatriz M.', service: 'Corrida', from: 'Rua Augusta, 1200', to: 'Av. Paulista, 900', price: 18.5, distanceKm: 3.2 },
-  { id: 'r2', client: 'Mercadinho Bom Preço', service: 'Entrega', from: 'Rua das Flores, 45', to: 'Rua Vergueiro, 2100', price: 9.9, distanceKm: 2.4 },
+  // Entregas com o ponto no mapa (fromGeo/toGeo): é com eles que a rota inteligente cruza os caminhos.
+  { id: 'r2', client: 'Mercadinho Bom Preço', service: 'Entrega', from: 'Av. Brasil, 450 (Centro)', to: 'Rua Teixeira Soares, 1200', price: 9.9, distanceKm: 3.2, fromGeo: { lat: -28.2628, lng: -52.4067 }, toGeo: { lat: -28.242, lng: -52.385 } },
+  { id: 'r5', client: 'Farmácia Central', service: 'Entrega', from: 'Rua Morom, 1100 (Centro)', to: 'Rua Paissandu, 1800', price: 9.9, distanceKm: 2.6, fromGeo: { lat: -28.26, lng: -52.404 }, toGeo: { lat: -28.245, lng: -52.388 } },
+  { id: 'r6', client: 'Pizzaria Bella Massa', service: 'Entrega', from: 'Rua Independência, 300', to: 'Rua Uruguai, 2500 (São Cristóvão)', price: 11.5, distanceKm: 3.4, fromGeo: { lat: -28.261, lng: -52.406 }, toGeo: { lat: -28.285, lng: -52.43 } },
   { id: 'r3', client: 'Cláudia R.', service: 'Eletricista: trocar chuveiro', from: 'Rua Tamandaré, 310', to: null, price: 120, distanceKm: 1.8 },
   { id: 'r4', client: 'Pizzaria da Praça', service: 'Encanador: vazamento na cozinha', from: 'Praça da Sé, 12', to: null, price: 150, distanceKm: 2.9 },
 ];
