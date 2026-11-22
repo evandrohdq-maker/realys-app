@@ -34,10 +34,12 @@ function ServerProfile({ id, onClose }) {
   const [p, setP] = useState(null);
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
-  const load = () =>
-    api('GET', `/users/${id}`)
+  const load = () => {
+    setErr(null);
+    return api('GET', `/users/${id}`)
       .then(setP)
       .catch((e) => setErr(e.message || 'Não deu para abrir este perfil.'));
+  };
   useEffect(() => {
     load();
   }, [id]);
@@ -64,7 +66,14 @@ function ServerProfile({ id, onClose }) {
           </TouchableOpacity>
         </View>
         {!p && !err ? <ActivityIndicator color={colors.primary} style={{ marginTop: 40 }} /> : null}
-        {err ? <Text style={st.err}>{err}</Text> : null}
+        {err ? (
+          <View style={{ alignItems: 'center' }}>
+            <Text style={st.err}>{err}</Text>
+            <TouchableOpacity onPress={load} style={{ marginTop: 10, borderWidth: 1, borderColor: colors.primary, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 8 }} accessibilityLabel="Tentar de novo">
+              <Text style={{ color: colors.primary, fontWeight: '800' }}>Tentar de novo</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
         {p ? (
           <View style={{ paddingHorizontal: 16 }}>
             <TouchableOpacity activeOpacity={0.9} onPress={() => p.photo && openMedia([{ photo: full(p.photo), title: p.name }])} style={st.avatarWrap} accessibilityLabel={`Foto de ${p.name}`}>
