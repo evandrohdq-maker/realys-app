@@ -149,7 +149,7 @@ function DriverMain({ goTo, onCadastro }) {
     const soc = state.myProfile && state.myProfile.social;
     if (soc && soc.prof && profissaoPorKey(soc.prof)) return soc.prof;
     const m = buscarProfissoes((state.myProfile && state.myProfile.profession) || '', 1)[0];
-    return m ? m.key : 'eletricista';
+    return m ? m.key : null; // sem profissão no perfil: começa vazio (a pessoa digita)
   };
   const [service, setService0] = useState(me ? me.service : doPerfil);
   const [outros, setOutros] = useState(me && me.outros ? me.outros : []);
@@ -182,6 +182,7 @@ function DriverMain({ goTo, onCadastro }) {
 
   const save = () => {
     const v = parseFloat(price.replace(',', '.'));
+    if (!service) return Alert.alert('Sua profissão', 'Digite e escolha a sua profissão.');
     const list = functions.filter(Boolean);
     if (!list.length || isNaN(v)) return Alert.alert('Falta pouco', 'Marque o que você faz e informe quanto cobra.');
     const f = parseFloat(fee.replace(',', '.'));
@@ -268,7 +269,7 @@ function DriverMain({ goTo, onCadastro }) {
               de mim?".
             </Text>
             <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Sua profissão</Text>
-            {profissaoPorKey(service) && !trocando ? (
+            {service && profissaoPorKey(service) && !trocando ? (
               <View style={dz.prof}>
                 <Text style={{ fontSize: 26 }}>{profissaoPorKey(service).icon || '🧰'}</Text>
                 <View style={{ flex: 1, marginLeft: 10 }}>
@@ -282,7 +283,7 @@ function DriverMain({ goTo, onCadastro }) {
             ) : (
               <ProfissaoBusca value={null} autoFocus={trocando} onPick={(p) => p && p.key && (setService(p.key), setTrocando(false))} />
             )}
-            {!trocando ? <ProfissaoInfo profKey={service} onMei={() => setMei(true)} /> : null}
+            {service && !trocando ? <ProfissaoInfo profKey={service} onMei={() => setMei(true)} /> : null}
             <MeiGuia visible={mei} onClose={() => setMei(false)} profKey={service} />
             {outros.map((k) => {
               const o = profissaoPorKey(k);
@@ -300,7 +301,7 @@ function DriverMain({ goTo, onCadastro }) {
               <View style={{ marginTop: 8 }}>
                 <ProfissaoBusca value={null} autoFocus placeholder="Digite a outra profissão" onPick={(p) => { setAddOutra(false); if (p && p.key && p.key !== service && !outros.includes(p.key)) setOutros([...outros, p.key].slice(0, 4)); }} />
               </View>
-            ) : outros.length < 4 ? (
+            ) : service && outros.length < 4 ? (
               <TouchableOpacity onPress={() => setAddOutra(true)} style={dz.add} accessibilityLabel="Adicionar outra profissão">
                 <Ionicons name="add-circle-outline" size={18} color={colors.primary} />
                 <Text style={[dz.link, { marginLeft: 6 }]}>Adicionar outra profissão</Text>
@@ -335,6 +336,8 @@ function DriverMain({ goTo, onCadastro }) {
                 </Row>
               </>
             ) : null}
+            {service ? (
+              <>
             <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>O que você faz</Text>
             <FuncoesTags keys={[service, ...outros]} value={functions} onChange={setFunctions} />
             <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Quanto você cobra</Text>
@@ -372,6 +375,10 @@ function DriverMain({ goTo, onCadastro }) {
               </>
             ) : null}
             <Button title="Salvar cadastro" onPress={save} />
+              </>
+            ) : (
+              <Text style={{ color: colors.muted, fontSize: 13, marginTop: 4 }}>Digite a sua profissão acima para continuar o cadastro.</Text>
+            )}
           </Card>
         ) : (
           <Card>

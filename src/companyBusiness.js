@@ -257,7 +257,8 @@ const EMPTY = { tagline: '', sectors: {}, roles: [], serves: '', modes: [], show
 
 // Página empresarial da empresa, já com o que a minha empresa editou (state.myBusiness).
 export function businessOf(state, id) {
-  const def = { ...EMPTY, ...(BUSINESS[id] || {}) };
+  // Conta real: a minha empresa começa vazia (sem os dados da empresa de exemplo).
+  const def = id === MY_COMPANY_ID && state.myCompanyReal ? { ...EMPTY } : { ...EMPTY, ...(BUSINESS[id] || {}) };
   const base = { ...def, reviews: [...((state.companyReviews || {})[id] || []), ...def.reviews] };
   if (id !== MY_COMPANY_ID || !state.myBusiness) return base;
   const mine = state.myBusiness;

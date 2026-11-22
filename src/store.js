@@ -357,6 +357,20 @@ const withUserRole = (user) => {
   return { ...user, roles };
 };
 
+// Conta real (do servidor): a "minha empresa" é a dela, não a empresa de exemplo do app
+// (Mercadinho Bom Preço, do ramo de alimentação). Sai o nome, os produtos, a galeria e os dados
+// de exemplo; o ramo (Alimentação, Moda, Serviços…) é o que a própria empresa marcar em
+// "Onde atua". Assim nada de comida aparece para quem não é do ramo.
+function comEmpresaReal(state, user) {
+  if (!user || !user.serverId) return state;
+  return {
+    ...state,
+    myCompanyReal: true,
+    stores: state.stores.map((x) => (x.id === D.MY_COMPANY_ID ? { ...x, name: user.name || 'Minha empresa', category: (user.company && user.company.segment) || '', city: user.city || '', rating: null, recommended: false, sponsored: false, cover: null, logo: '🏪' } : x)),
+    products: state.products.filter((p) => p.storeId !== D.MY_COMPANY_ID || p.server),
+  };
+}
+
 // Atualiza o cadastro do prestador e a lista que os clientes veem (se ele está disponível).
 function withMyProvider(state, me) {
   const others = state.providers.filter((p) => p.id !== 'me');
@@ -427,7 +441,7 @@ function baseReducer(state, a) {
   switch (a.type) {
     case 'LOGIN': {
       const user = withUserRole(a.user);
-      return { ...state, ready: true, user, activeRole: user.roles[0], myProfile: withSignupProfile(state.myProfile, user) };
+      return comEmpresaReal({ ...state, ready: true, user, activeRole: user.roles[0], myProfile: withSignupProfile(state.myProfile, user) }, user);
     }
     // Abriu o app com sessão salva: entra direto, sem senha.
     case 'RESTORE_SESSION': {
@@ -435,7 +449,7 @@ function baseReducer(state, a) {
       const user = withUserRole(a.session.user);
       const roles = user.roles;
       const role = roles.includes(a.session.activeRole) ? a.session.activeRole : roles[0];
-      return { ...state, ready: true, user, activeRole: role, myProfile: withSignupProfile(state.myProfile, user) };
+      return comEmpresaReal({ ...state, ready: true, user, activeRole: role, myProfile: withSignupProfile(state.myProfile, user) }, user);
     }
     case 'LOGOUT':
       return { ...initialState, ready: true, notes: state.notes, handsFree: state.handsFree };
