@@ -17,7 +17,7 @@ import ProviderPreview from '../components/ProviderPreview';
 import WhenPicker, { whenText, whenStart } from '../components/WhenPicker';
 import LotusFlower, { FlyingPetal, MOODS, SIDE_W } from '../components/LotusFlower';
 import StarField, { skyBg } from '../components/StarField';
-import { getWeather, skyOf, weatherIcon } from '../weather';
+import { getWeather, skyOf, weatherIcon, getForecast, peekForecast, resumoTempo } from '../weather';
 import { searchAll, contentReply, CONTENT_WORDS } from '../search';
 import { greetingReply } from '../lotusGreetings';
 import { rememberMusic, giveMusicBack } from '../musicGuard';
@@ -501,6 +501,14 @@ function interpret(text, state, dispatch, pending, canOpen, depth = 0, tap = fal
   if ((looksLikeRealysQuestion(ask) || /\?\s*$/.test(String(text))) && REALYS_CUE.test(norm(text))) {
     const kb = askRealys(ask, state);
     if (kb && kb.reply && kb.confident && kb.score >= 0.7) return { reply: kb.reply, voice: kb.voice, kb: true };
+  }
+  // Clima: "vai chover hoje?", "como está o tempo?", "previsão para amanhã".
+  const tq = norm(ask);
+  if (/\b(clima|tempo (hoje|amanha|agora|la fora)|como (esta|ta) o tempo|previsao|vai chover|chover|chuva hoje|temperatura|quantos graus|frio|calor)\b/.test(tq) && !/\b(quanto tempo|demora)\b/.test(tq)) {
+    const f = peekForecast();
+    getForecast().catch(() => {});
+    const r = f ? resumoTempo(f, /amanha/.test(tq) ? 'amanha' : 'hoje') : null;
+    return { reply: r || 'Estou vendo o clima aí. Abri a previsão completa para você.', nav: { label: 'Clima', go: { tab: 'stories', top: 'noticias', cat: 'clima' } } };
   }
   const known = knowledgeAnswer(state, ask);
   if (known) return withCartOffer(known, state);

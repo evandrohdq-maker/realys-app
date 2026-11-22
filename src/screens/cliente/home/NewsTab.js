@@ -14,6 +14,7 @@ import { NEWS, NEWS_CATS, ALERTS, ALERT_LEVELS, REPORTS, TRANSPORT_ALERTS, RISK 
 import { allLives } from '../../../components/LiveBits';
 import { confirmCall } from '../../../phone';
 import { useLiveNews } from '../../../liveNews';
+import ClimaCard from '../../../components/ClimaCard';
 
 const fmt = (n) => n.toLocaleString('pt-BR');
 
@@ -34,7 +35,7 @@ export default function NewsTab({ onWatch, navigate }) {
     <Screen>
       <View style={styles.trust}>
         <Ionicons name="shield-checkmark" size={13} color={colors.success} />
-        <Text style={styles.trustText}>Notícias da Agência Brasil (EBC) e alertas do INMET: fontes oficiais, atualizadas a cada 10 min.</Text>
+        <Text style={styles.trustText}>Notícias da Agência Brasil (EBC), tecnologia do Olhar Digital e alertas do INMET, atualizados a cada 10 min.</Text>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16, marginBottom: 12 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
@@ -50,6 +51,10 @@ export default function NewsTab({ onWatch, navigate }) {
           );
         })}
       </ScrollView>
+
+      {/* Clima de verdade no seu local: uma linha nos Destaques; completo na aba Clima. */}
+      {cat === 'todas' ? <ClimaCard compact onOpen={() => setCat('clima')} /> : null}
+      {cat === 'clima' ? <ClimaCard /> : null}
 
       {cat === 'todas' && ALERTS.length ? (
         <View style={styles.quietAlerts}>
@@ -82,7 +87,7 @@ export default function NewsTab({ onWatch, navigate }) {
 
       {onlyTransport ? <TransportAlerts navigate={navigate} all /> : null}
       {onlyTransport && !TRANSPORT_ALERTS.length ? <Text style={[styles.meta, { marginBottom: 12 }]}>Sem avisos de voos e estradas agora.</Text> : null}
-      {!list.length && !showAlerts && !onlyTransport ? (
+      {!list.length && !showAlerts && !onlyTransport && cat !== 'clima' ? (
         <Text style={[styles.meta, { marginVertical: 12 }]}>{live.loading ? 'Carregando as notícias…' : live.ok ? 'Nenhuma notícia deste assunto agora.' : 'Não deu para carregar as notícias agora. Confira a internet e abra de novo.'}</Text>
       ) : null}
 
@@ -102,7 +107,7 @@ export default function NewsTab({ onWatch, navigate }) {
         </>
       ) : null}
 
-      {list.length ? <Text style={styles.h}>{cat === 'todas' ? 'News' : NEWS_CATS.find((c) => c.key === cat).label}</Text> : null}
+      {list.length ? <Text style={styles.h}>{cat === 'todas' ? 'News' : cat === 'clima' ? 'Notícias do clima' : NEWS_CATS.find((c) => c.key === cat).label}</Text> : null}
       {list.map((n, i) =>
         i === 0 ? (
           <TouchableOpacity key={n.id} style={styles.big} onPress={() => setOpen(n)} activeOpacity={0.9}>

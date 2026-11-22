@@ -81,13 +81,13 @@ function catOf(link, title) {
 }
 
 function toNews(items) {
-  return items.slice(0, 60).map((i, n) => {
+  return items.slice(0, 80).map((i, n) => {
     const text = i.text || '';
     return {
       id: 'ab-' + (i.link || i.title).replace(/[^a-z0-9]/gi, '').slice(-40) + n,
-      cat: catOf(i.link, i.title),
+      cat: i.cat || catOf(i.link, i.title),
       source: i.source || 'Agência Brasil',
-      official: true,
+      official: !i.source || i.source === 'Agência Brasil',
       live: true,
       time: ago(i.date),
       date: i.date,

@@ -6,7 +6,11 @@
 import { parseRss } from '../rss.js';
 
 export const FEEDS = {
-  noticias: [{ url: 'https://agenciabrasil.ebc.com.br/feed/ultimasnoticias/feed.xml', source: 'Agência Brasil' }],
+  noticias: [
+    { url: 'https://agenciabrasil.ebc.com.br/feed/ultimasnoticias/feed.xml', source: 'Agência Brasil' },
+    // Tecnologia e ciência (gratuito): manchete, resumo e link para a matéria no site deles.
+    { url: 'https://olhardigital.com.br/feed/', source: 'Olhar Digital', max: 20, cat: 'tecnologia' },
+  ],
   alertas: [{ url: 'https://apiprevmet3.inmet.gov.br/avisos/rss', source: 'INMET' }],
 };
 const TTL = 10 * 60 * 1000;
@@ -40,7 +44,7 @@ async function load(kind) {
     try {
       const res = await fetch(f.url, { headers: { 'User-Agent': 'Realyz/1.0 (+https://realyz.com.br)' }, signal: AbortSignal.timeout(12000) });
       if (!res.ok) continue;
-      const items = parseRss(await res.text()).slice(0, 40).map((i) => ({ ...i, source: f.source, photo: BAD.test(i.photo || '') ? '' : i.photo }));
+      const items = parseRss(await res.text()).slice(0, f.max || 40).map((i) => ({ ...i, source: f.source, ...(f.cat ? { cat: f.cat } : {}), photo: BAD.test(i.photo || '') ? '' : i.photo }));
       // Notícias sem foto: busca a foto de destaque na página da matéria (só para as notícias, não para os alertas).
       if (kind === 'noticias') await Promise.all(items.map(async (i) => { if (!i.photo) i.photo = await fotoDe(i.link); }));
       out.push(...items);
@@ -51,6 +55,6 @@ async function load(kind) {
 }
 
 export default function noticiasRoutes(r) {
-  r.get('/noticias', async () => ({ items: (await load('noticias')).slice(0, 60) }), { auth: false });
+  r.get('/noticias', async () => ({ items: (await load('noticias')).slice(0, 80) }), { auth: false });
   r.get('/alertas', async () => ({ items: (await load('alertas')).slice(0, 40) }), { auth: false });
 }
