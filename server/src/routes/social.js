@@ -36,6 +36,30 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
       .map((u) => ({ ...pub(u), friend: friendship(user.id, u.id)?.status || null }));
   });
 
+  // O que a pessoa montou no próprio perfil (salvo pelo app em /me/dados): só o que é social.
+  const midia = (x) => typeof x === 'string' && /^(https?:\/\/|\/media\/)/.test(x);
+  const perfilSocial = (id) => {
+    const row = db.prepare('SELECT data FROM user_dados WHERE user_id = ?').get(id);
+    let d = {};
+    try {
+      d = row ? JSON.parse(row.data) || {} : {};
+    } catch (e) {}
+    const g = d.myGallery || {};
+    const arr = (a) => (Array.isArray(a) ? a : []);
+    const mp = d.myProfile || {};
+    return {
+      cover: midia(mp.cover) ? mp.cover : null,
+      gallery: {
+        photos: arr(g.photos).filter((x) => x && midia(x.uri)).slice(0, 120),
+        videos: arr(g.videos).filter((x) => x && midia(x.uri || x.video)).slice(0, 60),
+        highlights: arr(g.highlights).filter((h) => h && h.title).slice(0, 30).map((h) => ({ ...h, items: arr(h.items).filter((i) => i && midia(i.image)) })).filter((h) => h.items.length),
+      },
+      mural: d.mural && Array.isArray(d.mural.items)
+        ? { theme: d.mural.theme || 'aurora', items: d.mural.items.filter((x) => x && (x.type === 'recado' || (x.type === 'foto' && midia(x.uri)))).slice(0, 80) }
+        : null,
+    };
+  };
+
   r.get('/users/:id', ({ params, user }) => {
     const u = target(params.id);
     const f = friendship(user.id, u.id);
@@ -47,6 +71,11 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
       posts: visible ? db.prepare(`${POST_SQL} WHERE p.author_id = ? AND p.kind = 'post' AND p.removed = 0 ORDER BY p.created_at DESC LIMIT 30`).all(u.id).filter((p) => p.visibility === 'todos' || areFriends(user.id, u.id)).map((p) => contagens(postView(p), user)) : [],
       testimonials: db.prepare(`SELECT t.id, t.text, t.created_at AS createdAt, f.id AS fromId, f.name AS fromName, f.photo AS fromPhoto FROM testimonials t JOIN users f ON f.id = t.from_id WHERE t.to_id = ? AND t.status = 'aceito' ORDER BY t.created_at DESC LIMIT 30`).all(u.id),
       company: db.prepare('SELECT id, name FROM companies WHERE owner_id = ?').get(u.id) || null,
+      // Empresa ou prestador: a conversa segue as regras de negócio (anti-desvio). Perfil social não.
+      negocio: u.kind === 'empresa' || !!db.prepare('SELECT 1 FROM providers WHERE user_id = ?').get(u.id),
+      // Perfil social é atividade entre amigos: quem pode ver o social da pessoa vê também
+      // capa, galeria (fotos, vídeos, destaques) e mural, do jeito que ela montou.
+      ...(visible ? perfilSocial(u.id) : {}),
     };
   });
 

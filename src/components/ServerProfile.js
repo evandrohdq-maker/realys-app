@@ -2,8 +2,10 @@
 // verdade (busca de pessoas, Contatos, pedidos de amizade). Mostra foto, nome, *usuário, o que a
 // pessoa escreveu sobre ela, a amizade (Adicionar, Aceitar, Enviado, Amigos), Mensagem e as
 // publicações e depoimentos que ela deixou visíveis.
+// Perfil social é atividade entre amigos: quem pode ver o social vê tudo — capa, publicações,
+// galeria (fotos, vídeos, destaques), mural e depoimentos — e pode conversar.
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Modal, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Modal, TouchableOpacity, ScrollView, Alert, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,6 +15,7 @@ import { Photo, PostPhoto } from './ui';
 import { api, API_URL } from '../api';
 import { addFriend, removeFriend } from '../serverFriends';
 import { openMedia } from './MediaViewer';
+import { futureTheme } from './ThemeArt';
 
 let openListener = null;
 export const openServerProfile = (id) => openListener && openListener(id);
@@ -34,6 +37,8 @@ function ServerProfile({ id, onClose }) {
   const [p, setP] = useState(null);
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [aba, setAba] = useState('posts');
+  const { width } = useWindowDimensions();
   const load = () => {
     setErr(null);
     return api('GET', `/users/${id}`)
@@ -61,6 +66,7 @@ function ServerProfile({ id, onClose }) {
     <Modal visible animationType="slide" onRequestClose={onClose}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
         <View style={[st.cover, { paddingTop: insets.top + 8 }]}>
+          {p && p.cover ? <Photo uri={full(p.cover)} style={StyleSheet.absoluteFill} fallback="" /> : null}
           <TouchableOpacity onPress={onClose} style={st.back} accessibilityLabel="Voltar">
             <Ionicons name="arrow-back" size={20} color={colors.text} />
           </TouchableOpacity>
@@ -116,30 +122,116 @@ function ServerProfile({ id, onClose }) {
               </View>
             ) : null}
 
-            {(p.posts || []).length ? <Text style={st.h}>Publicações</Text> : null}
-            {(p.posts || []).map((x) => (
-              <View key={x.id} style={st.post}>
-                {x.text ? <Text style={{ color: colors.text, lineHeight: 20 }}>{x.text}</Text> : null}
-                {x.media ? (
-                  <TouchableOpacity activeOpacity={0.92} onPress={() => openMedia([/\.(mp4|mov|webm|m3u8)(\?|$)/i.test(x.media) ? { video: full(x.media) } : { photo: full(x.media) }])}>
-                    <PostPhoto uri={full(x.media)} style={st.postImg} fallback="🖼️" />
+            {p.visible !== false ? (
+              <View style={st.tabs}>
+                {[['posts', 'Publicações'], ['galeria', 'Galeria'], ['mural', 'Mural'], ['dep', 'Depoimentos']].map(([k, l]) => (
+                  <TouchableOpacity key={k} onPress={() => setAba(k)} style={st.tab} accessibilityLabel={l}>
+                    <Text numberOfLines={1} style={[st.tabText, aba === k && st.tabOn]}>{l}</Text>
                   </TouchableOpacity>
-                ) : null}
+                ))}
               </View>
-            ))}
-            {p.visible !== false && !(p.posts || []).length ? <Text style={st.small}>{first} ainda não publicou nada.</Text> : null}
+            ) : null}
 
-            {(p.testimonials || []).length ? <Text style={st.h}>Depoimentos</Text> : null}
-            {(p.testimonials || []).map((t) => (
-              <View key={t.id} style={st.post}>
-                <Text style={{ color: colors.text, fontWeight: '700' }}>{t.fromName}</Text>
-                <Text style={{ color: colors.text, marginTop: 4, lineHeight: 20 }}>{t.text}</Text>
-              </View>
-            ))}
+            {p.visible !== false && aba === 'posts' ? (
+              <>
+                {(p.posts || []).map((x) => (
+                  <View key={x.id} style={st.post}>
+                    {x.text ? <Text style={{ color: colors.text, lineHeight: 20 }}>{x.text}</Text> : null}
+                    {x.media ? (
+                      <TouchableOpacity activeOpacity={0.92} onPress={() => openMedia([/\.(mp4|mov|webm|m3u8)(\?|$)/i.test(x.media) ? { video: full(x.media) } : { photo: full(x.media) }])}>
+                        <PostPhoto uri={full(x.media)} style={st.postImg} fallback="🖼️" />
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+                ))}
+                {!(p.posts || []).length ? <Text style={st.small}>{first} ainda não publicou nada.</Text> : null}
+              </>
+            ) : null}
+
+            {p.visible !== false && aba === 'galeria' ? <Galeria g={p.gallery} first={first} width={width} /> : null}
+            {p.visible !== false && aba === 'mural' ? <MuralAmigo m={p.mural} first={first} /> : null}
+
+            {aba === 'dep' || p.visible === false ? (
+              <>
+                {(p.testimonials || []).length ? <Text style={st.h}>Depoimentos</Text> : null}
+                {(p.testimonials || []).map((t) => (
+                  <View key={t.id} style={st.post}>
+                    <Text style={{ color: colors.text, fontWeight: '700' }}>{t.fromName}</Text>
+                    <Text style={{ color: colors.text, marginTop: 4, lineHeight: 20 }}>{t.text}</Text>
+                  </View>
+                ))}
+                {p.visible !== false && !(p.testimonials || []).length ? <Text style={st.small}>{first} ainda não tem depoimentos.</Text> : null}
+              </>
+            ) : null}
           </View>
         ) : null}
       </ScrollView>
     </Modal>
+  );
+}
+
+// Galeria do amigo: fotos em grade, vídeos e destaques (toque abre em tela cheia).
+function Galeria({ g, first, width }) {
+  const photos = (g && g.photos) || [];
+  const videos = (g && g.videos) || [];
+  const highlights = (g && g.highlights) || [];
+  const tile = Math.floor((width - 32 - 8) / 3);
+  if (!photos.length && !videos.length && !highlights.length) return <Text style={st.small}>{first} ainda não colocou nada na galeria.</Text>;
+  const fotos = photos.map((x) => ({ photo: full(x.uri) }));
+  return (
+    <View>
+      {highlights.length ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+          {highlights.map((h) => (
+            <TouchableOpacity key={h.id} style={{ alignItems: 'center', marginRight: 14, width: 68 }} onPress={() => openMedia(h.items.map((i) => ({ photo: full(i.image), title: i.caption || h.title })))} accessibilityLabel={`Destaque ${h.title}`}>
+              <Photo uri={full(h.cover || (h.items[0] && h.items[0].image))} style={st.hl} fallback="✨" />
+              <Text numberOfLines={1} style={{ color: colors.text, fontSize: 12, marginTop: 4 }}>{h.title}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      ) : null}
+      {photos.length ? <Text style={st.h}>Fotos</Text> : null}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+        {photos.map((x, i) => (
+          <TouchableOpacity key={x.id} activeOpacity={0.9} onPress={() => openMedia(fotos, i)} style={{ marginRight: i % 3 === 2 ? 0 : 4, marginBottom: 4 }} accessibilityLabel="Abrir foto">
+            <Photo uri={full(x.uri)} style={{ width: tile, height: tile, borderRadius: 8 }} fallback="🖼️" />
+          </TouchableOpacity>
+        ))}
+      </View>
+      {videos.length ? <Text style={st.h}>Vídeos</Text> : null}
+      {videos.map((v) => (
+        <TouchableOpacity key={v.id} activeOpacity={0.9} onPress={() => openMedia([{ video: full(v.uri || v.video), title: v.title }])} style={st.video} accessibilityLabel={`Vídeo ${v.title || ''}`}>
+          <Ionicons name="play-circle" size={30} color={colors.primary} />
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text numberOfLines={1} style={{ color: colors.text, fontWeight: '700' }}>{v.title || 'Vídeo'}</Text>
+            {v.duration ? <Text style={st.small}>{v.duration}</Text> : null}
+          </View>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+
+// Mural do amigo: do jeito que ele montou (tema, fixados em cima, recados e fotos).
+function MuralAmigo({ m, first }) {
+  const items = ((m && m.items) || []).slice().sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (b.at || 0) - (a.at || 0));
+  if (!items.length) return <Text style={st.small}>{first} ainda não montou o mural.</Text>;
+  const t = futureTheme(m.theme) || {};
+  return (
+    <View style={[st.mural, { backgroundColor: t.from || '#04121C' }]}>
+      {items.map((x) => (
+        <View key={x.id} style={[st.muralItem, { backgroundColor: x.type === 'recado' ? x.color || '#FFF3C4' : t.card || 'rgba(255,255,255,0.1)' }]}>
+          {x.pinned ? <Ionicons name="pin" size={13} color="#8A6208" style={{ alignSelf: 'flex-end' }} /> : null}
+          {x.type === 'foto' ? (
+            <TouchableOpacity activeOpacity={0.92} onPress={() => openMedia([{ photo: full(x.uri), title: x.text }])}>
+              <Photo uri={full(x.uri)} style={{ width: '100%', height: x.big ? 240 : 170, borderRadius: 10 }} fallback="🖼️" />
+            </TouchableOpacity>
+          ) : null}
+          {x.text ? <Text style={{ color: x.type === 'recado' ? '#1B1B1B' : t.text || '#fff', marginTop: x.type === 'foto' ? 6 : 0, fontSize: x.big ? 17 : 15, lineHeight: 21 }}>{x.text}</Text> : null}
+          {x.time ? <Text style={{ color: x.type === 'recado' ? '#6B6B6B' : t.muted || '#ccc', fontSize: 11, marginTop: 4 }}>{x.time}</Text> : null}
+        </View>
+      ))}
+    </View>
   );
 }
 
@@ -170,5 +262,13 @@ const st = StyleSheet.create({
   post: { backgroundColor: '#fff', borderRadius: 14, padding: 12, marginBottom: 10, ...soft },
   postImg: { width: '100%', height: 220, borderRadius: 10, marginTop: 8 },
   small: { color: colors.muted, fontSize: 13, marginTop: 8 },
+  tabs: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.border, marginTop: 16, marginBottom: 10 },
+  tab: { flex: 1, alignItems: 'center', paddingVertical: 10 },
+  tabText: { color: colors.muted, fontWeight: '700', fontSize: 13 },
+  tabOn: { color: colors.gold || colors.primary },
+  hl: { width: 62, height: 62, borderRadius: 31, borderWidth: 2, borderColor: colors.gold || colors.primary },
+  video: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 12, marginBottom: 8, ...soft },
+  mural: { borderRadius: 16, padding: 10 },
+  muralItem: { borderRadius: 12, padding: 12, marginBottom: 10 },
   err: { color: colors.danger, textAlign: 'center', marginTop: 30, paddingHorizontal: 24 },
 });

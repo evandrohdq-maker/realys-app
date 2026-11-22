@@ -1,4 +1,6 @@
 // Conversa de verdade (pelo servidor do Realyz) com uma loja, prestador ou pessoa.
+// Perfil social com perfil social (amigos) é conversa livre entre eles; com loja ou prestador
+// vale a regra de negócio (contato e pagamento sempre pelo Realyz).
 // Abre de qualquer tela: dispatch({ type: 'OPEN_SERVER_CHAT', userId, name }).
 // Mensagens da loja escritas pelo atendente IA aparecem marcadas como "Assistente virtual".
 import React, { useEffect, useRef, useState } from 'react';
@@ -20,6 +22,15 @@ export default function ChatServidor() {
   const [busy, setBusy] = useState(false);
   const scroll = useRef(null);
   const me = state.user && state.user.serverId;
+  // null = ainda sabendo; true = loja/prestador; false = pessoa (perfil social).
+  const [negocio, setNegocio] = useState(null);
+  useEffect(() => {
+    setNegocio(null);
+    if (!open) return;
+    api('GET', `/users/${open.userId}`)
+      .then((u) => setNegocio(!!(u && (u.negocio || u.kind === 'empresa'))))
+      .catch(() => setNegocio(null));
+  }, [open && open.userId]);
 
   const load = () => open && api('GET', `/messages/${open.userId}`).then(setMsgs).catch(() => {});
   useEffect(() => {
@@ -67,11 +78,11 @@ export default function ChatServidor() {
           </TouchableOpacity>
           <View style={{ flex: 1, marginLeft: 6 }}>
             <Text style={st.title} numberOfLines={1}>{open.name}</Text>
-            <Text style={st.sub} numberOfLines={1}>Conversa protegida pelo Realyz: contato e pagamento sempre por aqui</Text>
+            <Text style={st.sub} numberOfLines={1}>{negocio === false ? 'Conversa entre amigos · só pessoas verificadas' : 'Conversa protegida pelo Realyz: contato e pagamento sempre por aqui'}</Text>
           </View>
         </View>
         <ScrollView ref={scroll} style={{ flex: 1 }} contentContainerStyle={{ padding: 14 }}>
-          {!msgs.length ? <Text style={st.empty}>Mande sua dúvida. A loja responde por aqui.</Text> : null}
+          {!msgs.length && negocio !== null ? <Text style={st.empty}>{negocio ? 'Mande sua dúvida. A loja responde por aqui.' : `Diga oi para ${String(open.name || '').split(' ')[0]}! 👋`}</Text> : null}
           {msgs.map((m) => {
             const mine = m.from === me;
             return (

@@ -31,13 +31,15 @@ export function payloadOf(state) {
     chatMeta: state.chatMeta,
     creations: state.creations,
     mural: state.mural,
+    // Galeria (fotos, vídeos, destaques): os amigos veem pelo perfil. Os exemplos de demonstração não sobem.
+    myGallery: galeriaReal(state.myGallery),
     extraPerfil: state.extraPerfil,
   };
   // Muito grande (muitas criações com imagens embutidas): guarda o essencial do perfil.
   if (JSON.stringify(data).length > 850 * 1024) {
     delete data.creations;
-    delete data.mural;
   }
+  if (JSON.stringify(data).length > 850 * 1024) delete data.mural;
   return data;
 }
 
@@ -71,6 +73,77 @@ export async function uploadLocalPhotos(profile) {
     }
   }
   return Object.keys(patch).length ? patch : null;
+}
+
+// Só o que a pessoa adicionou (os itens de exemplo começam com "me-").
+const real = (x) => x && !String(x.id || '').startsWith('me-');
+export function galeriaReal(g) {
+  if (!g) return undefined;
+  return {
+    photos: (g.photos || []).filter(real),
+    videos: (g.videos || []).filter(real),
+    highlights: (g.highlights || []).filter(real),
+  };
+}
+
+// Sobe um arquivo do aparelho; sem internet ou recusado, devolve null (tenta na próxima alteração).
+const mimeVideo = (u) => (/\.(mov)(\?|$)/i.test(u) ? 'video/quicktime' : 'video/mp4');
+async function subir(u, video) {
+  if (!isLocal(u)) return null;
+  try {
+    return await uploadMedia(u, video ? mimeVideo(u) : mimeOf(u));
+  } catch (e) {
+    return null;
+  }
+}
+
+// Galeria: troca os endereços do aparelho pelos do servidor. Devolve a galeria nova ou null se nada mudou.
+export async function uploadLocalGallery(g) {
+  if (!g) return null;
+  let mudou = false;
+  const troca = async (item, key, video) => {
+    const url = await subir(item[key], video);
+    if (!url) return item;
+    mudou = true;
+    return { ...item, [key]: url, local: false };
+  };
+  const photos = [];
+  for (const p of g.photos || []) photos.push(real(p) ? await troca(p, 'uri') : p);
+  const videos = [];
+  for (const v of g.videos || []) {
+    let x = v;
+    if (real(v)) {
+      x = await troca(x, 'uri', true);
+      if (x.video) x = await troca(x, 'video', true);
+      if (x.thumb) x = await troca(x, 'thumb');
+    }
+    videos.push(x);
+  }
+  const highlights = [];
+  for (const h of g.highlights || []) {
+    if (!real(h)) {
+      highlights.push(h);
+      continue;
+    }
+    let x = h.cover ? await troca(h, 'cover') : h;
+    const items = [];
+    for (const i of x.items || []) items.push(i.image ? await troca(i, 'image') : i);
+    highlights.push({ ...x, items });
+  }
+  return mudou ? { ...g, photos, videos, highlights } : null;
+}
+
+// Mural: fotos que estão só no aparelho sobem. Devolve o mural novo ou null se nada mudou.
+export async function uploadLocalMural(m) {
+  if (!m || !Array.isArray(m.items)) return null;
+  let mudou = false;
+  const items = [];
+  for (const it of m.items) {
+    const url = it && it.type === 'foto' ? await subir(it.uri) : null;
+    if (url) mudou = true;
+    items.push(url ? { ...it, uri: url } : it);
+  }
+  return mudou ? { ...m, items } : null;
 }
 
 export async function pushProfile(data) {

@@ -177,6 +177,27 @@ test('social: amizade, depoimento aceito, mensagens com aviso em tempo real', as
   assert.equal((await ok('POST', `/friends/${S.ana.id}`, { who: 'beto' })).status, 'amigos');
   assert.equal((await ok('GET', '/friends', { who: 'ana' }))[0].friend, 'amigos');
 
+  // Perfil social entre amigos: o amigo vê capa, galeria (fotos, vídeos, destaques) e mural.
+  await ok('PUT', '/me/dados', { who: 'ana', body: { data: {
+    myProfile: { cover: '/media/capa1' },
+    myGallery: {
+      photos: [{ id: 'mf1', uri: '/media/foto1' }, { id: 'mf2', uri: 'file:///so-no-celular.jpg' }],
+      videos: [{ id: 'mv1', uri: '/media/video1', title: 'Praia' }],
+      highlights: [{ id: 'hl1', title: 'Viagens', cover: '/media/foto1', items: [{ id: 'hl1-0', image: '/media/foto1' }] }],
+    },
+    mural: { theme: 'neon', items: [{ id: 'r1', type: 'recado', text: 'Oi, amigos!' }, { id: 'f1', type: 'foto', uri: '/media/foto1' }] },
+    agenda: [{ segredo: true }],
+  } } });
+  const perfilAna = await ok('GET', `/users/${S.ana.id}`, { who: 'beto' });
+  assert.equal(perfilAna.visible, true);
+  assert.equal(perfilAna.cover, '/media/capa1');
+  assert.deepEqual(perfilAna.gallery.photos.map((x) => x.id), ['mf1']); // foto só no aparelho não aparece
+  assert.equal(perfilAna.gallery.videos.length, 1);
+  assert.equal(perfilAna.gallery.highlights[0].title, 'Viagens');
+  assert.equal(perfilAna.mural.items.length, 2);
+  assert.equal(perfilAna.agenda, undefined); // só o social sai do perfil
+  assert.equal(perfilAna.negocio, false);
+
   const t = await ok('POST', '/testimonials', { who: 'ana', body: { toId: S.beto.id, text: 'Motorista nota 10, super educado!' } });
   assert.equal((await ok('GET', `/users/${S.beto.id}`, { who: 'ana' })).testimonials.length, 0); // ainda pendente
   await ok('POST', `/testimonials/${t.id}/aceitar`, { who: 'beto' });
