@@ -23,7 +23,7 @@ import { stories as STORY_GROUPS } from '../homeData';
 import { galleryOf } from '../testimonialsData';
 import { StoryViewer } from '../screens/cliente/home/Stories';
 import { HireButton } from './ArtistBooking';
-import { api, serverOn, API_URL } from '../api';
+import { api, serverOn, API_URL, mediaUrl } from '../api';
 import { conectado } from '../serverShop';
 import { openServerProfile } from './ServerProfile';
 import { refreshFriends, useServerFriends } from '../serverFriends';
@@ -784,7 +784,7 @@ function ServerPersonRow({ u, onFriend }) {
       {/* Tocar na foto ou no nome abre o perfil da conta real. */}
       <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }} onPress={() => openServerProfile(u.id)} activeOpacity={0.8} accessibilityLabel={`Ver perfil de ${u.name}`}>
       {u.photo ? (
-        <Photo uri={u.photo} style={styles.rowAvatar} fallback="🙂" />
+        <Photo uri={mediaUrl(u.photo)} style={styles.rowAvatar} fallback="🙂" />
       ) : (
         <View style={[styles.rowAvatar, { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }]}>
           <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 18 }}>{first.charAt(0).toUpperCase()}</Text>

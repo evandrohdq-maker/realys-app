@@ -748,7 +748,6 @@ function Shell({ inviteTick }) {
       <ArtistSheetHost />
       <ArtistShowHost />
       <MediaViewerHost />
-      <ServerProfileHost />
       {/* TV da aba Stream e live minimizada: janelinhas flutuantes (segure e arraste). */}
       <TvFloat bottom={150 + insets.bottom} />
       {/* Perfil de rádio/TV (abre ao tocar no nome) e a janelinha por cima dos outros apps. */}
@@ -911,6 +910,8 @@ function Shell({ inviteTick }) {
       <PeopleSearchModal visible={searching} onClose={() => setSearching(false)} navigate={pick} />
       <UserProfileModal />
       <CompanyProfileModal />
+      {/* Perfil de conta real: montado depois da busca e dos outros perfis, para abrir sempre por cima. */}
+      <ServerProfileHost />
       <GiftSheet />
       <CartSheet onOrders={() => pick({ tab: 'pedidos' })} />
       {/* Compra sem saldo: janela do Pix (valor inteiro ou saldo + restante). */}

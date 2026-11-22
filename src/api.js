@@ -15,6 +15,8 @@ import { AppState, Platform } from 'react-native';
 const SESSION_KEY = 'realys.session';
 export const API_URL = String((Constants.expoConfig && Constants.expoConfig.extra && Constants.expoConfig.extra.apiUrl) || '').replace(/\/$/, '');
 export const serverOn = () => !!API_URL;
+// Foto/arquivo do servidor ("/media/...") com o endereço completo, para aparecer em qualquer tela.
+export const mediaUrl = (u) => (typeof u === 'string' && u.startsWith('/') ? API_URL + u : u || null);
 
 let accessToken = null;
 // Quem o app chama quando o servidor responde "biometria não cadastrada" (definido em BioGate.js).

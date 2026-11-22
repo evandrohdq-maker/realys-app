@@ -6,17 +6,25 @@
 //  - prestador de serviço → abre só a PRÉVIA do perfil de trabalho (sem adicionar, sem contato direto:
 //    serviço só se contrata pelo Realyz).
 //  - eu mesmo → vai para a aba Perfil.
+//  - conta real (do servidor) → SEMPRE o perfil social dela (src/components/ServerProfile.js), mesmo que
+//    ela também seja prestador: perfil social é atividade entre as pessoas e não tem nada a ver com a
+//    regra de serviço. A prévia de prestador fica só nas telas de serviço.
 import { Alert } from 'react-native';
+import { openServerProfile } from './components/ServerProfile';
 import { useStore } from './store';
 import { memberById, memberByName } from './people';
 import { artists } from './extraData';
+
+// Conta real do servidor: o id é "u_" + código (server/src/routes/auth.js).
+export const isServerUserId = (id) => typeof id === 'string' && /^u_[A-Za-z0-9_-]{6,}$/.test(id);
 
 const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
 // Quem é: { kind: 'me' | 'member' | 'company' | null, id }.
 export function resolvePerson(state, { id, name } = {}) {
   const myName = state.user && state.user.name;
-  if (id === 'me' || (name && myName && norm(name) === norm(myName))) return { kind: 'me' };
+  if (id === 'me' || (id && state.user && id === state.user.serverId) || (!id && name && myName && norm(name) === norm(myName))) return { kind: 'me' };
+  if (isServerUserId(id)) return { kind: 'server', id };
   const pv = (state.providers || []).find((x) => (id && x.id === id) || (name && norm(x.name) === norm(name)));
   if (pv) return { kind: 'provider', id: pv.id };
   const m = (id && memberById(id)) || (name && memberByName(name));
@@ -32,6 +40,7 @@ export function useOpenPerson() {
   const { state, dispatch } = useStore();
   return (who, { onLeave } = {}) => {
     const r = resolvePerson(state, who);
+    if (r.kind === 'server') return openServerProfile(r.id), true;
     if (r.kind === 'provider') return dispatch({ type: 'PREVIEW_PROVIDER', id: r.id }), true;
     if (r.kind === 'member') return dispatch({ type: 'OPEN_PROFILE', id: r.id }), true;
     if (r.kind === 'company') {

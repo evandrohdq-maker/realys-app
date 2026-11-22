@@ -2,6 +2,7 @@ import { openProduct } from '../../../components/ProductSheet';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { openMedia } from '../../../components/MediaViewer';
 import { openServerProfile } from '../../../components/ServerProfile';
+import { mediaUrl } from '../../../api';
 import ServerInbox from '../../../components/ServerInbox';
 import { useServerFeed, curtir, comentarios, comentar } from '../../../serverSocial';
 import { CampanhaCard, OngPage } from '../OngsScreen';
@@ -675,7 +676,7 @@ function RealContact({ u, onChat }) {
     <View style={styles.convRow}>
       <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }} onPress={() => openServerProfile(u.id)} activeOpacity={0.7} accessibilityLabel={`Ver perfil de ${u.name}`}>
         {u.photo ? (
-          <Photo uri={u.photo} style={styles.convAvatar} fallback="🙂" />
+          <Photo uri={mediaUrl(u.photo)} style={styles.convAvatar} fallback="🙂" />
         ) : (
           <View style={[styles.convAvatar, { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }]}>
             <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>{first.charAt(0).toUpperCase()}</Text>

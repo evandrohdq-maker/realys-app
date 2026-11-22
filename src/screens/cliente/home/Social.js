@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { isServerUserId } from '../../../openPerson';
+import { openServerProfile } from '../../../components/ServerProfile';
 import { KeyboardLift } from '../../../keyboard';
 import { moderateText, antiDesvio } from '../../../moderation';
 import { usePrivateScreen } from '../../../privacyGuard';
@@ -47,6 +49,8 @@ export function ChatModal({ contact, messages, visible, onClose, onSend, onVideo
   // ou a página da empresa. A conversa continua aberta por baixo: voltar do perfil volta para cá.
   const openContact = () => {
     if (state.viewProfile === contact.id) return onClose(); // a conversa foi aberta pelo próprio perfil
+    // Conta real: sempre o perfil social (galeria, mural, publicações), mesmo se for prestador.
+    if (isServerUserId(contact.id)) return openServerProfile(contact.id);
     // Prestador de serviço: só a prévia do perfil de trabalho (sem adicionar).
     const pv = (state.providers || []).find((x) => x.id === contact.id || x.name === contact.name);
     if (pv) return dispatch({ type: 'PREVIEW_PROVIDER', id: pv.id });
