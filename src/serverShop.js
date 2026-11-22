@@ -135,6 +135,8 @@ export async function finalizarCompra(state, dispatch, { address } = {}) {
       const r = await api('POST', '/orders', {
         items: srvLines.map((c) => ({ productId: c.productId.slice(SRV.length), qty: c.qty })),
         address: address || undefined,
+        // Indicação: quem divulgou o produto para este cliente (ganha 2% quando o pedido for entregue).
+        ...(state.indicacao && state.indicacao.ref ? { ref: state.indicacao.ref } : {}),
         ...(ponto ? { destLat: ponto.lat, destLng: ponto.lon } : {}),
       });
       dispatch({ type: 'SERVER_ORDERS_PLACED', productIds: srvLines.map((c) => c.productId), orders: r.orders.map((o) => orderFromServer({ ...o, items: itemsOf(state, srvLines, o.company) })) });

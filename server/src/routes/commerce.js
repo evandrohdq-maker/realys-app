@@ -3,6 +3,12 @@ import { fail, newId, now, money, str, int, toReais, coord } from '../http.js';
 import { tx } from '../db.js';
 
 const ORDER_STATUS = ['Recebido', 'Preparando', 'A caminho', 'Entregue', 'Cancelado'];
+// Indicação de produto (regra do Realyz): a comissão do Realyz nas vendas é 10%. Quando a venda veio
+// pela indicação de alguém (produto de outro estabelecimento que a pessoa divulgou), o Realyz fica com 8%
+// e repassa 2% para quem indicou (mínimo R$ 0,50, nunca mais que a comissão do pedido). A loja pode
+// ligar o bônus de +5% (pago pela loja) para quem indicar os produtos dela. Só paga quando o pedido é
+// ENTREGUE (cancelado não paga), uma vez por pedido.
+export const INDICACAO = { pct: 2, minCents: 50, extraLojaPct: 5 };
 
 export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fiscal }) {
   const companyOf = (userId) => db.prepare('SELECT * FROM companies WHERE owner_id = ?').get(userId);
@@ -11,7 +17,7 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
     if (!c) fail(403, 'Só contas de empresa (CNPJ) podem fazer isso.');
     return c;
   };
-  const companyView = (c) => c && { id: c.id, name: c.name, segment: c.segment, about: c.about, logo: c.logo, address: c.address, lat: c.lat, lng: c.lng, ownerId: c.owner_id };
+  const companyView = (c) => c && { id: c.id, name: c.name, segment: c.segment, about: c.about, logo: c.logo, address: c.address, lat: c.lat, lng: c.lng, ownerId: c.owner_id, indicacaoExtra: c.indicacao_extra_pct || 0 };
   const SECOES = ['mercearia', 'hortifruti', 'acougue', 'frios', 'padaria', 'congelados', 'limpeza', 'bebidas', 'outros'];
   const secaoOf = (v) => {
     if (v === undefined || v === null || v === '') return null;
@@ -43,6 +49,8 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
     const q = `%${String(query.q || '').trim()}%`;
     return db.prepare('SELECT * FROM companies WHERE name LIKE ? OR segment LIKE ? ORDER BY name LIMIT 50').all(q, q).map(companyView);
   }, { auth: false });
+  // A própria loja (vem antes de /companies/:id): mostra, entre outras coisas, se o bônus de indicação está ligado.
+  r.get('/companies/me', ({ user }) => companyView(myCompany(user)));
   r.get('/companies/:id', ({ params }) => {
     const c = db.prepare('SELECT * FROM companies WHERE id = ?').get(params.id);
     if (!c) fail(404, 'Empresa não encontrada.');
@@ -60,6 +68,8 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
     if (body.address !== undefined) f.address = str(body.address, 'o endereço', { optional: true, max: 200 });
     if (body.lat !== undefined) f.lat = coord(body.lat, 'latitude');
     if (body.lng !== undefined) f.lng = coord(body.lng, 'longitude');
+    // Bônus de indicação da loja: 0 (desligado) ou 5% a mais para quem indicar os produtos dela.
+    if (body.indicacaoExtra !== undefined) f.indicacao_extra_pct = body.indicacaoExtra ? INDICACAO.extraLojaPct : 0;
     const k = Object.keys(f);
     if (k.length) db.prepare(`UPDATE companies SET ${k.map((x) => `${x} = ?`).join(', ')} WHERE id = ?`).run(...k.map((x) => f[x]), c.id);
     return companyView(db.prepare('SELECT * FROM companies WHERE id = ?').get(c.id));
@@ -153,6 +163,9 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
     if (!items.length || items.length > 50) fail(400, 'O carrinho está vazio.');
     const address = str(body.address, 'o endereço', { optional: true, max: 200 });
     // Ponto do endereço no mapa (para a central de entregas achar o entregador e a rota).
+    // Quem indicou (link de indicação): conta real, ativa, e não pode ser o próprio comprador.
+    const refUser = body.ref ? db.prepare("SELECT id FROM users WHERE id = ? AND status = 'ativo' AND kind != 'sistema'").get(String(body.ref)) : null;
+    const refId = refUser && refUser.id !== user.id ? refUser.id : null;
     const destino = Number.isFinite(Number(body.destLat)) && Number.isFinite(Number(body.destLng)) && body.destLat !== null ? { lat: Number(body.destLat), lng: Number(body.destLng) } : null;
     const created = tx(db, () => {
       const byCompany = new Map();
@@ -185,6 +198,11 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
         if (prot) wallet.move('realys', 'saldo', prot, 'Proteção', `Taxa de proteção do pedido ${id}`, id);
         const t = now();
         db.prepare('INSERT INTO orders (id, buyer_id, company_id, total, from_gift, from_wallet, fee, protection, address, status, created_at, updated_at, dest_lat, dest_lng) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)').run(id, user.id, companyId, total, fromGift, fromWallet, fee, prot, address, 'Recebido', t, t, destino ? destino.lat : null, destino ? destino.lng : null);
+        // Indicação: guarda quem indicou (o dono da loja não ganha indicação da própria venda).
+        if (refId && refId !== g.owner) {
+          const extra = (db.prepare('SELECT indicacao_extra_pct FROM companies WHERE id = ?').get(companyId) || {}).indicacao_extra_pct || 0;
+          db.prepare('UPDATE orders SET ref_id = ?, ref_extra_pct = ? WHERE id = ?').run(refId, extra, id);
+        }
         for (const l of g.lines) db.prepare('INSERT INTO order_items (order_id, product_id, name, price, qty) VALUES (?,?,?,?,?)').run(id, l.p.id, l.p.name, l.p.price, l.qty);
         // Fiscal: a comissão é serviço do Realyz para a loja (tomador = dono da loja); a NF-e do produto é da loja.
         if (fee) fiscal.registrar({ origem: 'comissao_pedido', ref: id, tomadorId: g.owner, valorCents: fee, descricao: `Intermediação de venda no Realyz (pedido ${id})` });
@@ -233,6 +251,23 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
         db.prepare("UPDATE fiscal_notas SET status = CASE WHEN status = 'emitida' THEN 'cancelamento' ELSE 'cancelada' END, updated_at = ? WHERE tipo = 'nfe' AND ref = ? AND status IN ('fila','erro','emitida')").run(now(), o.id);
       }
       db.prepare('UPDATE orders SET status = ?, updated_at = ? WHERE id = ?').run(body.status, now(), o.id);
+      // Entregue: paga a indicação (uma vez só).
+      if (body.status === 'Entregue' && o.ref_id && !o.ref_pago) {
+        const base = Math.max(INDICACAO.minCents, Math.round((o.total * INDICACAO.pct) / 100));
+        const doRealyz = Math.min(base, o.fee || base); // nunca mais do que a comissão do Realyz no pedido
+        if (doRealyz > 0) {
+          wallet.move('realys', 'saldo', -doRealyz, 'Indicação', `Indicação do pedido ${o.id}`, o.id);
+          wallet.move(o.ref_id, 'saldo', doRealyz, 'Indicação', `Você indicou e o pedido ${o.id} foi entregue`, o.id);
+        }
+        const daLoja = o.ref_extra_pct ? Math.round((o.total * o.ref_extra_pct) / 100) : 0;
+        const saldoLoja = (wallet.get(c.owner_id) || {}).balance || 0;
+        if (daLoja > 0 && saldoLoja >= daLoja) {
+          wallet.move(c.owner_id, 'saldo', -daLoja, 'Indicação', `Bônus de indicação (pedido ${o.id})`, o.id);
+          wallet.move(o.ref_id, 'saldo', daLoja, 'Indicação', `Bônus da loja ${c.name} (pedido ${o.id})`, o.id);
+        }
+        db.prepare('UPDATE orders SET ref_pago = 1 WHERE id = ?').run(o.id);
+        hub.send(o.ref_id, 'indicacao', { orderId: o.id, valor: toReais(doRealyz + daLoja) });
+      }
     });
     hub.send(o.buyer_id, 'order', { id: o.id, company: c.name, status: body.status });
     return orderView(db.prepare(`${ORDER_SQL} WHERE o.id = ?`).get(o.id));

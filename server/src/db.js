@@ -904,6 +904,13 @@ const MIGRATIONS = [
   );
   CREATE INDEX profile_views_owner ON profile_views(owner_id, ultimo_at DESC);
   `,
+  // 34: indicação de produto (quem divulgou ganha quando o pedido é entregue) e o bônus opcional da loja.
+  `
+  ALTER TABLE orders ADD COLUMN ref_id TEXT;
+  ALTER TABLE orders ADD COLUMN ref_extra_pct INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE orders ADD COLUMN ref_pago INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE companies ADD COLUMN indicacao_extra_pct INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export function openDb(file) {

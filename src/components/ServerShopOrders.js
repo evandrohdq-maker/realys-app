@@ -12,6 +12,35 @@ import FaceCheck from './FaceCheck';
 import { ChamarEntregador } from './Logistica';
 import { conectado, carregarCarteira } from '../serverShop';
 
+// Bônus de indicação: a loja pode pagar +5% para quem indicar os produtos dela (além dos 2% que o
+// Realyz já repassa da comissão). Só é pago quando o pedido é entregue.
+function BonusIndicacao() {
+  const [on, setOn] = useState(null);
+  useEffect(() => {
+    api('GET', '/companies/me').then((c) => setOn(!!(c && c.indicacaoExtra))).catch(() => setOn(null));
+  }, []);
+  if (on === null) return null;
+  const trocar = async () => {
+    try {
+      const c = await api('PATCH', '/companies/me', { indicacaoExtra: !on });
+      setOn(!!c.indicacaoExtra);
+    } catch (e) {
+      Alert.alert('Não foi possível mudar', e.message);
+    }
+  };
+  return (
+    <TouchableOpacity onPress={trocar} accessibilityRole="switch" accessibilityState={{ checked: on }} style={{ paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.border }}>
+      <Row style={{ justifyContent: 'space-between' }}>
+        <Text style={{ fontWeight: '700', color: colors.text, flex: 1 }}>🤝 Dar +5% para quem indicar</Text>
+        <Badge label={on ? 'Ligado' : 'Desligado'} color={on ? colors.success : colors.muted} />
+      </Row>
+      <Text style={{ color: colors.muted, fontSize: 12 }}>
+        Quem divulgar seus produtos e trouxer a venda ganha 2% (pago pelo Realyz){on ? ' + 5% pagos pela sua loja' : ''}. Só conta quando o pedido é entregue.
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
 const NEXT = { Recebido: 'Preparando', Preparando: 'A caminho', 'A caminho': 'Entregue' };
 const LABEL = { Preparando: 'Aceitar e preparar', 'A caminho': 'Saiu para entrega', Entregue: 'Marcar entregue' };
 
@@ -58,6 +87,7 @@ export default function ServerShopOrders() {
           <Text style={{ color: colors.primary, fontWeight: '700' }}>Atualizar</Text>
         </TouchableOpacity>
       </Row>
+      <BonusIndicacao />
       {list === null ? <Text style={{ color: colors.muted }}>Carregando…</Text> : null}
       {list && !list.length ? <Text style={{ color: colors.muted }}>Nenhum pedido ainda. Os produtos que você publica aparecem no Shop e no Food para todos.</Text> : null}
       {(list || []).slice(0, 20).map((o) => (

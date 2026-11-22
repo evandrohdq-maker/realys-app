@@ -568,9 +568,12 @@ function baseReducer(state, a) {
       return { ...state, serverChat: null };
     case 'SERVER_WALLET':
       return { ...state, wallet: a.balance, giftCredits: a.giftCredits };
+    // Indicação de produto: guarda quem indicou (vale para a próxima compra) e limpa depois de comprar.
+    case 'SET_INDICACAO':
+      return { ...state, indicacao: a.ref ? { ref: a.ref, at: Date.now() } : null };
     case 'SERVER_ORDERS_PLACED': {
       const bought = new Set(a.productIds);
-      return { ...state, cart: state.cart.filter((c) => !bought.has(c.productId)), orders: [...a.orders, ...state.orders] };
+      return { ...state, cart: state.cart.filter((c) => !bought.has(c.productId)), orders: [...a.orders, ...state.orders], indicacao: null };
     }
     case 'SERVER_ORDERS_SYNC': {
       const byId = new Map(a.orders.map((o) => [o.serverId, o]));
