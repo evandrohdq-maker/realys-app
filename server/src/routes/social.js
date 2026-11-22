@@ -253,7 +253,11 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     const to = target(body.toId);
     if (to.id === user.id) fail(400, 'Escolha outra pessoa.');
     const id = newId('m');
-    const msg = { id, from: user.id, to: to.id, text: str(body.text, 'a mensagem', { max: 2000 }), at: now() };
+    // Foto, vídeo ou áudio (enviado antes em PUT /media?uso=privado): a mensagem pode ser só a mídia.
+    const media = typeof body.media === 'string' && /^\/media\/md_[\w-]+(\.[a-z0-9]{2,4})?$/i.test(body.media) ? body.media : null;
+    const mediaType = media ? (['foto', 'video', 'audio'].includes(body.mediaType) ? body.mediaType : 'foto') : null;
+    const text = media ? String(body.text || '').trim().slice(0, 2000) : str(body.text, 'a mensagem', { max: 2000 });
+    const msg = { id, from: user.id, to: to.id, text, media, mediaType, at: now() };
     // Conversa privada: o conteúdo é das duas pessoas, mas racismo, ódio e sexual com menores nunca passam.
     const mm = moderateText(msg.text, 'privado');
     if (!mm.ok) fail(422, mm.why, mm.kind);
@@ -273,7 +277,9 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
       const jaPediu = db.prepare('SELECT 1 FROM messages WHERE from_id = ? AND to_id = ? LIMIT 1').get(user.id, to.id);
       if (!respondeu && jaPediu) fail(403, 'Aguarde a pessoa aceitar o contato. Até lá, só vai o primeiro pedido de contato.', 'contato_pendente');
     }
-    db.prepare('INSERT INTO messages (id, from_id, to_id, text, created_at) VALUES (?,?,?,?,?)').run(id, user.id, to.id, msg.text, msg.at);
+    // Mídia só entre amigos (em conversa de negócio, catálogo e fotos vão pelos caminhos da loja).
+    if (media && (!amigos || vende || negocio(to))) fail(403, 'Foto, vídeo e áudio são liberados na conversa entre amigos.', 'midia_amigos');
+    db.prepare('INSERT INTO messages (id, from_id, to_id, text, created_at, media, media_type) VALUES (?,?,?,?,?,?,?)').run(id, user.id, to.id, msg.text, msg.at, media, mediaType);
     hub.send(to.id, 'message', { ...msg, fromName: user.name });
     // Atendente IA da empresa/prestador (se estiver ligado): responde em seguida, sem travar esta mensagem.
     if (atendente) setImmediate(() => atendente.aoReceber(msg).catch(() => {}));
@@ -287,7 +293,8 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     ).all(user.id, user.id, user.id).map((c) => {
       const last = db.prepare('SELECT * FROM messages WHERE (from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?) ORDER BY created_at DESC LIMIT 1').get(user.id, c.other, c.other, user.id);
       const unread = db.prepare('SELECT COUNT(*) AS n FROM messages WHERE from_id = ? AND to_id = ? AND read_at IS NULL').get(c.other, user.id).n;
-      return { with: pub(userById(c.other)), last: { text: last.text, from: last.from_id, at: last.created_at }, unread };
+      const rotulo = { foto: '📷 Foto', video: '🎬 Vídeo', audio: '🎤 Áudio' }[last.media_type];
+      return { with: pub(userById(c.other)), last: { text: last.text || rotulo || '', from: last.from_id, at: last.created_at }, unread };
     })
   );
 
@@ -296,7 +303,7 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     const other = String(params.userId);
     const before = Number(query.before || now() + 1);
     db.prepare('UPDATE messages SET read_at = ? WHERE from_id = ? AND to_id = ? AND read_at IS NULL').run(now(), other, user.id);
-    return db.prepare('SELECT id, from_id AS "from", to_id AS "to", text, created_at AS at, read_at AS readAt, ia FROM messages WHERE ((from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?)) AND created_at < ? ORDER BY created_at DESC LIMIT 100')
+    return db.prepare('SELECT id, from_id AS "from", to_id AS "to", text, media, media_type AS mediaType, created_at AS at, read_at AS readAt, ia FROM messages WHERE ((from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?)) AND created_at < ? ORDER BY created_at DESC LIMIT 100')
       .all(user.id, other, other, user.id, before).reverse();
   });
 

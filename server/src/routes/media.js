@@ -8,9 +8,11 @@ import { makeImageModerator } from '../moderacaoImagem.js';
 const TYPES = {
   'image/jpeg': 'imagem', 'image/png': 'imagem', 'image/webp': 'imagem', 'image/heic': 'imagem',
   'video/mp4': 'video', 'video/quicktime': 'video', 'audio/mpeg': 'audio', 'audio/mp4': 'audio', 'audio/aac': 'audio',
+  // Áudio gravado na conversa: o celular grava em .m4a; o navegador do computador, em webm/ogg.
+  'audio/webm': 'audio', 'audio/ogg': 'audio', 'video/webm': 'video',
 };
 
-const EXT = { 'video/mp4': '.mp4', 'video/quicktime': '.mov', 'audio/mpeg': '.mp3', 'audio/mp4': '.m4a', 'audio/aac': '.aac' };
+const EXT = { 'video/mp4': '.mp4', 'video/quicktime': '.mov', 'audio/mpeg': '.mp3', 'audio/mp4': '.m4a', 'audio/aac': '.aac', 'audio/webm': '.webm', 'audio/ogg': '.ogg', 'video/webm': '.webm' };
 // "/media/md_x.mp4" e "/media/md_x" são o mesmo arquivo.
 export const mediaIdOf = (v) => String(v || '').replace(/^.*\/media\//, '').replace(/\.[A-Za-z0-9]{2,4}$/, '');
 

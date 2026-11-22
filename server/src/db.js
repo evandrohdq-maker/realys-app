@@ -952,6 +952,11 @@ const MIGRATIONS = [
   `
   ALTER TABLE posts ADD COLUMN bg TEXT;
   `,
+  // Conversa completa: foto, vídeo e áudio nas mensagens.
+  `
+  ALTER TABLE messages ADD COLUMN media TEXT;
+  ALTER TABLE messages ADD COLUMN media_type TEXT;
+  `,
 ];
 
 export function openDb(file) {

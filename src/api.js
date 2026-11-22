@@ -158,10 +158,11 @@ export async function authToken() {
 }
 
 // Envia uma foto, vídeo ou música e devolve o endereço completo.
-export async function uploadMedia(uri, mime) {
+// uso 'privado': foto/vídeo/áudio de conversa (fica só entre as duas pessoas).
+export async function uploadMedia(uri, mime, uso) {
   const file = await fetch(uri);
   const buf = await file.arrayBuffer();
-  const d = await api('PUT', '/media', buf, { 'Content-Type': mime });
+  const d = await api('PUT', uso === 'privado' ? '/media?uso=privado' : '/media', buf, { 'Content-Type': mime });
   return API_URL + d.url;
 }
 

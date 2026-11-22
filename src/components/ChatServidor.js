@@ -10,8 +10,25 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, TextInput } from '../responsive';
 import { KeyboardLift } from '../keyboard';
 import { useStore } from '../store';
-import { api, connectEvents } from '../api';
+import { api, connectEvents, uploadMedia, mediaUrl } from '../api';
 import { colors } from '../theme';
+import * as ImagePicker from 'expo-image-picker';
+import { Photo } from './ui';
+import { openMedia } from './MediaViewer';
+import { useGravador, podeGravarAudio } from '../audioRec';
+
+let EA = null;
+let EV = null;
+if (Platform.OS !== 'web') {
+  try {
+    EA = require('expo-audio');
+  } catch (e) {}
+  try {
+    EV = require('expo-video');
+  } catch (e) {}
+}
+const LISTAS_PADRAO = [{ id: 'familia', name: 'Família' }, { id: 'trabalho', name: 'Trabalho' }, { id: 'clientes', name: 'Clientes' }];
+const mmss = (n) => `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`;
 
 export default function ChatServidor() {
   const { state, dispatch } = useStore();
@@ -49,8 +66,75 @@ export default function ChatServidor() {
     setTimeout(() => scroll.current && scroll.current.scrollToEnd({ animated: true }), 60);
   }, [msgs.length]);
 
+  const grav = useGravador();
+  const [enviando, setEnviando] = useState(null); // 'foto' | 'video' | 'audio' enquanto sobe
+  const [classificar, setClassificar] = useState(false);
   if (!open) return null;
-  const close = () => dispatch({ type: 'CLOSE_SERVER_CHAT' });
+  const close = () => {
+    if (grav.gravando) grav.cancelar();
+    dispatch({ type: 'CLOSE_SERVER_CHAT' });
+  };
+  const amigos = negocio === false;
+  // Foto, vídeo ou áudio: sobe como arquivo privado (só as duas pessoas veem) e vai na mensagem.
+  const mandarMidia = async (uri, mime, tipo) => {
+    setEnviando(tipo);
+    try {
+      const url = await uploadMedia(uri, mime, 'privado');
+      await api('POST', '/messages', { toId: open.userId, media: url.replace(/^https?:\/\/[^/]+/, ''), mediaType: tipo, text: '' });
+      await load();
+    } catch (e) {
+      Alert.alert('Não foi enviado', e.message || 'Tente de novo.');
+    } finally {
+      setEnviando(null);
+    }
+  };
+  const anexar = async () => {
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) return Alert.alert('Permissão', 'Permita o acesso às fotos e vídeos para enviar.');
+      const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images', 'videos'], quality: 0.85, videoMaxDuration: 120 });
+      if (r.canceled || !r.assets || !r.assets[0]) return;
+      const a = r.assets[0];
+      const video = a.type === 'video';
+      const mime = a.mimeType || (video ? 'video/mp4' : /\.png$/i.test(a.uri) ? 'image/png' : 'image/jpeg');
+      mandarMidia(a.uri, mime, video ? 'video' : 'foto');
+    } catch (e) {
+      Alert.alert('Enviar foto ou vídeo', 'Não deu para abrir a galeria.');
+    }
+  };
+  const fotografar = async () => {
+    try {
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (!perm.granted) return Alert.alert('Permissão', 'Permita a câmera para tirar a foto.');
+      const r = await ImagePicker.launchCameraAsync({ quality: 0.85 });
+      if (r.canceled || !r.assets || !r.assets[0]) return;
+      mandarMidia(r.assets[0].uri, r.assets[0].mimeType || 'image/jpeg', 'foto');
+    } catch (e) {
+      Alert.alert('Câmera', 'Não deu para abrir a câmera.');
+    }
+  };
+  // Áudio: toca uma vez para gravar, de novo para enviar (o X cancela).
+  const audio = async () => {
+    try {
+      if (!grav.gravando) return await grav.iniciar();
+      const r = await grav.parar();
+      if (r) mandarMidia(r.uri, r.mime, 'audio');
+    } catch (e) {
+      Alert.alert('Áudio', e.message || 'Não deu para usar o microfone.');
+    }
+  };
+  // Ligação (voz) ou chamada de vídeo de verdade, direto entre os aparelhos (src/components/LiveVideo.js).
+  // A conversa fecha para a tela da chamada ficar por cima.
+  const ligar = (kind) => {
+    const alvo = { to: open.userId, name: open.name };
+    close();
+    dispatch({ type: 'START_VIDEO_CALL', ...alvo, kind });
+  };
+  const meta = (state.chatMeta || {})[open.userId] || {};
+  const minhasListas = meta.lists || [];
+  const listas = state.chatLists || LISTAS_PADRAO;
+  const alternarLista = (id) =>
+    dispatch({ type: 'CHAT_META', contactId: open.userId, patch: { lists: minhasListas.includes(id) ? minhasListas.filter((x) => x !== id) : [...minhasListas, id] } });
   const enviar = async () => {
     const t = txt.trim();
     if (!t || busy) return;
@@ -78,33 +162,158 @@ export default function ChatServidor() {
           </TouchableOpacity>
           <View style={{ flex: 1, marginLeft: 6 }}>
             <Text style={st.title} numberOfLines={1}>{open.name}</Text>
-            <Text style={st.sub} numberOfLines={1}>{negocio === false ? 'Conversa entre amigos · só pessoas verificadas' : 'Conversa protegida pelo Realyz: contato e pagamento sempre por aqui'}</Text>
+            <Text style={st.sub} numberOfLines={1}>
+              {amigos
+                ? minhasListas.length
+                  ? listas.filter((l) => minhasListas.includes(l.id)).map((l) => l.name).join(' · ')
+                  : 'Conversa entre amigos · só pessoas verificadas'
+                : 'Conversa protegida pelo Realyz: contato e pagamento sempre por aqui'}
+            </Text>
           </View>
+          {amigos ? (
+            <>
+              <TouchableOpacity onPress={() => ligar('audio')} style={st.headBtn} accessibilityLabel={`Ligar para ${open.name}`}>
+                <Ionicons name="call-outline" size={20} color={colors.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => ligar('video')} style={st.headBtn} accessibilityLabel={`Chamada de vídeo com ${open.name}`}>
+                <Ionicons name="videocam-outline" size={21} color={colors.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setClassificar(true)} style={st.headBtn} accessibilityLabel={`Classificar ${open.name}`}>
+                <Ionicons name={minhasListas.length ? 'pricetag' : 'pricetag-outline'} size={19} color={colors.primary} />
+              </TouchableOpacity>
+            </>
+          ) : null}
         </View>
         <ScrollView ref={scroll} style={{ flex: 1 }} contentContainerStyle={{ padding: 14 }}>
           {!msgs.length && negocio !== null ? <Text style={st.empty}>{negocio ? 'Mande sua dúvida. A loja responde por aqui.' : `Diga oi para ${String(open.name || '').split(' ')[0]}! 👋`}</Text> : null}
           {msgs.map((m) => {
             const mine = m.from === me;
             return (
-              <View key={m.id} style={[st.bubble, mine ? st.mine : st.theirs]}>
+              <View key={m.id} style={[st.bubble, mine ? st.mine : st.theirs, m.media && m.mediaType !== 'audio' && { padding: 4 }]}>
                 {!mine && m.ia ? <Text style={st.ia}>Assistente virtual</Text> : null}
-                <Text style={[st.text, mine && { color: '#FBF8F1' }]}>{m.text}</Text>
+                {m.media ? <MidiaMsg m={m} mine={mine} /> : null}
+                {m.text ? <Text style={[st.text, mine && { color: '#FBF8F1' }, m.media && { paddingHorizontal: 8, paddingTop: 4 }]}>{m.text}</Text> : null}
               </View>
             );
           })}
         </ScrollView>
+        {enviando ? <Text style={st.subindo}>Enviando {enviando === 'foto' ? 'a foto' : enviando === 'video' ? 'o vídeo' : 'o áudio'}…</Text> : null}
         <View style={[st.bar, { paddingBottom: 10 + insets.bottom }]}>
-          <TextInput value={txt} onChangeText={setTxt} placeholder="Escreva sua mensagem" placeholderTextColor={colors.muted} style={st.input} multiline onSubmitEditing={enviar} />
-          <TouchableOpacity onPress={enviar} disabled={busy || !txt.trim()} style={[st.send, (busy || !txt.trim()) && { opacity: 0.5 }]} accessibilityLabel="Enviar">
-            <Ionicons name="send" size={18} color={colors.onPrimary} />
-          </TouchableOpacity>
+          {amigos && !grav.gravando ? (
+            <>
+              <TouchableOpacity onPress={anexar} style={st.tool} accessibilityLabel="Enviar foto ou vídeo da galeria">
+                <Ionicons name="images-outline" size={22} color={colors.primary} />
+              </TouchableOpacity>
+              {Platform.OS !== 'web' ? (
+                <TouchableOpacity onPress={fotografar} style={st.tool} accessibilityLabel="Tirar foto e enviar">
+                  <Ionicons name="camera-outline" size={23} color={colors.primary} />
+                </TouchableOpacity>
+              ) : null}
+            </>
+          ) : null}
+          {grav.gravando ? (
+            <View style={[st.input, st.gravando]}>
+              <TouchableOpacity onPress={grav.cancelar} accessibilityLabel="Cancelar o áudio" style={{ padding: 2 }}>
+                <Ionicons name="close" size={20} color={colors.danger || '#D64545'} />
+              </TouchableOpacity>
+              <View style={st.recDot} />
+              <Text style={{ color: colors.text, fontWeight: '700' }}>Gravando {mmss(grav.segundos)}</Text>
+            </View>
+          ) : (
+            <TextInput value={txt} onChangeText={setTxt} placeholder="Escreva sua mensagem" placeholderTextColor={colors.muted} style={st.input} multiline onSubmitEditing={enviar} />
+          )}
+          {/* Sem texto: o botão vira o microfone (toca para gravar, toca de novo para enviar). */}
+          {amigos && !txt.trim() && podeGravarAudio() ? (
+            <TouchableOpacity onPress={audio} disabled={!!enviando} style={[st.send, grav.gravando && { backgroundColor: '#D64545' }]} accessibilityLabel={grav.gravando ? 'Enviar o áudio' : 'Gravar áudio'}>
+              <Ionicons name={grav.gravando ? 'send' : 'mic'} size={19} color={colors.onPrimary} />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity onPress={enviar} disabled={busy || !txt.trim()} style={[st.send, (busy || !txt.trim()) && { opacity: 0.5 }]} accessibilityLabel="Enviar">
+              <Ionicons name="send" size={18} color={colors.onPrimary} />
+            </TouchableOpacity>
+          )}
         </View>
+        <Modal visible={classificar} transparent animationType="fade" onRequestClose={() => setClassificar(false)}>
+          <TouchableOpacity activeOpacity={1} onPress={() => setClassificar(false)} style={st.fundo}>
+            <View style={st.caixa}>
+              <Text style={st.title}>Classificar {String(open.name || '').split(' ')[0]}</Text>
+              <Text style={[st.sub, { marginBottom: 10 }]}>Escolha uma ou mais listas para achar a conversa mais rápido.</Text>
+              {listas.map((l) => {
+                const on = minhasListas.includes(l.id);
+                return (
+                  <TouchableOpacity key={l.id} onPress={() => alternarLista(l.id)} style={st.lista} accessibilityLabel={`${on ? 'Tirar de' : 'Pôr em'} ${l.name}`}>
+                    <Ionicons name={on ? 'checkbox' : 'square-outline'} size={22} color={colors.primary} />
+                    <Text style={{ color: colors.text, fontWeight: '700', marginLeft: 10, fontSize: 15 }}>{l.name}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+              <TouchableOpacity onPress={() => setClassificar(false)} style={[st.send, { width: '100%', borderRadius: 14, marginLeft: 0, marginTop: 12 }]} accessibilityLabel="Pronto">
+                <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Pronto</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </KeyboardLift>
     </Modal>
   );
 }
 
+// Foto, vídeo ou áudio dentro da bolha.
+function MidiaMsg({ m, mine }) {
+  const url = mediaUrl(m.media);
+  if (m.mediaType === 'audio') return <AudioMsg url={url} mine={mine} />;
+  if (m.mediaType === 'video') {
+    if (Platform.OS === 'web') return React.createElement('video', { src: url, controls: true, style: { width: 240, maxWidth: '100%', borderRadius: 14, display: 'block' } });
+    if (EV) return <VideoNativo url={url} />;
+  }
+  return (
+    <TouchableOpacity activeOpacity={0.9} onPress={() => openMedia([{ photo: url }])} accessibilityLabel="Ver a foto">
+      <Photo uri={url} style={{ width: 230, height: 230, borderRadius: 14 }} fallback="📷" />
+    </TouchableOpacity>
+  );
+}
+function VideoNativo({ url }) {
+  const player = EV.useVideoPlayer({ uri: url }, (p) => (p.loop = false));
+  return <EV.VideoView player={player} style={{ width: 230, height: 300, borderRadius: 14 }} nativeControls contentFit="cover" />;
+}
+// Áudio: no site, o player do navegador; no celular, tocar/pausar com o expo-audio.
+function AudioMsg({ url, mine }) {
+  if (Platform.OS === 'web') return React.createElement('audio', { src: url, controls: true, style: { width: 230, height: 40 } });
+  if (!EA) return <Text style={[st.text, mine && { color: '#FBF8F1' }]}>🎤 Áudio</Text>;
+  return <AudioNativo url={url} mine={mine} />;
+}
+function AudioNativo({ url, mine }) {
+  const player = EA.useAudioPlayer({ uri: url });
+  const status = EA.useAudioPlayerStatus ? EA.useAudioPlayerStatus(player) : null;
+  const tocando = !!(status && status.playing);
+  const cor = mine ? '#FBF8F1' : colors.text;
+  const toggle = () => {
+    if (tocando) return player.pause();
+    if (status && status.didJustFinish) player.seekTo(0);
+    player.play();
+  };
+  const dur = status && status.duration ? Math.round(status.duration) : 0;
+  const pos = status && status.currentTime ? Math.round(status.currentTime) : 0;
+  return (
+    <TouchableOpacity onPress={toggle} style={{ flexDirection: 'row', alignItems: 'center', minWidth: 160 }} accessibilityLabel={tocando ? 'Pausar o áudio' : 'Ouvir o áudio'}>
+      <Ionicons name={tocando ? 'pause-circle' : 'play-circle'} size={34} color={cor} />
+      <View style={{ flex: 1, height: 3, borderRadius: 2, backgroundColor: mine ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.12)', marginHorizontal: 8 }}>
+        <View style={{ width: `${dur ? Math.min(100, (pos / dur) * 100) : 0}%`, height: 3, borderRadius: 2, backgroundColor: cor }} />
+      </View>
+      <Text style={{ color: cor, fontSize: 12 }}>{mmss(tocando ? pos : dur)}</Text>
+    </TouchableOpacity>
+  );
+}
+
 const st = StyleSheet.create({
+  headBtn: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', marginLeft: 2 },
+  tool: { width: 38, height: 42, alignItems: 'center', justifyContent: 'center' },
+  gravando: { flexDirection: 'row', alignItems: 'center' },
+  recDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#D64545', marginHorizontal: 8 },
+  subindo: { color: colors.muted, fontSize: 12, textAlign: 'center', paddingVertical: 4 },
+  fundo: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  caixa: { backgroundColor: colors.card, borderRadius: 18, padding: 18, width: '100%', maxWidth: 380 },
+  lista: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: colors.border },
   head: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.border, backgroundColor: colors.bg },
   title: { color: colors.text, fontWeight: '800', fontSize: 17 },
   sub: { color: colors.muted, fontSize: 11.5 },
