@@ -46,16 +46,23 @@ export const hasSession = async () => !!(await SecureStore.getItemAsync(sessionK
 
 async function raw(method, path, body, headers = {}) {
   let res;
+  // Sem resposta em 25 s (60 s para envio de arquivo): para de esperar e avisa, em vez de ficar
+  // carregando para sempre.
+  const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const limite = setTimeout(() => ctl && ctl.abort(), body instanceof ArrayBuffer ? 60000 : 25000);
   try {
     res = await fetch(API_URL + path, {
+      signal: ctl ? ctl.signal : undefined,
       method,
       headers: { ...(body !== undefined && !(body instanceof ArrayBuffer) ? { 'Content-Type': 'application/json' } : {}), ...headers, ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
       body: body === undefined ? undefined : body instanceof ArrayBuffer ? body : JSON.stringify(body),
     });
   } catch (e) {
-    throw new ApiError(0, 'Sem conexão com o Realyz. Confira sua internet.');
+    clearTimeout(limite);
+    throw new ApiError(0, e && e.name === 'AbortError' ? 'O Realyz demorou para responder. Tente de novo.' : 'Sem conexão com o Realyz. Confira sua internet.');
   }
   const data = await res.json().catch(() => ({}));
+  clearTimeout(limite);
   // O servidor recusou por falta de biometria: o app abre o aviso "Biometria não cadastrada".
   if (!res.ok && data.code === 'biometria' && bioBlocked) bioBlocked();
   if (!res.ok) throw new ApiError(res.status, data.error || 'Algo deu errado. Tente de novo.', data.code);
