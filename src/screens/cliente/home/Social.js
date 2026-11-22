@@ -553,6 +553,10 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
     setTray(false);
   };
 
+  // Site no computador: a live fica numa moldura com cantos arredondados e borda dourada suave
+  // (no celular e em tela cheia, continua ocupando a tela toda).
+  const deskLive = Platform.OS === 'web' && Dimensions.get('window').width >= 1000 && !full;
+
   const send = () => {
     if (!text.trim()) return;
     const m = moderateText(text, 'publico');
@@ -562,8 +566,8 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
   };
 
   return (
-    <Modal videoHost deskFull={full} visible={visible} animationType="slide" supportedOrientations={['portrait', 'landscape']} onRequestClose={full ? rot.exit : close}><KeyboardLift style={{ flex: 1, backgroundColor: '#03050A' }}>
-      <Animated.View style={{ flex: 1, backgroundColor: '#03050A', transform: [{ translateY: slide }] }} {...(mine || full ? {} : swipe.panHandlers)}>
+    <Modal videoHost deskFull={full} visible={visible} animationType="slide" supportedOrientations={['portrait', 'landscape']} onRequestClose={full ? rot.exit : close}><KeyboardLift style={{ flex: 1, backgroundColor: deskLive ? '#F1EBDD' : '#03050A' }}>
+      <Animated.View style={[{ flex: 1, backgroundColor: '#03050A', transform: [{ translateY: slide }] }, deskLive && styles.liveDesk]} {...(mine || full ? {} : swipe.panHandlers)}>
         {live ? <Photo uri={live.photo ? live.photo.replace('800/500', '800/1400') : null} style={StyleSheet.absoluteFill} fallback="🎥" /> : null}
         {mine ? (
           <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', backgroundColor: '#14120E' }]}>
@@ -935,6 +939,7 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
 }
 
 const styles = StyleSheet.create({
+  liveDesk: { margin: 18, borderRadius: 28, overflow: 'hidden', borderWidth: 2, borderColor: 'rgba(245,195,49,0.55)', shadowColor: '#8A6407', shadowOpacity: 0.22, shadowRadius: 24, shadowOffset: { width: 0, height: 8 } },
   peekBack: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center', padding: 28 },
   peekCard: { alignSelf: 'stretch', backgroundColor: colors.card, borderRadius: 24, padding: 22, alignItems: 'center', ...soft },
   peekAvatar: { width: 84, height: 84, borderRadius: 42, marginBottom: 10 },
