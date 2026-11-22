@@ -19,7 +19,7 @@ async function api(method, path, { who, body } = {}) {
   return { status: res.status, data: await res.json().catch(() => null) };
 }
 const signup = (who, doc, username) =>
-  api('POST', '/auth/signup', { body: { kind: 'pessoa', name: who, doc, username, email: `${username}@realys.com`, password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v20' } }).then((r) => {
+  api('POST', '/auth/signup', { body: { kind: 'pessoa', name: who, doc, username, email: `${username}@realys.com`, password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v21' } }).then((r) => {
     assert.ok(r.status < 300, JSON.stringify(r.data));
     S[who] = { token: r.data.accessToken, id: r.data.user.id };
   });
