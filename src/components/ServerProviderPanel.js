@@ -13,8 +13,8 @@ import { getDevicePoint } from '../geo';
 import { colors, brl } from '../theme';
 import { Card, Row, Button, Badge, Input, Chip } from './ui';
 import FaceCheck from './FaceCheck';
-import { segConfig, segOfService, buscarProfissoes, profissaoPorKey, funcoesSugeridas } from '../providerSegments';
-import ProfissaoBusca from './ProfissaoBusca';
+import { profConfig, buscarProfissoes, profissaoPorKey } from '../providerSegments';
+import ProfissaoBusca, { FuncoesTags, ProfissaoInfo, MeiGuia } from './ProfissaoBusca';
 import { conectado, carregarCarteira } from '../serverShop';
 
 const NEXT = { Solicitado: 'Aceito', Aceito: 'A caminho', 'A caminho': 'Chegou', Chegou: 'Concluído' };
@@ -37,17 +37,18 @@ export default function ServerProviderPanel() {
   };
   const novoForm = () => {
     const service = profDoPerfil();
-    const c = segConfig(segOfService(service));
+    const c = profConfig(service);
     return { service, outros: [], functions: [], novaFuncao: '', price: '', priceUnit: c.units[0], visitFee: '', vehicle: '' };
   };
   const [form, setForm] = useState(novoForm);
   const [addOutra, setAddOutra] = useState(false);
   const [trocando, setTrocando] = useState(false);
+  const [mei, setMei] = useState(false);
   // O perfil carregou depois: a profissão dele entra sozinha no cadastro.
   useEffect(() => {
     if (form.service || perfil) return;
     const k = profDoPerfil();
-    if (k) setForm((f) => ({ ...f, service: k, priceUnit: segConfig(segOfService(k)).units[0] }));
+    if (k) setForm((f) => ({ ...f, service: k, priceUnit: profConfig(k).units[0] }));
   }, [state.myProfile && state.myProfile.social, state.myProfile && state.myProfile.profession, perfil]);
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -123,21 +124,15 @@ export default function ServerProviderPanel() {
 
   const abertos = calls.filter((c) => !['Concluído', 'Recusado', 'Cancelado'].includes(c.status));
   // O formulário segue a profissão: só as cobranças e os campos dela.
-  const cfg = segConfig(segOfService(form.service));
+  const cfg = profConfig(form.service);
   const prof = form.service ? profissaoPorKey(form.service) : null;
   const escolherProf = (p) => {
     if (!p || !p.key) return setForm({ ...form, service: null });
-    const c = segConfig(segOfService(p.key));
+    const c = profConfig(p.key);
     setTrocando(false);
     setForm({ ...form, service: p.key, outros: form.outros.filter((x) => x !== p.key), priceUnit: c.units.includes(form.priceUnit) ? form.priceUnit : c.units[0], visitFee: c.visit ? form.visitFee : '', vehicle: c.vehicle ? form.vehicle : '' });
   };
-  const sugestoes = [...new Set([form.service, ...form.outros].filter(Boolean).flatMap((k) => funcoesSugeridas(k)))].slice(0, 10);
-  const toggleFuncao = (f) => setForm({ ...form, functions: form.functions.includes(f) ? form.functions.filter((x) => x !== f) : [...form.functions, f].slice(0, 15) });
-  const addFuncao = () => {
-    const f = form.novaFuncao.trim();
-    if (!f) return;
-    setForm({ ...form, functions: form.functions.includes(f) ? form.functions : [...form.functions, f].slice(0, 15), novaFuncao: '' });
-  };
+
   return (
     <Card>
       <Row style={{ justifyContent: 'space-between', marginBottom: 6 }}>
@@ -168,6 +163,8 @@ export default function ServerProviderPanel() {
           ) : (
             <ProfissaoBusca value={null} onPick={escolherProf} autoFocus={trocando} />
           )}
+          {prof && !trocando ? <ProfissaoInfo profKey={form.service} onMei={() => setMei(true)} /> : null}
+          <MeiGuia visible={mei} onClose={() => setMei(false)} profKey={form.service} />
 
           {form.outros.map((k) => {
             const o = profissaoPorKey(k);
@@ -203,23 +200,7 @@ export default function ServerProviderPanel() {
           {prof ? (
             <>
               <Text style={ps.h}>O que você faz</Text>
-              <View style={ps.wrap}>
-                {[...sugestoes, ...form.functions.filter((f) => !sugestoes.includes(f))].map((f) => {
-                  const on = form.functions.includes(f);
-                  return (
-                    <TouchableOpacity key={f} onPress={() => toggleFuncao(f)} style={[ps.tag, on && ps.tagOn]} accessibilityLabel={f} accessibilityState={{ selected: on }}>
-                      {on ? <Ionicons name="checkmark" size={14} color={colors.primaryDark} /> : null}
-                      <Text numberOfLines={1} style={[ps.tagText, on && { color: colors.primaryDark, fontWeight: '800' }]}>{f}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-              <View style={ps.novo}>
-                <TextInput style={ps.novoInput} value={form.novaFuncao} onChangeText={(t) => setForm({ ...form, novaFuncao: t })} onSubmitEditing={addFuncao} placeholder="Escrever outro serviço" placeholderTextColor={colors.muted} returnKeyType="done" />
-                <TouchableOpacity onPress={addFuncao} accessibilityLabel="Adicionar serviço" style={{ padding: 6 }}>
-                  <Ionicons name="add-circle" size={26} color={colors.primary} />
-                </TouchableOpacity>
-              </View>
+              <FuncoesTags keys={[form.service, ...form.outros]} value={form.functions} onChange={(functions) => setForm({ ...form, functions })} />
 
               <Text style={ps.h}>Quanto você cobra</Text>
               <View style={ps.wrap}>
@@ -327,11 +308,6 @@ const ps = StyleSheet.create({
   profNome: { color: colors.text, fontWeight: '800', fontSize: 15 },
   add: { flexDirection: 'row', alignItems: 'center', marginTop: 10, paddingVertical: 4, alignSelf: 'flex-start' },
   wrap: { flexDirection: 'row', flexWrap: 'wrap' },
-  tag: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: '#fff', marginRight: 6, marginBottom: 6, maxWidth: '100%' },
-  tagOn: { borderColor: colors.primary, backgroundColor: '#FFFBEF' },
-  tagText: { color: colors.text, fontSize: 13, marginLeft: 3 },
-  novo: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingLeft: 12, backgroundColor: '#fff', marginTop: 2 },
-  novoInput: { flex: 1, paddingVertical: 9, color: colors.text, fontSize: 14 },
   unit: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18, borderWidth: 1, borderColor: colors.border, backgroundColor: '#fff', marginRight: 6, marginBottom: 6 },
   unitOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   unitText: { color: colors.text, fontWeight: '700', fontSize: 13 },

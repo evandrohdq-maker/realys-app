@@ -22,6 +22,8 @@ import { stem } from '../search';
 import { businessOf, ratingOf } from '../companyBusiness';
 import { members } from '../people';
 import { checkText, matchFalse, ASK_TRUTH } from './factCheck';
+import { profExplica, MEI_PASSOS } from '../professionsKnowledge';
+import { buscarProfissoes } from '../providerSegments';
 
 // O que a Lotus pode e não pode fazer com o que aprende. Aparece para o administrador.
 export const KNOWLEDGE_RULES = [
@@ -389,9 +391,30 @@ export function truthAnswer(state, text) {
   return null;
 }
 
+// Profissões (conhecimento interno do Realyz): "como funciona um eletricista?", "o que faz um piscineiro?",
+// "precisa de registro para ser psicólogo?", "eletricista pode ser MEI?". E "como abro meu MEI?".
+const PROF_Q = /\b(como (funciona|trabalha)|o que (faz|fazem)|que faz|precisa de (registro|curso|carteira|licenca)|pode ser mei|e mei|cnae|ocupacao (do|no) mei|como cobra)\b/;
+const MEI_Q = /\b(abrir|abro|criar|fazer|tirar)\b.*\bmei\b|\bmei\b.*\b(abrir|abro|criar|tirar)\b|\bcomo (ter|tirar) (um )?cnpj\b/;
+export function professionAnswer(state, text) {
+  const t = norm(text);
+  if (MEI_Q.test(t)) {
+    return { knowledge: true, reply: `Abrir o MEI é grátis e sai na hora. ${MEI_PASSOS.slice(1, 5).map((p, i) => `${i + 1}. ${p.t}`).join('. ')}. O endereço oficial é gov.br/mei. Quer que eu diga a ocupação certa da sua profissão?` };
+  }
+  if (!PROF_Q.test(t)) return null;
+  const palavras = t.replace(PROF_Q, ' ').split(/\s+/).filter((w) => w.length > 3 && !['funciona', 'trabalha', 'realyz', 'para', 'registro', 'precisa', 'cobra'].includes(w));
+  for (const w of palavras) {
+    const p = buscarProfissoes(w, 1)[0];
+    if (p) {
+      const r = profExplica(p.key, p.label);
+      if (r) return { knowledge: true, reply: r };
+    }
+  }
+  return null;
+}
+
 export function knowledgeAnswer(state, text) {
   try {
-    return truthAnswer(state, text) || opinionAnswer(state, text) || priceAnswer(state, text);
+    return professionAnswer(state, text) || truthAnswer(state, text) || opinionAnswer(state, text) || priceAnswer(state, text);
   } catch (e) {
     return null;
   }

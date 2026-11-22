@@ -22,6 +22,7 @@ import {
 import { saveAccepted } from '../termsAccept';
 import TermoAdesaoModal from '../components/TermoAdesaoModal';
 import { ProfileQuiz, calcSocial } from '../components/SocialClass';
+import { MeiGuia } from '../components/ProfissaoBusca';
 import { classifyProfile } from '../socialClasses';
 
 // Cadastro de clientes (CPF) e empresas (CNPJ). A biometria confirma que é uma pessoa real
@@ -42,6 +43,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
   const [remember, setRemember] = useState(true);
   const [busy, setBusy] = useState(false);
   const [quiz, setQuiz] = useState({ about: '', work: '', hobbies: [] }); // questionário do perfil social
+  const [meiOpen, setMeiOpen] = useState(false); // passo a passo para abrir o MEI
   const refs = { doc: useRef(), username: useRef(), email: useRef(), phone: useRef(), password: useRef(), confirm: useRef() };
   const next = (k) => () => refs[k].current && refs[k].current.focus();
 
@@ -169,6 +171,14 @@ export default function SignupForm({ onDone, onGoLogin }) {
           />
         ),
       })}
+      {/* Ainda não tem CNPJ? O caminho para abrir o MEI (grátis, no gov.br), com a ocupação certa. */}
+      {empresa ? (
+        <TouchableOpacity onPress={() => setMeiOpen(true)} style={{ flexDirection: 'row', alignItems: 'center', marginTop: -4, marginBottom: 10 }} accessibilityLabel="Ainda não tenho CNPJ: como abrir o MEI">
+          <Ionicons name="school-outline" size={16} color={colors.primary} />
+          <Text style={{ color: colors.primary, fontWeight: '800', marginLeft: 6 }}>Ainda não tem CNPJ? Veja como abrir seu MEI (grátis)</Text>
+        </TouchableOpacity>
+      ) : null}
+      <MeiGuia visible={meiOpen} onClose={() => setMeiOpen(false)} profKey={quiz.prof || null} />
 
       {empresa
         ? null

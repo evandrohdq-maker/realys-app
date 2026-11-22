@@ -70,11 +70,10 @@ export function calcSocial(v) {
 export function ProfileQuiz({ value, onChange }) {
   const v = value || {};
   const hobbies = v.hobbies || [];
-  const [picker, setPicker] = useState(false);
   const [interesses, setInteresses] = useState(hobbies.length > 0);
 
   const auto = useMemo(() => calcSocial(v), [v.about, v.work, v.prof, hobbies.join(',')]);
-  const social = v.manual && v.social ? v.social : auto;
+  const social = auto;
   const set = (patch) => {
     const next = { ...v, ...patch };
     if (!next.manual) next.social = calcSocial(next);
@@ -145,31 +144,12 @@ export function ProfileQuiz({ value, onChange }) {
           <Ionicons name={c.icon} size={26} color={c.color} />
         </View>
         <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={styles.resultKicker}>{empty ? 'SEU SELO APARECE AQUI' : v.manual ? 'VOCÊ ESCOLHEU' : 'SEU SELO NO REALYZ'}</Text>
+          <Text style={styles.resultKicker}>{empty ? 'SEU SELO APARECE AQUI' : 'SEU SELO NO REALYZ'}</Text>
           <Text style={[styles.resultTitle, { color: c.color }]}>{c.label}</Text>
           {s ? <Text style={styles.resultSub}>{s.label}</Text> : null}
         </View>
       </View>
-      <TouchableOpacity onPress={() => setPicker(true)} style={styles.change} activeOpacity={0.8}>
-        <Ionicons name="swap-horizontal" size={15} color={colors.accent} />
-        <Text numberOfLines={1} style={styles.changeText}>{v.manual ? 'Trocar selo' : 'Não é isso? Escolher outro'}</Text>
-      </TouchableOpacity>
-      {v.manual ? (
-        <TouchableOpacity onPress={() => set({ manual: false })} style={[styles.change, { marginTop: 0 }]}>
-          <Ionicons name="sparkles" size={15} color={colors.primary} />
-          <Text numberOfLines={1} style={[styles.changeText, { color: colors.primary }]}>Voltar para o automático</Text>
-        </TouchableOpacity>
-      ) : null}
-
-      <ClassPicker
-        visible={picker}
-        current={social}
-        onClose={() => setPicker(false)}
-        onPick={(cls, sub) => {
-          setPicker(false);
-          onChange({ ...v, manual: true, social: { cls, sub, extra: [], why: [], prof: v.prof || null } });
-        }}
-      />
+      <Text style={styles.why}>O selo sai da profissão que você digitou. Não é isso? Toque em Trocar e digite de novo.</Text>
     </View>
   );
 }

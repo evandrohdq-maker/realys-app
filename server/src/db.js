@@ -867,6 +867,24 @@ const MIGRATIONS = [
   `
   ALTER TABLE providers ADD COLUMN outros TEXT NOT NULL DEFAULT '[]';
   `,
+  // 31: conhecimento das profissões (como trabalha, o que faz, como cobra, onde atende, exigências e MEI).
+  `
+  CREATE TABLE profissoes (
+    key TEXT PRIMARY KEY,
+    nome TEXT NOT NULL,
+    classe TEXT NOT NULL,
+    como TEXT NOT NULL,
+    funcoes TEXT NOT NULL,
+    cobra TEXT NOT NULL,
+    atende TEXT NOT NULL,
+    exige TEXT,
+    mei_cnae TEXT,
+    mei_ocupacao TEXT,
+    pode_mei INTEGER,           -- 1 pode, 0 não pode (profissão regulamentada), NULL conferir no portal
+    palavras TEXT NOT NULL DEFAULT '[]',
+    updated_at INTEGER NOT NULL
+  );
+  `,
 ];
 
 export function openDb(file) {

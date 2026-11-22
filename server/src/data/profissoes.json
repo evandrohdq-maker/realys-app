@@ -1,0 +1,4432 @@
+[
+ {
+  "key": "eletricista",
+  "nome": "Eletricista",
+  "classe": "Casa e reparos",
+  "palavras": [],
+  "como": "Vai até a casa ou o comércio, avalia o problema elétrico e passa o orçamento do serviço.",
+  "funcoes": [
+   "Tomadas e interruptores",
+   "Chuveiro",
+   "Disjuntor e quadro",
+   "Fiação nova",
+   "Iluminação",
+   "Padrão de energia"
+  ],
+  "cobra": [
+   "visita",
+   "serviço",
+   "hora"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": "Curso de NR-10 recomendado para instalações maiores",
+  "mei": {
+   "cnae": "4321-5/00",
+   "ocupacao": "Eletricista em residências e estabelecimentos comerciais"
+  },
+  "visita": true
+ },
+ {
+  "key": "encanador",
+  "nome": "Encanador",
+  "classe": "Casa e reparos",
+  "palavras": [],
+  "como": "Atende vazamentos e instalações de água e esgoto na casa do cliente.",
+  "funcoes": [
+   "Vazamentos",
+   "Torneiras e registros",
+   "Desentupimento",
+   "Caixa d’água",
+   "Descarga",
+   "Instalação hidráulica"
+  ],
+  "cobra": [
+   "visita",
+   "serviço",
+   "hora"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": {
+   "cnae": "4322-3/01",
+   "ocupacao": "Encanador"
+  },
+  "visita": true
+ },
+ {
+  "key": "diarista",
+  "nome": "Diarista",
+  "classe": "Casa e reparos",
+  "palavras": [],
+  "como": "Faz a limpeza da casa por diária ou por serviço, com dia e hora marcados.",
+  "funcoes": [
+   "Faxina completa",
+   "Limpeza pós-obra",
+   "Limpeza de vidros",
+   "Organização",
+   "Passar roupa"
+  ],
+  "cobra": [
+   "diária",
+   "serviço",
+   "hora"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": {
+   "cnae": "9700-5/00",
+   "ocupacao": "Diarista"
+  },
+  "visita": false
+ },
+ {
+  "key": "pintor",
+  "nome": "Pintor",
+  "classe": "Casa e reparos",
+  "palavras": [],
+  "como": "Visita o local, mede as paredes e passa o orçamento por m² ou por serviço.",
+  "funcoes": [
+   "Pintura interna",
+   "Pintura externa",
+   "Textura e grafiato",
+   "Massa corrida",
+   "Portões e grades"
+  ],
+  "cobra": [
+   "m²",
+   "serviço",
+   "diária"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": {
+   "cnae": "4330-4/04",
+   "ocupacao": "Pintor(a) de parede"
+  },
+  "visita": true
+ },
+ {
+  "key": "chaveiro",
+  "nome": "Chaveiro",
+  "classe": "Casa e reparos",
+  "palavras": [],
+  "como": "Atende na hora para abrir portas e carros, ou faz cópias e trocas de fechadura.",
+  "funcoes": [
+   "Abertura de portas",
+   "Cópia de chaves",
+   "Troca de fechaduras",
+   "Chave de carro",
+   "Cofres"
+  ],
+  "cobra": [
+   "serviço",
+   "visita"
+  ],
+  "atende": "chamado",
+  "atendeTexto": "chamado na hora, pelo GPS",
+  "exige": null,
+  "mei": {
+   "cnae": "9529-1/02",
+   "ocupacao": "Chaveiro(a)"
+  },
+  "visita": false
+ },
+ {
+  "key": "montador",
+  "nome": "Montador de móveis",
+  "classe": "Casa e reparos",
+  "palavras": [
+   "montador de moveis",
+   "montar movel",
+   "montar guarda-roupa",
+   "montagem de moveis"
+  ],
+  "como": "Monta e desmonta móveis na casa do cliente, cobrando por peça ou por serviço.",
+  "funcoes": [
+   "Guarda-roupa",
+   "Cozinha planejada",
+   "Cama e berço",
+   "Desmontagem para mudança",
+   "Painel de TV"
+  ],
+  "cobra": [
+   "serviço",
+   "peça",
+   "hora"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": {
+   "cnae": "3329-5/01",
+   "ocupacao": "Montador(a) de móveis"
+  },
+  "visita": false
+ },
+ {
+  "key": "marido",
+  "nome": "Marido de aluguel",
+  "classe": "Casa e reparos",
+  "palavras": [
+   "marido de aluguel",
+   "pequenos reparos",
+   "faz-tudo",
+   "faz tudo"
+  ],
+  "como": "Faz pequenos reparos de casa num único chamado: elétrica simples, hidráulica, furos e instalações.",
+  "funcoes": [
+   "Pequenos reparos",
+   "Instalar suporte e prateleira",
+   "Trocar resistência",
+   "Ajustar portas",
+   "Instalar varal"
+  ],
+  "cobra": [
+   "hora",
+   "serviço",
+   "visita"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": null,
+  "visita": true
+ },
+ {
+  "key": "arcond",
+  "nome": "Técnico de ar-condicionado",
+  "classe": "Casa e reparos",
+  "palavras": [
+   "tecnico de ar",
+   "instalar ar condicionado",
+   "ar-condicionado",
+   "limpeza de ar condicionado",
+   "ar condicionado"
+  ],
+  "como": "Instala, limpa e conserta ar-condicionado; avalia o local antes de instalar.",
+  "funcoes": [
+   "Instalação de split",
+   "Limpeza e higienização",
+   "Carga de gás",
+   "Conserto",
+   "Manutenção preventiva"
+  ],
+  "cobra": [
+   "serviço",
+   "visita"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": null,
+  "visita": true
+ },
+ {
+  "key": "eletrodom",
+  "nome": "Técnico de eletrodomésticos",
+  "classe": "Casa e reparos",
+  "palavras": [
+   "conserto de geladeira",
+   "conserto de maquina de lavar",
+   "tecnico de eletrodomesticos",
+   "conserto de fogao",
+   "geladeira parou"
+  ],
+  "como": "Vai até a casa diagnosticar o eletrodoméstico e passa o orçamento do conserto.",
+  "funcoes": [
+   "Geladeira",
+   "Máquina de lavar",
+   "Fogão e forno",
+   "Micro-ondas",
+   "Secadora"
+  ],
+  "cobra": [
+   "visita",
+   "serviço"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": null,
+  "visita": true
+ },
+ {
+  "key": "jardineiro",
+  "nome": "Jardineiro",
+  "classe": "Casa e reparos",
+  "palavras": [
+   "jardineiro",
+   "jardinagem",
+   "cortar grama",
+   "poda de arvore",
+   "paisagismo"
+  ],
+  "como": "Cuida de jardins por serviço ou por mês: corte de grama, poda e limpeza.",
+  "funcoes": [
+   "Corte de grama",
+   "Poda",
+   "Paisagismo",
+   "Limpeza de terreno",
+   "Plantio"
+  ],
+  "cobra": [
+   "serviço",
+   "mês",
+   "diária"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": {
+   "cnae": "8130-3/00",
+   "ocupacao": "Jardineiro(a)"
+  },
+  "visita": false
+ },
+ {
+  "key": "piscineiro",
+  "nome": "Piscineiro",
+  "classe": "Casa e reparos",
+  "palavras": [
+   "piscineiro",
+   "limpeza de piscina",
+   "tratamento de piscina"
+  ],
+  "como": "Faz limpeza e tratamento da água da piscina, por visita ou plano mensal.",
+  "funcoes": [
+   "Limpeza de piscina",
+   "Tratamento da água",
+   "Aspiração",
+   "Troca de areia do filtro"
+  ],
+  "cobra": [
+   "mês",
+   "serviço",
+   "visita"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": {
+   "cnae": "8129-0/00",
+   "ocupacao": "Piscineiro(a)"
+  },
+  "visita": false
+ },
+ {
+  "key": "dedetizador",
+  "nome": "Dedetizador",
+  "classe": "Casa e reparos",
+  "palavras": [
+   "dedetizacao",
+   "dedetizador",
+   "barata",
+   "cupim",
+   "rato",
+   "controle de pragas"
+  ],
+  "como": "Faz controle de pragas com produtos registrados; avalia o local antes.",
+  "funcoes": [
+   "Baratas",
+   "Cupim",
+   "Ratos",
+   "Formigas",
+   "Escorpião"
+  ],
+  "cobra": [
+   "serviço",
+   "visita",
+   "m²"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": "Empresa com licença sanitária e responsável técnico",
+  "mei": null,
+  "visita": true
+ },
+ {
+  "key": "estofados",
+  "nome": "Limpeza de estofados",
+  "classe": "Casa e reparos",
+  "palavras": [
+   "limpeza de sofa",
+   "higienizacao de sofa",
+   "limpeza de estofados",
+   "limpeza de colchao",
+   "lavar tapete"
+  ],
+  "como": "Lava e higieniza sofás, colchões e tapetes no local.",
+  "funcoes": [
+   "Sofá",
+   "Colchão",
+   "Tapete",
+   "Cadeiras",
+   "Banco de carro"
+  ],
+  "cobra": [
+   "peça",
+   "serviço"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": {
+   "cnae": "9609-2/99",
+   "ocupacao": "Lavador(a) de estofado e sofá"
+  },
+  "visita": false
+ },
+ {
+  "key": "passadeira",
+  "nome": "Passadeira",
+  "classe": "Casa e reparos",
+  "palavras": [
+   "passadeira",
+   "passar roupa"
+  ],
+  "como": "Passa roupas em casa do cliente ou busca e entrega, por peça ou diária.",
+  "funcoes": [
+   "Passar roupas",
+   "Roupas sociais",
+   "Roupa de cama",
+   "Busca e entrega"
+  ],
+  "cobra": [
+   "peça",
+   "diária",
+   "hora"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "cozinheira",
+  "nome": "Cozinheira(o) em casa",
+  "classe": "Casa e reparos",
+  "palavras": [
+   "cozinheira",
+   "cozinheiro particular",
+   "chef em casa",
+   "marmitas em casa"
+  ],
+  "como": "Cozinha na casa do cliente ou prepara marmitas sob encomenda.",
+  "funcoes": [
+   "Refeições do dia a dia",
+   "Marmitas da semana",
+   "Jantar especial",
+   "Comida fitness"
+  ],
+  "cobra": [
+   "diária",
+   "serviço",
+   "refeição"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "caseiro",
+  "nome": "Caseiro",
+  "classe": "Casa e reparos",
+  "palavras": [
+   "caseiro",
+   "cuidar da chacara",
+   "cuidar do sitio"
+  ],
+  "como": "Cuida de chácara, sítio ou casa de veraneio por mês.",
+  "funcoes": [
+   "Manutenção da casa",
+   "Cuidar do jardim",
+   "Cuidar de animais",
+   "Vigiar a propriedade"
+  ],
+  "cobra": [
+   "mês",
+   "diária"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "tapeceiro",
+  "nome": "Tapeceiro e estofador",
+  "classe": "Casa e reparos",
+  "palavras": [
+   "tapeceiro",
+   "estofador",
+   "reformar sofa",
+   "trocar tecido do sofa"
+  ],
+  "como": "Reforma e troca o tecido de sofás e cadeiras, com orçamento depois de ver a peça.",
+  "funcoes": [
+   "Reforma de sofá",
+   "Troca de tecido",
+   "Cadeiras",
+   "Cabeceiras"
+  ],
+  "cobra": [
+   "peça",
+   "serviço"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": {
+   "cnae": "1352-9/00",
+   "ocupacao": "Tapeceiro(a)"
+  },
+  "visita": true
+ },
+ {
+  "key": "antenista",
+  "nome": "Instalador de antena e TV",
+  "classe": "Casa e reparos",
+  "palavras": [
+   "antenista",
+   "instalar antena",
+   "instalar tv na parede",
+   "suporte de tv"
+  ],
+  "como": "Instala antenas e TVs na parede, por serviço.",
+  "funcoes": [
+   "Instalar antena",
+   "Suporte de TV",
+   "Instalar parabólica",
+   "Ajuste de sinal"
+  ],
+  "cobra": [
+   "serviço",
+   "visita"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": "Curso de NR-35 para trabalho em altura",
+  "mei": {
+   "cnae": "4321-5/00",
+   "ocupacao": "Instalador(a) de antenas de TV"
+  },
+  "visita": true
+ },
+ {
+  "key": "pedreiro",
+  "nome": "Pedreiro",
+  "classe": "Construção e reforma",
+  "palavras": [
+   "pedreiro",
+   "reforma",
+   "construir muro",
+   "assentar piso",
+   "obra"
+  ],
+  "como": "Faz obras e reformas; visita, mede e cobra por diária, m² ou empreitada.",
+  "funcoes": [
+   "Reboco",
+   "Contrapiso",
+   "Alvenaria",
+   "Pequenas reformas",
+   "Muros"
+  ],
+  "cobra": [
+   "diária",
+   "m²",
+   "serviço"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": {
+   "cnae": "4399-1/03",
+   "ocupacao": "Pedreiro"
+  },
+  "visita": true
+ },
+ {
+  "key": "mestreobras",
+  "nome": "Mestre de obras",
+  "classe": "Construção e reforma",
+  "palavras": [
+   "mestre de obras",
+   "empreiteiro",
+   "empreitada"
+  ],
+  "como": "Coordena a obra e a equipe, por empreitada ou mês.",
+  "funcoes": [
+   "Gestão da obra",
+   "Contratação da equipe",
+   "Compra de material",
+   "Cronograma"
+  ],
+  "cobra": [
+   "serviço",
+   "mês",
+   "diária"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": null,
+  "visita": true
+ },
+ {
+  "key": "azulejista",
+  "nome": "Azulejista e pisos",
+  "classe": "Construção e reforma",
+  "palavras": [
+   "azulejista",
+   "colocar azulejo",
+   "colocar porcelanato",
+   "assentador de piso"
+  ],
+  "como": "Assenta pisos e azulejos, cobrando por m².",
+  "funcoes": [
+   "Piso",
+   "Azulejo",
+   "Porcelanato",
+   "Rejunte"
+  ],
+  "cobra": [
+   "m²",
+   "diária",
+   "serviço"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": {
+   "cnae": "4330-4/05",
+   "ocupacao": "Azulejista"
+  },
+  "visita": true
+ },
+ {
+  "key": "gesseiro",
+  "nome": "Gesseiro e drywall",
+  "classe": "Construção e reforma",
+  "palavras": [
+   "gesseiro",
+   "gesso",
+   "drywall",
+   "forro de gesso",
+   "sanca"
+  ],
+  "como": "Faz forros, sancas e paredes de gesso/drywall por m².",
+  "funcoes": [
+   "Forro de gesso",
+   "Drywall",
+   "Sanca",
+   "Molduras"
+  ],
+  "cobra": [
+   "m²",
+   "serviço"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": {
+   "cnae": "4330-4/03",
+   "ocupacao": "Gesseiro(a)"
+  },
+  "visita": true
+ },
+ {
+  "key": "serralheiro",
+  "nome": "Serralheiro",
+  "classe": "Construção e reforma",
+  "palavras": [
+   "serralheiro",
+   "portao de ferro",
+   "grade de ferro",
+   "solda",
+   "serralheria"
+  ],
+  "como": "Faz e conserta portões, grades e estruturas de metal sob medida.",
+  "funcoes": [
+   "Portões",
+   "Grades",
+   "Corrimão",
+   "Estruturas metálicas",
+   "Solda"
+  ],
+  "cobra": [
+   "serviço",
+   "m²",
+   "visita"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": {
+   "cnae": "2542-0/00",
+   "ocupacao": "Serralheiro(a)"
+  },
+  "visita": true
+ },
+ {
+  "key": "marceneiro",
+  "nome": "Marceneiro",
+  "classe": "Construção e reforma",
+  "palavras": [
+   "marceneiro",
+   "moveis planejados",
+   "marcenaria",
+   "carpinteiro"
+  ],
+  "como": "Faz móveis sob medida; mede no local e entrega projeto e orçamento.",
+  "funcoes": [
+   "Móveis planejados",
+   "Armários",
+   "Portas",
+   "Reformas de móveis"
+  ],
+  "cobra": [
+   "serviço",
+   "projeto"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": null,
+  "visita": true
+ },
+ {
+  "key": "vidraceiro",
+  "nome": "Vidraceiro",
+  "classe": "Construção e reforma",
+  "palavras": [
+   "vidraceiro",
+   "box de banheiro",
+   "trocar vidro",
+   "janela de vidro"
+  ],
+  "como": "Instala vidros, boxes e espelhos sob medida.",
+  "funcoes": [
+   "Box de banheiro",
+   "Janelas",
+   "Espelhos",
+   "Vidro temperado"
+  ],
+  "cobra": [
+   "serviço",
+   "m²"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": {
+   "cnae": "4330-4/99",
+   "ocupacao": "Vidraceiro de edificações"
+  },
+  "visita": true
+ },
+ {
+  "key": "telhadista",
+  "nome": "Telhadista",
+  "classe": "Construção e reforma",
+  "palavras": [
+   "telhadista",
+   "conserto de telhado",
+   "goteira",
+   "calha",
+   "trocar telha"
+  ],
+  "como": "Conserta e troca telhados e calhas.",
+  "funcoes": [
+   "Troca de telhas",
+   "Goteiras",
+   "Calhas",
+   "Impermeabilização"
+  ],
+  "cobra": [
+   "serviço",
+   "m²",
+   "diária"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": "Curso de NR-35 (trabalho em altura)",
+  "mei": {
+   "cnae": "4399-1/99",
+   "ocupacao": "Telhador(a)"
+  },
+  "visita": true
+ },
+ {
+  "key": "marmorista",
+  "nome": "Marmorista",
+  "classe": "Construção e reforma",
+  "palavras": [
+   "marmorista",
+   "bancada de granito",
+   "pia de marmore"
+  ],
+  "como": "Corta e instala mármore e granito sob medida.",
+  "funcoes": [
+   "Pia e bancada",
+   "Soleiras",
+   "Escadas",
+   "Lavatórios"
+  ],
+  "cobra": [
+   "serviço",
+   "m²"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": {
+   "cnae": "2391-5/03",
+   "ocupacao": "Artesão(ã) em mármore, granito e outras pedras"
+  },
+  "visita": true
+ },
+ {
+  "key": "engcivil",
+  "nome": "Engenheiro civil",
+  "classe": "Construção e reforma",
+  "palavras": [
+   "engenheiro civil",
+   "laudo de obra",
+   "projeto estrutural",
+   "art de obra"
+  ],
+  "como": "Projeta, calcula e assina obras (ART), com visita técnica.",
+  "funcoes": [
+   "Projeto estrutural",
+   "Laudos",
+   "Acompanhamento de obra",
+   "Regularização"
+  ],
+  "cobra": [
+   "projeto",
+   "visita",
+   "hora"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": "Registro no CREA",
+  "mei": false,
+  "visita": true
+ },
+ {
+  "key": "arquiteto",
+  "nome": "Arquiteto",
+  "classe": "Construção e reforma",
+  "palavras": [
+   "arquiteto",
+   "arquiteta",
+   "projeto de casa",
+   "planta da casa"
+  ],
+  "como": "Faz projetos de construção e reforma e acompanha a obra (RRT).",
+  "funcoes": [
+   "Projeto de casa",
+   "Reforma",
+   "Interiores",
+   "Regularização"
+  ],
+  "cobra": [
+   "projeto",
+   "m²",
+   "hora"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": "Registro no CAU",
+  "mei": false,
+  "visita": true
+ },
+ {
+  "key": "designinteriores",
+  "nome": "Designer de interiores",
+  "classe": "Construção e reforma",
+  "palavras": [
+   "designer de interiores",
+   "decorar apartamento",
+   "projeto de interiores"
+  ],
+  "como": "Planeja ambientes, móveis e decoração, presencial ou online.",
+  "funcoes": [
+   "Projeto de ambiente",
+   "Consultoria de decoração",
+   "Projeto 3D"
+  ],
+  "cobra": [
+   "projeto",
+   "m²",
+   "hora"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": null,
+  "visita": true
+ },
+ {
+  "key": "energiasolar",
+  "nome": "Instalador de energia solar",
+  "classe": "Construção e reforma",
+  "palavras": [
+   "energia solar",
+   "placa solar",
+   "painel solar"
+  ],
+  "como": "Dimensiona e instala sistemas de energia solar, com projeto e homologação.",
+  "funcoes": [
+   "Projeto fotovoltaico",
+   "Instalação de placas",
+   "Homologação na concessionária",
+   "Manutenção"
+  ],
+  "cobra": [
+   "projeto",
+   "serviço"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": "Responsável técnico com registro (CREA/CFT) para o projeto",
+  "mei": null,
+  "visita": true
+ },
+ {
+  "key": "mecanico",
+  "nome": "Mecânico",
+  "classe": "Veículos",
+  "palavras": [],
+  "como": "Faz o diagnóstico na oficina ou no socorro e passa o orçamento antes de consertar.",
+  "funcoes": [
+   "Revisão",
+   "Freios",
+   "Suspensão",
+   "Troca de óleo",
+   "Socorro na rua"
+  ],
+  "cobra": [
+   "serviço",
+   "hora"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": {
+   "cnae": "4520-0/01",
+   "ocupacao": "Mecânico(a) de veículos"
+  },
+  "visita": false
+ },
+ {
+  "key": "autoeletrico",
+  "nome": "Auto elétrico",
+  "classe": "Veículos",
+  "palavras": [
+   "auto eletrico",
+   "eletrica do carro",
+   "alternador",
+   "motor de partida"
+  ],
+  "como": "Conserta a parte elétrica do carro: bateria, alternador, som e iluminação.",
+  "funcoes": [
+   "Bateria",
+   "Alternador e motor de partida",
+   "Faróis",
+   "Som e alarme"
+  ],
+  "cobra": [
+   "serviço",
+   "hora"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": {
+   "cnae": "4520-0/03",
+   "ocupacao": "Eletricista de automóveis"
+  },
+  "visita": false
+ },
+ {
+  "key": "funileiro",
+  "nome": "Funilaria e pintura",
+  "classe": "Veículos",
+  "palavras": [
+   "funileiro",
+   "funilaria",
+   "amassado",
+   "pintura do carro",
+   "martelinho de ouro"
+  ],
+  "como": "Desamassa e pinta a lataria, com orçamento depois de ver o carro.",
+  "funcoes": [
+   "Funilaria",
+   "Pintura",
+   "Martelinho de ouro",
+   "Polimento"
+  ],
+  "cobra": [
+   "serviço",
+   "peça"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": {
+   "cnae": "4520-0/02",
+   "ocupacao": "Funileiro / lanterneiro"
+  },
+  "visita": false
+ },
+ {
+  "key": "borracheiro",
+  "nome": "Borracheiro",
+  "classe": "Veículos",
+  "palavras": [
+   "borracheiro",
+   "borracharia",
+   "pneu furado",
+   "calibrar pneu"
+  ],
+  "como": "Conserta e troca pneus, também com socorro no local.",
+  "funcoes": [
+   "Conserto de pneu",
+   "Troca de pneu",
+   "Balanceamento",
+   "Socorro"
+  ],
+  "cobra": [
+   "serviço"
+  ],
+  "atende": "chamado",
+  "atendeTexto": "chamado na hora, pelo GPS",
+  "exige": null,
+  "mei": {
+   "cnae": "4520-0/06",
+   "ocupacao": "Borracheiro(a)"
+  },
+  "visita": false
+ },
+ {
+  "key": "guincho",
+  "nome": "Guincho 24h",
+  "classe": "Veículos",
+  "palavras": [
+   "guincho",
+   "reboque",
+   "carro quebrado na estrada"
+  ],
+  "como": "Reboca o veículo de onde está até o destino; cobra saída mais km.",
+  "funcoes": [
+   "Reboque",
+   "Socorro mecânico",
+   "Transporte de moto",
+   "Carro sem chave"
+  ],
+  "cobra": [
+   "serviço",
+   "km"
+  ],
+  "atende": "chamado",
+  "atendeTexto": "chamado na hora, pelo GPS",
+  "exige": "CNH categoria compatível e veículo próprio para reboque",
+  "mei": {
+   "cnae": "5229-0/02",
+   "ocupacao": "Guincheiro independente (reboque de veículos)"
+  },
+  "visita": false
+ },
+ {
+  "key": "lavajato",
+  "nome": "Lava-jato e estética automotiva",
+  "classe": "Veículos",
+  "palavras": [
+   "lava jato",
+   "lavar carro",
+   "lavagem a seco",
+   "polimento",
+   "higienizacao do carro"
+  ],
+  "como": "Lava e higieniza o carro no lava-rápido ou em domicílio.",
+  "funcoes": [
+   "Lavagem simples",
+   "Lavagem completa",
+   "Higienização interna",
+   "Polimento",
+   "Cera"
+  ],
+  "cobra": [
+   "serviço"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": {
+   "cnae": "4520-0/05",
+   "ocupacao": "Lavador(a) e polidor de carro"
+  },
+  "visita": false
+ },
+ {
+  "key": "mecmoto",
+  "nome": "Mecânico de motos",
+  "classe": "Veículos",
+  "palavras": [
+   "mecanico de moto",
+   "oficina de moto",
+   "moto quebrou"
+  ],
+  "como": "Faz revisão e conserto de motos.",
+  "funcoes": [
+   "Revisão",
+   "Relação e corrente",
+   "Freios",
+   "Elétrica"
+  ],
+  "cobra": [
+   "serviço",
+   "hora"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "vidroauto",
+  "nome": "Vidros automotivos",
+  "classe": "Veículos",
+  "palavras": [
+   "parabrisa",
+   "para-brisa",
+   "vidro do carro"
+  ],
+  "como": "Troca e conserta para-brisas e vidros do carro.",
+  "funcoes": [
+   "Para-brisa",
+   "Vidro lateral",
+   "Reparo de trinca",
+   "Película"
+  ],
+  "cobra": [
+   "serviço",
+   "peça"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "despachante",
+  "nome": "Despachante",
+  "classe": "Veículos",
+  "palavras": [
+   "despachante",
+   "transferencia de veiculo",
+   "licenciamento",
+   "documento do carro"
+  ],
+  "como": "Cuida da documentação do veículo junto ao Detran.",
+  "funcoes": [
+   "Licenciamento",
+   "Transferência",
+   "Segunda via",
+   "Regularização"
+  ],
+  "cobra": [
+   "serviço"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": "Credenciamento no Detran do estado",
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "motorista",
+  "nome": "Motorista",
+  "classe": "Transporte",
+  "palavras": [],
+  "como": "Corrida chamada na hora pelo app, com GPS e tarifa Realyz.",
+  "funcoes": [
+   "Corridas na cidade",
+   "Aeroporto e rodoviária",
+   "Viagens",
+   "Levar crianças"
+  ],
+  "cobra": [
+   "corrida",
+   "km",
+   "hora"
+  ],
+  "atende": "chamado",
+  "atendeTexto": "chamado na hora, pelo GPS",
+  "exige": "CNH com observação EAR (atividade remunerada)",
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "motoboy",
+  "nome": "Motoboy",
+  "classe": "Transporte",
+  "palavras": [],
+  "como": "Faz entregas rápidas chamadas pelo app, com GPS.",
+  "funcoes": [
+   "Entregas rápidas",
+   "Documentos",
+   "Delivery de restaurante",
+   "Farmácia",
+   "Compras"
+  ],
+  "cobra": [
+   "corrida",
+   "km",
+   "hora"
+  ],
+  "atende": "chamado",
+  "atendeTexto": "chamado na hora, pelo GPS",
+  "exige": "CNH A e curso de motofretista",
+  "mei": {
+   "cnae": "5320-2/02",
+   "ocupacao": "Motoboy"
+  },
+  "visita": false
+ },
+ {
+  "key": "frete",
+  "nome": "Frete e mudança",
+  "classe": "Transporte",
+  "palavras": [],
+  "como": "Faz carretos e mudanças com veículo de carga; cobra por serviço ou km.",
+  "funcoes": [
+   "Mudanças",
+   "Pequenos fretes",
+   "Móveis e eletros",
+   "Entulho",
+   "Ajudante incluso"
+  ],
+  "cobra": [
+   "serviço",
+   "km",
+   "hora"
+  ],
+  "atende": "chamado",
+  "atendeTexto": "chamado na hora, pelo GPS",
+  "exige": "CNH compatível com o veículo",
+  "mei": {
+   "cnae": "4930-2/01",
+   "ocupacao": "Transportador(a) municipal de cargas não perigosas (carreto)"
+  },
+  "visita": false
+ },
+ {
+  "key": "executivo",
+  "nome": "Motorista executivo",
+  "classe": "Transporte",
+  "palavras": [
+   "motorista executivo",
+   "carro executivo",
+   "motorista particular"
+  ],
+  "como": "Motorista particular com hora marcada para eventos, empresas e viagens.",
+  "funcoes": [
+   "Motorista executivo",
+   "Eventos",
+   "Aeroporto",
+   "Diária com motorista"
+  ],
+  "cobra": [
+   "hora",
+   "diária",
+   "corrida"
+  ],
+  "atende": "chamado",
+  "atendeTexto": "chamado na hora, pelo GPS",
+  "exige": "CNH com EAR",
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "escolar",
+  "nome": "Transporte escolar",
+  "classe": "Transporte",
+  "palavras": [
+   "transporte escolar",
+   "van escolar",
+   "levar na escola",
+   "perua escolar"
+  ],
+  "como": "Leva e busca alunos com rota fixa e mensalidade.",
+  "funcoes": [
+   "Rota escolar",
+   "Ida e volta",
+   "Monitor(a) no veículo"
+  ],
+  "cobra": [
+   "mês"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": "Autorização da prefeitura e curso de transporte escolar",
+  "mei": {
+   "cnae": "4924-8/00",
+   "ocupacao": "Transportador(a) escolar"
+  },
+  "visita": false
+ },
+ {
+  "key": "viagem",
+  "nome": "Motorista para viagens",
+  "classe": "Transporte",
+  "palavras": [
+   "motorista para viagem",
+   "viagem intermunicipal",
+   "levar para outra cidade"
+  ],
+  "como": "Faz viagens intermunicipais com hora marcada.",
+  "funcoes": [
+   "Viagens para outras cidades",
+   "Aeroporto",
+   "Ida e volta"
+  ],
+  "cobra": [
+   "km",
+   "serviço",
+   "diária"
+  ],
+  "atende": "chamado",
+  "atendeTexto": "chamado na hora, pelo GPS",
+  "exige": "CNH com EAR",
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "transpet",
+  "nome": "Transporte de pets",
+  "classe": "Transporte",
+  "palavras": [
+   "transporte de pet",
+   "taxi dog",
+   "levar o cachorro"
+  ],
+  "como": "Leva pets ao veterinário, pet shop ou viagem, com caixa de transporte.",
+  "funcoes": [
+   "Veterinário",
+   "Banho e tosa",
+   "Viagem com pet"
+  ],
+  "cobra": [
+   "corrida",
+   "km"
+  ],
+  "atende": "chamado",
+  "atendeTexto": "chamado na hora, pelo GPS",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "bikeentrega",
+  "nome": "Entregador de bike",
+  "classe": "Transporte",
+  "palavras": [
+   "entregador de bike",
+   "bike entrega"
+  ],
+  "como": "Faz entregas de bicicleta em distâncias curtas.",
+  "funcoes": [
+   "Entregas no bairro",
+   "Documentos",
+   "Delivery"
+  ],
+  "cobra": [
+   "corrida",
+   "km"
+  ],
+  "atende": "chamado",
+  "atendeTexto": "chamado na hora, pelo GPS",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "acessivel",
+  "nome": "Transporte acessível",
+  "classe": "Transporte",
+  "palavras": [
+   "cadeirante",
+   "transporte acessivel",
+   "carro adaptado"
+  ],
+  "como": "Transporte adaptado para pessoas com deficiência ou mobilidade reduzida.",
+  "funcoes": [
+   "Cadeira de rodas",
+   "Consultas e exames",
+   "Acompanhante"
+  ],
+  "cobra": [
+   "corrida",
+   "km",
+   "hora"
+  ],
+  "atende": "chamado",
+  "atendeTexto": "chamado na hora, pelo GPS",
+  "exige": "Veículo adaptado e CNH com EAR",
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "psicologo",
+  "nome": "Psicólogo",
+  "classe": "Saúde e bem-estar",
+  "palavras": [],
+  "como": "Atende por sessões, presencial ou online, com sigilo.",
+  "funcoes": [
+   "Ansiedade",
+   "Depressão",
+   "Terapia de casal",
+   "Adolescentes",
+   "Atendimento online"
+  ],
+  "cobra": [
+   "sessão"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": "Registro no CRP",
+  "mei": false,
+  "visita": false
+ },
+ {
+  "key": "nutricionista",
+  "nome": "Nutricionista",
+  "classe": "Saúde e bem-estar",
+  "palavras": [],
+  "como": "Faz consulta com avaliação e plano alimentar, presencial ou online.",
+  "funcoes": [
+   "Emagrecimento",
+   "Nutrição esportiva",
+   "Gestantes",
+   "Reeducação alimentar"
+  ],
+  "cobra": [
+   "consulta"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": "Registro no CRN",
+  "mei": false,
+  "visita": false
+ },
+ {
+  "key": "medico",
+  "nome": "Médico (teleconsulta)",
+  "classe": "Saúde e bem-estar",
+  "palavras": [
+   "teleconsulta",
+   "consulta medica online",
+   "medico online"
+  ],
+  "como": "Atende em consulta presencial, domiciliar ou por telemedicina.",
+  "funcoes": [
+   "Clínico geral",
+   "Consulta domiciliar",
+   "Telemedicina",
+   "Atestados e receitas"
+  ],
+  "cobra": [
+   "consulta"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": "Registro no CRM",
+  "mei": false,
+  "visita": false
+ },
+ {
+  "key": "enfermeiro",
+  "nome": "Enfermeiro(a) em casa",
+  "classe": "Saúde e bem-estar",
+  "palavras": [
+   "enfermeiro",
+   "enfermeira",
+   "curativo em casa",
+   "aplicar injecao",
+   "home care"
+  ],
+  "como": "Faz curativos, aplicações e cuidados em domicílio.",
+  "funcoes": [
+   "Curativos",
+   "Aplicação de injeção",
+   "Sonda",
+   "Cuidados pós-cirúrgicos"
+  ],
+  "cobra": [
+   "visita",
+   "plantão",
+   "hora"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": "Registro no COREN",
+  "mei": false,
+  "visita": false
+ },
+ {
+  "key": "fisioterapeuta",
+  "nome": "Fisioterapeuta",
+  "classe": "Saúde e bem-estar",
+  "palavras": [
+   "fisioterapeuta",
+   "fisioterapia",
+   "dor nas costas",
+   "pilates clinico"
+  ],
+  "como": "Atende por sessões, em clínica ou em domicílio.",
+  "funcoes": [
+   "Reabilitação",
+   "Ortopedia",
+   "Respiratória",
+   "Pilates",
+   "Atendimento domiciliar"
+  ],
+  "cobra": [
+   "sessão"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": "Registro no CREFITO",
+  "mei": false,
+  "visita": false
+ },
+ {
+  "key": "fono",
+  "nome": "Fonoaudiólogo",
+  "classe": "Saúde e bem-estar",
+  "palavras": [
+   "fonoaudiologo",
+   "fonoaudiologa",
+   "fono"
+  ],
+  "como": "Atende fala, voz e audição por sessões.",
+  "funcoes": [
+   "Fala infantil",
+   "Voz",
+   "Deglutição",
+   "Audição"
+  ],
+  "cobra": [
+   "sessão"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": "Registro no CRFa",
+  "mei": false,
+  "visita": false
+ },
+ {
+  "key": "dentista",
+  "nome": "Dentista",
+  "classe": "Saúde e bem-estar",
+  "palavras": [
+   "dentista",
+   "dor de dente",
+   "clareamento",
+   "aparelho nos dentes"
+  ],
+  "como": "Atende em consultório com avaliação e orçamento do tratamento.",
+  "funcoes": [
+   "Avaliação",
+   "Limpeza",
+   "Restauração",
+   "Clareamento",
+   "Urgência"
+  ],
+  "cobra": [
+   "consulta",
+   "serviço"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": "Registro no CRO",
+  "mei": false,
+  "visita": false
+ },
+ {
+  "key": "terapeutaocup",
+  "nome": "Terapeuta ocupacional",
+  "classe": "Saúde e bem-estar",
+  "palavras": [
+   "terapeuta ocupacional",
+   "terapia ocupacional"
+  ],
+  "como": "Atende por sessões para autonomia no dia a dia.",
+  "funcoes": [
+   "Desenvolvimento infantil",
+   "Reabilitação",
+   "Idosos"
+  ],
+  "cobra": [
+   "sessão"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": "Registro no CREFITO",
+  "mei": false,
+  "visita": false
+ },
+ {
+  "key": "massoterapeuta",
+  "nome": "Massoterapeuta",
+  "classe": "Saúde e bem-estar",
+  "palavras": [
+   "massagem",
+   "massoterapeuta",
+   "drenagem linfatica",
+   "quick massage"
+  ],
+  "como": "Faz massagens por sessão, no espaço dele ou em domicílio.",
+  "funcoes": [
+   "Relaxante",
+   "Drenagem linfática",
+   "Desportiva",
+   "Quick massage"
+  ],
+  "cobra": [
+   "sessão",
+   "hora"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "doula",
+  "nome": "Doula",
+  "classe": "Saúde e bem-estar",
+  "palavras": [
+   "doula",
+   "parto humanizado"
+  ],
+  "como": "Acompanha a gestante antes, durante e depois do parto.",
+  "funcoes": [
+   "Acompanhamento de parto",
+   "Pré-natal",
+   "Pós-parto"
+  ],
+  "cobra": [
+   "pacote",
+   "hora"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "acompanhante",
+  "nome": "Acompanhante hospitalar",
+  "classe": "Saúde e bem-estar",
+  "palavras": [
+   "acompanhante hospitalar",
+   "acompanhar no hospital"
+  ],
+  "como": "Acompanha pacientes em hospital, consultas ou em casa.",
+  "funcoes": [
+   "Acompanhamento hospitalar",
+   "Consultas",
+   "Pernoite"
+  ],
+  "cobra": [
+   "plantão",
+   "hora",
+   "diária"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "psicopedagogo",
+  "nome": "Psicopedagogo",
+  "classe": "Saúde e bem-estar",
+  "palavras": [
+   "psicopedagogo",
+   "psicopedagoga",
+   "dificuldade de aprendizagem"
+  ],
+  "como": "Atende dificuldades de aprendizagem por sessões.",
+  "funcoes": [
+   "Avaliação",
+   "Dislexia",
+   "TDAH",
+   "Reforço com método"
+  ],
+  "cobra": [
+   "sessão"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "cabeleireiro",
+  "nome": "Cabeleireiro(a)",
+  "classe": "Beleza e estética",
+  "palavras": [
+   "cabeleireiro",
+   "cabeleireira",
+   "cortar cabelo",
+   "escova progressiva",
+   "luzes no cabelo",
+   "salao de beleza"
+  ],
+  "como": "Atende no salão ou em domicílio, com horário marcado.",
+  "funcoes": [
+   "Corte",
+   "Escova",
+   "Coloração",
+   "Progressiva",
+   "Penteados"
+  ],
+  "cobra": [
+   "serviço"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": {
+   "cnae": "9602-5/01",
+   "ocupacao": "Cabeleireiro(a)"
+  },
+  "visita": false
+ },
+ {
+  "key": "barbeiro",
+  "nome": "Barbeiro",
+  "classe": "Beleza e estética",
+  "palavras": [
+   "barbeiro",
+   "barbearia",
+   "fazer a barba",
+   "corte masculino"
+  ],
+  "como": "Atende na barbearia com horário marcado.",
+  "funcoes": [
+   "Corte masculino",
+   "Barba",
+   "Pigmentação",
+   "Sobrancelha"
+  ],
+  "cobra": [
+   "serviço"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": {
+   "cnae": "9602-5/01",
+   "ocupacao": "Barbeiro"
+  },
+  "visita": false
+ },
+ {
+  "key": "manicure",
+  "nome": "Manicure e pedicure",
+  "classe": "Beleza e estética",
+  "palavras": [
+   "manicure",
+   "pedicure",
+   "fazer a unha",
+   "unha de gel",
+   "alongamento de unha"
+  ],
+  "como": "Faz unhas no salão ou em domicílio.",
+  "funcoes": [
+   "Mão e pé",
+   "Alongamento em gel",
+   "Esmaltação em gel",
+   "Spa dos pés"
+  ],
+  "cobra": [
+   "serviço"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": {
+   "cnae": "9602-5/01",
+   "ocupacao": "Manicure/pedicure"
+  },
+  "visita": false
+ },
+ {
+  "key": "maquiador",
+  "nome": "Maquiador(a)",
+  "classe": "Beleza e estética",
+  "palavras": [
+   "maquiador",
+   "maquiadora",
+   "maquiagem para festa",
+   "make para casamento"
+  ],
+  "como": "Faz maquiagem para eventos, no local ou em domicílio.",
+  "funcoes": [
+   "Noivas",
+   "Formaturas",
+   "Festas",
+   "Ensaios"
+  ],
+  "cobra": [
+   "serviço"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": {
+   "cnae": "9602-5/02",
+   "ocupacao": "Maquiador(a)"
+  },
+  "visita": false
+ },
+ {
+  "key": "esteticista",
+  "nome": "Esteticista",
+  "classe": "Beleza e estética",
+  "palavras": [
+   "esteticista",
+   "limpeza de pele",
+   "estetica facial",
+   "peeling"
+  ],
+  "como": "Faz tratamentos de pele e corpo por sessão ou pacote.",
+  "funcoes": [
+   "Limpeza de pele",
+   "Drenagem",
+   "Peeling",
+   "Massagem modeladora"
+  ],
+  "cobra": [
+   "sessão",
+   "pacote"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": {
+   "cnae": "9602-5/02",
+   "ocupacao": "Esteticista"
+  },
+  "visita": false
+ },
+ {
+  "key": "sobrancelha",
+  "nome": "Designer de sobrancelhas",
+  "classe": "Beleza e estética",
+  "palavras": [
+   "sobrancelha",
+   "design de sobrancelha",
+   "micropigmentacao"
+  ],
+  "como": "Faz design e coloração de sobrancelhas.",
+  "funcoes": [
+   "Design",
+   "Henna",
+   "Micropigmentação",
+   "Laminação"
+  ],
+  "cobra": [
+   "serviço"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "cilios",
+  "nome": "Extensão de cílios",
+  "classe": "Beleza e estética",
+  "palavras": [
+   "extensao de cilios",
+   "cilios",
+   "lash designer"
+  ],
+  "como": "Aplica extensão e lifting de cílios.",
+  "funcoes": [
+   "Fio a fio",
+   "Volume russo",
+   "Lifting",
+   "Manutenção"
+  ],
+  "cobra": [
+   "serviço"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "depilacao",
+  "nome": "Depilação",
+  "classe": "Beleza e estética",
+  "palavras": [
+   "depilacao",
+   "depiladora",
+   "depilacao a laser"
+  ],
+  "como": "Faz depilação com cera ou linha.",
+  "funcoes": [
+   "Cera",
+   "Linha",
+   "Virilha",
+   "Pernas"
+  ],
+  "cobra": [
+   "serviço"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": {
+   "cnae": "9602-5/02",
+   "ocupacao": "Depilador(a)"
+  },
+  "visita": false
+ },
+ {
+  "key": "trancista",
+  "nome": "Trancista",
+  "classe": "Beleza e estética",
+  "palavras": [
+   "trancista",
+   "trancas",
+   "box braids",
+   "nago"
+  ],
+  "como": "Faz tranças e penteados afro.",
+  "funcoes": [
+   "Box braids",
+   "Nagô",
+   "Twist",
+   "Manutenção"
+  ],
+  "cobra": [
+   "serviço"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "tatuador",
+  "nome": "Tatuador(a)",
+  "classe": "Beleza e estética",
+  "palavras": [
+   "tatuador",
+   "tatuadora",
+   "tatuagem",
+   "tattoo",
+   "piercing"
+  ],
+  "como": "Faz tatuagens com orçamento pelo tamanho e arte, em estúdio.",
+  "funcoes": [
+   "Tatuagem",
+   "Fine line",
+   "Cobertura",
+   "Piercing"
+  ],
+  "cobra": [
+   "serviço",
+   "hora"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": "Estúdio com licença sanitária",
+  "mei": {
+   "cnae": "9609-2/06",
+   "ocupacao": "Tatuador(a)"
+  },
+  "visita": false
+ },
+ {
+  "key": "baba",
+  "nome": "Babá",
+  "classe": "Cuidados e família",
+  "palavras": [
+   "baba",
+   "cuidar de crianca",
+   "cuidar do meu filho",
+   "baby sitter"
+  ],
+  "como": "Cuida de crianças por hora, diária ou mês.",
+  "funcoes": [
+   "Por hora",
+   "Noturna",
+   "Folguista",
+   "Ajuda com tarefas"
+  ],
+  "cobra": [
+   "hora",
+   "diária",
+   "mês"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "cuidadoridoso",
+  "nome": "Cuidador(a) de idosos",
+  "classe": "Cuidados e família",
+  "palavras": [
+   "cuidador de idoso",
+   "cuidadora de idoso",
+   "cuidar da minha mae",
+   "cuidar do meu pai",
+   "cuidador"
+  ],
+  "como": "Cuida de idosos em casa, por plantão ou mês.",
+  "funcoes": [
+   "Plantão diurno",
+   "Plantão noturno",
+   "Medicação nos horários",
+   "Acompanhamento"
+  ],
+  "cobra": [
+   "plantão",
+   "hora",
+   "mês"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": "Curso de cuidador recomendado",
+  "mei": {
+   "cnae": "8712-3/00",
+   "ocupacao": "Cuidador(a) de idosos e enfermos"
+  },
+  "visita": false
+ },
+ {
+  "key": "domestica",
+  "nome": "Empregada doméstica",
+  "classe": "Cuidados e família",
+  "palavras": [
+   "empregada domestica",
+   "domestica mensalista"
+  ],
+  "como": "Trabalha na casa do cliente com carteira assinada ou diária.",
+  "funcoes": [
+   "Limpeza",
+   "Cozinha",
+   "Roupas"
+  ],
+  "cobra": [
+   "mês",
+   "diária"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "libras",
+  "nome": "Intérprete de Libras",
+  "classe": "Cuidados e família",
+  "palavras": [
+   "interprete de libras",
+   "libras",
+   "surdo",
+   "lingua de sinais",
+   "tradutor de libras"
+  ],
+  "como": "Interpreta Libras em consultas, eventos e reuniões.",
+  "funcoes": [
+   "Consultas",
+   "Eventos",
+   "Aulas",
+   "Online"
+  ],
+  "cobra": [
+   "hora",
+   "evento"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "acompanhantepcd",
+  "nome": "Acompanhante de pessoa com deficiência",
+  "classe": "Cuidados e família",
+  "palavras": [
+   "acompanhante pcd",
+   "cuidador de pessoa com deficiencia",
+   "acompanhante para cadeirante",
+   "pessoa com deficiencia"
+  ],
+  "como": "Acompanha pessoas com deficiência no dia a dia.",
+  "funcoes": [
+   "Consultas",
+   "Passeios",
+   "Escola",
+   "Rotina em casa"
+  ],
+  "cobra": [
+   "hora",
+   "diária"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "recreador",
+  "nome": "Recreador infantil",
+  "classe": "Cuidados e família",
+  "palavras": [
+   "recreador",
+   "recreacao infantil",
+   "animador de festa infantil"
+  ],
+  "como": "Anima festas e eventos infantis com brincadeiras.",
+  "funcoes": [
+   "Festas infantis",
+   "Pintura facial",
+   "Gincanas",
+   "Eventos"
+  ],
+  "cobra": [
+   "evento",
+   "hora"
+  ],
+  "atende": "evento",
+  "atendeTexto": "vai até o local do evento",
+  "exige": null,
+  "mei": {
+   "cnae": "9329-8/99",
+   "ocupacao": "Animador(a) de festas"
+  },
+  "visita": false
+ },
+ {
+  "key": "vetpet",
+  "nome": "Veterinário de pets",
+  "classe": "Pets",
+  "palavras": [
+   "veterinario para cachorro",
+   "veterinario para gato",
+   "vacina do cachorro",
+   "meu cachorro esta doente",
+   "meu gato esta doente"
+  ],
+  "como": "Atende pets em clínica ou em domicílio.",
+  "funcoes": [
+   "Consulta",
+   "Vacinas",
+   "Castração",
+   "Atendimento domiciliar"
+  ],
+  "cobra": [
+   "consulta",
+   "serviço"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": "Registro no CRMV",
+  "mei": false,
+  "visita": false
+ },
+ {
+  "key": "banhotosa",
+  "nome": "Banho e tosa",
+  "classe": "Pets",
+  "palavras": [
+   "banho e tosa",
+   "tosa",
+   "dar banho no cachorro",
+   "pet shop banho"
+  ],
+  "como": "Dá banho e tosa no pet shop ou com leva e traz.",
+  "funcoes": [
+   "Banho",
+   "Tosa",
+   "Hidratação",
+   "Leva e traz"
+  ],
+  "cobra": [
+   "serviço"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": {
+   "cnae": "9609-2/08",
+   "ocupacao": "Banhista de animais domésticos"
+  },
+  "visita": false
+ },
+ {
+  "key": "adestrador",
+  "nome": "Adestrador",
+  "classe": "Pets",
+  "palavras": [
+   "adestrador",
+   "adestramento",
+   "adestrar cachorro"
+  ],
+  "como": "Treina cães por aula ou pacote, na casa do cliente.",
+  "funcoes": [
+   "Obediência",
+   "Comportamento",
+   "Filhotes",
+   "Passeio sem puxar"
+  ],
+  "cobra": [
+   "aula",
+   "pacote"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": {
+   "cnae": "9609-2/07",
+   "ocupacao": "Adestrador(a) de animais"
+  },
+  "visita": false
+ },
+ {
+  "key": "dogwalker",
+  "nome": "Passeador de cães",
+  "classe": "Pets",
+  "palavras": [
+   "passeador de caes",
+   "dog walker",
+   "passear com o cachorro"
+  ],
+  "como": "Passeia com cães por passeio ou plano mensal.",
+  "funcoes": [
+   "Passeio de 30 min",
+   "Passeio de 1 h",
+   "Plano mensal"
+  ],
+  "cobra": [
+   "passeio",
+   "mês"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "petsitter",
+  "nome": "Pet sitter",
+  "classe": "Pets",
+  "palavras": [
+   "pet sitter",
+   "cuidar do meu pet",
+   "hotel para cachorro",
+   "creche para cachorro"
+  ],
+  "como": "Cuida do pet na casa do dono ou hospeda.",
+  "funcoes": [
+   "Visita diária",
+   "Hospedagem",
+   "Medicação",
+   "Alimentação"
+  ],
+  "cobra": [
+   "diária",
+   "visita"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "dj",
+  "nome": "DJ e som",
+  "classe": "Festas e eventos",
+  "palavras": [],
+  "como": "Toca em festas e eventos; cobra por evento ou hora, com ou sem som e luz.",
+  "funcoes": [
+   "Casamentos",
+   "Aniversários",
+   "Formaturas",
+   "Som e iluminação"
+  ],
+  "cobra": [
+   "evento",
+   "hora"
+  ],
+  "atende": "evento",
+  "atendeTexto": "vai até o local do evento",
+  "exige": null,
+  "mei": {
+   "cnae": "9001-9/06",
+   "ocupacao": "Disc jockey (DJ) ou video jockey (VJ)"
+  },
+  "visita": false
+ },
+ {
+  "key": "fotografo",
+  "nome": "Fotógrafo",
+  "classe": "Festas e eventos",
+  "palavras": [],
+  "como": "Fotografa eventos e ensaios, com pacote de fotos editadas.",
+  "funcoes": [
+   "Casamentos",
+   "Ensaios",
+   "Aniversários",
+   "Produtos",
+   "Eventos de empresa"
+  ],
+  "cobra": [
+   "evento",
+   "hora",
+   "pacote"
+  ],
+  "atende": "evento",
+  "atendeTexto": "vai até o local do evento",
+  "exige": null,
+  "mei": {
+   "cnae": "7420-0/01",
+   "ocupacao": "Fotógrafo(a)"
+  },
+  "visita": false
+ },
+ {
+  "key": "buffet",
+  "nome": "Buffet e garçom",
+  "classe": "Festas e eventos",
+  "palavras": [],
+  "como": "Serve comida e bebida em eventos, por pessoa.",
+  "funcoes": [
+   "Festas",
+   "Casamentos",
+   "Coffee break",
+   "Churrasco"
+  ],
+  "cobra": [
+   "pessoa",
+   "evento"
+  ],
+  "atende": "evento",
+  "atendeTexto": "vai até o local do evento",
+  "exige": "Licença sanitária para manipular alimentos",
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "decoracao",
+  "nome": "Decoração de festa",
+  "classe": "Festas e eventos",
+  "palavras": [],
+  "como": "Monta a decoração da festa no local.",
+  "funcoes": [
+   "Festas infantis",
+   "Casamentos",
+   "Balões",
+   "Mesa posta"
+  ],
+  "cobra": [
+   "evento",
+   "serviço"
+  ],
+  "atende": "evento",
+  "atendeTexto": "vai até o local do evento",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "cerimonialista",
+  "nome": "Cerimonialista",
+  "classe": "Festas e eventos",
+  "palavras": [
+   "cerimonialista",
+   "assessoria de casamento",
+   "organizar casamento"
+  ],
+  "como": "Organiza o evento e coordena no dia.",
+  "funcoes": [
+   "Casamentos",
+   "Formaturas",
+   "Assessoria do dia",
+   "Roteiro"
+  ],
+  "cobra": [
+   "evento"
+  ],
+  "atende": "evento",
+  "atendeTexto": "vai até o local do evento",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "musico",
+  "nome": "Banda e músicos",
+  "classe": "Festas e eventos",
+  "palavras": [
+   "banda para festa",
+   "musico para evento",
+   "voz e violao",
+   "cantor para casamento"
+  ],
+  "como": "Banda ou músico para eventos, por show ou hora.",
+  "funcoes": [
+   "Banda para festa",
+   "Casamentos",
+   "Bailes",
+   "Bares"
+  ],
+  "cobra": [
+   "show",
+   "hora",
+   "evento"
+  ],
+  "atende": "evento",
+  "atendeTexto": "vai até o local do evento",
+  "exige": null,
+  "mei": {
+   "cnae": "9001-9/02",
+   "ocupacao": "Cantor(a)/músico(a)"
+  },
+  "visita": false
+ },
+ {
+  "key": "confeiteiro",
+  "nome": "Confeiteiro(a) e bolos",
+  "classe": "Festas e eventos",
+  "palavras": [
+   "confeiteira",
+   "confeiteiro",
+   "bolo de aniversario",
+   "bolo de casamento",
+   "docinhos"
+  ],
+  "como": "Faz bolos e doces sob encomenda, com prazo combinado.",
+  "funcoes": [
+   "Bolos de festa",
+   "Docinhos",
+   "Bolo de casamento",
+   "Bolos de pote"
+  ],
+  "cobra": [
+   "peça",
+   "kg",
+   "serviço"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": "Boas práticas de manipulação de alimentos",
+  "mei": {
+   "cnae": "1091-1/02",
+   "ocupacao": "Confeiteiro(a)"
+  },
+  "visita": false
+ },
+ {
+  "key": "videomaker",
+  "nome": "Videomaker e filmagem",
+  "classe": "Festas e eventos",
+  "palavras": [
+   "videomaker",
+   "filmagem de casamento",
+   "filmagem de evento"
+  ],
+  "como": "Filma e edita vídeos de eventos e empresas.",
+  "funcoes": [
+   "Casamentos",
+   "Eventos",
+   "Vídeo institucional",
+   "Reels"
+  ],
+  "cobra": [
+   "evento",
+   "hora",
+   "projeto"
+  ],
+  "atende": "evento",
+  "atendeTexto": "vai até o local do evento",
+  "exige": null,
+  "mei": {
+   "cnae": "7420-0/04",
+   "ocupacao": "Filmador(a)"
+  },
+  "visita": false
+ },
+ {
+  "key": "segevento",
+  "nome": "Segurança para eventos",
+  "classe": "Festas e eventos",
+  "palavras": [
+   "seguranca para festa",
+   "seguranca de evento"
+  ],
+  "como": "Faz segurança e controle de acesso em festas.",
+  "funcoes": [
+   "Portaria do evento",
+   "Controle de acesso",
+   "Segurança de festa"
+  ],
+  "cobra": [
+   "evento",
+   "hora"
+  ],
+  "atende": "evento",
+  "atendeTexto": "vai até o local do evento",
+  "exige": "Curso de vigilante e empresa autorizada pela Polícia Federal para segurança armada",
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "florista",
+  "nome": "Florista",
+  "classe": "Festas e eventos",
+  "palavras": [
+   "florista",
+   "arranjo de flores",
+   "buque"
+  ],
+  "como": "Faz arranjos e decoração floral sob encomenda.",
+  "funcoes": [
+   "Buquê",
+   "Arranjos de mesa",
+   "Decoração de igreja",
+   "Coroas"
+  ],
+  "cobra": [
+   "peça",
+   "evento"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "palhaco",
+  "nome": "Palhaço e mágico",
+  "classe": "Festas e eventos",
+  "palavras": [
+   "palhaco",
+   "magico",
+   "show de magica"
+  ],
+  "como": "Faz shows de palhaço e mágica em festas.",
+  "funcoes": [
+   "Show de mágica",
+   "Palhaço",
+   "Brincadeiras"
+  ],
+  "cobra": [
+   "evento",
+   "hora"
+  ],
+  "atende": "evento",
+  "atendeTexto": "vai até o local do evento",
+  "exige": null,
+  "mei": {
+   "cnae": "9329-8/99",
+   "ocupacao": "Animador(a) de festas"
+  },
+  "visita": false
+ },
+ {
+  "key": "cantor",
+  "nome": "Cantor(a)",
+  "classe": "Artistas",
+  "palavras": [
+   "cantor",
+   "cantora",
+   "cantor para festa",
+   "cantor para casamento",
+   "voz e violao"
+  ],
+  "como": "Faz shows por cachê; monta a vitrine em Perfil › Shows e contratação.",
+  "funcoes": [
+   "Sertanejo",
+   "Pagode",
+   "Gospel",
+   "Acústico (voz e violão)",
+   "Casamentos",
+   "Bares"
+  ],
+  "cobra": [
+   "show",
+   "hora",
+   "publicidade"
+  ],
+  "atende": "evento",
+  "atendeTexto": "vai até o local do evento",
+  "exige": null,
+  "mei": {
+   "cnae": "9001-9/02",
+   "ocupacao": "Cantor(a)/músico(a)"
+  },
+  "visita": false
+ },
+ {
+  "key": "instrumentista",
+  "nome": "Instrumentista",
+  "classe": "Artistas",
+  "palavras": [
+   "violinista",
+   "saxofonista",
+   "pianista",
+   "tecladista",
+   "violonista",
+   "gaiteiro",
+   "sanfoneiro"
+  ],
+  "como": "Toca em cerimônias, eventos e gravações.",
+  "funcoes": [
+   "Violino em casamento",
+   "Sax",
+   "Piano",
+   "Gaita e sanfona",
+   "Gravações"
+  ],
+  "cobra": [
+   "show",
+   "hora",
+   "serviço"
+  ],
+  "atende": "evento",
+  "atendeTexto": "vai até o local do evento",
+  "exige": null,
+  "mei": {
+   "cnae": "9001-9/02",
+   "ocupacao": "Cantor(a)/músico(a)"
+  },
+  "visita": false
+ },
+ {
+  "key": "humorista",
+  "nome": "Humorista e stand-up",
+  "classe": "Artistas",
+  "palavras": [
+   "humorista",
+   "stand up",
+   "comediante",
+   "show de comedia"
+  ],
+  "como": "Faz shows de humor e stand-up por cachê.",
+  "funcoes": [
+   "Stand-up",
+   "Eventos de empresa",
+   "Festas",
+   "Mestre de cerimônias"
+  ],
+  "cobra": [
+   "show",
+   "publicidade"
+  ],
+  "atende": "evento",
+  "atendeTexto": "vai até o local do evento",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "dancarino",
+  "nome": "Dançarino(a) e grupo de dança",
+  "classe": "Artistas",
+  "palavras": [
+   "dancarino",
+   "dancarina",
+   "grupo de danca",
+   "show de danca"
+  ],
+  "como": "Faz apresentações e coreografias por cachê.",
+  "funcoes": [
+   "Shows de dança",
+   "Coreografia de casamento",
+   "Eventos"
+  ],
+  "cobra": [
+   "show",
+   "hora",
+   "serviço"
+  ],
+  "atende": "evento",
+  "atendeTexto": "vai até o local do evento",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "ator",
+  "nome": "Ator, atriz e animador",
+  "classe": "Artistas",
+  "palavras": [
+   "ator",
+   "atriz",
+   "animador de festa",
+   "personagem para festa",
+   "teatro"
+  ],
+  "como": "Atua em eventos, festas, teatro e comerciais.",
+  "funcoes": [
+   "Animação de festa",
+   "Personagens",
+   "Teatro",
+   "Comerciais"
+  ],
+  "cobra": [
+   "show",
+   "hora",
+   "publicidade"
+  ],
+  "atende": "evento",
+  "atendeTexto": "vai até o local do evento",
+  "exige": "Registro profissional (DRT) para trabalhos de ator",
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "artistavisual",
+  "nome": "Artista visual (pintura, grafite, caricatura)",
+  "classe": "Artistas",
+  "palavras": [
+   "grafite",
+   "grafiteiro",
+   "pintura ao vivo",
+   "caricaturista",
+   "mural",
+   "pintor artistico"
+  ],
+  "como": "Cria obras sob encomenda e faz arte ao vivo em eventos.",
+  "funcoes": [
+   "Pintura ao vivo",
+   "Grafite e murais",
+   "Caricatura em eventos",
+   "Quadros sob encomenda"
+  ],
+  "cobra": [
+   "serviço",
+   "m²",
+   "evento"
+  ],
+  "atende": "evento",
+  "atendeTexto": "vai até o local do evento",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "streamer",
+  "nome": "Streamer",
+  "classe": "Gamers e streamers",
+  "palavras": [
+   "streamer",
+   "live de jogo",
+   "publi em live",
+   "divulgar na live"
+  ],
+  "como": "É contratado para publicidade nas lives, reels e stories.",
+  "funcoes": [
+   "Publi na live",
+   "Reels patrocinado",
+   "Stories com a marca",
+   "Lives de jogo"
+  ],
+  "cobra": [
+   "publicidade",
+   "hora"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "coachgame",
+  "nome": "Coach de jogos",
+  "classe": "Gamers e streamers",
+  "palavras": [
+   "coach de jogo",
+   "coaching",
+   "aula de free fire",
+   "aula de lol",
+   "melhorar no jogo",
+   "treinador de e-sports"
+  ],
+  "como": "Dá aulas de jogo por hora, online.",
+  "funcoes": [
+   "Aulas de Free Fire",
+   "Aulas de LoL",
+   "Análise de partidas",
+   "Treino de mira"
+  ],
+  "cobra": [
+   "hora",
+   "pacote"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "proplayer",
+  "nome": "Pro player e e-sports",
+  "classe": "Gamers e streamers",
+  "palavras": [
+   "pro player",
+   "jogador profissional",
+   "e-sports",
+   "esports",
+   "campeonato"
+  ],
+  "como": "Joga em times e campeonatos; contratado por partida ou evento.",
+  "funcoes": [
+   "Jogar no seu time",
+   "Campeonatos",
+   "Partidas em dupla",
+   "Presença em eventos"
+  ],
+  "cobra": [
+   "partida",
+   "evento",
+   "publicidade"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "caster",
+  "nome": "Narrador e caster",
+  "classe": "Gamers e streamers",
+  "palavras": [
+   "narrador de jogo",
+   "caster",
+   "narrar campeonato",
+   "comentarista de e-sports"
+  ],
+  "como": "Narra e comenta campeonatos ao vivo.",
+  "funcoes": [
+   "Narração",
+   "Comentarista",
+   "Apresentação de evento"
+  ],
+  "cobra": [
+   "evento",
+   "hora"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "gamecreator",
+  "nome": "Criador de conteúdo gamer",
+  "classe": "Gamers e streamers",
+  "palavras": [
+   "youtuber de jogos",
+   "criador de conteudo gamer",
+   "review de jogo",
+   "video de gameplay"
+  ],
+  "como": "Produz vídeos de jogos e faz publicidade em vídeo.",
+  "funcoes": [
+   "Vídeos de gameplay",
+   "Review de jogos",
+   "Publi em vídeo",
+   "Edição"
+  ],
+  "cobra": [
+   "publicidade",
+   "projeto"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "professor",
+  "nome": "Professor particular",
+  "classe": "Aulas",
+  "palavras": [],
+  "como": "Dá aulas particulares presenciais ou online, por aula ou pacote.",
+  "funcoes": [
+   "Reforço escolar",
+   "Matemática",
+   "Português",
+   "Preparação para o ENEM"
+  ],
+  "cobra": [
+   "aula",
+   "hora",
+   "pacote"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": {
+   "cnae": "8599-6/99",
+   "ocupacao": "Professor(a) particular"
+  },
+  "visita": false
+ },
+ {
+  "key": "personal",
+  "nome": "Personal trainer",
+  "classe": "Aulas",
+  "palavras": [],
+  "como": "Treina alunos por aula ou plano mensal.",
+  "funcoes": [
+   "Musculação",
+   "Emagrecimento",
+   "Treino em casa",
+   "Idosos",
+   "Funcional"
+  ],
+  "cobra": [
+   "aula",
+   "mês",
+   "pacote"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": "Registro no CREF",
+  "mei": false,
+  "visita": false
+ },
+ {
+  "key": "idiomas",
+  "nome": "Professor de idiomas",
+  "classe": "Aulas",
+  "palavras": [
+   "aula de ingles",
+   "aula de espanhol",
+   "professor de ingles",
+   "professor de idiomas"
+  ],
+  "como": "Dá aulas de idioma presenciais ou online.",
+  "funcoes": [
+   "Inglês",
+   "Espanhol",
+   "Conversação",
+   "Para viagem"
+  ],
+  "cobra": [
+   "aula",
+   "mês"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": {
+   "cnae": "8593-7/00",
+   "ocupacao": "Instrutor(a) de idiomas"
+  },
+  "visita": false
+ },
+ {
+  "key": "musicaaula",
+  "nome": "Professor de música",
+  "classe": "Aulas",
+  "palavras": [
+   "aula de violao",
+   "aula de piano",
+   "aula de canto",
+   "professor de musica",
+   "aula de bateria"
+  ],
+  "como": "Dá aulas de instrumento ou canto.",
+  "funcoes": [
+   "Violão",
+   "Teclado",
+   "Canto",
+   "Bateria"
+  ],
+  "cobra": [
+   "aula",
+   "mês"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": {
+   "cnae": "8592-9/03",
+   "ocupacao": "Instrutor(a) de música"
+  },
+  "visita": false
+ },
+ {
+  "key": "autoescola",
+  "nome": "Instrutor de direção",
+  "classe": "Aulas",
+  "palavras": [
+   "instrutor de direcao",
+   "aula de direcao",
+   "aprender a dirigir",
+   "autoescola"
+  ],
+  "como": "Dá aulas práticas de direção.",
+  "funcoes": [
+   "Aulas para habilitados",
+   "Perder o medo de dirigir",
+   "Baliza"
+  ],
+  "cobra": [
+   "aula",
+   "pacote"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": "Credenciamento no Detran como instrutor",
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "natacao",
+  "nome": "Professor de natação",
+  "classe": "Aulas",
+  "palavras": [
+   "aula de natacao",
+   "professor de natacao"
+  ],
+  "como": "Dá aulas de natação por aula ou mês.",
+  "funcoes": [
+   "Bebês",
+   "Crianças",
+   "Adultos",
+   "Hidroginástica"
+  ],
+  "cobra": [
+   "aula",
+   "mês"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": "Registro no CREF",
+  "mei": false,
+  "visita": false
+ },
+ {
+  "key": "danca",
+  "nome": "Professor de dança",
+  "classe": "Aulas",
+  "palavras": [
+   "aula de danca",
+   "professor de danca",
+   "aula de forro",
+   "aula de zumba"
+  ],
+  "como": "Dá aulas de dança individuais ou em grupo.",
+  "funcoes": [
+   "Dança de salão",
+   "Coreografia de casamento",
+   "Zumba",
+   "Ballet"
+  ],
+  "cobra": [
+   "aula",
+   "mês"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": {
+   "cnae": "8592-9/99",
+   "ocupacao": "Instrutor(a) de arte e cultura em geral"
+  },
+  "visita": false
+ },
+ {
+  "key": "lutas",
+  "nome": "Professor de lutas",
+  "classe": "Aulas",
+  "palavras": [
+   "aula de jiu-jitsu",
+   "aula de boxe",
+   "aula de muay thai",
+   "professor de luta"
+  ],
+  "como": "Dá aulas de artes marciais.",
+  "funcoes": [
+   "Jiu-jitsu",
+   "Muay thai",
+   "Boxe",
+   "Defesa pessoal"
+  ],
+  "cobra": [
+   "aula",
+   "mês"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "yoga",
+  "nome": "Yoga e pilates",
+  "classe": "Aulas",
+  "palavras": [
+   "aula de yoga",
+   "aula de pilates",
+   "professor de yoga"
+  ],
+  "como": "Dá aulas de yoga e meditação.",
+  "funcoes": [
+   "Yoga",
+   "Meditação",
+   "Alongamento",
+   "Online"
+  ],
+  "cobra": [
+   "aula",
+   "mês"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "informaticaaula",
+  "nome": "Aulas de informática",
+  "classe": "Aulas",
+  "palavras": [
+   "aula de informatica",
+   "aprender a usar o computador",
+   "curso de excel"
+  ],
+  "como": "Ensina informática básica e programas.",
+  "funcoes": [
+   "Informática básica",
+   "Excel",
+   "Celular para idosos",
+   "Internet"
+  ],
+  "cobra": [
+   "aula",
+   "pacote"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": {
+   "cnae": "8599-6/03",
+   "ocupacao": "Instrutor(a) de informática"
+  },
+  "visita": false
+ },
+ {
+  "key": "culinaria",
+  "nome": "Aulas de culinária",
+  "classe": "Aulas",
+  "palavras": [
+   "aula de culinaria",
+   "aula de confeitaria",
+   "aprender a cozinhar"
+  ],
+  "como": "Dá aulas de culinária presenciais ou online.",
+  "funcoes": [
+   "Confeitaria",
+   "Cozinha básica",
+   "Massas",
+   "Comida saudável"
+  ],
+  "cobra": [
+   "aula",
+   "pacote"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "dev",
+  "nome": "Desenvolvedor de apps e IA",
+  "classe": "Tecnologia",
+  "palavras": [],
+  "como": "Desenvolve sites, apps e sistemas por projeto.",
+  "funcoes": [
+   "Sites",
+   "Aplicativos",
+   "Lojas virtuais",
+   "Sistemas sob medida",
+   "Manutenção"
+  ],
+  "cobra": [
+   "projeto",
+   "hora",
+   "mês"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "tecnico",
+  "nome": "Técnico de informática",
+  "classe": "Tecnologia",
+  "palavras": [],
+  "como": "Conserta computadores e notebooks, no local ou em casa.",
+  "funcoes": [
+   "Formatação",
+   "Conserto de PC e notebook",
+   "Limpeza",
+   "Backup"
+  ],
+  "cobra": [
+   "serviço",
+   "visita",
+   "hora"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": {
+   "cnae": "9511-8/00",
+   "ocupacao": "Técnico(a) de manutenção de computador"
+  },
+  "visita": true
+ },
+ {
+  "key": "celularconserto",
+  "nome": "Conserto de celular",
+  "classe": "Tecnologia",
+  "palavras": [
+   "conserto de celular",
+   "tela do celular quebrou",
+   "trocar tela do celular",
+   "bateria do celular"
+  ],
+  "como": "Conserta celulares com orçamento depois do diagnóstico.",
+  "funcoes": [
+   "Troca de tela",
+   "Bateria",
+   "Conector de carga",
+   "Software"
+  ],
+  "cobra": [
+   "serviço"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "redes",
+  "nome": "Instalador de redes e Wi-Fi",
+  "classe": "Tecnologia",
+  "palavras": [
+   "instalar wi-fi",
+   "rede de internet",
+   "cabeamento",
+   "repetidor de sinal"
+  ],
+  "como": "Instala e configura redes e Wi-Fi.",
+  "funcoes": [
+   "Wi-Fi da casa",
+   "Cabeamento",
+   "Rede de empresa",
+   "Roteadores"
+  ],
+  "cobra": [
+   "serviço",
+   "visita",
+   "hora"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": {
+   "cnae": "6190-6/99",
+   "ocupacao": "Instalador(a) de rede de computadores"
+  },
+  "visita": true
+ },
+ {
+  "key": "cameras",
+  "nome": "Instalador de câmeras e alarmes",
+  "classe": "Tecnologia",
+  "palavras": [
+   "instalar camera",
+   "camera de seguranca",
+   "cftv",
+   "instalar alarme",
+   "cerca eletrica"
+  ],
+  "como": "Instala câmeras, alarmes e interfones.",
+  "funcoes": [
+   "Câmeras",
+   "Alarme",
+   "Interfone",
+   "Cerca elétrica"
+  ],
+  "cobra": [
+   "serviço",
+   "visita"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": null,
+  "visita": true
+ },
+ {
+  "key": "suporteti",
+  "nome": "Suporte de TI para empresas",
+  "classe": "Tecnologia",
+  "palavras": [
+   "suporte de ti",
+   "ti para empresa",
+   "servidor da empresa"
+  ],
+  "como": "Dá suporte de TI para empresas, por mês ou chamado.",
+  "funcoes": [
+   "Suporte mensal",
+   "Servidores",
+   "E-mails",
+   "Backup"
+  ],
+  "cobra": [
+   "mês",
+   "hora",
+   "serviço"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "segdigital",
+  "nome": "Segurança digital",
+  "classe": "Tecnologia",
+  "palavras": [
+   "seguranca digital",
+   "conta hackeada",
+   "whatsapp clonado",
+   "recuperar conta"
+  ],
+  "como": "Protege contas e dispositivos contra golpes e invasões.",
+  "funcoes": [
+   "Recuperar conta",
+   "Proteção de dados",
+   "Antivírus",
+   "Orientação contra golpes"
+  ],
+  "cobra": [
+   "serviço",
+   "hora"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "designer",
+  "nome": "Designer gráfico",
+  "classe": "Criativos e marketing",
+  "palavras": [
+   "designer grafico",
+   "criar logo",
+   "logomarca",
+   "identidade visual",
+   "arte para post"
+  ],
+  "como": "Cria identidade visual e artes por projeto.",
+  "funcoes": [
+   "Logo",
+   "Identidade visual",
+   "Artes para redes",
+   "Cardápio"
+  ],
+  "cobra": [
+   "projeto",
+   "peça"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "socialmedia",
+  "nome": "Social media",
+  "classe": "Criativos e marketing",
+  "palavras": [
+   "social media",
+   "gerenciar instagram",
+   "posts para instagram",
+   "marketing digital"
+  ],
+  "como": "Cuida das redes sociais da empresa por mês.",
+  "funcoes": [
+   "Posts",
+   "Stories",
+   "Anúncios",
+   "Relatórios"
+  ],
+  "cobra": [
+   "mês",
+   "pacote"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "editorvideo",
+  "nome": "Editor de vídeo",
+  "classe": "Criativos e marketing",
+  "palavras": [
+   "editor de video",
+   "editar video",
+   "edicao de video"
+  ],
+  "como": "Edita vídeos por projeto ou minuto.",
+  "funcoes": [
+   "Reels",
+   "YouTube",
+   "Casamento",
+   "Institucional"
+  ],
+  "cobra": [
+   "projeto",
+   "hora"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": {
+   "cnae": "5921-0/99",
+   "ocupacao": "Editor(a) de vídeo"
+  },
+  "visita": false
+ },
+ {
+  "key": "redator",
+  "nome": "Redator e revisor",
+  "classe": "Criativos e marketing",
+  "palavras": [
+   "redator",
+   "revisor de texto",
+   "revisao de tcc",
+   "escrever texto"
+  ],
+  "como": "Escreve textos para sites, redes e anúncios.",
+  "funcoes": [
+   "Textos para site",
+   "Legendas",
+   "Blog",
+   "Anúncios"
+  ],
+  "cobra": [
+   "projeto",
+   "peça"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "tradutor",
+  "nome": "Tradutor",
+  "classe": "Criativos e marketing",
+  "palavras": [
+   "tradutor",
+   "traducao",
+   "tradutor juramentado"
+  ],
+  "como": "Traduz textos e documentos.",
+  "funcoes": [
+   "Tradução simples",
+   "Documentos",
+   "Legendas"
+  ],
+  "cobra": [
+   "peça",
+   "projeto"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": "Concurso de tradutor juramentado para traduções oficiais",
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "ilustrador",
+  "nome": "Ilustrador",
+  "classe": "Criativos e marketing",
+  "palavras": [
+   "ilustrador",
+   "ilustracao",
+   "desenho personalizado"
+  ],
+  "como": "Cria ilustrações sob encomenda.",
+  "funcoes": [
+   "Ilustração",
+   "Personagens",
+   "Livro infantil",
+   "Retrato"
+  ],
+  "cobra": [
+   "peça",
+   "projeto"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "locutor",
+  "nome": "Locutor",
+  "classe": "Criativos e marketing",
+  "palavras": [
+   "locutor",
+   "locucao",
+   "gravar propaganda",
+   "voz para propaganda"
+  ],
+  "como": "Grava locuções para anúncios, rádios e URA.",
+  "funcoes": [
+   "Comercial de rádio",
+   "Carro de som",
+   "Vinhetas",
+   "URA de telefone"
+  ],
+  "cobra": [
+   "peça",
+   "serviço"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": {
+   "cnae": "9609-2/99",
+   "ocupacao": "Locutor(a) de mensagens fonadas e ao vivo"
+  },
+  "visita": false
+ },
+ {
+  "key": "fotoproduto",
+  "nome": "Fotógrafo de produtos",
+  "classe": "Criativos e marketing",
+  "palavras": [
+   "foto de produto",
+   "fotografo de produto",
+   "fotos para loja"
+  ],
+  "como": "Fotografa produtos para lojas e cardápios.",
+  "funcoes": [
+   "Fotos de produto",
+   "Cardápio",
+   "Catálogo",
+   "Fundo infinito"
+  ],
+  "cobra": [
+   "peça",
+   "pacote"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": {
+   "cnae": "7420-0/01",
+   "ocupacao": "Fotógrafo(a)"
+  },
+  "visita": false
+ },
+ {
+  "key": "advogado",
+  "nome": "Advogado",
+  "classe": "Jurídico e finanças",
+  "palavras": [],
+  "como": "Atende por consulta e cobra honorários pela causa.",
+  "funcoes": [
+   "Trabalhista",
+   "Família e divórcio",
+   "Previdenciário",
+   "Consumidor",
+   "Contratos"
+  ],
+  "cobra": [
+   "consulta",
+   "serviço"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": "Inscrição na OAB",
+  "mei": false,
+  "visita": false
+ },
+ {
+  "key": "contador",
+  "nome": "Contador",
+  "classe": "Jurídico e finanças",
+  "palavras": [],
+  "como": "Cuida da contabilidade e impostos por mês ou serviço.",
+  "funcoes": [
+   "MEI",
+   "Imposto de renda",
+   "Abertura de empresa",
+   "Folha de pagamento"
+  ],
+  "cobra": [
+   "mês",
+   "serviço"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": "Registro no CRC",
+  "mei": false,
+  "visita": false
+ },
+ {
+  "key": "consultor",
+  "nome": "Consultor e mentor",
+  "classe": "Jurídico e finanças",
+  "palavras": [],
+  "como": "Orienta empresas em gestão e vendas.",
+  "funcoes": [
+   "Gestão",
+   "Vendas",
+   "Processos",
+   "Plano de negócios"
+  ],
+  "cobra": [
+   "hora",
+   "projeto"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "corretorimoveis",
+  "nome": "Corretor de imóveis",
+  "classe": "Jurídico e finanças",
+  "palavras": [
+   "corretor de imoveis",
+   "vender minha casa",
+   "avaliar imovel"
+  ],
+  "como": "Intermedeia compra, venda e locação de imóveis, cobrando comissão.",
+  "funcoes": [
+   "Venda",
+   "Locação",
+   "Avaliação",
+   "Documentação"
+  ],
+  "cobra": [
+   "serviço"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": "Registro no CRECI",
+  "mei": false,
+  "visita": false
+ },
+ {
+  "key": "corretorseguros",
+  "nome": "Corretor de seguros",
+  "classe": "Jurídico e finanças",
+  "palavras": [
+   "corretor de seguros",
+   "seguro do carro",
+   "seguro de vida",
+   "plano de saude"
+  ],
+  "como": "Faz cotação e venda de seguros.",
+  "funcoes": [
+   "Auto",
+   "Residencial",
+   "Vida",
+   "Empresarial"
+  ],
+  "cobra": [
+   "serviço"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": "Registro na SUSEP",
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "consultorfin",
+  "nome": "Consultor financeiro",
+  "classe": "Jurídico e finanças",
+  "palavras": [
+   "consultor financeiro",
+   "organizar minhas dividas",
+   "planejamento financeiro",
+   "investimentos"
+  ],
+  "como": "Organiza finanças pessoais e investimentos.",
+  "funcoes": [
+   "Organizar dívidas",
+   "Orçamento",
+   "Investimentos",
+   "Aposentadoria"
+  ],
+  "cobra": [
+   "hora",
+   "pacote"
+  ],
+  "atende": "online",
+  "atendeTexto": "atende online, por chamada de vídeo",
+  "exige": "Certificação (CEA/CFP) para recomendar investimentos",
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "sindico",
+  "nome": "Síndico profissional",
+  "classe": "Jurídico e finanças",
+  "palavras": [
+   "sindico profissional",
+   "administracao de condominio"
+  ],
+  "como": "Administra condomínios por mês.",
+  "funcoes": [
+   "Gestão do condomínio",
+   "Assembleias",
+   "Manutenção",
+   "Prestação de contas"
+  ],
+  "cobra": [
+   "mês"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "agronomo",
+  "nome": "Agrônomo e técnico agrícola",
+  "classe": "Agro",
+  "palavras": [],
+  "como": "Dá assistência técnica e receituário agronômico na propriedade.",
+  "funcoes": [
+   "Análise de solo",
+   "Receituário",
+   "Planejamento de safra",
+   "Laudos"
+  ],
+  "cobra": [
+   "visita",
+   "hectare",
+   "hora"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": "Registro no CREA",
+  "mei": false,
+  "visita": true
+ },
+ {
+  "key": "veterinario",
+  "nome": "Veterinário rural",
+  "classe": "Agro",
+  "palavras": [],
+  "como": "Atende animais de produção na propriedade.",
+  "funcoes": [
+   "Gado",
+   "Vacinação",
+   "Reprodução",
+   "Emergência"
+  ],
+  "cobra": [
+   "visita",
+   "serviço"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": "Registro no CRMV",
+  "mei": false,
+  "visita": true
+ },
+ {
+  "key": "droneagro",
+  "nome": "Drone agrícola",
+  "classe": "Agro",
+  "palavras": [],
+  "como": "Pulveriza e mapeia lavouras com drone, por hectare.",
+  "funcoes": [
+   "Pulverização",
+   "Mapeamento",
+   "Contagem de plantas"
+  ],
+  "cobra": [
+   "hectare"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": "Registro do drone na ANAC e no MAPA e curso de aplicação aérea",
+  "mei": null,
+  "visita": true
+ },
+ {
+  "key": "tratorista",
+  "nome": "Tratorista e operador de máquinas",
+  "classe": "Agro",
+  "palavras": [
+   "tratorista",
+   "operador de maquinas",
+   "operador de colheitadeira"
+  ],
+  "como": "Opera trator e máquinas agrícolas por hora ou diária.",
+  "funcoes": [
+   "Preparo de solo",
+   "Plantio",
+   "Roçada",
+   "Transporte na lavoura"
+  ],
+  "cobra": [
+   "hora",
+   "diária",
+   "hectare"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": "CNH compatível",
+  "mei": null,
+  "visita": true
+ },
+ {
+  "key": "inseminador",
+  "nome": "Inseminador",
+  "classe": "Agro",
+  "palavras": [
+   "inseminador",
+   "inseminacao artificial"
+  ],
+  "como": "Faz inseminação artificial no rebanho.",
+  "funcoes": [
+   "Inseminação",
+   "IATF",
+   "Controle de cio"
+  ],
+  "cobra": [
+   "serviço",
+   "visita"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": "Curso de inseminação artificial",
+  "mei": null,
+  "visita": true
+ },
+ {
+  "key": "irrigacao",
+  "nome": "Técnico em irrigação",
+  "classe": "Agro",
+  "palavras": [
+   "irrigacao",
+   "tecnico em irrigacao",
+   "sistema de irrigacao"
+  ],
+  "como": "Projeta e instala sistemas de irrigação.",
+  "funcoes": [
+   "Gotejamento",
+   "Aspersão",
+   "Manutenção",
+   "Projeto"
+  ],
+  "cobra": [
+   "projeto",
+   "serviço",
+   "hectare"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": null,
+  "visita": true
+ },
+ {
+  "key": "topografo",
+  "nome": "Topógrafo",
+  "classe": "Agro",
+  "palavras": [
+   "topografo",
+   "topografia",
+   "georreferenciamento",
+   "medir terreno"
+  ],
+  "como": "Faz levantamentos e medições de terrenos.",
+  "funcoes": [
+   "Levantamento topográfico",
+   "Georreferenciamento",
+   "Demarcação"
+  ],
+  "cobra": [
+   "hectare",
+   "serviço"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": "Registro no CREA ou no CFT",
+  "mei": null,
+  "visita": true
+ },
+ {
+  "key": "zootecnista",
+  "nome": "Zootecnista",
+  "classe": "Agro",
+  "palavras": [
+   "zootecnista",
+   "nutricao animal",
+   "manejo do rebanho"
+  ],
+  "como": "Orienta nutrição e manejo do rebanho.",
+  "funcoes": [
+   "Nutrição animal",
+   "Manejo",
+   "Planejamento"
+  ],
+  "cobra": [
+   "visita",
+   "mês"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": "Registro no CRMV",
+  "mei": false,
+  "visita": true
+ },
+ {
+  "key": "ferrador",
+  "nome": "Ferrador e casqueador",
+  "classe": "Agro",
+  "palavras": [
+   "ferrador",
+   "casqueador",
+   "ferrar cavalo"
+  ],
+  "como": "Ferra e cuida dos cascos de cavalos.",
+  "funcoes": [
+   "Ferrageamento",
+   "Casqueamento"
+  ],
+  "cobra": [
+   "serviço"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": null,
+  "visita": true
+ },
+ {
+  "key": "costureira",
+  "nome": "Costureira",
+  "classe": "Moda e costura",
+  "palavras": [
+   "costureira",
+   "costura",
+   "ajuste de roupa",
+   "fazer barra",
+   "consertar roupa"
+  ],
+  "como": "Faz ajustes e roupas sob medida, por peça.",
+  "funcoes": [
+   "Ajustes e barras",
+   "Roupas sob medida",
+   "Consertos",
+   "Uniformes"
+  ],
+  "cobra": [
+   "peça",
+   "serviço"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": {
+   "cnae": "1412-6/01",
+   "ocupacao": "Costureiro(a) de roupas"
+  },
+  "visita": false
+ },
+ {
+  "key": "alfaiate",
+  "nome": "Alfaiate",
+  "classe": "Moda e costura",
+  "palavras": [
+   "alfaiate",
+   "terno sob medida"
+  ],
+  "como": "Faz ternos e roupas sociais sob medida.",
+  "funcoes": [
+   "Ternos",
+   "Ajustes",
+   "Roupa social"
+  ],
+  "cobra": [
+   "peça"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": {
+   "cnae": "1412-6/02",
+   "ocupacao": "Alfaiate"
+  },
+  "visita": false
+ },
+ {
+  "key": "sapateiro",
+  "nome": "Sapateiro",
+  "classe": "Moda e costura",
+  "palavras": [
+   "sapateiro",
+   "consertar sapato",
+   "trocar sola"
+  ],
+  "como": "Conserta calçados, bolsas e artigos de couro.",
+  "funcoes": [
+   "Sola e salto",
+   "Costura",
+   "Tingimento",
+   "Bolsas"
+  ],
+  "cobra": [
+   "peça",
+   "serviço"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": {
+   "cnae": "9529-1/01",
+   "ocupacao": "Sapateiro(a)"
+  },
+  "visita": false
+ },
+ {
+  "key": "estilista",
+  "nome": "Estilista e personal stylist",
+  "classe": "Moda e costura",
+  "palavras": [
+   "estilista",
+   "personal stylist",
+   "consultoria de imagem"
+  ],
+  "como": "Cria peças e coleções sob encomenda.",
+  "funcoes": [
+   "Vestido de festa",
+   "Coleção",
+   "Modelagem"
+  ],
+  "cobra": [
+   "projeto",
+   "peça"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "guiaturismo",
+  "nome": "Guia de turismo",
+  "classe": "Turismo e passeios",
+  "palavras": [
+   "guia de turismo",
+   "guia turistico",
+   "city tour",
+   "roteiro pela cidade",
+   "conhecer a cidade"
+  ],
+  "como": "Conduz passeios e roteiros por pessoa ou grupo.",
+  "funcoes": [
+   "City tour",
+   "Roteiros",
+   "Passeios históricos"
+  ],
+  "cobra": [
+   "pessoa",
+   "passeio",
+   "diária"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": "Cadastro no Cadastur",
+  "mei": {
+   "cnae": "7912-1/00",
+   "ocupacao": "Guia de turismo"
+  },
+  "visita": false
+ },
+ {
+  "key": "ecoturismo",
+  "nome": "Ecoturismo e trilhas",
+  "classe": "Turismo e passeios",
+  "palavras": [
+   "trilha",
+   "ecoturismo",
+   "cachoeira",
+   "rapel",
+   "passeio na natureza"
+  ],
+  "como": "Conduz trilhas e passeios na natureza.",
+  "funcoes": [
+   "Trilhas",
+   "Cachoeiras",
+   "Rapel",
+   "Camping"
+  ],
+  "cobra": [
+   "pessoa",
+   "passeio"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": "Cadastro no Cadastur",
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "passeiobarco",
+  "nome": "Passeio de barco",
+  "classe": "Turismo e passeios",
+  "palavras": [
+   "passeio de barco",
+   "passeio de lancha",
+   "escuna",
+   "aluguel de barco"
+  ],
+  "como": "Leva grupos para passeios de barco.",
+  "funcoes": [
+   "Passeio de barco",
+   "Pescaria",
+   "Pôr do sol"
+  ],
+  "cobra": [
+   "pessoa",
+   "passeio",
+   "hora"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": "Habilitação náutica (Marinha)",
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "receptivo",
+  "nome": "Receptivo e transfer turístico",
+  "classe": "Turismo e passeios",
+  "palavras": [
+   "transfer do aeroporto",
+   "receptivo",
+   "transfer turistico",
+   "buscar no aeroporto"
+  ],
+  "como": "Recebe turistas com traslados e roteiros.",
+  "funcoes": [
+   "Traslado",
+   "Recepção no aeroporto",
+   "Roteiros"
+  ],
+  "cobra": [
+   "pessoa",
+   "serviço"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": "Cadastro no Cadastur",
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "reciclaveis",
+  "nome": "Coleta de recicláveis",
+  "classe": "Meio ambiente e reciclagem",
+  "palavras": [
+   "reciclagem",
+   "coleta de reciclavel",
+   "reciclaveis",
+   "catador",
+   "coleta seletiva",
+   "oleo de cozinha usado"
+  ],
+  "como": "Recolhe recicláveis em casas e comércios.",
+  "funcoes": [
+   "Papelão",
+   "Plástico",
+   "Metais",
+   "Coleta programada"
+  ],
+  "cobra": [
+   "coleta",
+   "kg"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": {
+   "cnae": "3811-4/00",
+   "ocupacao": "Coletor de resíduos não perigosos"
+  },
+  "visita": false
+ },
+ {
+  "key": "cacamba",
+  "nome": "Caçamba e retirada de entulho",
+  "classe": "Meio ambiente e reciclagem",
+  "palavras": [
+   "cacamba",
+   "entulho",
+   "retirar entulho",
+   "restos de obra",
+   "aluguel de cacamba"
+  ],
+  "como": "Aluga caçamba para entulho por período.",
+  "funcoes": [
+   "Caçamba de entulho",
+   "Troca de caçamba",
+   "Remoção"
+  ],
+  "cobra": [
+   "serviço",
+   "diária"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": "Licença ambiental da prefeitura",
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "eletronicodescarte",
+  "nome": "Descarte de eletrônicos",
+  "classe": "Meio ambiente e reciclagem",
+  "palavras": [
+   "descarte de eletronicos",
+   "lixo eletronico",
+   "descartar celular",
+   "pilhas e baterias",
+   "descartar computador"
+  ],
+  "como": "Recolhe eletrônicos para descarte correto.",
+  "funcoes": [
+   "Computadores",
+   "Celulares",
+   "Eletrodomésticos",
+   "Pilhas e baterias"
+  ],
+  "cobra": [
+   "coleta",
+   "kg"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "moveisvelhos",
+  "nome": "Retirada de móveis velhos",
+  "classe": "Meio ambiente e reciclagem",
+  "palavras": [
+   "retirar movel velho",
+   "descartar sofa",
+   "descartar colchao",
+   "bota-fora"
+  ],
+  "como": "Retira móveis e entulhos de casa.",
+  "funcoes": [
+   "Retirada de móveis",
+   "Limpeza de casa",
+   "Descarte correto"
+  ],
+  "cobra": [
+   "serviço",
+   "coleta"
+  ],
+  "atende": "domicilio",
+  "atendeTexto": "vai até você com hora marcada",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "limpezaterreno",
+  "nome": "Limpeza de terreno e roçada",
+  "classe": "Meio ambiente e reciclagem",
+  "palavras": [
+   "limpeza de terreno",
+   "rocada",
+   "rocar terreno",
+   "capina",
+   "terreno baldio"
+  ],
+  "como": "Roça e limpa terrenos por m² ou serviço.",
+  "funcoes": [
+   "Roçada",
+   "Capina",
+   "Retirada de entulho"
+  ],
+  "cobra": [
+   "m²",
+   "serviço",
+   "diária"
+  ],
+  "atende": "visita",
+  "atendeTexto": "vai até você (com taxa de visita)",
+  "exige": null,
+  "mei": null,
+  "visita": true
+ },
+ {
+  "key": "vigilante",
+  "nome": "Vigilante e segurança",
+  "classe": "Segurança",
+  "palavras": [
+   "vigilante",
+   "seguranca particular",
+   "guarda noturno"
+  ],
+  "como": "Faz vigilância por plantão, contratado por empresa autorizada.",
+  "funcoes": [
+   "Plantão diurno",
+   "Plantão noturno",
+   "Ronda"
+  ],
+  "cobra": [
+   "plantão",
+   "hora",
+   "mês"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": "Curso de vigilante e vínculo com empresa autorizada pela Polícia Federal",
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "porteiro",
+  "nome": "Porteiro e controlador de acesso",
+  "classe": "Segurança",
+  "palavras": [
+   "porteiro",
+   "portaria",
+   "controlador de acesso"
+  ],
+  "como": "Faz portaria e controle de acesso.",
+  "funcoes": [
+   "Portaria",
+   "Controle de acesso",
+   "Recebimento de encomendas"
+  ],
+  "cobra": [
+   "plantão",
+   "mês",
+   "hora"
+  ],
+  "atende": "local",
+  "atendeTexto": "você vai até o local dele",
+  "exige": null,
+  "mei": null,
+  "visita": false
+ },
+ {
+  "key": "escolta",
+  "nome": "Escolta e motorista de segurança",
+  "classe": "Segurança",
+  "palavras": [
+   "escolta",
+   "seguranca armada"
+  ],
+  "como": "Faz escolta e segurança pessoal com veículo.",
+  "funcoes": [
+   "Escolta de carga",
+   "Segurança pessoal",
+   "Eventos"
+  ],
+  "cobra": [
+   "hora",
+   "diária",
+   "km"
+  ],
+  "atende": "chamado",
+  "atendeTexto": "chamado na hora, pelo GPS",
+  "exige": "Curso de vigilante com extensão em escolta e empresa autorizada pela Polícia Federal",
+  "mei": null,
+  "visita": false
+ }
+]

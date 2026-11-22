@@ -25,7 +25,8 @@ import {
   VISIT_STATUS,
 } from '../../serviceVisits';
 
-import ProfessionPicker from '../../components/ProfessionPicker';
+import ProfissaoBusca, { FuncoesTags, ProfissaoInfo, MeiGuia } from '../../components/ProfissaoBusca';
+import { profConfig, buscarProfissoes, profissaoPorKey } from '../../providerSegments';
 import PrestacaoScreen from './PrestacaoScreen';
 import { BoostButton } from '../../components/Boost';
 import { CAR_FEATURES, featuresOf, featureIcon, featureLabel } from '../../vehicleInfo';
@@ -134,16 +135,36 @@ function SafetyKey() {
   );
 }
 
-const UNITS = ['mês', 'hora', 'serviço', 'diária (8h)', 'm²', 'visita', 'corrida + R$ 2,50/km'];
+// Só as cobranças da profissão (eletricista não vê "por corrida"; motorista não vê "por m²").
+// Os nomes daqui são os da faixa justa (src/pricing.js).
+const UNIT_LOCAL = { 'diária': 'diária (8h)', corrida: 'corrida + R$ 2,50/km', 'm²': 'm²' };
+const unitsFor = (service) => profConfig(service).units.filter((u) => u !== 'km').map((u) => UNIT_LOCAL[u] || u);
 
 function DriverMain({ goTo, onCadastro }) {
   const { state, dispatch } = useStore();
   const me = state.myProvider;
   const [editing, setEditing] = useState(!me);
-  const [service, setService] = useState(me ? me.service : 'eletricista');
-  const [functions, setFunctions] = useState(me ? me.functions.join(', ') : '');
+  // A profissão vem do perfil (escolhida no cadastro); as outras só pelo botão "Adicionar outra profissão".
+  const doPerfil = () => {
+    const soc = state.myProfile && state.myProfile.social;
+    if (soc && soc.prof && profissaoPorKey(soc.prof)) return soc.prof;
+    const m = buscarProfissoes((state.myProfile && state.myProfile.profession) || '', 1)[0];
+    return m ? m.key : 'eletricista';
+  };
+  const [service, setService0] = useState(me ? me.service : doPerfil);
+  const [outros, setOutros] = useState(me && me.outros ? me.outros : []);
+  const [trocando, setTrocando] = useState(false);
+  const [addOutra, setAddOutra] = useState(false);
+  const [mei, setMei] = useState(false);
+  const [functions, setFunctions] = useState(me ? me.functions : []);
   const [price, setPrice] = useState(me ? String(me.price) : '');
-  const [unit, setUnit] = useState(me ? me.priceUnit : 'hora');
+  const [unit, setUnit] = useState(me ? me.priceUnit : unitsFor(me ? me.service : doPerfil())[0]);
+  const setService = (k) => {
+    setService0(k);
+    setOutros((o) => o.filter((x) => x !== k));
+    const us = unitsFor(k);
+    if (!us.includes(unit)) setUnit(us[0]);
+  };
   const [fee, setFee] = useState(me && me.visitFee != null ? String(me.visitFee) : '');
   const [discount, setDiscount] = useState(me ? !!me.visitDiscount : true);
   const byVisit = isVisitService(service);
@@ -161,11 +182,8 @@ function DriverMain({ goTo, onCadastro }) {
 
   const save = () => {
     const v = parseFloat(price.replace(',', '.'));
-    const list = functions
-      .split(',')
-      .map((f) => f.trim())
-      .filter(Boolean);
-    if (!list.length || isNaN(v)) return Alert.alert('Informe o que você faz e quanto cobra.');
+    const list = functions.filter(Boolean);
+    if (!list.length || isNaN(v)) return Alert.alert('Falta pouco', 'Marque o que você faz e informe quanto cobra.');
     const f = parseFloat(fee.replace(',', '.'));
     if (byVisit && (isNaN(f) || f <= 0)) return Alert.alert('Informe a taxa de visita', 'É o valor que o cliente paga para você ir até ele avaliar o serviço.');
     // Faixa justa: ninguém cobra acima do teto (justo para o cliente e equilibrado entre prestadores).
@@ -184,6 +202,7 @@ function DriverMain({ goTo, onCadastro }) {
       type: 'SAVE_MY_PROVIDER',
       profile: {
         service,
+        outros,
         functions: list,
         price: v,
         priceUnit: unit,
@@ -248,8 +267,46 @@ function DriverMain({ goTo, onCadastro }) {
               Essas informações são o que a Lotus responde quando um cliente pergunta por voz: "tem eletricista perto
               de mim?".
             </Text>
-            <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Tipo de serviço</Text>
-            <ProfessionPicker selected={service} types={serviceTypes} onPick={setService} />
+            <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Sua profissão</Text>
+            {profissaoPorKey(service) && !trocando ? (
+              <View style={dz.prof}>
+                <Text style={{ fontSize: 26 }}>{profissaoPorKey(service).icon || '🧰'}</Text>
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={dz.profNome} numberOfLines={1}>{profissaoPorKey(service).label}</Text>
+                  <Text style={{ color: colors.muted, fontSize: 12.5 }} numberOfLines={1}>{me ? profissaoPorKey(service).group : `Do seu perfil · ${profissaoPorKey(service).group}`}</Text>
+                </View>
+                <TouchableOpacity onPress={() => setTrocando(true)} style={{ padding: 6 }} accessibilityLabel="Trocar profissão">
+                  <Text style={dz.link}>Trocar</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <ProfissaoBusca value={null} autoFocus={trocando} onPick={(p) => p && p.key && (setService(p.key), setTrocando(false))} />
+            )}
+            {!trocando ? <ProfissaoInfo profKey={service} onMei={() => setMei(true)} /> : null}
+            <MeiGuia visible={mei} onClose={() => setMei(false)} profKey={service} />
+            {outros.map((k) => {
+              const o = profissaoPorKey(k);
+              return o ? (
+                <View key={k} style={[dz.prof, dz.outra]}>
+                  <Text style={{ fontSize: 20 }}>{o.icon || '🧰'}</Text>
+                  <Text style={[dz.profNome, { flex: 1, marginLeft: 10, fontSize: 14 }]} numberOfLines={1}>{o.label}</Text>
+                  <TouchableOpacity onPress={() => setOutros(outros.filter((x) => x !== k))} style={{ padding: 4 }} accessibilityLabel={`Tirar ${o.label}`}>
+                    <Ionicons name="close" size={18} color={colors.muted} />
+                  </TouchableOpacity>
+                </View>
+              ) : null;
+            })}
+            {addOutra ? (
+              <View style={{ marginTop: 8 }}>
+                <ProfissaoBusca value={null} autoFocus placeholder="Digite a outra profissão" onPick={(p) => { setAddOutra(false); if (p && p.key && p.key !== service && !outros.includes(p.key)) setOutros([...outros, p.key].slice(0, 4)); }} />
+              </View>
+            ) : outros.length < 4 ? (
+              <TouchableOpacity onPress={() => setAddOutra(true)} style={dz.add} accessibilityLabel="Adicionar outra profissão">
+                <Ionicons name="add-circle-outline" size={18} color={colors.primary} />
+                <Text style={[dz.link, { marginLeft: 6 }]}>Adicionar outra profissão</Text>
+              </TouchableOpacity>
+            ) : null}
+            <View style={{ height: 12 }} />
             {moves ? (
               <>
                 <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Seu veículo</Text>
@@ -278,13 +335,8 @@ function DriverMain({ goTo, onCadastro }) {
                 </Row>
               </>
             ) : null}
-            <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>O que você faz (separe por vírgula)</Text>
-            <Input
-              placeholder="Ex.: Instalação de chuveiro, tomadas, quadro de luz"
-              value={functions}
-              onChangeText={setFunctions}
-              multiline
-            />
+            <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>O que você faz</Text>
+            <FuncoesTags keys={[service, ...outros]} value={functions} onChange={setFunctions} />
             <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 6 }}>Quanto você cobra</Text>
             {TARIFFS[service] ? (
               <Text style={{ color: colors.muted, fontSize: 12, marginBottom: 8 }}>Motorista e motoboy seguem a Tarifa Realyz, igual para todos (com valor dinâmico no pico). O valor abaixo fica só como referência sua.</Text>
@@ -296,7 +348,7 @@ function DriverMain({ goTo, onCadastro }) {
               </Text>
             ) : null}
             <Row style={{ flexWrap: 'wrap', marginBottom: 12 }}>
-              {UNITS.map((u) => (
+              {unitsFor(service).map((u) => (
                 <View key={u} style={{ marginBottom: 8 }}>
                   <Chip label={`por ${u}`} active={unit === u} onPress={() => setUnit(u)} />
                 </View>
@@ -693,3 +745,11 @@ export default function DriverScreen(props) {
   if (tela === 'cadastro') return <PrestacaoScreen onClose={() => setTela(null)} />;
   return <DriverMain {...props} onCadastro={() => setTela('cadastro')} />;
 }
+
+const dz = {
+  prof: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 14, borderWidth: 1.5, borderColor: colors.primary, backgroundColor: '#FFFBEF' },
+  outra: { marginTop: 8, borderWidth: 1, borderColor: colors.border, backgroundColor: '#fff', paddingVertical: 9 },
+  profNome: { color: colors.text, fontWeight: '800', fontSize: 15 },
+  link: { color: colors.primary, fontWeight: '800' },
+  add: { flexDirection: 'row', alignItems: 'center', marginTop: 10, paddingVertical: 4, alignSelf: 'flex-start' },
+};

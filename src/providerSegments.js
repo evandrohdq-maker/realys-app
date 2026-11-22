@@ -4,6 +4,7 @@
 // Ex.: Artista não vê "por corrida", "por km" nem campo de veículo; motorista não vê "por show".
 import { PROF_CLASSES } from './professionsData';
 import { serviceTypes } from './data';
+import { profInfo } from './professionsKnowledge';
 
 const BASE = { units: ['visita', 'hora', 'serviço', 'diária'], visit: true, vehicle: false, price: 'Preço (R$)', ph: 'O que você faz (ex.: Tomadas, Chuveiro, Disjuntor)' };
 export const SEG_CONFIG = {
@@ -37,6 +38,16 @@ export const SEG_CONFIG = {
   seguranca: { units: ['hora', 'plantão', 'diária', 'evento'], visit: false, vehicle: false, price: 'Preço (R$)', ph: 'O que você faz (ex.: Portaria, Eventos, Ronda)' },
 };
 export const segConfig = (key) => SEG_CONFIG[key] || BASE;
+
+// Configuração de UMA profissão (mais certa que a do segmento): como cobra, se tem taxa de visita,
+// se pede veículo, o exemplo do que faz e o que a lei exige. Vem de src/professionsKnowledge.js.
+export function profConfig(key) {
+  const seg = segConfig(segOfService(key));
+  const i = profInfo(key);
+  if (!i) return seg;
+  const veiculo = seg.vehicle || ['guincho', 'escolta', 'transpet', 'acessivel'].includes(key);
+  return { ...seg, units: i.cobra, visit: i.visita, vehicle: veiculo, info: i, note: [seg.note, i.exige ? `Exige: ${i.exige}.` : null].filter(Boolean).join(' ') || null };
+}
 
 // Artista e Gamer no começo, para quem se apresenta ou transmite achar fácil.
 const TOPO = { artistas: 0, gamers: 1 };
@@ -75,7 +86,7 @@ export function buscarProfissoes(q, n = 4) {
     else if (label.split(/[\s(),/]+/).some((w) => w.startsWith(t))) score = 65;
     else if (words.some((w) => w === t)) score = 55;
     else if (words.some((w) => w.startsWith(t))) score = 45;
-    else if (label.includes(t) || words.some((w) => w.includes(t))) score = 30;
+    else if (label.includes(t)) score = 30;
     if (score) out.push({ ...p, score, segmento: segLabelOf(p.key), exemplo: funcoesSugeridas(p.key).slice(0, 3).join(', ') });
   });
   return out.sort((a, b) => b.score - a.score || a.label.length - b.label.length).slice(0, n);
@@ -120,6 +131,8 @@ const FUNCOES = {
 };
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 export function funcoesSugeridas(key) {
+  const i = profInfo(key);
+  if (i) return i.funcoes;
   if (FUNCOES[key]) return FUNCOES[key];
   const p = profissaoPorKey(key);
   if (!p) return [];
