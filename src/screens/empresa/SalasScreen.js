@@ -10,6 +10,7 @@ import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
 import { useBack } from '../../back';
+import RealFriendsInvite from '../../components/RealFriendsInvite';
 import { moderateText, antiDesvio } from '../../moderation';
 import {
   useSalas, salaOf, roomOf, salaKey, SALA_TIPOS, ACOES, enterQueue, leaveQueue, queuePos, callFromQueue,
@@ -194,6 +195,7 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom, cfgFirst, onCf
   // Empresa vê como dona (na demonstração, a empresa logada cuida da recepção que abrir).
   const owner = isCompany || s.mine;
   const [asking, setAsking] = useState(null); // { motivo, note }
+  const [meet, setMeet] = useState(null); // reunião nova: escolher quem convidar
   const [canal, setCanal] = useState(null);
   const [draft, setDraft] = useState('');
   const inQueue = myQueue && myQueue.sid === sid;
@@ -315,8 +317,7 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom, cfgFirst, onCf
             style={st.meetBtn}
             onPress={() => {
               const r = createMeeting(sid, `Reunião ${new Date().getHours()}h`, me);
-              Share.share({ message: `Reunião no Realyz com ${s.name}. Entre pelo link (precisa ter conta verificada): ${meetingLink(sid, r)}` }).catch(() => {});
-              onRoom(r);
+              setMeet(r); // escolhe quem convidar: amigos do Realyz (mensagem) ou link por fora
             }}
             accessibilityLabel="Começar uma reunião e convidar pessoas"
           >
@@ -371,6 +372,26 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom, cfgFirst, onCf
           </TouchableOpacity>
         </View>
       </KeyboardLift></Modal>
+
+      {/* Nova reunião: amigos de contas reais recebem o convite por mensagem; os outros, pelo link. */}
+      <Modal visible={!!meet} transparent animationType="slide" onRequestClose={() => { const r = meet; setMeet(null); onRoom(r); }}>
+        <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)' }} activeOpacity={1} onPress={() => { const r = meet; setMeet(null); onRoom(r); }} />
+        <View style={st.sheet}>
+          <Text style={st.dTitle}>Convidar para a reunião</Text>
+          <TouchableOpacity
+            style={[st.bigBtn, { marginTop: 10 }]}
+            onPress={() => Share.share({ message: `Reunião no Realyz com ${s.name}. Entre pelo link (precisa ter conta verificada): ${meetingLink(sid, meet)}` }).catch(() => {})}
+          >
+            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }} numberOfLines={1}>Enviar link por fora do app</Text>
+          </TouchableOpacity>
+          <ScrollView style={{ maxHeight: 320 }}>
+            <RealFriendsInvite makeText={async () => `📅 ${me} te convidou para uma reunião no Realyz com ${s.name}. Entre pelo link: ${meetingLink(sid, meet)}`} />
+          </ScrollView>
+          <TouchableOpacity style={{ paddingVertical: 14, alignItems: 'center' }} onPress={() => { const r = meet; setMeet(null); onRoom(r); }}>
+            <Text style={{ color: C.gold, fontWeight: '800' }}>Entrar na reunião</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }

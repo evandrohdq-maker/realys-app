@@ -12,7 +12,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { useArena, arenaPref, joinArenaVoice, arenaGuestJoins, arenaPrivateCall } from '../arena';
 import { members } from '../people';
-import { shareCallInvite } from '../callInvite';
+import { shareCallInvite, makeCallInvite, inviteMessage } from '../callInvite';
+import RealFriendsInvite from './RealFriendsInvite';
 import { Photo } from './ui';
 
 const D = { text: '#1B1B1F', muted: '#7A7468', gold: '#B8860B', line: '#EEE8D8', soft: '#F4F0E4', green: '#2FB463', red: '#E5484D' };
@@ -196,8 +197,18 @@ export function InviteSheet({ open, sv, me, onClose }) {
           </View>
         ) : null}
 
-        <Text style={[st.label, { marginTop: 14 }]}>Amigos no Realyz</Text>
-        <ScrollView style={{ maxHeight: 260 }}>
+        <ScrollView style={{ maxHeight: 340 }}>
+          {/* Amigos de contas reais: o convite chega como mensagem (e notificação) para a pessoa. */}
+          {room ? (
+            <RealFriendsInvite
+              makeText={async () => {
+                joinArenaVoice(sv.id, room.id, me); // quem convida já fica esperando na sala
+                const inv = await makeCallInvite({ sid: sv.id, cid: room.id, server: sv.name, room: room.name, host: me });
+                return inviteMessage({ ...inv, host: me, room: room.name, server: sv.name });
+              }}
+            />
+          ) : null}
+          <Text style={[st.label, { marginTop: 14 }]}>Amigos de exemplo</Text>
           {friends.length ? (
             friends.map((m) => {
               const there = inRoom(m.name);
