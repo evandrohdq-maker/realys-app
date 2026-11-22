@@ -911,6 +911,39 @@ const MIGRATIONS = [
   ALTER TABLE orders ADD COLUMN ref_pago INTEGER NOT NULL DEFAULT 0;
   ALTER TABLE companies ADD COLUMN indicacao_extra_pct INTEGER NOT NULL DEFAULT 0;
   `,
+  // 35: Turbinar (impulsionar um Reel, story ou post para ganhar seguidores ou cliques no produto).
+  // gasto_mc em milésimos de centavo (uma visualização custa frações de centavo).
+  `
+  CREATE TABLE turbinar (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    alvo TEXT NOT NULL,
+    alvo_tipo TEXT NOT NULL,
+    objetivo TEXT NOT NULL,
+    por_dia INTEGER NOT NULL,
+    dias INTEGER NOT NULL,
+    total INTEGER NOT NULL,
+    cpm INTEGER NOT NULL,
+    cpc INTEGER NOT NULL,
+    gasto_mc INTEGER NOT NULL DEFAULT 0,
+    views INTEGER NOT NULL DEFAULT 0,
+    cliques INTEGER NOT NULL DEFAULT 0,
+    seguidores INTEGER NOT NULL DEFAULT 0,
+    devolvido INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'ativo',
+    created_at INTEGER NOT NULL,
+    ends_at INTEGER NOT NULL
+  );
+  CREATE INDEX turbinar_user ON turbinar(user_id, created_at DESC);
+  CREATE INDEX turbinar_ativo ON turbinar(status, ends_at);
+  CREATE TABLE turbinar_eventos (
+    boost_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    tipo TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (boost_id, user_id, tipo)
+  );
+  `,
 ];
 
 export function openDb(file) {

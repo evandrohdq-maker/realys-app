@@ -222,7 +222,7 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <View style={[styles.seenBy, { flex: 1 }]}>
                 <Ionicons name="eye-outline" size={16} color="#fff" />
-                <Text numberOfLines={1} style={{ color: '#fff', marginLeft: 6, fontWeight: '600' }}>Visto por {item.views || 0} pessoas verificadas</Text>
+                <Text numberOfLines={1} style={{ color: '#fff', marginLeft: 6, fontWeight: '600' }}>Visto por {item.views || 0} pessoas</Text>
               </View>
               {/* Destacar: atalho deste story nas pastas de destaque, no mural ou na vitrine. */}
               {item.time !== 'destaque' && !item.ref ? (
@@ -407,7 +407,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
                 })}
               </ScrollView>
               <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, marginTop: 8 }}>
-                {media.kind === 'video' ? `Vídeo de ${media.secs} s · ` : ''}Fica no ar por 24 horas, só para pessoas verificadas.
+                {media.kind === 'video' ? `Vídeo de ${media.secs} s · ` : ''}Fica no ar por 24 horas, todo mundo pode ver.
               </Text>
             </>
           ) : (
@@ -439,7 +439,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
                   </TouchableOpacity>
                 ))}
               </ScrollView>
-              <Text style={{ color: light ? colors.muted : 'rgba(255,255,255,0.8)', fontSize: 11, marginTop: 8 }}>Fica no ar por 24 horas, só para pessoas verificadas.</Text>
+              <Text style={{ color: light ? colors.muted : 'rgba(255,255,255,0.8)', fontSize: 11, marginTop: 8 }}>Fica no ar por 24 horas, todo mundo pode ver.</Text>
             </>
           )}
         </View>

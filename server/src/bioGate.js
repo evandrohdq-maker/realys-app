@@ -19,6 +19,7 @@ export const ROTAS_COM_BIOMETRIA = [
   ['POST', '/wallet/convert-live'],
   ['POST', '/gifts'], // presentes
   ['POST', '/lives/:id/gifts'], // presentes em live
+  ['POST', '/turbinar'], // turbinar (impulsionar) é pagamento
   ['POST', '/shows/pedidos/:id/pagar'], // fechar show de artista (a contratação direta é travada dentro da rota)
 ];
 const chave = (method, path) => `${method} ${path}`;

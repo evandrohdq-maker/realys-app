@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { KeyboardLift } from '../keyboard';
 import { PHOTO_RULE } from '../moderation';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Pressable, Image, Alert, Platform, useWindowDimensions, Switch } from 'react-native';
@@ -32,6 +32,14 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
   const [view, setView] = useState(null); // { groups, start, mine }
   const [composing, setComposing] = useState(false);
   const [adding, setAdding] = useState(false); // menu do +
+  const [anchor, setAnchor] = useState(null); // onde fica o "+" na tela (o menu abre logo abaixo dele)
+  const [fotoAberta, setFotoAberta] = useState(false); // ver a própria foto do perfil
+  const plusRef = useRef(null);
+  const abrirMais = () => {
+    const n = plusRef.current;
+    if (n && n.measureInWindow) n.measureInWindow((x, y, w, h) => { setAnchor({ x, y, w, h }); setAdding(true); });
+    else { setAnchor(null); setAdding(true); }
+  };
   const [posting, setPosting] = useState(false);
   const [writingDep, setWritingDep] = useState(false);
   const [reeling, setReeling] = useState(false); // publicar um Reel (vídeo curto)
@@ -143,7 +151,8 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
           {/* No computador o "Seu story" fica só no topo do menu lateral. */}
           {railFree ? null : (
           <View style={[styles.item, { width: itemW }]}>
-            <TouchableOpacity onPress={openMine} activeOpacity={0.85} accessibilityLabel={mine.items.length ? 'Ver o seu story' : 'Criar o seu story'}>
+            {/* Tocar na sua foto: abre a foto do perfil (e, de lá, o seu story, se tiver). */}
+            <TouchableOpacity onPress={() => setFotoAberta(true)} activeOpacity={0.85} accessibilityLabel="Ver a sua foto do perfil">
               <View style={[styles.outer, { width: avMeu + 18, height: avMeu + 18, borderRadius: (avMeu + 18) / 2, borderColor: colors.gold, borderWidth: 2 }]}>
                 <View style={[styles.ring, { width: avMeu + 8, height: avMeu + 8, borderRadius: (avMeu + 8) / 2, borderColor: colors.gold, borderWidth: 3 }]}>
                   {myPhoto ? (
@@ -156,7 +165,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
                 </View>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setAdding(true)} style={[styles.mePlus, { width: 28, height: 28, borderRadius: 14, right: Math.max(4, (itemW - avMeu - 18) / 2 - 2), bottom: 22 }]} accessibilityLabel="Adicionar conteúdo">
+            <TouchableOpacity ref={plusRef} collapsable={false} onPress={abrirMais} style={[styles.mePlus, { width: 28, height: 28, borderRadius: 14, right: Math.max(4, (itemW - avMeu - 18) / 2 - 2), bottom: 22 }]} accessibilityLabel="Adicionar conteúdo">
               <Ionicons name="add" size={18} color="#fff" />
             </TouchableOpacity>
             <Text numberOfLines={1} style={[styles.name, { color: colors.primary, fontWeight: '800', maxWidth: itemW - 8 }]}>Stories</Text>
@@ -203,8 +212,18 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
           openPerson(who, { onLeave: () => setView(null) });
         }}
       />
+      <FotoPerfil
+        visible={fotoAberta}
+        photo={myPhoto}
+        name={userName}
+        temStory={mine.items.length > 0}
+        onClose={() => setFotoAberta(false)}
+        onStory={() => { setFotoAberta(false); openMine(); }}
+        onAdd={() => { setFotoAberta(false); abrirMais(); }}
+      />
       <AddSheet
         visible={adding}
+        anchor={anchor}
         onClose={() => setAdding(false)}
         onPick={(k) => {
           setAdding(false);
@@ -261,34 +280,63 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
 }
 
 // Menu do +: o que você quer publicar?
-function AddSheet({ visible, onClose, onPick }) {
-  const insets = useSafeAreaInsets();
+// Menu do "+": pequeno, abre logo abaixo do botão (não no rodapé da tela).
+function AddSheet({ visible, onClose, onPick, anchor }) {
+  const { width } = useWindowDimensions();
   const opts = [
-    ['post', 'Publicação', 'Conta pra galera o que tá rolando', 'create-outline'],
-    ['reel', 'Reel', 'Vídeo curto em tela cheia: até 60 segundos pra brilhar', 'play-circle-outline'],
-    ['story', 'Story', 'Some em 24 h, ou fica nos seus destaques', 'aperture-outline'],
-    ['dep', 'Depoimento', 'Fala bem de um amigo: vai pro perfil dele', 'chatbox-ellipses-outline'],
+    ['story', 'Story', 'aperture-outline'],
+    ['reel', 'Reel', 'play-circle-outline'],
+    ['post', 'Publicação', 'create-outline'],
+    ['dep', 'Depoimento', 'chatbox-ellipses-outline'],
   ];
+  const W = 176;
+  const top = anchor ? anchor.y + anchor.h + 6 : 120;
+  const left = anchor ? Math.max(8, Math.min(width - W - 8, anchor.x + anchor.w / 2 - 24)) : 16;
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}><KeyboardLift style={{ flex: 1 }}>
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        <Pressable style={[styles.sheet, { paddingBottom: 18 + insets.bottom }]} onPress={() => {}}>
-          <Text style={styles.sheetTitle}>Criar</Text>
-          {opts.map(([k, title, hint, icon]) => (
-            <TouchableOpacity key={k} style={styles.opt} onPress={() => onPick(k)} activeOpacity={0.85}>
-              <View style={styles.optIcon}>
-                <Ionicons name={icon} size={22} color={colors.primary} />
-              </View>
-              <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{title}</Text>
-                <Text style={{ color: colors.muted, fontSize: 12 }}>{hint}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={{ flex: 1 }} onPress={onClose}>
+        <View style={[styles.miniMenu, { top, left, width: W }]}>
+          {opts.map(([k, title, icon], i) => (
+            <TouchableOpacity key={k} onPress={() => onPick(k)} activeOpacity={0.8} style={[styles.miniOpt, i > 0 && { borderTopWidth: 1, borderTopColor: colors.border }]} accessibilityLabel={`Criar ${title}`}>
+              <Ionicons name={icon} size={18} color={colors.primary} />
+              <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14, marginLeft: 10 }}>{title}</Text>
             </TouchableOpacity>
           ))}
-        </Pressable>
+        </View>
       </Pressable>
-    </KeyboardLift></Modal>
+    </Modal>
+  );
+}
+
+// Sua foto do perfil em tamanho grande (tocar na bolinha dos Stories).
+function FotoPerfil({ visible, photo, name, temStory, onClose, onStory, onAdd }) {
+  const { width } = useWindowDimensions();
+  const S = Math.min(width - 48, 340);
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.88)', alignItems: 'center', justifyContent: 'center' }} onPress={onClose}>
+        {photo ? (
+          <Photo uri={photo} style={{ width: S, height: S, borderRadius: S / 2, borderWidth: 3, borderColor: colors.gold }} fallback="🙂" />
+        ) : (
+          <View style={{ width: S, height: S, borderRadius: S / 2, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 72 }}>{(name || '?').charAt(0).toUpperCase()}</Text>
+          </View>
+        )}
+        <Text style={{ color: '#fff', fontWeight: '800', fontSize: 18, marginTop: 14 }}>{name}</Text>
+        <View style={{ flexDirection: 'row', marginTop: 16 }}>
+          {temStory ? (
+            <TouchableOpacity onPress={onStory} style={styles.fotoBtn} accessibilityLabel="Ver o seu story">
+              <Ionicons name="aperture-outline" size={16} color="#fff" />
+              <Text style={{ color: '#fff', fontWeight: '700', marginLeft: 6 }}>Ver meu story</Text>
+            </TouchableOpacity>
+          ) : null}
+          <TouchableOpacity onPress={onAdd} style={[styles.fotoBtn, { backgroundColor: colors.accent }]} accessibilityLabel="Postar algo">
+            <Ionicons name="add" size={16} color="#fff" />
+            <Text style={{ color: '#fff', fontWeight: '700', marginLeft: 6 }}>Postar</Text>
+          </TouchableOpacity>
+        </View>
+      </Pressable>
+    </Modal>
   );
 }
 
@@ -362,7 +410,7 @@ function PostComposer({ visible, onClose, onPublish }) {
             <Switch value={ia} onValueChange={setIa} />
           </View>
           <DestaqueOpcoes value={destaque} onChange={setDestaque} />
-          <Text style={{ color: colors.muted, fontSize: 11, marginTop: 10 }}>Só pessoas verificadas por biometria veem e comentam.</Text>
+          <Text style={{ color: colors.muted, fontSize: 11, marginTop: 10 }}>Todo mundo no Realyz pode ver e comentar. Para marcar um produto ou turbinar, precisa da biometria.</Text>
           <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6 }}>{PHOTO_RULE}</Text>
         </ScrollView>
       </KeyboardLift>
@@ -437,7 +485,7 @@ export function ReelComposer({ visible, onClose, onPublish }) {
             <Switch value={ia} onValueChange={setIa} />
           </View>
           <DestaqueOpcoes value={destaque} onChange={setDestaque} />
-          <Text style={{ color: colors.muted, fontSize: 11, marginTop: 10 }}>Só pessoas verificadas por biometria veem e comentam.</Text>
+          <Text style={{ color: colors.muted, fontSize: 11, marginTop: 10 }}>Todo mundo no Realyz pode ver e comentar. Para marcar um produto ou turbinar, precisa da biometria.</Text>
           <Text style={{ color: colors.muted, fontSize: 11, marginTop: 6 }}>{PHOTO_RULE}</Text>
         </ScrollView>
       </KeyboardLift>
@@ -491,6 +539,9 @@ const styles = StyleSheet.create({
   reelPickSub: { color: colors.muted, fontSize: 12, marginTop: 3, textAlign: 'center' },
   head: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 14 },
   plusBtn: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginLeft: 10, elevation: 3, shadowColor: colors.primary, shadowOpacity: 0.35, shadowRadius: 6, shadowOffset: { width: 0, height: 2 } },
+  miniMenu: { position: 'absolute', backgroundColor: colors.card, borderRadius: 14, paddingVertical: 2, borderWidth: 1, borderColor: colors.border, ...soft, elevation: 8 },
+  miniOpt: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 14 },
+  fotoBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.16)', paddingVertical: 9, paddingHorizontal: 14, borderRadius: 20, marginHorizontal: 5 },
   backdrop: { flex: 1, backgroundColor: 'rgba(31,42,68,0.35)', justifyContent: 'flex-end' },
   sheet: { backgroundColor: colors.bg, borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 16 },
   sheetTitle: { color: colors.text, fontWeight: '800', fontSize: 18, marginBottom: 6 },

@@ -21,6 +21,7 @@ import { CLIP_POINTS, shortNum } from '../adsData';
 import { useOpenPerson } from '../openPerson';
 import { memberById, memberByName } from '../people';
 import EnviarSheet from './EnviarSheet';
+import TurbinarSheet from './Turbinar';
 import { isServerUserId } from '../openPerson';
 import { api } from '../api';
 
@@ -98,6 +99,7 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
   const [draft, setDraft] = useState('');
   const [enviar, setEnviar] = useState(false);
   const [seguindo, setSeguindo] = useState(false);
+  const [turbinando, setTurbinando] = useState(false);
   const prog = useRef(new Animated.Value(0)).current;
   const lastTap = useRef(0);
   const tapTimer = useRef(null);
@@ -201,8 +203,11 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
     }
     if (reel.storeId) dispatch({ type: 'FOLLOW', id: reel.storeId });
   };
+  // Reel meu: posso turbinar (impulsionar) para ganhar seguidores ou cliques no produto.
+  const meuReel = reel.kind === 'user-me' || (!!reel.user && reel.user === (state.user && state.user.name));
   const mais = () =>
     Alert.alert('Reel', reel.title, [
+      ...(meuReel ? [{ text: '🚀 Turbinar', onPress: () => { setPaused(true); setTurbinando(true); } }] : []),
       { text: salvo ? 'Tirar dos salvos' : 'Salvar', onPress: salvar },
       { text: muted ? 'Ligar o som' : 'Tirar o som', onPress: onMute },
       { text: 'Não tenho interesse', onPress: () => Alert.alert('Entendido', 'Vamos mostrar menos Reels assim para você.') },
@@ -329,6 +334,7 @@ function ReelItem({ reel, active, height, muted, onMute, onClose }) {
         <Animated.View style={[styles.progFill, { width: prog.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'], extrapolate: 'clamp' }) }]} />
       </View>
 
+      <TurbinarSheet visible={turbinando} onClose={() => (setTurbinando(false), setPaused(false))} alvo={reel.id} alvoTipo="reel" titulo={reel.title} temProduto={!!reel.productId} />
       <EnviarSheet visible={enviar} onClose={() => (setEnviar(false), setPaused(false))} titulo={reel.title} texto={`🎬 Reel de ${owner}: ${reel.title}`} />
 
       <Modal visible={!!comments} transparent animationType="slide" onRequestClose={() => setComments(null)}>

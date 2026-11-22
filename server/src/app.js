@@ -18,6 +18,7 @@ import walletRoutes from './routes/wallet.js';
 import commerceRoutes from './routes/commerce.js';
 import socialRoutes from './routes/social.js';
 import profissoesRoutes from './routes/profissoes.js';
+import turbinarRoutes from './routes/turbinar.js';
 import servicesRoutes from './routes/services.js';
 import eventosRoutes from './routes/eventos.js';
 import musicasRoutes from './routes/musicas.js';
@@ -98,7 +99,7 @@ export function createApp(cfg) {
     attempts.set(key, a);
   };
   deps.clearLogin = (key) => attempts.delete(key);
-  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes, noticiasRoutes, showsRoutes, pushRoutes, empregosRoutes, logisticaRoutes, profissoesRoutes].forEach((r) => r(router, deps));
+  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes, noticiasRoutes, showsRoutes, pushRoutes, empregosRoutes, logisticaRoutes, profissoesRoutes, turbinarRoutes].forEach((r) => r(router, deps));
   router.get('/health', () => ({ ok: true, name: 'Realyz', time: now() }), { auth: false });
 
   // Administrador inicial (ADMIN_PASSWORD no .env).
