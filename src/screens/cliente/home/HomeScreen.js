@@ -1,5 +1,6 @@
 import { openProduct } from '../../../components/ProductSheet';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { openMedia } from '../../../components/MediaViewer';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Share, Platform, ToastAndroid, Dimensions } from 'react-native';
 import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -628,6 +629,7 @@ export function CommunityHub({ top, explore }) {
     <View style={{ flex: 1 }}>
       <CommunityTab
         top={top}
+        homeTick={explore && explore.tab === 'stories' && !explore.seg && !explore.story ? explore.at : 0}
         seg={seg}
         setSeg={setSeg}
         convs={convs}
@@ -651,8 +653,17 @@ export function CommunityHub({ top, explore }) {
   );
 }
 
-function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive, userName }) {
+function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, onVideo, onGoLive, userName }) {
   const { state, dispatch } = useStore();
+  // Tocar em Community (ou na logo) de novo: o feed volta para o topo e se reorganiza, com as
+  // publicações novas (ainda não vistas) primeiro.
+  const feedRef = useRef(null);
+  const [, setFresh] = useState(0);
+  useEffect(() => {
+    if (!homeTick) return;
+    setFresh((n) => n + 1);
+    if (feedRef.current && feedRef.current.scrollTo) feedRef.current.scrollTo({ y: 0, animated: true });
+  }, [homeTick]);
   const [searching, setSearching] = useState(false);
   // Tocar em quem postou abre o perfil da pessoa (com o botão de amizade).
   const openAuthor = (name) => {
@@ -730,7 +741,7 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
   const onFeedEnd = (e) => checkSeen(e.nativeEvent.contentOffset.y);
 
   return (
-    <Screen onScroll={seg === 'posts' ? onFeedScroll : undefined} onScrollEnd={seg === 'posts' ? onFeedEnd : undefined}>
+    <Screen scrollRef={feedRef} onScroll={seg === 'posts' ? onFeedScroll : undefined} onScrollEnd={seg === 'posts' ? onFeedEnd : undefined}>
       {top}
       {/* Sino e balão de mensagens ficam no cabeçalho do app (App.js). Aqui, fora do feed, só a setinha de voltar
           com o nome da parte; Contatos virou uma aba dentro de Mensagens (Conversas · Contatos). */}
@@ -805,7 +816,17 @@ function CommunityTab({ top, seg, setSeg, convs, contactOf, onChat, onVideo, onG
                   </View>
                 ) : null}
                 <Text style={{ color: colors.text, marginTop: 10, lineHeight: 20 }}>{it.p.text}</Text>
-                {it.p.image ? <Photo uri={it.p.image} style={styles.postImg} /> : null}
+                {/* Tocar na foto abre ela grande, em destaque (src/components/MediaViewer.js). */}
+                {it.p.image ? (
+                  <TouchableOpacity activeOpacity={0.92} onPress={() => openMedia([{ photo: it.p.image, title: it.p.author, sub: it.p.text }])} accessibilityLabel={`Ver a foto de ${it.p.author}`}>
+                    <Photo uri={it.p.image} style={styles.postImg} />
+                  </TouchableOpacity>
+                ) : null}
+                {it.p.video ? (
+                  <TouchableOpacity activeOpacity={0.92} onPress={() => openMedia([{ video: it.p.video, title: it.p.author, sub: it.p.text }])} style={[styles.postImg, { backgroundColor: '#14120E', alignItems: 'center', justifyContent: 'center' }]} accessibilityLabel={`Ver o vídeo de ${it.p.author}`}>
+                    <Ionicons name="play-circle" size={56} color="#F5C331" />
+                  </TouchableOpacity>
+                ) : null}
                 {it.p.station ? <StationPostPlayer station={it.p.station} /> : null}
                 <View style={{ flexDirection: 'row', marginTop: 10 }}>
                   <TouchableOpacity style={styles.postAct} onPress={() => setLiked({ ...liked, [it.p.id]: !liked[it.p.id] })} accessibilityLabel="Curtir">

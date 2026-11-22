@@ -13,6 +13,7 @@ import { Photo, Empty } from './ui';
 import { members, memberById, searchMembers } from '../people';
 import { listenOnce } from './Search';
 import { analyzeTestimonial, galleryOf } from '../testimonialsData';
+import { openMedia } from './MediaViewer';
 import { storyDesk } from './StoryFrame';
 import { STORY_SAMPLE_PHOTOS } from '../homeData';
 import { StoryViewer } from '../screens/cliente/home/Stories';
@@ -889,7 +890,6 @@ function MediaGallery({ ownerId, kind }) {
   const own = ownerId === 'me';
   const mine = own && !viewAs;
   const items = own ? state.myGallery[kind] : galleryOf(ownerId)[kind];
-  const [viewing, setViewing] = useState(null);
   const tile = Math.floor(((boxW || width - 32) - 8) / 3);
 
   const add = async () => {
@@ -925,7 +925,7 @@ function MediaGallery({ ownerId, kind }) {
       {kind === 'photos' ? (
         <View style={styles.grid3}>
           {items.map((p, i) => (
-            <TouchableOpacity key={p.id} onPress={() => setViewing(i)} onLongPress={() => remove(p)} activeOpacity={0.9}>
+            <TouchableOpacity key={p.id} onPress={() => openMedia(asMedia(items, kind), i)} onLongPress={() => remove(p)} activeOpacity={0.9}>
               <Photo uri={p.uri} style={{ width: tile, height: tile, borderRadius: 8, marginBottom: 4 }} />
             </TouchableOpacity>
           ))}
@@ -933,7 +933,7 @@ function MediaGallery({ ownerId, kind }) {
       ) : (
         <View style={styles.grid2}>
           {items.map((v, i) => (
-            <TouchableOpacity key={v.id} style={styles.videoTile} onPress={() => setViewing(i)} onLongPress={() => remove(v)} activeOpacity={0.9}>
+            <TouchableOpacity key={v.id} style={styles.videoTile} onPress={() => openMedia(asMedia(items, kind), i)} onLongPress={() => remove(v)} activeOpacity={0.9}>
               {v.thumb ? (
                 <Photo uri={v.thumb} style={StyleSheet.absoluteFill} fallback="🎬" />
               ) : (
@@ -956,60 +956,11 @@ function MediaGallery({ ownerId, kind }) {
         </View>
       )}
       {mine && items.length ? <Text style={styles.hint}>Segure uma {kind === 'videos' ? 'miniatura' : 'foto'} para remover.</Text> : null}
-      <MediaViewer items={items} index={viewing} kind={kind} onClose={() => setViewing(null)} />
     </View>
   );
 }
 
-// Visualizador em tela cheia: toque nos lados para passar.
-function MediaViewer({ items, index, kind, onClose }) {
-  const insets = useSafeAreaInsets();
-  const [i, setI] = useState(0);
-  useEffect(() => {
-    if (index !== null) setI(index);
-  }, [index]);
-  const it = index !== null ? items[Math.min(i, items.length - 1)] : null;
-  if (!it) return null;
-  const go = (d) => setI((x) => Math.max(0, Math.min(items.length - 1, x + d)));
-  const src = kind === 'videos' ? it.thumb : it.uri;
-  return (
-    // No computador: a foto numa moldura no meio da tela (não em tela cheia preta).
-    <Modal visible animationType="fade" transparent={storyDesk()} onRequestClose={onClose} statusBarTranslucent><KeyboardLift style={[{ flex: 1 }, storyDesk() && { backgroundColor: 'rgba(241,235,221,0.92)', alignItems: 'center', justifyContent: 'center', padding: 20 }]}>
-      <View style={storyDesk() ? { width: '100%', maxWidth: 560, height: 560, maxHeight: '90%', backgroundColor: '#14120E', borderRadius: 22, overflow: 'hidden', justifyContent: 'center', borderWidth: 1, borderColor: '#EAD7A4' } : { flex: 1, backgroundColor: '#000', justifyContent: 'center' }}>
-        {src ? (
-          <Image source={{ uri: src }} style={{ width: '100%', height: kind === 'videos' ? 260 : '75%' }} resizeMode="contain" />
-        ) : (
-          <View style={{ height: 260, alignItems: 'center', justifyContent: 'center' }}>
-            <Ionicons name="film-outline" size={60} color="rgba(255,255,255,0.5)" />
-          </View>
-        )}
-        {kind === 'videos' ? (
-          <View style={{ alignItems: 'center', marginTop: 16, paddingHorizontal: 24 }}>
-            <View style={[styles.play, { position: 'relative', width: 64, height: 64, borderRadius: 32, top: 0, left: 0 }]}>
-              <Ionicons name="play" size={30} color="#fff" />
-            </View>
-            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16, marginTop: 12 }}>{it.title}</Text>
-            <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 4, textAlign: 'center' }}>
-              {it.duration} · {it.views} visualizações · o player de vídeo entra na próxima versão da demonstração
-            </Text>
-          </View>
-        ) : null}
-        <View style={[StyleSheet.absoluteFill, { flexDirection: 'row' }]}>
-          <TouchableOpacity style={{ flex: 1 }} onPress={() => go(-1)} activeOpacity={1} />
-          <TouchableOpacity style={{ flex: 1 }} onPress={() => go(1)} activeOpacity={1} />
-        </View>
-        <View style={[styles.viewerTop, { top: insets.top + 10 }]}>
-          <Text style={{ color: '#fff', fontWeight: '700' }}>
-            {i + 1} de {items.length}
-          </Text>
-          <TouchableOpacity onPress={onClose} style={styles.viewerClose} accessibilityLabel="Fechar">
-            <Ionicons name="close" size={22} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </KeyboardLift></Modal>
-  );
-}
+const asMedia = (list, kind) => list.map((x) => (kind === 'videos' ? { video: x.uri || x.video, poster: x.thumb, title: x.title, sub: [x.duration, x.views != null ? `${x.views} visualizações` : null].filter(Boolean).join(' · ') } : { photo: x.uri }));
 
 // ───────────────────────── Abas do perfil ─────────────────────────
 

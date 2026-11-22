@@ -86,6 +86,8 @@ const HL_TITLES = [
   ['Comidas', 'Festas', 'Pets'],
   ['Igreja', 'Praia', 'Momentos'],
 ];
+// Clipes curtos que já vêm no app (assets/reels): os vídeos de exemplo das galerias tocam de verdade.
+const CLIPS = [require('../assets/reels/clip-v1.mp4'), require('../assets/reels/clip-v2.mp4'), require('../assets/reels/clip-v3.mp4'), require('../assets/reels/clip-v4.mp4'), require('../assets/reels/clip-f1.mp4'), require('../assets/reels/clip-f2.mp4')];
 const VIDEO_TITLES = ['Fim de semana em família', 'Bastidores do trabalho', 'Louvor no domingo', 'Passeio no parque', 'Receita rápida', 'Aniversário surpresa'];
 
 export function galleryOf(memberId) {
@@ -94,6 +96,7 @@ export function galleryOf(memberId) {
   const videos = Array.from({ length: 4 }, (_, i) => ({
     id: `${memberId}-v${i}`,
     thumb: pic(`realys-gv-${memberId}-${i}`, 800, 450),
+    video: CLIPS[(n + i) % CLIPS.length],
     title: VIDEO_TITLES[(n + i) % VIDEO_TITLES.length],
     duration: `0:${String(15 + ((n * 7 + i * 11) % 44)).padStart(2, '0')}`,
     views: 40 + ((n * 37 + i * 53) % 900),
@@ -116,8 +119,8 @@ export function galleryOf(memberId) {
 export const myInitialGallery = {
   photos: [0, 1, 2, 3, 4].map((i) => ({ id: `me-f${i}`, uri: pic(`realys-g-me-${i}`, 800, 800) })),
   videos: [
-    { id: 'me-v0', thumb: pic('realys-gv-me-0', 800, 450), title: 'Culto de domingo', duration: '0:42', views: 128 },
-    { id: 'me-v1', thumb: pic('realys-gv-me-1', 800, 450), title: 'Churrasco com a turma', duration: '0:27', views: 86 },
+    { id: 'me-v0', video: CLIPS[0], thumb: pic('realys-gv-me-0', 800, 450), title: 'Culto de domingo', duration: '0:42', views: 128 },
+    { id: 'me-v1', video: CLIPS[1], thumb: pic('realys-gv-me-1', 800, 450), title: 'Churrasco com a turma', duration: '0:27', views: 86 },
   ],
   highlights: [
     {
