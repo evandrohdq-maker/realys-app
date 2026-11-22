@@ -9,6 +9,9 @@ export const TAXAS = {
   shop: { pct: 10, quemPaga: 'loja', mercado: 'Mercado Livre Clássico: 10% a 14% + custo fixo; Shopee: até 20% + R$ 4 por item', argumento: '10% sem taxa fixa por item' },
   // Rota inteligente: a entrega extra que o Realyz encaixa no mesmo caminho de outra (src/rotaInteligente.js).
   rotaInteligente: { pct: 25, quemPaga: 'motoboy (só na entrega extra)', mercado: 'iFood e Rappi agrupam pedidos sem dizer quanto o entregador ganha a mais', argumento: 'o motoboy vê antes quanto roda a menos e quanto recebe, e só aceita se quiser' },
+  frete: { pct: 10, quemPaga: 'transportadora (no frete da empresa)', mercado: 'Fretebras e similares cobram assinatura mensal da transportadora', argumento: 'sem mensalidade: 10% só quando o frete é feito e pago' },
+  fornecedor: { pct: 5, quemPaga: 'fornecedor (na venda para outra empresa)', mercado: 'marketplaces B2B: 8% a 15% por venda', argumento: '5% e o comprador paga pelo Realyz, com o valor protegido até receber' },
+  doacao: { pct: 0, quemPaga: 'ninguém', mercado: 'vaquinhas online: 4% a 7% de taxa', argumento: 'doação sem taxa do Realyz' },
   corrida: { pct: 18, quemPaga: 'motorista e motoboy', mercado: 'Uber: 20% a 35%; 99: 20% a 30%', argumento: 'o motorista fica com 82% da corrida' },
   visita: { pct: 15, quemPaga: 'prestador', mercado: 'GetNinjas cobra pacotes de moedas por contato, mesmo sem fechar o serviço', argumento: 'só paga quando a visita acontece, e o valor do serviço é todo seu' },
   ingresso: { pct: 8, minimo: 1.99, quemPaga: 'produtor (pode repassar ao comprador)', mercado: 'Sympla: 10%, mínimo de R$ 2,50', argumento: '8%, mínimo de R$ 1,99' },

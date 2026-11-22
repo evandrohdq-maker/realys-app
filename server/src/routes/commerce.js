@@ -152,6 +152,8 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
     const items = Array.isArray(body.items) ? body.items : [];
     if (!items.length || items.length > 50) fail(400, 'O carrinho está vazio.');
     const address = str(body.address, 'o endereço', { optional: true, max: 200 });
+    // Ponto do endereço no mapa (para a central de entregas achar o entregador e a rota).
+    const destino = Number.isFinite(Number(body.destLat)) && Number.isFinite(Number(body.destLng)) && body.destLat !== null ? { lat: Number(body.destLat), lng: Number(body.destLng) } : null;
     const created = tx(db, () => {
       const byCompany = new Map();
       for (const it of items) {
@@ -182,7 +184,7 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
         if (fee) wallet.move('realys', 'saldo', fee, 'Comissão', `Comissão do pedido ${id}`, id);
         if (prot) wallet.move('realys', 'saldo', prot, 'Proteção', `Taxa de proteção do pedido ${id}`, id);
         const t = now();
-        db.prepare('INSERT INTO orders (id, buyer_id, company_id, total, from_gift, from_wallet, fee, protection, address, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)').run(id, user.id, companyId, total, fromGift, fromWallet, fee, prot, address, 'Recebido', t, t);
+        db.prepare('INSERT INTO orders (id, buyer_id, company_id, total, from_gift, from_wallet, fee, protection, address, status, created_at, updated_at, dest_lat, dest_lng) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)').run(id, user.id, companyId, total, fromGift, fromWallet, fee, prot, address, 'Recebido', t, t, destino ? destino.lat : null, destino ? destino.lng : null);
         for (const l of g.lines) db.prepare('INSERT INTO order_items (order_id, product_id, name, price, qty) VALUES (?,?,?,?,?)').run(id, l.p.id, l.p.name, l.p.price, l.qty);
         // Fiscal: a comissão é serviço do Realyz para a loja (tomador = dono da loja); a NF-e do produto é da loja.
         if (fee) fiscal.registrar({ origem: 'comissao_pedido', ref: id, tomadorId: g.owner, valorCents: fee, descricao: `Intermediação de venda no Realyz (pedido ${id})` });

@@ -7,6 +7,7 @@
 //   de R$ 0,99 por compra cobrada pelo servidor. Os itens de demonstração seguem no celular.
 // Sem servidor configurado, nada disso roda.
 import { serverOn, api, API_URL } from './api';
+import { getDevicePoint } from './geo';
 
 export const SRV = 'srv_';
 export const isServerId = (id) => typeof id === 'string' && id.startsWith(SRV);
@@ -129,9 +130,12 @@ export async function finalizarCompra(state, dispatch, { address } = {}) {
   const hasLocal = state.cart.some((c) => !isServerId(c.productId));
   if (srvLines.length) {
     try {
+      // Ponto de entrega no mapa: a central de entregas usa para achar o entregador e a rota.
+      const ponto = await getDevicePoint().catch(() => null);
       const r = await api('POST', '/orders', {
         items: srvLines.map((c) => ({ productId: c.productId.slice(SRV.length), qty: c.qty })),
         address: address || undefined,
+        ...(ponto ? { destLat: ponto.lat, destLng: ponto.lon } : {}),
       });
       dispatch({ type: 'SERVER_ORDERS_PLACED', productIds: srvLines.map((c) => c.productId), orders: r.orders.map((o) => orderFromServer({ ...o, items: itemsOf(state, srvLines, o.company) })) });
       carregarCarteira(dispatch).catch(() => {});

@@ -110,7 +110,7 @@ export default function empregosRoutes(r, { db, cfg, hub, userById, publicUser }
       funcao,
       nivel: oneOf(b.nivel || 'aprendiz', 'a experiência', Object.keys(NIVEL_N)),
       tipo: oneOf(b.tipo || 'clt', 'o tipo de vaga', TIPOS_VAGA),
-      salario: b.salario != null && b.salario !== '' ? money(b.salario, 'o salário') : null,
+      salario: b.salario != null && b.salario !== '' ? money(b.salario, 'o salário') / 100 : null,
       salarioUnidade: oneOf(b.salarioUnidade || 'mes', 'a unidade do salário', ['mes', 'dia', 'hora', 'turno']),
       dias: lista(b.dias, DIAS),
       turnos: lista(b.turnos, TURNOS),
