@@ -1,7 +1,8 @@
 // Manutenção do Realyz: backup do banco, checagem de integridade, retenção (apagar o que venceu),
 // troca de chave de criptografia, limpeza de arquivos soltos e saúde do serviço de IA.
 // Roda sozinha todo dia (MAINTENANCE_HOURS) e também pode ser disparada pelo administrador.
-import { mkdirSync, readdirSync, statSync, unlinkSync, existsSync, copyFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, statSync, unlinkSync, existsSync, copyFileSync, readFileSync, linkSync, renameSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { fail, newId, now } from './http.js';
 
@@ -73,6 +74,41 @@ export function makeMaintenance({ db, cfg, cipher, biometria, matcher }) {
         regravados++;
       }
       return { regravados, chaveAtual: cipher.currentKid };
+    },
+
+    // Fotos e vídeos repetidos que já estavam no servidor: calcula a impressão digital dos arquivos
+    // antigos e junta os iguais num só arquivo no disco (cada endereço continua funcionando).
+    'midias-repetidas'() {
+      if (!existsSync(mediaDir)) return { juntados: 0 };
+      let calculados = 0;
+      for (const m of db.prepare('SELECT id FROM media WHERE hash IS NULL LIMIT 2000').all()) {
+        const f = join(mediaDir, m.id);
+        if (!existsSync(f)) continue;
+        db.prepare('UPDATE media SET hash = ? WHERE id = ?').run(createHash('sha256').update(readFileSync(f)).digest('hex'), m.id);
+        calculados++;
+      }
+      let juntados = 0;
+      let liberado = 0;
+      for (const g of db.prepare('SELECT hash, mime FROM media WHERE hash IS NOT NULL GROUP BY hash, mime HAVING COUNT(*) > 1').all()) {
+        const iguais = db.prepare('SELECT id, size FROM media WHERE hash = ? AND mime = ? ORDER BY created_at').all(g.hash, g.mime).filter((m) => existsSync(join(mediaDir, m.id)));
+        if (iguais.length < 2) continue;
+        const base = join(mediaDir, iguais[0].id);
+        const ino = statSync(base).ino;
+        for (const m of iguais.slice(1)) {
+          const f = join(mediaDir, m.id);
+          if (statSync(f).ino === ino) continue; // já é o mesmo arquivo
+          const tmp = f + '.link';
+          try {
+            linkSync(base, tmp);
+            renameSync(tmp, f);
+            juntados++;
+            liberado += m.size || 0;
+          } catch (e) {
+            try { unlinkSync(tmp); } catch (e2) {}
+          }
+        }
+      }
+      return { calculados, juntados, liberadoMb: Math.round(liberado / 1048576) };
     },
 
     // Fotos soltas no disco, sem registro no banco, com mais de 1 dia: apaga.

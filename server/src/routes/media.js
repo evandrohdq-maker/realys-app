@@ -1,6 +1,7 @@
 // Fotos, vídeos e músicas. O app envia o arquivo direto no corpo (PUT /media, com Content-Type)
 // e recebe o endereço para usar em posts, produtos, perfil, artistas etc.
-import { mkdirSync, writeFileSync, createReadStream, existsSync, rmSync } from 'node:fs';
+import { mkdirSync, writeFileSync, createReadStream, existsSync, rmSync, linkSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { fail, newId, now } from '../http.js';
 import { makeImageModerator } from '../moderacaoImagem.js';
@@ -55,21 +56,41 @@ export default function mediaRoutes(r, { db, cfg, hub, ff }) {
     const uso = query && query.uso === 'privado' ? 'privado' : 'publico';
     const id = newId('md');
     const file = join(dir, id);
-    writeFileSync(file, raw);
-    let mimeFinal = mime;
-    let size = raw.length;
-    // WAV/FLAC/AIFF: converte na hora (uns segundos) para AAC leve e apaga o original pesado.
-    // Sem ffmpeg no servidor, guarda como veio (o celular toca WAV também).
-    if (ESTUDIO.has(mime) && (await fx.ok())) {
+    // Arquivo repetido (a mesma foto ou o mesmo vídeo já está no servidor): não guarda de novo.
+    // O novo endereço aponta para o mesmo arquivo no disco (link), e o espaço é usado uma vez só.
+    // Apagar um dos endereços não apaga o arquivo enquanto outro ainda usa.
+    // A impressão digital é do arquivo como chegou (antes de converter vídeo ou áudio).
+    const hash = createHash('sha256').update(raw).digest('hex');
+    const igual = db.prepare(`SELECT * FROM media WHERE hash = ? AND moderacao != 'removido' ORDER BY created_at LIMIT 1`).get(hash);
+    let ligado = false;
+    if (igual && existsSync(join(dir, igual.id))) {
       try {
-        size = await fx.audioLeve(file);
-        mimeFinal = 'audio/mp4';
+        linkSync(join(dir, igual.id), file);
+        ligado = true;
       } catch (e) {
-        // arquivo que o ffmpeg não entende: fica como veio
+        ligado = false;
+      }
+    }
+    // Repetido: vale o formato e o tamanho do que já está guardado (já convertido, se foi o caso).
+    let mimeFinal = ligado ? igual.mime : mime;
+    let size = ligado ? igual.size : raw.length;
+    if (!ligado) {
+      writeFileSync(file, raw);
+      // WAV/FLAC/AIFF: converte na hora (uns segundos) para AAC leve e apaga o original pesado.
+      // Sem ffmpeg no servidor, guarda como veio (o celular toca WAV também).
+      if (ESTUDIO.has(mime) && (await fx.ok())) {
+        try {
+          size = await fx.audioLeve(file);
+          mimeFinal = 'audio/mp4';
+        } catch (e) {
+          // arquivo que o ffmpeg não entende: fica como veio
+        }
       }
     }
     let res = { decisao: 'liberar' };
-    if (uso === 'publico' && TYPES[mime] === 'imagem') res = await mod.image(raw);
+    // A mesma foto já foi conferida como pública: vale a mesma decisão (não confere de novo).
+    if (uso === 'publico' && igual && igual.uso === 'publico' && ligado) res = { decisao: igual.moderacao === 'revisao' ? 'revisar' : 'liberar', nudez: igual.nudez };
+    else if (uso === 'publico' && TYPES[mime] === 'imagem') res = await mod.image(raw);
     else if (uso === 'publico' && TYPES[mime] === 'video' && mod.ready) res = await mod.frames(await mod.grab(file, { count: 6, everySec: 2 }));
     if (res.decisao === 'bloquear') {
       rmSync(file, { force: true });
@@ -81,13 +102,13 @@ export default function mediaRoutes(r, { db, cfg, hub, ff }) {
       // Registro da decisão (sem guardar a imagem bloqueada): a equipe vê quem tenta publicar nudez repetidas vezes.
       db.prepare('INSERT INTO moderacao_log (id, user_id, kind, ref, nudez, decisao, created_at) VALUES (?,?,?,?,?,?,?)').run(newId('ml'), user.id, TYPES[mime] === 'video' ? 'video' : 'foto', id, res.nudez == null ? null : res.nudez, res.decisao, now());
     }
-    db.prepare('INSERT INTO media (id, owner_id, mime, size, created_at, uso, moderacao, nudez) VALUES (?,?,?,?,?,?,?,?)').run(id, user.id, mimeFinal, size, now(), uso, moderacao, res.nudez == null ? null : res.nudez);
+    db.prepare('INSERT INTO media (id, owner_id, mime, size, created_at, uso, moderacao, nudez, hash) VALUES (?,?,?,?,?,?,?,?,?)').run(id, user.id, mimeFinal, size, now(), uso, moderacao, res.nudez == null ? null : res.nudez, hash);
     // Vídeo fora do padrão (MOV, HEVC do iPhone, 4K): vira MP4 H.264 1080p em segundo plano.
-    if (TYPES[mime] === 'video') converterVideoDepois(id, file);
+    if (TYPES[mime] === 'video' && !ligado) converterVideoDepois(id, file);
     // Vídeo e música levam a extensão no endereço (/media/md_x.mp4): o app e o navegador sabem
     // pelo endereço que é vídeo/som e já abrem no player certo (foto fica sem extensão, como antes).
     const ext = TYPES[mime] === 'video' ? '.mp4' : EXT[mimeFinal] || '';
-    return { id, url: `/media/${id}${ext}`, type: TYPES[mime], size, moderacao, convertido: mimeFinal !== mime ? mimeFinal : undefined };
+    return { id, url: `/media/${id}${ext}`, type: TYPES[mime], size, moderacao, convertido: mimeFinal !== mime ? mimeFinal : undefined, repetido: ligado };
   }, { raw: true, status: 201, limitMb: (req) => (ESTUDIO.has(String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase()) ? cfg.maxAudioMb || 150 : cfg.maxUploadMb) });
 
   // Fila de revisão humana (só o administrador): liberar ou remover.
