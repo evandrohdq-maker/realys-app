@@ -732,11 +732,6 @@ const MIGRATIONS = [
   );
   CREATE INDEX push_tokens_user ON push_tokens(user_id);
   `,
-  // 26: horário de trabalho do prestador: no horário ele fica disponível sozinho (mesmo com o app fechado).
-  `
-  ALTER TABLE providers ADD COLUMN horario TEXT;
-  ALTER TABLE providers ADD COLUMN auto_horario INTEGER NOT NULL DEFAULT 0;
-  `,
   // 25: perfil da conta (foto, capa, sobre, página, agenda, Estúdio...) guardado no servidor:
   // é o mesmo no app e no site, em qualquer aparelho.
   `
@@ -745,6 +740,11 @@ const MIGRATIONS = [
     data TEXT NOT NULL,
     updated_at INTEGER NOT NULL
   );
+  `,
+  // 26: horário de trabalho do prestador: no horário ele fica disponível sozinho (mesmo com o app fechado).
+  `
+  ALTER TABLE providers ADD COLUMN horario TEXT;
+  ALTER TABLE providers ADD COLUMN auto_horario INTEGER NOT NULL DEFAULT 0;
   `,
 ];
 
