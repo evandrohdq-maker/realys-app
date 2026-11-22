@@ -5,6 +5,7 @@ import android.app.PictureInPictureParams
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.view.View
+import android.view.WindowManager
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.util.Rational
@@ -250,6 +251,16 @@ class RealysUpdaterModule : Module() {
         act.runOnUiThread {
           try {
             val w = act.window
+            // Tela cheia de vídeo: usa também a área do entalhe da câmera (notch). Sem isso, deitado,
+            // o Android deixa uma faixa preta de um lado em celulares com câmera na tela.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+              val lp = w.attributes
+              lp.layoutInDisplayCutoutMode = if (on) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                else WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+              } else WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT
+              w.attributes = lp
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
               val c = w.insetsController
               if (c != null) {

@@ -159,12 +159,31 @@ export function useVideoRotate(active) {
     setOrientation('portrait');
     backToAuto = setTimeout(applyOrientation, 2500);
   };
-  // Site: Esc sai da tela cheia.
+  // Site: tela cheia de verdade do navegador (some a barra do Chrome e a do Windows). Esc ou F11
+  // saem dela e o player volta para a janela.
   useEffect(() => {
-    if (Platform.OS !== 'web' || !full || typeof window === 'undefined') return undefined;
+    if (Platform.OS !== 'web' || !full || typeof window === 'undefined' || typeof document === 'undefined') return undefined;
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (!document.fullscreenElement && req) {
+      try {
+        const r = req.call(el);
+        if (r && r.catch) r.catch(() => {});
+      } catch (e) {}
+    }
+    let entered = !!document.fullscreenElement;
+    const change = () => {
+      if (document.fullscreenElement) entered = true;
+      else if (entered) exit();
+    };
     const key = (e) => e.key === 'Escape' && exit();
+    document.addEventListener('fullscreenchange', change);
     window.addEventListener('keydown', key);
-    return () => window.removeEventListener('keydown', key);
+    return () => {
+      document.removeEventListener('fullscreenchange', change);
+      window.removeEventListener('keydown', key);
+      if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+    };
   }, [full]);
   return { full, enter, exit, toggle: () => (full ? exit() : enter()) };
 }
