@@ -1,6 +1,7 @@
 // Fotos, vídeos e músicas. O app envia o arquivo direto no corpo (PUT /media, com Content-Type)
 // e recebe o endereço para usar em posts, produtos, perfil, artistas etc.
-import { mkdirSync, writeFileSync, createReadStream, existsSync, rmSync } from 'node:fs';
+import { mkdirSync, writeFileSync, createReadStream, existsSync, rmSync, linkSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { fail, newId, now } from '../http.js';
 import { makeImageModerator } from '../moderacaoImagem.js';
@@ -27,9 +28,25 @@ export default function mediaRoutes(r, { db, cfg, hub }) {
     const uso = query && query.uso === 'privado' ? 'privado' : 'publico';
     const id = newId('md');
     const file = join(dir, id);
-    writeFileSync(file, raw);
+    // Arquivo repetido (a mesma foto ou o mesmo vídeo já está no servidor): não guarda de novo.
+    // O novo endereço aponta para o mesmo arquivo no disco (link), e o espaço é usado uma vez só.
+    // Apagar um dos endereços não apaga o arquivo enquanto outro ainda usa.
+    const hash = createHash('sha256').update(raw).digest('hex');
+    const igual = db.prepare(`SELECT * FROM media WHERE hash = ? AND mime = ? AND moderacao != 'removido' ORDER BY created_at LIMIT 1`).get(hash, mime);
+    let ligado = false;
+    if (igual && existsSync(join(dir, igual.id))) {
+      try {
+        linkSync(join(dir, igual.id), file);
+        ligado = true;
+      } catch (e) {
+        ligado = false;
+      }
+    }
+    if (!ligado) writeFileSync(file, raw);
     let res = { decisao: 'liberar' };
-    if (uso === 'publico' && TYPES[mime] === 'imagem') res = await mod.image(raw);
+    // A mesma foto já foi conferida como pública: vale a mesma decisão (não confere de novo).
+    if (uso === 'publico' && igual && igual.uso === 'publico' && ligado) res = { decisao: igual.moderacao === 'revisao' ? 'revisar' : 'liberar', nudez: igual.nudez };
+    else if (uso === 'publico' && TYPES[mime] === 'imagem') res = await mod.image(raw);
     else if (uso === 'publico' && TYPES[mime] === 'video' && mod.ready) res = await mod.frames(await mod.grab(file, { count: 6, everySec: 2 }));
     if (res.decisao === 'bloquear') {
       rmSync(file, { force: true });
@@ -41,8 +58,8 @@ export default function mediaRoutes(r, { db, cfg, hub }) {
       // Registro da decisão (sem guardar a imagem bloqueada): a equipe vê quem tenta publicar nudez repetidas vezes.
       db.prepare('INSERT INTO moderacao_log (id, user_id, kind, ref, nudez, decisao, created_at) VALUES (?,?,?,?,?,?,?)').run(newId('ml'), user.id, TYPES[mime] === 'video' ? 'video' : 'foto', id, res.nudez == null ? null : res.nudez, res.decisao, now());
     }
-    db.prepare('INSERT INTO media (id, owner_id, mime, size, created_at, uso, moderacao, nudez) VALUES (?,?,?,?,?,?,?,?)').run(id, user.id, mime, raw.length, now(), uso, moderacao, res.nudez == null ? null : res.nudez);
-    return { id, url: `/media/${id}`, type: TYPES[mime], size: raw.length, moderacao };
+    db.prepare('INSERT INTO media (id, owner_id, mime, size, created_at, uso, moderacao, nudez, hash) VALUES (?,?,?,?,?,?,?,?,?)').run(id, user.id, mime, raw.length, now(), uso, moderacao, res.nudez == null ? null : res.nudez, hash);
+    return { id, url: `/media/${id}`, type: TYPES[mime], size: raw.length, moderacao, repetido: ligado };
   }, { raw: true, status: 201 });
 
   // Fila de revisão humana (só o administrador): liberar ou remover.

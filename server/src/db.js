@@ -905,6 +905,11 @@ const MIGRATIONS = [
     created_at INTEGER NOT NULL
   );
   `,
+  // 31: fotos e vídeos repetidos: a impressão digital (SHA-256) de cada arquivo, para guardar uma vez só.
+  `
+  ALTER TABLE media ADD COLUMN hash TEXT;
+  CREATE INDEX media_hash ON media(hash);
+  `,
 ];
 
 export function openDb(file) {
