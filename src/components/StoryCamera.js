@@ -13,6 +13,7 @@ import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import { colors } from '../theme';
 import { STORY_EFFECTS, effectStyle, STORY_VIDEO_MAX_S } from '../storyEffects';
 import StoryEffectOverlay from './StoryEffectOverlay';
@@ -121,6 +122,23 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
     }
   };
 
+  // Anexar do celular (ou do computador): foto ou vídeo de até 30 s da galeria, com o efeito escolhido.
+  const fromGallery = async () => {
+    if (rec || busy) return;
+    try {
+      const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images', 'videos'], quality: 0.9, videoMaxDuration: STORY_VIDEO_MAX_S });
+      if (r.canceled || !r.assets || !r.assets[0]) return;
+      const a = r.assets[0];
+      if (a.type === 'video') {
+        const secs = a.duration ? Math.round(a.duration / 1000) : 0;
+        if (secs > STORY_VIDEO_MAX_S) return Alert.alert('Vídeo longo', `O story aceita vídeo de até ${STORY_VIDEO_MAX_S} segundos. Este tem ${secs} s.`);
+        onDone({ kind: 'video', uri: a.uri, secs: secs || STORY_VIDEO_MAX_S, effect });
+      } else onDone({ kind: 'image', uri: a.uri, effect });
+    } catch (e) {
+      Alert.alert('Galeria', 'Não deu para abrir as suas fotos e vídeos.');
+    }
+  };
+
   const close = () => {
     if (rec) {
       try {
@@ -201,6 +219,12 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
             </ScrollView>
           ) : null}
           <View style={st.shutterRow}>
+            {!rec ? (
+              <TouchableOpacity style={st.gallery} onPress={fromGallery} accessibilityLabel="Anexar foto ou vídeo da galeria">
+                <Ionicons name="images" size={22} color="#fff" />
+                <Text style={st.galleryText}>Galeria</Text>
+              </TouchableOpacity>
+            ) : null}
             <Animated.View style={{ transform: [{ scale: rec ? pulse : 1 }] }}>
               <TouchableOpacity
                 onPress={shoot}
@@ -243,7 +267,9 @@ const st = StyleSheet.create({
   fxThumbOn: { borderColor: colors.gold, borderWidth: 3 },
   fxImg: { width: '100%', height: '100%' },
   fxLabel: { color: '#fff', fontSize: 10, fontWeight: '700', marginTop: 3 },
-  shutterRow: { alignItems: 'center', marginTop: 12 },
+  shutterRow: { alignItems: 'center', justifyContent: 'center', marginTop: 12 },
+  gallery: { position: 'absolute', left: 28, alignItems: 'center', justifyContent: 'center', width: 58, height: 58, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.6)' },
+  galleryText: { color: '#fff', fontSize: 10, fontWeight: '700', marginTop: 2 },
   shutter: { width: 76, height: 76, borderRadius: 38, borderWidth: 4, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   shutterVideo: { borderColor: 'rgba(255,255,255,0.9)' },
   shutterIn: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#fff' },
