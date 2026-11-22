@@ -5,7 +5,7 @@ import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, storeOf } from '../store';
 import { colors, soft, brl } from '../theme';
-import { Photo, ProductThumb } from './ui';
+import { isStockPhoto, Photo, ProductThumb } from './ui';
 import { ReelsViewer } from './Reels';
 import { listings } from '../homeData';
 import { CLIP_POINTS, CLIP_MS, flashEndsAt, countdown, shortNum, comboOff } from '../adsData';
@@ -62,7 +62,7 @@ export function SegTabs({ items, value, onChange, rows = 1, compact = false }) {
 
 // Vitrine patrocinada: banners grandes que passam sozinhos. Conta visualização e toque.
 export function SpotlightCarousel({ ads, onOpen }) {
-  const { dispatch } = useStore();
+  const { state, dispatch } = useStore();
   const { width } = useWindowDimensions();
   const w = width - 32;
   const ref = useRef(null);
@@ -118,7 +118,14 @@ export function SpotlightCarousel({ ads, onOpen }) {
             }}
             accessibilityLabel={`Anúncio patrocinado: ${ad.title}`}
           >
-            <Photo uri={ad.photo} style={StyleSheet.absoluteFill} fallback="✨" />
+            {isStockPhoto(ad.photo) ? (
+              // Anúncio de exemplo: cor do anúncio e o ícone do produto, em vez de foto aleatória.
+              <View style={[StyleSheet.absoluteFill, { backgroundColor: ad.tint || colors.primary, alignItems: 'flex-end', justifyContent: 'center', paddingRight: 22 }]}>
+                <Text style={{ fontSize: 92, opacity: 0.95 }}>{((state.products || []).find((p) => p.id === ad.productId) || {}).emoji || '✨'}</Text>
+              </View>
+            ) : (
+              <Photo uri={ad.photo} style={StyleSheet.absoluteFill} fallback="✨" />
+            )}
             <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(11,17,36,0.28)' }]} />
             <View style={styles.spotShade} />
             <View style={styles.spotTag}>

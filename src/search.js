@@ -506,8 +506,12 @@ export function searchAll(state, rawText, max = 8) {
     }))
     .filter((x) => x.score > 0);
   if (!scored.length) return { results: [], tokens, label };
-  const best = Math.max(...scored.map((x) => x.score));
-  const results = scored
+  // Vaga de emprego só aparece quando a pessoa fala de trabalho ("quero uma pizza" não traz vaga de pizzaiolo).
+  const falaDeTrabalho = /\b(vaga|vagas|emprego|empregos|trabalho|trabalhar|contrata|contratando|salario|curriculo|cargo)\b/.test(t);
+  const pool2 = falaDeTrabalho ? scored : scored.filter((x) => x.it.section !== 'Vaga de emprego');
+  if (!pool2.length) return { results: [], tokens, label };
+  const best = Math.max(...pool2.map((x) => x.score));
+  const results = pool2
     .filter((x) => x.score === best)
     .sort((a, b) => b.inTitle - a.inTitle || (b.it.sponsored ? 1 : 0) - (a.it.sponsored ? 1 : 0))
     .slice(0, max)
@@ -519,7 +523,13 @@ const kmSpeak = (km) => (km < 1 ? `${Math.round((km * 1000) / 50) * 50} metros` 
 
 // Resposta falada da busca geral. Com assunto (meta.category), fala só do assunto.
 export function contentReply(results, what, meta = {}) {
-  const priceOf = (r) => r.price || (r.priceValue != null ? `R$ ${r.priceValue.toFixed(2).replace('.', ',')}${r.priceUnit ? ' por ' + r.priceUnit : ''}` : '');
+  // Valor no jeito brasileiro: R$ 2.400,00 (nunca "R$ 2400.00").
+  const reais = (v) => {
+    const [i, d] = Number(v).toFixed(2).split('.');
+    return `R$ ${i.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${d}`;
+  };
+  const fixTxt = (txt) => String(txt).replace(/R\$ ?(\d+)\.(\d{2})\b/g, (_, i, d) => reais(`${i}.${d}`));
+  const priceOf = (r) => (r.price ? fixTxt(r.price) : r.priceValue != null && !isNaN(Number(r.priceValue)) ? `${reais(r.priceValue)}${r.priceUnit ? ' por ' + r.priceUnit : ''}` : '');
   const line = (r) => {
     const p = priceOf(r);
     const near = r.where && /^a \d/.test(r.where); // "a 0,7 km"

@@ -388,6 +388,8 @@ function comEmpresaReal(state, user) {
       gifts: [],
       liveCredits: 0,
       liveGifts: [],
+      // Pedidos de exemplo saem; os de verdade chegam do servidor (SERVER_ORDERS_SYNC).
+      orders: (state.orders || []).filter((o) => o.serverId),
     }),
     myCompanyReal: true,
     stores: state.stores.map((x) => (x.id === D.MY_COMPANY_ID ? { ...x, name: user.name || 'Minha empresa', category: (user.company && user.company.segment) || '', city: user.city || '', rating: null, recommended: false, sponsored: false, cover: null, logo: '🏪' } : x)),

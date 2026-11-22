@@ -872,6 +872,24 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
       {seg === 'posts' ? (
         <View onLayout={(e) => (feedY.current = e.nativeEvent.layout.y)}>
           <ServerPendingTestimonials pending={srvDeps.pending} />
+          {/* Feed vazio (conta nova, sem amigos ainda): convite para publicar e achar pessoas. */}
+          {!feed.length ? (
+            <View style={styles.emptyFeed}>
+              <Ionicons name="sparkles-outline" size={30} color={colors.primary} />
+              <Text style={styles.emptyTitle}>Sua Community começa aqui</Text>
+              <Text style={styles.emptyText}>Publique algo ou adicione amigos. As publicações e os stories deles aparecem neste feed.</Text>
+              <View style={{ flexDirection: 'row', marginTop: 14 }}>
+                <TouchableOpacity style={styles.emptyBtn} onPress={() => dispatch({ type: 'NAV_REQUEST', go: { tab: 'stories', top: 'comunidade', story: 'add' } })} accessibilityLabel="Publicar">
+                  <Ionicons name="add" size={16} color={colors.onPrimary} />
+                  <Text numberOfLines={1} style={styles.emptyBtnText}>Publicar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.emptyBtn, styles.emptyBtnLine]} onPress={() => setSearching(true)} accessibilityLabel="Encontrar amigos">
+                  <Ionicons name="person-add-outline" size={16} color={colors.primary} />
+                  <Text numberOfLines={1} style={[styles.emptyBtnText, { color: colors.primary }]}>Encontrar amigos</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : null}
           {feed.map((it, idx) =>
             it.type === 'ong' ? (
               <CampanhaCard key={'ong' + it.o.ong.id} ong={it.o.ong} c={it.o.c} compacto onOpen={() => setOngAberta(it.o.ong)} />
@@ -1122,6 +1140,12 @@ function SectionHead({ title, action, onAction }) {
 }
 
 const styles = StyleSheet.create({
+  emptyFeed: { alignItems: 'center', backgroundColor: colors.card, borderRadius: 18, borderWidth: 1, borderColor: colors.border, padding: 22, marginVertical: 10 },
+  emptyTitle: { color: colors.text, fontWeight: '800', fontSize: 16, marginTop: 8, textAlign: 'center' },
+  emptyText: { color: colors.muted, fontSize: 13, lineHeight: 19, marginTop: 6, textAlign: 'center' },
+  emptyBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 9, paddingHorizontal: 14, marginHorizontal: 4 },
+  emptyBtnLine: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.primary },
+  emptyBtnText: { color: colors.onPrimary, fontWeight: '800', marginLeft: 6, fontSize: 13 },
   // Cantinho da Community: Mensagens e Contatos só com o símbolo.
   corner: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, minHeight: 34 },
   cornerBtn: { width: 36, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', marginLeft: 4 },
