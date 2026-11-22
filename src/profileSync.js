@@ -49,6 +49,19 @@ export async function uploadLocalPhotos(profile) {
   for (const k of ['photo', 'cover']) {
     const u = profile && profile[k];
     if (!isLocal(u)) continue;
+    // Foto que já não existe mais no aparelho (ex.: endereço blob: de uma visita antiga ao site):
+    // não tem como subir; tira do perfil para a pessoa escolher de novo, em vez de ficar quebrada.
+    let alive = true;
+    try {
+      const r = await fetch(u);
+      alive = !!r && r.ok !== false;
+    } catch (e) {
+      alive = false;
+    }
+    if (!alive) {
+      patch[k] = null;
+      continue;
+    }
     try {
       patch[k] = await uploadMedia(u, mimeOf(u));
     } catch (e) {
