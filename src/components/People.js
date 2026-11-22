@@ -23,7 +23,7 @@ import { stories as STORY_GROUPS } from '../homeData';
 import { galleryOf } from '../testimonialsData';
 import { StoryViewer } from '../screens/cliente/home/Stories';
 import { HireButton } from './ArtistBooking';
-import { api, serverOn } from '../api';
+import { api, serverOn, API_URL } from '../api';
 import { conectado } from '../serverShop';
 import { openServerProfile } from './ServerProfile';
 import { refreshFriends } from '../serverFriends';
@@ -732,7 +732,7 @@ function useServerPeople(q) {
     setLoading(true);
     const t = setTimeout(() => {
       api('GET', `/users?q=${encodeURIComponent(term)}`)
-        .then((l) => alive && setFound((l || []).filter((u) => u.id !== me)))
+        .then((l) => alive && setFound((l || []).filter((u) => u.id !== me).map((u) => ({ ...u, photo: u.photo && u.photo.startsWith('/') ? API_URL + u.photo : u.photo }))))
         .catch(() => alive && setFound([]))
         .finally(() => alive && setLoading(false));
     }, 350);
