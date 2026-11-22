@@ -23,6 +23,8 @@ import { stories as STORY_GROUPS } from '../homeData';
 import { galleryOf } from '../testimonialsData';
 import { StoryViewer } from '../screens/cliente/home/Stories';
 import { HireButton } from './ArtistBooking';
+import { api, serverOn } from '../api';
+import { conectado } from '../serverShop';
 import { artistByRef } from '../artistShows';
 
 // Foto do perfil: tocar abre os stories da pessoa (anel dourado = tem story novo);
@@ -594,6 +596,7 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
     }
   }, [visible]);
   const results = searchMembers(q);
+  const srv = useServerPeople(q);
   const requests = members.filter((m) => state.friends[m.id] === 'recebido');
   const suggestions = members.filter((m) => !state.friends[m.id]).sort((a, b) => b.mutual - a.mutual).slice(0, 4);
   const open = (m) => dispatch({ type: 'OPEN_PROFILE', id: m.id });
@@ -647,17 +650,34 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
         </View>
 
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 + insets.bottom }} keyboardShouldPersistTaps="handled">
+          {q.trim() && srv.found.length ? (
+            <>
+              <Text style={styles.section}>Contas no Realyz ({srv.found.length})</Text>
+              {srv.found.map((u) => (
+                <ServerPersonRow key={u.id} u={u} onFriend={srv.setFriend} />
+              ))}
+            </>
+          ) : null}
+          {q.trim() && srv.loading && !srv.found.length ? <Text style={styles.tip}>Procurando nas contas do Realyz…</Text> : null}
+          {!q.trim() && srv.requests.length ? (
+            <>
+              <Text style={styles.section}>Pedidos de amizade de contas reais ({srv.requests.length})</Text>
+              {srv.requests.map((u) => (
+                <ServerPersonRow key={u.id} u={{ ...u, friend: 'recebido' }} onFriend={srv.setFriend} />
+              ))}
+            </>
+          ) : null}
           {q.trim() ? (
             results.length ? (
               <>
-                <Text style={styles.section}>{results.length} pessoa(s) encontrada(s)</Text>
+                <Text style={styles.section}>{srv.on ? `Perfis de exemplo (${results.length})` : `${results.length} pessoa(s) encontrada(s)`}</Text>
                 {results.map((m) => (
                   <PersonRow key={m.id} m={m} onOpen={() => open(m)} />
                 ))}
               </>
             ) : (
               <>
-                <Empty text={`Ninguém encontrado com "${q.trim()}". Confira o nome ou peça o *usuário da pessoa.`} />
+                {srv.found.length || srv.loading ? null : <Empty text={`Ninguém encontrado com "${q.trim()}". Confira o nome ou peça o *usuário da pessoa.`} />}
                 {searched ? <GlobalResults query={searched} navigate={navigate ? (go) => { onClose(); navigate(go); } : null} title="Achei em outras partes do Realyz" hideEmpty /> : null}
               </>
             )
@@ -691,6 +711,87 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
         </ScrollView>
       </View>
     </KeyboardLift></Modal>
+  );
+}
+
+// Contas de verdade (servidor): busca por nome ou *usuário e os pedidos de amizade recebidos.
+// Os perfis de exemplo do app continuam aparecendo junto, logo abaixo.
+function useServerPeople(q) {
+  const { state } = useStore();
+  const on = serverOn() && conectado(state);
+  const me = state.user && state.user.serverId;
+  const [found, setFound] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const term = q.trim().replace(/^[@*]/, '');
+  useEffect(() => {
+    if (!on || term.length < 2) return setFound([]);
+    let alive = true;
+    setLoading(true);
+    const t = setTimeout(() => {
+      api('GET', `/users?q=${encodeURIComponent(term)}`)
+        .then((l) => alive && setFound((l || []).filter((u) => u.id !== me)))
+        .catch(() => alive && setFound([]))
+        .finally(() => alive && setLoading(false));
+    }, 350);
+    return () => ((alive = false), clearTimeout(t));
+  }, [on, term]);
+  const loadRequests = () => (on ? api('GET', '/friends').then((l) => setRequests((l || []).filter((u) => u.friend === 'recebido'))).catch(() => {}) : null);
+  useEffect(() => {
+    loadRequests();
+  }, [on]);
+  // Atualiza a situação da amizade na lista depois de adicionar, aceitar ou recusar.
+  const setFriend = (id, friend) => {
+    setFound((l) => l.map((u) => (u.id === id ? { ...u, friend } : u)));
+    if (friend !== 'recebido') setRequests((l) => l.filter((u) => u.id !== id));
+  };
+  return { on, found, requests, loading, setFriend };
+}
+
+function ServerPersonRow({ u, onFriend }) {
+  const { dispatch } = useStore();
+  const first = (u.name || '').split(' ')[0];
+  const [busy, setBusy] = useState(false);
+  const act = (fn, next) => {
+    setBusy(true);
+    fn()
+      .then(() => onFriend(u.id, next))
+      .catch((e) => Alert.alert('Não deu certo', e.message))
+      .finally(() => setBusy(false));
+  };
+  const add = () => act(() => api('POST', `/friends/${u.id}`), u.friend === 'recebido' ? 'amigos' : 'enviado');
+  const refuse = () => act(() => api('DELETE', `/friends/${u.id}`), null);
+  return (
+    <View style={styles.row}>
+      {u.photo ? (
+        <Photo uri={u.photo} style={styles.rowAvatar} fallback="🙂" />
+      ) : (
+        <View style={[styles.rowAvatar, { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }]}>
+          <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 18 }}>{first.charAt(0).toUpperCase()}</Text>
+        </View>
+      )}
+      <View style={{ flex: 1, marginLeft: 12 }}>
+        <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>
+          {u.name} <Ionicons name="shield-checkmark" size={12} color={colors.primary} />
+        </Text>
+        <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 12 }}>
+          {u.username ? `*${u.username}` : 'Conta Realyz'}
+          {u.friend === 'amigos' ? ' · amigos' : u.friend === 'enviado' ? ' · pedido enviado' : u.friend === 'recebido' ? ' · quer ser seu amigo' : ''}
+        </Text>
+      </View>
+      {u.friend === 'amigos' ? (
+        <Btn compact icon="chatbubble-ellipses-outline" label="Mensagem" onPress={() => dispatch({ type: 'OPEN_SERVER_CHAT', userId: u.id, name: u.name })} />
+      ) : u.friend === 'enviado' ? (
+        <Btn compact icon="time-outline" label="Enviado" onPress={() => Alert.alert('Pedido enviado', `Quando ${first} aceitar, vocês viram amigos no Realyz.`)} />
+      ) : u.friend === 'recebido' ? (
+        <View style={{ flexDirection: 'row' }}>
+          <Btn compact icon="checkmark" label="Aceitar" solid onPress={busy ? undefined : add} />
+          <Btn compact icon="close" label="" onPress={busy ? undefined : refuse} style={{ marginLeft: 6 }} a11y={`Recusar pedido de ${first}`} />
+        </View>
+      ) : (
+        <Btn compact icon="person-add" label={busy ? '…' : 'Adicionar'} solid onPress={busy ? undefined : add} a11y={`Adicionar ${u.name}`} />
+      )}
+    </View>
   );
 }
 
