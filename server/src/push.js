@@ -44,6 +44,7 @@ export const AVISOS = {
   carga_escolhida: (d) => ({ title: 'Seu frete foi escolhido 🚚', body: `${d.loja || 'Empresa'} · R$ ${Number(d.valor || 0).toFixed(2).replace('.', ',')}`, go: { tab: 'prestar' } }),
   oferta_fornecedor: (d) => ({ title: `Oferta de fornecedor: ${d.produto || ''}`, body: `${d.fornecedor || 'Fornecedor'} · R$ ${Number(d.preco || 0).toFixed(2).replace('.', ',')} / ${d.unidade || 'un'}`, go: { tab: 'painel' } }),
   pedido_fornecedor: (d) => ({ title: 'Pedido de fornecedor', body: d.status ? `Pedido ${({ confirmado: 'confirmado', recusado: 'recusado', recebido: 'recebido' })[d.status] || d.status}` : `${d.comprador || 'Empresa'} pediu ${d.qtd || ''} de ${d.produto || ''}`, go: { tab: 'painel' } }),
+  comentario: (d) => ({ title: `${d.fromName || 'Alguém'} comentou no seu post`, body: short(d.text), go: { tab: 'stories' } }),
   deposit: (d) => ({ title: 'Depósito confirmado', body: `${brl(d.amount)} na sua carteira`, go: { tab: 'perfil' } }),
 };
 

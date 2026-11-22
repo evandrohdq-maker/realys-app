@@ -20,6 +20,7 @@ import { fareQuote, TARIFFS, surgeText } from './pricing';
 import { protectionFee } from './guarantee';
 import { usarConta } from './serverAuth';
 import { canSync, payloadOf, pullProfile, pushProfile, uploadLocalPhotos, richness } from './profileSync';
+import { publicar } from './serverSocial';
 import { isServerId } from './serverShop';
 import { pointsFor, pointOffer, giftPoints, initialPoints, promoDiscount, POINT_RULES, watchedToday } from './rewards';
 import { initialLoyalty, onDelivered } from './loyalty';
@@ -1298,6 +1299,11 @@ function baseReducer(state, a) {
       }
       return { ...state, communityPosts: [a.post, ...state.communityPosts] };
     }
+    // Publicado também no servidor (conta real): guarda o id para não duplicar no feed.
+    case 'SERVER_POSTED':
+      return a.kind === 'story'
+        ? { ...state, myStories: state.myStories.map((x) => (x.id === a.id ? { ...x, serverId: a.serverId } : x)) }
+        : { ...state, communityPosts: state.communityPosts.map((x) => (x.id === a.id ? { ...x, serverId: a.serverId } : x)) };
     case 'PUBLISH_STORY':
       return { ...state, myStories: [...state.myStories, a.item] };
     case 'PUBLISH_REEL':
@@ -2284,6 +2290,29 @@ export function StoreProvider({ children }) {
         .finally(() => (pending.current = false));
     }, 2500);
   }, [profileReady, state.autoHorario, state.extraPerfil, state.mural, state.chatLists, state.chatMeta, state.myProfile, state.privacy, state.creations, state.myPage, state.userPages, state.followingPages, state.myBusiness, state.agenda, state.workHours, state.agendaRemind]);
+  // Conta real: o que eu publico (post na Community e story) vai para o servidor, para os amigos verem.
+  // Só o que foi publicado nesta sessão (os exemplos e o que já estava salvo não sobem).
+  const jaVistos = useRef(null);
+  const enviando = useRef(new Set());
+  useEffect(() => {
+    const me = state.user ? state.user.name : null;
+    const itens = [...(state.communityPosts || []).map((x) => ['post', x]), ...(state.myStories || []).map((x) => ['story', x])];
+    if (jaVistos.current == null) {
+      jaVistos.current = new Set(itens.map(([, x]) => x.id));
+      return;
+    }
+    if (!canSync(state.user)) return;
+    itens.forEach(([kind, x]) => {
+      if (!x || x.serverId || x.server || jaVistos.current.has(x.id) || enviando.current.has(x.id)) return;
+      if (kind === 'post' && x.author !== me) return;
+      if (x.flagged) return; // em verificação pela IA: não sobe até a moderação liberar
+      enviando.current.add(x.id);
+      publicar(kind, x)
+        .then((serverId) => serverId && dispatch({ type: 'SERVER_POSTED', kind, id: x.id, serverId }))
+        .catch(() => enviando.current.delete(x.id));
+    });
+  }, [state.communityPosts, state.myStories, state.user]);
+
   // Mudou em outro aparelho (foto nova no app, por exemplo): ao voltar para o app ou para a aba do
   // site, e a cada minuto, busca a versão da conta e aplica se for mais nova.
   useEffect(() => {

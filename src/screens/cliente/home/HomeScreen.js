@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { openMedia } from '../../../components/MediaViewer';
 import { openServerProfile } from '../../../components/ServerProfile';
 import ServerInbox from '../../../components/ServerInbox';
+import { useServerFeed, curtir, comentarios, comentar } from '../../../serverSocial';
 import { CampanhaCard, OngPage } from '../OngsScreen';
 import { campanhaDoFeed, pedeDoacao } from '../../../ongs';
 import { useServerFriends, addFriend, removeFriend } from '../../../serverFriends';
@@ -748,7 +749,11 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
     .map((m) => ({ ...(contacts.find((c) => c.id === m.id) || { status: 'amigo no Realyz' }), id: m.id, name: m.name, photo: m.photo }));
   // Lojas que o cliente segue (seguir não é amizade: sem mensagem e sem ligação).
   const people = [...friends, ...contacts.filter((c) => c.business)];
-  const posts = state.communityPosts;
+  // Conta real: posts dos amigos (servidor) primeiro, depois os do app. Os meus que já subiram não repetem.
+  const srv = useServerFeed(conectado(state));
+  const meusNoServidor = new Set((state.communityPosts || []).map((p) => p.serverId).filter(Boolean));
+  const posts = [...srv.posts.filter((p) => !meusNoServidor.has(p.serverId)), ...state.communityPosts];
+  const [srvCmts, setSrvCmts] = useState({}); // comentários carregados do servidor: { postId: [...] }
   const [liked, setLiked] = useState({});
   const [cmts, setCmts] = useState({}); // comentários feitos aqui: { postId: [texto] }
   const [openCmt, setOpenCmt] = useState(null);
@@ -767,8 +772,22 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
   const sendCmt = (id) => {
     const v = cmtText.trim();
     if (!v) return;
+    const p = posts.find((x) => x.id === id);
+    if (p && p.server) {
+      comentar(p.serverId, v)
+        .then((c) => setSrvCmts((x) => ({ ...x, [id]: [...(x[id] || []), c] })))
+        .catch((e) => Alert.alert('Comentário', e.message));
+      setCmtText('');
+      return;
+    }
     setCmts((x) => ({ ...x, [id]: [...(x[id] || []), v] }));
     setCmtText('');
+  };
+  // Abrir os comentários de um post real carrega os de todo mundo.
+  const abrirCmts = (p) => {
+    setOpenCmt(openCmt === p.id ? null : p.id);
+    setCmtText('');
+    if (p.server && openCmt !== p.id) comentarios(p.serverId).then((l) => setSrvCmts((x) => ({ ...x, [p.id]: l }))).catch(() => {});
   };
 
 
@@ -856,11 +875,13 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
                   activeOpacity={0.7}
                   onPress={() => {
                     dispatch({ type: 'POSTS_SEEN', ids: [it.p.id] });
-                    it.p.station ? openStation(it.p.station.kind, it.p.station.id) : openAuthor(it.p.author);
+                    it.p.server ? openServerProfile(it.p.authorId) : it.p.station ? openStation(it.p.station.kind, it.p.station.id) : openAuthor(it.p.author);
                   }}
                   accessibilityLabel={`Ver perfil de ${it.p.author}`}
                 >
-                  {it.p.station ? (
+                  {it.p.server && it.p.authorPhoto ? (
+                    <Photo uri={it.p.authorPhoto} style={[styles.avatar, { padding: 0 }]} fallback="🙂" />
+                  ) : it.p.station ? (
                     <StationLogo s={(it.p.station.kind === 'tv' ? tvById : radioById)(it.p.station.id) || { emoji: '📻' }} kind={it.p.station.kind} size={40} radius={20} />
                   ) : memberByName(it.p.author) ? (
                     <Photo uri={memberByName(it.p.author).photo} style={[styles.avatar, { padding: 0 }]} fallback="🙂" />
@@ -896,20 +917,17 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
                 ) : null}
                 {it.p.station ? <StationPostPlayer station={it.p.station} /> : null}
                 <View style={{ flexDirection: 'row', marginTop: 10 }}>
-                  <TouchableOpacity style={styles.postAct} onPress={() => setLiked({ ...liked, [it.p.id]: !liked[it.p.id] })} accessibilityLabel="Curtir">
-                    <Ionicons name={liked[it.p.id] ? 'heart' : 'heart-outline'} size={18} color={liked[it.p.id] ? '#FF5A7A' : colors.muted} />
-                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.postActText}>{it.p.likes + (liked[it.p.id] ? 1 : 0)}</Text>
+                  <TouchableOpacity style={styles.postAct} onPress={() => (it.p.server ? curtir(it.p.serverId).catch((e) => Alert.alert('Curtir', e.message)) : setLiked({ ...liked, [it.p.id]: !liked[it.p.id] }))} accessibilityLabel="Curtir">
+                    <Ionicons name={(it.p.server ? it.p.liked : liked[it.p.id]) ? 'heart' : 'heart-outline'} size={18} color={(it.p.server ? it.p.liked : liked[it.p.id]) ? '#FF5A7A' : colors.muted} />
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.postActText}>{it.p.server ? it.p.likes : it.p.likes + (liked[it.p.id] ? 1 : 0)}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.postAct}
-                    onPress={() => {
-                      setOpenCmt(openCmt === it.p.id ? null : it.p.id);
-                      setCmtText('');
-                    }}
+                    onPress={() => abrirCmts(it.p)}
                     accessibilityLabel="Comentar"
                   >
                     <Ionicons name="chatbubble-outline" size={17} color={colors.muted} />
-                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.postActText}>{it.p.comments + (cmts[it.p.id] || []).length}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.postActText}>{it.p.server ? it.p.comments : it.p.comments + (cmts[it.p.id] || []).length}</Text>
                   </TouchableOpacity>
                   {/* Fixar no mural do meu perfil (posts que curti) */}
                   <TouchableOpacity
@@ -927,7 +945,15 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
                     <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.postActText}>{shared[it.p.id] ? `Compartilhado ${shared[it.p.id]}x` : 'Compartilhar'}</Text>
                   </TouchableOpacity>
                 </View>
-                {(cmts[it.p.id] || []).map((c, k) => (
+                {it.p.server && openCmt === it.p.id
+                  ? (srvCmts[it.p.id] || []).map((c) => (
+                      <View key={c.id} style={styles.cmt}>
+                        <Text style={{ color: colors.text, fontWeight: '700', fontSize: 12 }}>{c.author.name}</Text>
+                        <Text style={{ color: colors.text, fontSize: 13 }}>{c.text}</Text>
+                      </View>
+                    ))
+                  : null}
+                {(it.p.server ? [] : cmts[it.p.id] || []).map((c, k) => (
                   <View key={k} style={styles.cmt}>
                     <Text style={{ color: colors.text, fontWeight: '700', fontSize: 12 }}>{userName}</Text>
                     <Text style={{ color: colors.text, fontSize: 13 }}>{c}</Text>
