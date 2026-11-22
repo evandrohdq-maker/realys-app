@@ -57,7 +57,7 @@ function StoryAvatar({ m, ringStyle, imgStyle }) {
         onPress={() => (group ? setView(true) : (setIdx(0), setZoom(true)))}
         onLongPress={() => (setIdx(0), setZoom(true))}
         delayLongPress={HOLD_MS}
-        accessibilityLabel={group ? `Ver os Now de ${m.name}. Segure para ver a foto de perfil` : `Ver a foto de perfil de ${m.name}`}
+        accessibilityLabel={group ? `Ver os stories de ${m.name}. Segure para ver a foto de perfil` : `Ver a foto de perfil de ${m.name}`}
       >
         <View style={[ringStyle, group && { borderColor: fresh ? colors.gold : colors.border, borderWidth: fresh ? 3 : 2 }]}>
           <Photo uri={m.photo} style={imgStyle} fallback="🙂" />

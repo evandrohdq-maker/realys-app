@@ -138,7 +138,7 @@ const TABS = {
   ],
   cliente: [
     // Community vem primeiro: é a aba que abre quando o app inicia.
-    { key: 'stories', label: 'Feed', icon: 'people-circle-outline', Comp: StoriesScreen },
+    { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'home', label: 'Shop', icon: 'bag-handle-outline', Comp: HomeScreen },
     // Negócios (no lugar do Date): imóveis, veículos e máquinas, para comprar ou alugar.
     // A chave é 'bens' (e não 'negocios') porque 'negocios' já é a aba de negociações B2B do perfil Empresa.
@@ -192,14 +192,14 @@ const TABS = {
     // Hub de Negócios: recepção ao vivo, atendimento com tela compartilhada e reuniões da equipe (Painel).
     { key: 'salas', label: 'Hub de Negócios', icon: 'headset-outline', Comp: SalasScreen, hidden: true },
     // Community para a empresa ver o feed sem trocar de perfil (quando a conta não tem perfil de usuário).
-    { key: 'stories', label: 'Feed', icon: 'people-circle-outline', Comp: StoriesScreen, hidden: true },
+    { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen, hidden: true },
   ],
   prestador: [
     { key: 'prestar', label: 'Trabalhar', icon: 'navigate-circle-outline', Comp: DriverScreen },
     { key: 'agenda', label: 'Agenda', icon: 'calendar-outline', Comp: AgendaScreen },
     { key: 'clientes', label: 'Clientes', icon: 'chatbubbles-outline', Comp: CrmPrestador },
     { key: 'inicio', label: 'Início', icon: 'home-outline', Comp: FeedScreen },
-    { key: 'stories', label: 'Feed', icon: 'people-circle-outline', Comp: StoriesScreen },
+    { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
     { key: 'vagas', label: 'Empregos', icon: 'briefcase-outline', Comp: JobsScreen, hidden: true },
     { key: 'paginas', label: 'Páginas', icon: 'albums-outline', Comp: PagesScreen, hidden: true },
@@ -208,7 +208,7 @@ const TABS = {
   fornecedor: [
     { key: 'propostas', label: 'Propostas', icon: 'cube-outline', Comp: SupplierScreen },
     { key: 'inicio', label: 'Início', icon: 'home-outline', Comp: FeedScreen },
-    { key: 'stories', label: 'Feed', icon: 'people-circle-outline', Comp: StoriesScreen },
+    { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
     { key: 'paginas', label: 'Páginas', icon: 'albums-outline', Comp: PagesScreen, hidden: true },
   ],
@@ -661,9 +661,9 @@ function Shell({ inviteTick }) {
           {/* A troca de perfil (usuário ⇄ trabalho) agora fica no botão do Perfil: segurar troca. */}
           {canSwap ? null : state.activeRole === 'empresa' ? (
             /* Empresa sem perfil de usuário: entra só no feed da Community. */
-            <TouchableOpacity onPress={goCommunity} style={styles.rolePill} accessibilityLabel="Entrar no Feed: ver o feed e usar os serviços">
+            <TouchableOpacity onPress={goCommunity} style={styles.rolePill} accessibilityLabel="Entrar na Community: ver o feed e usar os serviços">
               <Ionicons name="people-circle-outline" size={16} color={colors.text} />
-              <Text numberOfLines={1} style={styles.rolePillText}>Feed</Text>
+              <Text numberOfLines={1} style={styles.rolePillText}>Community</Text>
             </TouchableOpacity>
           ) : cameFromEmpresa && state.user.roles.includes('empresa') ? (
             <TouchableOpacity onPress={() => { setCameFromEmpresa(false); switchRole('empresa'); }} style={styles.rolePill} accessibilityLabel="Voltar para a empresa">

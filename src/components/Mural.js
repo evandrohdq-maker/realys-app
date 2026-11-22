@@ -314,7 +314,7 @@ function Picker({ kind, onClose, onPick, current }) {
                   <Ionicons name="add-circle-outline" size={22} color={colors.primary} />
                 </TouchableOpacity>
               ))
-            : <Empty text="Nenhum post no Feed ainda." />
+            : <Empty text="Nenhum post na Community ainda." />
           : null}
         {kind === 'foto' && !chosen ? (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>

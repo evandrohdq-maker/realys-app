@@ -66,7 +66,7 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
       if (!camPerm || !camPerm.granted) {
         const r = await askCam();
         if (!r.granted) {
-          Alert.alert('Câmera', 'Permita a câmera para fazer o Now.');
+          Alert.alert('Câmera', 'Permita a câmera para fazer o story.');
           return onClose();
         }
       }
@@ -131,7 +131,7 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
       const a = r.assets[0];
       if (a.type === 'video') {
         const secs = a.duration ? Math.round(a.duration / 1000) : 0;
-        if (secs > STORY_VIDEO_MAX_S) return Alert.alert('Vídeo longo', `O Now aceita vídeo de até ${STORY_VIDEO_MAX_S} segundos. Este tem ${secs} s.`);
+        if (secs > STORY_VIDEO_MAX_S) return Alert.alert('Vídeo longo', `O story aceita vídeo de até ${STORY_VIDEO_MAX_S} segundos. Este tem ${secs} s.`);
         onDone({ kind: 'video', uri: a.uri, secs: secs || STORY_VIDEO_MAX_S, effect });
       } else onDone({ kind: 'image', uri: a.uri, effect });
     } catch (e) {

@@ -53,12 +53,18 @@ export const screenOk = () => !!(RTC && RTC.mediaDevices && RTC.mediaDevices.get
 // Cada uso pega a captura e devolve quando termina; ela só para quando ninguém mais usa.
 let shared = null; // { stream, users }
 export async function acquireScreen() {
-  if (!screenOk()) throw new Error('Este celular não permite transmitir a tela.');
+  if (!screenOk()) throw new Error(typeof document !== 'undefined' ? 'Este navegador não permite transmitir a tela. Use o Chrome ou o Edge no computador.' : 'Este celular não permite transmitir a tela.');
   const alive = shared && shared.stream.getVideoTracks().some((t) => t.readyState !== 'ended');
   if (!alive) {
     let stream;
     try {
-      stream = await RTC.mediaDevices.getDisplayMedia({ video: true });
+      // No computador (Chrome/Edge): deixa escolher tela inteira, janela (o jogo) ou aba, em 1080p/60,
+      // e não oferece a própria aba do Realyz (evita o efeito de espelho infinito).
+      stream = await RTC.mediaDevices.getDisplayMedia(
+        typeof window !== 'undefined' && typeof document !== 'undefined'
+          ? { video: { frameRate: { ideal: 60, max: 60 }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false, selfBrowserSurface: 'exclude', surfaceSwitching: 'include', monitorTypeSurfaces: 'include', preferCurrentTab: false }
+          : { video: true }
+      );
     } catch (e) {
       throw new Error('Você não liberou a transmissão da tela.');
     }

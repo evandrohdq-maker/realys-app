@@ -1,7 +1,7 @@
 // Só no site: escolhe a câmera certa sozinho, sem a pessoa mexer nas configurações do navegador.
 // Computadores com mais de uma câmera (ex.: DroidCam, OBS, ManyCam instalados) às vezes abrem a
 // câmera virtual, que mostra só "Start DroidCam" ou fica preta. Aqui, sempre que o site pede a câmera
-// (Now, chamadas, lives), o pedido passa por este filtro:
+// (stories, chamadas, lives), o pedido passa por este filtro:
 //   1) se a pessoa já usou uma câmera que funcionou, usa ela de novo;
 //   2) se o navegador abriu uma câmera virtual e existe uma webcam de verdade, troca para a webcam;
 //   3) se a única câmera for a virtual (ex.: celular como webcam pelo DroidCam), usa ela mesmo.

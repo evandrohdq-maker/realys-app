@@ -4,7 +4,7 @@
 // - VideoCallHost: toca quando alguém liga, atende/recusa e mostra a chamada (montado uma vez no App).
 // Sem servidor contratado, nada disso aparece e o app segue no modo demonstração.
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Modal, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Modal, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform } from 'react-native';
 import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -63,11 +63,11 @@ export function LiveStage({ liveId, mine, onAir, onError, screen, viewScreen }) 
   if (mine && screen && (screenOn || loading)) {
     return (
       <View style={[StyleSheet.absoluteFill, st.screenBox]}>
-        {loading && !screenOn ? <ActivityIndicator color="#fff" /> : <Ionicons name="phone-portrait-outline" size={46} color="#FFD66B" />}
+        {loading && !screenOn ? <ActivityIndicator color="#fff" /> : <Ionicons name={Platform.OS === 'web' ? 'desktop-outline' : 'phone-portrait-outline'} size={46} color="#FFD66B" />}
         <Text style={st.screenTitle}>{screenOn ? 'Sua tela está ao vivo' : 'Ligando a transmissão da tela…'}</Text>
         {screenOn ? (
           <Text style={st.screenText}>
-            Pode abrir o jogo: a live continua. Seus seguidores veem a tela do seu celular e ouvem você pelo microfone.
+            {Platform.OS === 'web' ? 'Pode ir para o jogo: a live continua. Seus seguidores veem o que você escolheu mostrar e ouvem você pelo microfone.' : 'Pode abrir o jogo: a live continua. Seus seguidores veem a tela do seu celular e ouvem você pelo microfone.'}
             {liveId ? '' : '\n\n(Demonstração: com o servidor de vídeo contratado, a tela chega para quem assiste.)'}
             {'\n\n'}Volte ao Realyz para ler os comentários e ver os presentes.
           </Text>

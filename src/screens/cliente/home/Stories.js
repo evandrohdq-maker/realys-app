@@ -202,7 +202,7 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
               </View>
             </TouchableOpacity>
             {paused ? <Ionicons name="pause" size={18} color="#fff" style={{ marginRight: 10 }} /> : null}
-            <TouchableOpacity style={styles.close} onPress={onClose} accessibilityLabel="Fechar Now">
+            <TouchableOpacity style={styles.close} onPress={onClose} accessibilityLabel="Fechar story">
               <Ionicons name="close" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
@@ -278,7 +278,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
     try {
       const camera = how !== 'galeria';
       const perm = camera ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted) return Alert.alert('Permissão', camera ? 'Permita a câmera para fazer o Now.' : 'Permita o acesso às fotos e vídeos do celular.');
+      if (!perm.granted) return Alert.alert('Permissão', camera ? 'Permita a câmera para fazer o story.' : 'Permita o acesso às fotos e vídeos do celular.');
       const opts = {
         mediaTypes: how === 'foto' ? ['images'] : how === 'video' ? ['videos'] : ['images', 'videos'],
         quality: 0.9,
@@ -289,12 +289,12 @@ export function StoryComposer({ visible, onClose, onPublish }) {
       const a = r.assets[0];
       if (a.type === 'video') {
         const secs = a.duration ? Math.round(a.duration / 1000) : 0;
-        if (secs > STORY_VIDEO_MAX_S) return Alert.alert('Vídeo longo', `O Now aceita vídeo de até ${STORY_VIDEO_MAX_S} segundos. Este tem ${secs} s.`);
+        if (secs > STORY_VIDEO_MAX_S) return Alert.alert('Vídeo longo', `O story aceita vídeo de até ${STORY_VIDEO_MAX_S} segundos. Este tem ${secs} s.`);
         setMedia({ kind: 'video', uri: a.uri, secs: secs || STORY_VIDEO_MAX_S });
       } else setMedia({ kind: 'image', uri: a.uri });
       setEffect('auto'); // já abre com o ajuste automático; a pessoa troca se quiser
     } catch (e) {
-      Alert.alert('Now', 'Não deu para abrir a câmera ou a galeria.');
+      Alert.alert('Story', 'Não deu para abrir a câmera ou a galeria.');
     }
   };
 
@@ -329,7 +329,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
           <TouchableOpacity style={styles.close} onPress={media ? () => setMedia(null) : onClose} accessibilityLabel={media ? 'Tirar a foto ou o vídeo' : 'Cancelar'}>
             <Ionicons name={media ? 'arrow-back' : 'close'} size={24} color={ink} />
           </TouchableOpacity>
-          <Text style={{ color: ink, fontWeight: '700', fontSize: 16 }}>Novo Now</Text>
+          <Text style={{ color: ink, fontWeight: '700', fontSize: 16 }}>Novo story</Text>
           <TouchableOpacity style={[styles.publish, light && { backgroundColor: colors.primary }, !ready && { opacity: 0.5 }]} onPress={publish}>
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.primary, fontWeight: '800' }}>Publicar</Text>
           </TouchableOpacity>
@@ -339,7 +339,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
           {music ? (
             <MusicSticker music={music} onPress={() => setPicking(true)} />
           ) : (
-            <TouchableOpacity onPress={() => setPicking(true)} style={[styles.addText, light && styles.capBtnLight, light && { borderWidth: 1 }]} accessibilityLabel="Adicionar música ao Now">
+            <TouchableOpacity onPress={() => setPicking(true)} style={[styles.addText, light && styles.capBtnLight, light && { borderWidth: 1 }]} accessibilityLabel="Adicionar música ao story">
               <Ionicons name="musical-notes-outline" size={16} color={light ? colors.primary : '#fff'} />
               <Text numberOfLines={1} style={{ color: ink, fontWeight: '700', marginLeft: 6 }}>Música</Text>
             </TouchableOpacity>
@@ -348,7 +348,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
 
         <View style={{ flex: 1, justifyContent: 'center', padding: 24 }}>
           {media && !writing && !text ? (
-            <TouchableOpacity onPress={() => setWriting(true)} style={styles.addText} accessibilityLabel="Escrever no Now">
+            <TouchableOpacity onPress={() => setWriting(true)} style={styles.addText} accessibilityLabel="Escrever no story">
               <Ionicons name="text-outline" size={16} color="#fff" />
               <Text numberOfLines={1} style={{ color: '#fff', fontWeight: '700', marginLeft: 6 }}>Escrever</Text>
             </TouchableOpacity>
