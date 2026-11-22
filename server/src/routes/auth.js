@@ -180,6 +180,8 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
   // Eu: dados da conta, carteira e empresa (se tiver).
   r.get('/me', ({ user, roles }) => ({
     user: publicUser(user, { self: true }),
+    // Selo "Identidade verificada": só com a biometria aprovada (independe da regra de compras).
+    verificado: !!db.prepare(`SELECT 1 FROM biometria WHERE user_id = ? AND status = 'aprovado'`).get(user.id),
     // O app usa isto para saber se a conta está completa ou no modo social (sem biometria).
     podeComprar: podeComprar(db, cfg, user, roles || []),
     exigeBiometria: !!cfg.exigirBiometria,

@@ -792,7 +792,7 @@ function ServerPersonRow({ u, onFriend }) {
       )}
       <View style={{ flex: 1, marginLeft: 12 }}>
         <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>
-          {u.name} <Ionicons name="shield-checkmark" size={12} color={colors.primary} />
+          {u.name}{u.verified ? <> <Ionicons name="shield-checkmark" size={12} color={colors.primary} /></> : null}
         </Text>
         <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 12 }}>
           {u.username ? `*${u.username}` : 'Conta Realyz'}

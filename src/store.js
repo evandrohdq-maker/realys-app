@@ -1134,6 +1134,9 @@ function baseReducer(state, a) {
       };
     }
     // ---------- Biometria feita depois do cadastro ----------
+    // Selo "Identidade verificada" vindo do servidor (biometria aprovada). Não mexe nas compras.
+    case 'SET_ID_VERIFIED':
+      return state.user ? { ...state, user: { ...state.user, idVerified: !!a.on } } : state;
     case 'SET_VERIFIED':
       return state.user ? { ...state, user: { ...state.user, verified: true }, bioGate: null } : state;
     case 'SET_UNVERIFIED': // o servidor disse que a biometria ainda não foi aprovada

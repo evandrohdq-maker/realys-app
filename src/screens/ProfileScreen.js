@@ -17,7 +17,7 @@ import { VERSION_LABEL } from '../updates';
 import { getSavedUsers, forgetUser } from '../accounts';
 import { ProfileSocial, ProfilePreviewModal, TestimonialsTab, DepCenter } from '../components/SocialProfile';
 import { PeopleSearchModal } from '../components/People';
-import { UnverifiedBanner, isVerified } from '../components/BioGate';
+import { UnverifiedBanner, isVerified, hasIdBadge } from '../components/BioGate';
 import ThemeArt from '../components/ThemeArt';
 import SupportCenter from '../components/SupportCenter';
 import TaxasModal from '../components/TaxasModal';
@@ -103,8 +103,8 @@ function WorkHead({ role, navigate }) {
     <View>
       <View style={[styles.banner, { backgroundColor: colors.cardAlt }]}>
         {company && company.cover ? <Photo uri={company.cover} style={styles.bannerImg} /> : null}
-        <View style={styles.verifiedPill}>
-          <Ionicons name="shield-checkmark" size={13} color="#FFFFFF" />
+        <View style={[styles.verifiedPill, !hasIdBadge(state) && { backgroundColor: 'rgba(60,55,45,0.75)' }]}>
+          <Ionicons name={hasIdBadge(state) ? 'shield-checkmark' : 'shield-outline'} size={13} color="#FFFFFF" />
           <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 11, marginLeft: 4 }}>{WORK_TITLE[role]}</Text>
         </View>
       </View>
@@ -262,7 +262,7 @@ export default function ProfileScreen({ navigate, explore }) {
         {prof.cover ? <Photo uri={prof.cover} style={styles.bannerImg} /> : null}
         <View style={styles.verifiedPill}>
           <Ionicons name="shield-checkmark" size={13} color="#FFFFFF" />
-          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 11, marginLeft: 4 }}>{isVerified(state) ? 'Identidade verificada' : 'Perfil social · sem biometria'}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 11, marginLeft: 4 }}>{hasIdBadge(state) ? 'Identidade verificada' : 'Perfil social · sem biometria'}</Text>
         </View>
         <View style={styles.coverEdit}>
           <Ionicons name="image-outline" size={13} color="#FFFFFF" />
@@ -290,7 +290,7 @@ export default function ProfileScreen({ navigate, explore }) {
         </TouchableOpacity>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
           <Text style={styles.name}>{u.name}</Text>
-          <Ionicons name="checkmark-circle" size={18} color={colors.accent} style={{ marginLeft: 5 }} accessibilityLabel="Identidade verificada por biometria" />
+          {hasIdBadge(state) ? <Ionicons name="checkmark-circle" size={18} color={colors.accent} style={{ marginLeft: 5 }} accessibilityLabel="Identidade verificada por biometria" /> : null}
         </View>
         {prof.handle || prof.profession ? (
           <Text style={styles.handle} numberOfLines={1}>{[prof.handle ? '*' + prof.handle : '', prof.profession].filter(Boolean).join(' · ')}</Text>

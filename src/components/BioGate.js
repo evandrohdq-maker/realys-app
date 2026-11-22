@@ -17,6 +17,8 @@ import { api, serverOn, onBioBlocked } from '../api';
 // normalmente. O que não passa é a compra ou a contratação: essas ações param no store (NEEDS_BIO)
 // e abrem a janela "falta só a biometria".
 export const isVerified = (state) => !state.user || state.user.verified !== false;
+// Selo de identidade verificada: conta do servidor vale o que o servidor diz (biometria aprovada).
+export const hasIdBadge = (state) => !!state.user && (state.user.idVerified != null ? state.user.idVerified : state.user.verified !== false && !state.user.serverId);
 export const canOpenTab = () => true;
 
 // Com o servidor ligado, quem manda é ele: ao entrar, o app pergunta se a conta pode comprar
@@ -34,7 +36,9 @@ export function useServerBio() {
     let alive = true;
     api('GET', '/me')
       .then((me) => {
-        if (!alive || !me || !me.exigeBiometria) return;
+        if (!alive || !me) return;
+        if (me.verificado != null) dispatch({ type: 'SET_ID_VERIFIED', on: me.verificado });
+        if (!me.exigeBiometria) return;
         dispatch({ type: me.podeComprar ? 'SET_VERIFIED' : 'SET_UNVERIFIED' });
       })
       .catch(() => {});
