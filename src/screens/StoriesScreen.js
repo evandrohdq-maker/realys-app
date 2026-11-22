@@ -87,7 +87,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
     };
     const d = new Date();
     const time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-    const msg = { from: 'me', text: `Respondeu ao seu story: ${text}`, time };
+    const msg = { from: 'me', text: `Respondeu ao seu Now: ${text}`, time };
     dispatch({
       type: 'UPDATE_CONVS',
       fn: (cs) =>
@@ -130,7 +130,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
           {/* No computador o "Seu story" fica só no topo do menu lateral. */}
           {railFree ? null : (
           <View style={[styles.item, { width: itemW }]}>
-            <TouchableOpacity onPress={openMine} activeOpacity={0.85} accessibilityLabel={mine.items.length ? 'Ver o seu story' : 'Criar o seu story'}>
+            <TouchableOpacity onPress={openMine} activeOpacity={0.85} accessibilityLabel={mine.items.length ? 'Ver o seu Now' : 'Criar o seu Now'}>
               <View style={[styles.outer, { width: avMeu + 18, height: avMeu + 18, borderRadius: (avMeu + 18) / 2, borderColor: colors.gold, borderWidth: 2 }]}>
                 <View style={[styles.ring, { width: avMeu + 8, height: avMeu + 8, borderRadius: (avMeu + 8) / 2, borderColor: colors.gold, borderWidth: 3 }]}>
                   {myPhoto ? (
@@ -146,13 +146,13 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
             <TouchableOpacity onPress={() => setAdding(true)} style={[styles.mePlus, { width: 28, height: 28, borderRadius: 14, right: Math.max(4, (itemW - avMeu - 18) / 2 - 2), bottom: 22 }]} accessibilityLabel="Adicionar conteúdo">
               <Ionicons name="add" size={18} color="#fff" />
             </TouchableOpacity>
-            <Text numberOfLines={1} style={[styles.name, { color: colors.primary, fontWeight: '800', maxWidth: itemW - 8 }]}>Seu story</Text>
+            <Text numberOfLines={1} style={[styles.name, { color: colors.primary, fontWeight: '800', maxWidth: itemW - 8 }]}>Seu Now</Text>
           </View>
           )}
           {[...fresh, ...old].map((g) => {
             const isSeen = !!seen[g.id];
             return (
-              <TouchableOpacity key={g.id} style={[styles.item, { width: itemW }]} onPress={() => open(g)} activeOpacity={0.85} accessibilityLabel={`Story de ${g.name}`}>
+              <TouchableOpacity key={g.id} style={[styles.item, { width: itemW }]} onPress={() => open(g)} activeOpacity={0.85} accessibilityLabel={`Now de ${g.name}`}>
                 <View style={[styles.outer, { width: av + 16, height: av + 16, borderRadius: (av + 16) / 2 }, !g.sponsored && newPostBy[g.name] && styles.outerNew]}>
                   <View style={[styles.ring, { width: av + 8, height: av + 8, borderRadius: (av + 8) / 2, borderColor: isSeen ? colors.border : g.sponsored ? colors.sponsored : colors.gold, borderWidth: isSeen ? 1.5 : 2.5 }]}>
                     <Photo uri={g.avatar} style={{ width: av, height: av, borderRadius: av / 2 }} fallback="🙂" />
@@ -249,7 +249,7 @@ function AddSheet({ visible, onClose, onPick }) {
   const opts = [
     ['post', 'Publicação', 'Conta pra galera o que tá rolando', 'create-outline'],
     ['reel', 'Reel', 'Vídeo curto em tela cheia: até 60 segundos pra brilhar', 'play-circle-outline'],
-    ['story', 'Story', 'Some em 24 h, ou fica nos seus destaques', 'aperture-outline'],
+    ['story', 'Now', 'Some em 24 h, ou fica nos seus destaques', 'aperture-outline'],
     ['dep', 'Depoimento', 'Fala bem de um amigo: vai pro perfil dele', 'chatbox-ellipses-outline'],
   ];
   return (
@@ -433,7 +433,7 @@ function Grid({ title, groups, onOpen, seen }) {
                   {first.caption}
                 </Text>
                 <Text style={styles.cardMeta}>
-                  {g.items.length > 1 ? `${g.items.length} stories · ` : ''}
+                  {g.items.length > 1 ? `${g.items.length} Now · ` : ''}
                   {g.sponsored ? 'empresa' : first.time}
                 </Text>
               </View>

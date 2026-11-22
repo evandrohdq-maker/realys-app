@@ -428,7 +428,7 @@ export function ShowPedidoCard({ p }) {
   const accept = () => {
     if (p.tipo === 'orcamento') return setAnswer(true);
     run(p, 'responder', { aceitar: true }, () => respond(p.id, { aceitar: true }));
-    Alert.alert('Show confirmado 🎤', 'O dia já saiu da sua agenda. Divulgue nos stories: a arte do show está pronta no pedido.');
+    Alert.alert('Show confirmado 🎤', 'O dia já saiu da sua agenda. Divulgue nos Now: a arte do show está pronta no pedido.');
   };
   const refuse = () =>
     Alert.alert('Recusar?', p.pago ? 'O dinheiro volta para quem contratou na hora. Recusar não tira pontos.' : 'Recusar não tira pontos.', [
@@ -466,13 +466,13 @@ export function ShowPedidoCard({ p }) {
       {/* Divulgação: compromisso nos stories. */}
       {['confirmado', 'realizado'].includes(p.status) && artist ? (
         <View style={st.divulga}>
-          <Text style={[st.packName, { fontSize: 13 }]}>📣 Divulgação nos stories</Text>
-          <Commit label={`Artista: ${DIVULGA.artista} stories (o anúncio e o "é hoje")`} n={(p.divulgacao.artista || []).length} need={DIVULGA.artista} />
-          <Commit label={`Quem contratou: ${DIVULGA.contratante} story`} n={(p.divulgacao.contratante || []).length} need={DIVULGA.contratante} />
+          <Text style={[st.packName, { fontSize: 13 }]}>📣 Divulgação nos Now</Text>
+          <Commit label={`Artista: ${DIVULGA.artista} Now (o anúncio e o "é hoje")`} n={(p.divulgacao.artista || []).length} need={DIVULGA.artista} />
+          <Commit label={`Quem contratou: ${DIVULGA.contratante} Now`} n={(p.divulgacao.contratante || []).length} need={DIVULGA.contratante} />
           {p.status === 'confirmado' && !storyDone(p, meSide) ? (
             <TouchableOpacity style={[st.cta, { marginTop: 8, paddingVertical: 10 }]} onPress={() => setStory(meSide)}>
               <Ionicons name="sparkles" size={16} color={NIGHT} />
-              <Text style={st.ctaText}>Ver a arte e postar no story</Text>
+              <Text style={st.ctaText}>Ver a arte e postar no Now</Text>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -648,7 +648,7 @@ function StoryPreview({ p, artist, lado, onClose }) {
     dispatch({ type: 'PUBLISH_STORY', item: { id: 'show' + Date.now(), text: '', showCard: card, time: 'agora', views: 0 } });
     run(p, 'divulgacao', null, () => markStory(p.id, lado));
     onClose();
-    Alert.alert('Story publicado 📣', 'A arte do show está nos seus stories com o link para contratar.');
+    Alert.alert('Now publicado 📣', 'A arte do show está nos seus Now com o link para contratar.');
   };
   return (
     <Modal visible animationType="fade" onRequestClose={onClose}>
@@ -658,7 +658,7 @@ function StoryPreview({ p, artist, lado, onClose }) {
           <TouchableOpacity style={[st.cta2, { marginRight: 8, backgroundColor: '#fff' }]} onPress={onClose}><Text style={st.cta2Text}>Agora não</Text></TouchableOpacity>
           <TouchableOpacity style={[st.cta, { flex: 1, marginTop: 0 }]} onPress={post}>
             <Ionicons name="add-circle" size={18} color={NIGHT} />
-            <Text style={st.ctaText}>Postar no meu story</Text>
+            <Text style={st.ctaText}>Postar no meu Now</Text>
           </TouchableOpacity>
         </View>
       </View>

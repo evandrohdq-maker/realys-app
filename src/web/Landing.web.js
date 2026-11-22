@@ -55,7 +55,7 @@ const AREAS = [
   ['Food', 'Delivery e reservas de restaurantes, bares e mercados da sua cidade.'],
   ['Serviços', 'Eletricista, diarista, motorista, aulas e atendimento online, com avaliação de quem já contratou.'],
   ['Negócios', 'Imóveis, veículos e máquinas para comprar ou alugar, direto com quem anuncia.'],
-  ['Community', 'Stories, depoimentos, mensagens e chamadas com pessoas confirmadas.'],
+  ['Feed', 'Now, depoimentos, mensagens e chamadas com pessoas confirmadas.'],
   ['Stream', 'Rádios, TV online e lives, com presentes para quem cria.'],
 ];
 

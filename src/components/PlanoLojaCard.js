@@ -67,7 +67,7 @@ export default function PlanoLojaCard() {
       ) : null}
 
       <Text style={{ color: colors.muted, fontSize: 12, lineHeight: 17, marginTop: 8 }}>
-        Quer aparecer mais? Publicidade avulsa, preço fechado: story R$ 9,90 · primeiro nas buscas R$ 14,90 por dia (R$ 79,90 a semana) · banner da vitrine R$ 39,90 por dia (R$ 199,90 a semana).
+        Quer aparecer mais? Publicidade avulsa, preço fechado: Now R$ 9,90 · primeiro nas buscas R$ 14,90 por dia (R$ 79,90 a semana) · banner da vitrine R$ 39,90 por dia (R$ 199,90 a semana).
       </Text>
 
       {plan ? (

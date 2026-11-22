@@ -70,7 +70,7 @@ export function useVerify() {
 }
 
 const POINTS = [
-  ['chatbubbles-outline', 'Liberado agora', 'Navegar no Shop, Food e Serviços, ver preços, e usar a Community, News, Stream, Lives, Reels, páginas e o seu perfil.'],
+  ['chatbubbles-outline', 'Liberado agora', 'Navegar no Shop, Food e Serviços, ver preços, e usar o Feed, News, Stream, Lives, Reels, páginas e o seu perfil.'],
   ['lock-closed-outline', 'Liberado com a biometria', 'Comprar, pedir comida, contratar serviços, anunciar, carteira e presentes.'],
 ];
 
