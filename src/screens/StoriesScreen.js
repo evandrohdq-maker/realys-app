@@ -11,6 +11,10 @@ import { colors, soft } from '../theme';
 import { Photo, PostPhoto } from '../components/ui';
 import { checkText } from '../lm/factCheck';
 import { stories, contacts } from '../homeData';
+import { useServerFeed, storyGroups } from '../serverSocial';
+import { openServerProfile } from '../components/ServerProfile';
+import { api } from '../api';
+import { conectado } from '../serverShop';
 import { StoryViewer, StoryComposer } from './cliente/home/Stories';
 import { CommunityHub, CommunityExtras, TopTabs, COMMUNITY_TOP, COMMUNITY_TOP_KEYS } from './cliente/home/HomeScreen';
 import { useBack } from '../back';
@@ -72,13 +76,21 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
   const itemW = Math.floor((telaW - 24) / (wideWeb ? 5 : 3));
   const av = Math.min(Math.round(itemW * 0.66), 96);
   const avMeu = Math.min(Math.round(itemW * 0.74), 106);
-  const fresh = stories.filter((g) => !seen[g.id]);
-  const old = stories.filter((g) => seen[g.id]);
-  const open = (g) => setView({ groups: stories, start: stories.indexOf(g), mine: false });
+  // Conta real: stories dos amigos (servidor) antes dos de exemplo.
+  const srv = useServerFeed(conectado(state));
+  const todos = [...storyGroups(srv.stories, state.user && state.user.serverId), ...stories];
+  const fresh = todos.filter((g) => !seen[g.id]);
+  const old = todos.filter((g) => seen[g.id]);
+  const open = (g) => setView({ groups: todos, start: todos.indexOf(g), mine: false });
   const openMine = () => (mine.items.length ? setView({ groups: [mine], start: 0, mine: true }) : setComposing(true));
 
   // Resposta ao story vira mensagem em Comunidade › Mensagens.
   const reply = (g, text) => {
+    // Story de conta real: a resposta vai como mensagem de verdade para a pessoa.
+    if (g.server) {
+      api('POST', '/messages', { toId: g.authorId, text: `Respondeu ao seu story: ${text}` }).catch((e) => Alert.alert('Resposta não enviada', e.message));
+      return;
+    }
     const contact = contacts.find((c) => c.id === g.contactId) || {
       id: g.contactId,
       name: g.name,
@@ -183,6 +195,7 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
         // Tocar no nome de quem postou: pessoa abre por cima do story (prévia ou perfil, se for amigo);
         // empresa fecha o story e abre a página dela.
         onProfile={(g) => {
+          if (g.server) return openServerProfile(g.authorId);
           const who = { id: g.contactId, name: g.name };
           // Empresa sem página própria no app (ex.: evento): leva para a oferta do story.
           if (g.business && g.ctaTo && !resolvePerson(state, who).kind) return cta(g);

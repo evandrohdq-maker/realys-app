@@ -44,7 +44,7 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
       ...pub(u),
       friend: f ? (f.status === 'amigos' ? 'amigos' : f.requested_by === user.id ? 'enviado' : 'recebido') : null,
       visible,
-      posts: visible ? db.prepare(`${POST_SQL} WHERE p.author_id = ? AND p.kind = 'post' AND p.removed = 0 ORDER BY p.created_at DESC LIMIT 30`).all(u.id).filter((p) => p.visibility === 'todos' || areFriends(user.id, u.id)).map(postView) : [],
+      posts: visible ? db.prepare(`${POST_SQL} WHERE p.author_id = ? AND p.kind = 'post' AND p.removed = 0 ORDER BY p.created_at DESC LIMIT 30`).all(u.id).filter((p) => p.visibility === 'todos' || areFriends(user.id, u.id)).map((p) => contagens(postView(p), user)) : [],
       testimonials: db.prepare(`SELECT t.id, t.text, t.created_at AS createdAt, f.id AS fromId, f.name AS fromName, f.photo AS fromPhoto FROM testimonials t JOIN users f ON f.id = t.from_id WHERE t.to_id = ? AND t.status = 'aceito' ORDER BY t.created_at DESC LIMIT 30`).all(u.id),
       company: db.prepare('SELECT id, name FROM companies WHERE owner_id = ?').get(u.id) || null,
     };
@@ -93,12 +93,18 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     return postView(db.prepare(`${POST_SQL} WHERE p.id = ?`).get(id));
   }, { status: 201 });
 
+  const contagens = (v, user) => ({
+    ...v,
+    likes: db.prepare('SELECT COUNT(*) AS n FROM post_likes WHERE post_id = ?').get(v.id).n,
+    liked: !!db.prepare('SELECT 1 FROM post_likes WHERE post_id = ? AND user_id = ?').get(v.id, user.id),
+    comments: db.prepare('SELECT COUNT(*) AS n FROM post_comments WHERE post_id = ? AND removed = 0').get(v.id).n,
+  });
   // Feed: posts de quem é público e dos amigos. Os marcados como informação falsa não aparecem.
   r.get('/feed', ({ user, query }) => {
     const before = Number(query.before || now() + 1);
     return db.prepare(`${POST_SQL} WHERE p.kind = 'post' AND p.removed = 0 AND p.flagged = 0 AND p.created_at < ? ORDER BY p.created_at DESC LIMIT 60`).all(before)
       .filter((p) => p.author_id === user.id || (p.visibility === 'todos' ? canSeeSocial(user, userById(p.author_id)) : areFriends(user.id, p.author_id)))
-      .slice(0, 30).map(postView);
+      .slice(0, 30).map((p) => contagens(postView(p), user));
   });
 
   // Stories das últimas 24 h, agrupados por pessoa (as bolinhas da página de Stories).
@@ -111,6 +117,40 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
       groups.get(p.author_id).items.push(postView(p));
     }
     return [...groups.values()];
+  });
+
+  // ── Curtidas e comentários ──
+  const podeVerPost = (p, user) => p && !p.removed && (p.author_id === user.id || (p.visibility === 'todos' ? canSeeSocial(user, userById(p.author_id)) : areFriends(user.id, p.author_id)));
+  r.post('/posts/:id/curtir', ({ params, user }) => {
+    const p = db.prepare('SELECT * FROM posts WHERE id = ?').get(params.id);
+    if (!podeVerPost(p, user)) fail(404, 'Publicação não encontrada.');
+    const ja = db.prepare('SELECT 1 FROM post_likes WHERE post_id = ? AND user_id = ?').get(p.id, user.id);
+    if (ja) db.prepare('DELETE FROM post_likes WHERE post_id = ? AND user_id = ?').run(p.id, user.id);
+    else db.prepare('INSERT INTO post_likes (post_id, user_id, created_at) VALUES (?,?,?)').run(p.id, user.id, now());
+    return { liked: !ja, likes: db.prepare('SELECT COUNT(*) AS n FROM post_likes WHERE post_id = ?').get(p.id).n };
+  });
+  const comentarioView = (c) => ({ id: c.id, text: c.text, createdAt: c.created_at, author: { id: c.user_id, name: c.name, username: c.username, photo: c.photo } });
+  r.get('/posts/:id/comentarios', ({ params, user }) => {
+    const p = db.prepare('SELECT * FROM posts WHERE id = ?').get(params.id);
+    if (!podeVerPost(p, user)) fail(404, 'Publicação não encontrada.');
+    return db.prepare('SELECT c.*, u.name, u.username, u.photo FROM post_comments c JOIN users u ON u.id = c.user_id WHERE c.post_id = ? AND c.removed = 0 ORDER BY c.created_at LIMIT 200').all(p.id).map(comentarioView);
+  });
+  r.post('/posts/:id/comentarios', ({ params, body, user }) => {
+    const p = db.prepare('SELECT * FROM posts WHERE id = ?').get(params.id);
+    if (!podeVerPost(p, user)) fail(404, 'Publicação não encontrada.');
+    const text = str(body.text, 'o comentário', { max: 600 });
+    const m = moderateText(text, 'publico');
+    if (!m.ok) fail(422, m.why, m.kind);
+    const id = newId('pc');
+    db.prepare('INSERT INTO post_comments (id, post_id, user_id, text, created_at) VALUES (?,?,?,?,?)').run(id, p.id, user.id, text, now());
+    if (p.author_id !== user.id) hub.send(p.author_id, 'comentario', { postId: p.id, fromName: user.name, text });
+    return comentarioView(db.prepare('SELECT c.*, u.name, u.username, u.photo FROM post_comments c JOIN users u ON u.id = c.user_id WHERE c.id = ?').get(id));
+  }, { status: 201 });
+  r.delete('/comentarios/:id', ({ params, user }) => {
+    const c = db.prepare('SELECT c.*, p.author_id FROM post_comments c JOIN posts p ON p.id = c.post_id WHERE c.id = ?').get(params.id);
+    // Apaga quem escreveu ou o dono do post.
+    if (!c || (c.user_id !== user.id && c.author_id !== user.id)) fail(404, 'Comentário não encontrado.');
+    db.prepare('UPDATE post_comments SET removed = 1 WHERE id = ?').run(c.id);
   });
 
   r.delete('/posts/:id', ({ params, user }) => {

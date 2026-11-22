@@ -845,6 +845,23 @@ const MIGRATIONS = [
     user_id TEXT PRIMARY KEY REFERENCES users(id),
     ultimo_at INTEGER NOT NULL
   );
+  `,  // 29: curtidas e comentários dos posts (contas reais).
+  `
+  CREATE TABLE post_likes (
+    post_id TEXT NOT NULL REFERENCES posts(id),
+    user_id TEXT NOT NULL REFERENCES users(id),
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (post_id, user_id)
+  );
+  CREATE TABLE post_comments (
+    id TEXT PRIMARY KEY,
+    post_id TEXT NOT NULL REFERENCES posts(id),
+    user_id TEXT NOT NULL REFERENCES users(id),
+    text TEXT NOT NULL,
+    removed INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX post_comments_post ON post_comments(post_id, created_at);
   `,
 ];
 
