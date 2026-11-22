@@ -27,6 +27,7 @@ import mediaRoutes from './routes/media.js';
 import adminRoutes from './routes/admin.js';
 import { exigirBiometria } from './bioGate.js';
 import { exigirComprasLiberadas, MSG_COMPRAS_BLOQUEADAS } from './comprasGate.js';
+import { protegerDinheiroDeTeste, rodarComoTeste } from './teste.js';
 import biometriaRoutes from './routes/biometria.js';
 import videoRoutes from './routes/video.js';
 import { makeCipher, parseKeys } from './crypto.js';
@@ -88,6 +89,8 @@ export function createApp(cfg) {
   // Notificações com o app fechado (Firebase). Sem a chave no .env, ficam desligadas.
   const push = makePush({ db, cfg });
   hub.offline = push.aviso;
+  // Contas de teste: dinheiro fictício nunca chega a conta real, ao caixa nem às notas (src/teste.js).
+  protegerDinheiroDeTeste(db, wallet, fiscal);
   const deps = { db, cfg, wallet, hub, userById, publicUser, cipher, matcher, biometria, fiscal, pix, push };
   // IA do Realyz (atendente das empresas e copiloto de vendas).
   deps.ia = cfg.ia || makeIA(cfg);
@@ -160,7 +163,7 @@ export function createApp(cfg) {
         // Compra, contratação e carteira: só com a biometria aprovada (src/bioGate.js).
         exigirBiometria(db, cfg, route, req.method, ctx.user, ctx.roles);
         // Compras temporariamente bloqueadas (src/comprasGate.js).
-        exigirComprasLiberadas(cfg, route, req.method, ctx.roles);
+        exigirComprasLiberadas(cfg, route, req.method, ctx.roles, ctx.user);
       }
       if (route.opts.raw) ctx.raw = await readBody(req, cfg.maxUploadMb * 1024 * 1024);
       else if (req.method !== 'GET' && req.method !== 'DELETE') {
@@ -172,7 +175,7 @@ export function createApp(cfg) {
         }
       } else ctx.body = {};
 
-      const out = await route.handler(ctx);
+      const out = await rodarComoTeste(ctx.user, () => route.handler(ctx));
       if (res.headersSent) return; // a rota já respondeu sozinha (ex.: arquivo de mídia)
       sendJson(res, route.opts.status || 200, out === undefined ? { ok: true } : out, cors);
     } catch (e) {

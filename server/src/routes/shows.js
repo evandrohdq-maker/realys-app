@@ -8,6 +8,7 @@
 // e o artista recebe o resto mais o deslocamento inteiro. Quem contratou cancela com estorno total
 // até 7 dias antes do show; depois, só pelo suporte (Garantia Realyz).
 // Divulgação: cada lado marca os stories postados (artista: 2; quem contratou: 1).
+import { exigirParceiroDeTeste } from '../teste.js';
 import { fail, newId, now, str, money, int, oneOf, toReais } from '../http.js';
 import { tx } from '../db.js';
 import { antiDesvio, moderateText } from '../moderacaoTexto.js';
@@ -157,6 +158,7 @@ export default function showsRoutes(r, { db, cfg, wallet, hub, userById, fiscal 
     const row = db.prepare('SELECT * FROM artist_shows WHERE user_id = ? AND ativo = 1').get(String(body.artistaId || ''));
     if (!row) fail(404, 'Esse artista não está aceitando contratação agora.');
     if (row.user_id === user.id) fail(400, 'Você não pode contratar a si mesmo.');
+    exigirParceiroDeTeste(db, row.user_id);
     const tipo = oneOf(body.tipo, 'o tipo de pedido', ['contratacao', 'orcamento', 'contato']);
     const id = newId('sh');
     const t = now();

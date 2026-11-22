@@ -370,6 +370,13 @@ const withUserRole = (user) => {
 // (Mercadinho Bom Preço, do ramo de alimentação). Sai o nome, os produtos, a galeria e os dados
 // de exemplo; o ramo (Alimentação, Moda, Serviços…) é o que a própria empresa marcar em
 // "Onde atua". Assim nada de comida aparece para quem não é do ramo.
+// Itens da galeria de exemplo têm id "me-..." (src/testimonialsData.js, myInitialGallery).
+const ehExemploGaleria = (x) => x && /^me-/.test(String(x.id || ''));
+function semExemplosGaleria(g) {
+  const arr = (v) => (Array.isArray(v) ? v : []);
+  return { ...(g || {}), photos: arr(g && g.photos).filter((x) => !ehExemploGaleria(x)), videos: arr(g && g.videos).filter((x) => !ehExemploGaleria(x)), highlights: arr(g && g.highlights).filter((x) => !ehExemploGaleria(x)) };
+}
+
 function comEmpresaReal(state, user) {
   if (!user || !user.serverId) return state;
   return {
@@ -390,6 +397,8 @@ function comEmpresaReal(state, user) {
       liveGifts: [],
       // Pedidos de exemplo saem; os de verdade chegam do servidor (SERVER_ORDERS_SYNC).
       orders: (state.orders || []).filter((o) => o.serverId),
+      // Galeria de exemplo (fotos e vídeos inventados) também sai: só o que a pessoa enviar.
+      myGallery: semExemplosGaleria(state.myGallery),
     }),
     myCompanyReal: true,
     stores: state.stores.map((x) => (x.id === D.MY_COMPANY_ID ? { ...x, name: user.name || 'Minha empresa', category: (user.company && user.company.segment) || '', city: user.city || '', rating: null, recommended: false, sponsored: false, cover: null, logo: '🏪' } : x)),
@@ -1116,7 +1125,7 @@ function baseReducer(state, a) {
     case 'SET_PRIVACY':
       return { ...state, privacy: { ...state.privacy, ...a.privacy } };
     case 'LOAD_PROFILE':
-      return { ...state, chatLists: a.data.chatLists || state.chatLists, chatMeta: a.data.chatMeta || state.chatMeta, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, userPages: a.data.myUserPages ? [...a.data.myUserPages, ...(state.userPages || []).filter((p) => p.ownerId !== 'me')] : state.userPages, followingPages: a.data.followingPages || state.followingPages, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, autoHorario: a.data.autoHorario != null ? a.data.autoHorario : state.autoHorario, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind, mural: a.data.mural || state.mural, myGallery: a.data.myGallery ? { ...state.myGallery, ...a.data.myGallery } : state.myGallery, gamer: a.data.gamer || state.gamer, storyArchive: a.data.storyArchive || state.storyArchive, myStories: Array.isArray(a.data.myStories) ? a.data.myStories.filter((x) => x && (!x.at || Date.now() - x.at < 86400000)) : state.myStories, savedReels: a.data.savedReels || state.savedReels, extraPerfil: a.data.extraPerfil ? { ...state.extraPerfil, ...a.data.extraPerfil } : state.extraPerfil };
+      return { ...state, chatLists: a.data.chatLists || state.chatLists, chatMeta: a.data.chatMeta || state.chatMeta, myProfile: withSignupProfile({ ...state.myProfile, ...(a.data.myProfile || {}) }, state.user), privacy: { ...state.privacy, ...(a.data.privacy || {}) }, creations: a.data.creations || state.creations, myPage: a.data.myPage || state.myPage, userPages: a.data.myUserPages ? [...a.data.myUserPages, ...(state.userPages || []).filter((p) => p.ownerId !== 'me')] : state.userPages, followingPages: a.data.followingPages || state.followingPages, myBusiness: a.data.myBusiness || state.myBusiness, agenda: a.data.agenda || state.agenda, workHours: a.data.workHours || state.workHours, autoHorario: a.data.autoHorario != null ? a.data.autoHorario : state.autoHorario, agendaRemind: a.data.agendaRemind != null ? a.data.agendaRemind : state.agendaRemind, mural: a.data.mural || state.mural, myGallery: a.data.myGallery ? (state.realLimpo ? semExemplosGaleria({ ...state.myGallery, ...a.data.myGallery }) : { ...state.myGallery, ...a.data.myGallery }) : state.myGallery, gamer: a.data.gamer || state.gamer, storyArchive: a.data.storyArchive || state.storyArchive, myStories: Array.isArray(a.data.myStories) ? a.data.myStories.filter((x) => x && (!x.at || Date.now() - x.at < 86400000)) : state.myStories, savedReels: a.data.savedReels || state.savedReels, extraPerfil: a.data.extraPerfil ? { ...state.extraPerfil, ...a.data.extraPerfil } : state.extraPerfil };
     case 'ADD_CREATION':
       return { ...state, creations: [a.item, ...state.creations] };
     case 'UPDATE_CREATION':
@@ -1234,6 +1243,8 @@ function baseReducer(state, a) {
       return { ...state, bioGate: Date.now() };
     case 'COMPRAS_STATUS':
       return { ...state, comprasBloqueadas: !!a.bloqueadas, comprasAviso: a.aviso || state.comprasAviso };
+    case 'SET_CONTA_TESTE':
+      return { ...state, contaTeste: !!a.on };
     case 'COMPRAS_GATE':
       return { ...state, comprasGate: Date.now() };
     case 'COMPRAS_GATE_CLOSE':

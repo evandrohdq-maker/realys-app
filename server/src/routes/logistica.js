@@ -9,6 +9,7 @@
 //  3) Ofertas de fornecedores: a empresa fornecedora publica uma oferta (produto, preço, mínimo,
 //     para que tipo de negócio); restaurantes, mercados... perto recebem e fazem o pedido.
 // O valor da entrega fica retido no Realyz desde o pedido e só vai para quem entregou no fim.
+import { exigirParceiroDeTeste } from '../teste.js';
 import { fail, newId, now, str, money, oneOf, toReais, toCents } from '../http.js';
 import { tx } from '../db.js';
 import { combinar, km, TAXA_ROTA_PCT } from '../rota.js';
@@ -275,6 +276,7 @@ export default function logisticaRoutes(r, { db, cfg, hub, wallet, userById, bio
     const e = db.prepare(`SELECT * FROM entregas WHERE id = ? AND loja_id = ? AND tipo = 'carga' AND status = 'aberta'`).get(params.id, user.id);
     if (!e) fail(404, 'Carga não encontrada.');
     const p = db.prepare(`SELECT * FROM entrega_propostas WHERE id = ? AND entrega_id = ?`).get(String(body.propostaId), e.id);
+    if (p) exigirParceiroDeTeste(db, p.transportador_id);
     if (!p) fail(404, 'Proposta não encontrada.');
     const dif = p.valor - e.valor;
     tx(db, () => {
@@ -367,6 +369,7 @@ export default function logisticaRoutes(r, { db, cfg, hub, wallet, userById, bio
     const o = db.prepare(`SELECT * FROM ofertas_fornecedor WHERE id = ? AND status = 'ativa' AND validade > ?`).get(params.id, now());
     if (!o) fail(404, 'Oferta encerrada.');
     if (o.fornecedor_id === user.id) fail(400, 'A oferta é sua.');
+    exigirParceiroDeTeste(db, o.fornecedor_id);
     if (!minhaEmpresa(user)) fail(403, 'Compra de fornecedor é para empresas.');
     const d = JSON.parse(o.dados);
     const qtd = Number(body.qtd);

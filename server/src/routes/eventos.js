@@ -1,6 +1,7 @@
 // Eventos e ingressos de verdade: a empresa (produtora, bar, casa noturna) publica o evento com o
 // preço e a lotação; o cliente compra pelo app e recebe o código do ingresso (vira QR na portaria).
 // Taxa do Realyz: 8% de cada ingresso, no mínimo R$ 1,99, paga pelo produtor (sai do valor dele).
+import { exigirParceiroDeTeste } from '../teste.js';
 import { fail, newId, now, str, money, int, toReais } from '../http.js';
 import { tx } from '../db.js';
 
@@ -59,6 +60,7 @@ export default function eventosRoutes(r, { db, cfg, wallet, hub, fiscal }) {
       if (e.sold + qty > e.capacity) fail(409, e.capacity - e.sold > 0 ? `Restam só ${e.capacity - e.sold} ingressos.` : 'Ingressos esgotados.');
       const c = db.prepare('SELECT owner_id FROM companies WHERE id = ?').get(e.company_id);
       if (c.owner_id === user.id) fail(400, 'Você não pode comprar ingresso do seu próprio evento.');
+      exigirParceiroDeTeste(db, c.owner_id);
       const total = e.price * qty;
       const id = newId('tk');
       const paid = total ? wallet.pay(user.id, total, 'Ingressos', `${qty}× ingresso: ${e.title}`, id) : { fromGift: 0, fromWallet: 0 };

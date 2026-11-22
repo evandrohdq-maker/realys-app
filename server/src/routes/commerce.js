@@ -1,4 +1,5 @@
 // Empresas, produtos e pedidos (Shop, Food, lojas, fornecedores).
+import { exigirParceiroDeTeste } from '../teste.js';
 import { fail, newId, now, money, str, int, toReais, coord } from '../http.js';
 import { tx } from '../db.js';
 
@@ -175,6 +176,7 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
         if (p.maioridade && !adultoConfirmado(user.id)) fail(403, `${p.name} é bebida alcoólica: só para maiores de 18 anos. Sua maioridade não está confirmada na conta.`, 'maioridade');
         const qty = int(it.qty, 'quantidade', { min: 1, max: 99 });
         if (p.owner_id === user.id) fail(400, 'Você não pode comprar da sua própria loja.');
+        exigirParceiroDeTeste(db, p.owner_id);
         const r2 = db.prepare('UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?').run(qty, p.id, qty);
         if (!r2.changes) fail(409, `Sem estoque suficiente de ${p.name}.`);
         if (!byCompany.has(p.company_id)) byCompany.set(p.company_id, { owner: p.owner_id, name: p.company_name, lines: [] });

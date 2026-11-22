@@ -1,6 +1,7 @@
 // Músicas de verdade: o artista publica a faixa com o valor que quer receber; o cliente compra pelo
 // app e paga esse valor + R$ 0,99 fixos do Realyz por download. O artista recebe 100% do valor dele.
 // Ouvir na Galeria é livre (com propaganda no app); o download fica do cliente para sempre.
+import { exigirParceiroDeTeste } from '../teste.js';
 import { fail, newId, now, str, money, toReais } from '../http.js';
 import { tx } from '../db.js';
 
@@ -51,6 +52,7 @@ export default function musicasRoutes(r, { db, cfg, wallet, hub, fiscal }) {
         const t = db.prepare(`${SQL} WHERE t.id = ?`).get(id);
         if (!t || !t.active) fail(404, 'Uma das músicas não está mais à venda.');
         if (t.artist_id === user.id) fail(400, 'Você não precisa comprar a sua própria música.');
+        exigirParceiroDeTeste(db, t.artist_id);
         if (db.prepare('SELECT 1 FROM track_sales WHERE track_id = ? AND buyer_id = ?').get(id, user.id)) continue; // já é sua
         const fee = FEE();
         const ref = newId('ms');
