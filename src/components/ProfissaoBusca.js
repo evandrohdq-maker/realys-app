@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text, TextInput } from '../responsive';
 import { colors } from '../theme';
 import { buscarProfissoes, profissaoPorKey, funcoesSugeridas } from '../providerSegments';
+import { atualizarMeiValores } from '../meiValoresSync';
 import { profInfo, MEI_PASSOS, MEI_VALORES, dasDaProfissao, calcFaturamento, formatReais } from '../professionsKnowledge';
 
 // value = chave da profissão escolhida (ou null). onPick(prof | null). livre: aceita o que digitou.
@@ -145,6 +146,11 @@ export function ProfissaoInfo({ profKey, onMei }) {
 // Conta aproximada: quanto fica o DAS da profissão e se o faturamento cabe no MEI.
 function MeiConta({ profKey }) {
   const [mes, setMes] = useState('');
+  const [, setTick] = useState(0);
+  // Valores do momento (o servidor atualiza pelo salário mínimo oficial).
+  React.useEffect(() => {
+    atualizarMeiValores().then((ok) => ok && setTick((n) => n + 1));
+  }, []);
   const [meses, setMeses] = useState(12);
   const das = dasDaProfissao(profKey);
   const v = Number(String(mes).replace(/\./g, '').replace(',', '.')) || 0;

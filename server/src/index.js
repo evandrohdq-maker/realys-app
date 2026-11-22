@@ -10,6 +10,7 @@ app.server.listen(cfg.port, cfg.host, () => {
   if (cfg.production && !cfg.biometricKeys) console.log('Aviso: BIOMETRIA_KEYS não configurada. Cadastros biométricos ficam parados até configurar.');
   if (cfg.production && !cfg.biometricServiceUrl) console.log('Aviso: BIOMETRIA_SERVICE_URL não configurada. Todo cadastro biométrico vai para revisão manual.');
   app.maintenance.start();
+  app.meiValores.start(); // salário mínimo oficial → DAS do MEI (a cada 12 h)
   app.startPix();
   if (cfg.pixProvider && !app.pix.ready) console.log('Pix do banco desligado. Falta configurar: ' + app.pix.pendencias().join('; '));
   if (app.pix.ready) console.log('Pix do banco ligado: depósitos por cobrança Pix na conta do Realyz.');

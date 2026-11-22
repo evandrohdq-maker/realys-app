@@ -252,6 +252,13 @@ export const MEI_VALORES = {
   proximos: [{ ano: 2027, limite: 110000 }, { ano: 2028, limite: 140000 }],
   caminhoneiro: { inss: 194.52 },
 };
+// Valores que vêm do servidor (que busca o salário mínimo oficial no Banco Central a cada 12 h).
+// O app chama isto ao abrir; sem internet, ficam os valores acima.
+export function aplicarMeiValores(v) {
+  if (!v || !v.das || !(v.inss > 0)) return false;
+  Object.assign(MEI_VALORES, { ano: v.ano, salarioMinimo: v.salarioMinimo, inss: v.inss, das: v.das, limiteAno: v.limiteAno, tolerancia: v.tolerancia, proximos: v.proximos || [], caminhoneiro: v.caminhoneiro || MEI_VALORES.caminhoneiro });
+  return true;
+}
 const reais = (v) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 // Tipo de DAS da ocupação: CNAE de indústria (começa com 1, 2 ou 3) ou de comércio (47) paga ICMS;
 // o resto é serviço (ISS). É uma conta aproximada: o portal mostra o valor exato da sua guia.
@@ -265,7 +272,7 @@ export function dasDaProfissao(key) {
 export function calcFaturamento(porMes, meses = 12) {
   const limite = Math.round((MEI_VALORES.limiteAno / 12) * meses);
   const ano = Math.round(porMes * meses);
-  const tol = Math.round(limite * 1.2);
+  const tol = Math.round(limite * ((MEI_VALORES.tolerancia || MEI_VALORES.limiteAno * 1.2) / MEI_VALORES.limiteAno));
   const situacao = ano <= limite ? 'cabe' : ano <= tol ? 'passou_pouco' : 'passou_muito';
   return { ano, limite, tolerancia: tol, situacao, reais };
 }

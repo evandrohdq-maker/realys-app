@@ -114,6 +114,7 @@ import { ArtistShowHost } from './src/components/ArtistBooking';
 import { MediaViewerHost } from './src/components/MediaViewer';
 import { ServerProfileHost } from './src/components/ServerProfile';
 import { DestacarHost } from './src/components/Destacar';
+import { atualizarMeiValores } from './src/meiValoresSync';
 import { installCameraPick } from './src/web/cameraPick';
 // Site: escolhe a webcam de verdade sozinho (pula DroidCam, OBS e outras câmeras virtuais).
 if (Platform.OS === 'web') installCameraPick();
@@ -223,6 +224,10 @@ const ROLE_ICONS = { cliente: 'person', prestador: 'construct', empresa: 'busine
 function Shell({ inviteTick }) {
   const { state, dispatch } = useStore();
   useFavs(); // a bolinha do sininho acende quando um streamer favorito entra ao vivo
+  // Valores do MEI do momento (DAS e limite), para o guia e para a Lotus.
+  useEffect(() => {
+    atualizarMeiValores();
+  }, []);
   // Convite de chamada (link recebido por fora do app): depois de entrar ou se cadastrar, vai direto
   // para a sala de voz da Arena (src/callInvite.js).
   useEffect(() => {

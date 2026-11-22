@@ -31,6 +31,7 @@ import { makeCipher, parseKeys } from './crypto.js';
 import { makeMatcher } from './biometria/matcher.js';
 import { makeBiometria } from './biometria/service.js';
 import { makeMaintenance } from './maintenance.js';
+import { makeMeiValores } from './meiValores.js';
 import { makePix } from './pagamentos/pix.js';
 import { makeIA } from './ia/index.js';
 import { makeAtendente } from './ia/atendente.js';
@@ -111,6 +112,18 @@ export function createApp(cfg) {
 
 
   const maintenance = makeMaintenance({ db, cfg, cipher, biometria, matcher });
+  // Valores do MEI (DAS e limite) atualizados sozinhos pelo salário mínimo oficial do Banco Central.
+  const meiValores = makeMeiValores({ db });
+  router.get('/mei/valores', () => meiValores.valores(), { auth: false });
+  router.post('/admin/mei/atualizar', () => meiValores.atualizar(), { auth: 'admin' });
+  router.put('/admin/mei/valores', ({ body }) => {
+    const ok = {};
+    const num = (v) => Number(v);
+    if (body.salarioMinimo != null && num(body.salarioMinimo) >= 1000) ok.salarioMinimo = num(body.salarioMinimo);
+    for (const k of ['inssPct', 'inssPctCaminhoneiro', 'icms', 'iss', 'toleranciaPct']) if (body[k] != null && num(body[k]) >= 0) ok[k] = num(body[k]);
+    if (Array.isArray(body.limites)) ok.limites = body.limites.filter((l) => l && num(l.desde) > 2000 && num(l.valor) > 0).map((l) => ({ desde: num(l.desde), valor: num(l.valor) }));
+    return meiValores.gravar({ ...ok, fonte: 'ajuste do administrador' });
+  }, { auth: 'admin' });
   router.get('/admin/manutencao', () => maintenance.history(), { auth: 'admin' });
   router.post('/admin/manutencao/:job', ({ params }) => maintenance.run(params.job), { auth: 'admin' });
 
@@ -180,5 +193,5 @@ export function createApp(cfg) {
   const startPix = () => {
     if (pix.ready && !pixTimer) pixTimer = setInterval(() => pix.conferirDepositos && pix.conferirDepositos().catch(() => {}), 60000);
   };
-  return { server, db, hub, wallet, close: async () => { if (pixTimer) clearInterval(pixTimer); return close(); }, maintenance, biometria, fiscal, pix, startPix };
+  return { server, db, hub, wallet, close: async () => { if (pixTimer) clearInterval(pixTimer); meiValores.stop(); return close(); }, maintenance, meiValores, biometria, fiscal, pix, startPix };
 }

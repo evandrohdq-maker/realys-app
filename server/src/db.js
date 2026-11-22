@@ -885,6 +885,14 @@ const MIGRATIONS = [
     updated_at INTEGER NOT NULL
   );
   `,
+  // 32: parâmetros que se atualizam sozinhos (ex.: valores do MEI a partir do salário mínimo oficial).
+  `
+  CREATE TABLE parametros (
+    chave TEXT PRIMARY KEY,
+    valor TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  `,
 ];
 
 export function openDb(file) {
