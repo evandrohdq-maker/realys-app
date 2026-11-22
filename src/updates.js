@@ -98,7 +98,9 @@ export function cleanupOldUpdate() {
 // onStage('downloading' | 'installing') avisa a tela em que passo está.
 // onProgress(0 a 100) avisa o avanço do download. O avanço vem do tamanho do arquivo que já chegou;
 // se o celular não informar, é estimado pelo tempo (e para em 95% até o download terminar).
-export async function installUpdate(url, onStage, onProgress, totalBytes) {
+// opts.forceIntent: pula a instalação automática e abre direto o instalador do Android (usado quando
+// a automática falhou, para a atualização nunca ficar parada).
+export async function installUpdate(url, onStage, onProgress, totalBytes, opts = {}) {
   if (Platform.OS !== 'android') throw new Error('Atualização de APK só existe no Android');
 
   cleanupOldUpdate();
@@ -126,7 +128,7 @@ export async function installUpdate(url, onStage, onProgress, totalBytes) {
   onProgress && onProgress(100);
 
   onStage && onStage('installing');
-  if (Native) {
+  if (Native && !opts.forceIntent) {
     try {
       // Instala por cima pelo PackageInstaller e já apaga o arquivo baixado.
       await Native.install(file.uri);
