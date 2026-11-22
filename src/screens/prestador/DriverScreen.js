@@ -10,6 +10,7 @@ import { colors, brl } from '../../theme';
 import { Screen, Title, Card, Row, Button, Stat, Section, Empty, Badge, Input, Chip } from '../../components/ui';
 import ServerProviderPanel from '../../components/ServerProviderPanel';
 import AtendenteIA from '../../components/AtendenteIA';
+import HorarioTrabalho from '../../components/HorarioTrabalho';
 import {
   isVisitService,
   visitFee,
@@ -221,6 +222,7 @@ function DriverMain({ goTo, onCadastro }) {
           <Switch value={state.available} onValueChange={() => dispatch({ type: 'TOGGLE_AVAILABLE' })} trackColor={{ true: colors.primary }} />
         </Row>
       </Card>
+      <HorarioTrabalho />
       <SafetyKey />
       {me && TARIFFS[me.service] ? <RideEarnings service={me.service} /> : null}
       <Card onPress={() => dispatch({ type: 'OPEN_DOCS', mode: 'lista' })}>

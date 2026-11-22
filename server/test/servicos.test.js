@@ -116,3 +116,30 @@ test('músicas: artista recebe 100% do valor dele, Realyz soma R$ 0,99 e ningué
   assert.equal(area.sales, 1);
   assert.equal(area.earned, 2);
 });
+
+test('horário de trabalho: no horário aparece sozinho, fora dele não (horas de Brasília)', async () => {
+  const { emHorario } = await import('../src/routes/services.js');
+  // 2026-11-20 é sexta. 21h de Brasília = 00h UTC de sábado.
+  const sexta21h = Date.parse('2026-11-21T00:00:00Z');
+  const sabado1h = Date.parse('2026-11-21T04:00:00Z');
+  const sabado3h = Date.parse('2026-11-21T06:00:00Z');
+  const h = Array.from({ length: 7 }, () => ({ on: false, from: 8, to: 18 }));
+  h[5] = { on: true, from: 18, to: 2 }; // sexta 18h às 2h
+  assert.equal(emHorario(h, sexta21h), true);
+  assert.equal(emHorario(h, sabado1h), true, 'turno que passa da meia-noite');
+  assert.equal(emHorario(h, sabado3h), false);
+
+  const cli = await signup('Carla Horario', '12345678909', 'carlah');
+  const enc = await signup('Ivo Encanador', '98765432100', 'ivoenc');
+  await call('PUT', '/providers/me', enc.accessToken, { service: 'encanador', functions: ['Vazamento'], price: 100, priceUnit: 'visita' });
+  await call('POST', '/providers/me/location', enc.accessToken, { lat: -28.26, lng: -52.4, available: false });
+  const perto = () => call('GET', '/providers/nearby?lat=-28.26&lng=-52.4&service=encanador', cli.accessToken);
+  assert.equal((await perto()).length, 0, 'desligado e sem horário: não aparece');
+  const sempre = Array.from({ length: 7 }, () => ({ on: true, from: 0, to: 24 }));
+  const r = await call('PUT', '/providers/me/horario', enc.accessToken, { auto: true, horario: sempre });
+  assert.equal(r.agora, true);
+  assert.equal((await perto()).length, 1, 'no horário programado: aparece sozinho');
+  await call('PUT', '/providers/me/horario', enc.accessToken, { auto: false, horario: sempre });
+  assert.equal((await perto()).length, 0, 'desligou o automático: some');
+  await assert.rejects(call('PUT', '/providers/me/horario', enc.accessToken, { auto: true, horario: [] }), /400/);
+});
