@@ -7,6 +7,7 @@ import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Text } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../../store';
+import { conectado } from '../../../serverShop';
 import { soft, colors, brl } from '../../../theme';
 import { Screen, Photo } from '../../../components/ui';
 import { upcomingLives } from '../../../homeData';
@@ -29,7 +30,9 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
   const [subRaw, setSub] = useState('todas');
   useEffect(() => setSub('todas'), [f]);
 
-  const every = allLives(state);
+  // Conta real: as lives de exemplo continuam na vitrine, mas marcadas como EXEMPLO (sem "AO VIVO"
+  // nem número de gente assistindo, para ninguém achar que é transmissão de verdade).
+  const every = conectado(state) ? allLives(state).map((l) => (l.mine ? l : { ...l, exemplo: true })) : allLives(state);
   // Lives no ar de verdade (servidor do Realyz), quando houver servidor.
   const real = useRealLives(true);
   const cat = f === 'todas' ? null : catOf(f);
@@ -43,7 +46,8 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
   const hot = list.slice(1).sort((a, b) => liveScore(b) - liveScore(a)).slice(0, 3);
   const rest = list.slice(1).filter((l) => !hot.includes(l));
   const agenda = upcomingLives.filter((u) => (!cat || u.cat === cat.key) && (sub === 'todas' || u.sub === sub)).slice(0, cat ? 6 : 4);
-  const watching = inCat.reduce((n, l) => n + (l.viewers || 0), 0);
+  const aoVivo = inCat.filter((l) => !l.exemplo);
+  const watching = aoVivo.reduce((n, l) => n + (l.viewers || 0), 0);
   const follows = state.liveFollows || [];
   const reminders = state.liveReminders || {};
 
@@ -70,7 +74,7 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
           openHost(it);
         }}
         renderLogo={(k, it) => {
-          const on = [...real, ...every].some((l) => streamerKey(l) === it.id);
+          const on = [...real, ...every.filter((l) => !l.exemplo)].some((l) => streamerKey(l) === it.id);
           return (
             <View style={{ alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontSize: 24, fontWeight: '800', color: colors.primary }}>{String(it.host || '?').replace(/^(Profa?\.|Pra\.)\s*/, '').charAt(0)}</Text>
@@ -163,7 +167,7 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
               <Text style={styles.classTitle}>{cat.title}</Text>
               <Text style={styles.classHint}>{cat.hint}</Text>
               <Text style={[styles.classStats, { color: cat.tint }]}>
-                {inCat.length ? `${inCat.length} ao vivo · ${fmt(watching)} assistindo` : 'Ninguém ao vivo agora'}
+                {aoVivo.length ? `${aoVivo.length} ao vivo · ${fmt(watching)} assistindo` : 'Ninguém ao vivo agora'}
                 {inCat.length ? <Text style={{ fontWeight: '800' }}>  ·  Assistir ›</Text> : null}
               </Text>
             </View>
@@ -226,8 +230,8 @@ export default function LivesTab({ filter, setFilter, onWatch, onGoLive, navigat
                 </Text>
               </View>
               <View style={{ alignItems: 'flex-end', marginLeft: 6 }}>
-                <View style={styles.liveMini}><Text style={styles.liveMiniText}>AO VIVO</Text></View>
-                <Text style={styles.hotViewers}>{fmt(l.viewers)}</Text>
+                <View style={[styles.liveMini, l.exemplo && { backgroundColor: colors.muted }]}><Text style={styles.liveMiniText}>{l.exemplo ? 'EXEMPLO' : 'AO VIVO'}</Text></View>
+                {l.exemplo ? null : <Text style={styles.hotViewers}>{fmt(l.viewers)}</Text>}
               </View>
             </TouchableOpacity>
           ))}
@@ -316,13 +320,15 @@ function LiveCard({ l, big, onWatch, openHost }) {
       <Photo uri={l.photo} style={[styles.livePhoto, big && { height: 210 }]} fallback="🎥" />
       <View style={styles.liveOverlay}>
         <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }}>
-          <View style={styles.liveTag}>
-            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 11 }}>AO VIVO</Text>
+          <View style={[styles.liveTag, l.exemplo && { backgroundColor: 'rgba(60,60,60,0.85)' }]}>
+            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 11 }}>{l.exemplo ? 'EXEMPLO' : 'AO VIVO'}</Text>
           </View>
-          <View style={styles.liveViewers}>
-            <Ionicons name="eye" size={12} color="#fff" />
-            <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700', marginLeft: 4 }}>{fmt(l.viewers)}</Text>
-          </View>
+          {l.exemplo ? null : (
+            <View style={styles.liveViewers}>
+              <Ionicons name="eye" size={12} color="#fff" />
+              <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700', marginLeft: 4 }}>{fmt(l.viewers)}</Text>
+            </View>
+          )}
           {l.gifts ? (
             <View style={styles.liveViewers}>
               <Ionicons name="gift" size={11} color={colors.gold} />
@@ -362,7 +368,7 @@ function Creators({ lives, openHost, tint }) {
               <Text style={[styles.creatorInitial, { color: tint }]}>{l.host.replace(/^(Profa?\.|Pra\.)\s*/, '').charAt(0)}</Text>
             </View>
             <Text style={styles.creatorName} numberOfLines={1}>{l.host}</Text>
-            <Text style={styles.creatorMeta}>{fmt(l.viewers)} ao vivo</Text>
+            <Text style={styles.creatorMeta}>{l.exemplo ? 'exemplo' : `${fmt(l.viewers)} ao vivo`}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>

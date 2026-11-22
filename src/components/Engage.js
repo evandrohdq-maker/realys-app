@@ -5,6 +5,7 @@ import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, Animated, Modal 
 import { Text, TextInput } from '../responsive';
 import { useBack } from '../back';
 import { Ionicons } from '@expo/vector-icons';
+import { conectado } from '../serverShop';
 import { useStore } from '../store';
 import { colors, brl, soft } from '../theme';
 import { Card, Row, Badge, BarChart } from './ui';
@@ -470,7 +471,8 @@ export function Subscriptions() {
 export function LotusNudges() {
   const { state, dispatch } = useStore();
   const subbed = (id) => state.subscriptions.some((x) => x.planId === id);
-  const list = LOTUS_NUDGES.filter((n) => !state.nudgesDismissed[n.id] && !(n.plan && subbed(n.plan)));
+  // Esses lembretes são inventados (não vêm do histórico de verdade): conta real não vê.
+  const list = conectado(state) ? [] : LOTUS_NUDGES.filter((n) => !state.nudgesDismissed[n.id] && !(n.plan && subbed(n.plan)));
   const [i, setI] = useState(0);
   const [all, setAll] = useState(false);
   const fade = useRef(new Animated.Value(1)).current;

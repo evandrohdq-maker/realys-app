@@ -144,8 +144,15 @@ export function findProfile(text, state) {
   // "página do Agro", "página da empresa": é navegação, não perfil.
   if (!asked || NOT_NAMES.has(asked) || findNavigation(asked)) return null;
 
-  const friendIds = new Set(contacts.filter((c) => !c.business).map((c) => c.id));
-  const people = members.map((p) => ({ kind: 'person', id: p.id, name: p.name, sub: `*${p.handle} · ${p.city}`, photo: p.photo, friend: friendIds.has(p.id) || !!(state.friends && state.friends[p.id] === 'amigo'), mutual: p.mutual || 0 }));
+  // Conta real: as pessoas de verdade (amigos e pedidos no servidor) vêm em state.realPeople e
+  // ganham das de exemplo, que nunca contam como amigo nesse caso.
+  const real = Array.isArray(state.realPeople) ? state.realPeople : null;
+  const friendIds = new Set(real ? [] : contacts.filter((c) => !c.business).map((c) => c.id));
+  const realPeople = (real || []).map((u) => ({ kind: 'server', id: u.id, name: u.name, sub: `*${u.username || ''}${u.friend === 'amigos' ? ' · amigo' : ''}`, photo: u.photo, friend: u.friend === 'amigos', mutual: 1000 }));
+  const people = [
+    ...realPeople,
+    ...members.map((p) => ({ kind: 'person', id: p.id, name: p.name, sub: `*${p.handle} · ${p.city}`, photo: p.photo, friend: !real && (friendIds.has(p.id) || !!(state.friends && state.friends[p.id] === 'amigo')), mutual: p.mutual || 0 })),
+  ];
   const companies = [
     ...(state.stores || []).map((s) => ({ kind: 'company', id: s.id, name: s.name, sub: `${s.category} · ${s.city}`, photo: s.cover, friend: false, mutual: 0 })),
     ...artists.map((a) => ({ kind: 'company', id: a.id, name: a.name, sub: `${a.genre} · ${a.city}`, photo: a.cover, friend: false, mutual: 0 })),
@@ -155,8 +162,11 @@ export function findProfile(text, state) {
   const scored = [...people, ...companies]
     .map((c) => ({ ...c, score: nameScore(asked, c.name) }))
     .filter((c) => c.score > 0)
-    .sort((a, b) => b.score - a.score || (b.friend ? 1 : 0) - (a.friend ? 1 : 0) || b.mutual - a.mutual);
+    .sort((a, b) => b.score - a.score || (b.kind === 'server' ? 1 : 0) - (a.kind === 'server' ? 1 : 0) || (b.friend ? 1 : 0) - (a.friend ? 1 : 0) || b.mutual - a.mutual);
   if (!scored.length) return { notFound: asked };
+  // Pessoa de verdade com esse nome: ela é a resposta (as de exemplo não disputam com ela).
+  const realTop = scored.filter((c) => c.kind === 'server' && c.score === scored[0].score);
+  if (realTop.length === 1) return { open: realTop[0], others: [] };
   const top = scored.filter((c) => c.score === scored[0].score);
   // Um só com esse nome, ou só um deles é seu contato: abre direto.
   const friends = top.filter((c) => c.friend);
@@ -179,6 +189,8 @@ export function pickOption(text, options) {
 }
 
 const article = (o) => (o.kind === 'company' ? 'a página de' : o.kind === 'page' ? 'a página' : 'o perfil de');
+// Perfil de conta real abre pela tela do servidor (src/profileOpen.js), não pelo store.
+export const isServerProfile = (o) => !!o && o.kind === 'server';
 export const openReply = (o, others = []) =>
   `Abrindo ${article(o)} ${o.name}.` + (others.length ? ` Também tem ${others.map((x) => x.name).join(' e ')}; se for outra pessoa, é só pedir.` : '');
 export const askReply = (asked, options) =>
@@ -190,5 +202,5 @@ export const toResult = (o) => ({
   title: o.name,
   subtitle: o.sub,
   photo: o.photo,
-  ...(o.kind === 'company' ? { companyId: o.id } : o.kind === 'page' ? { pageId: o.id } : { profileId: o.id }),
+  ...(o.kind === 'company' ? { companyId: o.id } : o.kind === 'page' ? { pageId: o.id } : o.kind === 'server' ? { serverProfileId: o.id } : { profileId: o.id }),
 });

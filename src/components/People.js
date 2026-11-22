@@ -694,7 +694,7 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
             )
           ) : (
             <>
-              {requests.length ? (
+              {requests.length && !srv.on ? (
                 <>
                   <Text style={styles.section}>Pedidos de amizade ({requests.length})</Text>
                   {requests.map((m) => (
@@ -712,10 +712,15 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
                   </TouchableOpacity>
                 ))}
               </ScrollView>
-              <Text style={styles.section}>Pessoas que você talvez conheça</Text>
-              {suggestions.map((m) => (
-                <PersonRow key={m.id} m={m} onOpen={() => open(m)} />
-              ))}
+              {/* Conta real: só sugestões de gente de verdade (as do servidor, lá em cima). */}
+              {srv.on ? null : (
+                <>
+                  <Text style={styles.section}>Pessoas que você talvez conheça</Text>
+                  {suggestions.map((m) => (
+                    <PersonRow key={m.id} m={m} onOpen={() => open(m)} />
+                  ))}
+                </>
+              )}
               <Text style={styles.tip}>Dica: peça para a pessoa te passar o nome ou o *usuário dela no Realyz e digite aqui.</Text>
             </>
           )}

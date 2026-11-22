@@ -39,10 +39,13 @@ export function useRadioNow() {
 
 // Logo da estação: a imagem que a rádio/TV mandou ou, sem ela, o ícone na cor da categoria.
 // logo pode ser um endereço (foto enviada) ou uma imagem do próprio app (require).
-export const logoSource = (logo) => (!logo ? null : typeof logo === 'number' ? logo : { uri: logo });
+// Logo da estação: imagem do próprio app (no celular vira número; no site, um objeto com "uri"),
+// ou endereço de internet (texto). Antes o site embrulhava o objeto de novo e a logo sumia.
+export const logoSource = (logo) => (!logo ? null : typeof logo === 'number' ? logo : typeof logo === 'object' ? (logo.uri || logo.default ? { uri: logo.uri || logo.default } : null) : { uri: logo });
 export const logoUri = (logo) => {
   if (!logo) return undefined;
   if (typeof logo === 'string') return logo;
+  if (typeof logo === 'object' && (logo.uri || logo.default)) return logo.uri || logo.default;
   try {
     return Image.resolveAssetSource(logo).uri;
   } catch (e) {

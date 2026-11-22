@@ -8,7 +8,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as IntentLauncher from 'expo-intent-launcher';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
-import { finalizarCompra, aPagar } from '../serverShop';
+import { finalizarCompra, aPagar, conectado } from '../serverShop';
+import { useServerFriends } from '../serverFriends';
+import { openServerProfile } from '../profileOpen';
 import { useStore, buildServiceCall, callReply, searchReply, detectService, serviceType, priceText, myProducts, cartTotal } from '../store';
 import { colors, brl, soft } from '../theme';
 import { ServiceCallCard } from './cliente/ServicesScreen';
@@ -36,7 +38,7 @@ import { findNavigation, navReply } from '../voiceNav';
 import { understand } from '../lm/lotusLM';
 import { knowledgeAnswer } from '../lm/knowledge';
 import { askRealys, looksLikeRealysQuestion } from '../lm/realysKnowledge';
-import { openAction, isPartyQuery, hasPartyCue, partyReply, findProfile, pickOption, openReply, askReply, toResult } from '../voiceIntents';
+import { openAction, isServerProfile, isPartyQuery, hasPartyCue, partyReply, findProfile, pickOption, openReply, askReply, toResult } from '../voiceIntents';
 import { withSystemDialog, systemDialogOpen } from '../systemDialog';
 import { onDeviceOptions, noteVoiceError, isNetError, worksOffline } from '../offlineVoice';
 
@@ -737,6 +739,8 @@ function FadeItem({ show, children }) {
 
 export default function VoiceAssistant({ visible, onClose, initialCommand, wakeLive, handsFree, onNavigate, onVoiceNav, canOpen, onPanic, onDuress, onSilent }) {
   const { state, dispatch } = useStore();
+  const srvFr = useServerFriends(conectado(state));
+  const realFriends = conectado(state) ? [...srvFr.friends, ...srvFr.received, ...srvFr.sent] : null;
   const [text, setText] = useState('');
   const [history, setHistory] = useState([]);
   // A caixa desce até o fim da tela: a barra de digitar sobe acima dos botões do celular.
@@ -1144,13 +1148,15 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
     // Digitado na caixa vale como o toque: a pessoa está com o celular na mão.
     ownerVoice = owner === true && voiceConfirmOn();
     typedNow = owner === 'texto';
-    let res = forced || interpret(cmd, state, dispatch, topic, canOpen, 0, tap);
+    // Conta real: a Lotus conhece as pessoas de verdade (amigos e pedidos de amizade no servidor).
+    const st = realFriends ? { ...state, realPeople: realFriends } : state;
+    let res = forced || interpret(cmd, st, dispatch, topic, canOpen, 0, tap);
     // O celular ouviu errado? Tenta as outras opções que ele ouviu antes de dizer "não encontrei".
     const empty = (r) => !!r.miss;
     if (!forced && empty(res) && alts && alts.length > 1) {
       for (const alt of alts) {
         if (alt === cmd) continue;
-        const r = interpret(fixMotos(alt), state, dispatch, topic, canOpen, 0, tap);
+        const r = interpret(fixMotos(alt), st, dispatch, topic, canOpen, 0, tap);
         if (!empty(r)) {
           res = r;
           cmd = alt;
@@ -1228,7 +1234,8 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
       setPending(null);
       setPhase('idle');
       speakSoft(res.reply);
-      dispatch(openAction(res.open));
+      if (isServerProfile(res.open)) openServerProfile(res.open.id);
+      else dispatch(openAction(res.open));
       onClose();
       return;
     }
@@ -1732,6 +1739,11 @@ export default function VoiceAssistant({ visible, onClose, initialCommand, wakeL
                         activeOpacity={0.85}
                         onPress={() => {
                           stopSpeaking();
+                          if (r.serverProfileId) {
+                            openServerProfile(r.serverProfileId);
+                            onClose();
+                            return;
+                          }
                           if (r.profileId) {
                             dispatch({ type: 'OPEN_PROFILE', id: r.profileId });
                             onClose();

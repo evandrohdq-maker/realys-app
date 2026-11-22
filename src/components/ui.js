@@ -165,9 +165,13 @@ function fitPhoto(uri, style) {
 }
 
 // fit: 'cover' (preenche, pode cortar a borda) ou 'contain' (mostra a foto inteira). blur: desfoque.
+// Foto aleatória de banco de imagens (picsum), usada nos exemplos: nunca combina com o que o anúncio
+// fala (um relógio aparecia com foto de livro). No lugar dela o app mostra o ícone do assunto.
+export const isStockPhoto = (u) => typeof u === 'string' && /picsum\.photos/.test(u);
+
 export function Photo({ uri, style, fallback = '🖼️', fit, blur }) {
   const [failed, setFailed] = useState(false);
-  if (failed || !uri)
+  if (failed || !uri || isStockPhoto(uri))
     return (
       <View style={[style, { backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' }]}>
         <Text style={{ color: colors.text, fontSize: 34 }}>{fallback}</Text>

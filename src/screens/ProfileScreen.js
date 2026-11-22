@@ -20,6 +20,8 @@ import { PeopleSearchModal } from '../components/People';
 import { UnverifiedBanner, isVerified, hasIdBadge } from '../components/BioGate';
 import { CurriculoEditor } from '../components/Empregos';
 import { conectado } from '../serverShop';
+import { useServerFriends } from '../serverFriends';
+import { api } from '../api';
 import ThemeArt from '../components/ThemeArt';
 import SupportCenter from '../components/SupportCenter';
 import TaxasModal from '../components/TaxasModal';
@@ -153,6 +155,14 @@ function WorkHead({ role, navigate }) {
 export default function ProfileScreen({ navigate, explore }) {
   const { state, dispatch } = useStore();
   const u = state.user;
+  // Conta real: amigos e depoimentos aceitos de verdade (servidor), não os de exemplo.
+  const real = conectado(state);
+  const srvFr = useServerFriends(real);
+  const [srvDeps, setSrvDeps] = useState(0);
+  useEffect(() => {
+    if (!real || !u || !u.serverId) return;
+    api('GET', `/users/${u.serverId}`).then((p) => setSrvDeps((p.testimonials || []).length)).catch(() => {});
+  }, [real, u && u.serverId]);
   const socialCls = state.myProfile && state.myProfile.social;
   const ehGamer = (socialCls && socialCls.cls === 'gamer') || (!!state.myProvider && segOfService(state.myProvider.service) === 'gamers');
   const ehArtista = isArtistClass(socialCls) || (!!state.myProvider && segOfService(state.myProvider.service) === 'artistas');
@@ -322,9 +332,9 @@ export default function ProfileScreen({ navigate, explore }) {
         {/* Números em destaque, como nas redes sociais */}
         <View style={styles.stats}>
           {[
-            [Object.values(state.friends || {}).filter((v) => v === 'amigo').length, 'Amigos'],
+            [real ? srvFr.friends.length : Object.values(state.friends || {}).filter((v) => v === 'amigo').length, 'Amigos'],
             [((state.myGallery && state.myGallery.photos) || []).length + ((state.myGallery && state.myGallery.videos) || []).length, 'Fotos e vídeos'],
-            [(state.testimonials || []).filter((t) => t.to === 'me' && t.status === 'aprovado').length, 'Dep'],
+            [real ? srvDeps : (state.testimonials || []).filter((t) => t.to === 'me' && t.status === 'aprovado').length, 'Dep'],
           ].map(([n, label]) => (
             <TouchableOpacity
               key={label}

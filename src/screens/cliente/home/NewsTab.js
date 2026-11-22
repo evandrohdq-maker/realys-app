@@ -8,6 +8,7 @@ import { Text, TextInput } from '../../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../../../store';
+import { conectado } from '../../../serverShop';
 import { colors, soft } from '../../../theme';
 import { Screen, Photo } from '../../../components/ui';
 import { NEWS, NEWS_CATS, ALERTS, ALERT_LEVELS, REPORTS, TRANSPORT_ALERTS, RISK } from '../../../newsData';
@@ -29,7 +30,8 @@ export default function NewsTab({ onWatch, navigate }) {
   const showAlerts = cat === 'alertas';
   const onlyTransport = cat === 'transporte';
   const list = NEWS.filter((n) => cat === 'todas' || n.cat === cat);
-  const lives = allLives(state).filter((l) => l.cat === 'noticias');
+  // Conta real: lives de exemplo não aparecem como "Ao vivo agora" nas notícias.
+  const lives = allLives(state).filter((l) => l.cat === 'noticias' && (l.mine || !conectado(state)));
 
   return (
     <Screen>
