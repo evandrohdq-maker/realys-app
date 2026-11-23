@@ -13,6 +13,7 @@ import { openServerProfile } from './ServerProfile';
 import { Photo } from './ui';
 import { colors } from '../theme';
 import ClassifyModal, { TagLine, EtiquetasModal, useListas, listasDe, buscaPorLista } from './ClassifyModal';
+import { NovoGrupo, GrupoChat } from './Grupos';
 
 const fotoDe = (p) => (p && p.startsWith('/') ? API_URL + p : p);
 const quando = (at) => {
@@ -40,38 +41,49 @@ export default function ServerInbox() {
   const [q, setQ] = useState('');
   const [classificar, setClassificar] = useState(null); // { id, name }
   const [etiquetas, setEtiquetas] = useState(false);
-  const [filtro, setFiltro] = useState(null); // classificação escolhida no botão de etiqueta
+  const [filtro, setFiltro] = useState(null); // classificação escolhida no botão de etiqueta ('__grupos' = só grupos)
+  const [grupos, setGrupos] = useState([]);
+  const [novoGrupo, setNovoGrupo] = useState(false);
+  const [grupoAberto, setGrupoAberto] = useState(null);
   const listas = useListas();
   const me = state.user && state.user.serverId;
   const chatOpen = !!state.serverChat;
   useEffect(() => {
     if (!on) return undefined;
-    const load = () => api('GET', '/conversations').then((l) => setConvs(l || [])).catch(() => {});
+    const load = () => {
+      api('GET', '/conversations').then((l) => setConvs(l || [])).catch(() => {});
+      api('GET', '/grupos').then((l) => setGrupos(l || [])).catch(() => {});
+    };
     load();
-    const stop = connectEvents((e) => e.type === 'message' && load());
+    const stop = connectEvents((e) => (e.type === 'message' || /^grupo-/.test(e.type)) && load());
     const t = setInterval(load, 30000);
     return () => {
       stop();
       clearInterval(t);
     };
-  }, [on, chatOpen]); // fechou a conversa: recarrega (lidas e última mensagem)
+  }, [on, chatOpen, grupoAberto]); // fechou a conversa: recarrega (lidas e última mensagem)
   if (!on) return null;
   const chat = (u) => dispatch({ type: 'OPEN_SERVER_CHAT', userId: u.id, name: u.name });
   const has = new Set(convs.map((c) => c.with && c.with.id));
   // Busca pelo nome, pelo *usuário ou pela classificação ("família" mostra só quem está em Família).
   const match = (u) => !q.trim() || `${u.name} ${u.username || ''}`.toLowerCase().includes(q.trim().toLowerCase().replace(/^[*@]/, '')) || buscaPorLista(listas, listasDe(state, u.id), q);
-  const naEtiqueta = (id) => !filtro || listasDe(state, id).includes(filtro);
+  const soGrupos = filtro === '__grupos';
+  const naEtiqueta = (id) => !filtro || (!soGrupos && listasDe(state, id).includes(filtro));
+  const gruposVistos = grupos.filter((g) => (!filtro || soGrupos) && (!q.trim() || g.name.toLowerCase().includes(q.trim().toLowerCase())));
   const lista = convs.filter((c) => c.with && match(c.with) && naEtiqueta(c.with.id));
   const novos = friends.filter((u) => !has.has(u.id) && match(u) && naEtiqueta(u.id));
   const pessoas = [...convs.filter((c) => c.with).map((c) => c.with), ...friends.filter((u) => !has.has(u.id))];
-  const vendo = filtro ? listas.find((l) => l.id === filtro) : null;
-  if (!convs.length && !friends.length) return null;
+  const vendo = soGrupos ? { id: '__grupos', name: 'Grupos', color: colors.primary } : filtro ? listas.find((l) => l.id === filtro) : null;
+  if (!convs.length && !friends.length && !grupos.length) return null;
   return (
     <View style={{ marginBottom: 10 }}>
       <View style={st.search}>
         <Ionicons name="search" size={17} color={colors.muted} />
         <TextInput value={q} onChangeText={setQ} placeholder="Buscar nome ou etiqueta (ex.: família)" placeholderTextColor={colors.muted} style={st.input} />
         {/* Etiquetas: escolher o que ver (Família, Trabalho, Clientes...) e etiquetar alguém pelo nome. */}
+        <TouchableOpacity onPress={() => setNovoGrupo(true)} hitSlop={8} style={{ paddingHorizontal: 6 }} accessibilityLabel="Novo grupo">
+          <Ionicons name="people-circle-outline" size={21} color={colors.primary} />
+        </TouchableOpacity>
         <TouchableOpacity onPress={() => setEtiquetas(true)} hitSlop={8} style={{ paddingHorizontal: 6 }} accessibilityLabel="Etiquetas">
           <Ionicons name={filtro ? 'pricetag' : 'pricetag-outline'} size={19} color={vendo ? vendo.color : colors.primary} />
         </TouchableOpacity>
@@ -82,8 +94,34 @@ export default function ServerInbox() {
           <Ionicons name="close" size={14} color={vendo.color} style={{ marginLeft: 4 }} />
         </TouchableOpacity>
       ) : null}
-      <EtiquetasModal visible={etiquetas} onClose={() => setEtiquetas(false)} pessoas={pessoas} filtro={filtro} setFiltro={setFiltro} />
-      {filtro && !lista.length && !novos.length ? <Text style={{ color: colors.muted, fontSize: 13, marginVertical: 8 }}>Ninguém com essa etiqueta ainda. Toque na etiqueta 🏷️ e digite o nome para etiquetar.</Text> : null}
+      <EtiquetasModal visible={etiquetas} onClose={() => setEtiquetas(false)} pessoas={pessoas} filtro={filtro} setFiltro={setFiltro} grupos={grupos.length} />
+      <NovoGrupo visible={novoGrupo} onClose={() => setNovoGrupo(false)} onCriado={(id) => setGrupoAberto(id)} />
+      {grupoAberto ? <GrupoChat id={grupoAberto} onClose={() => setGrupoAberto(null)} /> : null}
+      {gruposVistos.length ? <Text style={st.title}>Grupos</Text> : null}
+      {gruposVistos.map((g) => (
+        <TouchableOpacity key={g.id} style={st.row} onPress={() => setGrupoAberto(g.id)} activeOpacity={0.8} accessibilityLabel={`Grupo ${g.name}`}>
+          <View style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: '#0B1124', alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name="people" size={22} color="#F5C331" />
+          </View>
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{ flex: 1, color: colors.text, fontWeight: g.unread ? '800' : '700' }} numberOfLines={1}>{g.name}</Text>
+              {g.last ? <Text style={{ color: g.unread ? colors.primary : colors.muted, fontSize: 11 }}>{quando(g.last.at)}</Text> : null}
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+              <Text style={{ flex: 1, color: g.unread ? colors.text : colors.muted, fontSize: 13 }} numberOfLines={1}>
+                {g.last ? `${g.last.from ? (g.last.from === me ? 'Você' : (g.last.fromName || '').split(' ')[0]) + ': ' : ''}${g.last.text}` : `${g.membros} participantes`}
+              </Text>
+              {g.unread ? (
+                <View style={st.badge}>
+                  <Text style={{ color: '#fff', fontSize: 11, fontWeight: '800' }}>{g.unread}</Text>
+                </View>
+              ) : null}
+            </View>
+          </View>
+        </TouchableOpacity>
+      ))}
+      {filtro && !lista.length && !novos.length && !gruposVistos.length ? <Text style={{ color: colors.muted, fontSize: 13, marginVertical: 8 }}>{soGrupos ? 'Você ainda não está em nenhum grupo. Toque em 👥 ao lado da busca para criar um.' : 'Ninguém com essa etiqueta ainda. Toque na etiqueta 🏷️ e digite o nome para etiquetar.'}</Text> : null}
       {novos.length ? (
         <>
           <Text style={st.title}>Começar conversa</Text>

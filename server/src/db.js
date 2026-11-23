@@ -1208,6 +1208,34 @@ const MIGRATIONS = [
   );
   CREATE INDEX IF NOT EXISTS estacao_posts_est ON estacao_posts(estacao_id, created_at DESC);
   `,
+  `
+  -- Conversa em grupo (amigos): o grupo, quem participa e as mensagens.
+  CREATE TABLE IF NOT EXISTS grupos (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    owner_id TEXT NOT NULL REFERENCES users(id),
+    photo TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS grupo_membros (
+    grupo_id TEXT NOT NULL REFERENCES grupos(id),
+    user_id TEXT NOT NULL REFERENCES users(id),
+    admin INTEGER NOT NULL DEFAULT 0,
+    lido_at INTEGER NOT NULL DEFAULT 0,
+    joined_at INTEGER NOT NULL,
+    PRIMARY KEY (grupo_id, user_id)
+  );
+  CREATE INDEX IF NOT EXISTS grupo_membros_user ON grupo_membros(user_id);
+  CREATE TABLE IF NOT EXISTS grupo_msgs (
+    id TEXT PRIMARY KEY,
+    grupo_id TEXT NOT NULL REFERENCES grupos(id),
+    from_id TEXT REFERENCES users(id),
+    text TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS grupo_msgs_g ON grupo_msgs(grupo_id, created_at);
+  `,
 ];
 
 export function openDb(file) {

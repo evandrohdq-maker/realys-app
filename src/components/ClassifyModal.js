@@ -118,7 +118,7 @@ export default function ClassifyModal({ visible, contactId, name, onClose }) {
 // Etiquetas (botão 🏷️ ao lado da busca): escolher qual classificação ver (ou todas) e etiquetar um
 // contato ou cliente digitando o nome dele.
 // pessoas = [{ id, name }] (amigos e conversas); filtro = id da classificação vista (null = todas).
-export function EtiquetasModal({ visible, onClose, pessoas = [], filtro, setFiltro }) {
+export function EtiquetasModal({ visible, onClose, pessoas = [], filtro, setFiltro, grupos = 0 }) {
   const { state } = useStore();
   const listas = useListas();
   const [nome, setNome] = useState('');
@@ -133,14 +133,14 @@ export function EtiquetasModal({ visible, onClose, pessoas = [], filtro, setFilt
           <ScrollView keyboardShouldPersistTaps="handled">
             <Text style={st.title}>Etiquetas</Text>
             <Text style={st.sub}>Escolha o que ver na lista de conversas.</Text>
-            {[{ id: null, name: 'Todas as conversas', color: colors.text }, ...listas].map((l) => {
+            {[{ id: null, name: 'Todas as conversas', color: colors.text }, { id: '__grupos', name: 'Grupos', color: colors.primary, grupos: true }, ...listas].map((l) => {
               const on = filtro === l.id;
               return (
                 <TouchableOpacity key={l.id || 'todas'} onPress={() => (setFiltro(l.id), onClose())} style={st.linha} accessibilityLabel={`Ver ${l.name}`}>
                   <Ionicons name={on ? 'radio-button-on' : 'radio-button-off'} size={20} color={l.color} />
                   {l.id ? <View style={[st.bolinha, { backgroundColor: l.color }]} /> : null}
                   <Text style={[st.nome, { flex: 1 }]}>{l.name}</Text>
-                  {l.id ? <Text style={{ color: colors.muted, fontSize: 12 }}>{conta(l.id)}</Text> : null}
+                  {l.id ? <Text style={{ color: colors.muted, fontSize: 12 }}>{l.grupos ? grupos : conta(l.id)}</Text> : null}
                 </TouchableOpacity>
               );
             })}

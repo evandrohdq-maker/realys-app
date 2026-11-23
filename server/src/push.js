@@ -14,6 +14,8 @@ import { now } from './http.js';
 const short = (s, n = 90) => (String(s || '').length > n ? String(s).slice(0, n - 1) + '…' : String(s || ''));
 const brl = (v) => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
 export const AVISOS = {
+  'grupo-msg': (d) => ({ title: d.name || 'Grupo', body: short(`${d.fromName || 'Alguém'}: ${d.text || ''}`), go: { grupo: d.id } }),
+  'grupo-novo': (d) => ({ title: 'Você entrou num grupo 👥', body: `${d.by || 'Um amigo'} pôs você em "${d.name}".`, go: { grupo: d.id } }),
   'estacao-post': (d) => ({ title: `${d.kind === 'tv' ? '📺' : '📻'} ${d.name || 'Estação'}`, body: short(d.texto || 'Nova publicação'), go: { tab: 'stories' } }),
   'neg-interesse': (d) => ({ title: 'Novo interessado no seu anúncio 🏷️', body: short(d.title || ''), go: { tab: 'bens' } }),
   'neg-liberado': (d) => ({ title: 'Conversa liberada ✅', body: `${d.from || 'O anunciante'} liberou a conversa sobre ${d.title || 'o anúncio'}.`, go: { tab: 'bens' } }),
