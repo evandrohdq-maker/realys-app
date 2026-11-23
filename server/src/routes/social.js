@@ -4,7 +4,7 @@ import { fail, newId, now, str, oneOf } from '../http.js';
 
 const pair = (a, b) => (a < b ? [a, b] : [b, a]);
 
-export default function socialRoutes(r, { db, hub, userById, publicUser, atendente, protecao }) {
+export default function socialRoutes(r, { db, hub, userById, publicUser, atendente, protecao, crm }) {
   const friendship = (a, b) => {
     const [x, y] = pair(a, b);
     return db.prepare('SELECT * FROM friends WHERE a_id = ? AND b_id = ?').get(x, y);
@@ -338,10 +338,24 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     if (media && (!amigos || vende || negocio(to))) fail(403, 'Foto, vídeo e áudio são liberados na conversa entre amigos.', 'midia_amigos');
     db.prepare('INSERT INTO messages (id, from_id, to_id, text, created_at, media, media_type) VALUES (?,?,?,?,?,?,?)').run(id, user.id, to.id, msg.text, msg.at, media, mediaType);
     hub.send(to.id, 'message', { ...msg, fromName: user.name });
+    // CRM: conversa de cliente com empresa/prestador abre (ou atualiza) o atendimento sozinha.
+    if (crm && msg.text) {
+      try {
+        crm.aoMensagem(user, to, msg.text, ['Shop', 'Food', 'Reels', 'Anúncio', 'Página', 'Campanha', 'Chamado'].includes(body.origem) ? body.origem : 'Página');
+      } catch (e) {}
+    }
     // Atendente IA da empresa/prestador (se estiver ligado): responde em seguida, sem travar esta mensagem.
     if (atendente) setImmediate(() => atendente.aoReceber(msg).catch(() => {}));
     return msg;
   }, { status: 201 });
+
+  // CRM (empresa e prestador): meus atendimentos e mudanças feitas pelo app.
+  r.get('/crm/leads', ({ user }) => (crm ? crm.listar(user.id) : []));
+  r.patch('/crm/leads/:id', ({ params, user, body }) => {
+    const l = crm && crm.atualizar(user.id, params.id, body || {});
+    if (!l) fail(404, 'Atendimento não encontrado.');
+    return l;
+  });
 
   // Conversas: a última mensagem de cada pessoa e quantas não lidas.
   r.get('/conversations', ({ user }) =>

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ORDER_FEE_PCT, SERVICE_FEE_PCT } from './fees';
 import { pickOwner } from './team';
+import { api, serverOn, connectEvents } from './api';
 
 export const CRM_STAGES = [
   { key: 'novo', label: 'Novo contato', short: 'Novo', icon: 'sparkles-outline', hint: 'O cliente chamou. Responda rápido.' },
@@ -192,8 +193,48 @@ let leads = SEED.map(normLead);
 let loaded = false;
 const subs = new Set();
 const emit = () => subs.forEach((fn) => fn());
-const save = () => AsyncStorage.setItem(KEY, JSON.stringify(leads)).catch(() => {});
+const save = () => AsyncStorage.setItem(KEY, JSON.stringify(leads.filter((l) => !l.server))).catch(() => {});
+
+// ── Com o servidor (conta de verdade) ──
+// Os atendimentos vêm do servidor (server/src/crm.js): cliente que escreve ou compra vira atendimento
+// sozinho. Os de exemplo somem. Mudanças (etapa, notas, lembrete...) vão para o servidor; a conversa
+// é a conversa real do Realyz (responder aqui manda a mensagem para o cliente).
+let real = false;
+let srvLeads = [];
+let ouvindo = null;
+const CAMPOS = ['stage', 'note', 'followUp', 'value', 'interest', 'qual', 'tasks', 'owner', 'lostReason', 'history', 'closing', 'cycle', 'unread', 'reactivated', 'lastLost', 'origin'];
+export function refreshCrm() {
+  if (!real) return Promise.resolve();
+  return api('GET', '/crm/leads')
+    .then((list) => {
+      srvLeads = (list || []).map(normLead);
+      emit();
+    })
+    .catch(() => {});
+}
+// Chamado pela tela do CRM: liga o modo servidor quando a conta está ligada ao servidor.
+export function setCrmServer(on) {
+  const v = !!(on && serverOn());
+  if (v === real) return;
+  real = v;
+  if (real) {
+    refreshCrm();
+    if (!ouvindo) ouvindo = connectEvents((e) => (e.type === 'crm-lead' || e.type === 'crm-lembrete') && refreshCrm());
+  }
+  emit();
+}
+const all = () => (real ? srvLeads : leads);
 const patch = (id, fn) => {
+  const srv = real && srvLeads.find((l) => l.id === id);
+  if (srv) {
+    const novo = fn(srv);
+    srvLeads = srvLeads.map((l) => (l.id === id ? novo : l));
+    emit();
+    const mudou = {};
+    CAMPOS.forEach((k) => novo[k] !== srv[k] && (mudou[k] = novo[k] === undefined ? null : novo[k]));
+    if (Object.keys(mudou).length) api('PATCH', `/crm/leads/${id}`, mudou).catch(() => refreshCrm());
+    return;
+  }
   leads = leads.map((l) => (l.id === id ? fn(l) : l));
   save();
   emit();
@@ -217,7 +258,7 @@ export function useCrm(board = 'empresa') {
     }
     return () => subs.delete(fn);
   }, []);
-  return leads.filter((l) => (l.board || 'empresa') === board);
+  return all().filter((l) => (l.board || 'empresa') === board);
 }
 
 // Muda de etapa e registra a data na linha do tempo.
@@ -239,6 +280,14 @@ export function crmMove(id, stage, extra = {}) {
 }
 export function crmSend(id, text) {
   const at = Date.now();
+  // Atendimento de verdade: a resposta vai como mensagem para o cliente (e o servidor registra no CRM).
+  const srv = real && srvLeads.find((l) => l.id === id);
+  if (srv && srv.clientId) api('POST', '/messages', { toId: srv.clientId, text }).then(refreshCrm).catch((e) => {
+    try {
+      require('react-native').Alert.alert('Mensagem não enviada', e.message);
+    } catch (er) {}
+    refreshCrm();
+  });
   // Respondeu um contato novo: o atendimento passa sozinho para "Em conversa".
   patch(id, (l) => ({
     ...l,
@@ -496,7 +545,7 @@ export function crmSyncVisits({ requests = [], visits = [] }) {
 }
 
 // Números do funil.
-export function crmSummary(list = leads) {
+export function crmSummary(list = all()) {
   const open = list.filter((l) => l.stage !== 'fechado' && l.stage !== 'perdido');
   const won = list.filter((l) => l.stage === 'fechado');
   const lost = list.filter((l) => l.stage === 'perdido');

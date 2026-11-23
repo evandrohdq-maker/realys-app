@@ -12,7 +12,7 @@ const ORDER_STATUS = ['Recebido', 'Preparando', 'A caminho', 'Entregue', 'Cancel
 // ENTREGUE (cancelado não paga), uma vez por pedido.
 export const INDICACAO = { pct: 2, minCents: 50, extraLojaPct: 5 };
 
-export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fiscal, protecao, teleGratis, lojaPlano }) {
+export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fiscal, protecao, teleGratis, lojaPlano, crm }) {
   const companyOf = (userId) => db.prepare('SELECT * FROM companies WHERE owner_id = ?').get(userId);
   const myCompany = (user) => {
     const c = companyOf(user.id);
@@ -226,6 +226,8 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
       return out;
     });
     for (const o of created) hub.send(o.owner, 'order', { id: o.id, buyer: user.name, total: toReais(o.total), status: 'Recebido' });
+    // CRM: a compra feita pelo app fecha a etapa do atendimento desse cliente com a loja.
+    if (crm) for (const o of created) try { crm.aoVender(o.owner, user, o.total, 'Shop'); } catch (e) {}
     return { teleGratis: teleGratisUsada, orders: created.map((o) => ({ id: o.id, company: o.company, total: toReais(o.total), protection: toReais(o.prot), fromGift: toReais(o.fromGift), fromWallet: toReais(o.fromWallet), status: 'Recebido' })) };
   }, { status: 201 });
 

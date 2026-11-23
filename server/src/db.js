@@ -1145,6 +1145,23 @@ const MIGRATIONS = [
     PRIMARY KEY (estacao_id, user_id)
   );
   `,
+  `
+  -- CRM de verdade: cada cliente que conversa ou compra com a empresa/prestador vira um atendimento.
+  -- data = o atendimento no mesmo formato do app (etapa, notas, linha do tempo, conversa...).
+  CREATE TABLE IF NOT EXISTS crm_leads (
+    id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL REFERENCES users(id),
+    client_id TEXT NOT NULL REFERENCES users(id),
+    board TEXT NOT NULL,
+    data TEXT NOT NULL,
+    follow_up INTEGER,
+    follow_up_avisado INTEGER,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS crm_par ON crm_leads(owner_id, client_id);
+  CREATE INDEX IF NOT EXISTS crm_follow ON crm_leads(follow_up) WHERE follow_up IS NOT NULL;
+  `,
 ];
 
 export function openDb(file) {

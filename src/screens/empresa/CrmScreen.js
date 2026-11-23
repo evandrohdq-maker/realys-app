@@ -12,7 +12,9 @@ import { Screen, Title } from '../../components/ui';
 import CrmLead from '../../components/CrmLead';
 import TeamModal from '../../components/TeamModal';
 import { useTeam, memberOf } from '../../team';
-import { useCrm, crmStages, crmBoard, CRM_LOST, CRM_ORIGINS, CRM_LOST_REASONS, stageOf, stageIndex, crmMove, crmSend, crmRead, crmUpdate, crmAdd, crmRemove, crmSummary, crmIdle, crmTemp, crmToday, crmReport, qualDone, QUAL_STEPS, useCampaigns, crmCampaign, crmCampaignToggle, crmCampaignRemove } from '../../crm';
+import { useStore } from '../../store';
+import { conectado } from '../../serverShop';
+import { setCrmServer, useCrm, crmStages, crmBoard, CRM_LOST, CRM_ORIGINS, CRM_LOST_REASONS, stageOf, stageIndex, crmMove, crmSend, crmRead, crmUpdate, crmAdd, crmRemove, crmSummary, crmIdle, crmTemp, crmToday, crmReport, qualDone, QUAL_STEPS, useCampaigns, crmCampaign, crmCampaignToggle, crmCampaignRemove } from '../../crm';
 
 const dateTime = (t) => new Date(t).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 const num = (s) => Number(String(s).replace(/\./g, '').replace(',', '.').replace(/[^0-9.]/g, '')) || 0;
@@ -21,6 +23,10 @@ const num = (s) => Number(String(s).replace(/\./g, '').replace(',', '.').replace
 // boards: lista de quadros para escolher no topo (ex.: prestador com Serviços, Aulas e Online).
 export default function CrmScreen({ board: firstBoard = 'empresa', boards }) {
   const [board, setBoard] = useState(firstBoard);
+  // Conta de verdade: os atendimentos vêm do servidor (clientes reais).
+  const { state: crmState } = useStore();
+  const realCrm = conectado(crmState);
+  useEffect(() => setCrmServer(realCrm), [realCrm]);
   const leads = useCrm(board);
   const B = crmBoard(board);
   const stages = crmStages(board);

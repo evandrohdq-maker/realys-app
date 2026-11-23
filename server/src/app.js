@@ -57,6 +57,7 @@ import contasTesteRoutes from './contasTeste.js';
 import { makePush } from './push.js';
 import { makeTeleGratis } from './teleGratis.js';
 import { makeLojaPlano } from './lojaPlano.js';
+import { makeCrm } from './crm.js';
 
 // Dados públicos de uma pessoa (nunca devolve hash de senha nem documento completo).
 export function publicUser(u, { self = false } = {}) {
@@ -102,7 +103,7 @@ export function createApp(cfg) {
   hub.offline = push.aviso;
   // Contas de teste: dinheiro fictício nunca chega a conta real, ao caixa nem às notas (src/teste.js).
   protegerDinheiroDeTeste(db, wallet, fiscal);
-  const deps = { db, cfg, wallet, hub, userById, publicUser, cipher, matcher, biometria, fiscal, pix, push, teleGratis: makeTeleGratis(db, cfg), lojaPlano: makeLojaPlano(db, wallet) };
+  const deps = { db, cfg, wallet, hub, userById, publicUser, cipher, matcher, biometria, fiscal, pix, push, teleGratis: makeTeleGratis(db, cfg), lojaPlano: makeLojaPlano(db, wallet), crm: makeCrm({ db, hub }) };
   // IA do Realyz (atendente das empresas e copiloto de vendas).
   deps.ia = cfg.ia || makeIA(cfg);
   deps.planos = makePlanos(db);
@@ -236,5 +237,12 @@ export function createApp(cfg) {
   const startPix = () => {
     if (pix.ready && !pixTimer) pixTimer = setInterval(() => pix.conferirDepositos && pix.conferirDepositos().catch(() => {}), 60000);
   };
-  return { server, db, hub, wallet, close: async () => { if (pixTimer) clearInterval(pixTimer); meiValores.stop(); return close(); }, maintenance, meiValores, biometria, fiscal, pix, startPix };
+  // Lembretes de retorno do CRM: confere a cada minuto e avisa no celular de quem marcou.
+  const crmTimer = setInterval(() => {
+    try {
+      deps.crm.lembretes();
+    } catch (e) {}
+  }, 60000);
+  if (crmTimer.unref) crmTimer.unref();
+  return { server, db, hub, wallet, crm: deps.crm, close: async () => { if (pixTimer) clearInterval(pixTimer); clearInterval(crmTimer); meiValores.stop(); return close(); }, maintenance, meiValores, biometria, fiscal, pix, startPix };
 }
