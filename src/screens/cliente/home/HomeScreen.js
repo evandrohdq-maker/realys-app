@@ -41,6 +41,7 @@ import { TestimonialCard, DepCenter } from '../../../components/SocialProfile';
 import { ServerTestimonialCard, ServerPendingTestimonials } from '../../../components/ServerTestimonials';
 import { useServerTestimonials } from '../../../serverTestimonials';
 import NotifList, { buildNotifs, unseenNotifs } from '../../../components/Notifications';
+import ClassifyModal, { TagLine } from '../../../components/ClassifyModal';
 import { ShopHero, CircleShortcuts, PillTabs, ShopProductCard, ShopGrid, StoreRow, CategoryPicker } from '../../../components/ShopKit';
 import { SegTabs, SpotlightCarousel, ClipStrip, PromoSector } from '../../../components/AdKit';
 import { SearchBar } from '../../../components/Search';
@@ -673,6 +674,7 @@ export function CommunityHub({ top, explore }) {
 // pedido enviado mostra "Aguardando" e dá para cancelar.
 function RealContact({ u, onChat }) {
   const [busy, setBusy] = useState(false);
+  const [classificar, setClassificar] = useState(false);
   const first = (u.name || '').split(' ')[0];
   const run = (fn) => {
     setBusy(true);
@@ -696,8 +698,16 @@ function RealContact({ u, onChat }) {
             {u.username ? `*${u.username} · ` : ''}
             {u.friend === 'amigos' ? 'amigo no Realyz' : u.friend === 'enviado' ? 'aguardando resposta' : 'quer ser seu amigo'}
           </Text>
+          {/* Classificação (Família, Trabalho...) embaixo do nome, na cor dela. */}
+          <TagLine contactId={u.id} />
         </View>
       </TouchableOpacity>
+      {u.friend === 'amigos' ? (
+        <TouchableOpacity style={[styles.roundSm, { marginRight: 8 }]} onPress={() => setClassificar(true)} accessibilityLabel={`Classificar ${u.name}`}>
+          <Ionicons name="pricetag-outline" size={16} color={colors.muted} />
+        </TouchableOpacity>
+      ) : null}
+      <ClassifyModal visible={classificar} contactId={u.id} name={u.name} onClose={() => setClassificar(false)} />
       {u.friend === 'amigos' ? (
         <TouchableOpacity style={styles.roundSm} onPress={onChat} accessibilityLabel={`Mensagem para ${u.name}`}>
           <Ionicons name="chatbubble-ellipses-outline" size={18} color={colors.primary} />

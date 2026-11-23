@@ -12,6 +12,7 @@ import { useServerFriends } from '../serverFriends';
 import { openServerProfile } from './ServerProfile';
 import { Photo } from './ui';
 import { colors } from '../theme';
+import ClassifyModal, { TagLine, useListas, listasDe, buscaPorLista } from './ClassifyModal';
 
 const fotoDe = (p) => (p && p.startsWith('/') ? API_URL + p : p);
 const quando = (at) => {
@@ -37,7 +38,8 @@ export default function ServerInbox() {
   const { friends } = useServerFriends(on);
   const [convs, setConvs] = useState([]);
   const [q, setQ] = useState('');
-  const [filtro, setFiltro] = useState(null);
+  const [classificar, setClassificar] = useState(null); // { id, name }
+  const listas = useListas();
   const me = state.user && state.user.serverId;
   const chatOpen = !!state.serverChat;
   useEffect(() => {
@@ -54,27 +56,17 @@ export default function ServerInbox() {
   if (!on) return null;
   const chat = (u) => dispatch({ type: 'OPEN_SERVER_CHAT', userId: u.id, name: u.name });
   const has = new Set(convs.map((c) => c.with && c.with.id));
-  const match = (u) => !q.trim() || `${u.name} ${u.username || ''}`.toLowerCase().includes(q.trim().toLowerCase().replace(/^[*@]/, ''));
-  // Filtro pelas listas (Família, Trabalho, Clientes...) que a pessoa marcou em cada conversa.
-  const listas = state.chatLists || [{ id: 'familia', name: 'Família' }, { id: 'trabalho', name: 'Trabalho' }, { id: 'clientes', name: 'Clientes' }];
-  const naLista = (id) => !filtro || (((state.chatMeta || {})[id] || {}).lists || []).includes(filtro);
-  const lista = convs.filter((c) => c.with && match(c.with) && naLista(c.with.id));
-  const novos = friends.filter((u) => !has.has(u.id) && match(u) && naLista(u.id));
+  // Busca pelo nome, pelo *usuário ou pela classificação ("família" mostra só quem está em Família).
+  const match = (u) => !q.trim() || `${u.name} ${u.username || ''}`.toLowerCase().includes(q.trim().toLowerCase().replace(/^[*@]/, '')) || buscaPorLista(listas, listasDe(state, u.id), q);
+  const lista = convs.filter((c) => c.with && match(c.with));
+  const novos = friends.filter((u) => !has.has(u.id) && match(u));
   if (!convs.length && !friends.length) return null;
   return (
     <View style={{ marginBottom: 10 }}>
       <View style={st.search}>
         <Ionicons name="search" size={17} color={colors.muted} />
-        <TextInput value={q} onChangeText={setQ} placeholder="Buscar amigo ou conversa no Realyz" placeholderTextColor={colors.muted} style={st.input} />
+        <TextInput value={q} onChangeText={setQ} placeholder="Buscar nome ou classificação (ex.: família)" placeholderTextColor={colors.muted} style={st.input} />
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 6 }}>
-        {[{ id: null, name: 'Todas' }, ...listas].map((l) => (
-          <TouchableOpacity key={l.id || 'todas'} onPress={() => setFiltro(l.id)} style={[st.filtro, filtro === l.id && st.filtroOn]} accessibilityLabel={`Mostrar ${l.name}`}>
-            <Text numberOfLines={1} style={[st.filtroTxt, filtro === l.id && { color: colors.onPrimary }]}>{l.name}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-      {filtro && !lista.length && !novos.length ? <Text style={{ color: colors.muted, fontSize: 13, marginVertical: 8 }}>Ninguém nesta lista ainda. Abra uma conversa e toque na etiqueta 🏷️ para classificar.</Text> : null}
       {novos.length ? (
         <>
           <Text style={st.title}>Começar conversa</Text>
@@ -83,6 +75,7 @@ export default function ServerInbox() {
               <TouchableOpacity key={u.id} style={st.chip} onPress={() => chat(u)} onLongPress={() => openServerProfile(u.id)} accessibilityLabel={`Conversar com ${u.name}. Segure para ver o perfil`}>
                 <Avatar u={u} size={52} />
                 <Text numberOfLines={1} style={st.chipName}>{(u.name || '').split(' ')[0]}</Text>
+                <TagLine contactId={u.id} style={{ justifyContent: 'center' }} />
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -98,7 +91,12 @@ export default function ServerInbox() {
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={{ flex: 1, color: colors.text, fontWeight: c.unread ? '800' : '700' }} numberOfLines={1}>{c.with.name}</Text>
               <Text style={{ color: c.unread ? colors.primary : colors.muted, fontSize: 11 }}>{quando(c.last.at)}</Text>
+              <TouchableOpacity onPress={() => setClassificar({ id: c.with.id, name: c.with.name })} hitSlop={8} style={{ marginLeft: 8 }} accessibilityLabel={`Classificar ${c.with.name}`}>
+                <Ionicons name={listasDe(state, c.with.id).length ? 'pricetag' : 'pricetag-outline'} size={15} color={colors.muted} />
+              </TouchableOpacity>
             </View>
+            {/* Classificação embaixo do nome, pequenininha e na cor dela. */}
+            <TagLine contactId={c.with.id} />
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
               <Text style={{ flex: 1, color: c.unread ? colors.text : colors.muted, fontSize: 13 }} numberOfLines={1}>
                 {c.last.from === me ? 'Você: ' : ''}
@@ -113,6 +111,7 @@ export default function ServerInbox() {
           </View>
         </TouchableOpacity>
       ))}
+      <ClassifyModal visible={!!classificar} contactId={classificar && classificar.id} name={classificar && classificar.name} onClose={() => setClassificar(null)} />
       {q.trim() && !lista.length && !novos.length ? <Text style={{ color: colors.muted, marginVertical: 6 }}>Nenhum amigo com esse nome. Use a lupa lá em cima para achar e adicionar pessoas.</Text> : null}
     </View>
   );

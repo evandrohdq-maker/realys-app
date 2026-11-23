@@ -27,7 +27,7 @@ if (Platform.OS !== 'web') {
     EV = require('expo-video');
   } catch (e) {}
 }
-const LISTAS_PADRAO = [{ id: 'familia', name: 'Família' }, { id: 'trabalho', name: 'Trabalho' }, { id: 'clientes', name: 'Clientes' }];
+import ClassifyModal, { TagLine, LISTAS_PADRAO } from './ClassifyModal';
 const mmss = (n) => `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`;
 
 export default function ChatServidor() {
@@ -162,13 +162,12 @@ export default function ChatServidor() {
           </TouchableOpacity>
           <View style={{ flex: 1, marginLeft: 6 }}>
             <Text style={st.title} numberOfLines={1}>{open.name}</Text>
-            <Text style={st.sub} numberOfLines={1}>
-              {amigos
-                ? minhasListas.length
-                  ? listas.filter((l) => minhasListas.includes(l.id)).map((l) => l.name).join(' · ')
-                  : 'Conversa entre amigos · só pessoas verificadas'
-                : 'Conversa protegida pelo Realyz: contato e pagamento sempre por aqui'}
-            </Text>
+            {/* Classificação pequenininha e colorida embaixo do nome; sem classificação, o aviso de sempre. */}
+            {amigos && minhasListas.length ? (
+              <TagLine contactId={open.userId} />
+            ) : (
+              <Text style={st.sub} numberOfLines={1}>{amigos ? 'Conversa entre amigos · só pessoas verificadas' : 'Conversa protegida pelo Realyz: contato e pagamento sempre por aqui'}</Text>
+            )}
           </View>
           {amigos ? (
             <>
@@ -233,26 +232,7 @@ export default function ChatServidor() {
             </TouchableOpacity>
           )}
         </View>
-        <Modal visible={classificar} transparent animationType="fade" onRequestClose={() => setClassificar(false)}>
-          <TouchableOpacity activeOpacity={1} onPress={() => setClassificar(false)} style={st.fundo}>
-            <View style={st.caixa}>
-              <Text style={st.title}>Classificar {String(open.name || '').split(' ')[0]}</Text>
-              <Text style={[st.sub, { marginBottom: 10 }]}>Escolha uma ou mais listas para achar a conversa mais rápido.</Text>
-              {listas.map((l) => {
-                const on = minhasListas.includes(l.id);
-                return (
-                  <TouchableOpacity key={l.id} onPress={() => alternarLista(l.id)} style={st.lista} accessibilityLabel={`${on ? 'Tirar de' : 'Pôr em'} ${l.name}`}>
-                    <Ionicons name={on ? 'checkbox' : 'square-outline'} size={22} color={colors.primary} />
-                    <Text style={{ color: colors.text, fontWeight: '700', marginLeft: 10, fontSize: 15 }}>{l.name}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-              <TouchableOpacity onPress={() => setClassificar(false)} style={[st.send, { width: '100%', borderRadius: 14, marginLeft: 0, marginTop: 12 }]} accessibilityLabel="Pronto">
-                <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Pronto</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </Modal>
+        <ClassifyModal visible={classificar} contactId={open.userId} name={open.name} onClose={() => setClassificar(false)} />
       </KeyboardLift>
     </Modal>
   );
