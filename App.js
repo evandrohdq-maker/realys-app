@@ -15,7 +15,6 @@ import LoginScreen from './src/screens/LoginScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import VoiceAssistant from './src/screens/VoiceAssistant';
 import { LotusMic } from './src/components/LotusFlower';
-import FeedScreen from './src/screens/cliente/FeedScreen';
 import HomeScreen from './src/screens/cliente/home/HomeScreen';
 import StoriesScreen from './src/screens/StoriesScreen';
 import EncontrosScreen from './src/screens/cliente/EncontrosScreen';
@@ -200,11 +199,11 @@ const TABS = {
     // Community para a empresa ver o feed sem trocar de perfil (quando a conta não tem perfil de usuário).
     { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen, hidden: true },
   ],
+  // Sem botão "Início": ele repetia a Community. A Community é o feed (o mesmo do usuário).
   prestador: [
     { key: 'prestar', label: 'Trabalhar', icon: 'navigate-circle-outline', Comp: DriverScreen },
     { key: 'agenda', label: 'Agenda', icon: 'calendar-outline', Comp: AgendaScreen },
     { key: 'clientes', label: 'Clientes', icon: 'chatbubbles-outline', Comp: CrmPrestador },
-    { key: 'inicio', label: 'Início', icon: 'home-outline', Comp: FeedScreen },
     { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
     { key: 'vagas', label: 'Empregos', icon: 'briefcase-outline', Comp: JobsScreen, hidden: true },
@@ -213,7 +212,6 @@ const TABS = {
   ],
   fornecedor: [
     { key: 'propostas', label: 'Propostas', icon: 'cube-outline', Comp: SupplierScreen },
-    { key: 'inicio', label: 'Início', icon: 'home-outline', Comp: FeedScreen },
     { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
     { key: 'paginas', label: 'Páginas', icon: 'albums-outline', Comp: PagesScreen, hidden: true },
