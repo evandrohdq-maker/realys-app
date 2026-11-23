@@ -47,13 +47,19 @@ jobs:
 
       - name: Robô do Test Lab (tocando nas telas por 5 minutos)
         if: env.TEM_CHAVE == 'true'
+        env:
+          U: ${{ secrets.TESTLAB_USUARIO }}
+          P: ${{ secrets.TESTLAB_SENHA }}
         run: |
           set +e
+          # Com a conta do robô nos segredos, ele entra logado antes de andar pelas telas.
+          if [ -n "$U" ] && [ -n "$P" ]; then LOGIN_ROBO="text:login_usuario=$U,text:login_senha=$P,click:login_entrar="; fi
           gcloud firebase test android run \
             --type robo \
             --app realys-demo.apk \
             --device model=MediumPhone.arm,version=34,locale=pt_BR,orientation=portrait \
             --timeout 5m \
+            ${LOGIN_ROBO:+--robo-directives "$LOGIN_ROBO"} \
             --format=json > resultado.json 2> saida.txt
           codigo=$?
           cat saida.txt

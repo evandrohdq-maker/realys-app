@@ -300,6 +300,8 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
                 placeholder="Digite seu usuário, CPF ou CNPJ"
                 placeholderTextColor={colors.muted}
                 value={value}
+                testID="login_usuario"
+                nativeID="login_usuario"
                 onChangeText={onChange}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -317,6 +319,8 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
               <Ionicons name="lock-closed-outline" size={20} color={colors.muted} />
               <TextInput
                 ref={passRef}
+                testID="login_senha"
+                nativeID="login_senha"
                 style={styles.input}
                 placeholder="Sua senha"
                 placeholderTextColor={colors.muted}
@@ -343,7 +347,7 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
               </TouchableOpacity>
             ) : null}
 
-            <TouchableOpacity style={[styles.btn, busy && { opacity: 0.6 }]} onPress={enter} disabled={busy} activeOpacity={0.85}>
+            <TouchableOpacity testID="login_entrar" nativeID="login_entrar" style={[styles.btn, busy && { opacity: 0.6 }]} onPress={enter} disabled={busy} activeOpacity={0.85}>
               <Ionicons name="log-in-outline" size={20} color={colors.onPrimary} />
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.btnText}>{busy ? 'Verificando…' : 'Entrar'}</Text>
             </TouchableOpacity>
