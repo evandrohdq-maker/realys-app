@@ -160,7 +160,8 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
       const acc = await findAccount(value);
       let user;
       if (acc) {
-        if (!(await checkPassword(acc, password))) return Alert.alert('Não foi possível entrar', 'Usuário ou senha incorretos.');
+        // Com o servidor, quem confere a senha é ele (a senha pode ter sido trocada pelo "Esqueci a senha").
+        if (!serverOn() && !(await checkPassword(acc, password))) return Alert.alert('Não foi possível entrar', 'Usuário ou senha incorretos.');
         user = userFromAccount(acc);
       } else {
         user = demoUser(value, info); // conta de demonstração
@@ -186,10 +187,11 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
             setPede2fa(true);
             return Alert.alert('Verificação em duas etapas', e.message);
           }
-          if (e.status !== 0 && (acc || e.status !== 401)) return Alert.alert('Não foi possível entrar', e.message);
-          // Avisa: sem o servidor, perfil, amigos e conversas ficam só neste celular.
-          Alert.alert('Sem ligação com o servidor', 'Você entrou só neste celular: perfil, amigos e conversas não vão para o Realyz. Confira a internet e entre de novo com a senha.');
-          // Sem conta aqui nem no servidor: segue como conta de demonstração (sem compras de verdade).
+          // As contas moram só no servidor (o mesmo banco para o app e o site). Sem servidor, não entra:
+          // nada de conta "só neste celular", que depois não aparece para ninguém.
+          if (e.status === 0) return Alert.alert('Sem ligação com o servidor', 'Confira a internet e tente de novo. Sua conta fica no servidor do Realyz, por isso é preciso estar conectado para entrar.');
+          if (e.status === 401 && !acc) return Alert.alert('Não foi possível entrar', 'Usuário ou senha incorretos. Se ainda não tem conta, toque em "Cadastre-se".');
+          return Alert.alert('Não foi possível entrar', e.message);
         }
       }
       // Aparelho já cadastrado (conta salva aqui): abre normal, sem biometria a cada entrada.

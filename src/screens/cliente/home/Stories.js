@@ -87,6 +87,17 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
   const [reply, setReply] = useState('');
   const [sent, setSent] = useState(false);
   const pos = useRef({ gi: 0, ii: 0 });
+  // Voltou do perfil (a prévia fechou): o story continua de onde parou.
+  const pausouPerfil = useRef(false);
+  useEffect(() => {
+    if (!covered && pausouPerfil.current) {
+      const t = setTimeout(() => {
+        pausouPerfil.current = false;
+        setPaused(false);
+      }, 250);
+      return () => clearTimeout(t);
+    }
+  }, [covered]);
 
   useEffect(() => {
     if (!visible) return;
@@ -217,7 +228,12 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
               style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
               activeOpacity={0.8}
               disabled={!onProfile || !!group.mine}
-              onPress={() => onProfile && onProfile(group)}
+              onPress={() => {
+                // Abriu o perfil de quem postou: o story (e a música) param na hora e ficam parados até voltar.
+                setPaused(true);
+                pausouPerfil.current = true;
+                onProfile && onProfile(group);
+              }}
               accessibilityLabel={`Ver perfil de ${group.name}`}
             >
               {isMine && gi === 0 && group.mine ? (
