@@ -37,7 +37,7 @@ async function call(method, path, token, body) {
 test('cadastro do app, compra com taxa de proteção, status da loja e cancelamento', async () => {
   // Mesmo formato de cadastrarNoServidor (data de nascimento DD/MM/AAAA, como no app).
   const cli = await call('POST', '/auth/signup', null, { kind: 'pessoa', name: 'Clara Teste', doc: '52998224725', username: 'clara', email: 'clara@teste.com', phone: '54999990000', password: 'senha1234', nascimento: '10/05/1990', aceiteTermos: TERMO_ADESAO_VERSAO, about: '' });
-  const loja = await call('POST', '/auth/signup', null, { kind: 'empresa', name: 'Loja Passo Fundo', doc: '11222333000181', username: 'lojapf', email: 'loja@teste.com', phone: '', password: 'senha1234', aceiteTermos: TERMO_ADESAO_VERSAO, about: '' });
+  const loja = await call('POST', '/auth/signup', null, { kind: 'empresa', titularNome: 'Titular Teste', titularCpf: '52998224725', name: 'Loja Passo Fundo', doc: '11222333000181', username: 'lojapf', email: 'loja@teste.com', phone: '', password: 'senha1234', aceiteTermos: TERMO_ADESAO_VERSAO, about: '' });
   // Entrar de novo (login do app) funciona com CPF.
   const again = await call('POST', '/auth/login', null, { login: '529.982.247-25', password: 'senha1234', device: 'Android', deviceKey: 'aparelho-1' });
   assert.equal(again.user.id, cli.user.id);

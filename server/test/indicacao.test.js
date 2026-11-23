@@ -31,7 +31,7 @@ const saldo = async (t) => (await call('GET', '/wallet', t)).balance;
 const marcaVenda = (uid, oid) => app.db.prepare("INSERT INTO biometria_checks (id, user_id, purpose, call_id, created_at) VALUES (?, ?, 'venda', ?, ?)").run('ck' + Math.random(), uid, oid, Date.now());
 
 test('indicação: 2% do Realyz + 5% opcional da loja, só quando entrega', async () => {
-  const loja = await call('POST', '/auth/signup', null, { kind: 'empresa', name: 'Loja Tech', doc: '11.222.333/0001-81', username: 'lojatech', email: 'lt@t.com', password: 'senha1234', aceiteTermos: TERMO_ADESAO_VERSAO, segment: 'Eletrônicos' });
+  const loja = await call('POST', '/auth/signup', null, { kind: 'empresa', titularNome: 'Titular Teste', titularCpf: '52998224725', name: 'Loja Tech', doc: '11.222.333/0001-81', username: 'lojatech', email: 'lt@t.com', password: 'senha1234', aceiteTermos: TERMO_ADESAO_VERSAO, segment: 'Eletrônicos' });
   const cli = await pessoa('Cliente Um', '52998224725', 'cliente1');
   const ind = await pessoa('Quem Indicou', '11144477735', 'indicou1');
   const p = await call('POST', '/products', loja.accessToken, { name: 'Fone Bluetooth', price: 100, stock: 10, category: 'Eletrônicos' });

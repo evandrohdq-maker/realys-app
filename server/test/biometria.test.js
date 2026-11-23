@@ -210,7 +210,7 @@ test('manutenção: integridade, backup, retenção e rotação de chave', async
 });
 
 test('produtos do mercado: seção validada, filtrada e editável', async () => {
-  const comp = await api('POST', '/auth/signup', { body: { kind: 'empresa', name: 'Mercadinho Teste', doc: '11.222.333/0001-81', username: 'mercadinho', email: 'loja@realys.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v21', segment: 'Mercado de bairro' } });
+  const comp = await api('POST', '/auth/signup', { body: { kind: 'empresa', titularNome: 'Titular Teste', titularCpf: '52998224725', name: 'Mercadinho Teste', doc: '11.222.333/0001-81', username: 'mercadinho', email: 'loja@realys.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v21', segment: 'Mercado de bairro' } });
   assert.equal(comp.status, 201, JSON.stringify(comp.data));
   S.loja = { token: comp.data.accessToken, id: comp.data.user.id };
   const bad = await api('POST', '/products', { who: 'loja', body: { name: 'Coisa', price: 5, secao: 'eletronicos' } });

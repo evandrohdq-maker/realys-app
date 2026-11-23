@@ -182,3 +182,10 @@ test('Google Authenticator: liga, pede o código no login e não entra sem ele',
   keep('ana', await ok('Ana entrar só com a senha de novo', 'POST', '/auth/login', { body: { login: 'anateste', password: 'senha1234' } }));
 });
 
+
+test('empresa: cadastro exige nome e CPF do titular do CNPJ', async () => {
+  const base = { kind: 'empresa', name: 'Loja Teste', doc: '11.222.333/0001-81', username: 'lojateste', email: 'loja@realyz.com.br', password: 'senha1234', aceiteTermos: TERMO_ADESAO_VERSAO };
+  assert.equal((await api('POST', '/auth/signup', { body: base })).status, 400, 'FALHOU: empresa cadastrou sem o titular');
+  assert.equal((await api('POST', '/auth/signup', { body: { ...base, titularNome: 'Titular Teste', titularCpf: '111.111.111-11' } })).status, 400, 'FALHOU: aceitou CPF do titular inválido');
+  await ok('cadastrar empresa com o titular', 'POST', '/auth/signup', { body: { ...base, titularNome: 'Titular Teste', titularCpf: '529.982.247-25' } });
+});

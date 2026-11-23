@@ -43,6 +43,8 @@ export async function cadastrarNoServidor(acc, password) {
     phone: acc.phone,
     password,
     nascimento: acc.kind === 'empresa' ? undefined : acc.birth,
+    titularNome: acc.kind === 'empresa' ? acc.titularNome : undefined,
+    titularCpf: acc.kind === 'empresa' ? acc.titularCpf : undefined,
     aceiteTermos: TERMO_ADESAO_VERSAO,
     socialClass: acc.social && acc.social.cls ? acc.social.cls : undefined,
     about: acc.about || '',

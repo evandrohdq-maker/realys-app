@@ -982,6 +982,11 @@ const MIGRATIONS = [
   ALTER TABLE users ADD COLUMN totp_segredo TEXT;
   ALTER TABLE users ADD COLUMN totp_novo TEXT;
   `,
+  // Empresa: o titular (quem abriu o CNPJ) faz a biometria com o documento dele.
+  `
+  ALTER TABLE users ADD COLUMN titular_nome TEXT;
+  ALTER TABLE users ADD COLUMN titular_cpf TEXT;
+  `,
 ];
 
 export function openDb(file) {

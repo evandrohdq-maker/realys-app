@@ -63,7 +63,7 @@ export function publicUser(u, { self = false } = {}) {
     privacy: u.privacy,
     teste: !!u.teste, // conta de teste (selo "Teste" no perfil)
   };
-  if (self) Object.assign(out, { email: u.email, emailOk: !!u.email_ok, duasEtapas: !!u.totp_on, phone: u.phone, doc: u.doc, status: u.status, createdAt: u.created_at });
+  if (self) Object.assign(out, { email: u.email, emailOk: !!u.email_ok, duasEtapas: !!u.totp_on, titularNome: u.titular_nome || null, phone: u.phone, doc: u.doc, status: u.status, createdAt: u.created_at });
   return out;
 }
 

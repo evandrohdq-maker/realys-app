@@ -16,7 +16,7 @@ before(async () => {
   const res = await fetch(base + '/auth/signup', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ kind: 'empresa', name: 'Sushi Ya', doc: '11.222.333/0001-81', username: 'sushiya', email: 'contato@sushiya.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v21', segment: 'Comida japonesa' }),
+    body: JSON.stringify({ kind: 'empresa', titularNome: 'Titular Teste', titularCpf: '52998224725', name: 'Sushi Ya', doc: '11.222.333/0001-81', username: 'sushiya', email: 'contato@sushiya.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v21', segment: 'Comida japonesa' }),
   });
   token = (await res.json()).accessToken;
   db = app.db;

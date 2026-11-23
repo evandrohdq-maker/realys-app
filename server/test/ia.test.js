@@ -51,7 +51,7 @@ test('regras da IA leve', () => {
 });
 
 test('atendente IA na conversa: catálogo, passagem para a equipe e copiloto', async () => {
-  const loja = await call('POST', '/auth/signup', null, { kind: 'empresa', name: 'Pizzaria da Praça', doc: '11222333000181', username: 'pizzapraca', email: 'pz@teste.com', password: 'senha1234', aceiteTermos: TERMO_ADESAO_VERSAO });
+  const loja = await call('POST', '/auth/signup', null, { kind: 'empresa', titularNome: 'Titular Teste', titularCpf: '52998224725', name: 'Pizzaria da Praça', doc: '11222333000181', username: 'pizzapraca', email: 'pz@teste.com', password: 'senha1234', aceiteTermos: TERMO_ADESAO_VERSAO });
   const cli = await call('POST', '/auth/signup', null, { kind: 'pessoa', name: 'Carla Cliente', doc: '52998224725', username: 'carla', email: 'c@teste.com', password: 'senha1234', nascimento: '10/05/1990', aceiteTermos: TERMO_ADESAO_VERSAO });
   await call('POST', '/products', loja.accessToken, { name: 'Pizza grande calabresa', price: 45, stock: 10, category: 'Food' });
   const f = await call('PUT', '/ia/ficha', loja.accessToken, { ligado: true, horario: 'Todos os dias, das 18h às 23h', entrega: 'Entregamos no Centro', faq: [{ q: 'Vocês têm opção sem glúten?', a: 'Temos massa sem glúten às sextas.' }] });
@@ -103,7 +103,7 @@ test('atendente não fica em looping: tchau, não e mensagem repetida', async ()
   assert.equal(intencaoSimples('outro dia'), 'recusa');
   assert.equal(intencaoSimples('obrigado, vocês entregam no centro?'), null);
   modeloLigado = false;
-  const loja = await call('POST', '/auth/signup', null, { kind: 'empresa', name: 'Loja do Bairro', doc: '11444777000161', username: 'lojabairro', email: 'lb@teste.com', password: 'senha1234', aceiteTermos: TERMO_ADESAO_VERSAO });
+  const loja = await call('POST', '/auth/signup', null, { kind: 'empresa', titularNome: 'Titular Teste', titularCpf: '52998224725', name: 'Loja do Bairro', doc: '11444777000161', username: 'lojabairro', email: 'lb@teste.com', password: 'senha1234', aceiteTermos: TERMO_ADESAO_VERSAO });
   const cli = await call('POST', '/auth/signup', null, { kind: 'pessoa', name: 'Davi Cliente', doc: '39053344705', username: 'davicli', email: 'd@teste.com', password: 'senha1234', nascimento: '10/05/1990', aceiteTermos: TERMO_ADESAO_VERSAO });
   await call('PUT', '/ia/ficha', loja.accessToken, { ligado: true });
   const manda = async (text) => {
