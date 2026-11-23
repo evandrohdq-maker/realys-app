@@ -403,12 +403,22 @@ export default function EmpregosReal({ inicio = 'vagas' }) {
         </View>
         <Ionicons name="chevron-forward" size={20} color="#fff" />
       </TouchableOpacity>
-      <View style={[st.wrap, { marginBottom: 8 }]}>{abas.map((a) => <Chip key={a.key} on={aba === a.key} label={a.label} onPress={() => setAba(a.key)} />)}</View>
+      {/* Abas em um seletor só, centralizado (mesmo estilo de Comprar/Alugar e Eventos). */}
+      <View style={st.seg}>
+        {abas.map((a) => {
+          const on = aba === a.key;
+          return (
+            <TouchableOpacity key={a.key} onPress={() => setAba(a.key)} style={[st.segItem, on && st.segOn]} accessibilityLabel={a.label} accessibilityState={{ selected: on }}>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.segTxt, on && { color: '#F5C331' }]}>{a.key === 'minhas' ? `Convites${convites.length ? ` · ${convites.length}` : ''}` : a.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
       {aba === 'vagas' ? (
         <>
           {vagas == null ? <ActivityIndicator color={colors.primary} /> : null}
-          {vagas && !vagas.length ? <Text style={st.muted}>Ainda não tem vaga aberta de empresas reais perto. As de exemplo continuam abaixo.</Text> : null}
+          {vagas && !vagas.length ? <Text style={st.muted}>Ainda não tem vaga aberta de empresas da sua região. Ative o currículo: quando abrir uma vaga que combina com você, o Realyz te avisa.</Text> : null}
           {(vagas || []).map((v) => (
             <View key={v.id} style={st.card}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -455,6 +465,10 @@ export default function EmpregosReal({ inicio = 'vagas' }) {
 }
 
 const st = StyleSheet.create({
+  seg: { flexDirection: 'row', alignSelf: 'center', width: '100%', maxWidth: 460, backgroundColor: colors.cardAlt, borderRadius: 22, padding: 4, marginBottom: 12 },
+  segItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 9, paddingHorizontal: 6, borderRadius: 18 },
+  segOn: { backgroundColor: '#0B1124' },
+  segTxt: { color: colors.muted, fontWeight: '700', fontSize: 13 },
   card: { backgroundColor: '#fff', borderRadius: 16, padding: 14, marginBottom: 10, ...soft },
   title: { color: colors.text, fontWeight: '800', fontSize: 15 },
   muted: { color: colors.muted, fontSize: 12.5 },
