@@ -390,12 +390,8 @@ function Shell({ inviteTick }) {
     switchRole(nextProfile, nextProfile === 'cliente' ? 'perfil' : undefined);
   };
   // ⋮ do cabeçalho: o Menu mora no Perfil. Fora dele, passa pelo Perfil e volta ao fechar.
-  const openMenuAnywhere = () => {
-    if (current.key === 'perfil') return openProfileMenu();
-    const from = current.key;
-    pick({ tab: 'perfil' });
-    openProfileMenu({ returnTo: from });
-  };
+  // O ⋮ só abre e fecha o menu, por cima da tela atual (a cópia invisível do Perfil, montada abaixo).
+  const openMenuAnywhere = () => openProfileMenu();
   const swapProfile = () => {
     setCameFromEmpresa(false);
     if (Platform.OS === 'android') ToastAndroid.show(`Modo ${ROLE_LABELS[swapTarget].toLowerCase()}`, ToastAndroid.SHORT);
@@ -751,6 +747,8 @@ function Shell({ inviteTick }) {
       {/* Rádio tocando: barrinha em qualquer tela (o player é um só no app). */}
       <BioGateModal />
       <PrazoBioLock />
+      {/* Menu ⋮ de qualquer tela: só o menu, sem o Perfil por trás. */}
+      <ProfileScreen soMenu navigate={pick} explore={explore} />
       <ComprasGateModal />
       {/* Rádio ao vivo: sem barrinha dentro do app (o play/parar fica na página das rádios; a capa
           aparece só ao minimizar). Músicas: mini player com a capa e o botão do perfil do artista. */}

@@ -154,7 +154,9 @@ function WorkHead({ role, navigate }) {
   );
 }
 
-export default function ProfileScreen({ navigate, explore }) {
+// soMenu: a cópia invisível do Perfil que o App deixa sempre montada, só para o menu ⋮ abrir por cima de
+// qualquer tela (sem abrir o Perfil por trás e sem trocar de aba ao fechar).
+export default function ProfileScreen({ navigate, explore, soMenu = false }) {
   const { state, dispatch } = useStore();
   const u = state.user;
   // Conta real: amigos e depoimentos aceitos de verdade (servidor), não os de exemplo.
@@ -185,12 +187,14 @@ export default function ProfileScreen({ navigate, explore }) {
   const returnTo = React.useRef(null);
   useEffect(
     () =>
-      onProfileMenu((o) => {
-        returnTo.current = (o && o.returnTo) || null;
-        setMenuSeg('conta');
-        setMenuOpen(true);
-      }),
-    [],
+      soMenu
+        ? onProfileMenu(() => {
+            returnTo.current = null;
+            setMenuSeg('conta');
+            setMenuOpen(true);
+          })
+        : undefined,
+    [soMenu],
   );
   // Fechou sem escolher nada (X ou voltar): volta para a tela de onde o ⋮ foi aberto.
   const closeMenu = () => {
@@ -274,8 +278,11 @@ export default function ProfileScreen({ navigate, explore }) {
   // Empresa, prestador e fornecedor: o Perfil mostra o cartão de trabalho, não o perfil social.
   const work = WORK_ROLES.includes(state.activeRole);
 
+  const Wrap = soMenu ? React.Fragment : Screen;
   return (
-    <Screen scrollRef={scrollRef}>
+    <Wrap {...(soMenu ? {} : { scrollRef })}>
+      {soMenu ? null : (
+      <>
       {/* Cabeçalho: foto, nome verificado, @ e profissão, perfil social e bio. */}
       {/* Conta sem biometria: aviso para completar o cadastro */}
       <UnverifiedBanner />
@@ -400,7 +407,9 @@ export default function ProfileScreen({ navigate, explore }) {
       <DepCenter visible={depOpen} onClose={() => setDepOpen(false)} />
 
       {/* Menu ⋮ do Perfil: duas partes, Minha conta e Explorar o Realyz. */}
-      <Modal visible={menuOpen} animationType="slide" onRequestClose={closeMenu}>
+      </>
+      )}
+      <Modal visible={menuOpen} animationType="fade" onRequestClose={closeMenu}>
         <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
           <View style={styles.menuHead}>
             <Text style={styles.menuTitle}>Menu</Text>
@@ -629,10 +638,12 @@ export default function ProfileScreen({ navigate, explore }) {
           dispatch({ type: 'SET_MY_PROFILE', profile: { social: q.social, quiz: { about: q.about, work: q.work, hobbies: q.hobbies || [], manual: !!q.manual } } });
         }}
       />
-      <Text style={{ textAlign: 'center', color: colors.muted, fontSize: 11, marginTop: 14 }}>
-        Realyz · {VERSION_LABEL} · demonstração
-      </Text>
-    </Screen>
+      {soMenu ? null : (
+        <Text style={{ textAlign: 'center', color: colors.muted, fontSize: 11, marginTop: 14 }}>
+          Realyz · {VERSION_LABEL} · demonstração
+        </Text>
+      )}
+    </Wrap>
   );
 }
 
