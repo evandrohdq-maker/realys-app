@@ -26,7 +26,8 @@ export default function empregosRoutes(r, { db, cfg, hub, userById, publicUser }
       return {};
     }
   };
-  const podeAnunciar = (u) => u.kind === 'empresa' || JSON.parse(u.roles || '[]').includes('empresa') || !!db.prepare('SELECT 1 FROM providers WHERE user_id = ?').get(u.id);
+  // Vaga só pelo perfil empresarial (empresa com CNPJ). Perfil social não anuncia vaga.
+  const podeAnunciar = (u) => u.kind === 'empresa' || JSON.parse(u.roles || '[]').includes('empresa');
 
   // ---------- currículo ----------
   const cvLimpo = (b) => ({
@@ -165,7 +166,7 @@ export default function empregosRoutes(r, { db, cfg, hub, userById, publicUser }
   };
 
   r.post('/vagas', ({ body, user }) => {
-    if (!podeAnunciar(user)) fail(403, 'Anunciar vaga é para empresas e prestadores.');
+    if (!podeAnunciar(user)) fail(403, 'Anunciar vaga é só pelo perfil empresarial. Troque para o perfil da sua empresa para publicar.', 'so_empresa');
     const dados = vagaLimpa(body || {});
     const id = newId('vg');
     db.prepare('INSERT INTO vagas (id, empresa_id, dados, status, created_at) VALUES (?,?,?,?,?)').run(id, user.id, JSON.stringify(dados), 'aberta', now());

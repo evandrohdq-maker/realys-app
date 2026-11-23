@@ -372,7 +372,8 @@ export default function EmpregosReal({ inicio = 'vagas' }) {
   const [minhas, setMinhas] = useState(null);
   const [temCv, setTemCv] = useState(null);
   const [editando, setEditando] = useState(false);
-  const empresa = state.user && ((state.user.roles || []).includes('empresa') || (state.user.roles || []).includes('prestador'));
+  // Só o perfil empresarial (o que está em uso agora) publica vagas; o perfil social só procura emprego.
+  const empresa = !!state.user && state.activeRole === 'empresa';
   const load = useCallback(() => {
     api('GET', '/vagas').then(setVagas).catch(() => setVagas([]));
     api('GET', '/candidaturas').then(setMinhas).catch(() => setMinhas([]));
@@ -395,6 +396,58 @@ export default function EmpregosReal({ inicio = 'vagas' }) {
   ];
   return (
     <View>
+      {/* Quem ainda não tem currículo: um convite de verdade para se cadastrar. */}
+      {temCv === false ? (
+        <View style={st.hero}>
+          <Text style={st.heroKicker}>EMPREGOS NO REALYZ</Text>
+          <Text style={st.heroTitle}>Seu próximo emprego começa aqui</Text>
+          <Text style={st.heroSub}>Empresas verificadas da sua cidade procuram gente como você. Ative o currículo e o Realyz te indica para as vagas certas.</Text>
+          <View style={st.heroPerks}>
+            {[['gift-outline', 'Grátis para você'], ['shield-checkmark-outline', 'Só empresas verificadas'], ['notifications-outline', 'Aviso quando te chamam']].map(([ic, t]) => (
+              <View key={t} style={st.perk}>
+                <Ionicons name={ic} size={18} color="#F5C331" />
+                <Text style={st.perkTxt}>{t}</Text>
+              </View>
+            ))}
+          </View>
+          <TouchableOpacity style={st.heroBtn} onPress={() => setEditando(true)} activeOpacity={0.9} accessibilityLabel="Criar meu currículo grátis">
+            <Ionicons name="document-text" size={18} color="#0B1124" />
+            <Text style={st.heroBtnTxt}>Criar meu currículo grátis</Text>
+          </TouchableOpacity>
+          <Text style={st.heroHint}>Anexe o arquivo (PDF, Word ou foto) ou responda 3 perguntas. Leva 2 minutos.</Text>
+        </View>
+      ) : null}
+      {temCv === false ? (
+        <View style={[st.card, { marginTop: 4 }]}>
+          <Text style={st.sec}>Como funciona</Text>
+          {[['1', 'Ative o currículo', 'Conte o que você sabe fazer e onde quer trabalhar.'], ['2', 'O Realyz te indica', 'Quando abre uma vaga que combina, a empresa vê você entre os indicados.'], ['3', 'A empresa te convida', 'Você recebe o convite aqui e decide se aceita a conversa.']].map(([n, t, d]) => (
+            <View key={n} style={st.passo}>
+              <View style={st.passoN}><Text style={{ color: '#F5C331', fontWeight: '900' }}>{n}</Text></View>
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={{ color: colors.text, fontWeight: '800' }}>{t}</Text>
+                <Text style={st.muted}>{d}</Text>
+              </View>
+            </View>
+          ))}
+          <Text style={[st.sec, { marginTop: 12 }]}>Áreas que mais contratam</Text>
+          <View style={st.wrap}>
+            {['Vendas', 'Restaurantes', 'Motorista e entregas', 'Construção', 'Saúde', 'Tecnologia', 'Administrativo', 'Agro'].map((x) => (
+              <View key={x} style={st.area}><Text style={{ color: colors.text, fontSize: 12.5, fontWeight: '600' }}>{x}</Text></View>
+            ))}
+          </View>
+        </View>
+      ) : null}
+      {empresa ? (
+        <TouchableOpacity style={[st.card, { flexDirection: 'row', alignItems: 'center' }]} onPress={() => setAba('empresa')} accessibilityLabel="Publicar vaga">
+          <Ionicons name="megaphone-outline" size={22} color={colors.primary} />
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={{ color: colors.text, fontWeight: '800' }}>Sua empresa está contratando?</Text>
+            <Text style={st.muted}>Publique a vaga e receba candidatos indicados pelo Realyz, todos verificados.</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+        </TouchableOpacity>
+      ) : null}
+      {temCv ? (
       <TouchableOpacity style={[st.card, { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary }]} onPress={() => setEditando(true)} accessibilityLabel="Meu currículo">
         <Ionicons name="document-text" size={22} color="#fff" />
         <View style={{ flex: 1, marginLeft: 10 }}>
@@ -403,6 +456,7 @@ export default function EmpregosReal({ inicio = 'vagas' }) {
         </View>
         <Ionicons name="chevron-forward" size={20} color="#fff" />
       </TouchableOpacity>
+      ) : null}
       {/* Abas em um seletor só, centralizado (mesmo estilo de Comprar/Alugar e Eventos). */}
       <View style={st.seg}>
         {abas.map((a) => {
@@ -465,6 +519,19 @@ export default function EmpregosReal({ inicio = 'vagas' }) {
 }
 
 const st = StyleSheet.create({
+  hero: { backgroundColor: '#0B1124', borderRadius: 22, padding: 20, marginBottom: 10 },
+  heroKicker: { color: '#F5C331', fontSize: 11, fontWeight: '900', letterSpacing: 1.2 },
+  heroTitle: { color: '#fff', fontSize: 22, fontWeight: '900', marginTop: 6, lineHeight: 28 },
+  heroSub: { color: 'rgba(255,255,255,0.78)', fontSize: 13.5, marginTop: 6, lineHeight: 19 },
+  heroPerks: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 14 },
+  perk: { flexDirection: 'row', alignItems: 'center', marginRight: 14, marginBottom: 8 },
+  perkTxt: { color: '#fff', fontSize: 12.5, fontWeight: '700', marginLeft: 6 },
+  heroBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5C331', borderRadius: 16, paddingVertical: 14, marginTop: 8 },
+  heroBtnTxt: { color: '#0B1124', fontWeight: '900', fontSize: 15, marginLeft: 8 },
+  heroHint: { color: 'rgba(255,255,255,0.6)', fontSize: 11.5, textAlign: 'center', marginTop: 8 },
+  passo: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
+  passoN: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#0B1124', alignItems: 'center', justifyContent: 'center' },
+  area: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 14, backgroundColor: colors.cardAlt, marginRight: 6, marginBottom: 6 },
   seg: { flexDirection: 'row', alignSelf: 'center', width: '100%', maxWidth: 460, backgroundColor: colors.cardAlt, borderRadius: 22, padding: 4, marginBottom: 12 },
   segItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 9, paddingHorizontal: 6, borderRadius: 18 },
   segOn: { backgroundColor: '#0B1124' },
