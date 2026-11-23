@@ -23,7 +23,7 @@ import {
   savedKey,
 } from '../accounts';
 import SignupForm from './SignupForm';
-import { entrarOuMigrar, entrarNoServidor, userFromServer, usarConta } from '../serverAuth';
+import { entrarOuMigrar, entrarNoServidor, userFromServer, usarConta, rolesDoServidor } from '../serverAuth';
 import { setServerId } from '../accounts';
 import { serverOn, setCodigo2fa } from '../api';
 import ScanFacial from '../components/ScanFacial';
@@ -179,6 +179,8 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
               user = { ...user, serverId: srv.id };
               if (acc.serverId !== srv.id) await setServerId(acc.id, srv.id).catch(() => {});
             } else user = userFromServer(srv);
+            // Os perfis (social, trabalho, empresa) vêm sempre do servidor.
+            user = { ...user, roles: rolesDoServidor(srv) };
           }
         } catch (e) {
           // Sem internet: entra no modo do celular (demonstração) e tenta o servidor na próxima entrada.

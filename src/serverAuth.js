@@ -73,9 +73,19 @@ export const usarConta = (user) => setServerAccount(user && user.serverId);
 export const sairDoServidor = () => (serverOn() ? unregisterPush().then(apiLogout) : Promise.resolve());
 
 // Conta que existe no servidor mas não neste celular (cadastrada em outro aparelho).
+// Perfis que a conta tem, pelo servidor: pessoa começa só com o social (cliente) e ganha "prestador" ao
+// criar o perfil de trabalho com CNPJ; empresa começa só com a empresa e ganha o social quando o titular
+// cria o perfil social dele.
+export function rolesDoServidor(u) {
+  if (!u) return ['cliente'];
+  const t = u.trabalho || [];
+  if (u.kind === 'empresa') return ['empresa', 'fornecedor', ...(u.socialTitular ? ['cliente'] : [])];
+  // Conta de teste: testa tudo (inclusive o lado do prestador).
+  return ['cliente', ...(u.teste || t.includes('prestador') || t.includes('artista') ? ['prestador'] : [])];
+}
 export function userFromServer(u) {
   const fmt = (d, n) => (n === 14 ? d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : d.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4'));
   const doc = String(u.doc || '');
-  if (u.kind === 'empresa') return { id: u.id, serverId: u.id, name: u.name, username: u.username, verified: true, roles: ['empresa', 'fornecedor', 'cliente'], cnpj: fmt(doc, 14) };
-  return { id: u.id, serverId: u.id, name: u.name, username: u.username, verified: true, roles: ['cliente', 'prestador'], cpf: fmt(doc, 11), cnpj: '12.345.678/0001-90', about: u.about || '' };
+  if (u.kind === 'empresa') return { id: u.id, serverId: u.id, name: u.name, username: u.username, verified: true, roles: rolesDoServidor(u), cnpj: fmt(doc, 14) };
+  return { id: u.id, serverId: u.id, name: u.name, username: u.username, verified: true, roles: rolesDoServidor(u), cpf: fmt(doc, 11), cnpj: '12.345.678/0001-90', about: u.about || '' };
 }

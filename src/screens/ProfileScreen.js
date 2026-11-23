@@ -31,6 +31,7 @@ import WalletScreen from './WalletScreen';
 import BiometriaScreen from './BiometriaScreen';
 import ConfirmarEmail from '../components/ConfirmarEmail';
 import DuasEtapas from '../components/DuasEtapas';
+import PerfilTrabalho from '../components/PerfilTrabalho';
 import DemoScreen from './DemoScreen';
 import { ProfileEditor, PrivacyPanel, StudioPanel, FutureIcon, audienceLabel, coverTone } from '../components/ProfileStudio';
 import { ShowsPanel } from '../components/ArtistShowEditor';
@@ -181,6 +182,8 @@ export default function ProfileScreen({ navigate, explore, soMenu = false }) {
   const [helpOpen, setHelpOpen] = useState(false);
   const [taxasOpen, setTaxasOpen] = useState(false);
   // Menu ⋮ do Perfil: "Minha conta" (as antigas Mais opções) + "Explorar" (o antigo ⋮ do cabeçalho).
+  // Funções de trabalho (Estúdio, shows, vender) só com o perfil de trabalho com CNPJ. O social só descreve.
+  const temTrabalho = !!(state.user && ((state.user.roles || []).includes('prestador') || (state.user.roles || []).includes('admin') || state.user.teste));
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuSeg, setMenuSeg] = useState('conta');
   // O ⋮ fica no canto direito do cabeçalho do app e abre este menu (de qualquer tela).
@@ -288,6 +291,7 @@ export default function ProfileScreen({ navigate, explore, soMenu = false }) {
       <UnverifiedBanner />
       <ConfirmarEmail />
       <DuasEtapas />
+      <PerfilTrabalho />
       {work ? (
         <WorkHead role={state.activeRole} navigate={navigate} />
       ) : (
@@ -441,7 +445,7 @@ export default function ProfileScreen({ navigate, explore, soMenu = false }) {
         </Item>
         {/* Estúdio Realyz: para artistas, músicos e criadores de conteúdo. Não aparece no perfil de empresa
             (a empresa divulga por anúncios, propagandas e reels de anúncio, no Painel). */}
-        {state.activeRole !== 'empresa' && (ESTUDIO_CLASSES.includes(socialCls && socialCls.cls) || ehArtista || ehGamer) ? (
+        {state.activeRole !== 'empresa' && temTrabalho && (ESTUDIO_CLASSES.includes(socialCls && socialCls.cls) || ehArtista || ehGamer) ? (
           <Item open={open} onToggle={toggle} k="estudio" icon="rocket-outline" title="Estúdio Realyz" sub="Para artistas, músicos e criadores de conteúdo">
             <StudioPanel />
           </Item>
@@ -464,7 +468,7 @@ export default function ProfileScreen({ navigate, explore, soMenu = false }) {
           </Item>
         ) : null}
         {/* Shows e contratação: vitrine de shows da classe Artistas (cachês, agenda, onde atende, divulgação e pedidos). */}
-        {state.activeRole === 'empresa' ? null : ehArtista ? (
+        {state.activeRole === 'empresa' ? null : ehArtista && temTrabalho ? (
           <Item open={open} onToggle={toggle} k="shows" icon="mic-outline" title="Shows e contratação" sub="Cachês, agenda e pedidos de show">
             <ShowsPanel />
           </Item>

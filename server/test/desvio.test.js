@@ -68,8 +68,7 @@ test('conversa: sem contato aceito não passa telefone; empresa só manda o pedi
   assert.ok((await api('POST', `/friends/${S.beto.id}`, { who: 'ana' })).status < 300);
   assert.ok((await api('POST', `/friends/${S.ana.id}`, { who: 'beto' })).status < 300);
   assert.equal((await msg('ana', 'beto', 'Meu número novo é (54) 99999-1234')).status, 201);
-  // Amiga de uma empresa: virar amigo não libera o número (um dos dois vende).
-  assert.ok((await api('POST', `/friends/${S.loja.id}`, { who: 'ana' })).status < 300);
-  assert.ok((await api('POST', `/friends/${S.ana.id}`, { who: 'loja' })).status < 300);
+  // Empresa não é contato (é página para seguir): nem dá para adicionar, e o número continua barrado.
+  assert.equal((await api('POST', `/friends/${S.loja.id}`, { who: 'ana' })).data.code, 'perfil_empresa');
   assert.equal((await msg('loja', 'ana', 'Me chama no zap (54) 99999-1234')).status, 422);
 });

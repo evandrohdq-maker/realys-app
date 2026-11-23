@@ -122,9 +122,9 @@ const saveAccounts = (list) => AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify
 // O usuário (objeto que entra no app) a partir da conta cadastrada.
 export function userFromAccount(acc) {
   if (acc.kind === 'empresa') {
-    return { id: acc.id, serverId: acc.serverId || null, name: acc.name, username: acc.username, verified: acc.bio !== false, roles: ['empresa', 'fornecedor', 'cliente'], cnpj: formatCnpj(acc.doc) };
+    return { id: acc.id, serverId: acc.serverId || null, name: acc.name, username: acc.username, verified: acc.bio !== false, roles: ['empresa', 'fornecedor'], cnpj: formatCnpj(acc.doc) }; // empresa nasce só na parte empresarial
   }
-  return { id: acc.id, serverId: acc.serverId || null, name: acc.name, username: acc.username, verified: acc.bio !== false, roles: ['cliente', 'prestador'], cpf: formatCpf(acc.doc), cnpj: '12.345.678/0001-90', social: acc.social || null, about: acc.about || '', work: acc.work || '', birth: acc.birth || null };
+  return { id: acc.id, serverId: acc.serverId || null, name: acc.name, username: acc.username, verified: acc.bio !== false, roles: ['cliente'], cpf: formatCpf(acc.doc), cnpj: '12.345.678/0001-90', social: acc.social || null, about: acc.about || '', work: acc.work || '', birth: acc.birth || null };
 }
 
 // Acha a conta pelo que a pessoa digitou: usuário, CPF ou CNPJ.

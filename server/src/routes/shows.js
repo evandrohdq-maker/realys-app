@@ -9,6 +9,7 @@
 // até 7 dias antes do show; depois, só pelo suporte (Garantia Realyz).
 // Divulgação: cada lado marca os stories postados (artista: 2; quem contratou: 1).
 import { exigirParceiroDeTeste } from '../teste.js';
+import { exigirTrabalho } from '../trabalho.js';
 import { fail, newId, now, str, money, int, oneOf, toReais } from '../http.js';
 import { tx } from '../db.js';
 import { antiDesvio, moderateText } from '../moderacaoTexto.js';
@@ -99,7 +100,8 @@ export default function showsRoutes(r, { db, cfg, wallet, hub, userById, fiscal 
     const row = db.prepare('SELECT * FROM artist_shows WHERE user_id = ?').get(user.id);
     return row ? vitrineView(row) : null;
   });
-  r.put('/shows/me', ({ body, user }) => {
+  r.put('/shows/me', ({ body, user, roles }) => {
+    exigirTrabalho(db, user, 'artista', roles, cfg);
     if (!isArtist(user)) fail(403, 'A vitrine de shows é da classe Artistas (música, artes cênicas e artes visuais). Troque a sua classe no perfil.', 'classe');
     const pacotes = (Array.isArray(body.pacotes) ? body.pacotes : []).slice(0, 10).map((p, i) => ({
       id: String(p.id || 'p' + i).slice(0, 20), nome: str(p.nome, 'o nome da opção', { max: 60 }),

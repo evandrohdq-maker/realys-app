@@ -99,6 +99,32 @@ function ServerProfile({ id, onClose }) {
             {p.teste ? <Text style={st.teste}>Conta de teste</Text> : null}
             {p.about ? <Text style={st.about}>{p.about}</Text> : null}
 
+            {p.negocio && p.friend !== 'amigos' ? (
+              // Perfil profissional (empresa ou prestador): página para seguir, como nas redes grandes.
+              // Não é contato: sem "Adicionar" e sem mensagem. Comprar e contratar é pela vitrine.
+              <>
+                <Text style={st.pagina}>
+                  {p.seguidores || 0} seguidor{(p.seguidores || 0) === 1 ? '' : 'es'} · {p.curtidas || 0} curtida{(p.curtidas || 0) === 1 ? '' : 's'}
+                </Text>
+                <View style={st.row}>
+                  <Btn icon={p.seguindo ? 'checkmark' : 'add'} label={busy ? '…' : p.seguindo ? 'Seguindo' : 'Seguir'} solid={!p.seguindo} onPress={busy ? undefined : () => act(() => api('POST', `/seguir/${id}`))} />
+                  <Btn icon={p.curtiu ? 'heart' : 'heart-outline'} label="Curtir" onPress={busy ? undefined : () => act(() => api('POST', `/curtir-perfil/${id}`))} />
+                  <Btn icon="create-outline" label="Depoimento" onPress={() => setDepOpen(true)} />
+                </View>
+                <View style={[st.row, { marginTop: 8 }]}>
+                  <Btn
+                    icon={p.kind === 'empresa' ? 'storefront-outline' : 'construct-outline'}
+                    label={p.kind === 'empresa' ? 'Ver vitrine' : 'Contratar'}
+                    solid
+                    onPress={() => {
+                      onClose();
+                      if (p.kind === 'empresa' && p.company) dispatch({ type: 'OPEN_COMPANY', id: p.company.id });
+                      else dispatch({ type: 'NAV_REQUEST', go: { tab: 'servicos' } });
+                    }}
+                  />
+                </View>
+              </>
+            ) : (
             <View style={st.row}>
               {p.friend === 'amigos' ? (
                 <>
@@ -117,6 +143,7 @@ function ServerProfile({ id, onClose }) {
                 <Btn icon="person-add" label={busy ? '…' : 'Adicionar'} solid onPress={busy ? undefined : () => act(() => addFriend(id))} />
               )}
             </View>
+            )}
 
             {p.visible === false ? (
               <View style={st.locked}>
@@ -258,6 +285,7 @@ function Btn({ icon, label, onPress, solid }) {
 }
 
 const st = StyleSheet.create({
+  pagina: { color: colors.muted, fontSize: 12.5, fontWeight: '600', textAlign: 'center', marginTop: 8, marginBottom: 2 },
   cover: { height: 130, backgroundColor: '#F1E7CF', paddingHorizontal: 14 },
   back: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   avatarWrap: { marginTop: -48, alignSelf: 'flex-start', borderRadius: 50, borderWidth: 3, borderColor: colors.gold, backgroundColor: colors.bg },

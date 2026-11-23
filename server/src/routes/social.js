@@ -31,6 +31,10 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
   // Selo de identidade verificada: só quem teve a biometria aprovada (não vale para conta sem biometria).
   const verificado = (id) => !!db.prepare(`SELECT 1 FROM biometria WHERE user_id = ? AND status = 'aprovado'`).get(id);
   const pub = (u, o) => (u ? { ...publicUser(u, o), verified: verificado(u.id) } : u);
+  // Perfil profissional: empresa ou prestador. É página para seguir, não contato para adicionar.
+  const ehNegocio = (u) => !!u && (u.kind === 'empresa' || !!db.prepare('SELECT 1 FROM providers WHERE user_id = ?').get(u.id));
+  const contarSeguidores = (id) => db.prepare('SELECT COUNT(*) n FROM follows WHERE target_id = ?').get(id).n;
+  const contarCurtidas = (id) => db.prepare('SELECT COUNT(*) n FROM profile_likes WHERE target_id = ?').get(id).n;
 
   r.get('/users', ({ query, user }) => {
     // Acha por nome, por *usuário (com ou sem *, @ ou #) ou pelo ID da conta. Quem bate exato vem primeiro.
@@ -41,7 +45,7 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
       `SELECT * FROM users WHERE kind != 'sistema' AND status = 'ativo' AND (id = ? OR lower(username) = lower(?) OR name LIKE ? ESCAPE '\\' OR username LIKE ? ESCAPE '\\')
        ORDER BY (id = ? OR lower(username) = lower(?)) DESC, name LIMIT 30`
     ).all(q, q, like, like, q, q)
-      .map((u) => ({ ...pub(u), friend: friendship(user.id, u.id)?.status || null }));
+      .map((u) => ({ ...pub(u), friend: friendship(user.id, u.id)?.status || null, negocio: ehNegocio(u) }));
   });
 
   // O que a pessoa montou no próprio perfil (salvo pelo app em /me/dados): só o que é social.
@@ -92,7 +96,12 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
       testimonials: db.prepare(`SELECT t.id, t.text, t.created_at AS createdAt, f.id AS fromId, f.name AS fromName, f.photo AS fromPhoto FROM testimonials t JOIN users f ON f.id = t.from_id WHERE t.to_id = ? AND t.status = 'aceito' ORDER BY t.created_at DESC LIMIT 30`).all(u.id),
       company: db.prepare('SELECT id, name FROM companies WHERE owner_id = ?').get(u.id) || null,
       // Empresa ou prestador: a conversa segue as regras de negócio (anti-desvio). Perfil social não.
-      negocio: u.kind === 'empresa' || !!db.prepare('SELECT 1 FROM providers WHERE user_id = ?').get(u.id),
+      negocio: ehNegocio(u),
+      // Página profissional: seguidores e curtidas (e se quem está vendo segue/curtiu).
+      seguidores: contarSeguidores(u.id),
+      seguindo: !!db.prepare('SELECT 1 FROM follows WHERE follower_id = ? AND target_id = ?').get(user.id, u.id),
+      curtidas: contarCurtidas(u.id),
+      curtiu: !!db.prepare('SELECT 1 FROM profile_likes WHERE user_id = ? AND target_id = ?').get(user.id, u.id),
       // Perfil social é atividade entre amigos: quem pode ver o social da pessoa vê também
       // capa, galeria (fotos, vídeos, destaques) e mural, do jeito que ela montou.
       ...(visible ? perfilSocial(u.id) : {}),
@@ -105,7 +114,7 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
   r.get('/me/sugestoes', ({ user }) => {
     // Ordem: amigos de amigos (com quantos em comum), depois quem abriu o seu perfil, depois gente nova
     // na rede. Nunca quem já é amigo ou tem pedido pendente, nem você mesmo.
-    const livre = `u.id != @me AND u.status = 'ativo' AND u.kind != 'sistema'
+    const livre = `u.id != @me AND u.status = 'ativo' AND u.kind NOT IN ('sistema', 'empresa')
       AND NOT EXISTS (SELECT 1 FROM friends f WHERE (f.a_id = u.id AND f.b_id = @me) OR (f.a_id = @me AND f.b_id = u.id))`;
     const vistos = new Set();
     const lista = [];
@@ -129,9 +138,31 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
   });
 
   // ── Amizades ──
+  // Seguir (e deixar de seguir) um perfil profissional. Seguir não vira contato nem libera conversa.
+  r.post('/seguir/:id', ({ params, user }) => {
+    const u = target(params.id);
+    if (u.id === user.id) fail(400, 'Você não pode seguir a si mesmo.');
+    if (!ehNegocio(u)) fail(400, 'Só perfis profissionais (empresas e prestadores) têm seguidores. Pessoas você adiciona como amigo.', 'nao_profissional');
+    const ja = db.prepare('SELECT 1 FROM follows WHERE follower_id = ? AND target_id = ?').get(user.id, u.id);
+    if (ja) db.prepare('DELETE FROM follows WHERE follower_id = ? AND target_id = ?').run(user.id, u.id);
+    else db.prepare('INSERT INTO follows (follower_id, target_id, created_at) VALUES (?,?,?)').run(user.id, u.id, now());
+    return { seguindo: !ja, seguidores: contarSeguidores(u.id) };
+  });
+  r.post('/curtir-perfil/:id', ({ params, user }) => {
+    const u = target(params.id);
+    if (u.id === user.id) fail(400, 'Você não pode curtir o próprio perfil.');
+    if (!ehNegocio(u)) fail(400, 'Curtir o perfil é para perfis profissionais.', 'nao_profissional');
+    const ja = db.prepare('SELECT 1 FROM profile_likes WHERE user_id = ? AND target_id = ?').get(user.id, u.id);
+    if (ja) db.prepare('DELETE FROM profile_likes WHERE user_id = ? AND target_id = ?').run(user.id, u.id);
+    else db.prepare('INSERT INTO profile_likes (user_id, target_id, created_at) VALUES (?,?,?)').run(user.id, u.id, now());
+    return { curtiu: !ja, curtidas: contarCurtidas(u.id) };
+  });
+
   r.post('/friends/:id', ({ params, user }) => {
     const u = target(params.id);
     if (u.id === user.id) fail(400, 'Você não pode adicionar a si mesmo.');
+    // Empresa não é contato: as pessoas seguem a página dela (e compram pela vitrine).
+    if (u.kind === 'empresa' || user.kind === 'empresa') fail(400, 'Perfil de empresa não é contato. Toque em Seguir para acompanhar a página.', 'perfil_empresa');
     const f = friendship(user.id, u.id);
     const [a, b] = pair(user.id, u.id);
     if (!f) {
