@@ -207,7 +207,7 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
     const p = body.data.myProfile || {};
     const foto = typeof p.photo === 'string' ? p.photo.replace(/^https?:\/\/[^/]+(?=\/media\/)/, '') : null;
     const fields = {};
-    if (foto && /^\/media\/[A-Za-z0-9_-]+$/.test(foto)) fields.photo = foto;
+    if (foto && /^\/media\/[A-Za-z0-9_-]+(\.[A-Za-z0-9]{2,4})?$/.test(foto)) fields.photo = foto;
     if (typeof p.bio === 'string') fields.about = p.bio.trim().slice(0, 300);
     const keys = Object.keys(fields);
     if (keys.length) db.prepare(`UPDATE users SET ${keys.map((k) => `${k} = ?`).join(', ')} WHERE id = ?`).run(...keys.map((k) => fields[k]), user.id);
