@@ -3,6 +3,7 @@
 // (pela impressão digital do conteúdo, o hash), quem são as partes e quando cada uma assinou.
 // Assinatura sob coação: a página mostra "em análise" (nunca "coação", para não pôr ninguém em risco)
 // e o documento não vale até a apuração.
+import { exigirTrabalho } from '../trabalho.js';
 import { createHash, randomBytes } from 'node:crypto';
 import { fail, now } from '../http.js';
 
@@ -10,11 +11,13 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&':
 const code = () => randomBytes(6).toString('base64url').replace(/[-_]/g, 'x').slice(0, 8).toUpperCase();
 const dt = (t) => (t ? new Date(t).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '—');
 
-export default function documentosRoutes(r, { db }) {
-  r.post('/documentos', ({ body, user }) => {
+export default function documentosRoutes(r, { db, cfg }) {
+  r.post('/documentos', ({ body, user, roles }) => {
     const hash = String(body.hash || '').trim();
     if (!/^[a-f0-9]{16,128}$/i.test(hash)) fail(400, 'Impressão digital do documento inválida.');
     const tipo = body.tipo === 'receita' ? 'receita' : 'contrato';
+    // Receita é trabalho de profissional de saúde: só com o perfil de trabalho (CNPJ) de saúde.
+    if (tipo === 'receita') exigirTrabalho(db, user, 'saude', roles, cfg);
     const partes = (Array.isArray(body.partes) ? body.partes : []).slice(0, 6).map((p) => ({ papel: String(p.papel || '').slice(0, 40), nome: String(p.nome || '').slice(0, 80), assinadoEm: Number(p.assinadoEm) || null, metodo: String(p.metodo || '').slice(0, 20) || null }));
     const c = code();
     db.prepare('INSERT INTO documentos (codigo, owner_id, hash, tipo, titulo, partes, coacao, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?)').run(c, user.id, hash, tipo, String(body.titulo || '').slice(0, 120) || 'Documento', JSON.stringify(partes), body.coacao ? 1 : 0, now(), now());

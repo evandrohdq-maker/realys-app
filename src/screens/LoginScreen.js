@@ -180,7 +180,7 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
               if (acc.serverId !== srv.id) await setServerId(acc.id, srv.id).catch(() => {});
             } else user = userFromServer(srv);
             // Os perfis (social, trabalho, empresa) vêm sempre do servidor.
-            user = { ...user, roles: rolesDoServidor(srv) };
+            user = { ...user, roles: rolesDoServidor(srv), trabalho: srv.trabalho || [] };
           }
         } catch (e) {
           // Sem internet: entra no modo do celular (demonstração) e tenta o servidor na próxima entrada.

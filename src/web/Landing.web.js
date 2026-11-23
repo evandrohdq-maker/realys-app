@@ -57,7 +57,7 @@ const AREAS = [
   ['Serviços', 'Eletricista, diarista, motorista, aulas e atendimento online, com avaliação de quem já contratou.'],
   ['Negócios', 'Imóveis, veículos e máquinas para comprar ou alugar, direto com quem anuncia.'],
   ['Community', 'Stories, depoimentos, mensagens e chamadas com pessoas confirmadas.'],
-  ['Stream', 'Rádios, TV online e lives, com presentes para quem cria.'],
+  ['Play', 'Rádios, canais de TV e músicas em destaque, tudo num botão só.'],
 ];
 
 const CSS = `

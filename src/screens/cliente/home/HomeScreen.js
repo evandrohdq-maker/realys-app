@@ -66,7 +66,7 @@ export const COMMUNITY_TOP = [
   { key: 'noticias', label: 'News', icon: 'newspaper-outline' },
   { key: 'eventos', label: 'Eventos', icon: 'sparkles-outline' },
   // Stream: rádios e TV online (entrou no lugar dos botões Promoções e Anúncios).
-  { key: 'stream', label: 'Stream', icon: 'tv-outline' },
+  { key: 'stream', label: 'Play', icon: 'play-circle-outline' }, // rádios, canais de TV e músicas
   // Trends: o que está em alta (Reels, publicações, IA e assuntos). Também abre arrastando para o lado.
   { key: 'trends', label: 'Trends', icon: 'flame-outline' },
   { key: 'lives', label: 'Lives', icon: 'radio-outline', red: true }, // em vermelho, como AO VIVO

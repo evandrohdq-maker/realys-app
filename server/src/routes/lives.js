@@ -1,6 +1,7 @@
 // Lives: abrir, encerrar, listar por assunto e presentes ao vivo.
 // O vídeo em si passa por um serviço de transmissão (ex.: LiveKit) ligado depois; aqui ficam
 // as lives no ar, quem transmite e o dinheiro dos presentes.
+import { temAlgum } from '../trabalho.js';
 import { exigirParceiroDeTeste } from '../teste.js';
 import { fail, newId, now, str, int, toReais } from '../http.js';
 import { tx } from '../db.js';
@@ -14,7 +15,7 @@ const CATS = ['gamers', 'artistas', 'compras', 'esportes', 'saude', 'fe', 'curso
 const PAUSE_MOTIVOS = ['abrindo', 'seguranca'];
 const HOSTS = ['usuario', 'empresa', 'artista', 'prestador', 'fornecedor'];
 
-export default function livesRoutes(r, { db, wallet, hub, fiscal }) {
+export default function livesRoutes(r, { db, cfg, wallet, hub, fiscal }) {
   const paused = new Map(); // liveId -> motivo
   const view = (l) => ({ paused: paused.get(l.id) || null, id: l.id, hostId: l.host_id, hostType: l.host_type, host: l.host_name, cat: l.cat, title: l.title, source: l.source || 'camera', status: l.status, giftsTotal: toReais(l.gifts_total), startedAt: l.started_at, endedAt: l.ended_at, viewers: viewersOf(l.id) });
   const watching = new Map(); // liveId -> Map<userId, lastSeen>
@@ -121,6 +122,12 @@ export default function livesRoutes(r, { db, wallet, hub, fiscal }) {
     if (!l || l.status !== 'ao_vivo') fail(404, 'Essa live já terminou.');
     if (l.host_id === user.id) fail(400, 'Você não pode presentear a sua própria live.');
     exigirParceiroDeTeste(db, l.host_id);
+    // Live é livre para todos; receber presente (dinheiro) é trabalho: só criador de conteúdo ou artista
+    // com o perfil de trabalho com CNPJ.
+    const host = db.prepare('SELECT * FROM users WHERE id = ?').get(l.host_id);
+    if (!temAlgum(db, host, ['criador', 'artista'], JSON.parse((host && host.roles) || '[]'), cfg)) {
+      fail(403, 'Esta pessoa ainda não recebe presentes: para receber, ela precisa do perfil de trabalho de criador de conteúdo com CNPJ.', 'host_sem_cnpj');
+    }
     const unit = LIVE_GIFTS[body.gift];
     if (!unit) fail(400, 'Presente inválido.');
     const qty = int(body.qty ?? 1, 'quantidade', { min: 1, max: 100 });

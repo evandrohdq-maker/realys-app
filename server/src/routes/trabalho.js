@@ -8,7 +8,7 @@ import { onlyDigits, validCnpj } from '../auth.js';
 import { TIPOS_TRABALHO, consultarCnpj, conferirTitular } from '../trabalho.js';
 import { podeComprar } from '../bioGate.js';
 
-const TIPOS_PESSOA = ['prestador', 'artista'];
+const TIPOS_PESSOA = ['prestador', 'artista', 'criador', 'professor', 'saude', 'imobiliaria', 'radio'];
 
 export default function trabalhoRoutes(r, { db, cfg }) {
   const lista = (id) =>
@@ -18,7 +18,7 @@ export default function trabalhoRoutes(r, { db, cfg }) {
   r.post('/me/trabalho', async ({ body, user, roles }) => {
     if (user.kind === 'empresa') fail(400, 'Esta conta já é de empresa (CNPJ).');
     const tipo = String(body.tipo || '');
-    if (!TIPOS_PESSOA.includes(tipo)) fail(400, 'Escolha o tipo: prestador de serviço ou artista.');
+    if (!TIPOS_PESSOA.includes(tipo)) fail(400, 'Escolha o tipo de trabalho.');
     const cnpj = onlyDigits(body.cnpj);
     if (!validCnpj(cnpj)) fail(400, 'CNPJ inválido. Confira os números.');
     // O CNPJ é de quem atua: não pode estar em outra conta.

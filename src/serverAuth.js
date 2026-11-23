@@ -86,6 +86,6 @@ export function rolesDoServidor(u) {
 export function userFromServer(u) {
   const fmt = (d, n) => (n === 14 ? d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : d.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4'));
   const doc = String(u.doc || '');
-  if (u.kind === 'empresa') return { id: u.id, serverId: u.id, name: u.name, username: u.username, verified: true, roles: rolesDoServidor(u), cnpj: fmt(doc, 14) };
-  return { id: u.id, serverId: u.id, name: u.name, username: u.username, verified: true, roles: rolesDoServidor(u), cpf: fmt(doc, 11), cnpj: '12.345.678/0001-90', about: u.about || '' };
+  if (u.kind === 'empresa') return { id: u.id, serverId: u.id, name: u.name, username: u.username, verified: true, roles: rolesDoServidor(u), trabalho: u.trabalho || [], cnpj: fmt(doc, 14) };
+  return { id: u.id, serverId: u.id, name: u.name, username: u.username, verified: true, roles: rolesDoServidor(u), trabalho: u.trabalho || [], cpf: fmt(doc, 11), cnpj: '12.345.678/0001-90', about: u.about || '' };
 }

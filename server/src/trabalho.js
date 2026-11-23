@@ -3,7 +3,16 @@
 // vender como artista, ter loja) exige um perfil de trabalho com CNPJ (MEI vale).
 import { fail } from './http.js';
 
-export const TIPOS_TRABALHO = { prestador: 'Prestador de serviço', artista: 'Artista', loja: 'Loja' };
+export const TIPOS_TRABALHO = {
+  prestador: 'Prestador de serviço',
+  artista: 'Artista',
+  criador: 'Criador de conteúdo / Gamer',
+  professor: 'Professor / Cursos',
+  saude: 'Profissional de saúde',
+  imobiliaria: 'Imobiliária / Revenda',
+  radio: 'Rádio / TV',
+  loja: 'Loja',
+};
 
 // A conta pode agir como este tipo de profissional? Conta de empresa (CNPJ) já é; admin e teste passam.
 export function temTrabalho(db, user, tipo, roles = [], cfg = {}) {
@@ -14,6 +23,8 @@ export function temTrabalho(db, user, tipo, roles = [], cfg = {}) {
   return !!db.prepare("SELECT 1 FROM perfis_trabalho WHERE owner_id = ? AND tipo = ? AND status = 'ativo'").get(user.id, tipo);
 }
 
+// Algum destes tipos (ex.: presentes de live valem para criador de conteúdo ou artista).
+export const temAlgum = (db, user, tipos, roles, cfg) => tipos.some((t) => temTrabalho(db, user, t, roles, cfg));
 export function exigirTrabalho(db, user, tipo, roles, cfg) {
   if (!temTrabalho(db, user, tipo, roles, cfg)) {
     fail(403, `Para atuar como ${TIPOS_TRABALHO[tipo].toLowerCase()} no Realyz, crie seu perfil de trabalho com o CNPJ (MEI vale) no Perfil › Perfil de trabalho.`, 'sem_cnpj');

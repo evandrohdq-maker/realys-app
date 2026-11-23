@@ -16,6 +16,8 @@ import { allTvs, loadTvs, onTvs, saveTv, removeTv, checkTvUrl, playTv, stopTv } 
 import { useTvNow } from '../../../components/FloatPlayers';
 import { moderateText } from '../../../moderation';
 import { MY_COMPANY_ID } from '../../../data';
+import { podeTrabalhar, MSG_SEM_CNPJ } from '../../../trabalhoApp';
+import { useStore } from '../../../store';
 import MusicTab from './MusicTab';
 import { FavHeart, FavStrip } from '../../../components/FavKit';
 import { favList } from '../../../favorites';
@@ -140,6 +142,7 @@ function RadioList({ navigate }) {
 }
 
 function TvList() {
+  const { state } = useStore();
   const [list, setList] = useState(allTvs());
   const [q, setQ] = useState('');
   // Canal no ar: o vídeo fica na janela flutuante do app (FloatPlayers), não nesta tela.
@@ -162,6 +165,8 @@ function TvList() {
   };
   const openForm = () => setForm(mine ? { ...mine } : { name: '', url: '', genre: '', city: 'Passo Fundo, RS', emoji: '📺', storeId: MY_COMPANY_ID });
   const save = () => {
+    // Indexar canal é trabalho de rádio/TV: só com o perfil de trabalho com CNPJ.
+    if (!podeTrabalhar(state, 'radio')) return Alert.alert('Perfil de trabalho', MSG_SEM_CNPJ('indexar o seu canal'));
     if (!form.name.trim()) return Alert.alert('Nome do canal', 'Escreva o nome do canal.');
     const bad = checkTvUrl(form.url);
     if (bad) return Alert.alert('URL do canal', bad);

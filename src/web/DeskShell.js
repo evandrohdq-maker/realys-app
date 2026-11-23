@@ -99,7 +99,7 @@ const SHORTCUTS = [
   { top: 'comunidade', label: 'Feed da Community', icon: 'people-circle-outline' },
   { top: 'noticias', label: 'News', icon: 'newspaper-outline' },
   { top: 'eventos', label: 'Eventos', icon: 'sparkles-outline' },
-  { top: 'stream', label: 'Stream', icon: 'tv-outline' },
+  { top: 'stream', label: 'Play', icon: 'play-circle-outline' },
   { top: 'lives', label: 'Lives', icon: 'radio-outline', red: true },
 ];
 
