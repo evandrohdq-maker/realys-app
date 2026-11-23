@@ -3,7 +3,7 @@
 // - TagLine: as classificações do contato, pequenininhas e coloridas, embaixo do nome.
 // - listasDe / buscaPorLista: para a busca achar os contatos pela classificação ("família").
 import React, { useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, Modal, Alert } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Modal, Alert, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, TextInput } from '../responsive';
 import { useStore } from '../store';
@@ -111,6 +111,59 @@ export default function ClassifyModal({ visible, contactId, name, onClose }) {
           </TouchableOpacity>
         </TouchableOpacity>
       </TouchableOpacity>
+    </Modal>
+  );
+}
+
+// Etiquetas (botão 🏷️ ao lado da busca): escolher qual classificação ver (ou todas) e etiquetar um
+// contato ou cliente digitando o nome dele.
+// pessoas = [{ id, name }] (amigos e conversas); filtro = id da classificação vista (null = todas).
+export function EtiquetasModal({ visible, onClose, pessoas = [], filtro, setFiltro }) {
+  const { state } = useStore();
+  const listas = useListas();
+  const [nome, setNome] = useState('');
+  const [quem, setQuem] = useState(null);
+  const t = norm(nome);
+  const achados = t ? pessoas.filter((p) => norm(p.name).includes(t)).slice(0, 6) : [];
+  const conta = (id) => pessoas.filter((p) => listasDe(state, p.id).includes(id)).length;
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <TouchableOpacity activeOpacity={1} onPress={onClose} style={st.fundo}>
+        <TouchableOpacity activeOpacity={1} style={[st.caixa, { maxHeight: '85%' }]}>
+          <ScrollView keyboardShouldPersistTaps="handled">
+            <Text style={st.title}>Etiquetas</Text>
+            <Text style={st.sub}>Escolha o que ver na lista de conversas.</Text>
+            {[{ id: null, name: 'Todas as conversas', color: colors.text }, ...listas].map((l) => {
+              const on = filtro === l.id;
+              return (
+                <TouchableOpacity key={l.id || 'todas'} onPress={() => (setFiltro(l.id), onClose())} style={st.linha} accessibilityLabel={`Ver ${l.name}`}>
+                  <Ionicons name={on ? 'radio-button-on' : 'radio-button-off'} size={20} color={l.color} />
+                  {l.id ? <View style={[st.bolinha, { backgroundColor: l.color }]} /> : null}
+                  <Text style={[st.nome, { flex: 1 }]}>{l.name}</Text>
+                  {l.id ? <Text style={{ color: colors.muted, fontSize: 12 }}>{conta(l.id)}</Text> : null}
+                </TouchableOpacity>
+              );
+            })}
+            <Text style={[st.title, { fontSize: 15, marginTop: 16 }]}>Etiquetar contato ou cliente</Text>
+            <Text style={st.sub}>Digite o nome e toque na pessoa para escolher a etiqueta.</Text>
+            <TextInput value={nome} onChangeText={setNome} placeholder="Nome do contato ou cliente" placeholderTextColor={colors.muted} style={st.input} />
+            {achados.map((p) => (
+              <TouchableOpacity key={p.id} onPress={() => setQuem(p)} style={st.linha} accessibilityLabel={`Etiquetar ${p.name}`}>
+                <Ionicons name="pricetag-outline" size={18} color={colors.primary} />
+                <View style={{ flex: 1, marginLeft: 8 }}>
+                  <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>{p.name}</Text>
+                  <TagLine contactId={p.id} />
+                </View>
+              </TouchableOpacity>
+            ))}
+            {t && !achados.length ? <Text style={[st.sub, { marginTop: 8 }]}>Ninguém com esse nome nas suas conversas e amigos.</Text> : null}
+            <TouchableOpacity onPress={onClose} style={st.pronto} accessibilityLabel="Fechar">
+              <Text style={{ color: colors.onPrimary, fontWeight: '800' }}>Pronto</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </TouchableOpacity>
+      </TouchableOpacity>
+      <ClassifyModal visible={!!quem} contactId={quem && quem.id} name={quem && quem.name} onClose={() => setQuem(null)} />
     </Modal>
   );
 }

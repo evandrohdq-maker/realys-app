@@ -12,7 +12,7 @@ import { useServerFriends } from '../serverFriends';
 import { openServerProfile } from './ServerProfile';
 import { Photo } from './ui';
 import { colors } from '../theme';
-import ClassifyModal, { TagLine, useListas, listasDe, buscaPorLista } from './ClassifyModal';
+import ClassifyModal, { TagLine, EtiquetasModal, useListas, listasDe, buscaPorLista } from './ClassifyModal';
 
 const fotoDe = (p) => (p && p.startsWith('/') ? API_URL + p : p);
 const quando = (at) => {
@@ -39,6 +39,8 @@ export default function ServerInbox() {
   const [convs, setConvs] = useState([]);
   const [q, setQ] = useState('');
   const [classificar, setClassificar] = useState(null); // { id, name }
+  const [etiquetas, setEtiquetas] = useState(false);
+  const [filtro, setFiltro] = useState(null); // classificação escolhida no botão de etiqueta
   const listas = useListas();
   const me = state.user && state.user.serverId;
   const chatOpen = !!state.serverChat;
@@ -58,15 +60,30 @@ export default function ServerInbox() {
   const has = new Set(convs.map((c) => c.with && c.with.id));
   // Busca pelo nome, pelo *usuário ou pela classificação ("família" mostra só quem está em Família).
   const match = (u) => !q.trim() || `${u.name} ${u.username || ''}`.toLowerCase().includes(q.trim().toLowerCase().replace(/^[*@]/, '')) || buscaPorLista(listas, listasDe(state, u.id), q);
-  const lista = convs.filter((c) => c.with && match(c.with));
-  const novos = friends.filter((u) => !has.has(u.id) && match(u));
+  const naEtiqueta = (id) => !filtro || listasDe(state, id).includes(filtro);
+  const lista = convs.filter((c) => c.with && match(c.with) && naEtiqueta(c.with.id));
+  const novos = friends.filter((u) => !has.has(u.id) && match(u) && naEtiqueta(u.id));
+  const pessoas = [...convs.filter((c) => c.with).map((c) => c.with), ...friends.filter((u) => !has.has(u.id))];
+  const vendo = filtro ? listas.find((l) => l.id === filtro) : null;
   if (!convs.length && !friends.length) return null;
   return (
     <View style={{ marginBottom: 10 }}>
       <View style={st.search}>
         <Ionicons name="search" size={17} color={colors.muted} />
-        <TextInput value={q} onChangeText={setQ} placeholder="Buscar nome ou classificação (ex.: família)" placeholderTextColor={colors.muted} style={st.input} />
+        <TextInput value={q} onChangeText={setQ} placeholder="Buscar nome ou etiqueta (ex.: família)" placeholderTextColor={colors.muted} style={st.input} />
+        {/* Etiquetas: escolher o que ver (Família, Trabalho, Clientes...) e etiquetar alguém pelo nome. */}
+        <TouchableOpacity onPress={() => setEtiquetas(true)} hitSlop={8} style={{ paddingHorizontal: 6 }} accessibilityLabel="Etiquetas">
+          <Ionicons name={filtro ? 'pricetag' : 'pricetag-outline'} size={19} color={vendo ? vendo.color : colors.primary} />
+        </TouchableOpacity>
       </View>
+      {vendo ? (
+        <TouchableOpacity onPress={() => setFiltro(null)} style={[st.vendo, { borderColor: vendo.color }]} accessibilityLabel={`Parar de filtrar por ${vendo.name}`}>
+          <Text style={{ color: vendo.color, fontWeight: '800', fontSize: 12 }}>● {vendo.name}</Text>
+          <Ionicons name="close" size={14} color={vendo.color} style={{ marginLeft: 4 }} />
+        </TouchableOpacity>
+      ) : null}
+      <EtiquetasModal visible={etiquetas} onClose={() => setEtiquetas(false)} pessoas={pessoas} filtro={filtro} setFiltro={setFiltro} />
+      {filtro && !lista.length && !novos.length ? <Text style={{ color: colors.muted, fontSize: 13, marginVertical: 8 }}>Ninguém com essa etiqueta ainda. Toque na etiqueta 🏷️ e digite o nome para etiquetar.</Text> : null}
       {novos.length ? (
         <>
           <Text style={st.title}>Começar conversa</Text>
@@ -118,6 +135,7 @@ export default function ServerInbox() {
 }
 
 const st = StyleSheet.create({
+  vendo: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', borderWidth: 1, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, marginBottom: 8 },
   filtro: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 14, borderWidth: 1, borderColor: colors.border, marginRight: 6, backgroundColor: colors.card },
   filtroOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   filtroTxt: { color: colors.text, fontWeight: '700', fontSize: 13 },
