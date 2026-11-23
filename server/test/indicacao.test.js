@@ -41,6 +41,7 @@ test('indicação: 2% do Realyz + 5% opcional da loja, só quando entrega', asyn
   const o1 = (await call('POST', '/orders', cli.accessToken, { items: [{ productId: p.id, qty: 1 }], ref: ind.user.id })).orders[0];
   assert.equal(await saldo(ind.accessToken), 0); // ainda não entregou
   marcaVenda(loja.user.id, o1.id);
+  await call('POST', '/companies/me/plano', loja.accessToken, { plan: 'mensal' }); // plano da loja (1º mês grátis)
   await call('PATCH', `/orders/${o1.id}`, loja.accessToken, { status: 'Entregue' });
   assert.equal(await saldo(ind.accessToken), 2);
   assert.equal(await saldo(loja.accessToken), 90); // loja recebe 90% (Realyz 10%, e desses 2% foram pra quem indicou)

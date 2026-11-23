@@ -69,6 +69,19 @@ export default function ServerShopOrders() {
       carregarCarteira(dispatch).catch(() => {});
     } catch (e) {
       if (e.code === 'verificacao_facial') return setFace({ id, status });
+      // Plano da loja (servidor): escolhe no primeiro pedido, ou paga quando venceu, e tenta de novo.
+      const deNovo = (fn) => fn().then(() => mudar(id, status)).catch((er) => Alert.alert('Plano da loja', er.message));
+      if (e.code === 'escolher_plano')
+        return Alert.alert('Plano da loja', `${e.message}\n\nFora o plano, o Realyz fica com 10% de cada venda.`, [
+          { text: 'Agora não', style: 'cancel' },
+          { text: 'Mensal · R$ 49,90', onPress: () => deNovo(() => api('POST', '/companies/me/plano', { plan: 'mensal' })) },
+          { text: 'Anual · R$ 449,10', onPress: () => deNovo(() => api('POST', '/companies/me/plano', { plan: 'anual' })) },
+        ]);
+      if (e.code === 'plano_atrasado')
+        return Alert.alert('Plano da loja', e.message, [
+          { text: 'Agora não', style: 'cancel' },
+          { text: 'Pagar o plano', onPress: () => deNovo(() => api('POST', '/companies/me/plano/pagar').then((r) => (carregarCarteira(dispatch).catch(() => {}), r))) },
+        ]);
       Alert.alert('Pedido não atualizado', e.message);
     }
   };

@@ -55,6 +55,7 @@ test('cadastro do app, compra com taxa de proteção, status da loja e cancelame
   // A loja vê e avança (sem serviço biométrico na fase de testes).
   const vendas = await call('GET', '/companies/me/orders', loja.accessToken);
   assert.equal(vendas[0].buyer, 'Clara Teste');
+  await call('POST', '/companies/me/plano', loja.accessToken, { plan: 'mensal' }); // plano da loja (1º mês grátis)
   await call('PATCH', `/orders/${r.orders[0].id}`, loja.accessToken, { status: 'Preparando' });
   assert.equal((await call('GET', '/orders', cli.accessToken))[0].status, 'Preparando');
 

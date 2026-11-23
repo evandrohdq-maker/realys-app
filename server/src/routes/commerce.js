@@ -12,7 +12,7 @@ const ORDER_STATUS = ['Recebido', 'Preparando', 'A caminho', 'Entregue', 'Cancel
 // ENTREGUE (cancelado não paga), uma vez por pedido.
 export const INDICACAO = { pct: 2, minCents: 50, extraLojaPct: 5 };
 
-export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fiscal, protecao, teleGratis }) {
+export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fiscal, protecao, teleGratis, lojaPlano }) {
   const companyOf = (userId) => db.prepare('SELECT * FROM companies WHERE owner_id = ?').get(userId);
   const myCompany = (user) => {
     const c = companyOf(user.id);
@@ -236,6 +236,16 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
   });
   const ORDER_SQL = 'SELECT o.*, c.name AS company_name, b.name AS buyer_name FROM orders o JOIN companies c ON c.id = o.company_id JOIN users b ON b.id = o.buyer_id';
 
+  // Plano da loja: ver, escolher (mensal/anual, 1º mês grátis) e pagar quando estiver atrasado.
+  r.get('/companies/me/plano', ({ user }) => ({ plano: lojaPlano.get(myCompany(user)) }));
+  r.post('/companies/me/plano', ({ user, body }) => ({ plano: lojaPlano.escolher(myCompany(user), String(body.plan || '')) }));
+  r.post('/companies/me/plano/pagar', ({ user }) => {
+    const p = lojaPlano.pagar(myCompany(user));
+    if (!p) fail(404, 'A loja ainda não tem plano.');
+    if (p.status === 'atrasado') fail(402, 'Saldo insuficiente na carteira da loja para pagar o plano.', 'saldo_insuficiente');
+    return { plano: p };
+  });
+
   // Primeira tele grátis: o carrinho pergunta se a pessoa ainda tem; o painel do administrador vê o orçamento.
   r.get('/food/tele-gratis', ({ user }) => (teleGratis ? teleGratis.status(user.id) : { elegivel: false }));
   r.get('/admin/tele-gratis', () => (teleGratis ? teleGratis.painel() : null), { auth: 'admin' });
@@ -251,6 +261,8 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
     if (!o) fail(404, 'Pedido não encontrado na sua loja.');
     if (!ORDER_STATUS.includes(body.status)) fail(400, 'Status inválido.');
     if (o.status === 'Cancelado' || o.status === 'Entregue') fail(409, `Este pedido já está ${o.status.toLowerCase()}.`);
+    // Plano da loja: escolhido no 1º pedido e em dia (cancelar nunca é travado).
+    if (body.status !== 'Cancelado' && lojaPlano) lojaPlano.exigir(c);
     // Venda: o lojista confirma o rosto para mexer no pedido.
     biometria.consume(user.id, 'venda', o.id);
     tx(db, () => {

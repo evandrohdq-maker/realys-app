@@ -55,6 +55,7 @@ import dateRoutes from './routes/date.js';
 import contasTesteRoutes from './contasTeste.js';
 import { makePush } from './push.js';
 import { makeTeleGratis } from './teleGratis.js';
+import { makeLojaPlano } from './lojaPlano.js';
 
 // Dados públicos de uma pessoa (nunca devolve hash de senha nem documento completo).
 export function publicUser(u, { self = false } = {}) {
@@ -100,7 +101,7 @@ export function createApp(cfg) {
   hub.offline = push.aviso;
   // Contas de teste: dinheiro fictício nunca chega a conta real, ao caixa nem às notas (src/teste.js).
   protegerDinheiroDeTeste(db, wallet, fiscal);
-  const deps = { db, cfg, wallet, hub, userById, publicUser, cipher, matcher, biometria, fiscal, pix, push, teleGratis: makeTeleGratis(db, cfg) };
+  const deps = { db, cfg, wallet, hub, userById, publicUser, cipher, matcher, biometria, fiscal, pix, push, teleGratis: makeTeleGratis(db, cfg), lojaPlano: makeLojaPlano(db, wallet) };
   // IA do Realyz (atendente das empresas e copiloto de vendas).
   deps.ia = cfg.ia || makeIA(cfg);
   deps.planos = makePlanos(db);

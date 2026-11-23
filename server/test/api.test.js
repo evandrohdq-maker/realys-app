@@ -116,6 +116,11 @@ test('loja e pedidos: preço do servidor, presente primeiro, estoque, cancelamen
   const o2 = await ok('POST', '/orders', { who: 'beto', body: { items: [{ productId: p.id, qty: 1 }] } });
   assert.equal((await api('POST', '/ratings', { who: 'beto', body: { targetKind: 'order', targetId: o2.orders[0].id, stars: 5 } })).status, 409);
   app.db.prepare(`INSERT INTO biometria_checks (id, user_id, purpose, call_id, created_at) VALUES (?, ?, 'venda', ?, ?)`).run(newCkId(), S.pizza.id, o2.orders[0].id, Date.now());
+  // Sem plano a loja não aceita o pedido; escolhendo o plano (1º mês grátis), aceita.
+  assert.equal((await api('PATCH', `/orders/${o2.orders[0].id}`, { who: 'pizza', body: { status: 'Entregue' } })).data.code, 'escolher_plano');
+  const pl = await ok('POST', '/companies/me/plano', { who: 'pizza', body: { plan: 'mensal' } });
+  assert.equal(pl.plano.status, 'ok');
+  assert.ok(pl.plano.pagoAte > Date.now() + 29 * 86400000); // primeiro mês grátis
   await ok('PATCH', `/orders/${o2.orders[0].id}`, { who: 'pizza', body: { status: 'Entregue' } });
   await ok('POST', '/ratings', { who: 'beto', body: { targetKind: 'order', targetId: o2.orders[0].id, stars: 5, comment: 'Quentinha!' } });
 });

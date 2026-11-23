@@ -1105,6 +1105,18 @@ const MIGRATIONS = [
   CREATE UNIQUE INDEX IF NOT EXISTS tele_gratis_user ON tele_gratis(user_id);
   CREATE INDEX IF NOT EXISTS tele_gratis_mes ON tele_gratis(mes);
   `,
+  `
+  -- Plano da loja (Shop e Food): escolhido ao aceitar o primeiro pedido; 1º mês grátis; depois o servidor
+  -- cobra da carteira da loja quando vence (mensal ou anual). paid_until = até quando está pago.
+  CREATE TABLE IF NOT EXISTS loja_planos (
+    company_id TEXT PRIMARY KEY REFERENCES companies(id),
+    plan TEXT NOT NULL CHECK (plan IN ('mensal','anual')),
+    since INTEGER NOT NULL,
+    paid_until INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'ok' CHECK (status IN ('ok','atrasado')),
+    updated_at INTEGER NOT NULL
+  );
+  `,
 ];
 
 export function openDb(file) {
