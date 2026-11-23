@@ -129,7 +129,7 @@ export default function NegociosScreen({ explore }) {
               const on = k === kind;
               return (
                 <TouchableOpacity key={k} style={[st.pill, on && st.pillOn]} onPress={() => setKind(k)} activeOpacity={0.85} accessibilityLabel={label}>
-                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.pillText, on && { color: colors.onPrimary }]}>{label}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.pillText, on && { color: '#F5C331' }]}>{label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -208,10 +208,11 @@ export default function NegociosScreen({ explore }) {
 }
 
 const st = StyleSheet.create({
-  pills: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 6 },
-  pill: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 18, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card, marginRight: 8, marginBottom: 8 },
-  pillOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  pillText: { color: colors.text, fontWeight: '700', fontSize: 13 },
+  // Comprar / Alugar: seletor único e centralizado (estilo segmentado), a opção escolhida em destaque.
+  pills: { flexDirection: 'row', alignSelf: 'center', width: '100%', maxWidth: 380, backgroundColor: colors.cardAlt, borderRadius: 22, padding: 4, marginBottom: 14 },
+  pill: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 9, borderRadius: 18 },
+  pillOn: { backgroundColor: '#0B1124', shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  pillText: { color: colors.muted, fontWeight: '700', fontSize: 13.5 },
   announce: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 46, paddingHorizontal: 12, borderRadius: 14, borderWidth: 1, borderColor: colors.primary, borderStyle: 'dashed', marginBottom: 14 },
   announceText: { color: colors.primary, fontWeight: '700', marginLeft: 8 },
   ad: { backgroundColor: colors.card, borderRadius: 20, overflow: 'hidden', marginBottom: 16, ...soft },
