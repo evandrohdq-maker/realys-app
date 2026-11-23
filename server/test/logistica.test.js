@@ -29,7 +29,7 @@ async function call(method, path, token, body) {
   return data;
 }
 const pessoa = (name, doc, username) => call('POST', '/auth/signup', null, { kind: 'pessoa', name, doc, username, email: `${username}@t.com`, password: 'senha1234', nascimento: '10/05/1990', aceiteTermos: TERMO_ADESAO_VERSAO });
-const empresa = (name, doc, username, segment) => call('POST', '/auth/signup', null, { kind: 'empresa', name, doc, username, email: `${username}@t.com`, password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: TERMO_ADESAO_VERSAO, segment });
+const empresa = (name, doc, username, segment) => call('POST', '/auth/signup', null, { kind: 'empresa', titularNome: 'Titular Teste', titularCpf: '52998224725', name, doc, username, email: `${username}@t.com`, password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: TERMO_ADESAO_VERSAO, segment });
 const saldo = async (t) => (await call('GET', '/wallet', t)).balance;
 const depositar = (t, v) => call('POST', '/wallet/deposit', t, { amount: v });
 // Rosto conferido agora (entregador e transportadora precisam da verificação a cada 6 h).

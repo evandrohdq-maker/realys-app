@@ -3,7 +3,7 @@
 // mas não compra, não contrata, não presta serviço e não mexe com dinheiro.
 // O app já barra isso na tela; aqui é a trava de verdade (não depende do aplicativo).
 // Liga com EXIGIR_BIOMETRIA=true (em produção já vem ligada). Empresas (CNPJ) e o administrador
-// não passam por essa trava: a empresa é validada pelo CNPJ e pelo termo de empresa.
+// não passam por essa trava. Empresa passa: a biometria é a do titular do CNPJ, com o documento dele.
 import { HttpError } from './http.js';
 
 // Rotas que só funcionam com a biometria aprovada: [método, caminho como foi registrado].
@@ -32,7 +32,8 @@ export const MSG_SEM_BIOMETRIA = 'Biometria não cadastrada. Por favor, cadastre
 // A conta pode comprar e contratar?
 export function podeComprar(db, cfg, user, roles = []) {
   if (!cfg.exigirBiometria) return true;
-  if (roles.includes('admin') || user.kind === 'empresa') return true;
+  // Empresa também: a biometria é do titular do CNPJ, com o documento dele.
+  if (roles.includes('admin')) return true;
   // Conta de teste (dinheiro fictício): testa compras e serviços sem biometria.
   if (user.teste) return true;
   const b = db.prepare('SELECT status FROM biometria WHERE user_id = ?').get(user.id);
@@ -54,7 +55,7 @@ export const MSG_PRAZO_BIOMETRIA = 'Seus 7 dias para conhecer o Realyz terminara
 const LIVRES_NO_PRAZO = [/^\/auth\//, /^\/biometria/, /^\/me$/, /^\/me\/email\//, /^\/push/, /^\/termos/, /^\/suporte/];
 export function prazoBioVencido(db, cfg, user, roles = []) {
   if (!cfg.exigirBiometria || !user) return false;
-  if (roles.includes('admin') || user.kind === 'empresa' || user.kind === 'sistema' || user.teste) return false;
+  if (roles.includes('admin') || user.kind === 'sistema' || user.teste) return false;
   if (!user.prazo_bio || user.prazo_bio > Date.now()) return false;
   const b = db.prepare('SELECT status FROM biometria WHERE user_id = ?').get(user.id);
   return !(b && (b.status === 'aprovado' || b.status === 'em_analise'));

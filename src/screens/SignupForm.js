@@ -31,6 +31,9 @@ export default function SignupForm({ onDone, onGoLogin }) {
   const [kind, setKind] = useState('pessoa'); // pessoa | empresa
   const [name, setName] = useState('');
   const [doc, setDoc] = useState('');
+  // Empresa: quem abriu o CNPJ. É ele quem faz a biometria, com o documento dele.
+  const [titularNome, setTitularNome] = useState('');
+  const [titularCpf, setTitularCpf] = useState('');
   const [birth, setBirth] = useState(''); // DD/MM/AAAA: o Realyz é só para maiores de 18
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -61,6 +64,8 @@ export default function SignupForm({ onDone, onGoLogin }) {
     if (name.trim().length < 3) return empresa ? 'Digite o nome da empresa.' : 'Digite seu nome completo.';
     if (!empresa && name.trim().split(/\s+/).length < 2) return 'Digite nome e sobrenome.';
     if (!docOk) return empresa ? 'CNPJ inválido. Confira os números.' : 'CPF inválido. Confira os números.';
+    if (empresa && titularNome.trim().split(/\s+/).length < 2) return 'Digite o nome completo do titular do CNPJ.';
+    if (empresa && !validCpf(titularCpf)) return 'CPF do titular do CNPJ inválido. Confira os números.';
     if (!empresa) {
       const age = ageFromBirth(birth);
       if (age == null) return 'Digite sua data de nascimento (dia/mês/ano).';
@@ -87,7 +92,7 @@ export default function SignupForm({ onDone, onGoLogin }) {
       if (bio === 'falhou') return Alert.alert('Biometria não confirmada', 'Não deu para confirmar que é você. Tente de novo ou crie a conta sem biometria por enquanto.');
       // Pessoa: o perfil social sai do questionário (Gamer, Artista, Estudante...).
       const social = empresa ? null : quiz.manual && quiz.social ? quiz.social : calcSocial(quiz);
-      const { account, error } = await createAccount({ kind, name, doc, username, email, phone, password, birth: empresa ? null : birth, social, about: empresa ? '' : quiz.about, work: empresa ? '' : quiz.work, bio: bio === 'ok' });
+      const { account, error } = await createAccount({ kind, name, doc, username, email, phone, password, birth: empresa ? null : birth, titularNome, titularCpf, social, about: empresa ? '' : quiz.about, work: empresa ? '' : quiz.work, bio: bio === 'ok' });
       if (error) return Alert.alert('Não foi possível cadastrar', error);
       await saveAccepted(account.id); // versão e data do aceite do termo
       Alert.alert(
@@ -179,6 +184,28 @@ export default function SignupForm({ onDone, onGoLogin }) {
         </TouchableOpacity>
       ) : null}
       <MeiGuia visible={meiOpen} onClose={() => setMeiOpen(false)} profKey={quiz.prof || null} />
+
+      {empresa
+        ? Field({
+            icon: 'person-outline',
+            label: 'Titular do CNPJ',
+            help: 'Quem abriu a empresa. É essa pessoa que faz a biometria, com o documento dela.',
+            children: (
+              <TextInput style={authStyles.input} placeholder="Nome completo do titular" placeholderTextColor={colors.muted} value={titularNome} onChangeText={setTitularNome} autoCapitalize="words" />
+            ),
+          })
+        : null}
+      {empresa
+        ? Field({
+            icon: 'card-outline',
+            label: 'CPF do titular',
+            ok: onlyDigits(titularCpf).length === 11 ? validCpf(titularCpf) : undefined,
+            help: onlyDigits(titularCpf).length === 11 && !validCpf(titularCpf) ? 'CPF inválido. Confira os números.' : 'O documento da biometria tem que ser desse CPF.',
+            children: (
+              <TextInput style={authStyles.input} placeholder="000.000.000-00" placeholderTextColor={colors.muted} value={titularCpf} onChangeText={(v) => setTitularCpf(formatCpf(onlyDigits(v)))} keyboardType="number-pad" />
+            ),
+          })
+        : null}
 
       {empresa
         ? null

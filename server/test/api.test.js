@@ -48,7 +48,7 @@ const keep = (who, d) => (S[who] = { token: d.accessToken, session: d.sessionTok
 test('cadastro: usuário (CPF) e empresa (CNPJ), com validações', async () => {
   keep('ana', await ok('POST', '/auth/signup', { body: { kind: 'pessoa', name: 'Ana Paula', doc: '529.982.247-25', username: '@Ana', email: 'ana@realys.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v21' } }));
   keep('beto', await ok('POST', '/auth/signup', { body: { kind: 'pessoa', name: 'Beto Motorista', doc: '111.444.777-35', username: 'beto', email: 'beto@realys.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v21' } }));
-  const e = await ok('POST', '/auth/signup', { body: { kind: 'empresa', name: 'Pizzaria da Praça', doc: '11.222.333/0001-81', username: 'pizzaria', email: 'contato@pizzaria.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v21', segment: 'Restaurante' } });
+  const e = await ok('POST', '/auth/signup', { body: { kind: 'empresa', titularNome: 'Titular Teste', titularCpf: '52998224725', name: 'Pizzaria da Praça', doc: '11.222.333/0001-81', username: 'pizzaria', email: 'contato@pizzaria.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: '2026-11-adesao-v21', segment: 'Restaurante' } });
   keep('pizza', e);
   assert.deepEqual(e.user.roles, ['empresa', 'fornecedor', 'usuario']);
 

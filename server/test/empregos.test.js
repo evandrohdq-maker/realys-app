@@ -35,7 +35,7 @@ async function call(method, path, token, body, headers) {
 const pessoa = (name, doc, username, extra = {}) => call('POST', '/auth/signup', null, { kind: 'pessoa', name, doc, username, email: `${username}@teste.com`, password: 'senha1234', nascimento: '10/05/1990', aceiteTermos: TERMO_ADESAO_VERSAO, ...extra });
 
 test('empregos: currículo lido do PDF, indicação sem nome, convite e candidatura', async () => {
-  const emp = await call('POST', '/auth/signup', null, { kind: 'empresa', name: 'Churrascaria Gaúcha', doc: '11.222.333/0001-81', username: 'churrasgaucha', email: 'rh@churras.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: TERMO_ADESAO_VERSAO, segment: 'Restaurante' });
+  const emp = await call('POST', '/auth/signup', null, { kind: 'empresa', titularNome: 'Titular Teste', titularCpf: '52998224725', name: 'Churrascaria Gaúcha', doc: '11.222.333/0001-81', username: 'churrasgaucha', email: 'rh@churras.com', password: 'senha1234', nascimento: '1990-05-10', aceiteTermos: TERMO_ADESAO_VERSAO, segment: 'Restaurante' });
   const rafa = await pessoa('Rafael Lima', '52998224725', 'rafalima');
   const bia = await pessoa('Bia Souza', '11144477735', 'biasouza', { socialClass: 'Gastronomia · Garçonete' });
   const outro = await pessoa('Caio Reis', '39053344705', 'caioreis');

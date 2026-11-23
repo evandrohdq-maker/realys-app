@@ -38,7 +38,7 @@ before(async () => {
   base = `http://127.0.0.1:${app.server.address().port}`;
   await signup('ana', { kind: 'pessoa', name: 'Ana', doc: '529.982.247-25', username: 'ana_d', email: 'ana_d@realys.com' });
   await signup('beto', { kind: 'pessoa', name: 'Beto', doc: '111.444.777-35', username: 'beto_d', email: 'beto_d@realys.com' });
-  await signup('loja', { kind: 'empresa', name: 'Loja Teste', doc: '11.222.333/0001-81', username: 'loja_d', email: 'loja_d@realys.com', segment: 'Loja' });
+  await signup('loja', { kind: 'empresa', titularNome: 'Titular Teste', titularCpf: '52998224725', name: 'Loja Teste', doc: '11.222.333/0001-81', username: 'loja_d', email: 'loja_d@realys.com', segment: 'Loja' });
 });
 after(async () => {
   await app.close();

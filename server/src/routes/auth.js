@@ -77,6 +77,10 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
     if (!validEmail(email)) fail(400, 'E-mail inválido.');
     const pp = passwordProblem(body.password);
     if (pp) fail(400, pp);
+    // Empresa: nome e CPF do titular (quem abriu o CNPJ). É ele quem faz a biometria, com o documento dele.
+    const titularCpf = kind === 'empresa' ? onlyDigits(body.titularCpf) : null;
+    const titularNome = kind === 'empresa' ? str(body.titularNome, 'o nome do titular do CNPJ', { min: 5, max: 80 }) : null;
+    if (kind === 'empresa' && !validCpf(titularCpf)) fail(400, 'CPF do titular do CNPJ inválido. Confira os números.');
     if (db.prepare('SELECT 1 FROM users WHERE doc = ?').get(doc)) fail(409, `Já existe uma conta com este ${kind === 'empresa' ? 'CNPJ' : 'CPF'}. Use "Entrar".`);
     if (db.prepare('SELECT 1 FROM users WHERE username = ?').get(username)) fail(409, 'Esse usuário já está em uso. Escolha outro.');
     if (db.prepare('SELECT 1 FROM users WHERE email = ?').get(email)) fail(409, 'Já existe uma conta com este e-mail.');
@@ -90,6 +94,7 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
       db.prepare('UPDATE users SET termos_versao = ?, termos_aceite_at = ? WHERE id = ?').run(TERMO_ADESAO_VERSAO, now(), id);
       wallet.ensure(id);
       if (kind === 'empresa') {
+        db.prepare('UPDATE users SET titular_nome = ?, titular_cpf = ? WHERE id = ?').run(titularNome, titularCpf, id);
         db.prepare('INSERT INTO companies (id, owner_id, name, cnpj, segment, created_at) VALUES (?,?,?,?,?,?)').run(newId('e'), id, name, doc, String(body.segment || '').slice(0, 60), now());
       }
       return db.prepare('SELECT * FROM users WHERE id = ?').get(id);

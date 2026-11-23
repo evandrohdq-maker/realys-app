@@ -80,7 +80,7 @@ test('corrida: o Realyz fica com 18% e o motorista com o resto', async () => {
 });
 
 test('ingressos: empresa publica, cliente compra, Realyz fica com 8% (mín. R$ 1,99) e a portaria confere', async () => {
-  const bar = await call('POST', '/auth/signup', null, { kind: 'empresa', name: 'Casa Noturna PF', doc: '11222333000181', username: 'casapf', email: 'casa@teste.com', password: 'senha1234', aceiteTermos: TERMO_ADESAO_VERSAO });
+  const bar = await call('POST', '/auth/signup', null, { kind: 'empresa', titularNome: 'Titular Teste', titularCpf: '52998224725', name: 'Casa Noturna PF', doc: '11222333000181', username: 'casapf', email: 'casa@teste.com', password: 'senha1234', aceiteTermos: TERMO_ADESAO_VERSAO });
   const cli = await signup('Bia Baladeira', '93541134780', 'bia');
   const ev = await call('POST', '/events', bar.accessToken, { title: 'Sertanejo ao vivo', when: 'Sáb · 22h', place: 'Centro, Passo Fundo', price: 40, capacity: 2 });
   assert.ok((await call('GET', '/events')).some((e) => e.id === ev.id));

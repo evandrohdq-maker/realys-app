@@ -157,7 +157,7 @@ export function ageFromBirth(birth) {
 
 // bio: a pessoa confirmou a biometria no cadastro? Sem ela a conta nasce no modo social
 // (só interage; não compra nem usa serviços) até fazer a biometria.
-export async function createAccount({ kind, name, doc, username, email, phone, password, social = null, about = '', work = '', birth = null, bio = true }) {
+export async function createAccount({ kind, name, doc, username, email, phone, password, social = null, about = '', work = '', birth = null, bio = true, titularNome = '', titularCpf = '' }) {
   if (kind !== 'empresa' && !(ageFromBirth(birth) >= 18)) return { error: 'O Realyz é só para maiores de 18 anos.' };
   const list = await loadAccounts();
   const d = onlyDigits(doc);
@@ -170,6 +170,7 @@ export async function createAccount({ kind, name, doc, username, email, phone, p
   const account = {
     id: 'u' + toHex(Crypto.getRandomBytes(6)),
     kind,
+    ...(kind === 'empresa' ? { titularNome: String(titularNome).trim(), titularCpf: onlyDigits(titularCpf) } : null),
     name: name.trim(),
     doc: d,
     username: u,
