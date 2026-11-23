@@ -4,6 +4,8 @@
 // Na primeira vez entra com senha; o app guarda a sessão do aparelho no cofre do celular, protegida
 // pela biometria. Nas próximas vezes a biometria libera a sessão e o app troca por um token novo.
 import { podeComprar } from '../bioGate.js';
+import { randomInt } from 'node:crypto';
+import { makeMail } from '../mail.js';
 import { str, fail, newId, now } from '../http.js';
 import { TERMO_ADESAO_VERSAO, TERMO_ADESAO, TERMO_EMPRESA } from '../termos.js';
 import {
@@ -157,6 +159,60 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
     // Cada uso renova a validade: quem usa o app não precisa entrar de novo.
     db.prepare('UPDATE sessions SET last_used_at = ?, expires_at = ? WHERE id = ?').run(now(), now() + cfg.sessionDays * 86400000, s.id);
     return { user: publicUser(user, { self: true }), accessToken: signToken({ sub: user.id }, cfg.jwtSecret, cfg.accessTokenMinutes), expiresIn: cfg.accessTokenMinutes * 60 };
+  }, { auth: false });
+
+  // ── Esqueci a senha ──
+  // 1) A pessoa digita usuário, CPF, CNPJ ou e-mail. Se a conta existir e tiver e-mail, vai um código
+  //    de 6 números que vale 15 minutos. A resposta é sempre a mesma (não revela se a conta existe).
+  // 2) Com o código certo, troca a senha e desconecta todos os aparelhos (quem estava usando a conta
+  //    sem permissão perde o acesso). Cinco códigos errados cancelam e pedem um novo.
+  const mail = cfg.mail || makeMail(cfg);
+  const acharConta = (login) => {
+    const t = String(login || '').trim();
+    const d = onlyDigits(t);
+    if (/^[\d.\-\/\s]+$/.test(t) && (d.length === 11 || d.length === 14)) return db.prepare('SELECT * FROM users WHERE doc = ?').get(d);
+    if (t.includes('@') && validEmail(t)) return db.prepare('SELECT * FROM users WHERE lower(email) = lower(?)').get(t);
+    return db.prepare('SELECT * FROM users WHERE username = ?').get(cleanUsername(t));
+  };
+  const mascarar = (e) => String(e).replace(/^(.)(.*)(.@.*)$/, (_, a, m, b) => a + '*'.repeat(Math.min(m.length, 6)) + b);
+  r.post('/auth/esqueci', async ({ body, ip }) => {
+    const login = str(body.login, 'usuário, CPF, CNPJ ou e-mail', { max: 80 });
+    limitLogin(`${ip}|esqueci|${login.toLowerCase()}`);
+    const u = acharConta(login);
+    const resposta = { ok: true, mensagem: 'Se a conta existir e tiver e-mail cadastrado, enviamos um código de 6 números. Ele vale 15 minutos.' };
+    if (!u || u.status !== 'ativo' || u.kind === 'sistema' || !u.email) return resposta;
+    const codigo = String(randomInt(0, 1000000)).padStart(6, '0');
+    db.prepare('UPDATE users SET reset_hash = ?, reset_exp = ?, reset_tentativas = 0 WHERE id = ?').run(sha256(`${u.id}:${codigo}`), now() + 15 * 60000, u.id);
+    try {
+      await mail.send({
+        to: u.email,
+        subject: `Realyz: seu código para trocar a senha é ${codigo}`,
+        text: `Olá, ${u.name}!\n\nSeu código para criar uma senha nova no Realyz: ${codigo}\nEle vale 15 minutos.\n\nSe não foi você que pediu, ignore este e-mail: sua senha continua a mesma.`,
+      });
+    } catch (e) {
+      fail(503, 'Não conseguimos enviar o e-mail agora. Tente de novo em alguns minutos.');
+    }
+    return { ...resposta, para: mascarar(u.email) };
+  }, { auth: false });
+
+  r.post('/auth/esqueci/confirmar', ({ body, ip }) => {
+    const login = str(body.login, 'usuário, CPF, CNPJ ou e-mail', { max: 80 });
+    limitLogin(`${ip}|esqueci-ok|${login.toLowerCase()}`);
+    const codigo = String(body.codigo || '').replace(/\D/g, '');
+    const u = acharConta(login);
+    const invalido = () => fail(400, 'Código inválido ou vencido. Peça um novo.');
+    if (!u || !u.reset_hash || !u.reset_exp || u.reset_exp < now()) invalido();
+    if (sha256(`${u.id}:${codigo}`) !== u.reset_hash) {
+      const n = (u.reset_tentativas || 0) + 1;
+      if (n >= 5) db.prepare('UPDATE users SET reset_hash = NULL, reset_exp = NULL, reset_tentativas = 0 WHERE id = ?').run(u.id);
+      else db.prepare('UPDATE users SET reset_tentativas = ? WHERE id = ?').run(n, u.id);
+      invalido();
+    }
+    const pp = passwordProblem(body.senha);
+    if (pp) fail(400, pp);
+    db.prepare('UPDATE users SET pass_hash = ?, reset_hash = NULL, reset_exp = NULL, reset_tentativas = 0 WHERE id = ?').run(hashPassword(String(body.senha)), u.id);
+    db.prepare('UPDATE sessions SET revoked = 1 WHERE user_id = ?').run(u.id);
+    return { ok: true, mensagem: 'Senha trocada. Entre com a senha nova.' };
   }, { auth: false });
 
   // Sair deste aparelho ("trocar usuário").

@@ -13,10 +13,11 @@ import { TERMO_ADESAO_VERSAO } from '../src/termos.js';
 
 let app, base, dir;
 const S = {};
+const enviados = []; // e-mails que o servidor mandaria (código do esqueci a senha)
 
 before(async () => {
   dir = mkdtempSync(join(tmpdir(), 'realyz-duas-'));
-  app = createApp(loadConfig({ dataDir: dir, jwtSecret: 'segredo-de-teste', adminUsername: 'chefe', adminPassword: 'Admin12345', testDeposits: true }));
+  app = createApp(loadConfig({ dataDir: dir, jwtSecret: 'segredo-de-teste', adminUsername: 'chefe', adminPassword: 'Admin12345', testDeposits: true, mail: { ready: true, send: async (m) => enviados.push(m) } }));
   await new Promise((r) => app.server.listen(0, '127.0.0.1', r));
   base = `http://127.0.0.1:${app.server.address().port}`;
 });
@@ -128,4 +129,20 @@ test('duas contas: prestador pode ser adicionado, mas o contato por fora é bloq
     const r = await api('POST', '/messages', { who: 'beto', body: { toId: S.ana.id, text: texto } });
     assert.equal(r.status, 422, `FALHOU: prestador conseguiu passar ${o} na conversa ("${texto}")`);
   }
+});
+
+test('esqueci a senha: código por e-mail troca a senha e desconecta os aparelhos', async () => {
+  const pedido = await ok('Beto pedir código', 'POST', '/auth/esqueci', { body: { login: 'betoteste' } });
+  assert.ok(pedido.para && pedido.para.includes('@'), 'FALHOU: não disse para qual e-mail mandou');
+  const codigo = (enviados.at(-1).text.match(/\b(\d{6})\b/) || [])[1];
+  assert.ok(codigo, 'FALHOU: o e-mail não tem o código');
+  const errado = await api('POST', '/auth/esqueci/confirmar', { body: { login: 'betoteste', codigo: codigo === '000000' ? '111111' : '000000', senha: 'novaSenha123' } });
+  assert.equal(errado.status, 400, 'FALHOU: código errado foi aceito');
+  await ok('Beto trocar a senha com o código', 'POST', '/auth/esqueci/confirmar', { body: { login: 'betoteste', codigo, senha: 'novaSenha123' } });
+  assert.equal((await api('POST', '/auth/login', { body: { login: 'betoteste', password: 'senha1234' } })).status, 401, 'FALHOU: a senha antiga ainda entra');
+  await ok('Beto entrar com a senha nova', 'POST', '/auth/login', { body: { login: 'betoteste', password: 'novaSenha123' } });
+  const reuso = await api('POST', '/auth/esqueci/confirmar', { body: { login: 'betoteste', codigo, senha: 'outraSenha123' } });
+  assert.equal(reuso.status, 400, 'FALHOU: o mesmo código serviu duas vezes');
+  const ninguem = await ok('Pedir código de conta que não existe', 'POST', '/auth/esqueci', { body: { login: 'naoexiste99' } });
+  assert.ok(!ninguem.para, 'FALHOU: a resposta revela que a conta não existe');
 });
