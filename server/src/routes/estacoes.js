@@ -76,6 +76,34 @@ export default function estacoesRoutes(r, { db, hub }) {
     return { seguindo: !ja, seguidores: seguidores(e.id) };
   });
 
+  // Página da estação: publicações (link, programação, recados). Quem segue recebe o aviso.
+  const postView = (p, e) => ({ id: p.id, text: p.text, at: p.created_at, station: { kind: e.kind, id: e.id, name: e.name } });
+  r.get('/estacoes/:id/posts', ({ params }) => {
+    const e = db.prepare(`SELECT * FROM estacoes WHERE id = ? AND status = 'ativa'`).get(String(params.id || ''));
+    if (!e) fail(404, 'Estação não encontrada.');
+    return db.prepare('SELECT * FROM estacao_posts WHERE estacao_id = ? AND removed = 0 ORDER BY created_at DESC LIMIT 50').all(e.id).map((p) => postView(p, e));
+  });
+  r.post('/estacoes/:id/posts', ({ params, user, body }) => {
+    const e = minha(params.id, user);
+    const text = str(body.text, 'o texto', { min: 2, max: 400 });
+    const m = moderateText(text, 'publico');
+    if (!m.ok) fail(422, m.why, m.kind);
+    const id = newId('ep');
+    db.prepare('INSERT INTO estacao_posts (id, estacao_id, text, created_at) VALUES (?,?,?,?)').run(id, e.id, text, now());
+    const quem = db.prepare('SELECT user_id FROM estacao_follows WHERE estacao_id = ?').all(e.id).map((x) => x.user_id);
+    quem.forEach((u) => hub.send(u, 'estacao-post', { id: e.id, kind: e.kind, name: e.name, texto: text.slice(0, 120) }));
+    return { ...postView(db.prepare('SELECT * FROM estacao_posts WHERE id = ?').get(id), e), avisados: quem.length };
+  });
+  r.delete('/estacoes/:id/posts/:postId', ({ params, user }) => {
+    const e = minha(params.id, user);
+    db.prepare('UPDATE estacao_posts SET removed = 1 WHERE id = ? AND estacao_id = ?').run(String(params.postId || ''), e.id);
+  });
+  // Feed: os posts das rádios e TVs que eu sigo (mais novos primeiro).
+  r.get('/estacoes/feed', ({ user }) =>
+    db.prepare(`SELECT p.*, e.kind, e.name FROM estacao_posts p JOIN estacao_follows f ON f.estacao_id = p.estacao_id AND f.user_id = ? JOIN estacoes e ON e.id = p.estacao_id WHERE p.removed = 0 AND e.status = 'ativa' ORDER BY p.created_at DESC LIMIT 50`).all(user.id)
+      .map((p) => ({ id: p.id, text: p.text, at: p.created_at, station: { kind: p.kind, id: p.estacao_id, name: p.name } }))
+  );
+
   r.post('/estacoes/:id/aovivo', ({ params, user, body }) => {
     const e = minha(params.id, user);
     if (e.aovivo_at && now() - e.aovivo_at < AVISO_MIN) fail(429, 'Você já avisou os seguidores há pouco. Dá para avisar de novo daqui a 30 minutos.');

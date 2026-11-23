@@ -40,6 +40,13 @@ test('estações: cadastrar, listar para todos, seguir e avisar ao vivo', async 
   const av = await call('POST', `/estacoes/${e.data.id}/aovivo`, dono, { texto: 'Programa da tarde no ar' });
   assert.equal(av.data.avisados, 1);
   assert.equal((await call('POST', `/estacoes/${e.data.id}/aovivo`, dono)).status, 429); // de novo logo em seguida, não
+  // Página da estação: o dono publica o link; quem segue vê no feed; outra pessoa não publica.
+  const post = await call('POST', `/estacoes/${e.data.id}/posts`, dono, { text: 'Ouça a Sky Plus ao vivo: https://realyz.com.br' });
+  assert.equal(post.status, 200, JSON.stringify(post.data));
+  assert.equal(post.data.avisados, 1);
+  assert.equal((await call('POST', `/estacoes/${e.data.id}/posts`, fa, { text: 'Tentando postar' })).status, 403);
+  assert.equal((await call('GET', `/estacoes/${e.data.id}/posts`, fa)).data[0].text, 'Ouça a Sky Plus ao vivo: https://realyz.com.br');
+  assert.equal((await call('GET', '/estacoes/feed', fa)).data.length, 1);
   assert.equal((await call('DELETE', `/estacoes/${e.data.id}`, dono)).status, 200);
   assert.equal((await call('GET', '/estacoes?kind=radio', fa)).data.length, 0);
 });

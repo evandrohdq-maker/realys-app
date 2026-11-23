@@ -619,6 +619,15 @@ function Shell({ inviteTick }) {
   };
 
 
+  // Link da rádio/TV (realyz.com.br/?estacao=radio:es_xxx): abre a página da estação depois de entrar.
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    const m = /[?&]estacao=(radio|tv):([\w-]+)/.exec(window.location.search);
+    if (!m) return;
+    const [, kind, id] = m;
+    require('./src/serverStations').syncStations(kind).finally(() => require('./src/streamCats').openStation(kind, id));
+  }, []);
+
   // Teste automático do site (?teste=1): deixa o robô navegar por todas as áreas e perfis.
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined' || !/teste=1/.test(window.location.search)) return;

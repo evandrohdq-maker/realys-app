@@ -14,6 +14,7 @@ import { now } from './http.js';
 const short = (s, n = 90) => (String(s || '').length > n ? String(s).slice(0, n - 1) + '…' : String(s || ''));
 const brl = (v) => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
 export const AVISOS = {
+  'estacao-post': (d) => ({ title: `${d.kind === 'tv' ? '📺' : '📻'} ${d.name || 'Estação'}`, body: short(d.texto || 'Nova publicação'), go: { tab: 'stories' } }),
   'neg-interesse': (d) => ({ title: 'Novo interessado no seu anúncio 🏷️', body: short(d.title || ''), go: { tab: 'bens' } }),
   'neg-liberado': (d) => ({ title: 'Conversa liberada ✅', body: `${d.from || 'O anunciante'} liberou a conversa sobre ${d.title || 'o anúncio'}.`, go: { tab: 'bens' } }),
   'neg-devolucao': (d) => ({ title: 'Valor devolvido 💰', body: `O interessado não respondeu em 48 h: R$ ${Number(d.valor || 0).toFixed(2).replace('.', ',')} voltaram para a sua carteira.`, go: { tab: 'perfil' } }),

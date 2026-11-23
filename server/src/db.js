@@ -1197,6 +1197,17 @@ const MIGRATIONS = [
     updated_at INTEGER NOT NULL
   );
   `,
+  `
+  -- Posts da página da rádio/TV (o dono publica o link e os recados; quem segue recebe o aviso).
+  CREATE TABLE IF NOT EXISTS estacao_posts (
+    id TEXT PRIMARY KEY,
+    estacao_id TEXT NOT NULL REFERENCES estacoes(id),
+    text TEXT NOT NULL,
+    removed INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS estacao_posts_est ON estacao_posts(estacao_id, created_at DESC);
+  `,
 ];
 
 export function openDb(file) {

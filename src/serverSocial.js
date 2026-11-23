@@ -39,10 +39,26 @@ const subs = new Set();
 const emit = () => subs.forEach((fn) => fn());
 export function refreshFeed() {
   if (!serverOn()) return Promise.resolve();
+  let amigos = [];
+  let estacoes = [];
   return Promise.all([
-    api('GET', '/feed').then((l) => (feed = (l || []).map(postLocal))).catch(() => {}),
+    api('GET', '/feed').then((l) => (amigos = (l || []).map(postLocal))).catch(() => (amigos = feed.filter((p) => !p.station))),
+    // Posts das rádios e TVs que eu sigo (com o botão de ouvir/assistir no feed).
+    api('GET', '/estacoes/feed')
+      .then((l) => (estacoes = (l || []).map((p) => ({ id: 'ep_' + p.id, author: p.station.name, text: p.text, image: null, likes: 0, comments: 0, time: quando(p.at), at: p.at, station: { kind: p.station.kind, id: p.station.id } }))))
+      .catch(() => {}),
     api('GET', '/stories').then((l) => (stories = l || [])).catch(() => {}),
-  ]).then(emit);
+  ])
+    .then(() => {
+      feed = [...amigos, ...estacoes].sort((x, y) => (y.at || 0) - (x.at || 0));
+      // O botão "Ouvir agora" do post precisa da estação carregada no app.
+      if (estacoes.length) {
+        const { syncStations } = require('./serverStations');
+        const kinds = new Set(estacoes.map((p) => p.station.kind));
+        kinds.forEach((k) => syncStations(k));
+      }
+    })
+    .then(emit);
 }
 export function useServerFeed(on) {
   const [, tick] = useState(0);

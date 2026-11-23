@@ -150,4 +150,4 @@ export function toggleFollow(id) {
   return !!following[id];
 }
 // Link para divulgar a estação fora do app (abre o perfil dela no Realyz).
-export const stationLink = (s, kind = 'radio') => `https://realys.app/${kind}/${s.id}`;
+export const stationLink = (s, kind = 'radio') => `https://realyz.com.br/?estacao=${kind}:${s.id}`;

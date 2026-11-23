@@ -15,6 +15,7 @@ import { stationCat, onStationOpen, stationOpen, closeStation, openStation } fro
 import { radioById, onRadios, playRadio, stopRadio, isFollowing, toggleFollow, stationLink } from '../radio';
 import { tvById, onTvs, playTv, stopTv } from '../tv';
 import { announceLive } from '../serverStations';
+import { api } from '../api';
 import { StationLogo, logoSource, useRadioNow } from './RadioKit';
 import { useTvNow } from './FloatPlayers';
 
@@ -74,14 +75,26 @@ function StationProfile({ kind, id }) {
   const s = getStation(kind, id);
   const [on, toggle, loading] = useOnAir(kind, s);
   const [writing, setWriting] = useState(null);
+  // Estação de verdade: as publicações da página ficam no servidor (todo mundo vê; quem segue é avisado).
+  const [srvPosts, setSrvPosts] = useState(null);
+  const srvId = s && s.server ? s.id : null;
+  const loadPosts = () => srvId && api('GET', `/estacoes/${srvId}/posts`).then(setSrvPosts).catch(() => {});
+  useEffect(() => {
+    setSrvPosts(null);
+    loadPosts();
+  }, [srvId]);
   if (!s) return null;
   const cat = stationCat(kind, s);
   const following = isFollowing(s.id);
   // Estação de verdade (servidor): número real de seguidores. Exemplo: número de demonstração.
   const followers = s.server ? (s.seguidores || 0) + (following && !s.seguindo ? 1 : !following && s.seguindo ? -1 : 0) : 120 + (hash(s.id) % 4800) + (following ? 1 : 0);
-  const mine = s.storeId && s.storeId === MY_COMPANY_ID;
+  const mine = s.server ? !!s.mine : s.storeId && s.storeId === MY_COMPANY_ID;
   const company = s.storeId ? (state.stores || []).find((x) => x.id === s.storeId) : null;
-  const posts = (state.communityPosts || []).filter((p) => p.station && p.station.id === s.id);
+  const tempo = (t) => {
+    const m = Math.round((Date.now() - t) / 60000);
+    return m < 1 ? 'agora' : m < 60 ? `há ${m} min` : m < 1440 ? `há ${Math.round(m / 60)} h` : new Date(t).toLocaleDateString('pt-BR');
+  };
+  const posts = s.server ? (srvPosts || []).map((p) => ({ ...p, time: tempo(p.at) })) : (state.communityPosts || []).filter((p) => p.station && p.station.id === s.id);
   const link = stationLink(s, kind);
   const cover = logoSource(s.cover);
 
@@ -91,6 +104,15 @@ function StationProfile({ kind, id }) {
     if (!text) return;
     const mod = moderateText(text);
     if (!mod.ok) return Alert.alert('Não foi possível publicar', mod.why);
+    if (s.server) {
+      return api('POST', `/estacoes/${s.id}/posts`, { text })
+        .then((r) => {
+          setWriting(null);
+          loadPosts();
+          Alert.alert('Publicado ✅', r.avisados ? `Está na página de ${s.name}, e ${r.avisados} seguidor${r.avisados === 1 ? '' : 'es'} recebe${r.avisados === 1 ? '' : 'm'} o aviso.` : `Está na página de ${s.name}. Divulgue o link para ganhar seguidores.`);
+        })
+        .catch((e) => Alert.alert('Não foi possível publicar', e.message));
+    }
     dispatch({ type: 'POST_PUBLISH', post: { id: 'st' + Date.now(), author: s.name, text, image: null, likes: 0, comments: 0, time: 'agora', station: { kind, id: s.id } } });
     setWriting(null);
     Alert.alert('Publicado ✅', `O post de ${s.name} já está no feed, com o botão para ${kind === 'tv' ? 'assistir' : 'ouvir'} na hora.`);
@@ -161,13 +183,13 @@ function StationProfile({ kind, id }) {
                 <TextInput value={writing} onChangeText={setWriting} multiline placeholder={`Ex.: Estamos ao vivo! ${kind === 'tv' ? 'Assista' : 'Ouça'} agora a ${s.name}.`} placeholderTextColor={C.muted} style={st.field} maxLength={400} />
                 <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
                   <TouchableOpacity onPress={() => setWriting(null)} style={{ padding: 10 }}><Text style={{ color: C.muted, fontWeight: '700' }}>Cancelar</Text></TouchableOpacity>
-                  <TouchableOpacity onPress={publish} style={st.pubBtn}><Text style={{ color: '#fff', fontWeight: '800' }}>Publicar no feed</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={publish} style={st.pubBtn}><Text style={{ color: '#fff', fontWeight: '800' }}>{s.server ? 'Publicar na página' : 'Publicar no feed'}</Text></TouchableOpacity>
                 </View>
                 <Text style={st.hint}>O post vai com o botão para {kind === 'tv' ? 'assistir' : 'ouvir'} na hora, direto do feed.</Text>
               </>
             ) : (
               <View style={{ flexDirection: 'row' }}>
-                <TouchableOpacity style={[st.ownBtn, { marginRight: 8 }]} onPress={() => setWriting(`🔴 Estamos ao vivo! ${kind === 'tv' ? 'Assista' : 'Ouça'} agora a ${s.name} no Realyz.`)}>
+                <TouchableOpacity style={[st.ownBtn, { marginRight: 8 }]} onPress={() => setWriting(`🔴 Estamos ao vivo! ${kind === 'tv' ? 'Assista' : 'Ouça'} agora a ${s.name} no Realyz: ${link}`)}>
                   <Ionicons name="create-outline" size={16} color={C.gold} />
                   <Text numberOfLines={1} style={st.ownBtnText}>Publicar</Text>
                 </TouchableOpacity>
