@@ -8,6 +8,8 @@ on:
   workflow_run:
     workflows: ['Gerar APK do Re@lys']
     types: [completed]
+  # Rodar na mão (aba Actions): testa o último APK gerado.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,7 +17,7 @@ permissions:
 
 jobs:
   robo:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -27,12 +29,24 @@ jobs:
           echo "### Test Lab desligado" >> $GITHUB_STEP_SUMMARY
           echo "Falta o segredo FIREBASE_TESTLAB_KEY no GitHub." >> $GITHUB_STEP_SUMMARY
 
-      - name: Baixar o APK que acabou de ser gerado
+      - name: Achar o APK (o que acabou de sair ou, na mão, o último que deu certo)
+        if: env.TEM_CHAVE == 'true'
+        id: apk
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          id="${{ github.event.workflow_run.id }}"
+          if [ -z "$id" ]; then
+            id=$(gh api "repos/${{ github.repository }}/actions/workflows/build-apk.yml/runs?status=success&per_page=1" --jq '.workflow_runs[0].id')
+          fi
+          echo "id=$id" >> $GITHUB_OUTPUT
+
+      - name: Baixar o APK
         if: env.TEM_CHAVE == 'true'
         uses: actions/download-artifact@v4
         with:
           name: realys-demo-apk
-          run-id: ${{ github.event.workflow_run.id }}
+          run-id: ${{ steps.apk.outputs.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Entrar no Google Cloud
@@ -54,7 +68,12 @@ jobs:
           set +e
           # Com a conta do robô nos segredos, ele entra logado antes de andar pelas telas.
           if [ -n "$U" ] && [ -n "$P" ]; then LOGIN_ROBO="text:login_usuario=$U,text:login_senha=$P,click:login_entrar="; fi
+          # Pasta própria de resultados no projeto (a pasta padrão do Test Lab fica fora do nosso projeto
+          # e recusa a conta do robô). Cria uma vez; nas próximas já existe.
+          BUCKET="gs://realyz-70ae7-testlab"
+          gcloud storage buckets describe "$BUCKET" >/dev/null 2>&1 || gcloud storage buckets create "$BUCKET" --location=us-central1 --uniform-bucket-level-access
           gcloud firebase test android run \
+            --results-bucket "$BUCKET" \
             --type robo \
             --app realys-demo.apk \
             --device model=MediumPhone.arm,version=34,locale=pt_BR,orientation=portrait \
