@@ -17,10 +17,12 @@ import { RTCView, videoStatus, startBroadcast, watchLive, startCall, declineCall
 
 // Fundo de vídeo da live: transmite (mine) ou assiste. onError avisa a tela (ex.: sem permissão).
 // screen: live de jogo, transmite a TELA do celular em vez da câmera.
-export function LiveStage({ liveId, mine, onAir, onError, screen, viewScreen }) {
+export function LiveStage({ liveId, mine, onAir, onError, screen, viewScreen, withCam }) {
   const [stream, setStream] = useState(null);
   const [loading, setLoading] = useState(false);
   const [screenOn, setScreenOn] = useState(false);
+  // Live de tela no computador: a webcam de quem transmite (vai no cantinho do vídeo e na prévia).
+  const [camPrev, setCamPrev] = useState(null);
   // Quem assiste: o que está acontecendo, em palavras (no lugar do "Conectando…" que não acabava).
   const [aviso, setAviso] = useState(null);
   const [tentativa, setTentativa] = useState(0);
@@ -56,10 +58,11 @@ export function LiveStage({ liveId, mine, onAir, onError, screen, viewScreen }) 
         if (mine) {
           session = await startBroadcast(liveId, {
             screen,
+            withCam: !!(screen && withCam),
             onState: (c) => c === 'failed' && onError && onError('Sua imagem não está chegando ao servidor de vídeo. Confira a internet e abra a live de novo.'),
           });
           flip.current = session.flip;
-          if (alive) (screen ? setScreenOn(true) : setStream(session.stream));
+          if (alive) (screen ? (setScreenOn(true), setCamPrev(session.stream._camPreview || null)) : setStream(session.stream));
         } else {
           // Sem imagem em 20 s depois de ligar: avisa e tenta de novo.
           const espera = setTimeout(() => alive && !session?.got && (session && session.stop(), (session = null), deNovo('A imagem da live não chegou. Tentando de novo…')), 20000);
@@ -103,14 +106,21 @@ export function LiveStage({ liveId, mine, onAir, onError, screen, viewScreen }) 
       session && session.stop();
       setStream(null);
       setScreenOn(false);
+      setCamPrev(null);
     };
-  }, [liveId, mine, onAir, screen, tentativa]);
+  }, [liveId, mine, onAir, screen, withCam, tentativa]);
   // Quem transmite a tela não vê a própria tela aqui (seria um espelho infinito): vê um aviso.
   if (mine && screen && (screenOn || loading)) {
     return (
       <View style={[StyleSheet.absoluteFill, st.screenBox]}>
         {loading && !screenOn ? <ActivityIndicator color="#fff" /> : <Ionicons name={Platform.OS === 'web' ? 'desktop-outline' : 'phone-portrait-outline'} size={46} color="#FFD66B" />}
-        <Text style={st.screenTitle}>{screenOn ? 'Sua tela está ao vivo' : 'Ligando a transmissão da tela…'}</Text>
+        {camPrev ? (
+          // A pessoa se vê (o mesmo cantinho que vai por cima do jogo para quem assiste).
+          <View style={st.camPrev}>
+            <RTCView streamURL={camPrev.toURL()} pipTag="minha-live" style={StyleSheet.absoluteFill} objectFit="cover" mirror />
+          </View>
+        ) : null}
+        <Text style={st.screenTitle}>{screenOn ? (camPrev ? 'Sua tela e sua câmera estão ao vivo' : 'Sua tela está ao vivo') : 'Ligando a transmissão da tela…'}</Text>
         {screenOn ? (
           <Text style={st.screenText}>
             {Platform.OS === 'web' ? 'Pode ir para o jogo: a live continua. Seus seguidores veem o que você escolheu mostrar e ouvem você pelo microfone.' : 'Pode abrir o jogo: a live continua. Seus seguidores veem a tela do seu celular e ouvem você pelo microfone.'}
@@ -364,6 +374,7 @@ const Btn = ({ icon, on, onPress }) => (
 );
 
 const st = StyleSheet.create({
+  camPrev: { width: 240, height: 135, borderRadius: 12, overflow: 'hidden', borderWidth: 2, borderColor: '#F5C331', marginBottom: 12, backgroundColor: '#000' },
   waitBox: { alignItems: 'center', justifyContent: 'center', backgroundColor: '#0B0D12', paddingHorizontal: 28 },
   waitText: { color: '#fff', marginTop: 10, textAlign: 'center', lineHeight: 20 },
   waitBtn: { marginTop: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 8 },

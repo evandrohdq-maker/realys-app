@@ -126,6 +126,99 @@ export async function openScreen() {
 
 const videoErr = (code, msg) => Object.assign(new Error(msg), { code });
 
+// Só no computador: tela (o jogo) em tela cheia + a webcam de quem transmite num cantinho, juntas num
+// vídeo só. Quem assiste vê o jogo e a pessoa jogando, como nas plataformas de stream.
+// O desenho é feito num <canvas> e o relógio fica num Worker: assim continua a 30 quadros por segundo
+// mesmo com a aba do Realyz escondida atrás do jogo (o navegador freia os relógios da aba escondida).
+export const camOverScreenOk = () => typeof document !== 'undefined' && typeof Worker !== 'undefined' && !!(document.createElement('canvas').captureStream);
+async function openScreenWithCam() {
+  const screenTrack = await acquireScreen();
+  let cam = null;
+  try {
+    cam = await RTC.mediaDevices.getUserMedia({ audio: true, video: { facingMode: 'user', width: 640, height: 360, frameRate: 30 } });
+  } catch (e) {
+    cam = null;
+  }
+  let mic = cam && cam.getAudioTracks().length ? null : await RTC.mediaDevices.getUserMedia({ audio: true, video: false }).catch(() => null);
+  const camTrack = cam && cam.getVideoTracks()[0];
+  if (!camTrack) {
+    // Sem webcam (ou não liberada): vai só a tela, como antes.
+    const stream = new RTC.MediaStream([screenTrack, ...((cam || mic) ? (cam || mic).getAudioTracks() : [])]);
+    stream._screenTrack = screenTrack;
+    return stream;
+  }
+  const mkVideo = (tracks) => {
+    const v = document.createElement('video');
+    v.muted = true;
+    v.playsInline = true;
+    v.srcObject = new MediaStream(tracks);
+    v.play().catch(() => {});
+    return v;
+  };
+  const vScreen = mkVideo([screenTrack]);
+  const vCam = mkVideo([camTrack]);
+  const s = screenTrack.getSettings ? screenTrack.getSettings() : {};
+  const W = Math.min(1920, s.width || 1280);
+  const H = Math.min(1080, s.height || 720);
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const draw = () => {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    if (vScreen.videoWidth) {
+      // Tela inteira, sem cortar (barras pretas se a proporção for diferente).
+      const r = Math.min(W / vScreen.videoWidth, H / vScreen.videoHeight);
+      const w = vScreen.videoWidth * r;
+      const h = vScreen.videoHeight * r;
+      ctx.drawImage(vScreen, (W - w) / 2, (H - h) / 2, w, h);
+    }
+    if (vCam.videoWidth && camTrack.enabled && camTrack.readyState === 'live') {
+      // Webcam no canto de baixo à direita, com borda dourada (cantinho do streamer).
+      const cw = Math.round(W * 0.24);
+      const ch = Math.round((cw * vCam.videoHeight) / vCam.videoWidth);
+      const x = W - cw - Math.round(W * 0.02);
+      const y = H - ch - Math.round(H * 0.03);
+      const rad = Math.round(cw * 0.06);
+      ctx.save();
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y, cw, ch, rad);
+      else ctx.rect(x, y, cw, ch);
+      ctx.clip();
+      // Espelhado como num espelho, igual à prévia que a pessoa vê de si mesma.
+      ctx.translate(x + cw, y);
+      ctx.scale(-1, 1);
+      ctx.drawImage(vCam, 0, 0, cw, ch);
+      ctx.restore();
+      ctx.lineWidth = Math.max(3, Math.round(W * 0.003));
+      ctx.strokeStyle = '#F5C331';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y, cw, ch, rad);
+      else ctx.rect(x, y, cw, ch);
+      ctx.stroke();
+    }
+  };
+  const worker = new Worker(URL.createObjectURL(new Blob(['setInterval(function(){postMessage(0)},33)'], { type: 'text/javascript' })));
+  worker.onmessage = draw;
+  const out = canvas.captureStream(30);
+  const audio = (cam && cam.getAudioTracks().length ? cam : mic) ? (cam && cam.getAudioTracks().length ? cam : mic).getAudioTracks() : [];
+  const stream = new RTC.MediaStream([...out.getVideoTracks(), ...audio]);
+  stream._screenTrack = screenTrack;
+  // Só a webcam, para a prévia de quem transmite (e a janelinha Picture-in-Picture).
+  stream._camPreview = new RTC.MediaStream([camTrack]);
+  stream._stopCompose = () => {
+    try {
+      worker.terminate();
+    } catch (e) {}
+    out.getTracks().forEach((t) => t.stop());
+    camTrack.stop();
+    vScreen.srcObject = null;
+    vCam.srcObject = null;
+  };
+  return stream;
+}
+
 // Espera o celular juntar os caminhos de rede (no máximo 2,5 s) antes de mandar a oferta.
 const gathered = (pc) =>
   new Promise((resolve) => {
@@ -176,6 +269,7 @@ const closeAll = (pc, stream, resource, token) => {
   } catch (e) {}
   try {
     if (stream && stream._screenTrack) {
+      if (stream._stopCompose) stream._stopCompose();
       stream.getAudioTracks().forEach((t) => t.stop());
       releaseScreen(stream._screenTrack);
     } else stream && stream.getTracks().forEach((t) => t.stop());
@@ -186,9 +280,9 @@ const closeAll = (pc, stream, resource, token) => {
 };
 
 // Streamer: abre a câmera e transmite na live (que já foi aberta com POST /lives).
-export async function startBroadcast(liveId, { front = true, screen = false, onState } = {}) {
+export async function startBroadcast(liveId, { front = true, screen = false, withCam = false, onState } = {}) {
   const s = await api('POST', `/lives/${liveId}/stream`);
-  const stream = screen ? await openScreen() : await openCamera({ front, quality: s.quality });
+  const stream = screen ? (withCam && camOverScreenOk() ? await openScreenWithCam() : await openScreen()) : await openCamera({ front, quality: s.quality });
   const pc = new RTC.RTCPeerConnection({ iceServers: s.iceServers });
   stream.getTracks().forEach((t) => pc.addTrack(t, stream));
   let resource = null;

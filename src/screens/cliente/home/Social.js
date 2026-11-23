@@ -398,7 +398,7 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
   // Só no computador: minha câmera numa janelinha do navegador (Picture-in-Picture). A tela da live some,
   // dá para navegar no Realyz e a transmissão continua. Fechar a janelinha volta para a live.
   const [mini, setMini] = useState(false);
-  const podePip = !!(mine && onAir && realId && source === 'camera' && openPip && Platform.OS === 'web' && Dimensions.get('window').width >= 1000);
+  const podePip = !!(mine && onAir && realId && (source === 'camera' || (source === 'tela' && camOver)) && openPip && Platform.OS === 'web' && Dimensions.get('window').width >= 1000);
   const abrirPip = async () => {
     const w = await openPip('minha-live', () => setMini(false));
     if (w) setMini(true), setLiveKeep(true);
@@ -406,6 +406,8 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
   };
   // Fonte da live: câmera ou a tela do celular (lives de jogos).
   const [source, setSource] = useState('camera');
+  // Live de tela no computador: a webcam vai num cantinho por cima do jogo (dá para desligar).
+  const [camOver, setCamOver] = useState(true);
   // Cortina ao abrir o jogo: tempo (s) que a tela fica escondida depois de sair do Realyz,
   // para a tela inicial e os aplicativos do celular não aparecerem na live.
   const [curtainSecs, setCurtainSecs] = useState(10);
@@ -604,7 +606,7 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
           </View>
         ) : null}
         {/* Vídeo de verdade: minha câmera transmitindo, ou a live que estou assistindo. */}
-        <LiveStage liveId={mine ? realId : live && live.real ? live.id : null} mine={mine} onAir={onAir} screen={mine && source === 'tela'} viewScreen={!mine && live && live.source === 'tela'} onError={(m) => Alert.alert('Vídeo da live', m)} />
+        <LiveStage liveId={mine ? realId : live && live.real ? live.id : null} mine={mine} onAir={onAir} screen={mine && source === 'tela'} withCam={Platform.OS === 'web' && camOver} viewScreen={!mine && live && live.source === 'tela'} onError={(m) => Alert.alert('Vídeo da live', m)} />
         <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(3,5,10,0.25)' }]} pointerEvents="none" />
         {/* Tela cheia (celular deitado): só o vídeo, o AO VIVO e o botão de sair da tela cheia. */}
         {full ? (
@@ -784,6 +786,12 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
                   : 'O celular vai pedir para liberar a transmissão da tela. Depois é só abrir o jogo: quem assiste vê a sua tela e ouve você pelo microfone.'}
               </Text>
             ) : <View style={{ height: 6 }} />}
+            {source === 'tela' && Platform.OS === 'web' ? (
+              <TouchableOpacity style={[styles.typeChip, camOver && styles.typeChipOn, { alignSelf: 'flex-start', marginBottom: 10 }]} onPress={() => setCamOver((v) => !v)} accessibilityLabel={camOver ? 'Tirar minha câmera do canto do vídeo' : 'Mostrar minha câmera no canto do vídeo'}>
+                <Ionicons name={camOver ? 'checkbox' : 'square-outline'} size={14} color={camOver ? colors.onPrimary : colors.primary} />
+                <Text numberOfLines={1} style={{ color: camOver ? colors.onPrimary : colors.text, fontSize: 12, fontWeight: '700', marginLeft: 4 }}>Mostrar minha webcam no canto do jogo</Text>
+              </TouchableOpacity>
+            ) : null}
             {source === 'tela' && Platform.OS !== 'web' ? (
               <View style={{ marginBottom: 10 }}>
                 <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 2 }}>Esconder a tela ao abrir o jogo</Text>
