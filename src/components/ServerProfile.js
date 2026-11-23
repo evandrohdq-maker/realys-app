@@ -237,6 +237,18 @@ function ServerProfile({ id, preview, onClose }) {
 
             {aba === 'dep' || p.visible === false ? (
               <>
+                {/* Amigo pode deixar um depoimento (vai para a pessoa aceitar antes de aparecer). */}
+                {p.friend === 'amigos' || (p.negocio && p.visible !== false) ? (
+                  <TouchableOpacity onPress={() => setDepOpen(true)} style={st.depAdd} accessibilityLabel={`Deixar um depoimento para ${first}`}>
+                    <View style={st.depPlus}>
+                      <Ionicons name="add" size={20} color={colors.onPrimary} />
+                    </View>
+                    <View style={{ flex: 1, marginLeft: 10 }}>
+                      <Text style={{ color: colors.text, fontWeight: '800' }}>Deixar um depoimento</Text>
+                      <Text style={st.small}>{first} recebe e decide se aceita mostrar no perfil.</Text>
+                    </View>
+                  </TouchableOpacity>
+                ) : null}
                 {(p.testimonials || []).length ? <Text style={st.h}>Depoimentos</Text> : null}
                 {(p.testimonials || []).map((t) => (
                   <View key={t.id} style={st.post}>
@@ -353,6 +365,8 @@ const st = StyleSheet.create({
   btnLine: { backgroundColor: 'transparent', paddingHorizontal: 10 },
   btnText: { fontWeight: '700', marginLeft: 6 },
   stats: { flexDirection: 'row', marginTop: 12 },
+  depAdd: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, marginBottom: 6 },
+  depPlus: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   stat: { marginRight: 22 },
   statN: { color: colors.text, fontWeight: '800', fontSize: 16 },
   statL: { color: colors.muted, fontSize: 12 },

@@ -28,6 +28,7 @@ if (Platform.OS !== 'web') {
   } catch (e) {}
 }
 import ClassifyModal, { TagLine, LISTAS_PADRAO } from './ClassifyModal';
+import EmojiBar, { EmojiButton } from './EmojiBar';
 const mmss = (n) => `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`;
 
 export default function ChatServidor() {
@@ -69,6 +70,7 @@ export default function ChatServidor() {
   const grav = useGravador();
   const [enviando, setEnviando] = useState(null); // 'foto' | 'video' | 'audio' enquanto sobe
   const [classificar, setClassificar] = useState(false);
+  const [emojis, setEmojis] = useState(false);
   if (!open) return null;
   const close = () => {
     if (grav.gravando) grav.cancelar();
@@ -196,6 +198,7 @@ export default function ChatServidor() {
             );
           })}
         </ScrollView>
+        {emojis ? <EmojiBar onPick={(e) => setTxt((t) => t + e)} style={{ marginHorizontal: 10, marginBottom: 4 }} /> : null}
         {enviando ? <Text style={st.subindo}>Enviando {enviando === 'foto' ? 'a foto' : enviando === 'video' ? 'o vídeo' : 'o áudio'}…</Text> : null}
         <View style={[st.bar, { paddingBottom: 10 + insets.bottom }]}>
           {amigos && !grav.gravando ? (
@@ -210,6 +213,7 @@ export default function ChatServidor() {
               ) : null}
             </>
           ) : null}
+          {!grav.gravando ? <EmojiButton open={emojis} onPress={() => setEmojis((v) => !v)} /> : null}
           {grav.gravando ? (
             <View style={[st.input, st.gravando]}>
               <TouchableOpacity onPress={grav.cancelar} accessibilityLabel="Cancelar o áudio" style={{ padding: 2 }}>

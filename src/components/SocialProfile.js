@@ -1,5 +1,6 @@
 // Parte social do perfil: depoimentos (estilo Orkut), galeria de fotos, galeria de vídeos e destaques de stories.
 // Usado no perfil dos outros membros, no "Meu perfil" e no feed abaixo dos stories.
+import EmojiBar, { EmojiButton } from './EmojiBar';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { KeyboardLift } from '../keyboard';
 import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, Share, Image, Platform, useWindowDimensions } from 'react-native';
@@ -191,6 +192,7 @@ export function TestimonialComposer({ visible, onClose, toId }) {
   const [error, setError] = useState('');
   const [sent, setSent] = useState(null);
   const [find, setFind] = useState(''); // pesquisar o contato para quem escrever
+  const [emojis, setEmojis] = useState(false);
   const timer = useRef(null);
 
   useEffect(() => {
@@ -371,6 +373,11 @@ export function TestimonialComposer({ visible, onClose, toId }) {
                 placeholderTextColor={colors.muted}
                 style={styles.area}
               />
+              {/* Emojis para pôr junto no texto */}
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+                <EmojiButton open={emojis} onPress={() => setEmojis((v) => !v)} />
+              </View>
+              {emojis ? <EmojiBar onPick={(e) => setText((t) => (t + e).slice(0, 600))} /> : null}
               <Text style={{ color: colors.muted, fontSize: 11, textAlign: 'right' }}>{text.length}/600</Text>
               {error ? (
                 <View style={styles.err}>

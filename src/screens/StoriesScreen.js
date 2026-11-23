@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import EmojiBar from '../components/EmojiBar';
 import { KeyboardLift } from '../keyboard';
 import { PHOTO_RULE } from '../moderation';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Pressable, Image, Alert, Platform, useWindowDimensions, Switch } from 'react-native';
@@ -400,6 +401,8 @@ function PostComposer({ visible, onClose, onPublish }) {
             autoFocus
             style={styles.postInput}
           />
+          {/* Emojis para pôr no texto da publicação */}
+          <EmojiBar onPick={(e) => setText((t) => t + e)} />
           {image ? (
             <View style={{ marginTop: 12 }}>
               <PostPhoto uri={image} style={{ borderRadius: 14 }} />
@@ -487,6 +490,7 @@ export function ReelComposer({ visible, onClose, onPublish }) {
             maxLength={120}
             style={[styles.postInput, { marginTop: 14, minHeight: 70 }]}
           />
+          <EmojiBar onPick={(e) => setTitle((t) => (t + e).slice(0, 120))} />
           {/* Feito com IA: vídeos, animes e artes de inteligência artificial (aparece na aba IA do Trends). */}
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 14 }}>
             <Ionicons name="sparkles" size={18} color="#7B6CF6" />
