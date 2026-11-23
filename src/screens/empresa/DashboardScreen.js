@@ -5,7 +5,7 @@ import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, myProducts } from '../../store';
 import { colors, brl } from '../../theme';
-import { Screen, Title, Card, Row, Stat, BarChart, Section, ProductThumb, Badge } from '../../components/ui';
+import { Screen, Title, Card, Row, Stat, BarChart, Section, ProductThumb, Badge, PainelHeader } from '../../components/ui';
 import { ALL_ADS, shortNum } from '../../adsData';
 import { MY_COMPANY_ID } from '../../data';
 import PlanoLojaCard from '../../components/PlanoLojaCard';
@@ -32,16 +32,16 @@ export default function DashboardScreen({ goTo, navigate }) {
 
   return (
     <Screen>
-      <Title sub={`Mercadinho Bom Preço · CNPJ ${state.user.cnpj}`}>Painel da empresa</Title>
-
-      <Row style={{ marginHorizontal: -4, marginBottom: 8 }}>
-        <Stat label="Vendas hoje" value={brl(todayValue)} color={colors.primary} />
-        <Stat label="Últimos 7 dias" value={brl(week)} />
-      </Row>
-      <Row style={{ marginHorizontal: -4, marginBottom: 8 }}>
-        <Stat label="Ticket médio" value={brl(avgTicket)} />
-        <Stat label="Saldo do período" value={brl(entradas - saidas)} color={entradas - saidas >= 0 ? colors.success : colors.danger} />
-      </Row>
+      <PainelHeader
+        title="Painel da empresa"
+        sub={`Mercadinho Bom Preço · CNPJ ${state.user.cnpj}`}
+        stats={[
+          { label: 'Vendas hoje', value: brl(todayValue) },
+          { label: 'Últimos 7 dias', value: brl(week) },
+          { label: 'Ticket médio', value: brl(avgTicket) },
+          { label: 'Saldo do período', value: brl(entradas - saidas) },
+        ]}
+      />
 
       <PlanoLojaCard />
 
@@ -62,7 +62,7 @@ export default function DashboardScreen({ goTo, navigate }) {
         ].map((a) => (
           <TouchableOpacity key={a.label} style={dash.atalho} onPress={a.go} activeOpacity={0.8} accessibilityLabel={a.label}>
             <View style={dash.bola}>
-              <Ionicons name={a.icon} size={22} color={colors.text} />
+              <Ionicons name={a.icon} size={22} color={colors.onNavy} />
             </View>
             <Text numberOfLines={1} style={dash.atalhoTxt}>{a.label}</Text>
           </TouchableOpacity>
@@ -186,6 +186,6 @@ function Metric({ label, value }) {
 const dash = StyleSheet.create({
   atalhos: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 14, marginTop: 2 },
   atalho: { alignItems: 'center', width: 72 },
-  bola: { width: 54, height: 54, borderRadius: 27, backgroundColor: colors.card, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.borderStrong || colors.border, alignItems: 'center', justifyContent: 'center' },
+  bola: { width: 54, height: 54, borderRadius: 27, backgroundColor: colors.navy, alignItems: 'center', justifyContent: 'center' },
   atalhoTxt: { color: colors.text, fontSize: 12, marginTop: 5, fontWeight: '600' },
 });
