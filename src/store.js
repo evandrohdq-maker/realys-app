@@ -2602,7 +2602,8 @@ export function callReply(call) {
 export const priceText = (p) => {
   const t = p && TARIFFS[p.service];
   if (t) return `corrida a partir de ${brl(t.minimo)}, mais ${brl(t.km)} por km`;
-  if (p.price === 0) return `Grátis · ${p.priceUnit.replace(/\s*\(grátis\)/, '')}`;
+  if (p.price === 0 && /grátis/i.test(p.priceUnit || '')) return `Grátis · ${p.priceUnit.replace(/\s*\(grátis\)/, '')}`;
+  if (!p.price) return p.visitFee > 0 ? `A combinar na visita (visita ${brl(p.visitFee)})` : 'A combinar no orçamento';
   return `${brl(p.price)} por ${p.priceUnit}`;
 };
 

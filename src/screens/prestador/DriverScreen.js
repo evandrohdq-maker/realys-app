@@ -188,16 +188,19 @@ function DriverMain({ goTo, navigate, onCadastro, secao = 'trabalhar' }) {
   const earnings = accepted.reduce((s, r) => s + r.price, 0);
 
   const save = () => {
-    const v = parseFloat(price.replace(',', '.'));
+    // Preço que só sai depois de ver o serviço (sob medida, funilaria, reforma, conserto...): em branco = "a combinar" (0).
+    // Só motorista e motoboy (tarifa Realyz) precisam de valor.
+    const v = price.trim() ? parseFloat(price.replace(',', '.')) : TARIFFS[service] ? NaN : 0;
     if (!service) return Alert.alert('Sua profissão', 'Digite e escolha a sua profissão.');
     const list = functions.filter(Boolean);
-    if (!list.length || isNaN(v)) return Alert.alert('Falta pouco', 'Marque o que você faz e informe quanto cobra.');
+    if (!list.length) return Alert.alert('Falta pouco', 'Marque o que você faz: digite e toque no ➕, ou toque numa das sugestões.');
+    if (isNaN(v)) return Alert.alert('Falta pouco', 'Informe quanto você cobra.');
     const f = parseFloat(fee.replace(',', '.'));
     if (byVisit && (isNaN(f) || f <= 0)) return Alert.alert('Informe a taxa de visita', 'É o valor que o cliente paga para você ir até ele avaliar o serviço.');
     // Faixa justa: ninguém cobra acima do teto (justo para o cliente e equilibrado entre prestadores).
     const online = (serviceType(service) || {}).mode === 'online';
     const fv = byVisit ? checkFair(service, 'visita', f) : { ok: true };
-    const fp = checkFair(service, unit, v, { online });
+    const fp = v > 0 ? checkFair(service, unit, v, { online }) : { ok: true };
     if (!fv.ok) return Alert.alert('Taxa de visita acima da faixa justa', `Para ${(serviceType(service) || {}).label || 'este serviço'}, a visita no Realyz vai de ${refText(fv.ref)}. Ajuste para no máximo R$ ${fv.ref.max}.`);
     if (!fp.ok) return Alert.alert('Valor acima da faixa justa', `A faixa justa é de ${refText(fp.ref)}. Ajuste para no máximo R$ ${fp.ref.max}.`);
     if (fv.level === 'baixo' || fp.level === 'baixo') Alert.alert('Valor abaixo do comum', 'Seu valor está abaixo da faixa de referência. Pode não cobrir seus custos (deslocamento, ferramentas, impostos). Você pode manter assim se quiser.');
@@ -382,7 +385,12 @@ function DriverMain({ goTo, navigate, onCadastro, secao = 'trabalhar' }) {
             {TARIFFS[service] ? (
               <Text style={{ color: colors.muted, fontSize: 12, marginBottom: 8 }}>Motorista e motoboy seguem a Tarifa Realyz, igual para todos (com valor dinâmico no pico). O valor abaixo fica só como referência sua.</Text>
             ) : null}
-            <Input placeholder="Valor em R$" keyboardType="decimal-pad" value={price} onChangeText={setPrice} />
+            <Input placeholder={TARIFFS[service] ? 'Valor em R$' : 'Valor em R$ (ou em branco: a combinar)'} keyboardType="decimal-pad" value={price} onChangeText={setPrice} />
+            {!TARIFFS[service] && !price.trim() ? (
+              <Text style={{ color: colors.muted, fontSize: 12, marginTop: -4, marginBottom: 8 }}>
+                {byVisit ? 'O preço depende do que o cliente quer? Deixe em branco: ele vê "A combinar na visita" e paga só a taxa de visita pelo Realyz.' : 'O preço depende do que vai fazer? Deixe em branco: o cliente vê "A combinar no orçamento" e vocês fecham o valor pelo Realyz.'}
+              </Text>
+            ) : null}
             {priceRef(service, unit, { online: (serviceType(service) || {}).mode === 'online' }) ? (
               <Text style={{ color: colors.primary, fontSize: 12, marginTop: -4, marginBottom: 8 }}>
                 Faixa justa Realyz: {refText(priceRef(service, unit, { online: (serviceType(service) || {}).mode === 'online' }))}

@@ -212,3 +212,20 @@ test('painel de inteligência: buscas em alta, demanda escondida e preço contra
   assert.equal(gratis.buscasEmAlta, undefined);
   assert.deepEqual(gratis.bloqueado.map((b) => b.parte), ['buscas', 'mercado', 'pico']);
 });
+
+test('contas de teste de empresa e de prestador, criadas pelo administrador', async () => {
+  const a = await admin();
+  const emp = await call('POST', '/admin/contas-teste', a.accessToken, { name: 'Loja Teste', username: 'lojateste', password: 'senha1234', tipo: 'empresa' });
+  const pre = await call('POST', '/admin/contas-teste', a.accessToken, { name: 'Prestador Teste', username: 'prestateste', password: 'senha1234', tipo: 'prestador' });
+  const lista = await call('GET', '/admin/contas-teste', a.accessToken);
+  assert.equal(lista.find((x) => x.id === emp.id).tipo, 'empresa');
+  assert.equal(lista.find((x) => x.id === pre.id).tipo, 'prestador');
+  const le = await call('POST', '/auth/login', null, { login: 'lojateste', password: 'senha1234' });
+  assert.equal((await call('GET', '/companies/me', le.accessToken)).name, 'Loja Teste');
+  assert.equal((await call('GET', '/planos/meu', le.accessToken)).atual.id, 'pro');
+  const lp = await call('POST', '/auth/login', null, { login: 'prestateste', password: 'senha1234' });
+  // Preço "a combinar" (0) com taxa de visita.
+  const p = await call('PUT', '/providers/me', lp.accessToken, { service: 'marceneiro', functions: ['Móveis planejados'], price: '', priceUnit: 'projeto', visitFee: 60 });
+  assert.equal(p.price, 0);
+  assert.ok((await call('GET', '/inteligencia/painel', lp.accessToken)).chamados);
+});

@@ -97,7 +97,7 @@ export default function ProviderProfile({ provider: p, visible, onClose, onHire,
             <View style={styles.stats}>
               <Stat value={ratingText(p.rating)} label={`${reviewsCount(p)} avaliações`} color={colors.accent} />
               <Stat value={String(jobsDone(p))} label="serviços feitos" />
-              <Stat value={`R$ ${p.price}`} label={`por ${p.priceUnit}`} />
+              <Stat value={p.price ? `R$ ${p.price}` : 'A combinar'} label={p.price ? `por ${p.priceUnit}` : p.visitFee > 0 ? 'na visita' : 'no orçamento'} />
             </View>
 
             {byVisit ? (

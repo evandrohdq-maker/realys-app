@@ -80,11 +80,12 @@ export default function ServerProviderPanel() {
     if (!form.service) return Alert.alert('Sua profissão', 'Digite e escolha a sua profissão.');
     const functions = form.functions;
     if (!functions.length) return Alert.alert('O que você faz?', 'Toque nas sugestões ou escreva o que você faz.');
-    if (!toNum(form.price)) return Alert.alert('Seu preço', 'Informe quanto você cobra.');
+    // Em branco = a combinar (preço que só sai depois de ver o serviço). Motorista e motoboy seguem a tarifa.
+    if (!toNum(form.price) && /motorista|motoboy/.test(form.service)) return Alert.alert('Seu preço', 'Informe quanto você cobra.');
     setBusy(true);
     try {
       const p = await api('PUT', '/providers/me', {
-        service: form.service, outros: form.outros, functions, price: toNum(form.price), priceUnit: form.priceUnit,
+        service: form.service, outros: form.outros, functions, price: toNum(form.price) || 0, priceUnit: form.priceUnit,
         visitFee: form.visitFee ? toNum(form.visitFee) : undefined, vehicle: form.vehicle || undefined,
       });
       setPerfil(p);
@@ -226,7 +227,7 @@ export default function ServerProviderPanel() {
                 <Text style={ps.previewKicker}>COMO O CLIENTE VÊ VOCÊ</Text>
                 <Text style={ps.profNome} numberOfLines={1}>{prof.icon} {prof.label}{form.outros.length ? ` + ${form.outros.length}` : ''}</Text>
                 <Text style={ps.small} numberOfLines={2}>{form.functions.length ? form.functions.slice(0, 4).join(' · ') : 'Marque o que você faz'}</Text>
-                <Text style={[ps.profNome, { color: colors.primaryDark, fontSize: 14, marginTop: 4 }]}>{toNum(form.price) ? `${brl(toNum(form.price))} por ${form.priceUnit}` : 'Informe o preço'}</Text>
+                <Text style={[ps.profNome, { color: colors.primaryDark, fontSize: 14, marginTop: 4 }]}>{toNum(form.price) ? `${brl(toNum(form.price))} por ${form.priceUnit}` : 'A combinar (preço depois de ver o serviço)'}</Text>
               </View>
               <Button title={busy ? 'Salvando…' : 'Salvar cadastro'} onPress={salvar} disabled={busy} style={{ marginTop: 12 }} />
             </>
@@ -236,7 +237,7 @@ export default function ServerProviderPanel() {
         <View>
           <Row style={{ justifyContent: 'space-between' }}>
             <Text style={{ color: colors.text, flex: 1 }} numberOfLines={2}>
-              {perfil.service} · {brl(perfil.price)} por {perfil.priceUnit}{perfil.visitFee ? ` · visita ${brl(perfil.visitFee)}` : ''}
+              {perfil.service} · {perfil.price ? `${brl(perfil.price)} por ${perfil.priceUnit}` : (perfil.visitFee ? 'a combinar na visita' : 'a combinar no orçamento')}{perfil.visitFee ? ` · visita ${brl(perfil.visitFee)}` : ''}
             </Text>
             <TouchableOpacity onPress={() => { setForm({ service: perfil.service, outros: perfil.outros || [], functions: perfil.functions || [], novaFuncao: '', price: String(perfil.price).replace('.', ','), priceUnit: perfil.priceUnit, visitFee: perfil.visitFee ? String(perfil.visitFee).replace('.', ',') : '', vehicle: perfil.vehicle || '' }); setTrocando(false); setAddOutra(false); setEditing(true); }}>
               <Text style={{ color: colors.primary, fontWeight: '700' }}>Editar</Text>

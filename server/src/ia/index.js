@@ -13,7 +13,8 @@
 
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
 const words = (s) => norm(s).split(' ').filter((w) => w.length > 2);
-const brl = (c) => `R$ ${(c / 100).toFixed(2).replace('.', ',')}`;
+// Preço 0 = a combinar (serviço que só tem preço depois de ver o que vai fazer).
+const brl = (c) => (c ? `R$ ${(c / 100).toFixed(2).replace('.', ',')}` : 'valor a combinar');
 
 // Quando a conversa vai para uma pessoa (o closer).
 const HUMANO = /\b(falar|conversar|chamar)\b.*\b(pessoa|humano|atendente|dono|gerente|vendedor|alguem)\b|\b(atendente|humano)\b/;

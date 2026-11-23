@@ -61,7 +61,9 @@ export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biom
     const functions = Array.isArray(body.functions) ? body.functions.map((f) => String(f).trim().slice(0, 60)).filter(Boolean).slice(0, 15) : [];
     if (!functions.length) fail(400, 'Informe pelo menos uma função (o que você faz).');
     const row = {
-      service: str(body.service, 'o tipo de serviço', { max: 40 }).toLowerCase(), functions: JSON.stringify(functions), price: money(body.price, 'preço'),
+      service: str(body.service, 'o tipo de serviço', { max: 40 }).toLowerCase(), functions: JSON.stringify(functions),
+      // Preço que só sai depois de ver o serviço: 0 = "a combinar" (na visita ou no orçamento).
+      price: body.price === undefined || body.price === null || body.price === '' || Number(body.price) === 0 ? 0 : money(body.price, 'preço'),
       price_unit: str(body.priceUnit, 'a unidade do preço (hora, visita, corrida...)', { max: 30 }), vehicle: str(body.vehicle, 'o veículo', { optional: true, max: 80 }) || null,
     };
     // Outras profissões (botão "Adicionar outra profissão"): até 4, sem repetir a principal.

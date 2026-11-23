@@ -483,3 +483,7 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
       memória ou mais; qwen2.5:1.5b com 3,5 GB) e liga no .env. Resultado em /var/log/realys-auto-update.log.
       Sem memória suficiente, segue a "IA leve" (ficha e catálogo). Para instalar na mão: deploy/ia.sh.
 - [ ] Painel de inteligência só fica rico com dados reais: conferir depois do piloto em Passo Fundo.
+- [x] Administrador › Visão geral › **Contas de teste**: cria conta de usuário, prestador (já com perfil de
+      trabalho e cadastro de marceneiro) ou empresa (com a página da loja), sem CPF/CNPJ, para ver o app como cada um.
+- [x] Prestador: preço "a combinar" (em branco) em todas as profissões menos motorista e motoboy; o cliente vê
+      "A combinar na visita" ou "A combinar no orçamento". O que se digita em "O que você faz" entra sozinho.

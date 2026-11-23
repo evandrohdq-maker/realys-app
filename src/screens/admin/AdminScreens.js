@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { serverOn, api } from '../../api';
 import { videoStatus } from '../../video';
 import { ProtecaoAdmin, PedidosPlanoAdmin } from '../../components/NativoIA';
+import ContasTesteAdmin from '../../components/ContasTesteAdmin';
 
 // Caixa do Realyz (servidor): lucro que pode ir da conta Santander para a conta Nubank e o dinheiro
 // dos usuários que precisa ficar no Santander. Aparece só para o administrador entrado no servidor.
@@ -205,6 +206,7 @@ export function AdminOverview() {
       <Title sub="Controle geral da plataforma Realyz">Administração</Title>
       <CaixaRealyz />
       <PedidosPlanoAdmin />
+      <ContasTesteAdmin />
       <CrmClosings />
       <HireNotices />
 

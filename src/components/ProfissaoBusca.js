@@ -104,7 +104,7 @@ export function FuncoesTags({ keys, value, onChange }) {
         </View>
       ) : null}
       <View style={st.novo}>
-        <TextInput style={st.novoInput} value={novo} onChangeText={setNovo} onSubmitEditing={() => marcar(novo.trim())} placeholder={exemplo ? `Digite o que você faz (ex.: ${exemplo})` : 'Digite o que você faz'} placeholderTextColor={colors.muted} returnKeyType="done" />
+        <TextInput style={st.novoInput} value={novo} onChangeText={setNovo} onSubmitEditing={() => marcar(novo.trim())} onEndEditing={() => novo.trim() && marcar(novo.trim())} onBlur={() => novo.trim() && marcar(novo.trim())} placeholder={exemplo ? `Digite o que você faz (ex.: ${exemplo})` : 'Digite o que você faz'} placeholderTextColor={colors.muted} returnKeyType="done" />
         {novo.trim() ? (
           <TouchableOpacity onPress={() => marcar(novo.trim())} accessibilityLabel="Adicionar" style={{ padding: 6 }}>
             <Ionicons name="add-circle" size={26} color={colors.primary} />
@@ -113,8 +113,9 @@ export function FuncoesTags({ keys, value, onChange }) {
       </View>
       {sugestoes.map((f) => (
         <TouchableOpacity key={f} style={st.sug} onPress={() => marcar(f)} accessibilityLabel={`Marcar ${f}`}>
-          <Ionicons name="checkbox-outline" size={18} color={colors.primary} />
-          <Text style={[st.tagText, { marginLeft: 8 }]} numberOfLines={1}>{f}</Text>
+          <Ionicons name="add-circle-outline" size={18} color={colors.primary} />
+          <Text style={[st.tagText, { marginLeft: 8, flex: 1 }]} numberOfLines={1}>{f}</Text>
+          <Text style={{ color: colors.muted, fontSize: 12 }}>tocar para marcar</Text>
         </TouchableOpacity>
       ))}
     </View>
