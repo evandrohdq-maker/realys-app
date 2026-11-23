@@ -16,3 +16,9 @@ android {
     abortOnError false
   }
 }
+
+dependencies {
+  // Para ajustar a ligação de rede do app (RealysUpdaterPackage.kt).
+  implementation 'com.facebook.react:react-native:+'
+  implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+}
