@@ -104,6 +104,8 @@ export function loadConfig(overrides = {}) {
     // Administrador criado na primeira vez que o servidor sobe.
     adminUsername: env.ADMIN_USERNAME || 'admin',
     adminPassword: env.ADMIN_PASSWORD || '',
+    analistaUsername: env.ANALISTA_USERNAME || 'analista',
+    analistaPassword: env.ANALISTA_PASSWORD || '',
     // Biometria: chaves de criptografia ("1:<hex64>,2:<hex64>"), serviço de IA e limiares.
     biometricKeys: env.BIOMETRIA_KEYS || '',
     biometricServiceUrl: env.BIOMETRIA_SERVICE_URL || '',

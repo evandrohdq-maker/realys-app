@@ -23,7 +23,7 @@ import {
   savedKey,
 } from '../accounts';
 import SignupForm from './SignupForm';
-import { entrarOuMigrar, userFromServer, usarConta } from '../serverAuth';
+import { entrarOuMigrar, entrarNoServidor, userFromServer, usarConta } from '../serverAuth';
 import { setServerId } from '../accounts';
 import { serverOn, setCodigo2fa } from '../api';
 import ScanFacial from '../components/ScanFacial';
@@ -37,7 +37,7 @@ function detect(value) {
   const v = value.trim();
   const d = onlyDigits(v);
   const numeric = v.length > 0 && /^[\d.\-\/\s]+$/.test(v);
-  if (v.toLowerCase() === ADMIN_LOGIN.user) return { kind: 'admin' };
+  if (ADMIN_LOGIN.users.includes(v.toLowerCase())) return { kind: 'admin' };
   if (v.toLowerCase() === ANALYST_LOGIN.user) return { kind: 'analista' };
   if (numeric && d.length === 14) return { kind: 'cnpj', doc: formatCnpj(d) };
   if (numeric && d.length === 11) return { kind: 'cpf', doc: formatCpf(d) };
@@ -130,22 +130,30 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
       passRef.current && passRef.current.focus();
       return Alert.alert('Digite sua senha', 'A senha é pedida no primeiro acesso. Depois, se salvar o usuário, você entra só com a biometria.');
     }
-    if (info.kind === 'admin') {
-      const typed = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, 'realyz-admin:' + password);
-      if (typed !== ADMIN_LOGIN.hash) return Alert.alert('Acesso negado', 'Senha incorreta.');
-      // O administrador sempre digita a senha: não fica salvo no aparelho.
-      return dispatch({
-        type: 'LOGIN',
-        user: { name: 'Administrador', roles: ['admin', 'cliente', 'empresa', 'prestador', 'fornecedor'], cnpj: '12.345.678/0001-90' },
-      });
-    }
-    if (info.kind === 'analista') {
-      if (password !== ANALYST_LOGIN.password) return Alert.alert('Acesso negado', 'Senha incorreta.');
-      // Analista: vê tudo o que o administrador vê, sem poder mudar nada. Também não fica salvo no aparelho.
-      return dispatch({
-        type: 'LOGIN',
-        user: { name: 'Analista', roles: ['admin', 'cliente', 'empresa', 'prestador', 'fornecedor'], readOnly: true, cnpj: '12.345.678/0001-90' },
-      });
+    // Administrador e analista: entram pelo servidor (senha + Google Authenticator). Nada de senha no app.
+    // Se a conta do servidor não for de admin/analista (ex.: mesmo nome de uma conta pessoal), segue a entrada normal.
+    if ((info.kind === 'admin' || info.kind === 'analista') && serverOn()) {
+      setBusy(true);
+      try {
+        setCodigo2fa(pede2fa ? cod2fa : null);
+        const srv = await entrarNoServidor(value, password);
+        const roles = (srv && srv.roles) || [];
+        if (roles.includes('admin') || roles.includes('analista')) {
+          const admin = roles.includes('admin');
+          return dispatch({
+            type: 'LOGIN',
+            user: { name: admin ? 'Administrador' : 'Analista', roles: ['admin', 'cliente', 'empresa', 'prestador', 'fornecedor'], readOnly: !admin, serverId: srv.id, cnpj: '12.345.678/0001-90' },
+          });
+        }
+      } catch (e) {
+        if (e.code === 'codigo_2fa') {
+          setPede2fa(true);
+          return Alert.alert('Verificação em duas etapas', e.message);
+        }
+        if (e.status !== 401) return Alert.alert('Não foi possível entrar', e.message);
+      } finally {
+        setBusy(false);
+      }
     }
     setBusy(true);
     try {
