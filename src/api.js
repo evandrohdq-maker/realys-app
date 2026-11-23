@@ -112,7 +112,8 @@ export async function api(method, path, body, headers) {
     } catch (e) {
       // Ligação velha com o servidor morreu (ex.: servidor reiniciou na atualização): o celular abre
       // uma nova na segunda tentativa. Só repete leitura (GET), para nunca duplicar um envio.
-      if (e.status === 0 && method === 'GET') return raw(method, path, body, headers);
+      // Aceitar, adicionar ou recusar amizade também repete: mandar duas vezes dá no mesmo.
+      if (e.status === 0 && (method === 'GET' || /^\/friends\/[^/?]+$/.test(path))) return raw(method, path, body, headers);
       throw e;
     }
   };

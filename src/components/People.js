@@ -800,7 +800,7 @@ function ServerPersonRow({ u, onFriend }) {
   return (
     <View style={styles.row}>
       {/* Tocar na foto ou no nome abre o perfil da conta real. */}
-      <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }} onPress={() => openServerProfile(u.id, { name: u.name, photo: u.photo || null })} activeOpacity={0.8} accessibilityLabel={`Ver perfil de ${u.name}`}>
+      <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }} onPress={() => openServerProfile(u.id, { name: u.name, photo: u.photo || null, username: u.username || null, friend: u.friend || null })} activeOpacity={0.8} accessibilityLabel={`Ver perfil de ${u.name}`}>
       {u.photo ? (
         <Photo uri={mediaUrl(u.photo)} style={styles.rowAvatar} fallback="🙂" />
       ) : (

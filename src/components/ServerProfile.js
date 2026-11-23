@@ -55,13 +55,21 @@ function ServerProfile({ id, preview, onClose }) {
     load();
   }, [id]);
   const first = p ? (p.name || '').split(' ')[0] : '';
-  const act = (fn) => {
+  const act = (fn, next) => {
     setBusy(true);
     fn()
-      .then(load)
-      .catch((e) => Alert.alert('Não deu certo', e.message))
+      .then((r) => {
+        // Mostra o resultado na hora (Aceitar vira Amigos), sem esperar o perfil recarregar.
+        const status = (r && r.status) || next;
+        if (status !== undefined) setP((x) => (x ? { ...x, friend: status === 'amigos' ? 'amigos' : status } : x));
+        return load();
+      })
+      .catch((e) => Alert.alert('Não deu certo', e.message || 'Confira a internet e tente de novo.'))
       .finally(() => setBusy(false));
   };
+  const aceitar = () => act(() => addFriend(id), 'amigos');
+  const recusar = () => act(() => removeFriend(id), null);
+  const adicionar = () => act(() => addFriend(id), 'enviado');
   const unfriend = () =>
     Alert.alert('Desfazer amizade?', `Você e ${first} deixam de ser amigos no Realyz.`, [
       { text: 'Voltar', style: 'cancel' },
@@ -71,8 +79,10 @@ function ServerProfile({ id, preview, onClose }) {
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}>
-        <View style={[st.cover, { paddingTop: insets.top + 8 }]}>
+        <View style={[st.cover, { height: 140 + insets.top, paddingTop: insets.top + 8 }]}>
           {p && p.cover ? <Photo uri={full(p.cover)} style={StyleSheet.absoluteFill} fallback="" /> : null}
+          {/* Faixa escura em cima: hora e bateria do celular continuam legíveis por cima da capa. */}
+          {p && p.cover ? <View pointerEvents="none" style={[st.coverShade, { height: insets.top + 10 }]} /> : null}
           <TouchableOpacity onPress={onClose} style={st.back} accessibilityLabel="Voltar">
             <Ionicons name="arrow-back" size={20} color={colors.text} />
           </TouchableOpacity>
@@ -88,8 +98,17 @@ function ServerProfile({ id, preview, onClose }) {
               )}
             </View>
             <Text style={st.name}>{preview.name}</Text>
+            {preview.username ? <Text style={st.handle}>*{preview.username}</Text> : null}
+            {preview.friend === 'recebido' ? <Text style={st.ask}>{(preview.name || '').split(' ')[0]} quer ser seu amigo no Realyz.</Text> : null}
             <View style={st.row}>
-              <Btn icon="person-add" label={busy ? '…' : 'Adicionar'} solid onPress={busy ? undefined : () => act(() => addFriend(id))} />
+              {preview.friend === 'recebido' ? (
+                <>
+                  <Btn icon="checkmark" label={busy ? 'Aceitando…' : 'Aceitar'} solid onPress={busy ? undefined : aceitar} />
+                  <Btn icon="close" label="Recusar" onPress={busy ? undefined : recusar} />
+                </>
+              ) : preview.friend === 'amigos' || preview.friend === 'enviado' ? null : (
+                <Btn icon="person-add" label={busy ? '…' : 'Adicionar'} solid onPress={busy ? undefined : adicionar} />
+              )}
             </View>
           </View>
         ) : null}
@@ -119,6 +138,7 @@ function ServerProfile({ id, preview, onClose }) {
             {p.username ? <Text style={st.handle}>*{p.username}</Text> : null}
             {p.teste ? <Text style={st.teste}>Conta de teste</Text> : null}
             {p.about ? <Text style={st.about}>{p.about}</Text> : null}
+            {p.friend === 'recebido' && !p.negocio ? <Text style={st.ask}>{first} quer ser seu amigo no Realyz.</Text> : null}
 
             {p.negocio && p.friend !== 'amigos' ? (
               // Perfil profissional (empresa ou prestador): página para seguir, como nas redes grandes.
@@ -157,11 +177,11 @@ function ServerProfile({ id, preview, onClose }) {
                 <Btn icon="time-outline" label="Pedido enviado" onPress={() => Alert.alert('Pedido enviado', `Quando ${first} aceitar, vocês viram amigos.`)} />
               ) : p.friend === 'recebido' ? (
                 <>
-                  <Btn icon="checkmark" label="Aceitar" solid onPress={busy ? undefined : () => act(() => addFriend(id))} />
-                  <Btn icon="close" label="Recusar" onPress={busy ? undefined : () => act(() => removeFriend(id))} />
+                  <Btn icon="checkmark" label={busy ? 'Aceitando…' : 'Aceitar'} solid onPress={busy ? undefined : aceitar} />
+                  <Btn icon="close" label="Recusar" onPress={busy ? undefined : recusar} />
                 </>
               ) : (
-                <Btn icon="person-add" label={busy ? '…' : 'Adicionar'} solid onPress={busy ? undefined : () => act(() => addFriend(id))} />
+                <Btn icon="person-add" label={busy ? '…' : 'Adicionar'} solid onPress={busy ? undefined : adicionar} />
               )}
             </View>
             )}
@@ -179,7 +199,7 @@ function ServerProfile({ id, preview, onClose }) {
               <View style={st.tabs}>
                 {[['posts', 'Publicações'], ['galeria', 'Galeria'], ['mural', 'Mural'], ['dep', 'Depoimentos']].map(([k, l]) => (
                   <TouchableOpacity key={k} onPress={() => setAba(k)} style={st.tab} accessibilityLabel={l}>
-                    <Text numberOfLines={1} style={[st.tabText, aba === k && st.tabOn]}>{l}</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[st.tabText, aba === k && st.tabOn]}>{l}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -307,7 +327,9 @@ function Btn({ icon, label, onPress, solid }) {
 
 const st = StyleSheet.create({
   pagina: { color: colors.muted, fontSize: 12.5, fontWeight: '600', textAlign: 'center', marginTop: 8, marginBottom: 2 },
-  cover: { height: 130, backgroundColor: '#F1E7CF', paddingHorizontal: 14 },
+  cover: { height: 140, backgroundColor: '#F1E7CF', paddingHorizontal: 14, overflow: 'hidden' },
+  coverShade: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.28)' },
+  ask: { color: colors.text, marginTop: 10, fontWeight: '600' },
   back: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   avatarWrap: { marginTop: -48, alignSelf: 'flex-start', borderRadius: 50, borderWidth: 3, borderColor: colors.gold, backgroundColor: colors.bg },
   avatar: { width: 92, height: 92, borderRadius: 46 },
@@ -326,7 +348,7 @@ const st = StyleSheet.create({
   postImg: { width: '100%', height: 220, borderRadius: 10, marginTop: 8 },
   small: { color: colors.muted, fontSize: 13, marginTop: 8 },
   tabs: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.border, marginTop: 16, marginBottom: 10 },
-  tab: { flex: 1, alignItems: 'center', paddingVertical: 10 },
+  tab: { flexGrow: 1, flexShrink: 1, alignItems: 'center', paddingVertical: 10, paddingHorizontal: 4 },
   tabText: { color: colors.muted, fontWeight: '700', fontSize: 13 },
   tabOn: { color: colors.gold || colors.primary },
   hl: { width: 62, height: 62, borderRadius: 31, borderWidth: 2, borderColor: colors.gold || colors.primary },

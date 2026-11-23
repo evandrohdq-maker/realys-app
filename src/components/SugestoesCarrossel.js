@@ -42,7 +42,7 @@ export default function SugestoesCarrossel({ on }) {
               <TouchableOpacity style={styles.x} onPress={() => dispensar(u.id)} hitSlop={8} accessibilityLabel={`Dispensar ${u.name}`}>
                 <Ionicons name="close" size={16} color={colors.muted} />
               </TouchableOpacity>
-              <TouchableOpacity activeOpacity={0.8} onPress={() => openServerProfile(u.id)} style={{ alignItems: 'center' }} accessibilityLabel={`Ver perfil de ${u.name}`}>
+              <TouchableOpacity activeOpacity={0.8} onPress={() => openServerProfile(u.id, { name: u.name, photo: u.photo || null, username: u.username || null })} style={{ alignItems: 'center' }} accessibilityLabel={`Ver perfil de ${u.name}`}>
                 {u.photo ? (
                   <Photo uri={u.photo} style={styles.foto} fallback="🙂" />
                 ) : (

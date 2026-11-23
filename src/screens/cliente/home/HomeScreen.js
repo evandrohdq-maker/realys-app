@@ -682,7 +682,7 @@ function RealContact({ u, onChat }) {
   };
   return (
     <View style={styles.convRow}>
-      <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }} onPress={() => openServerProfile(u.id)} activeOpacity={0.7} accessibilityLabel={`Ver perfil de ${u.name}`}>
+      <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }} onPress={() => openServerProfile(u.id, { name: u.name, photo: u.photo || null, username: u.username || null, friend: u.friend || null })} activeOpacity={0.7} accessibilityLabel={`Ver perfil de ${u.name}`}>
         {u.photo ? (
           <Photo uri={mediaUrl(u.photo)} style={styles.convAvatar} fallback="🙂" />
         ) : (
