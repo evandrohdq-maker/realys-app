@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import EmpregosReal from '../../components/Empregos';
 import { conectado } from '../../serverShop';
 import { useStore } from '../../store';
+import { podeTrabalhar, MSG_SEM_CNPJ } from '../../trabalhoApp';
 import { colors, soft } from '../../theme';
 import { Screen, Photo } from '../../components/ui';
 import { SegTabs, ClipStrip } from '../../components/AdKit';
@@ -129,7 +130,7 @@ export default function NegociosScreen({ explore }) {
         <TouchableOpacity
           style={st.announce}
           activeOpacity={0.85}
-          onPress={() => setAnnouncing(true)}
+          onPress={() => (podeTrabalhar(state, 'imobiliaria') ? setAnnouncing(true) : Alert.alert('Perfil de trabalho', MSG_SEM_CNPJ('anunciar imóveis, veículos e máquinas')))}
         >
           <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
           <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={st.announceText}>Criar anúncio</Text>

@@ -1234,7 +1234,7 @@ function baseReducer(state, a) {
     // Perfis da conta mudaram no servidor (criou o perfil de trabalho com CNPJ, ou o titular da empresa
     // criou o social): atualiza o botãozinho de troca sem sair da conta.
     case 'SET_USER_ROLES':
-      return state.user ? { ...state, user: { ...state.user, roles: a.roles } } : state;
+      return state.user ? { ...state, user: { ...state.user, roles: a.roles, ...(a.trabalho ? { trabalho: a.trabalho } : null) } } : state;
     case 'SET_ID_VERIFIED':
       return state.user ? { ...state, user: { ...state.user, idVerified: !!a.on } } : state;
     case 'SET_VERIFIED':

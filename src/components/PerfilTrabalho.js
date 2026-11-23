@@ -18,6 +18,11 @@ const formatCnpj = (v) => {
 const TIPOS = [
   ['prestador', 'Prestador de serviço', 'construct-outline'],
   ['artista', 'Artista', 'mic-outline'],
+  ['criador', 'Criador / Gamer', 'videocam-outline'],
+  ['professor', 'Professor / Cursos', 'school-outline'],
+  ['saude', 'Saúde', 'medkit-outline'],
+  ['imobiliaria', 'Imobiliária / Revenda', 'home-outline'],
+  ['radio', 'Rádio / TV', 'radio-outline'],
 ];
 
 export default function PerfilTrabalho() {
@@ -35,7 +40,7 @@ export default function PerfilTrabalho() {
       .then((me) => {
         setEu(me.user);
         // Admin/analista têm os perfis próprios do painel: não mexe.
-        if (!(state.user && (state.user.roles || []).includes('admin'))) dispatch({ type: 'SET_USER_ROLES', roles: rolesDoServidor(me.user) });
+        if (!(state.user && (state.user.roles || []).includes('admin'))) dispatch({ type: 'SET_USER_ROLES', roles: rolesDoServidor(me.user), trabalho: me.user.trabalho || [] });
         return me.user.kind === 'empresa' ? [] : api('GET', '/me/trabalho');
       })
       .then((l) => setPerfis(l || []))
@@ -112,7 +117,7 @@ export default function PerfilTrabalho() {
               </TouchableOpacity>
             </View>
             <Text style={st.txt}>Para trabalhar no Realyz, informe o CNPJ aberto com o seu CPF (MEI vale). O seu perfil social continua só para navegar e comprar.</Text>
-            <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10, marginHorizontal: -3 }}>
               {TIPOS.map(([k, l, ic]) => (
                 <TouchableOpacity key={k} onPress={() => setTipo(k)} style={[st.tipo, tipo === k && st.tipoOn]} accessibilityLabel={l}>
                   <Ionicons name={ic} size={16} color={colors.text} />
@@ -120,6 +125,7 @@ export default function PerfilTrabalho() {
                 </TouchableOpacity>
               ))}
             </View>
+            {tipo === 'saude' ? <Text style={[st.txt, { marginTop: -2 }]}>Saúde: depois de criar, cadastre também o registro do conselho (CRM, CRP, COREN...) em Perfil › Credenciais para poder atender e receitar.</Text> : null}
             <TextInput value={cnpj} onChangeText={(v) => setCnpj(formatCnpj(v))} keyboardType="number-pad" placeholder="CNPJ (00.000.000/0000-00)" placeholderTextColor={colors.muted} style={st.input} />
             <TextInput value={nome} onChangeText={setNome} placeholder={tipo === 'artista' ? 'Nome artístico' : 'Nome do seu trabalho (ex.: João Elétrica)'} placeholderTextColor={colors.muted} style={st.input} />
             <TouchableOpacity style={[st.btn, busy && { opacity: 0.6 }]} onPress={enviar} disabled={busy}>
@@ -142,7 +148,7 @@ const st = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
   title: { color: colors.text, fontWeight: '800', fontSize: 16 },
   txt: { color: colors.muted, fontSize: 13, lineHeight: 18, marginBottom: 12 },
-  tipo: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingVertical: 10, marginHorizontal: 3 },
+  tipo: { flexBasis: '47%', flexGrow: 1, marginBottom: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingVertical: 10, marginHorizontal: 3 },
   tipoOn: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
   tipoTxt: { color: colors.text, fontWeight: '700', fontSize: 12.5, marginLeft: 6 },
   input: { backgroundColor: colors.bg, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, paddingHorizontal: 12, paddingVertical: 11, color: colors.text, marginBottom: 10, fontSize: 15 },

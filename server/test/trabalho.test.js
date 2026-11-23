@@ -41,3 +41,17 @@ test('sem CNPJ não vira prestador; CNPJ de outra pessoa é recusado; o próprio
   assert.ok((await api('PUT', '/providers/me', prov)).status < 300, 'FALHOU: com o CNPJ certo ainda não virou prestador');
   assert.equal((await api('POST', '/tracks', { title: 'x' })).data.code, 'sem_cnpj', 'FALHOU: publicou música sem perfil de artista');
 });
+
+test('live é livre, mas presente só para criador com CNPJ; receita só para saúde com CNPJ', async () => {
+  const anaToken = token;
+  // A Ana abre uma live (qualquer um pode).
+  const live = await api('POST', '/lives', { title: 'Minha live', topic: 'conversa' });
+  assert.ok(live.status < 300, 'FALHOU: live travada sem CNPJ');
+  // Outra pessoa tenta mandar presente: a Ana não tem perfil de criador.
+  token = (await api('POST', '/auth/signup', { kind: 'pessoa', name: 'Beto Fã', doc: '111.444.777-35', username: 'betofa', email: 'beto@x.com', password: 'senha1234', nascimento: '1990-01-01', aceiteTermos: TERMO_ADESAO_VERSAO })).data.accessToken;
+  const g = await api('POST', `/lives/${live.data.id}/gifts`, { gift: Object.keys({ rosa: 1 })[0] });
+  assert.equal(g.data.code, 'host_sem_cnpj', 'FALHOU: criador sem CNPJ recebeu presente');
+  // Receita sem perfil de saúde.
+  token = anaToken;
+  assert.equal((await api('POST', '/documentos', { tipo: 'receita', hash: 'a'.repeat(32) })).data.code, 'sem_cnpj', 'FALHOU: receita sem perfil de saúde');
+});
