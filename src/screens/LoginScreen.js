@@ -28,6 +28,7 @@ import { setServerId } from '../accounts';
 import { serverOn } from '../api';
 import ScanFacial from '../components/ScanFacial';
 import SupportCenter from '../components/SupportCenter';
+import EsqueciSenha from '../components/EsqueciSenha';
 import { authStyles } from './authStyles';
 import { useScreenSharePause } from '../screenShare';
 
@@ -70,6 +71,7 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
   const [showPass, setShowPass] = useState(false);
   const [remember, setRemember] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [esqueci, setEsqueci] = useState(false); // tela "Esqueci a senha"
   const passRef = useRef(null);
   const info = detect(value);
 
@@ -351,6 +353,19 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
               <Ionicons name="log-in-outline" size={20} color={colors.onPrimary} />
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.btnText}>{busy ? 'Verificando…' : 'Entrar'}</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={styles.link} onPress={() => setEsqueci(true)} accessibilityLabel="Esqueci a senha">
+              <Ionicons name="key-outline" size={16} color={colors.accent} />
+              <Text numberOfLines={1} style={styles.linkText}>Esqueci a senha</Text>
+            </TouchableOpacity>
+            <EsqueciSenha
+              visible={esqueci}
+              loginInicial={value}
+              onClose={() => setEsqueci(false)}
+              onPronto={(l) => {
+                setValue(l);
+                setPassword('');
+              }}
+            />
 
             {saved.length ? (
               <TouchableOpacity style={styles.link} onPress={() => setShowForm(false)}>

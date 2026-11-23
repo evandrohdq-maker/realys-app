@@ -957,6 +957,12 @@ const MIGRATIONS = [
   ALTER TABLE messages ADD COLUMN media TEXT;
   ALTER TABLE messages ADD COLUMN media_type TEXT;
   `,
+  // Esqueci a senha: código de 6 números por e-mail (só o resumo do código fica guardado).
+  `
+  ALTER TABLE users ADD COLUMN reset_hash TEXT;
+  ALTER TABLE users ADD COLUMN reset_exp INTEGER;
+  ALTER TABLE users ADD COLUMN reset_tentativas INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export function openDb(file) {
