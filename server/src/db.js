@@ -976,6 +976,12 @@ const MIGRATIONS = [
   ALTER TABLE users ADD COLUMN prazo_bio INTEGER;
   UPDATE users SET prazo_bio = CAST(strftime('%s','now') AS INTEGER) * 1000 + 7 * 86400000;
   `,
+  // Verificação em duas etapas (Google Authenticator). O segredo fica lacrado com a chave do servidor.
+  `
+  ALTER TABLE users ADD COLUMN totp_on INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE users ADD COLUMN totp_segredo TEXT;
+  ALTER TABLE users ADD COLUMN totp_novo TEXT;
+  `,
 ];
 
 export function openDb(file) {

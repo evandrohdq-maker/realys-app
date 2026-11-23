@@ -126,10 +126,13 @@ export async function verificarAparelho(loginText, imageBuf) {
   return d.aparelhoToken;
 }
 
+// Código do Google Authenticator digitado na tela de entrada (vai junto no próximo login).
+let codigo2fa = null;
+export const setCodigo2fa = (c) => (codigo2fa = c ? String(c).replace(/\D/g, '') : null);
 export async function login(loginText, password, device = 'Android', aparelhoToken = null) {
   accessToken = null;
   const key = await deviceKey();
-  const d = await raw('POST', '/auth/login', { login: loginText, password, device, deviceKey: key, aparelhoToken });
+  const d = await raw('POST', '/auth/login', { login: loginText, password, device, deviceKey: key, aparelhoToken, codigo2fa: codigo2fa || undefined });
   setServerAccount(d.user && d.user.id);
   accessToken = d.accessToken;
   await saveSession(d.sessionToken);

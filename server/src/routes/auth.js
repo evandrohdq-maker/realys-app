@@ -6,6 +6,7 @@
 import { podeComprar, prazoBioVencido } from '../bioGate.js';
 import { randomInt } from 'node:crypto';
 import { makeMail } from '../mail.js';
+import { novoSegredo, confere, linkAuthenticator } from '../totp.js';
 import { str, fail, newId, now } from '../http.js';
 import { TERMO_ADESAO_VERSAO, TERMO_ADESAO, TERMO_EMPRESA } from '../termos.js';
 import {
@@ -34,7 +35,10 @@ export function idadeEm(iso, hoje = new Date()) {
 }
 
 
-export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin, clearLogin, biometria, push, hub }) {
+export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin, clearLogin, biometria, push, hub, cipher }) {
+  // Segredo do Authenticator lacrado com a chave do servidor (sem chave, nos testes, fica como está).
+  const lacrar = (seg) => (cipher && cipher.hasKey ? cipher.seal(Buffer.from(seg)) : 'plain:' + seg);
+  const abrir = (x) => (!x ? null : x.startsWith('plain:') ? x.slice(6) : cipher.open(x).toString());
   const mailer = cfg.mail || makeMail(cfg);
   // Cria a sessão do aparelho e o token de acesso.
   const startSession = (user, device) => {
@@ -134,6 +138,11 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
         else db.prepare('INSERT INTO devices (id, user_id, device_key, name, created_at, last_seen_at) VALUES (?,?,?,?,?,?)').run(newId('dv'), user.id, deviceKey, String(body.device || '').slice(0, 80), now(), now());
       }
     }
+    // Verificação em duas etapas ligada: além da senha (e do rosto em aparelho novo), o código do Authenticator.
+    if (user.totp_on) {
+      if (!body.codigo2fa) fail(401, 'Digite o código do Google Authenticator.', 'codigo_2fa');
+      if (!confere(abrir(user.totp_segredo), body.codigo2fa)) fail(401, 'Código do Authenticator errado. Confira o horário do celular e tente de novo.', 'codigo_2fa');
+    }
     clearLogin(key);
     return startSession(user, body.device);
   }, { auth: false });
@@ -165,6 +174,36 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
     db.prepare('UPDATE sessions SET last_used_at = ?, expires_at = ? WHERE id = ?').run(now(), now() + cfg.sessionDays * 86400000, s.id);
     return { user: publicUser(user, { self: true }), accessToken: signToken({ sub: user.id }, cfg.jwtSecret, cfg.accessTokenMinutes), expiresIn: cfg.accessTokenMinutes * 60 };
   }, { auth: false });
+
+  // ── Verificação em duas etapas (Google Authenticator) ──
+  // 1) /me/2fa/iniciar: cria um segredo novo e devolve o link otpauth:// (abre o Authenticator) e o código
+  //    para digitar à mão. 2) /me/2fa/ativar: com o primeiro código certo, liga. 3) /me/2fa/desativar:
+  //    pede um código atual. Obrigatório para administrador, recomendado para empresas, opcional para usuários.
+  r.post('/me/2fa/iniciar', ({ user }) => {
+    const seg = novoSegredo();
+    db.prepare('UPDATE users SET totp_novo = ? WHERE id = ?').run(lacrar(seg), user.id);
+    return { segredo: seg, link: linkAuthenticator(seg, user.username || user.name) };
+  });
+  r.post('/me/2fa/ativar', ({ body, user, ip }) => {
+    limitLogin(`${ip}|2fa|${user.id}`);
+    const u = db.prepare('SELECT totp_novo FROM users WHERE id = ?').get(user.id);
+    const seg = abrir(u && u.totp_novo);
+    if (!seg) fail(400, 'Comece de novo: toque em "Ativar" para gerar o código.');
+    if (!confere(seg, body.codigo)) fail(400, 'Código errado. Digite os 6 números que aparecem agora no Authenticator.');
+    db.prepare('UPDATE users SET totp_on = 1, totp_segredo = totp_novo, totp_novo = NULL WHERE id = ?').run(user.id);
+    avisarDono(user, 'A verificação em duas etapas foi ligada na sua conta.');
+    return { ok: true, duasEtapas: true };
+  });
+  r.post('/me/2fa/desativar', ({ body, user, ip, roles }) => {
+    limitLogin(`${ip}|2fa|${user.id}`);
+    if ((roles || []).includes('admin')) fail(400, 'Para o administrador, a verificação em duas etapas é obrigatória.');
+    const u = db.prepare('SELECT totp_on, totp_segredo FROM users WHERE id = ?').get(user.id);
+    if (!u.totp_on) return { ok: true, duasEtapas: false };
+    if (!confere(abrir(u.totp_segredo), body.codigo)) fail(400, 'Código errado.');
+    db.prepare('UPDATE users SET totp_on = 0, totp_segredo = NULL WHERE id = ?').run(user.id);
+    avisarDono(user, 'A verificação em duas etapas foi desligada na sua conta.');
+    return { ok: true, duasEtapas: false };
+  });
 
   // ── Confirmar o e-mail ──
   // No cadastro vai um código de 6 números (vale 30 minutos). A pessoa confirma no app; enquanto não

@@ -62,7 +62,7 @@ export function publicUser(u, { self = false } = {}) {
     privacy: u.privacy,
     teste: !!u.teste, // conta de teste (selo "Teste" no perfil)
   };
-  if (self) Object.assign(out, { email: u.email, emailOk: !!u.email_ok, phone: u.phone, doc: u.doc, status: u.status, createdAt: u.created_at });
+  if (self) Object.assign(out, { email: u.email, emailOk: !!u.email_ok, duasEtapas: !!u.totp_on, phone: u.phone, doc: u.doc, status: u.status, createdAt: u.created_at });
   return out;
 }
 
@@ -163,6 +163,10 @@ export function createApp(cfg) {
         // Compra, contratação e carteira: só com a biometria aprovada (src/bioGate.js).
         exigirBiometria(db, cfg, route, req.method, ctx.user, ctx.roles);
         exigirPrazoBiometria(db, cfg, route, req.method, ctx.user, ctx.roles);
+        // Administrador: painel só com a verificação em duas etapas ligada (Google Authenticator).
+        if (cfg.admin2fa && ctx.user && (ctx.roles || []).includes('admin') && !ctx.user.totp_on && /^\/admin/.test(route.path)) {
+          throw new HttpError(403, 'Ative a verificação em duas etapas (Google Authenticator) no seu Perfil para usar o painel do administrador.', 'ativar_2fa');
+        }
         // Compras temporariamente bloqueadas (src/comprasGate.js).
         exigirComprasLiberadas(cfg, route, req.method, ctx.roles, ctx.user);
       }
