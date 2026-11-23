@@ -1072,6 +1072,39 @@ const MIGRATIONS = [
   );
   CREATE INDEX IF NOT EXISTS suporte_msgs_chamado ON suporte_msgs(chamado_id, created_at);
   `,
+  `
+  -- Date+: assinatura guardada no servidor (antes só no celular). until = até quando vale.
+  CREATE TABLE IF NOT EXISTS date_subs (
+    user_id TEXT PRIMARY KEY REFERENCES users(id),
+    plan_id TEXT NOT NULL,
+    started_at INTEGER NOT NULL,
+    until INTEGER NOT NULL,
+    renew INTEGER NOT NULL DEFAULT 1,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS date_sub_log (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    plan_id TEXT NOT NULL,
+    price INTEGER NOT NULL,
+    started_at INTEGER NOT NULL,
+    until INTEGER NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+  `,
+  `
+  -- Primeira tele grátis paga pelo Realyz (custo de marketing), contada no servidor com orçamento por mês.
+  CREATE TABLE IF NOT EXISTS tele_gratis (
+    id TEXT PRIMARY KEY,
+    mes TEXT NOT NULL,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    order_id TEXT NOT NULL,
+    valor INTEGER NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS tele_gratis_user ON tele_gratis(user_id);
+  CREATE INDEX IF NOT EXISTS tele_gratis_mes ON tele_gratis(mes);
+  `,
 ];
 
 export function openDb(file) {

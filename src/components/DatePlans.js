@@ -1,19 +1,32 @@
 // Planos do Date (Date+): cartão compacto e tela de assinatura com comparação com os concorrentes.
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert } from 'react-native';
 import { Text } from '../responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
 import { colors, brl } from '../theme';
+import { api } from '../api';
+import { conectado, carregarCarteira } from '../serverShop';
 import { DATE_PLANS, DATE_PLAN_PERKS, DATE_COMPETITORS, dateSub, planPoints, perMonth } from '../datePlans';
 
 const ROSE = '#E0567A';
 const day = (t) => new Date(t).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
+// Conta de verdade: a assinatura vem do servidor (vale em qualquer aparelho e no site).
+function useServerDateSub() {
+  const { state, dispatch } = useStore();
+  const on = conectado(state);
+  useEffect(() => {
+    if (on) api('GET', '/date/assinatura').then((r) => dispatch({ type: 'DATE_SUB_SERVER', sub: r.sub })).catch(() => {});
+  }, [on]);
+  return on;
+}
+
 // Cartão que aparece no Date: mostra a assinatura ou chama para assinar.
 export function DatePlanCard({ onOpen }) {
   const { state } = useStore();
+  useServerDateSub();
   const sub = dateSub(state);
   return (
     <TouchableOpacity style={[st.card, sub && { borderColor: ROSE }]} onPress={onOpen} activeOpacity={0.85} accessibilityLabel="Planos do Date">
@@ -33,8 +46,11 @@ export function DatePlansModal({ visible, onClose, reason }) {
   const [pick, setPick] = useState('mensal');
   const sub = dateSub(state);
   const plan = DATE_PLANS.find((p) => p.id === pick);
+  const real = useServerDateSub();
 
   const buy = (pay) => {
+    // Conta de verdade: paga com o saldo da carteira, pelo servidor.
+    if (real && pay === 'pontos') return Alert.alert('Date+', 'Na sua conta, o Date+ é pago com o saldo da carteira.');
     const cost = pay === 'pontos' ? `${planPoints(plan)} pontos` : brl(plan.price);
     if (pay === 'pontos' ? state.points < planPoints(plan) : state.wallet < plan.price)
       return Alert.alert(pay === 'pontos' ? 'Pontos insuficientes' : 'Saldo insuficiente', pay === 'pontos' ? `Você tem ${state.points} pontos.` : `Seu saldo é ${brl(state.wallet)}. Adicione saldo na Carteira.`);
@@ -43,6 +59,17 @@ export function DatePlansModal({ visible, onClose, reason }) {
       {
         text: 'Assinar',
         onPress: () => {
+          if (real) {
+            api('POST', '/date/assinatura', { planId: plan.id, pay })
+              .then((r) => {
+                dispatch({ type: 'DATE_SUB_SERVER', sub: r.sub });
+                carregarCarteira(dispatch).catch(() => {});
+                Alert.alert('Date+ ativo 💎', `Vale até ${day(r.sub.until)}.`);
+                onClose();
+              })
+              .catch((e) => Alert.alert('Não deu certo', e.message));
+            return;
+          }
           dispatch({ type: 'DATE_SUBSCRIBE', planId: plan.id, pay });
           onClose();
         },
@@ -97,7 +124,11 @@ export function DatePlansModal({ visible, onClose, reason }) {
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.buyText, { color: ROSE }]}>Usar pontos · {planPoints(plan)} pontos</Text>
           </TouchableOpacity>
           {sub ? (
-            <TouchableOpacity onPress={() => dispatch({ type: 'DATE_SUB_CANCEL' })} style={{ alignSelf: 'center', marginTop: 12 }}>
+            <TouchableOpacity onPress={() =>
+              real
+                ? api('POST', '/date/assinatura/cancelar').then((r) => dispatch({ type: 'DATE_SUB_SERVER', sub: r.sub })).catch((e) => Alert.alert('Não deu certo', e.message))
+                : dispatch({ type: 'DATE_SUB_CANCEL' })
+            } style={{ alignSelf: 'center', marginTop: 12 }}>
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.muted, fontWeight: '600' }}>{sub.renew === false ? 'Renovação cancelada' : 'Cancelar renovação'}</Text>
             </TouchableOpacity>
           ) : null}

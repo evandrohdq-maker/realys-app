@@ -9,6 +9,7 @@
 import { HttpError } from './http.js';
 
 export const ROTAS_DE_COMPRA = [
+  ['POST', '/date/assinatura'], // assinatura do Date+
   ['POST', '/orders'], // Shop e Food
   ['POST', '/events/:id/tickets'], // ingressos
   ['POST', '/tracks/comprar'], // músicas

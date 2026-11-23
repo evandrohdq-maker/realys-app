@@ -12,7 +12,7 @@ const ORDER_STATUS = ['Recebido', 'Preparando', 'A caminho', 'Entregue', 'Cancel
 // ENTREGUE (cancelado não paga), uma vez por pedido.
 export const INDICACAO = { pct: 2, minCents: 50, extraLojaPct: 5 };
 
-export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fiscal, protecao }) {
+export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fiscal, protecao, teleGratis }) {
   const companyOf = (userId) => db.prepare('SELECT * FROM companies WHERE owner_id = ?').get(userId);
   const myCompany = (user) => {
     const c = companyOf(user.id);
@@ -175,6 +175,8 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
     const refUser = body.ref ? db.prepare("SELECT id FROM users WHERE id = ? AND status = 'ativo' AND kind != 'sistema'").get(String(body.ref)) : null;
     const refId = refUser && refUser.id !== user.id ? refUser.id : null;
     const destino = Number.isFinite(Number(body.destLat)) && Number.isFinite(Number(body.destLng)) && body.destLat !== null ? { lat: Number(body.destLat), lng: Number(body.destLng) } : null;
+    // Primeira tele grátis: o servidor decide (só uma vez por pessoa, com orçamento do mês).
+    let teleGratisUsada = false;
     const created = tx(db, () => {
       const byCompany = new Map();
       for (const it of items) {
@@ -198,6 +200,7 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
         // Food (todos os itens com classe de cardápio) tem comissão própria; o resto é Shop.
         const isFood = g.lines.every((l) => l.p.classe);
         const fee = Math.round((total * (isFood ? cfg.foodFeePct : cfg.orderFeePct)) / 100);
+        if (isFood && !teleGratisUsada && teleGratis) teleGratisUsada = teleGratis.usar(user.id, id, total);
         const prot = protection;
         protection = 0;
         // O cliente paga os produtos + a taxa de proteção; a loja recebe só os produtos (menos a comissão).
@@ -223,7 +226,7 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
       return out;
     });
     for (const o of created) hub.send(o.owner, 'order', { id: o.id, buyer: user.name, total: toReais(o.total), status: 'Recebido' });
-    return { orders: created.map((o) => ({ id: o.id, company: o.company, total: toReais(o.total), protection: toReais(o.prot), fromGift: toReais(o.fromGift), fromWallet: toReais(o.fromWallet), status: 'Recebido' })) };
+    return { teleGratis: teleGratisUsada, orders: created.map((o) => ({ id: o.id, company: o.company, total: toReais(o.total), protection: toReais(o.prot), fromGift: toReais(o.fromGift), fromWallet: toReais(o.fromWallet), status: 'Recebido' })) };
   }, { status: 201 });
 
   const orderView = (o) => ({
@@ -232,6 +235,10 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
     items: db.prepare('SELECT product_id AS productId, name, price, qty FROM order_items WHERE order_id = ?').all(o.id).map((i) => ({ ...i, price: toReais(i.price) })),
   });
   const ORDER_SQL = 'SELECT o.*, c.name AS company_name, b.name AS buyer_name FROM orders o JOIN companies c ON c.id = o.company_id JOIN users b ON b.id = o.buyer_id';
+
+  // Primeira tele grátis: o carrinho pergunta se a pessoa ainda tem; o painel do administrador vê o orçamento.
+  r.get('/food/tele-gratis', ({ user }) => (teleGratis ? teleGratis.status(user.id) : { elegivel: false }));
+  r.get('/admin/tele-gratis', () => (teleGratis ? teleGratis.painel() : null), { auth: 'admin' });
 
   // Meus pedidos (compras) e pedidos da minha loja (vendas).
   r.get('/orders', ({ user }) => db.prepare(`${ORDER_SQL} WHERE o.buyer_id = ? ORDER BY o.created_at DESC LIMIT 50`).all(user.id).map(orderView));

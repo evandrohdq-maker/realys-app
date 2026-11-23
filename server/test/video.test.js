@@ -92,7 +92,17 @@ test('chamada 1 para 1: tocar, atender, sinalizar e encerrar', async () => {
   assert.match(turn.username, /^\d+:/);
 });
 
-test('Date: só chama quem está online; offline não chega no celular', async () => {
+test('Date: só assinante do Date+ chama, e só quem está online', async () => {
+  const sem = await api(base, 'POST', '/video-calls', { who: 'Fã', body: { to: S.Streamer.id, kind: 'video', ctx: 'date' } });
+  assert.equal(sem.status, 402); // sem Date+: o servidor recusa (não só o app)
+  assert.equal((await api(base, 'POST', '/date/assinatura', { who: 'Fã', body: { planId: 'mensal' } })).status, 402); // sem saldo
+  await api(base, 'POST', '/wallet/deposit', { who: 'Fã', body: { amount: 30, method: 'pix' } });
+  const a = await api(base, 'POST', '/date/assinatura', { who: 'Fã', body: { planId: 'mensal' } });
+  assert.equal(a.status, 200, JSON.stringify(a.data));
+  assert.ok(a.data.sub.until > Date.now() + 29 * 86400000);
+  const b = await api(base, 'POST', '/date/assinatura', { who: 'Fã', body: { planId: 'semanal' } });
+  assert.ok(b.data.sub.until > a.data.sub.until + 6 * 86400000); // os dias somam no fim
+  assert.equal((await api(base, 'POST', '/date/assinatura/cancelar', { who: 'Fã' })).data.sub.renew, false);
   const r = await api(base, 'POST', '/video-calls', { who: 'Fã', body: { to: S.Streamer.id, kind: 'video', ctx: 'date' } });
   assert.equal(r.status, 409); // ninguém conectado no teste: a pessoa está offline
 });

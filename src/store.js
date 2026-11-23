@@ -1939,6 +1939,13 @@ function baseReducer(state, a) {
             encontros: enc,
           };
     }
+    case 'TELE_GRATIS_SERVER':
+      return { ...state, teleGratisSrv: a.status || null };
+    case 'DATE_SUB_SERVER': {
+      // Assinatura de verdade (servidor): o servidor é quem manda; o app só mostra.
+      const sub = a.sub ? { planId: a.sub.planId, title: a.sub.title, start: a.sub.start, until: a.sub.until, renew: a.sub.renew, server: true } : null;
+      return { ...state, encontros: { ...state.encontros, sub } };
+    }
     case 'DATE_SUB_CANCEL':
       // Cancelar só desliga a renovação: o que já foi pago vale até o fim.
       return state.encontros && state.encontros.sub ? { ...state, encontros: { ...state.encontros, sub: { ...state.encontros.sub, renew: false } } } : state;

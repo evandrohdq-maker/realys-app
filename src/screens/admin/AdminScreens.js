@@ -32,6 +32,32 @@ function CaixaRealyz() {
   );
 }
 
+// Primeira tele grátis (servidor): quanto o Realyz já pagou neste mês e quanto sobra do orçamento.
+function TeleGratisAdmin() {
+  const [t, setT] = useState(null);
+  useEffect(() => {
+    if (!serverOn()) return;
+    api('GET', '/admin/tele-gratis').then(setT).catch(() => setT(null));
+  }, []);
+  if (!t) return null;
+  const pct = t.orcamento ? Math.min(100, Math.round((t.gasto / t.orcamento) * 100)) : 0;
+  return (
+    <Card>
+      <Text style={{ fontWeight: '800', color: colors.text, fontSize: 16 }}>🛵 Primeira tele grátis · {t.mes}</Text>
+      <Row style={{ justifyContent: 'space-between', marginTop: 6 }}>
+        <Text style={{ color: colors.muted }}>{t.pedidos} pedido{t.pedidos === 1 ? '' : 's'} · gasto do mês</Text>
+        <Text style={{ color: colors.text, fontWeight: '800' }}>{brl(t.gasto)} de {brl(t.orcamento)}</Text>
+      </Row>
+      <View style={{ height: 8, borderRadius: 4, backgroundColor: colors.border, marginTop: 8, overflow: 'hidden' }}>
+        <View style={{ width: `${pct}%`, height: 8, backgroundColor: t.pausada ? '#C0392B' : colors.primary }} />
+      </View>
+      <Text style={{ color: t.pausada ? '#C0392B' : colors.muted, fontSize: 12, marginTop: 6 }}>
+        {t.pausada ? 'Orçamento do mês acabou: a promoção está pausada até o mês que vem.' : `Sobram ${brl(t.restante)}. Para mudar o orçamento: TELE_GRATIS_ORCAMENTO no .env do servidor.`}
+      </Text>
+    </Card>
+  );
+}
+
 // Central de segurança (com o servidor no ar): lista os alertas abertos e atualiza sozinha.
 const KIND_LABEL = { chave: 'Chave do motorista', coacao: 'Coação (resposta de segurança)', perigo: 'Em perigo agora', denuncia: 'Denúncia', emergencia: 'Emergência médica' };
 function CentralSeguranca() {
@@ -205,6 +231,7 @@ export function AdminOverview() {
       <AnalystBanner />
       <Title sub="Controle geral da plataforma Realyz">Administração</Title>
       <CaixaRealyz />
+      <TeleGratisAdmin />
       <PedidosPlanoAdmin />
       <ContasTesteAdmin />
       <CrmClosings />

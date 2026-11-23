@@ -19,6 +19,7 @@
 import { makeImageModerator } from '../moderacaoImagem.js';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { fail, newId, now, str } from '../http.js';
+import { dateSubOf } from './date.js';
 
 const b64u = (b) => Buffer.from(b).toString('base64url');
 const sign = (secret, payload) => {
@@ -248,6 +249,8 @@ export default function videoRoutes(r, { db, cfg, hub, publicUser, userById }) {
     if (!userById(to)) fail(404, 'Pessoa não encontrada.');
     // Date: só chama quem está online agora. Se não estiver, nada chega no celular da pessoa.
     const ctx = body.ctx === 'date' ? 'date' : null;
+    // Chamada do Date é só para assinantes do Date+ (conferido aqui, não só no app).
+    if (ctx === 'date' && !dateSubOf(db, user.id)) fail(402, 'Chamar por vídeo no Date é para assinantes do Date+.', 'date_plus');
     if (ctx === 'date' && !hub.online(to)) fail(409, 'A pessoa está offline no Date. A chamada só pode ser feita com ela online.', 'offline');
     const c = { id: newId('call'), from: user.id, to, kind: body.kind === 'audio' ? 'audio' : 'video', ctx, status: 'tocando', at: now() };
     calls.set(c.id, c);
@@ -259,6 +262,7 @@ export default function videoRoutes(r, { db, cfg, hub, publicUser, userById }) {
   r.post('/video-calls/:id/answer', ({ params, body, user }) => {
     const c = callOf(params.id, user.id);
     if (c.to !== user.id) fail(403, 'Só quem recebeu pode atender.');
+    if (c.ctx === 'date' && body.accept && !dateSubOf(db, user.id)) fail(402, 'Para entrar na chamada do Date é preciso ser assinante do Date+.', 'date_plus');
     c.status = body.accept ? 'em_andamento' : 'recusada';
     c.at = now();
     hub.send(c.from, 'call-answer', { id: c.id, accept: !!body.accept });

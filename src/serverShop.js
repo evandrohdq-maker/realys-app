@@ -174,6 +174,8 @@ export async function finalizarCompra(state, dispatch, { address } = {}) {
         ...(state.indicacao && state.indicacao.ref ? { ref: state.indicacao.ref } : {}),
         ...(ponto ? { destLat: ponto.lat, destLng: ponto.lon } : {}),
       });
+      // A primeira tele grátis já foi usada (ou não): pergunta de novo ao servidor.
+      api('GET', '/food/tele-gratis').then((st) => dispatch({ type: 'TELE_GRATIS_SERVER', status: st })).catch(() => {});
       dispatch({ type: 'SERVER_ORDERS_PLACED', productIds: srvLines.map((c) => c.productId), orders: r.orders.map((o) => orderFromServer({ ...o, items: itemsOf(state, srvLines, o.company) })) });
       carregarCarteira(dispatch).catch(() => {});
       carregarCatalogo(dispatch).catch(() => {}); // estoque novo

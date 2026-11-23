@@ -29,7 +29,10 @@ export function teleDoCarrinho(state, foodStores, subtotal) {
   const tele = TELE_PADRAO;
   const loja = foodStores.find((s) => s.teleGratis && subtotal >= (s.teleGratisMin || LOJA_MINIMO_PADRAO));
   if (loja) return { tele, cliente: 0, pagaLoja: tele, pagaRealys: 0, motivo: 'loja', texto: `Tele grátis por conta de ${loja.name}` };
-  if (!jaPediuComida(state) && subtotal >= PRIMEIRA_TELE.minimoPedido && orcamentoRestante(state) >= tele) {
+  // Conta de verdade: quem decide é o servidor (state.teleGratisSrv, vindo de GET /food/tele-gratis).
+  const srv = state.teleGratisSrv;
+  const podePrimeira = srv ? srv.elegivel : !jaPediuComida(state) && orcamentoRestante(state) >= tele;
+  if (podePrimeira && subtotal >= PRIMEIRA_TELE.minimoPedido) {
     return { tele, cliente: 0, pagaLoja: 0, pagaRealys: tele, motivo: 'primeira', texto: 'Primeira tele grátis: presente do Realyz' };
   }
   const aviso = foodStores.find((s) => s.teleGratis);

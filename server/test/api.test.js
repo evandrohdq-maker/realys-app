@@ -120,6 +120,23 @@ test('loja e pedidos: preço do servidor, presente primeiro, estoque, cancelamen
   await ok('POST', '/ratings', { who: 'beto', body: { targetKind: 'order', targetId: o2.orders[0].id, stars: 5, comment: 'Quentinha!' } });
 });
 
+test('Food: primeira tele grátis só uma vez por pessoa e contada no orçamento do mês', async () => {
+  const p = await ok('POST', '/products', { who: 'pizza', body: { name: 'Calzone', price: 35, stock: 10, classe: 'pizzaria', modos: ['entrega'] } });
+  await ok('POST', '/wallet/deposit', { who: 'ana', body: { amount: 200, method: 'pix' } });
+  assert.equal((await ok('GET', '/food/tele-gratis', { who: 'ana' })).elegivel, true);
+  const o = await ok('POST', '/orders', { who: 'ana', body: { items: [{ productId: p.id, qty: 1 }], address: 'Rua B, 1' } });
+  assert.equal(o.teleGratis, true);
+  assert.equal((await ok('GET', '/food/tele-gratis', { who: 'ana' })).elegivel, false);
+  const o2 = await ok('POST', '/orders', { who: 'ana', body: { items: [{ productId: p.id, qty: 1 }] } });
+  assert.equal(o2.teleGratis, false); // segunda vez não
+  const adm = await ok('POST', '/auth/login', { body: { login: 'chefe', password: 'Admin12345' } });
+  const res = await fetch(base + '/admin/tele-gratis', { headers: { Authorization: `Bearer ${adm.accessToken}` } });
+  const painel = await res.json();
+  assert.equal(painel.pedidos, 1);
+  assert.equal(painel.gasto, 8);
+  assert.equal(painel.orcamento, 3000);
+});
+
 test('lives: live de jogo transmite a tela do celular', async () => {
   const live = await ok('POST', '/lives', { who: 'ana', body: { cat: 'gamers', title: 'Free Fire ranqueada', source: 'tela' } });
   assert.equal(live.source, 'tela');

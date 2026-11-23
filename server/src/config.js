@@ -82,6 +82,8 @@ export function loadConfig(overrides = {}) {
     iaTimeoutMs: num(env.IA_TIMEOUT_MS, 45000),
     // Taxa de proteção Realyz: valor fixo por compra (carrinho), pago pelo cliente, a qualquer hora (sem taxa noturna).
     protectionFee: num(env.PROTECTION_FEE, 0.99),
+    // Orçamento por mês (R$) da primeira tele grátis paga pelo Realyz (src/teleGratis.js).
+    teleGratisOrcamento: num(env.TELE_GRATIS_ORCAMENTO, 3000),
     withdrawMin: num(env.WITHDRAW_MIN, 10),
     // Servidor de vídeo próprio (MediaMTX + coturn numa VPS, ver deploy/video/LEIA-ME.md).
     // Vazio = ainda não contratado: as lives ficam no modo demonstração.

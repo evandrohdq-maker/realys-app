@@ -2,7 +2,7 @@
 // Abre pelo ícone discreto no topo (só aparece quando há itens), pela barra da loja ou pedindo
 // à Lotus ("abre meu carrinho"). dispatch({ type: 'OPEN_CART' }).
 import { optionsLabel } from '../productOptions';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { realWidth, DESK_MIN } from '../webFrame';
 import { Text } from '../responsive';
@@ -19,12 +19,18 @@ import { protectionFee, PROTECTION_TEXT } from '../guarantee';
 import { teleDoCarrinho } from '../teleGratis';
 import { isFoodStore } from '../data';
 import MusicCart, { musicCartCount } from './MusicCart';
-import { finalizarCompra, aPagar } from '../serverShop';
+import { finalizarCompra, aPagar, conectado } from '../serverShop';
+import { api } from '../api';
 
 const NIGHT = '#0B1124';
 
 export default function CartSheet({ onOrders }) {
   const { state, dispatch } = useStore();
+  // Conta de verdade: o servidor diz se a pessoa ainda tem a primeira tele grátis (e se o orçamento do mês acabou).
+  const real = conectado(state);
+  useEffect(() => {
+    if (real && state.cartOpen) api('GET', '/food/tele-gratis').then((st) => dispatch({ type: 'TELE_GRATIS_SERVER', status: st })).catch(() => {});
+  }, [real, state.cartOpen]);
   const insets = useSafeAreaInsets();
   if (!state.cartOpen) return null;
   const close = () => dispatch({ type: 'CLOSE_CART' });
