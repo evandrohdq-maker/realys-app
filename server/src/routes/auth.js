@@ -224,10 +224,23 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
     let u = db.prepare('SELECT * FROM users WHERE id = ?').get(user.id);
     const novo = String(body.email || '').trim().toLowerCase();
     if (novo && novo !== String(u.email || '').toLowerCase()) {
+      // Cadastrar ou trocar o e-mail é coisa séria (é por ele que se recupera a conta): pede a senha e,
+      // se já tinha e-mail e a conta tem biometria, o rosto também. O e-mail antigo e o celular são avisados.
+      if (!body.senha || !checkPassword(String(body.senha), u.pass_hash)) fail(403, 'Digite sua senha para cadastrar ou trocar o e-mail.', 'senha_email');
+      if (u.email && biometria.hasBiometria(u.id) && !biometria.consumeDeviceToken(u.id, String(body.deviceKey || '').slice(0, 80), body.aparelhoToken)) {
+        fail(403, 'Confirme seu rosto para trocar o e-mail.', 'biometria_aparelho');
+      }
       if (!validEmail(novo)) fail(400, 'E-mail inválido.');
       if (db.prepare('SELECT 1 FROM users WHERE lower(email) = ? AND id != ?').get(novo, u.id)) fail(409, 'Esse e-mail já está em outra conta.');
+      const antigo = u.email;
       db.prepare('UPDATE users SET email = ?, email_ok = 0 WHERE id = ?').run(novo, u.id);
       u = db.prepare('SELECT * FROM users WHERE id = ?').get(user.id);
+      avisarDono(u, antigo ? 'O e-mail da sua conta foi trocado. Se não foi você, fale com o suporte do Realyz.' : 'Um e-mail foi cadastrado na sua conta.');
+      if (antigo) {
+        mailer
+          .send({ to: antigo, subject: 'Realyz: o e-mail da sua conta foi trocado', text: `Olá, ${u.name}!\n\nO e-mail da sua conta no Realyz foi trocado para outro endereço.\nSe não foi você, fale com o suporte do Realyz o quanto antes.` })
+          .catch(() => {});
+      }
     }
     if (u.email_ok) return { ok: true, emailOk: true, email: u.email };
     if (!u.email) fail(400, 'Cadastre um e-mail primeiro.');
