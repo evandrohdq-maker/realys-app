@@ -4,10 +4,9 @@ name: Testar o APK em celulares (Firebase Test Lab)
 # robô vai tocando nas telas, procurando travamentos. O relatório fica no resumo desta execução (aba
 # Actions) e no console do Firebase (projeto realyz-70ae7 › Test Lab).
 # Precisa do segredo FIREBASE_TESTLAB_KEY (chave JSON da conta de serviço) em Settings › Secrets › Actions.
+# PAUSADO (nov/2026): o Google pede conta de cobrança no projeto para guardar os resultados.
+# Para voltar a rodar sozinho depois de cada APK, devolver o bloco workflow_run abaixo.
 on:
-  workflow_run:
-    workflows: ['Gerar APK do Re@lys']
-    types: [completed]
   # Rodar na mão (aba Actions): testa o último APK gerado.
   workflow_dispatch:
 
