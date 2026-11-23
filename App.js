@@ -352,6 +352,9 @@ function Shell({ inviteTick }) {
   const switchRole = (role, tabKey) => {
     history.current = [...history.current, { role: state.activeRole, tab }].slice(-30);
     pendingTab.current = tabKey || null;
+    // Troca a aba junto com o perfil, no mesmo quadro: sem isso aparecia a 1ª aba (Community) por um
+    // instante antes de abrir o Perfil.
+    if (TABS[role]) setTabRaw(tabKey && TABS[role].some((t) => t.key === tabKey) ? tabKey : TABS[role][0].key);
     dispatch({ type: 'SET_ROLE', role });
   };
 
@@ -412,6 +415,7 @@ function Shell({ inviteTick }) {
     if (prev) {
       if (prev.role !== role && TABS[prev.role] && state.user.roles.includes(prev.role)) {
         pendingTab.current = prev.tab;
+        setTabRaw(TABS[prev.role].some((t) => t.key === prev.tab) ? prev.tab : TABS[prev.role][0].key);
         dispatch({ type: 'SET_ROLE', role: prev.role });
       } else if (TABS[role].some((t) => t.key === prev.tab)) {
         setTabRaw(prev.tab);
