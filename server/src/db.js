@@ -1046,6 +1046,32 @@ const MIGRATIONS = [
   );
   CREATE INDEX IF NOT EXISTS buscas_quando ON buscas(created_at);
   `,
+  `
+  -- Suporte: chamados entre o usuário e a equipe do Realyz (antes ficavam só no celular).
+  CREATE TABLE IF NOT EXISTS suporte_chamados (
+    id TEXT PRIMARY KEY,
+    n INTEGER NOT NULL,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    topic TEXT NOT NULL,
+    urgent INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL CHECK (status IN ('aberto','respondido','resolvido')),
+    lotus_tried INTEGER NOT NULL DEFAULT 0,
+    rating INTEGER,
+    unread_user INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS suporte_user ON suporte_chamados(user_id, updated_at DESC);
+  CREATE TABLE IF NOT EXISTS suporte_msgs (
+    id TEXT PRIMARY KEY,
+    chamado_id TEXT NOT NULL REFERENCES suporte_chamados(id),
+    autor TEXT NOT NULL CHECK (autor IN ('user','team','system')),
+    by_name TEXT,
+    text TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS suporte_msgs_chamado ON suporte_msgs(chamado_id, created_at);
+  `,
 ];
 
 export function openDb(file) {

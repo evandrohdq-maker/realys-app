@@ -14,6 +14,8 @@ import { now } from './http.js';
 const short = (s, n = 90) => (String(s || '').length > n ? String(s).slice(0, n - 1) + '…' : String(s || ''));
 const brl = (v) => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
 export const AVISOS = {
+  suporte: (d) => ({ title: `Suporte Realyz${d.n ? ` · chamado nº ${d.n}` : ''}`, body: short(d.texto || 'A equipe respondeu o seu chamado.'), go: { tab: 'perfil', suporte: true } }),
+  'suporte-novo': (d) => ({ title: d.urgent ? 'Chamado com prioridade 🔴' : 'Chamado novo no suporte', body: `Chamado nº ${d.n}`, go: { tab: 'suporte' } }),
   seguranca: (d) => ({ title: d.title || 'Segurança da sua conta 🔒', body: short(d.text), go: { tab: 'perfil' } }),
   message: (d) => ({ title: d.fromName || 'Nova mensagem', body: short(d.text), go: { chat: { userId: d.from, name: d.fromName || '' } } }),
   call: (d) => ({ title: 'Chamado de serviço', body: `${d.client || 'Cliente'} · ${d.service || ''} · ${d.status || 'novo'}`, go: { tab: 'pedidos', seg: 'servicos' } }),

@@ -2,9 +2,11 @@
 // 1) Perguntas frequentes. 2) A Lotus responde na hora as dúvidas comuns. 3) O que ela não resolve
 // vira um chamado, que a equipe responde pelo painel do administrador (aba Suporte).
 // Assuntos de dinheiro, conta bloqueada e biometria entram na frente da fila.
-// Na demonstração fica salvo no celular; com o servidor, os chamados passam por ele.
+// Na demonstração fica salvo no celular; com o servidor, os chamados passam por ele (server/src/routes/suporte.js):
+// o usuário e a equipe enxergam o mesmo chamado, e a resposta chega na hora (WebSocket ou notificação).
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { api, serverOn, connectEvents } from './api';
 
 export const SUPPORT_TOPICS = [
   { key: 'pagamento', label: 'Pagamento e carteira', icon: 'wallet-outline', urgent: true },
@@ -62,12 +64,53 @@ const subs = new Set();
 const emit = () => subs.forEach((fn) => fn());
 const save = () => AsyncStorage.setItem(KEY, JSON.stringify(tickets)).catch(() => {});
 
+// ── Com o servidor ──
+// Cada chamado guarda o id do servidor em srvId (o id da tela não muda depois de enviar).
+const srv = () => serverOn();
+const fromServer = (x) => {
+  const local = tickets.find((t) => t.srvId === x.id || t.id === x.id);
+  return { ...x, id: local ? local.id : x.id, srvId: x.id, messages: (x.messages || []).map((m) => ({ ...m, time: hhmm(m.at) })) };
+};
+let events = null;
+let carregando = null;
+export function refreshSupport() {
+  if (!srv()) return Promise.resolve(tickets);
+  if (carregando) return carregando;
+  // Os meus chamados e, se eu for da equipe, a fila inteira (quem não é recebe 403 e fica só com os seus).
+  carregando = Promise.all([api('GET', '/suporte/chamados').catch(() => null), api('GET', '/admin/suporte').catch(() => null)])
+    .then(([meus, fila]) => {
+      if (!meus && !fila) return tickets;
+      const all = new Map();
+      [...(fila || []), ...(meus || [])].forEach((x) => all.set(x.id, fromServer(x)));
+      // Mantém o que ainda está sendo enviado (sem srvId).
+      const enviando = tickets.filter((t) => !t.srvId);
+      tickets = [...enviando, ...all.values()].sort((a, b) => b.updatedAt - a.updatedAt);
+      emit();
+      return tickets;
+    })
+    .finally(() => (carregando = null));
+  return carregando;
+}
+const putServer = (localId, x) => {
+  if (!x || !x.id) return;
+  tickets = tickets.map((t) => (t.id === localId ? { ...fromServer(x), id: localId } : t));
+  emit();
+};
+const falhou = (e) => {
+  try {
+    require('react-native').Alert.alert('Suporte', (e && e.message) || 'Não deu para enviar agora. Confira a internet e tente de novo.');
+  } catch (er) {}
+};
+
 export function useSupport() {
   const [, tick] = useState(0);
   useEffect(() => {
     const fn = () => tick((n) => n + 1);
     subs.add(fn);
-    if (!loaded) {
+    if (srv()) {
+      refreshSupport();
+      if (!events) events = connectEvents((e) => /^suporte/.test(e.type) && refreshSupport());
+    } else if (!loaded) {
       loaded = true;
       AsyncStorage.getItem(KEY)
         .then((raw) => {
@@ -103,23 +146,46 @@ export function openTicket({ user, topic, text, lotusTried }) {
     lotusTried: !!lotusTried,
   };
   tickets = [ticket, ...tickets];
+  if (srv()) {
+    emit();
+    api('POST', '/suporte/chamados', { topic: t.key, text, lotusTried: !!lotusTried })
+      .then((x) => putServer(ticket.id, x))
+      .catch((e) => {
+        tickets = tickets.filter((k) => k.id !== ticket.id);
+        emit();
+        falhou(e);
+      });
+    return ticket;
+  }
   save();
   emit();
   return ticket;
 }
-const patch = (id, fn) => {
+// Muda na tela na hora; com o servidor, envia e depois fica com a versão do servidor.
+const patch = (id, fn, send) => {
+  const t0 = tickets.find((t) => t.id === id);
   tickets = tickets.map((t) => (t.id === id ? fn(t) : t));
-  save();
   emit();
+  if (srv()) {
+    if (send && t0 && t0.srvId) send(t0.srvId).then((x) => x && x.id && putServer(id, x)).catch((e) => (falhou(e), refreshSupport()));
+    return;
+  }
+  save();
 };
-export const userReply = (id, text) => patch(id, (t) => ({ ...t, status: 'aberto', updatedAt: Date.now(), messages: [...t.messages, msg('user', text)] }));
-export const teamReply = (id, text, by = 'Equipe Realyz') => patch(id, (t) => ({ ...t, status: 'respondido', updatedAt: Date.now(), unreadUser: (t.unreadUser || 0) + 1, messages: [...t.messages, { ...msg('team', text), by }] }));
+export const userReply = (id, text) => patch(id, (t) => ({ ...t, status: 'aberto', updatedAt: Date.now(), messages: [...t.messages, msg('user', text)] }), (s) => api('POST', `/suporte/chamados/${s}/msg`, { text }));
+export const teamReply = (id, text, by = 'Equipe Realyz') => patch(id, (t) => ({ ...t, status: 'respondido', updatedAt: Date.now(), unreadUser: (t.unreadUser || 0) + 1, messages: [...t.messages, { ...msg('team', text), by }] }), (s) => api('POST', `/admin/suporte/${s}/msg`, { text, by }));
 export const closeTicket = (id, by = 'user') =>
-  patch(id, (t) => ({ ...t, status: 'resolvido', updatedAt: Date.now(), messages: [...t.messages, msg('system', by === 'user' ? 'Você marcou o chamado como resolvido.' : 'A equipe encerrou o chamado. Se precisar, é só responder para reabrir.')] }));
-export const rateTicket = (id, stars) => patch(id, (t) => ({ ...t, rating: stars }));
-export const markRead = (id) => patch(id, (t) => (t.unreadUser ? { ...t, unreadUser: 0 } : t));
+  patch(
+    id,
+    (t) => ({ ...t, status: 'resolvido', updatedAt: Date.now(), messages: [...t.messages, msg('system', by === 'user' ? 'Você marcou o chamado como resolvido.' : 'A equipe encerrou o chamado. Se precisar, é só responder para reabrir.')] }),
+    (s) => api('POST', by === 'user' ? `/suporte/chamados/${s}/fechar` : `/admin/suporte/${s}/fechar`)
+  );
+export const rateTicket = (id, stars) => patch(id, (t) => ({ ...t, rating: stars }), (s) => api('POST', `/suporte/chamados/${s}/nota`, { stars }));
+export const markRead = (id) => patch(id, (t) => (t.unreadUser ? { ...t, unreadUser: 0 } : t), (s) => api('POST', `/suporte/chamados/${s}/lido`).then(() => null));
 
 export const ticketsOf = (user) => {
+  // Com o servidor: os meus são os que o servidor devolveu com o meu id da conta (ou que eu acabei de abrir).
+  if (srv() && user && user.serverId) return tickets.filter((t) => t.userId === user.serverId || !t.srvId);
   const uid = user && (user.id || user.username || user.name);
   return tickets.filter((t) => t.userId === uid);
 };
