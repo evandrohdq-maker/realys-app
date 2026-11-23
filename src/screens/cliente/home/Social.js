@@ -25,7 +25,8 @@ import { BLOCK_TEXT } from '../../../orderContact';
 import { LiveStage, openRealLive, endRealLive, realLivesOf } from '../../../components/LiveVideo';
 import { serverOn, api, connectEvents } from '../../../api';
 import { setOpeningCurtain, onScreenPauseChange } from '../../../screenShare';
-import { webrtcOk } from '../../../video';
+import { webrtcOk, openPip, closePip } from '../../../video';
+import { setLiveKeep } from '../../../liveKeep';
 import { useArena, arenaVoiceRooms, arenaRoom, arenaServerOf, joinArenaVoice, leaveArenaVoice } from '../../../arena';
 
 const now = () => {
@@ -394,6 +395,15 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
   const type = cat === 'cursos' || cat === 'faculdades' ? 'aula' : cat === 'compras' ? 'venda' : 'papo';
   // Live de verdade (servidor de vídeo contratado): id da live no servidor.
   const [realId, setRealId] = useState(null);
+  // Só no computador: minha câmera numa janelinha do navegador (Picture-in-Picture). A tela da live some,
+  // dá para navegar no Realyz e a transmissão continua. Fechar a janelinha volta para a live.
+  const [mini, setMini] = useState(false);
+  const podePip = !!(mine && onAir && realId && source === 'camera' && openPip && Platform.OS === 'web' && Dimensions.get('window').width >= 1000);
+  const abrirPip = async () => {
+    const w = await openPip('minha-live', () => setMini(false));
+    if (w) setMini(true), setLiveKeep(true);
+    else Alert.alert('Janelinha', 'Este navegador não deixou abrir a janelinha. No Chrome ou no Edge funciona.');
+  };
   // Fonte da live: câmera ou a tela do celular (lives de jogos).
   const [source, setSource] = useState('camera');
   // Cortina ao abrir o jogo: tempo (s) que a tela fica escondida depois de sair do Realyz,
@@ -409,6 +419,9 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
   const teamRooms = mine && !onAir ? arenaVoiceRooms(myName).slice(0, 6) : [];
   const teamRoom = mine && onAir && team ? arenaRoom(arena.voice) : null;
   const close = () => {
+    if (mini) closePip();
+    setMini(false);
+    setLiveKeep(false);
     if (mine && onAir && team) leaveArenaVoice(myName);
     if (mine && onAir) dispatch({ type: 'LIVE_END' });
     if (realId) endRealLive(realId);
@@ -476,7 +489,6 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
     if (!visible || !onAir || realId || (live && live.real)) return;
     const names = ['Ana', 'Diego', 'Lívia', 'Rogério', 'Paula', 'Marcos', 'Bia'];
     const t = setInterval(() => {
-      setSecs((s) => s + 1);
       setViewers((v) => v + Math.floor(Math.random() * (mine ? 3 : 6)) - (mine ? 0 : 1));
     }, 1000);
     const c = setInterval(() => {
@@ -502,6 +514,19 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
       clearInterval(c);
     };
   }, [visible, onAir, realId]);
+
+  // Saiu da tela da live (fechou ou desmontou): a aba não precisa mais ficar guardada.
+  useEffect(() => () => setLiveKeep(false), []);
+  useEffect(() => {
+    if (!visible) setLiveKeep(false);
+  }, [visible]);
+
+  // Relógio da live: anda sempre que a live está no ar, inclusive nas de verdade (antes ficava em 00:00).
+  useEffect(() => {
+    if (!visible || !onAir) return;
+    const t = setInterval(() => setSecs((s) => s + 1), 1000);
+    return () => clearInterval(t);
+  }, [visible, onAir]);
 
   // Live de jogo (tela): com o Realyz aberto a tela fica escondida; ao sair, espera o tempo da cortina
   // (passar pela tela inicial e abrir o jogo) e só então libera. Voltou ao Realyz: esconde de novo.
@@ -569,7 +594,7 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
   };
 
   return (
-    <Modal videoHost deskFull={full} visible={visible} animationType="slide" supportedOrientations={['portrait', 'landscape']} onRequestClose={full ? rot.exit : close}><KeyboardLift style={{ flex: 1, backgroundColor: deskLive ? '#F1EBDD' : '#03050A' }}>
+    <Modal videoHost deskFull={full} deskHidden={mini} visible={visible} animationType="slide" supportedOrientations={['portrait', 'landscape']} onRequestClose={full ? rot.exit : close}><KeyboardLift style={{ flex: 1, backgroundColor: deskLive ? '#F1EBDD' : '#03050A' }}>
       <Animated.View style={[{ flex: 1, backgroundColor: '#03050A', transform: [{ translateY: slide }] }, deskLive && styles.liveDesk]} {...(mine || full ? {} : swipe.panHandlers)}>
         {live ? <Photo uri={live.photo ? live.photo.replace('800/500', '800/1400') : null} style={StyleSheet.absoluteFill} fallback="🎥" /> : null}
         {mine ? (
@@ -656,6 +681,11 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
               }}
             >
               <Ionicons name="remove" size={22} color="#FFFFFF" />
+            </TouchableOpacity>
+          ) : null}
+          {podePip ? (
+            <TouchableOpacity style={[styles.iconBtnDark, { marginRight: 8 }]} onPress={abrirPip} accessibilityLabel="Janelinha: continuar ao vivo e navegar no Realyz">
+              <Ionicons name="albums-outline" size={19} color="#FFFFFF" />
             </TouchableOpacity>
           ) : null}
           <TouchableOpacity style={styles.iconBtnDark} onPress={close} accessibilityLabel="Fechar">

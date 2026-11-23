@@ -21,6 +21,9 @@ export function LiveStage({ liveId, mine, onAir, onError, screen, viewScreen }) 
   const [stream, setStream] = useState(null);
   const [loading, setLoading] = useState(false);
   const [screenOn, setScreenOn] = useState(false);
+  // Quem assiste: o que está acontecendo, em palavras (no lugar do "Conectando…" que não acabava).
+  const [aviso, setAviso] = useState(null);
+  const [tentativa, setTentativa] = useState(0);
   const flip = useRef(null);
   useEffect(() => {
     if (!onAir || !RTCView) return;
@@ -28,37 +31,80 @@ export function LiveStage({ liveId, mine, onAir, onError, screen, viewScreen }) 
     if (!liveId && !(mine && screen)) return;
     let alive = true;
     let session = null;
+    let retry = null;
     setLoading(true);
+    setAviso(null);
+    // Quem assiste tenta de novo sozinho a cada 6 s enquanto a imagem não chega.
+    const deNovo = (msg) => {
+      if (!alive) return;
+      setAviso(msg);
+      retry = setTimeout(() => alive && setTentativa((n) => n + 1), 6000);
+    };
     (async () => {
       try {
-        const st = liveId ? await videoStatus() : { on: false };
+        const st = liveId ? await videoStatus(tentativa > 0) : { on: false };
         if (mine && screen && !st.on) {
           const s = await openScreen();
           session = { stop: () => s.getTracks().forEach((t) => t.stop()) };
           if (alive) setScreenOn(true);
           return;
         }
-        if (!st.on) return;
+        if (!st.on) {
+          if (!mine) deNovo(st.reason === 'offline' ? 'Sem ligação com o Realyz agora. Tentando de novo…' : 'O vídeo das lives não está ligado neste aparelho.');
+          return;
+        }
         if (mine) {
-          session = await startBroadcast(liveId, { screen });
+          session = await startBroadcast(liveId, {
+            screen,
+            onState: (c) => c === 'failed' && onError && onError('Sua imagem não está chegando ao servidor de vídeo. Confira a internet e abra a live de novo.'),
+          });
           flip.current = session.flip;
           if (alive) (screen ? setScreenOn(true) : setStream(session.stream));
         } else {
-          session = await watchLive(liveId, (s) => alive && setStream(s));
+          // Sem imagem em 20 s depois de ligar: avisa e tenta de novo.
+          const espera = setTimeout(() => alive && !session?.got && (session && session.stop(), (session = null), deNovo('A imagem da live não chegou. Tentando de novo…')), 20000);
+          session = await watchLive(
+            liveId,
+            (s) => {
+              if (!alive) return;
+              clearTimeout(espera);
+              if (session) session.got = true;
+              setAviso(null);
+              setStream(s);
+            },
+            (c) => {
+              if (!alive) return;
+              if (c === 'failed' || c === 'disconnected') {
+                clearTimeout(espera);
+                setStream(null);
+                deNovo('A ligação com a live caiu. Reconectando…');
+              }
+            }
+          );
+          if (!alive) session.stop();
         }
       } catch (e) {
-        onError && onError(e.message || 'Não foi possível ligar o vídeo.');
+        if (!mine) {
+          deNovo(
+            e.code === 'sem_sinal'
+              ? 'A live abriu, mas a imagem de quem transmite ainda não chegou. Esperando…'
+              : e.code === 'sem_resposta'
+              ? 'O servidor de vídeo do Realyz não respondeu. Tentando de novo…'
+              : `${e.message || 'Não deu para ligar o vídeo.'} Tentando de novo…`
+          );
+        } else onError && onError(e.message || 'Não foi possível ligar o vídeo.');
       } finally {
         alive && setLoading(false);
       }
     })();
     return () => {
       alive = false;
+      clearTimeout(retry);
       session && session.stop();
       setStream(null);
       setScreenOn(false);
     };
-  }, [liveId, mine, onAir, screen]);
+  }, [liveId, mine, onAir, screen, tentativa]);
   // Quem transmite a tela não vê a própria tela aqui (seria um espelho infinito): vê um aviso.
   if (mine && screen && (screenOn || loading)) {
     return (
@@ -75,17 +121,24 @@ export function LiveStage({ liveId, mine, onAir, onError, screen, viewScreen }) 
       </View>
     );
   }
-  if (!RTCView || (!stream && !loading)) return null;
+  const esperando = !stream && (loading || (!mine && aviso));
+  if (!RTCView || (!stream && !esperando)) return null;
   return (
     <View style={StyleSheet.absoluteFill}>
-      {stream ? <RTCView streamURL={stream.toURL()} style={[StyleSheet.absoluteFill, viewScreen && { backgroundColor: '#000' }]} objectFit={viewScreen ? 'contain' : 'cover'} mirror={!!mine && !screen} /> : null}
-      {loading && !stream ? (
-        <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}>
+      {stream ? <RTCView streamURL={stream.toURL()} pipTag={mine && !screen ? 'minha-live' : undefined} style={[StyleSheet.absoluteFill, viewScreen && { backgroundColor: '#000' }]} objectFit={viewScreen ? 'contain' : 'cover'} mirror={!!mine && !screen} /> : null}
+      {esperando ? (
+        // Fundo escuro por inteiro: o aviso não fica por cima do ícone da live.
+        <View style={[StyleSheet.absoluteFill, st.waitBox]}>
           <ActivityIndicator color="#fff" />
-          <Text style={{ color: '#fff', marginTop: 8 }}>{mine ? 'Ligando a transmissão…' : 'Conectando à live…'}</Text>
+          <Text style={st.waitText}>{mine ? 'Ligando a transmissão…' : aviso || 'Conectando à live…'}</Text>
+          {!mine && aviso ? (
+            <TouchableOpacity onPress={() => setTentativa((n) => n + 1)} style={st.waitBtn} accessibilityLabel="Tentar agora">
+              <Text style={{ color: '#fff', fontWeight: '800' }}>Tentar agora</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
       ) : null}
-      {mine && stream && !screen ? (
+      {mine && stream && !screen && Platform.OS !== 'web' ? (
         <TouchableOpacity onPress={() => flip.current && flip.current()} style={st.flip} accessibilityLabel="Virar câmera">
           <Ionicons name="camera-reverse" size={22} color="#fff" />
         </TouchableOpacity>
@@ -311,6 +364,9 @@ const Btn = ({ icon, on, onPress }) => (
 );
 
 const st = StyleSheet.create({
+  waitBox: { alignItems: 'center', justifyContent: 'center', backgroundColor: '#0B0D12', paddingHorizontal: 28 },
+  waitText: { color: '#fff', marginTop: 10, textAlign: 'center', lineHeight: 20 },
+  waitBtn: { marginTop: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 8 },
   screenBox: { backgroundColor: '#0B1124', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
   screenTitle: { color: '#fff', fontWeight: '800', fontSize: 18, marginTop: 12, textAlign: 'center' },
   screenText: { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginTop: 8, textAlign: 'center', lineHeight: 20 },

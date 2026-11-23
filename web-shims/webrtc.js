@@ -19,7 +19,7 @@ if (has && window.MediaStream && !window.MediaStream.prototype.toURL) {
   };
 }
 
-function RTCView({ streamURL, style, objectFit = 'cover', mirror = false, muted = true }) {
+function RTCView({ streamURL, style, objectFit = 'cover', mirror = false, muted = true, pipTag }) {
   const ref = React.useRef(null);
   React.useEffect(() => {
     const el = ref.current;
@@ -34,6 +34,7 @@ function RTCView({ streamURL, style, objectFit = 'cover', mirror = false, muted 
     autoPlay: true,
     playsInline: true,
     muted,
+    'data-rz-pip': pipTag || undefined,
     style: { ...flat, objectFit, transform: mirror ? 'scaleX(-1)' : undefined, display: 'block', backgroundColor: flat.backgroundColor || '#000' },
   });
 }
@@ -48,3 +49,27 @@ module.exports = has
       RTCView,
     }
   : {};
+
+// Janelinha (Picture-in-Picture) do navegador para o vídeo marcado com pipTag. Devolve a janelinha
+// ou null; onLeave roda quando a pessoa fecha a janelinha ou toca em "voltar para a guia".
+module.exports.openPip = async (tag, onLeave) => {
+  if (typeof document === 'undefined' || !document.pictureInPictureEnabled) return null;
+  const el = document.querySelector(`video[data-rz-pip="${tag}"]`);
+  if (!el) return null;
+  const leave = () => {
+    el.removeEventListener('leavepictureinpicture', leave);
+    onLeave && onLeave();
+  };
+  el.addEventListener('leavepictureinpicture', leave);
+  try {
+    return await el.requestPictureInPicture();
+  } catch (e) {
+    el.removeEventListener('leavepictureinpicture', leave);
+    return null;
+  }
+};
+module.exports.closePip = () => {
+  try {
+    if (document.pictureInPictureElement) document.exitPictureInPicture();
+  } catch (e) {}
+};

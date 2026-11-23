@@ -14,6 +14,9 @@ try {
 }
 export const webrtcOk = () => !!(RTC && RTC.RTCPeerConnection);
 export const RTCView = RTC ? RTC.RTCView : null;
+// Só no site: janelinha do navegador (Picture-in-Picture) para a própria câmera durante a live.
+export const openPip = RTC && RTC.openPip ? RTC.openPip : null;
+export const closePip = RTC && RTC.closePip ? RTC.closePip : () => {};
 
 let statusCache = null;
 // O vídeo de verdade está ligado? (servidor do app + servidor de vídeo contratado + componente no app)
@@ -121,6 +124,8 @@ export async function openScreen() {
   return stream;
 }
 
+const videoErr = (code, msg) => Object.assign(new Error(msg), { code });
+
 // Espera o celular juntar os caminhos de rede (no máximo 2,5 s) antes de mandar a oferta.
 const gathered = (pc) =>
   new Promise((resolve) => {
@@ -140,12 +145,25 @@ async function negotiate(pc, url, token) {
   await pc.setLocalDescription(offer);
   await gathered(pc);
   const sep = url.includes('?') ? '&' : '?';
-  const res = await fetch(`${url}${sep}token=${encodeURIComponent(token)}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/sdp', Authorization: `Bearer ${token}` },
-    body: pc.localDescription.sdp,
-  });
-  if (!res.ok) throw new Error(res.status === 401 ? 'Sem permissão para essa live.' : 'O servidor de vídeo não respondeu.');
+  // Sem resposta do servidor de vídeo em 15 s: para de esperar e avisa (antes ficava carregando para sempre).
+  const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const limite = setTimeout(() => ctl && ctl.abort(), 15000);
+  let res;
+  try {
+    res = await fetch(`${url}${sep}token=${encodeURIComponent(token)}`, {
+      signal: ctl ? ctl.signal : undefined,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/sdp', Authorization: `Bearer ${token}` },
+      body: pc.localDescription.sdp,
+    });
+  } catch (e) {
+    throw videoErr('sem_resposta', 'O servidor de vídeo do Realyz não respondeu.');
+  } finally {
+    clearTimeout(limite);
+  }
+  // 404: o servidor de vídeo está no ar, mas a imagem de quem transmite ainda não chegou nele.
+  if (res.status === 404) throw videoErr('sem_sinal', 'A imagem de quem transmite ainda não chegou ao servidor de vídeo.');
+  if (!res.ok) throw videoErr(res.status === 401 ? 'sem_permissao' : 'erro_video', res.status === 401 ? 'Sem permissão para essa live.' : `O servidor de vídeo recusou (erro ${res.status}).`);
   const answer = await res.text();
   await pc.setRemoteDescription(new RTC.RTCSessionDescription({ type: 'answer', sdp: answer }));
   const loc = res.headers.get('location');
@@ -168,7 +186,7 @@ const closeAll = (pc, stream, resource, token) => {
 };
 
 // Streamer: abre a câmera e transmite na live (que já foi aberta com POST /lives).
-export async function startBroadcast(liveId, { front = true, screen = false } = {}) {
+export async function startBroadcast(liveId, { front = true, screen = false, onState } = {}) {
   const s = await api('POST', `/lives/${liveId}/stream`);
   const stream = screen ? await openScreen() : await openCamera({ front, quality: s.quality });
   const pc = new RTC.RTCPeerConnection({ iceServers: s.iceServers });
@@ -180,6 +198,7 @@ export async function startBroadcast(liveId, { front = true, screen = false } = 
     closeAll(pc, stream);
     throw e;
   }
+  if (onState) pc.addEventListener('connectionstatechange', () => onState(pc.connectionState));
   return {
     stream,
     pc,
@@ -190,13 +209,20 @@ export async function startBroadcast(liveId, { front = true, screen = false } = 
 }
 
 // Espectador: recebe o vídeo da live.
-export async function watchLive(liveId, onStream) {
+export async function watchLive(liveId, onStream, onState) {
   const w = await api('GET', `/lives/${liveId}/watch`);
   const pc = new RTC.RTCPeerConnection({ iceServers: w.iceServers });
   pc.addTransceiver('video', { direction: 'recvonly' });
   pc.addTransceiver('audio', { direction: 'recvonly' });
   pc.addEventListener('track', (e) => e.streams && e.streams[0] && onStream(e.streams[0]));
-  const resource = await negotiate(pc, w.whep, w.token);
+  if (onState) pc.addEventListener('connectionstatechange', () => onState(pc.connectionState));
+  let resource;
+  try {
+    resource = await negotiate(pc, w.whep, w.token);
+  } catch (e) {
+    closeAll(pc);
+    throw e;
+  }
   return { pc, stop: () => closeAll(pc, null, resource, w.token) };
 }
 

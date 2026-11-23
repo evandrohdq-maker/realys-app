@@ -112,6 +112,7 @@ import { ArtistSheetHost } from './src/components/ArtistSheet';
 import { ArtistShowHost } from './src/components/ArtistBooking';
 import { MediaViewerHost } from './src/components/MediaViewer';
 import { ServerProfileHost } from './src/components/ServerProfile';
+import { onLiveKeep } from './src/liveKeep';
 import { ComprasGateModal, useComprasStatus } from './src/components/ComprasGate';
 import { useCarteiraReal } from './src/serverShop';
 import { DestacarHost } from './src/components/Destacar';
@@ -514,6 +515,12 @@ function Shell({ inviteTick }) {
   const current = tabs.find((t) => t.key === tab) || tabs[0];
   // Aba de compra ou serviço numa conta sem biometria: mostra a tela "falta só a biometria".
   const Comp = canOpenTab(state, current.key) ? current.Comp : LockedScreen;
+  // Minha live na janelinha: guarda a aba da live montada (escondida) enquanto navego em outras.
+  const curRef = useRef(null);
+  curRef.current = { key: current.key, Comp };
+  const [keepTab, setKeepTab] = useState(null);
+  useEffect(() => onLiveKeep((v) => setKeepTab(v ? curRef.current : null)), []);
+  const telas = keepTab && keepTab.key !== current.key ? [keepTab, { key: current.key, Comp }] : [{ key: current.key, Comp }];
   // Menus: todo perfil tem o menu numa linha só, no rodapé. A empresa tem dois menus: 4 botões no
   // alto da tela (logo abaixo do cabeçalho) e 4 no rodapé.
   // Perfil não fica na barra: o botão dele está no cabeçalho (no lugar do antigo ⋮).
@@ -746,7 +753,11 @@ function Shell({ inviteTick }) {
       {topMenu.length && !desk ? <View style={styles.topMenu}>{topMenu.map((t) => renderTab(t, true))}</View> : null}
       <SwipePages onLeft={swipe.left} onRight={swipe.right}>
         <TelaSegura nome={state.activeRole + ':' + current.key} onInicio={backHome}>
-          <Comp goTo={setTab} openVoice={() => setVoice(true)} explore={explore} openArea={openArea} navigate={pick} onTop={setCommTop} />
+          {telas.map((t) => (
+            <View key={t.key} style={t.key === current.key ? { flex: 1 } : { display: 'none' }}>
+              <t.Comp goTo={setTab} openVoice={() => setVoice(true)} explore={explore} openArea={openArea} navigate={pick} onTop={setCommTop} />
+            </View>
+          ))}
         </TelaSegura>
       </SwipePages>
 
