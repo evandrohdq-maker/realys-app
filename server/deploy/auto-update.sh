@@ -10,6 +10,9 @@ exec 9>/run/realys-auto-update.lock
 flock -n 9 || exit 0
 log() { echo "$(date '+%Y-%m-%d %H:%M:%S') $*" >> "$LOG"; }
 
+# APK e site mais novos do GitHub para este servidor (não depende de ter versão nova do servidor).
+bash "$REPO/server/deploy/publicar-site.sh" >/dev/null 2>&1 || true
+
 git -C "$REPO" fetch -q origin main || { log "sem acesso ao GitHub"; exit 0; }
 ATUAL=$(git -C "$REPO" rev-parse HEAD)
 NOVA=$(git -C "$REPO" rev-parse origin/main)

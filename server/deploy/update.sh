@@ -5,5 +5,6 @@ set -euo pipefail
 git -C /opt/realys pull --ff-only
 chown -R realys:realys /opt/realys/server
 systemctl restart realys
+bash /opt/realys/server/deploy/publicar-site.sh || true
 sleep 2
 curl -fsS http://127.0.0.1:8080/health && echo " ✅ atualizado"
