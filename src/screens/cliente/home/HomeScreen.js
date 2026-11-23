@@ -33,6 +33,7 @@ import ConvList from '../../../components/ConvList';
 import { members, memberByName } from '../../../people';
 import { PeopleSearchModal, PersonRow } from '../../../components/People';
 import { LaunchStrip } from '../../../components/Launches';
+import SugestoesCarrossel from '../../../components/SugestoesCarrossel';
 import { SHOP_SECTORS, SHOP_SECTOR_KEYS } from '../../../shopSectorsData';
 import { askPix } from '../../../components/PixPay';
 import { useBack } from '../../../back';
@@ -819,6 +820,9 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
     if (i === 2 && ongFeed) feed.push({ type: 'ong', o: ongFeed });
   }
 
+  // Sugestões de amizade (como no Instagram): um carrossel depois dos dois primeiros itens do feed.
+  if (conectado(state) && feed.length) feed.splice(Math.min(2, feed.length), 0, { type: 'sug' });
+
   // Post que passou na tela (rolando o feed) conta como visto: some a borda roxa do amigo
   // na faixa de stories. Guarda onde cada post fica e confere quando a rolagem para.
   const feedY = useRef(0);
@@ -890,8 +894,11 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
               </View>
             </View>
           ) : null}
+          {!feed.length ? <SugestoesCarrossel on={conectado(state)} /> : null}
           {feed.map((it, idx) =>
-            it.type === 'ong' ? (
+            it.type === 'sug' ? (
+              <SugestoesCarrossel key="sugestoes" on />
+            ) : it.type === 'ong' ? (
               <CampanhaCard key={'ong' + it.o.ong.id} ong={it.o.ong} c={it.o.c} compacto onOpen={() => setOngAberta(it.o.ong)} />
             ) : it.type === 'dep' ? (
               it.t.server ? <ServerTestimonialCard key={it.t.id} t={it.t} /> : <TestimonialCard key={it.t.id} t={it.t} />
@@ -950,23 +957,26 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
                   </TouchableOpacity>
                 ) : null}
                 {it.p.station ? <StationPostPlayer station={it.p.station} /> : null}
-                <View style={{ flexDirection: 'row', marginTop: 10 }}>
-                  <TouchableOpacity style={styles.postAct} onPress={() => (it.p.server ? curtir(it.p.serverId).catch((e) => Alert.alert('Curtir', e.message)) : setLiked({ ...liked, [it.p.id]: !liked[it.p.id] }))} accessibilityLabel="Curtir">
-                    <Ionicons name={(it.p.server ? it.p.liked : liked[it.p.id]) ? 'heart' : 'heart-outline'} size={18} color={(it.p.server ? it.p.liked : liked[it.p.id]) ? '#FF5A7A' : colors.muted} />
-                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.postActText}>{it.p.server ? it.p.likes : it.p.likes + (liked[it.p.id] ? 1 : 0)}</Text>
+                {/* Ações no estilo clean: ícones com números, salvar no mural à direita. */}
+                <View style={styles.actRow}>
+                  <TouchableOpacity style={styles.postAct} onPress={() => (it.p.server ? curtir(it.p.serverId).catch((e) => Alert.alert('Curtir', e.message)) : setLiked({ ...liked, [it.p.id]: !liked[it.p.id] }))} hitSlop={6} accessibilityLabel="Curtir">
+                    <Ionicons name={(it.p.server ? it.p.liked : liked[it.p.id]) ? 'heart' : 'heart-outline'} size={22} color={(it.p.server ? it.p.liked : liked[it.p.id]) ? '#E0245E' : colors.text} />
+                    <Text numberOfLines={1} style={styles.postActText}>{it.p.server ? it.p.likes : it.p.likes + (liked[it.p.id] ? 1 : 0)}</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.postAct}
-                    onPress={() => abrirCmts(it.p)}
-                    accessibilityLabel="Comentar"
-                  >
-                    <Ionicons name="chatbubble-outline" size={17} color={colors.muted} />
-                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.postActText}>{it.p.server ? it.p.comments : it.p.comments + (cmts[it.p.id] || []).length}</Text>
+                  <TouchableOpacity style={styles.postAct} onPress={() => abrirCmts(it.p)} hitSlop={6} accessibilityLabel="Comentar">
+                    <Ionicons name="chatbubble-outline" size={20} color={colors.text} />
+                    <Text numberOfLines={1} style={styles.postActText}>{it.p.server ? it.p.comments : it.p.comments + (cmts[it.p.id] || []).length}</Text>
                   </TouchableOpacity>
+                  <TouchableOpacity style={styles.postAct} onPress={() => sharePost(it.p)} hitSlop={6} accessibilityLabel="Compartilhar">
+                    <Ionicons name="paper-plane-outline" size={20} color={colors.text} />
+                    {shared[it.p.id] ? <Text numberOfLines={1} style={styles.postActText}>{shared[it.p.id]}</Text> : null}
+                  </TouchableOpacity>
+                  <View style={{ flex: 1 }} />
                   {/* Meu post: destacar (atalho no mural, na vitrine ou numa pasta de destaques).
                       Post dos outros: fixar no mural do meu perfil (posts que curti). */}
                   <TouchableOpacity
-                    style={styles.postAct}
+                    style={[styles.postAct, { marginRight: 0 }]}
+                    hitSlop={6}
                     onPress={() => {
                       if (it.p.author === userName || (it.p.server && state.user && it.p.authorId === state.user.serverId)) {
                         return abrirDestacar({ kind: 'post', id: it.p.serverId || it.p.id, image: it.p.image || null, video: it.p.video || null, text: it.p.text || '' });
@@ -976,13 +986,14 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
                     }}
                     accessibilityLabel="Fixar no meu mural"
                   >
-                    <Ionicons name={(state.mural && state.mural.items.some((x) => x.postId === it.p.id)) ? 'albums' : 'albums-outline'} size={17} color={colors.muted} />
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.postAct} onPress={() => sharePost(it.p)} accessibilityLabel="Compartilhar">
-                    <Ionicons name="share-social-outline" size={17} color={colors.muted} />
-                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.postActText}>{shared[it.p.id] ? `Compartilhado ${shared[it.p.id]}x` : 'Compartilhar'}</Text>
+                    <Ionicons name={(state.mural && state.mural.items.some((x) => x.postId === it.p.id)) ? 'bookmark' : 'bookmark-outline'} size={20} color={colors.text} />
                   </TouchableOpacity>
                 </View>
+                {(it.p.server ? it.p.likes : it.p.likes + (liked[it.p.id] ? 1 : 0)) > 0 ? (
+                  <Text style={styles.curtidas}>
+                    Curtido por <Text style={{ fontWeight: '700' }}>{(() => { const n = it.p.server ? it.p.likes : it.p.likes + (liked[it.p.id] ? 1 : 0); return n === 1 ? '1 pessoa' : `${n} pessoas`; })()}</Text>
+                  </Text>
+                ) : null}
                 {it.p.server && openCmt === it.p.id
                   ? (srvCmts[it.p.id] || []).map((c) => (
                       <View key={c.id} style={styles.cmt}>
@@ -1269,11 +1280,13 @@ const styles = StyleSheet.create({
   cmt: { backgroundColor: colors.cardAlt, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 7, marginTop: 8 },
   cmtBox: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: 20, paddingLeft: 12, marginTop: 8, backgroundColor: colors.bg },
   publish: { alignSelf: 'flex-end', height: 36, paddingHorizontal: 16, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
-  post: { backgroundColor: colors.card, borderRadius: 18, padding: 12, marginBottom: 12, ...soft },
-  avatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  postImg: { width: '100%', height: 200, borderRadius: 14, marginTop: 10, overflow: 'hidden' },
-  postAct: { flexDirection: 'row', alignItems: 'center', marginRight: 18 },
-  postActText: { color: colors.muted, fontSize: 12, marginLeft: 5 },
+  post: { backgroundColor: colors.card, borderRadius: 14, padding: 12, marginBottom: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
+  avatar: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  postImg: { width: '100%', aspectRatio: 1, maxHeight: 420, borderRadius: 10, marginTop: 10, overflow: 'hidden' },
+  actRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
+  postAct: { flexDirection: 'row', alignItems: 'center', marginRight: 16 },
+  postActText: { color: colors.text, fontSize: 13, fontWeight: '600', marginLeft: 5 },
+  curtidas: { color: colors.text, fontSize: 12, marginTop: 6 },
   convRow: {
     flexDirection: 'row',
     alignItems: 'center',

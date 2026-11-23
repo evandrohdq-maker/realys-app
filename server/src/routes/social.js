@@ -102,14 +102,31 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
   // Sugestões de amizade: quem abre o seu perfil (mais vezes e mais recente primeiro) e ainda não é
   // seu amigo nem tem pedido pendente. Aparece como "Pessoas que talvez você conheça", sem dizer quem
   // viu o perfil de quem.
-  r.get('/me/sugestoes', ({ user }) =>
-    db.prepare(
-      `SELECT u.*, v.vezes, v.ultimo_at FROM profile_views v JOIN users u ON u.id = v.viewer_id
-       WHERE v.owner_id = ? AND u.status = 'ativo' AND u.kind != 'sistema'
-         AND NOT EXISTS (SELECT 1 FROM friends f WHERE (f.a_id = v.viewer_id AND f.b_id = v.owner_id) OR (f.a_id = v.owner_id AND f.b_id = v.viewer_id))
-       ORDER BY v.vezes DESC, v.ultimo_at DESC LIMIT 12`
-    ).all(user.id).map((u) => ({ ...pub(u), friend: null }))
-  );
+  r.get('/me/sugestoes', ({ user }) => {
+    // Ordem: amigos de amigos (com quantos em comum), depois quem abriu o seu perfil, depois gente nova
+    // na rede. Nunca quem já é amigo ou tem pedido pendente, nem você mesmo.
+    const livre = `u.id != @me AND u.status = 'ativo' AND u.kind != 'sistema'
+      AND NOT EXISTS (SELECT 1 FROM friends f WHERE (f.a_id = u.id AND f.b_id = @me) OR (f.a_id = @me AND f.b_id = u.id))`;
+    const vistos = new Set();
+    const lista = [];
+    const juntar = (rows) => rows.forEach((u) => {
+      if (vistos.has(u.id) || lista.length >= 15) return;
+      vistos.add(u.id);
+      lista.push({ ...pub(u), friend: null, emComum: u.em_comum || 0 });
+    });
+    juntar(db.prepare(
+      `SELECT u.*, COUNT(*) AS em_comum FROM friends f1
+         JOIN friends f2 ON f2.status = 'amigos' AND (CASE WHEN f1.a_id = @me THEN f1.b_id ELSE f1.a_id END) IN (f2.a_id, f2.b_id)
+         JOIN users u ON u.id = CASE WHEN f2.a_id = (CASE WHEN f1.a_id = @me THEN f1.b_id ELSE f1.a_id END) THEN f2.b_id ELSE f2.a_id END
+       WHERE f1.status = 'amigos' AND @me IN (f1.a_id, f1.b_id) AND ${livre}
+       GROUP BY u.id ORDER BY em_comum DESC LIMIT 15`
+    ).all({ me: user.id }));
+    juntar(db.prepare(
+      `SELECT u.* FROM profile_views v JOIN users u ON u.id = v.viewer_id WHERE v.owner_id = @me AND ${livre} ORDER BY v.vezes DESC, v.ultimo_at DESC LIMIT 12`
+    ).all({ me: user.id }));
+    juntar(db.prepare(`SELECT u.* FROM users u WHERE ${livre} ORDER BY u.created_at DESC LIMIT 15`).all({ me: user.id }));
+    return lista;
+  });
 
   // ── Amizades ──
   r.post('/friends/:id', ({ params, user }) => {
