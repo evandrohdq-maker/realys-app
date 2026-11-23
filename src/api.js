@@ -62,7 +62,7 @@ async function raw(method, path, body, headers = {}) {
     res = await fetch(API_URL + path, {
       signal: ctl ? ctl.signal : undefined,
       method,
-      headers: { ...(body !== undefined && !(body instanceof ArrayBuffer) ? { 'Content-Type': 'application/json' } : {}), ...headers, ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
+      headers: { ...(body !== undefined && !(body instanceof ArrayBuffer) ? { 'Content-Type': 'application/json' } : {}), ...headers, ...(accessToken && path !== '/auth/refresh' ? { Authorization: `Bearer ${accessToken}` } : {}) },
       body: body === undefined ? undefined : body instanceof ArrayBuffer ? body : JSON.stringify(body),
     });
   } catch (e) {
@@ -85,7 +85,7 @@ export async function refresh() {
   refreshing = (async () => {
     const sessionToken = await SecureStore.getItemAsync(sessionKey).catch(() => null);
     if (!sessionToken) throw new ApiError(401, 'Entre com usuário e senha.', 'sem_sessao');
-    accessToken = null;
+    // Não apaga o acesso atual antes de ter o novo: os outros pedidos continuam com login enquanto renova.
     const d = await raw('POST', '/auth/refresh', { sessionToken });
     accessToken = d.accessToken;
     return d.user;
@@ -99,12 +99,29 @@ export async function refresh() {
 
 // Chamada à API. Se o acesso expirou, renova e tenta mais uma vez.
 export async function api(method, path, body, headers) {
+  const auth = path.startsWith('/auth/');
+  // Renovação em andamento ou acesso ainda não carregado (app acabou de abrir): espera o login antes
+  // de pedir, em vez de mandar o pedido sem login e levar "sessão expirada".
+  if (!auth) {
+    if (refreshing) await refreshing.catch(() => {});
+    else if (!accessToken && (await hasSession())) await refresh().catch(() => {});
+  }
+  const tentar = async () => {
+    try {
+      return await raw(method, path, body, headers);
+    } catch (e) {
+      // Ligação velha com o servidor morreu (ex.: servidor reiniciou na atualização): o celular abre
+      // uma nova na segunda tentativa. Só repete leitura (GET), para nunca duplicar um envio.
+      if (e.status === 0 && method === 'GET') return raw(method, path, body, headers);
+      throw e;
+    }
+  };
   try {
-    return await raw(method, path, body, headers);
+    return await tentar();
   } catch (e) {
-    if (e.status !== 401 || path.startsWith('/auth/')) throw e;
+    if (e.status !== 401 || auth) throw e;
     await refresh();
-    return raw(method, path, body, headers);
+    return tentar();
   }
 }
 
@@ -195,15 +212,19 @@ export function connectEvents(onEvent) {
   let paused = false;
   let wait = 1000;
   let ping = null;
+  let renovarWs = false;
   const open = async () => {
     if (stopped || paused || !appAtivo) return;
     try {
-      if (!accessToken) await refresh();
+      if (!accessToken || renovarWs) await refresh();
+      renovarWs = false;
     } catch (e) {
       return setTimeout(open, 15000);
     }
+    let abriu = false;
     ws = new WebSocket(`${API_URL.replace(/^http/, 'ws')}/ws?token=${accessToken}${Platform.OS === 'web' ? '' : `&app=${Platform.OS}`}`);
     ws.onopen = () => {
+      abriu = true;
       wait = 1000;
       ping = setInterval(() => ws && ws.readyState === 1 && ws.send('ping'), 25000);
     };
@@ -216,7 +237,9 @@ export function connectEvents(onEvent) {
     ws.onclose = () => {
       clearInterval(ping);
       if (stopped || paused) return;
-      accessToken = null; // o acesso pode ter expirado: renova antes de reconectar
+      // Só renova o login se a ligação nem chegou a abrir (acesso recusado). Queda comum (sinal, servidor
+      // reiniciando) não apaga o login: apagar fazia a busca e outras telas irem sem login e travarem.
+      if (!abriu) renovarWs = true;
       setTimeout(open, (wait = Math.min(wait * 2, 30000)));
     };
   };
