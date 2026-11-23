@@ -5,6 +5,8 @@ import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Text, TextInput } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store';
+import { conectado } from '../../serverShop';
+import { syncStations, publishStation, isServerStation, unpublishStation, announceLive } from '../../serverStations';
 import { colors } from '../../theme';
 import { Screen, Title } from '../../components/ui';
 import { RadioCard } from '../../components/RadioKit';
@@ -21,11 +23,13 @@ export default function RadiosScreen() {
   const [q, setQ] = useState('');
   const [form, setForm] = useState(null);
   useEffect(() => {
-    loadRadios().then(() => setList(allRadios()));
+    loadRadios().then(() => (setList(allRadios()), syncStations('radio')));
     return onRadios(() => setList(allRadios()));
   }, []);
+  const real = conectado(state);
   const company = state.stores.find((s) => s.id === MY_COMPANY_ID);
-  const mine = radioOf(MY_COMPANY_ID);
+  // Conta de verdade: a minha rádio é a que o servidor marcou como minha.
+  const mine = (real && list.find((r) => r.server && r.mine)) || radioOf(MY_COMPANY_ID);
   const shown = list.filter((r) => !q.trim() || `${r.name} ${r.genre} ${r.city}`.toLowerCase().includes(q.trim().toLowerCase()));
 
   const openForm = () =>
@@ -41,7 +45,14 @@ export default function RadiosScreen() {
     if (bad) return Alert.alert('URL da rádio', bad);
     const mod = moderateText(`${form.name} ${form.genre}`);
     if (!mod.ok) return Alert.alert('Não foi possível salvar', mod.why);
-    saveRadio({ ...form, name: form.name.trim(), genre: form.genre.trim(), city: form.city.trim() });
+    const item = { ...form, name: form.name.trim(), genre: form.genre.trim(), city: form.city.trim() };
+    if (real) {
+      // Conta de verdade: a rádio, a logo e a capa vão para o servidor e aparecem para todos.
+      return publishStation('radio', item)
+        .then(() => (setForm(null), Alert.alert('Rádio indexada ✅', 'Sua rádio já aparece no Stream para todo mundo. No perfil dela você avisa os seguidores quando entrar ao vivo.')))
+        .catch((e) => Alert.alert('Não foi possível salvar', e.message));
+    }
+    saveRadio(item);
     setForm(null);
     Alert.alert('Rádio indexada ✅', 'Sua rádio ganhou perfil próprio e já toca no Stream, na página da sua empresa e na janelinha por cima dos outros apps. No perfil dela você publica o link para os ouvintes.');
   };
@@ -94,7 +105,7 @@ export default function RadiosScreen() {
             {form.id ? (
               <TouchableOpacity onPress={() => Alert.alert('Remover rádio', 'A rádio sai da sua página e do diretório.', [
                 { text: 'Cancelar', style: 'cancel' },
-                { text: 'Remover', style: 'destructive', onPress: () => (removeRadio(form.id), setForm(null)) },
+                { text: 'Remover', style: 'destructive', onPress: () => (isServerStation(form.id) ? unpublishStation('radio', form.id).catch((e) => Alert.alert('Não foi possível remover', e.message)) : removeRadio(form.id), setForm(null)) },
               ])}>
                 <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#E5484D', fontWeight: '700' }}>Remover</Text>
               </TouchableOpacity>

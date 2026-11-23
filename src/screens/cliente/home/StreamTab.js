@@ -13,6 +13,8 @@ import { CatChips, StationFormExtras, FeaturedStation } from '../../../component
 import { stationCat, catsOf, openStation } from '../../../streamCats';
 import { allRadios, loadRadios, onRadios, stopRadio, playRadio } from '../../../radio';
 import { allTvs, loadTvs, onTvs, saveTv, removeTv, checkTvUrl, playTv, stopTv } from '../../../tv';
+import { conectado } from '../../../serverShop';
+import { syncStations, publishStation, isServerStation, unpublishStation } from '../../../serverStations';
 import { useTvNow } from '../../../components/FloatPlayers';
 import { moderateText } from '../../../moderation';
 import { MY_COMPANY_ID } from '../../../data';
@@ -150,13 +152,14 @@ function TvList() {
   const [form, setForm] = useState(null);
   const [cat, setCat] = useState('todas');
   useEffect(() => {
-    loadTvs().then(() => setList(allTvs()));
+    loadTvs().then(() => (setList(allTvs()), syncStations('tv')));
     return onTvs(() => setList(allTvs()));
   }, []);
+  const real = conectado(state);
   const term = q.trim().toLowerCase();
   const shown = list.filter((t) => (!term || `${t.name} ${t.genre} ${t.city} ${stationCat('tv', t).label}`.toLowerCase().includes(term)) && (cat === 'todas' || stationCat('tv', t).key === cat));
   const tvCat = cat !== 'todas' ? catsOf('tv').find((c) => c.key === cat) : null;
-  const mine = list.find((t) => t.storeId === MY_COMPANY_ID) || null;
+  const mine = (real && list.find((t) => t.server && t.mine)) || list.find((t) => t.storeId === MY_COMPANY_ID) || null;
 
   const watch = (t) => {
     if (on && on.id === t.id) return stopTv();
@@ -172,7 +175,14 @@ function TvList() {
     if (bad) return Alert.alert('URL do canal', bad);
     const mod = moderateText(`${form.name} ${form.genre}`);
     if (!mod.ok) return Alert.alert('Não foi possível salvar', mod.why);
-    saveTv({ ...form, name: form.name.trim(), url: form.url.trim(), genre: form.genre.trim(), city: form.city.trim() });
+    const item = { ...form, name: form.name.trim(), url: form.url.trim(), genre: form.genre.trim(), city: form.city.trim() };
+    if (real) {
+      // Conta de verdade: o canal, a logo e a capa vão para o servidor e aparecem para todos.
+      return publishStation('tv', item)
+        .then(() => (setForm(null), Alert.alert('Canal indexado ✅', 'O seu canal já aparece na TV online do Realyz para todo mundo.')))
+        .catch((e) => Alert.alert('Não foi possível salvar', e.message));
+    }
+    saveTv(item);
     setForm(null);
     Alert.alert('Canal indexado ✅', 'O seu canal já aparece na TV online do Realyz.');
   };
@@ -259,7 +269,7 @@ function TvList() {
                 onPress={() =>
                   Alert.alert('Remover canal', 'O canal sai da TV online do Realyz.', [
                     { text: 'Cancelar', style: 'cancel' },
-                    { text: 'Remover', style: 'destructive', onPress: () => { if (on && on.id === form.id) stopTv(); removeTv(form.id); setForm(null); } },
+                    { text: 'Remover', style: 'destructive', onPress: () => { if (on && on.id === form.id) stopTv(); if (isServerStation(form.id)) unpublishStation('tv', form.id).catch((e) => Alert.alert('Não foi possível remover', e.message)); else removeTv(form.id); setForm(null); } },
                   ])
                 }
               >

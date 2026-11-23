@@ -35,7 +35,13 @@ export async function loadTvs() {
   emit();
   return tvs;
 }
-const save = () => AsyncStorage.setItem(KEY, JSON.stringify(tvs.filter((t) => !t.example))).catch(() => {});
+const save = () => AsyncStorage.setItem(KEY, JSON.stringify(tvs.filter((t) => !t.example && !t.server))).catch(() => {});
+
+// Canais do servidor (contas de verdade): troca os que vieram do servidor pela lista nova.
+export function mergeServerTvs(list) {
+  tvs = [...list, ...tvs.filter((t) => !t.server)];
+  emit();
+}
 
 export const allTvs = () => tvs;
 export const tvById = (id) => tvs.find((t) => t.id === id) || null;

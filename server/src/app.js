@@ -52,6 +52,7 @@ import baixarRoutes from './routes/baixar.js';
 import trabalhoRoutes, { trabalhoAdminRoutes } from './routes/trabalho.js';
 import suporteRoutes from './routes/suporte.js';
 import dateRoutes from './routes/date.js';
+import estacoesRoutes from './routes/estacoes.js';
 import contasTesteRoutes from './contasTeste.js';
 import { makePush } from './push.js';
 import { makeTeleGratis } from './teleGratis.js';
@@ -118,7 +119,7 @@ export function createApp(cfg) {
     attempts.set(key, a);
   };
   deps.clearLogin = (key) => attempts.delete(key);
-  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes, noticiasRoutes, showsRoutes, pushRoutes, empregosRoutes, logisticaRoutes, profissoesRoutes, turbinarRoutes, contasTesteRoutes, baixarRoutes, trabalhoRoutes, trabalhoAdminRoutes, planosRoutes, suporteRoutes, dateRoutes].forEach((r) => r(router, deps));
+  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes, noticiasRoutes, showsRoutes, pushRoutes, empregosRoutes, logisticaRoutes, profissoesRoutes, turbinarRoutes, contasTesteRoutes, baixarRoutes, trabalhoRoutes, trabalhoAdminRoutes, planosRoutes, suporteRoutes, dateRoutes, estacoesRoutes].forEach((r) => r(router, deps));
   router.get('/health', () => ({ ok: true, name: 'Realyz', time: now() }), { auth: false });
   // O que está ligado agora (o app pergunta ao abrir e mostra o aviso de compras bloqueadas).
   router.get('/status', () => ({

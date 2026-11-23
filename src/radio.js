@@ -54,7 +54,13 @@ export async function loadRadios() {
   emit();
   return radios;
 }
-const save = () => AsyncStorage.setItem(KEY, JSON.stringify(radios.filter((r) => !r.example && !SEED.some((x) => x.id === r.id)))).catch(() => {});
+const save = () => AsyncStorage.setItem(KEY, JSON.stringify(radios.filter((r) => !r.example && !r.server && !SEED.some((x) => x.id === r.id)))).catch(() => {});
+
+// Estações do servidor (contas de verdade): troca as que vieram do servidor pela lista nova.
+export function mergeServerRadios(list) {
+  radios = [...list, ...radios.filter((r) => !r.server)];
+  emit();
+}
 
 export const allRadios = () => [...radios].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
 export const radioById = (id) => radios.find((r) => r.id === id) || null;
@@ -126,8 +132,17 @@ export const radioEnded = () => endedHandler && endedHandler(radioNow().radio);
 const FKEY = 'realys.stations.following';
 let following = {};
 AsyncStorage.getItem(FKEY).then((raw) => raw && ((following = { ...JSON.parse(raw), ...following }), emit())).catch(() => {});
-export const isFollowing = (id) => !!following[id];
+export const isFollowing = (id) => {
+  if (id in following) return !!following[id];
+  const r = radios.find((x) => x.id === id);
+  return !!(r && r.seguindo);
+};
 export function toggleFollow(id) {
+  // Estação do servidor: seguir fica guardado lá (e o aviso de ao vivo chega no celular).
+  if (String(id || '').startsWith('es_')) {
+    const { api } = require('./api');
+    api('POST', `/estacoes/${id}/seguir`).catch(() => {});
+  }
   following = { ...following, [id]: !following[id] };
   if (!following[id]) delete following[id];
   AsyncStorage.setItem(FKEY, JSON.stringify(following)).catch(() => {});

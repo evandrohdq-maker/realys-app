@@ -14,6 +14,7 @@ import { moderateText } from '../moderation';
 import { stationCat, onStationOpen, stationOpen, closeStation, openStation } from '../streamCats';
 import { radioById, onRadios, playRadio, stopRadio, isFollowing, toggleFollow, stationLink } from '../radio';
 import { tvById, onTvs, playTv, stopTv } from '../tv';
+import { announceLive } from '../serverStations';
 import { StationLogo, logoSource, useRadioNow } from './RadioKit';
 import { useTvNow } from './FloatPlayers';
 
@@ -76,7 +77,8 @@ function StationProfile({ kind, id }) {
   if (!s) return null;
   const cat = stationCat(kind, s);
   const following = isFollowing(s.id);
-  const followers = 120 + (hash(s.id) % 4800) + (following ? 1 : 0);
+  // Estação de verdade (servidor): número real de seguidores. Exemplo: número de demonstração.
+  const followers = s.server ? (s.seguidores || 0) + (following && !s.seguindo ? 1 : !following && s.seguindo ? -1 : 0) : 120 + (hash(s.id) % 4800) + (following ? 1 : 0);
   const mine = s.storeId && s.storeId === MY_COMPANY_ID;
   const company = s.storeId ? (state.stores || []).find((x) => x.id === s.storeId) : null;
   const posts = (state.communityPosts || []).filter((p) => p.station && p.station.id === s.id);
@@ -126,6 +128,20 @@ function StationProfile({ kind, id }) {
               <Text numberOfLines={1} style={{ color: following ? C.gold : C.text, fontWeight: '800' }}>{following ? 'Seguindo' : 'Seguir'}</Text>
             </TouchableOpacity>
           </View>
+          {s.server && s.mine ? (
+            // Dono da estação: avisa quem segue que entrou ao vivo (chega na hora ou como notificação).
+            <TouchableOpacity
+              style={[st.follow, { marginTop: 10, alignSelf: 'stretch', alignItems: 'center' }]}
+              onPress={() =>
+                announceLive(s.id)
+                  .then((r) => Alert.alert('Seguidores avisados 📣', r.avisados ? `${r.avisados} pessoa${r.avisados === 1 ? '' : 's'} recebeu${r.avisados === 1 ? '' : 'ram'} o aviso de que você está ao vivo.` : 'Ainda ninguém segue a sua estação. Divulgue o link!'))
+                  .catch((e) => Alert.alert('Aviso não enviado', e.message))
+              }
+              accessibilityLabel="Avisar meus seguidores que estou ao vivo"
+            >
+              <Text numberOfLines={1} style={{ color: C.text, fontWeight: '800' }}>📣 Avisar seguidores: estou ao vivo</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         {s.desc ? <Text style={st.about}>{s.desc}</Text> : null}

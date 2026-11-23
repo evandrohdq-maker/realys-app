@@ -1117,6 +1117,34 @@ const MIGRATIONS = [
     updated_at INTEGER NOT NULL
   );
   `,
+  `
+  -- Rádios e TVs (Stream) cadastradas pelas pessoas/empresas: ficam no servidor (logo e capa inclusive),
+  -- aparecem para todos e quem segue recebe o aviso quando a estação entra ao vivo.
+  CREATE TABLE IF NOT EXISTS estacoes (
+    id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL REFERENCES users(id),
+    kind TEXT NOT NULL CHECK (kind IN ('radio','tv')),
+    name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    genre TEXT,
+    city TEXT,
+    cat TEXT,
+    emoji TEXT,
+    logo TEXT,
+    cover TEXT,
+    status TEXT NOT NULL DEFAULT 'ativa',
+    aovivo_at INTEGER,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS estacoes_kind ON estacoes(kind, status);
+  CREATE TABLE IF NOT EXISTS estacao_follows (
+    estacao_id TEXT NOT NULL REFERENCES estacoes(id),
+    user_id TEXT NOT NULL REFERENCES users(id),
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (estacao_id, user_id)
+  );
+  `,
 ];
 
 export function openDb(file) {
