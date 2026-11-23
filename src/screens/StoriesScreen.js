@@ -208,7 +208,12 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
         // Tocar no nome de quem postou: pessoa abre por cima do story (prévia ou perfil, se for amigo);
         // empresa fecha o story e abre a página dela.
         onProfile={(g) => {
-          if (g.server) return openServerProfile(g.authorId);
+          // Conta do servidor: fecha o story (para tudo, inclusive a música) e abre o perfil sozinho na tela.
+          // Abrir uma janela por cima da outra travava o perfil carregando no Android.
+          if (g.server) {
+            setView(null);
+            return setTimeout(() => openServerProfile(g.authorId, { name: g.name, photo: g.avatar }), 350);
+          }
           const who = { id: g.contactId, name: g.name };
           // Empresa sem página própria no app (ex.: evento): leva para a oferta do story.
           if (g.business && g.ctaTo && !resolvePerson(state, who).kind) return cta(g);
