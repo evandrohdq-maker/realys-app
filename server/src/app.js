@@ -123,6 +123,13 @@ export function createApp(cfg) {
     );
     wallet.ensure(id);
   }
+  // Analista inicial (ANALISTA_USERNAME e ANALISTA_PASSWORD no .env): vê o painel, não muda nada.
+  if (cfg.analistaPassword && cfg.analistaUsername && !db.prepare('SELECT 1 FROM users WHERE username = ?').get(cfg.analistaUsername)) {
+    const id = newId('u');
+    db.prepare(`INSERT INTO users (id, kind, name, username, pass_hash, roles, created_at) VALUES (?, 'pessoa', 'Analista', ?, ?, '["analista"]', ?)`).run(
+      id, cfg.analistaUsername, hashPassword(cfg.analistaPassword), now()
+    );
+  }
 
 
   const maintenance = makeMaintenance({ db, cfg, cipher, biometria, matcher });
@@ -160,12 +167,14 @@ export function createApp(cfg) {
         ctx.user = authUser(token);
         if (!ctx.user) throw new HttpError(401, 'Sessão expirada. Entre de novo.', 'sem_sessao');
         ctx.roles = JSON.parse(ctx.user.roles);
-        if (route.opts.auth === 'admin' && !ctx.roles.includes('admin')) throw new HttpError(403, 'Só o administrador pode fazer isso.');
+        // Analista: vê todo o painel do administrador (só leitura: GET), sem aprovar, bloquear ou mudar nada.
+        const analistaLendo = ctx.roles.includes('analista') && req.method === 'GET';
+        if (route.opts.auth === 'admin' && !ctx.roles.includes('admin') && !analistaLendo) throw new HttpError(403, 'Só o administrador pode fazer isso.');
         // Compra, contratação e carteira: só com a biometria aprovada (src/bioGate.js).
         exigirBiometria(db, cfg, route, req.method, ctx.user, ctx.roles);
         exigirPrazoBiometria(db, cfg, route, req.method, ctx.user, ctx.roles);
         // Administrador: painel só com a verificação em duas etapas ligada (Google Authenticator).
-        if (cfg.admin2fa && ctx.user && (ctx.roles || []).includes('admin') && !ctx.user.totp_on && /^\/admin/.test(route.path)) {
+        if (cfg.admin2fa && ctx.user && ((ctx.roles || []).includes('admin') || (ctx.roles || []).includes('analista')) && !ctx.user.totp_on && /^\/admin/.test(route.path)) {
           throw new HttpError(403, 'Ative a verificação em duas etapas (Google Authenticator) no seu Perfil para usar o painel do administrador.', 'ativar_2fa');
         }
         // Compras temporariamente bloqueadas (src/comprasGate.js).

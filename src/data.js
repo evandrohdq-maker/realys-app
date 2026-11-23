@@ -429,12 +429,12 @@ export const rideRequests = [
 
 // ---------- Administração (demonstração) ----------
 // Na versão real, o login de administrador fica no servidor, com senha criptografada e verificação em duas etapas.
-// Administrador: a senha NÃO fica escrita aqui (o código é público). Guardamos só a impressão
-// digital dela (SHA-256 de "realyz-admin:" + senha); o app confere digitando a senha.
-export const ADMIN_LOGIN = { user: 'evandrohdq', hash: '710ba0c1007e18b8e7f4ba8dd0b15baee26a6bcab6a299d882b807adac4c8b88' };
-// Analista: abaixo do administrador. Vê e analisa todo o painel (números, mercado, sistema, moderação,
-// cadastros, suporte), mas não aprova, bloqueia, remove nem muda nada.
-export const ANALYST_LOGIN = { user: 'analista', password: 'Vista#Realys7429' };
+// Administrador e analista: nenhuma senha fica no app. Eles entram pelo servidor (ADMIN_USERNAME/
+// ADMIN_PASSWORD e ANALISTA_USERNAME/ANALISTA_PASSWORD no .env), com o Google Authenticator obrigatório.
+// Aqui ficam só os nomes de usuário que levam para essa entrada.
+export const ADMIN_LOGIN = { users: ['admin', 'evandrohdq'] };
+// Analista: abaixo do administrador. Vê e analisa todo o painel, mas não aprova, bloqueia, remove nem muda nada.
+export const ANALYST_LOGIN = { user: 'analista' };
 
 export const platformStats = {
   users: 12840,
