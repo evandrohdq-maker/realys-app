@@ -189,3 +189,22 @@ test('empresa: cadastro exige nome e CPF do titular do CNPJ', async () => {
   assert.equal((await api('POST', '/auth/signup', { body: { ...base, titularNome: 'Titular Teste', titularCpf: '111.111.111-11' } })).status, 400, 'FALHOU: aceitou CPF do titular inválido');
   await ok('cadastrar empresa com o titular', 'POST', '/auth/signup', { body: { ...base, titularNome: 'Titular Teste', titularCpf: '529.982.247-25' } });
 });
+
+test('perfil profissional: segue e curte, não adiciona; empresa não é contato', async () => {
+  // O Beto é prestador (teste anterior). A Ana segue e curte o perfil de trabalho dele.
+  const s1 = await ok('Ana seguir o Beto prestador', 'POST', `/seguir/${S.beto.id}`, { who: 'ana' });
+  assert.equal(s1.seguindo, true);
+  const c1 = await ok('Ana curtir o perfil do Beto', 'POST', `/curtir-perfil/${S.beto.id}`, { who: 'ana' });
+  assert.equal(c1.curtiu, true);
+  const perfil = await ok('Ana ver o perfil do Beto', 'GET', `/users/${S.beto.id}`, { who: 'ana' });
+  assert.equal(perfil.seguidores, 1);
+  assert.equal(perfil.curtidas, 1);
+  assert.equal(perfil.seguindo, true, 'FALHOU: não mostra que a Ana segue');
+  assert.equal((await ok('Ana deixar de seguir', 'POST', `/seguir/${S.beto.id}`, { who: 'ana' })).seguindo, false);
+  assert.equal((await api('POST', `/seguir/${S.ana.id}`, { who: 'beto' })).data.code, 'nao_profissional', 'FALHOU: deu para seguir perfil pessoal');
+  // Empresa: não recebe pedido de amizade.
+  const loja = await ok('entrar na loja', 'POST', '/auth/login', { body: { login: 'lojateste', password: 'senha1234' } });
+  const r = await api('POST', `/friends/${loja.user.id}`, { who: 'ana' });
+  assert.equal(r.data.code, 'perfil_empresa', 'FALHOU: deu para adicionar empresa como contato');
+  assert.equal((await ok('Ana seguir a loja', 'POST', `/seguir/${loja.user.id}`, { who: 'ana' })).seguindo, true);
+});

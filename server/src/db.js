@@ -987,6 +987,23 @@ const MIGRATIONS = [
   ALTER TABLE users ADD COLUMN titular_nome TEXT;
   ALTER TABLE users ADD COLUMN titular_cpf TEXT;
   `,
+  // Perfil profissional (prestador e empresa), como as páginas de empresa das redes grandes: não é
+  // contato. As pessoas seguem, curtem o perfil e deixam depoimento; comprar e contratar é pela vitrine.
+  `
+  CREATE TABLE IF NOT EXISTS follows (
+    follower_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    target_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (follower_id, target_id)
+  );
+  CREATE INDEX IF NOT EXISTS follows_target ON follows(target_id);
+  CREATE TABLE IF NOT EXISTS profile_likes (
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    target_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (user_id, target_id)
+  );
+  `,
 ];
 
 export function openDb(file) {
