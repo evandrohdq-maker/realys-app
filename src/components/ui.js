@@ -30,6 +30,27 @@ export function Title({ children, sub }) {
   );
 }
 
+// Cabeçalho dos painéis de trabalho (empresa, prestador): faixa azul-escura com título dourado
+// e, dentro dela, os números do resumo. O resto do painel continua branco e clean.
+export function PainelHeader({ title, sub, stats }) {
+  return (
+    <View style={styles.painel}>
+      <Text numberOfLines={1} style={styles.painelTitle}>{title}</Text>
+      {sub ? <Text numberOfLines={1} style={styles.painelSub}>{sub}</Text> : null}
+      {stats && stats.length ? (
+        <View style={styles.painelStats}>
+          {stats.map((st) => (
+            <View key={st.label} style={styles.painelStat}>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={styles.painelStatValue}>{st.value}</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.painelStatLabel}>{st.label}</Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 export function Section({ title, right, children }) {
   return (
     <View style={{ marginBottom: 22 }}>
@@ -242,6 +263,13 @@ const styles = StyleSheet.create({
   screenScroll: { flex: 1, backgroundColor: colors.bg },
   screen: { padding: 18, paddingBottom: 110, backgroundColor: colors.bg, flexGrow: 1 },
   title: { fontSize: 20, fontWeight: '700', color: colors.text, letterSpacing: -0.3 },
+  painel: { backgroundColor: colors.navy, borderRadius: 16, padding: 14, marginBottom: 14 },
+  painelTitle: { color: colors.onNavy, fontSize: 18, fontWeight: '800', letterSpacing: -0.2 },
+  painelSub: { color: colors.onNavyMuted, fontSize: 12, marginTop: 2 },
+  painelStats: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 12, marginHorizontal: -4 },
+  painelStat: { flexGrow: 1, flexBasis: '45%', backgroundColor: colors.navySoft, borderRadius: 10, paddingVertical: 8, paddingHorizontal: 10, margin: 4 },
+  painelStatValue: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' },
+  painelStatLabel: { color: colors.onNavyMuted, fontSize: 11, marginTop: 1 },
   sub: { fontSize: 13, color: colors.muted, marginTop: 3, lineHeight: 18 },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.text, letterSpacing: -0.2 },

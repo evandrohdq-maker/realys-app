@@ -7,7 +7,7 @@ import { useStore, priceText, serviceType } from '../../store';
 import { includedPage } from '../../userPages';
 import { serviceTypes } from '../../data';
 import { colors, brl } from '../../theme';
-import { Screen, Title, Card, Row, Button, Stat, Section, Empty, Badge, Input, Chip } from '../../components/ui';
+import { Screen, Title, Card, Row, Button, Stat, Section, Empty, Badge, Input, Chip, PainelHeader } from '../../components/ui';
 import ServerProviderPanel from '../../components/ServerProviderPanel';
 import { conectado } from '../../serverShop';
 import AtendenteIA from '../../components/AtendenteIA';
@@ -223,7 +223,7 @@ function DriverMain({ goTo, onCadastro }) {
 
   return (
     <Screen>
-      <Title sub="Motorista, motoboy, eletricista, mecânico, diarista e qualquer MEI">Painel do prestador</Title>
+      <PainelHeader title="Painel do prestador" sub="Motorista, motoboy, eletricista, mecânico, diarista e qualquer MEI" />
       {/* Chamados de clientes de verdade, pelo servidor do Realyz (só com a conta ligada ao servidor). */}
       <ServerProviderPanel />
       <AtendenteIA />

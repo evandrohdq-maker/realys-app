@@ -7,6 +7,10 @@ export const colors = {
   onPrimary: '#FFFFFF',
   accent: '#2F74D0', // azul-céu
   dark: '#14120E', // preto
+  navy: '#0F1E3D', // azul-escuro dos painéis de trabalho (empresa, prestador)
+  navySoft: '#1B2D52',
+  onNavy: '#F5C331', // dourado sobre o azul-escuro
+  onNavyMuted: '#AEB8CC',
   text: '#14120E', // letras em preto
   muted: '#5B564B', // letras secundárias (mais visíveis que o cinza-azulado de antes)
   menu: '#3A362E', // letras e ícones dos menus quando não estão selecionados
