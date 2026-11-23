@@ -161,3 +161,20 @@ test('confirmar e-mail: código chega no cadastro e confirma a conta', async () 
   const troca = await api('POST', '/me/email/enviar', { who: 'beto', body: { email: 'anateste@realyz.com.br' } });
   assert.equal(troca.status, 409, 'FALHOU: deixou usar o e-mail de outra conta');
 });
+
+test('Google Authenticator: liga, pede o código no login e não entra sem ele', async () => {
+  const { codigoEm } = await import('../src/totp.js');
+  const ini = await ok('Ana iniciar o Authenticator', 'POST', '/me/2fa/iniciar', { who: 'ana' });
+  assert.ok(ini.link.startsWith('otpauth://totp/'), 'FALHOU: link do Authenticator');
+  assert.equal((await api('POST', '/me/2fa/ativar', { who: 'ana', body: { codigo: '000000' === codigoEm(ini.segredo) ? '111111' : '000000' } })).status, 400, 'FALHOU: ativou com código errado');
+  await ok('Ana ativar com o código certo', 'POST', '/me/2fa/ativar', { who: 'ana', body: { codigo: codigoEm(ini.segredo) } });
+  const sem = await api('POST', '/auth/login', { body: { login: 'anateste', password: 'senha1234' } });
+  assert.equal(sem.data.code, 'codigo_2fa', 'FALHOU: entrou só com a senha');
+  const errado = await api('POST', '/auth/login', { body: { login: 'anateste', password: 'senha1234', codigo2fa: codigoEm(ini.segredo, Date.now() + 300000) } });
+  assert.equal(errado.status, 401, 'FALHOU: entrou com código velho/errado');
+  keep('ana', await ok('Ana entrar com senha + código', 'POST', '/auth/login', { body: { login: 'anateste', password: 'senha1234', codigo2fa: codigoEm(ini.segredo) } }));
+  assert.equal((await ok('Ana ver a conta', 'GET', '/me', { who: 'ana' })).user.duasEtapas, true);
+  await ok('Ana desligar', 'POST', '/me/2fa/desativar', { who: 'ana', body: { codigo: codigoEm(ini.segredo) } });
+  keep('ana', await ok('Ana entrar só com a senha de novo', 'POST', '/auth/login', { body: { login: 'anateste', password: 'senha1234' } }));
+});
+

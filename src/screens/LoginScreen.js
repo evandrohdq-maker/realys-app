@@ -25,7 +25,7 @@ import {
 import SignupForm from './SignupForm';
 import { entrarOuMigrar, userFromServer, usarConta } from '../serverAuth';
 import { setServerId } from '../accounts';
-import { serverOn } from '../api';
+import { serverOn, setCodigo2fa } from '../api';
 import ScanFacial from '../components/ScanFacial';
 import SupportCenter from '../components/SupportCenter';
 import EsqueciSenha from '../components/EsqueciSenha';
@@ -71,7 +71,9 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
   const [showPass, setShowPass] = useState(false);
   const [remember, setRemember] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [esqueci, setEsqueci] = useState(false); // tela "Esqueci a senha"
+  const [esqueci, setEsqueci] = useState(false);
+  const [pede2fa, setPede2fa] = useState(false); // conta com Google Authenticator: pede o código
+  const [cod2fa, setCod2fa] = useState(''); // tela "Esqueci a senha"
   const passRef = useRef(null);
   const info = detect(value);
 
@@ -160,6 +162,7 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
       let viaServidor = false;
       if (serverOn()) {
         try {
+          setCodigo2fa(pede2fa ? cod2fa : null);
           const srv = await entrarOuMigrar(value, password, acc);
           viaServidor = !!srv;
           if (srv) {
@@ -170,6 +173,11 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
           }
         } catch (e) {
           // Sem internet: entra no modo do celular (demonstração) e tenta o servidor na próxima entrada.
+          // Conta com Google Authenticator: mostra o campo do código e espera a pessoa digitar.
+          if (e.code === 'codigo_2fa') {
+            setPede2fa(true);
+            return Alert.alert('Verificação em duas etapas', e.message);
+          }
           if (e.status !== 0 && (acc || e.status !== 401)) return Alert.alert('Não foi possível entrar', e.message);
           // Avisa: sem o servidor, perfil, amigos e conversas ficam só neste celular.
           Alert.alert('Sem ligação com o servidor', 'Você entrou só neste celular: perfil, amigos e conversas não vão para o Realyz. Confira a internet e entre de novo com a senha.');
@@ -338,6 +346,20 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
                 <Ionicons name={showPass ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.muted} />
               </TouchableOpacity>
             </View>
+            {pede2fa ? (
+              <View style={[styles.field, { marginTop: 10 }]}>
+                <Ionicons name="shield-checkmark-outline" size={20} color={colors.muted} />
+                <TextInput
+                  style={styles.input}
+                  value={cod2fa}
+                  onChangeText={(v) => setCod2fa(v.replace(/\D/g, '').slice(0, 6))}
+                  keyboardType="number-pad"
+                  placeholder="Código do Google Authenticator"
+                  placeholderTextColor={colors.muted}
+                  onSubmitEditing={enter}
+                />
+              </View>
+            ) : null}
 
             {info.kind !== 'admin' && info.kind !== 'analista' ? (
               <TouchableOpacity style={styles.check} onPress={() => setRemember(!remember)} activeOpacity={0.8}>

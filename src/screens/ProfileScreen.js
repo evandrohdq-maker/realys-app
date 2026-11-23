@@ -30,6 +30,7 @@ import { BIG_TEXT_KEY } from '../responsive';
 import WalletScreen from './WalletScreen';
 import BiometriaScreen from './BiometriaScreen';
 import ConfirmarEmail from '../components/ConfirmarEmail';
+import DuasEtapas from '../components/DuasEtapas';
 import DemoScreen from './DemoScreen';
 import { ProfileEditor, PrivacyPanel, StudioPanel, FutureIcon, audienceLabel, coverTone } from '../components/ProfileStudio';
 import { ShowsPanel } from '../components/ArtistShowEditor';
@@ -279,6 +280,7 @@ export default function ProfileScreen({ navigate, explore }) {
       {/* Conta sem biometria: aviso para completar o cadastro */}
       <UnverifiedBanner />
       <ConfirmarEmail />
+      <DuasEtapas />
       {work ? (
         <WorkHead role={state.activeRole} navigate={navigate} />
       ) : (

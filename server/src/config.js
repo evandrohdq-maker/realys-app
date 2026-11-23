@@ -46,6 +46,8 @@ export function loadConfig(overrides = {}) {
     // Conta sem biometria aprovada é só perfil social: não compra, não contrata e não usa a carteira.
     // Em produção já vem ligado; nos testes locais fica desligado para não travar a demonstração.
     exigirBiometria: bool(env.EXIGIR_BIOMETRIA, production),
+    // Painel do administrador só com o Google Authenticator ligado (em produção, sempre).
+    admin2fa: bool(env.ADMIN_2FA, production),
     // Compras e pagamentos (src/comprasGate.js). Em produção começam bloqueadas até COMPRAS_LIBERADAS=true.
     comprasLiberadas: bool(env.COMPRAS_LIBERADAS, !production),
     // Conferência do rosto nas ações (venda, saque, aceite...). Precisa do serviço biométrico
