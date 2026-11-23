@@ -38,7 +38,7 @@ export function loadConfig(overrides = {}) {
     // Vazio: o servidor usa o endereço pelo qual foi chamado.
     publicUrl: (env.PUBLIC_URL || '').replace(/\/$/, ''),
     // Onde baixar o APK (página de convite para quem ainda não tem o app).
-    apkUrl: env.APK_URL || 'https://github.com/evandrohdq-maker/realys-app/releases/latest',
+    apkUrl: env.APK_URL || 'https://api.realyz.com.br/baixar/realyz.apk',
     maxUploadMb: num(env.MAX_UPLOAD_MB, 60),
     // Fase de testes: depósito entra na hora como "depósito de teste" (sem Pix de verdade).
     // Desligado, o depósito fica pendente até o administrador confirmar.

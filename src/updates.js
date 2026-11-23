@@ -12,6 +12,7 @@ import { Platform } from 'react-native';
 import { File, Paths } from 'expo-file-system';
 import * as IntentLauncher from 'expo-intent-launcher';
 import BUILD from './build.json';
+import { API_URL } from './api';
 
 let Native = null;
 try {
@@ -65,6 +66,18 @@ const buildFromTag = (tag) => {
 };
 
 export async function checkForUpdate() {
+  // Primeiro o servidor do Realyz (funciona com o repositório privado); se ele ainda não tiver o APK, o GitHub.
+  if (API_URL) {
+    try {
+      const r = await fetch(`${API_URL}/app/versao`, { headers: { Accept: 'application/json' } });
+      if (r.ok) {
+        const v = await r.json();
+        return { available: !!v.url && v.build > CURRENT_BUILD, latest: v.build, current: CURRENT_BUILD, url: v.url, size: v.size || 0, notes: (v.notes || '').trim(), name: v.name || `Realyz ${v.build}` };
+      }
+    } catch (e) {
+      // sem servidor agora: tenta o GitHub
+    }
+  }
   const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
     headers: { Accept: 'application/vnd.github+json' },
   });

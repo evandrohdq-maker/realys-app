@@ -58,7 +58,7 @@ test('convite de chamada: link por fora do app, cadastro e entrada na sala', asy
   assert.doesNotMatch(page.data, /Souza/);
   assert.match(page.data, /Squad/);
   assert.match(page.data, /intent:\/\/chamada\//);
-  assert.match(page.data, /releases\/latest/);
+  assert.match(page.data, /baixar\/realyz\.apk/);
   assert.equal((await api('GET', '/c/ZZZZZZ')).status, 404);
 
   const info = await api('GET', `/convites/${inv.data.code.toLowerCase()}`);

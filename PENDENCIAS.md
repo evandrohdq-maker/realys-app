@@ -17,6 +17,16 @@ Lista viva: o que já foi combinado e ficou para depois. Atualizada em novembro 
 - [ ] **Pix de verdade** (Santander): credenciais do portal de desenvolvedores + certificado A1 no
       .env (PIX_*), e depois desligar os depósitos de teste (TEST_DEPOSITS=false).
 
+## Repositório privado: site e APK no próprio servidor (preparado em 23/11/2026)
+
+- [ ] **Token só de leitura do GitHub** (Fine-grained token, só o realys-app, Contents: Read-only) e rodar
+      `bash /opt/realys/server/deploy/ligar-github-privado.sh` na VPS (pede o token, liga o update e o Caddy).
+- [ ] **DNS no Registro.br**: entradas A de realyz.com.br (185.199.x.x, GitHub) → uma só para 91.98.12.204;
+      CNAME www → realyz.com.br.
+- [ ] Conferir: https://realyz.com.br abre o site, https://api.realyz.com.br/app/versao mostra o build do APK.
+- [ ] Limite do GitHub em repositório privado: 2.000 minutos/mês no plano grátis (cada APK ~15–20 min).
+      Se estourar: voltar para público (não há mais senha no código depois do #66) ou GitHub Pro.
+
 ## Compartilhar a tela (Arena Gamer e Hub de Negócios) — testar no primeiro APK com o servidor
 
 - [ ] **Minimizar o Re@lys com a tela sendo transmitida**: o jogo (ou qualquer app) tem que continuar indo

@@ -71,6 +71,20 @@ jobs:
           git -c user.name=ci -c user.email=ci@realys add -A && git -c user.name=ci -c user.email=ci@realys commit -qm "site-check ${{ github.run_number }}"
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" site-check
 
+      # Site também como pacote na release "site": o servidor do Realyz baixa e serve realyz.com.br
+      # (deploy/publicar-site.sh). Funciona com o repositório privado, sem depender do GitHub Pages.
+      - name: Empacotar o site para o servidor
+        run: tar -czf realyz-site.tar.gz -C dist .
+      - name: Publicar o pacote do site (release "site")
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: site
+          name: Site do Realyz (último)
+          body: Pacote do site para o servidor (deploy/publicar-site.sh). Atualizado a cada envio para a main.
+          files: realyz-site.tar.gz
+          make_latest: false
+          prerelease: true
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

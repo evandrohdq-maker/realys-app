@@ -18,7 +18,8 @@ const IDLE = [
 const HALO = uri(require('../../assets/lotus/light_halo.webp'));
 const RAYS = uri(require('../../assets/lotus/light_rays.webp'));
 const MARCA_ESCURA = uri(require('../../assets/wordmark-escuro.png'));
-const APK = 'https://github.com/evandrohdq-maker/realys-app/releases/latest/download/realys-demo.apk';
+// APK servido pelo próprio servidor do Realyz (funciona com o repositório privado).
+const APK = 'https://api.realyz.com.br/baixar/realyz.apk';
 
 // A flor da Lotus abrindo: o único movimento da página. Depois fica respirando devagar.
 function Lotus() {
