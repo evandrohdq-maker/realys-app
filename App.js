@@ -32,7 +32,7 @@ const CrmPrestador = () => <CrmScreen board="prestador" boards={CRM_PRESTADOR} /
 import InventoryScreen from './src/screens/empresa/InventoryScreen';
 import FinanceScreen from './src/screens/empresa/FinanceScreen';
 import B2BScreen from './src/screens/empresa/B2BScreen';
-import DriverScreen from './src/screens/prestador/DriverScreen';
+import DriverScreen, { PrestadorGanhos, PrestadorNegocio } from './src/screens/prestador/DriverScreen';
 import AgendaScreen from './src/screens/prestador/AgendaScreen';
 import SupplierScreen from './src/screens/fornecedor/SupplierScreen';
 import { AdminOverview, AdminModeration, AdminSignups } from './src/screens/admin/AdminScreens';
@@ -204,6 +204,8 @@ const TABS = {
     { key: 'prestar', label: 'Trabalhar', icon: 'navigate-circle-outline', Comp: DriverScreen },
     { key: 'agenda', label: 'Agenda', icon: 'calendar-outline', Comp: AgendaScreen },
     { key: 'clientes', label: 'Clientes', icon: 'chatbubbles-outline', Comp: CrmPrestador },
+    { key: 'ganhos', label: 'Ganhos', icon: 'wallet-outline', Comp: PrestadorGanhos },
+    { key: 'negocio', label: 'Negócio', icon: 'construct-outline', Comp: PrestadorNegocio },
     { key: 'stories', label: 'Community', icon: 'people-circle-outline', Comp: StoriesScreen },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
     { key: 'vagas', label: 'Empregos', icon: 'briefcase-outline', Comp: JobsScreen, hidden: true },

@@ -141,7 +141,12 @@ function SafetyKey() {
 const UNIT_LOCAL = { 'diária': 'diária (8h)', corrida: 'corrida + R$ 2,50/km', 'm²': 'm²' };
 const unitsFor = (service) => profConfig(service).units.filter((u) => u !== 'km').map((u) => UNIT_LOCAL[u] || u);
 
-function DriverMain({ goTo, onCadastro }) {
+// secao: qual botão do rodapé está aberto — trabalhar (chamados, GPS, pedidos), ganhos (quanto ganhou,
+// tarifas, boost) ou negocio (cadastro profissional, serviços, contratos, atendente e demanda).
+function DriverMain({ goTo, navigate, onCadastro, secao = 'trabalhar' }) {
+  const T = secao === 'trabalhar';
+  const G = secao === 'ganhos';
+  const N = secao === 'negocio';
   const { state, dispatch } = useStore();
   const me = state.myProvider;
   const [editing, setEditing] = useState(!me);
@@ -223,16 +228,38 @@ function DriverMain({ goTo, onCadastro }) {
 
   return (
     <Screen>
-      <PainelHeader title="Painel do prestador" sub="Motorista, motoboy, eletricista, mecânico, diarista e qualquer MEI" />
+      <PainelHeader title={G ? 'Meus ganhos' : N ? 'Meu negócio' : 'Painel do prestador'} sub={G ? 'Quanto entrou, tarifas e destaque' : N ? 'Cadastro profissional, serviços, contratos e atendimento' : 'Chamados, GPS e pedidos perto de você'} />
       {/* Chamados de clientes de verdade, pelo servidor do Realyz (só com a conta ligada ao servidor). */}
+      {T ? (<>
       <ServerProviderPanel />
+      </>) : null}
+      {N ? (<>
       <AtendenteIA />
+      </>) : null}
+      {G ? (<>
+      {/* Carteira: saldo, saques e extrato (abre a carteira do Perfil). */}
+      <Card onPress={() => (navigate ? navigate({ tab: 'perfil', wallet: true }) : goTo && goTo('perfil'))}>
+        <Row>
+          <Ionicons name="wallet-outline" size={20} color={colors.text} style={{ marginRight: 10 }} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14 }}>Carteira e saques</Text>
+            <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 12, marginTop: 1 }}>Saldo, extrato e sacar o que recebeu</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+        </Row>
+      </Card>
       <BoostButton target="prestador" label="Boost: trabalho mais rápido" hint="Fique no topo das indicações da sua região por algumas horas" />
+      </>) : null}
       {/* Tela de cadastro/mandados de exemplo: só na demonstração. Conta real usa o painel acima (servidor). */}
+      {N ? (<>
       {conectado(state) ? null : <Button title="Cadastro, empresa e mandados de serviço" variant="light" onPress={onCadastro} style={{ marginBottom: 12 }} />}
       <UnmetServices />
+      </>) : null}
+      {T ? (<>
       <OpenRequests kind="servico" service={state.myProvider && state.myProvider.service} />
+      </>) : null}
 
+      {T ? (<>
       <Card style={{ backgroundColor: state.available ? colors.primaryLight : colors.card }}>
         <Row style={{ justifyContent: 'space-between' }}>
           <View style={{ flex: 1 }}>
@@ -248,7 +275,11 @@ function DriverMain({ goTo, onCadastro }) {
       </Card>
       <HorarioTrabalho />
       <SafetyKey />
+      </>) : null}
+      {G ? (<>
       {me && TARIFFS[me.service] ? <RideEarnings service={me.service} /> : null}
+      </>) : null}
+      {N ? (<>
       <Card onPress={() => dispatch({ type: 'OPEN_DOCS', mode: 'lista' })}>
         <Row>
           <Ionicons name="document-text-outline" size={20} color={colors.text} style={{ marginRight: 10 }} />
@@ -259,7 +290,9 @@ function DriverMain({ goTo, onCadastro }) {
           <Ionicons name="chevron-forward" size={18} color={colors.muted} />
         </Row>
       </Card>
+      </>) : null}
 
+      {N ? (<>
       <Section
         title="Meu cadastro profissional"
         right={me && !editing ? <Button small variant="light" title="Editar" onPress={() => setEditing(true)} /> : null}
@@ -416,15 +449,19 @@ function DriverMain({ goTo, onCadastro }) {
           </Card>
         )}
       </Section>
+      </>) : null}
 
-      <AgendaShortcut onOpen={() => goTo && goTo('agenda')} />
+      {/* Agenda tem botão próprio no rodapé. */}
 
+      {G ? (<>
       <Row style={{ marginHorizontal: -4, marginBottom: 14 }}>
         <Stat label="Ganhos hoje" value={brl(86.4 + earnings)} color={colors.success} />
         <Stat label="Avaliação" value="★ 4,9" color={colors.accent} />
         <Stat label="Serviços" value={String(7 + accepted.length)} />
       </Row>
+      </>) : null}
 
+      {T ? (<>
       {me && isVisitService(me.service) ? <VisitPanel /> : null}
 
       {/* Conta real: entregas e fretes das lojas do Realyz (central de entregas no servidor). */}
@@ -484,6 +521,7 @@ function DriverMain({ goTo, onCadastro }) {
         ))}
         {!accepted.length ? <Empty text="Nenhum serviço em andamento." /> : null}
       </Section>
+      </>) : null}
     </Screen>
   );
 }
@@ -753,6 +791,13 @@ export default function DriverScreen(props) {
   const [tela, setTela] = useState(null);
   if (tela === 'cadastro') return <PrestacaoScreen onClose={() => setTela(null)} />;
   return <DriverMain {...props} onCadastro={() => setTela('cadastro')} />;
+}
+// Botões do rodapé do prestador: cada um abre só a sua parte do painel.
+export const PrestadorGanhos = (props) => <DriverMain {...props} secao="ganhos" />;
+export function PrestadorNegocio(props) {
+  const [tela, setTela] = useState(null);
+  if (tela === 'cadastro') return <PrestacaoScreen onClose={() => setTela(null)} />;
+  return <DriverMain {...props} secao="negocio" onCadastro={() => setTela('cadastro')} />;
 }
 
 const dz = {
