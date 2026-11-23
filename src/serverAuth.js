@@ -9,7 +9,7 @@ import { serverOn, login as apiLogin, signup as apiSignup, verificarAparelho, se
 import { TERMO_ADESAO_VERSAO } from './termoAdesao';
 
 // Aparelho novo: o servidor pede uma foto do rosto para conferir com o cadastro (não refaz o cadastro).
-async function fotoDoRosto() {
+export async function fotoDoRosto() {
   const perm = await ImagePicker.requestCameraPermissionsAsync();
   if (perm.status !== 'granted') throw new ApiError(403, 'Libere a câmera para confirmar seu rosto neste aparelho.', 'biometria_aparelho');
   const r = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.8, allowsEditing: false, cameraType: ImagePicker.CameraType.front });

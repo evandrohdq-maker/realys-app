@@ -25,7 +25,7 @@ import musicasRoutes from './routes/musicas.js';
 import livesRoutes from './routes/lives.js';
 import mediaRoutes from './routes/media.js';
 import adminRoutes from './routes/admin.js';
-import { exigirBiometria } from './bioGate.js';
+import { exigirBiometria, exigirPrazoBiometria } from './bioGate.js';
 import { exigirComprasLiberadas, MSG_COMPRAS_BLOQUEADAS } from './comprasGate.js';
 import { protegerDinheiroDeTeste, rodarComoTeste } from './teste.js';
 import biometriaRoutes from './routes/biometria.js';
@@ -62,7 +62,7 @@ export function publicUser(u, { self = false } = {}) {
     privacy: u.privacy,
     teste: !!u.teste, // conta de teste (selo "Teste" no perfil)
   };
-  if (self) Object.assign(out, { email: u.email, phone: u.phone, doc: u.doc, status: u.status, createdAt: u.created_at });
+  if (self) Object.assign(out, { email: u.email, emailOk: !!u.email_ok, phone: u.phone, doc: u.doc, status: u.status, createdAt: u.created_at });
   return out;
 }
 
@@ -162,6 +162,7 @@ export function createApp(cfg) {
         if (route.opts.auth === 'admin' && !ctx.roles.includes('admin')) throw new HttpError(403, 'Só o administrador pode fazer isso.');
         // Compra, contratação e carteira: só com a biometria aprovada (src/bioGate.js).
         exigirBiometria(db, cfg, route, req.method, ctx.user, ctx.roles);
+        exigirPrazoBiometria(db, cfg, route, req.method, ctx.user, ctx.roles);
         // Compras temporariamente bloqueadas (src/comprasGate.js).
         exigirComprasLiberadas(cfg, route, req.method, ctx.roles, ctx.user);
       }

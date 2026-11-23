@@ -146,3 +146,18 @@ test('esqueci a senha: código por e-mail troca a senha e desconecta os aparelho
   const ninguem = await ok('Pedir código de conta que não existe', 'POST', '/auth/esqueci', { body: { login: 'naoexiste99' } });
   assert.ok(!ninguem.para, 'FALHOU: a resposta revela que a conta não existe');
 });
+
+test('confirmar e-mail: código chega no cadastro e confirma a conta', async () => {
+  const msg = [...enviados].reverse().find((m) => m.to === 'anateste@realyz.com.br' && /confirme/.test(m.subject));
+  assert.ok(msg, 'FALHOU: o cadastro não mandou o código de confirmação');
+  assert.equal((await ok('Ana ver a conta', 'GET', '/me', { who: 'ana' })).user.emailOk, false, 'FALHOU: e-mail aparece confirmado sem código');
+  const errado = await api('POST', '/me/email/confirmar', { who: 'ana', body: { codigo: '000000' } });
+  assert.equal(errado.status, 400, 'FALHOU: código errado foi aceito');
+  // Pede outro código (o anterior pode ter sido o 000000 por azar) e confirma com ele.
+  await ok('Ana pedir código de novo', 'POST', '/me/email/enviar', { who: 'ana', body: {} });
+  const codigo = enviados.at(-1).text.match(/\b(\d{6})\b/)[1];
+  await ok('Ana confirmar o e-mail', 'POST', '/me/email/confirmar', { who: 'ana', body: { codigo } });
+  assert.equal((await ok('Ana ver a conta', 'GET', '/me', { who: 'ana' })).user.emailOk, true, 'FALHOU: e-mail não ficou confirmado');
+  const troca = await api('POST', '/me/email/enviar', { who: 'beto', body: { email: 'anateste@realyz.com.br' } });
+  assert.equal(troca.status, 409, 'FALHOU: deixou usar o e-mail de outra conta');
+});

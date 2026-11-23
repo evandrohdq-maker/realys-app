@@ -963,6 +963,19 @@ const MIGRATIONS = [
   ALTER TABLE users ADD COLUMN reset_exp INTEGER;
   ALTER TABLE users ADD COLUMN reset_tentativas INTEGER NOT NULL DEFAULT 0;
   `,
+  // Confirmação do e-mail: código de 6 números enviado no cadastro (e quando a pessoa pedir de novo).
+  `
+  ALTER TABLE users ADD COLUMN email_ok INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE users ADD COLUMN email_cod_hash TEXT;
+  ALTER TABLE users ADD COLUMN email_cod_exp INTEGER;
+  ALTER TABLE users ADD COLUMN email_cod_tent INTEGER NOT NULL DEFAULT 0;
+  -- Trocou a senha pelo "Esqueci a senha": precisa confirmar o rosto de novo para comprar e contratar.
+  ALTER TABLE users ADD COLUMN rosto_pendente INTEGER NOT NULL DEFAULT 0;
+  -- Conta sem biometria: 7 dias para navegar; depois, só com a biometria feita. Quem já existia ganha
+  -- 7 dias a contar desta atualização (ninguém é travado de surpresa).
+  ALTER TABLE users ADD COLUMN prazo_bio INTEGER;
+  UPDATE users SET prazo_bio = CAST(strftime('%s','now') AS INTEGER) * 1000 + 7 * 86400000;
+  `,
 ];
 
 export function openDb(file) {

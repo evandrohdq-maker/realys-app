@@ -3,7 +3,7 @@
 // Entrar: um campo só (usuário, CPF ou CNPJ) + senha. O tipo de acesso vem da conta, não de uma escolha.
 // Na primeira vez entra com senha; o app guarda a sessão do aparelho no cofre do celular, protegida
 // pela biometria. Nas próximas vezes a biometria libera a sessão e o app troca por um token novo.
-import { podeComprar } from '../bioGate.js';
+import { podeComprar, prazoBioVencido } from '../bioGate.js';
 import { randomInt } from 'node:crypto';
 import { makeMail } from '../mail.js';
 import { str, fail, newId, now } from '../http.js';
@@ -34,7 +34,8 @@ export function idadeEm(iso, hoje = new Date()) {
 }
 
 
-export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin, clearLogin, biometria }) {
+export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin, clearLogin, biometria, push, hub }) {
+  const mailer = cfg.mail || makeMail(cfg);
   // Cria a sessão do aparelho e o token de acesso.
   const startSession = (user, device) => {
     const token = newSessionToken();
@@ -89,6 +90,8 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
       }
       return db.prepare('SELECT * FROM users WHERE id = ?').get(id);
     });
+    db.prepare('UPDATE users SET prazo_bio = ? WHERE id = ?').run(now() + 7 * 86400000, user.id); // 7 dias sem biometria
+    enviarCodigoEmail(user).catch(() => {}); // confirmação do e-mail (não trava o cadastro)
     return startSession(user, body.device);
   }, { auth: false, status: 201 });
 
@@ -146,6 +149,8 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
       ? db.prepare('SELECT * FROM users WHERE doc = ?').get(d)
       : db.prepare('SELECT * FROM users WHERE username = ?').get(cleanUsername(login));
     const out = biometria.verifyDevice(login, raw, String(query.deviceKey || '').slice(0, 80), () => u);
+    // Rosto conferido: libera de novo compras e serviços depois de uma troca de senha.
+    if (u && out && out.aparelhoToken) db.prepare('UPDATE users SET rosto_pendente = 0 WHERE id = ?').run(u.id);
     clearLogin(key);
     return out;
   }, { auth: false, raw: true });
@@ -161,12 +166,73 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
     return { user: publicUser(user, { self: true }), accessToken: signToken({ sub: user.id }, cfg.jwtSecret, cfg.accessTokenMinutes), expiresIn: cfg.accessTokenMinutes * 60 };
   }, { auth: false });
 
+  // ── Confirmar o e-mail ──
+  // No cadastro vai um código de 6 números (vale 30 minutos). A pessoa confirma no app; enquanto não
+  // confirma, um aviso discreto lembra. Errou o e-mail no cadastro? Pode corrigir e pedir outro código.
+  async function enviarCodigoEmail(u) {
+    if (!u || !u.email || u.email_ok) return false;
+    const codigo = String(randomInt(0, 1000000)).padStart(6, '0');
+    db.prepare('UPDATE users SET email_cod_hash = ?, email_cod_exp = ?, email_cod_tent = 0 WHERE id = ?').run(sha256(`email:${u.id}:${codigo}`), now() + 30 * 60000, u.id);
+    await mailer.send({
+      to: u.email,
+      subject: `Realyz: confirme seu e-mail com o código ${codigo}`,
+      text: `Olá, ${u.name}!\n\nSeu código para confirmar o e-mail no Realyz: ${codigo}\nEle vale 30 minutos.\n\nCom o e-mail confirmado, você consegue recuperar a conta se esquecer a senha.\nSe não foi você que criou esta conta, ignore este e-mail.`,
+    });
+    return true;
+  }
+  r.post('/me/email/enviar', async ({ body, user, ip }) => {
+    limitLogin(`${ip}|email|${user.id}`);
+    let u = db.prepare('SELECT * FROM users WHERE id = ?').get(user.id);
+    const novo = String(body.email || '').trim().toLowerCase();
+    if (novo && novo !== String(u.email || '').toLowerCase()) {
+      if (!validEmail(novo)) fail(400, 'E-mail inválido.');
+      if (db.prepare('SELECT 1 FROM users WHERE lower(email) = ? AND id != ?').get(novo, u.id)) fail(409, 'Esse e-mail já está em outra conta.');
+      db.prepare('UPDATE users SET email = ?, email_ok = 0 WHERE id = ?').run(novo, u.id);
+      u = db.prepare('SELECT * FROM users WHERE id = ?').get(user.id);
+    }
+    if (u.email_ok) return { ok: true, emailOk: true, email: u.email };
+    if (!u.email) fail(400, 'Cadastre um e-mail primeiro.');
+    try {
+      await enviarCodigoEmail(u);
+    } catch (e) {
+      fail(503, 'Não conseguimos enviar o e-mail agora. Tente de novo em alguns minutos.');
+    }
+    return { ok: true, emailOk: false, email: u.email };
+  });
+  r.post('/me/email/confirmar', ({ body, user }) => {
+    const u = db.prepare('SELECT * FROM users WHERE id = ?').get(user.id);
+    if (u.email_ok) return { ok: true, emailOk: true };
+    const codigo = String(body.codigo || '').replace(/\D/g, '');
+    if (!u.email_cod_hash || !u.email_cod_exp || u.email_cod_exp < now()) fail(400, 'Código vencido. Peça um novo.');
+    if (sha256(`email:${u.id}:${codigo}`) !== u.email_cod_hash) {
+      const n = (u.email_cod_tent || 0) + 1;
+      if (n >= 5) db.prepare('UPDATE users SET email_cod_hash = NULL, email_cod_exp = NULL, email_cod_tent = 0 WHERE id = ?').run(u.id);
+      else db.prepare('UPDATE users SET email_cod_tent = ? WHERE id = ?').run(n, u.id);
+      fail(400, n >= 5 ? 'Muitas tentativas. Peça um código novo.' : 'Código errado. Confira o e-mail.');
+    }
+    db.prepare('UPDATE users SET email_ok = 1, email_cod_hash = NULL, email_cod_exp = NULL, email_cod_tent = 0 WHERE id = ?').run(u.id);
+    return { ok: true, emailOk: true };
+  });
+
+  // Aviso no celular do dono (notificação, mesmo com o app fechado): funciona mesmo se o e-mail foi invadido.
+  function avisarDono(u, text) {
+    try {
+      if (hub) hub.send(u.id, 'seguranca', { text });
+      if (push) push.aviso(u.id, 'seguranca', { text });
+    } catch (e) {}
+  }
+  // Depois de trocar senha ou e-mail: todos os aparelhos saem e só este fica conhecido.
+  function recomecarAparelhos(u, deviceKey, device) {
+    db.prepare('UPDATE sessions SET revoked = 1 WHERE user_id = ?').run(u.id);
+    db.prepare('DELETE FROM devices WHERE user_id = ?').run(u.id);
+    if (deviceKey) db.prepare('INSERT INTO devices (id, user_id, device_key, name, created_at, last_seen_at) VALUES (?,?,?,?,?,?)').run(newId('dv'), u.id, String(deviceKey).slice(0, 80), String(device || '').slice(0, 80), now(), now());
+  }
+
   // ── Esqueci a senha ──
   // 1) A pessoa digita usuário, CPF, CNPJ ou e-mail. Se a conta existir e tiver e-mail, vai um código
   //    de 6 números que vale 15 minutos. A resposta é sempre a mesma (não revela se a conta existe).
   // 2) Com o código certo, troca a senha e desconecta todos os aparelhos (quem estava usando a conta
   //    sem permissão perde o acesso). Cinco códigos errados cancelam e pedem um novo.
-  const mail = cfg.mail || makeMail(cfg);
   const acharConta = (login) => {
     const t = String(login || '').trim();
     const d = onlyDigits(t);
@@ -181,10 +247,11 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
     const u = acharConta(login);
     const resposta = { ok: true, mensagem: 'Se a conta existir e tiver e-mail cadastrado, enviamos um código de 6 números. Ele vale 15 minutos.' };
     if (!u || u.status !== 'ativo' || u.kind === 'sistema' || !u.email) return resposta;
+    avisarDono(u, 'Pediram para trocar a senha da sua conta. Se não foi você, não passe o código para ninguém.');
     const codigo = String(randomInt(0, 1000000)).padStart(6, '0');
     db.prepare('UPDATE users SET reset_hash = ?, reset_exp = ?, reset_tentativas = 0 WHERE id = ?').run(sha256(`${u.id}:${codigo}`), now() + 15 * 60000, u.id);
     try {
-      await mail.send({
+      await mailer.send({
         to: u.email,
         subject: `Realyz: seu código para trocar a senha é ${codigo}`,
         text: `Olá, ${u.name}!\n\nSeu código para criar uma senha nova no Realyz: ${codigo}\nEle vale 15 minutos.\n\nSe não foi você que pediu, ignore este e-mail: sua senha continua a mesma.`,
@@ -210,9 +277,41 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
     }
     const pp = passwordProblem(body.senha);
     if (pp) fail(400, pp);
-    db.prepare('UPDATE users SET pass_hash = ?, reset_hash = NULL, reset_exp = NULL, reset_tentativas = 0 WHERE id = ?').run(hashPassword(String(body.senha)), u.id);
-    db.prepare('UPDATE sessions SET revoked = 1 WHERE user_id = ?').run(u.id);
+    // Conta com biometria: o código do e-mail sozinho não basta. Confere o rosto com o cadastro
+    // (quem invadir só o e-mail não consegue trocar a senha). O código continua valendo até o rosto.
+    const deviceKey = String(body.deviceKey || '').slice(0, 80);
+    if (biometria.hasBiometria(u.id) && !biometria.consumeDeviceToken(u.id, deviceKey, body.aparelhoToken)) {
+      fail(403, 'Confirme seu rosto para trocar a senha.', 'biometria_aparelho');
+    }
+    db.prepare('UPDATE users SET pass_hash = ?, email_ok = 1, reset_hash = NULL, reset_exp = NULL, reset_tentativas = 0 WHERE id = ?').run(hashPassword(String(body.senha)), u.id);
+    // Todos os aparelhos saem; só este (onde o rosto foi conferido) fica conhecido.
+    recomecarAparelhos(u, biometria.hasBiometria(u.id) ? deviceKey : null, body.device);
+    avisarDono(u, 'A senha da sua conta foi trocada. Se não foi você, fale com o suporte do Realyz.');
     return { ok: true, mensagem: 'Senha trocada. Entre com a senha nova.' };
+  }, { auth: false });
+
+  // ── Recuperar pelo rosto (perdeu o acesso ao e-mail) ──
+  // Só para conta com biometria: o app confere o rosto (POST /auth/aparelho/verificar, que devolve o
+  // aparelhoToken) e aqui a pessoa cadastra um e-mail novo e uma senha nova. O e-mail novo recebe o
+  // código de confirmação; todos os outros aparelhos saem da conta.
+  r.post('/auth/recuperar-rosto', ({ body, ip }) => {
+    const login = str(body.login, 'usuário, CPF ou CNPJ', { max: 40 });
+    limitLogin(`${ip}|recuperar-rosto|${login.toLowerCase()}`);
+    const u = acharConta(login);
+    if (!u || u.status !== 'ativo' || u.kind === 'sistema' || !biometria.hasBiometria(u.id)) fail(400, 'Recuperar pelo rosto só funciona em conta com biometria cadastrada. Use o código por e-mail ou fale com o suporte.');
+    const deviceKey = String(body.deviceKey || '').slice(0, 80);
+    if (!biometria.consumeDeviceToken(u.id, deviceKey, body.aparelhoToken)) fail(403, 'Confirme seu rosto para recuperar a conta.', 'biometria_aparelho');
+    const email = String(body.email || '').trim().toLowerCase();
+    if (!validEmail(email)) fail(400, 'E-mail inválido.');
+    if (db.prepare('SELECT 1 FROM users WHERE lower(email) = ? AND id != ?').get(email, u.id)) fail(409, 'Esse e-mail já está em outra conta.');
+    const pp = passwordProblem(body.senha);
+    if (pp) fail(400, pp);
+    db.prepare('UPDATE users SET email = ?, email_ok = 0, pass_hash = ?, reset_hash = NULL, reset_exp = NULL WHERE id = ?').run(email, hashPassword(String(body.senha)), u.id);
+    recomecarAparelhos(u, deviceKey, body.device);
+    avisarDono(u, 'Sua conta foi recuperada pelo rosto, com e-mail e senha novos.');
+    const atual = db.prepare('SELECT * FROM users WHERE id = ?').get(u.id);
+    enviarCodigoEmail(atual).catch(() => {});
+    return { ok: true, mensagem: 'Conta recuperada. Entre com a senha nova e confirme o e-mail novo com o código que enviamos.' };
   }, { auth: false });
 
   // Sair deste aparelho ("trocar usuário").
@@ -236,6 +335,9 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
   // Eu: dados da conta, carteira e empresa (se tiver).
   r.get('/me', ({ user, roles }) => ({
     user: publicUser(user, { self: true }),
+    // Até quando a conta sem biometria pode navegar (o app avisa antes e trava depois).
+    prazoBiometria: user.prazo_bio || null,
+    prazoVencido: prazoBioVencido(db, cfg, user, roles),
     // Selo "Identidade verificada": só com a biometria aprovada (independe da regra de compras).
     verificado: !!db.prepare(`SELECT 1 FROM biometria WHERE user_id = ? AND status = 'aprovado'`).get(user.id),
     // O app usa isto para saber se a conta está completa ou no modo social (sem biometria).

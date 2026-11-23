@@ -122,7 +122,7 @@ import { installCameraPick } from './src/web/cameraPick';
 if (Platform.OS === 'web') installCameraPick();
 import { usePush } from './src/pushNotifications';
 import { TvFloat, LiveFloat } from './src/components/FloatPlayers';
-import { BioGateModal, LockedScreen, canOpenTab, isVerified, useServerBio } from './src/components/BioGate';
+import { BioGateModal, LockedScreen, canOpenTab, isVerified, useServerBio, PrazoBioLock } from './src/components/BioGate';
 import HRScreen from './src/screens/empresa/HRScreen';
 import { TechScreen, AgroScreen } from './src/screens/cliente/TechAgroScreen';
 import { ElectronicsScreen, FashionScreen, HomeGoodsScreen, AppliancesScreen, FurnitureScreen, VariousScreen, EXTRA_SECTOR_KEYS, SECTOR_SCREENS } from './src/screens/cliente/ShopSectorScreen';
@@ -752,6 +752,7 @@ function Shell({ inviteTick }) {
 
       {/* Rádio tocando: barrinha em qualquer tela (o player é um só no app). */}
       <BioGateModal />
+      <PrazoBioLock />
       <ComprasGateModal />
       {/* Rádio ao vivo: sem barrinha dentro do app (o play/parar fica na página das rádios; a capa
           aparece só ao minimizar). Músicas: mini player com a capa e o botão do perfil do artista. */}

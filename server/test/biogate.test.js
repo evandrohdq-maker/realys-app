@@ -70,3 +70,28 @@ test('com a biometria aprovada a trava some', async () => {
   assert.equal(dep.status < 300, true, JSON.stringify(dep.data));
   assert.notEqual((await api('POST', '/orders', { items: [] })).data.code, 'biometria');
 });
+
+test('trocou a senha pelo "Esqueci a senha": confirma o rosto de novo antes de comprar', async () => {
+  app.db.prepare('UPDATE users SET rosto_pendente = 1 WHERE id = ?').run(userId);
+  const dep = await api('POST', '/wallet/deposit', { amount: 10 });
+  assert.equal(dep.status, 403);
+  assert.equal(dep.data.code, 'biometria_reconferir', 'FALHOU: depois da troca de senha comprou sem conferir o rosto');
+  app.db.prepare('UPDATE users SET rosto_pendente = 0 WHERE id = ?').run(userId);
+  assert.notEqual((await api('POST', '/wallet/deposit', { amount: 10 })).data.code, 'biometria_reconferir');
+});
+
+test('7 dias sem biometria: depois do prazo só a biometria e a conta abrem', async () => {
+  app.db.prepare(`UPDATE biometria SET status = 'sem_consentimento' WHERE user_id = ?`).run(userId);
+  app.db.prepare('UPDATE users SET prazo_bio = ? WHERE id = ?').run(Date.now() + 86400000, userId);
+  assert.notEqual((await api('GET', '/feed')).status, 403, 'FALHOU: travou antes do prazo');
+  app.db.prepare('UPDATE users SET prazo_bio = ? WHERE id = ?').run(Date.now() - 1000, userId);
+  const feed = await api('GET', '/feed');
+  assert.equal(feed.data.code, 'biometria_prazo', 'FALHOU: depois dos 7 dias ainda navega sem biometria');
+  const me = await api('GET', '/me');
+  assert.equal(me.status, 200, 'FALHOU: travou até a conta (o app precisa dela para mostrar a biometria)');
+  assert.equal(me.data.prazoVencido, true);
+  assert.notEqual((await api('GET', '/biometria')).data.code, 'biometria_prazo', 'FALHOU: travou a própria tela da biometria');
+  app.db.prepare(`UPDATE biometria SET status = 'em_analise' WHERE user_id = ?`).run(userId);
+  assert.notEqual((await api('GET', '/feed')).data.code, 'biometria_prazo', 'FALHOU: biometria enviada (em análise) continuou travada');
+  app.db.prepare(`UPDATE biometria SET status = 'aprovado' WHERE user_id = ?`).run(userId);
+});
