@@ -40,6 +40,8 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
   const lacrar = (seg) => (cipher && cipher.hasKey ? cipher.seal(Buffer.from(seg)) : 'plain:' + seg);
   const abrir = (x) => (!x ? null : x.startsWith('plain:') ? x.slice(6) : cipher.open(x).toString());
   const mailer = cfg.mail || makeMail(cfg);
+  // A própria conta, com os perfis de trabalho ativos (prestador, artista).
+  const eu = (u) => ({ ...publicUser(u, { self: true }), trabalho: db.prepare("SELECT tipo FROM perfis_trabalho WHERE owner_id = ? AND status = 'ativo'").all(u.id).map((x) => x.tipo) });
   // Cria a sessão do aparelho e o token de acesso.
   const startSession = (user, device) => {
     const token = newSessionToken();
@@ -48,7 +50,7 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
       newId('s'), user.id, sha256(token), String(device || 'celular').slice(0, 80), t, t, t + cfg.sessionDays * 86400000
     );
     return {
-      user: publicUser(user, { self: true }),
+      user: eu(user),
       accessToken: signToken({ sub: user.id }, cfg.jwtSecret, cfg.accessTokenMinutes),
       sessionToken: token,
       expiresIn: cfg.accessTokenMinutes * 60,
@@ -177,7 +179,7 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
     if (!user || user.status !== 'ativo') fail(403, 'Esta conta está bloqueada.');
     // Cada uso renova a validade: quem usa o app não precisa entrar de novo.
     db.prepare('UPDATE sessions SET last_used_at = ?, expires_at = ? WHERE id = ?').run(now(), now() + cfg.sessionDays * 86400000, s.id);
-    return { user: publicUser(user, { self: true }), accessToken: signToken({ sub: user.id }, cfg.jwtSecret, cfg.accessTokenMinutes), expiresIn: cfg.accessTokenMinutes * 60 };
+    return { user: eu(user), accessToken: signToken({ sub: user.id }, cfg.jwtSecret, cfg.accessTokenMinutes), expiresIn: cfg.accessTokenMinutes * 60 };
   }, { auth: false });
 
   // ── Verificação em duas etapas (Google Authenticator) ──
@@ -391,7 +393,7 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
 
   // Eu: dados da conta, carteira e empresa (se tiver).
   r.get('/me', ({ user, roles }) => ({
-    user: publicUser(user, { self: true }),
+    user: eu(user),
     // Até quando a conta sem biometria pode navegar (o app avisa antes e trava depois).
     prazoBiometria: user.prazo_bio || null,
     prazoVencido: prazoBioVencido(db, cfg, user, roles),

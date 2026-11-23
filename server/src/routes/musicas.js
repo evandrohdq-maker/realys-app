@@ -2,6 +2,7 @@
 // app e paga esse valor + R$ 0,99 fixos do Realyz por download. O artista recebe 100% do valor dele.
 // Ouvir na Galeria é livre (com propaganda no app); o download fica do cliente para sempre.
 import { exigirParceiroDeTeste } from '../teste.js';
+import { exigirTrabalho } from '../trabalho.js';
 import { fail, newId, now, str, money, toReais } from '../http.js';
 import { tx } from '../db.js';
 
@@ -13,7 +14,8 @@ export default function musicasRoutes(r, { db, cfg, wallet, hub, fiscal }) {
   });
   const SQL = 'SELECT t.*, u.name AS artist_name FROM tracks t JOIN users u ON u.id = t.artist_id';
 
-  r.post('/tracks', ({ user, body }) => {
+  r.post('/tracks', ({ user, body, roles }) => {
+    exigirTrabalho(db, user, 'artista', roles, cfg);
     const url = str(body.url, 'o áudio', { max: 400 });
     if (!/^(\/media\/|https:\/\/)/.test(url)) fail(400, 'O áudio precisa ser um arquivo enviado pelo app ou um link https.');
     const id = newId('mu');

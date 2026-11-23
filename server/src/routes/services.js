@@ -2,6 +2,7 @@
 // O prestador liga o GPS e fica disponível; o cliente vê os mais próximos com nota, o que faz e
 // quanto cobra, escolhe, chama ou agenda e acompanha o prestador chegando.
 import { exigirParceiroDeTeste } from '../teste.js';
+import { exigirTrabalho } from '../trabalho.js';
 import { fail, newId, now, str, money, int, coord, toReais } from '../http.js';
 import { tx } from '../db.js';
 import { publicName } from '../providerName.js';
@@ -55,7 +56,8 @@ export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biom
   };
 
   // Cadastro do prestador: funções e valores, que a Lotus repassa ao cliente.
-  r.put('/providers/me', ({ body, user }) => {
+  r.put('/providers/me', ({ body, user, roles }) => {
+    exigirTrabalho(db, user, 'prestador', roles, cfg);
     const functions = Array.isArray(body.functions) ? body.functions.map((f) => String(f).trim().slice(0, 60)).filter(Boolean).slice(0, 15) : [];
     if (!functions.length) fail(400, 'Informe pelo menos uma função (o que você faz).');
     const row = {

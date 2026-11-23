@@ -45,6 +45,7 @@ import empregosRoutes from './routes/empregos.js';
 import logisticaRoutes from './routes/logistica.js';
 import pushRoutes from './routes/push.js';
 import baixarRoutes from './routes/baixar.js';
+import trabalhoRoutes, { trabalhoAdminRoutes } from './routes/trabalho.js';
 import contasTesteRoutes from './contasTeste.js';
 import { makePush } from './push.js';
 
@@ -63,7 +64,7 @@ export function publicUser(u, { self = false } = {}) {
     privacy: u.privacy,
     teste: !!u.teste, // conta de teste (selo "Teste" no perfil)
   };
-  if (self) Object.assign(out, { email: u.email, emailOk: !!u.email_ok, duasEtapas: !!u.totp_on, titularNome: u.titular_nome || null, phone: u.phone, doc: u.doc, status: u.status, createdAt: u.created_at });
+  if (self) Object.assign(out, { socialTitular: !!u.social_titular, email: u.email, emailOk: !!u.email_ok, duasEtapas: !!u.totp_on, titularNome: u.titular_nome || null, phone: u.phone, doc: u.doc, status: u.status, createdAt: u.created_at });
   return out;
 }
 
@@ -106,7 +107,7 @@ export function createApp(cfg) {
     attempts.set(key, a);
   };
   deps.clearLogin = (key) => attempts.delete(key);
-  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes, noticiasRoutes, showsRoutes, pushRoutes, empregosRoutes, logisticaRoutes, profissoesRoutes, turbinarRoutes, contasTesteRoutes, baixarRoutes].forEach((r) => r(router, deps));
+  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes, noticiasRoutes, showsRoutes, pushRoutes, empregosRoutes, logisticaRoutes, profissoesRoutes, turbinarRoutes, contasTesteRoutes, baixarRoutes, trabalhoRoutes, trabalhoAdminRoutes].forEach((r) => r(router, deps));
   router.get('/health', () => ({ ok: true, name: 'Realyz', time: now() }), { auth: false });
   // O que está ligado agora (o app pergunta ao abrir e mostra o aviso de compras bloqueadas).
   router.get('/status', () => ({

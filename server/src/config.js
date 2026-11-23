@@ -48,6 +48,9 @@ export function loadConfig(overrides = {}) {
     exigirBiometria: bool(env.EXIGIR_BIOMETRIA, production),
     // Painel do administrador só com o Google Authenticator ligado (em produção, sempre).
     admin2fa: bool(env.ADMIN_2FA, production),
+    // Trabalhar (prestador, artista) só com perfil de trabalho com CNPJ do próprio CPF (em produção, sempre).
+    exigirCnpjTrabalho: bool(env.EXIGIR_CNPJ_TRABALHO, production),
+    consultaCnpj: env.CONSULTA_CNPJ === '0' ? false : production,
     // Compras e pagamentos (src/comprasGate.js). Em produção começam bloqueadas até COMPRAS_LIBERADAS=true.
     comprasLiberadas: bool(env.COMPRAS_LIBERADAS, !production),
     // Conferência do rosto nas ações (venda, saque, aceite...). Precisa do serviço biométrico
