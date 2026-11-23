@@ -24,14 +24,15 @@ export { openServerProfile, useServerProfileOpen };
 const full = (u) => (u && u.startsWith('/') ? API_URL + u : u || null);
 
 export function ServerProfileHost() {
-  const [id, setId] = useState(null);
-  useEffect(() => bindProfileHost(setId), []);
+  const [aberto, setAberto] = useState(null); // { id, preview }
+  useEffect(() => bindProfileHost((id, preview) => setAberto({ id, preview: preview || null })), []);
+  const id = aberto ? aberto.id : null;
   useEffect(() => setOpenNow(!!id), [id]);
   if (!id) return null;
-  return <ServerProfile id={id} onClose={() => setId(null)} />;
+  return <ServerProfile key={id} id={id} preview={aberto.preview} onClose={() => setAberto(null)} />;
 }
 
-function ServerProfile({ id, onClose }) {
+function ServerProfile({ id, preview, onClose }) {
   const { dispatch } = useStore();
   const insets = useSafeAreaInsets();
   const [p, setP] = useState(null);
@@ -42,9 +43,13 @@ function ServerProfile({ id, onClose }) {
   const { width } = useWindowDimensions();
   const load = () => {
     setErr(null);
+    // Nunca fica carregando para sempre: sem resposta em 12 s, avisa e oferece tentar de novo.
+    let respondeu = false;
+    const t = setTimeout(() => !respondeu && setErr('O perfil demorou para abrir. Confira a internet e tente de novo.'), 12000);
     return api('GET', `/users/${id}`)
-      .then(setP)
-      .catch((e) => setErr(e.message || 'Não deu para abrir este perfil.'));
+      .then((d) => { respondeu = true; setErr(null); setP(d && d.id ? d : { id, name: (preview && preview.name) || '', friend: null }); })
+      .catch((e) => { respondeu = true; setErr(e.message || 'Não deu para abrir este perfil.'); })
+      .finally(() => clearTimeout(t));
   };
   useEffect(() => {
     load();
@@ -72,7 +77,23 @@ function ServerProfile({ id, onClose }) {
             <Ionicons name="arrow-back" size={20} color={colors.text} />
           </TouchableOpacity>
         </View>
-        {!p && !err ? <ActivityIndicator color={colors.primary} style={{ marginTop: 40 }} /> : null}
+        {!p && preview ? (
+          // Prévia na hora (nome e foto de quem postou): já dá para adicionar enquanto o resto carrega.
+          <View style={{ paddingHorizontal: 16 }}>
+            <View style={st.avatarWrap}>
+              {preview.photo ? <Photo uri={full(preview.photo)} style={st.avatar} fallback="🙂" /> : (
+                <View style={[st.avatar, { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }]}>
+                  <Text style={{ color: colors.onPrimary, fontWeight: '900', fontSize: 34 }}>{(preview.name || '?').charAt(0).toUpperCase()}</Text>
+                </View>
+              )}
+            </View>
+            <Text style={st.name}>{preview.name}</Text>
+            <View style={st.row}>
+              <Btn icon="person-add" label={busy ? '…' : 'Adicionar'} solid onPress={busy ? undefined : () => act(() => addFriend(id))} />
+            </View>
+          </View>
+        ) : null}
+        {!p && !err ? <ActivityIndicator color={colors.primary} style={{ marginTop: preview ? 16 : 40 }} /> : null}
         {err ? (
           <View style={{ alignItems: 'center' }}>
             <Text style={st.err}>{err}</Text>
