@@ -48,7 +48,7 @@ import { myPages, MAX_PAGES } from '../userPages';
 import Credentials from '../components/Credentials';
 import { SocialBadge, ProfileQuizModal } from '../components/SocialClass';
 import CategoryMenu from '../components/CategoryMenu';
-import { onProfileMenu } from '../profileMenu';
+import { onProfileMenu, takePendingMenu } from '../profileMenu';
 import { MY_COMPANY_ID } from '../data';
 import { profileById } from '../components/CompanyProfile';
 
@@ -179,10 +179,13 @@ export default function ProfileScreen({ navigate, explore }) {
   const [helpOpen, setHelpOpen] = useState(false);
   const [taxasOpen, setTaxasOpen] = useState(false);
   // Menu ⋮ do Perfil: "Minha conta" (as antigas Mais opções) + "Explorar" (o antigo ⋮ do cabeçalho).
-  const [menuOpen, setMenuOpen] = useState(false);
+  // Veio do ⋮ de outra tela? O menu já nasce aberto (sem o Perfil aparecer antes por baixo).
+  const menuInicial = React.useRef(undefined);
+  if (menuInicial.current === undefined) menuInicial.current = takePendingMenu();
+  const [menuOpen, setMenuOpen] = useState(!!menuInicial.current);
   const [menuSeg, setMenuSeg] = useState('conta');
   // O ⋮ fica no canto direito do cabeçalho do app e abre este menu (de qualquer tela).
-  const returnTo = React.useRef(null);
+  const returnTo = React.useRef((menuInicial.current && menuInicial.current.returnTo) || null);
   useEffect(
     () =>
       onProfileMenu((o) => {
@@ -400,7 +403,7 @@ export default function ProfileScreen({ navigate, explore }) {
       <DepCenter visible={depOpen} onClose={() => setDepOpen(false)} />
 
       {/* Menu ⋮ do Perfil: duas partes, Minha conta e Explorar o Realyz. */}
-      <Modal visible={menuOpen} animationType="fade" onRequestClose={closeMenu}>
+      <Modal visible={menuOpen} animationType={returnTo.current ? 'none' : 'fade'} onRequestClose={closeMenu}>
         <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
           <View style={styles.menuHead}>
             <Text style={styles.menuTitle}>Menu</Text>
