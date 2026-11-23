@@ -138,6 +138,16 @@ function ServerProfile({ id, preview, onClose }) {
             {p.username ? <Text style={st.handle}>*{p.username}</Text> : null}
             {p.teste ? <Text style={st.teste}>Conta de teste</Text> : null}
             {p.about ? <Text style={st.about}>{p.about}</Text> : null}
+            {!p.negocio && p.visible !== false ? (
+              <View style={st.stats}>
+                {[[(p.posts || []).length, (p.posts || []).length === 1 ? 'publicação' : 'publicações', 'posts'], [(p.testimonials || []).length, (p.testimonials || []).length === 1 ? 'depoimento' : 'depoimentos', 'dep']].map(([n, l, k]) => (
+                  <TouchableOpacity key={k} style={st.stat} onPress={() => setAba(k)} accessibilityLabel={`${n} ${l}`}>
+                    <Text style={st.statN}>{n}</Text>
+                    <Text style={st.statL}>{l}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : null}
             {p.friend === 'recebido' && !p.negocio ? <Text style={st.ask}>{first} quer ser seu amigo no Realyz.</Text> : null}
 
             {p.negocio && p.friend !== 'amigos' ? (
@@ -171,7 +181,7 @@ function ServerProfile({ id, preview, onClose }) {
                 <>
                   <Btn icon="chatbubble-ellipses" label="Mensagem" solid onPress={() => (onClose(), dispatch({ type: 'OPEN_SERVER_CHAT', userId: p.id, name: p.name }))} />
                   <Btn icon="create-outline" label="Depoimento" onPress={() => setDepOpen(true)} />
-                  <Btn icon="people" label="Amigos" onPress={unfriend} />
+                  <Btn icon="checkmark-circle" label="Amigos" onPress={unfriend} />
                 </>
               ) : p.friend === 'enviado' ? (
                 <Btn icon="time-outline" label="Pedido enviado" onPress={() => Alert.alert('Pedido enviado', `Quando ${first} aceitar, vocês viram amigos.`)} />
@@ -200,6 +210,7 @@ function ServerProfile({ id, preview, onClose }) {
                 {[['posts', 'Publicações'], ['galeria', 'Galeria'], ['mural', 'Mural'], ['dep', 'Depoimentos']].map(([k, l]) => (
                   <TouchableOpacity key={k} onPress={() => setAba(k)} style={st.tab} accessibilityLabel={l}>
                     <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[st.tabText, aba === k && st.tabOn]}>{l}</Text>
+                    {aba === k ? <View style={st.tabLine} /> : null}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -337,10 +348,14 @@ const st = StyleSheet.create({
   handle: { color: colors.muted, marginTop: 2 },
   about: { color: colors.text, marginTop: 10, lineHeight: 20 },
   row: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 14 },
-  btn: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingVertical: 10, paddingHorizontal: 16, marginRight: 8, marginBottom: 8 },
+  btn: { flexDirection: 'row', alignItems: 'center', borderRadius: 22, paddingVertical: 10, paddingHorizontal: 18, marginRight: 6, marginBottom: 8 },
   btnSolid: { backgroundColor: colors.primary },
-  btnLine: { borderWidth: 1.5, borderColor: colors.primary, backgroundColor: '#fff' },
+  btnLine: { backgroundColor: 'transparent', paddingHorizontal: 10 },
   btnText: { fontWeight: '700', marginLeft: 6 },
+  stats: { flexDirection: 'row', marginTop: 12 },
+  stat: { marginRight: 22 },
+  statN: { color: colors.text, fontWeight: '800', fontSize: 16 },
+  statL: { color: colors.muted, fontSize: 12 },
   teste: { alignSelf: 'flex-start', marginTop: 4, color: '#7A5806', backgroundColor: '#FFF4D6', fontSize: 11, fontWeight: '800', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, overflow: 'hidden' },
   locked: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardAlt, borderRadius: 12, padding: 12, marginTop: 8 },
   h: { color: colors.text, fontWeight: '800', fontSize: 16, marginTop: 18, marginBottom: 8 },
@@ -350,7 +365,8 @@ const st = StyleSheet.create({
   tabs: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.border, marginTop: 16, marginBottom: 10 },
   tab: { flexGrow: 1, flexShrink: 1, alignItems: 'center', paddingVertical: 10, paddingHorizontal: 4 },
   tabText: { color: colors.muted, fontWeight: '700', fontSize: 13 },
-  tabOn: { color: colors.gold || colors.primary },
+  tabOn: { color: colors.text },
+  tabLine: { position: 'absolute', bottom: -1, height: 2, width: 28, borderRadius: 1, backgroundColor: colors.text },
   hl: { width: 62, height: 62, borderRadius: 31, borderWidth: 2, borderColor: colors.gold || colors.primary },
   video: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 12, marginBottom: 8, ...soft },
   mural: { borderRadius: 16, padding: 10 },
