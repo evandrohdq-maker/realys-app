@@ -78,5 +78,26 @@ function DeskModal(props) {
   return ReactDOM.createPortal(body, document.body);
 }
 
-module.exports = { ...RN, Modal: DeskModal };
+// No site, o Alert do react-native-web não mostra nada (avisos e erros sumiam calados). Aqui ele usa o
+// aviso do navegador: com um botão, alert(); com "Cancelar" + outro, confirm() e chama o botão escolhido.
+const WebAlert = {
+  alert(title, message, buttons) {
+    if (typeof window === 'undefined') return;
+    const texto = [title, message].filter(Boolean).join('\n\n');
+    const bs = Array.isArray(buttons) ? buttons : [];
+    const cancelar = bs.find((b) => b && b.style === 'cancel');
+    const acoes = bs.filter((b) => b && b !== cancelar);
+    if (acoes.length >= 1 && (cancelar || acoes.length > 1)) {
+      const ok = window.confirm(texto + (acoes.length > 1 ? '\n\n(OK = ' + (acoes[acoes.length - 1].text || 'OK') + ')' : ''));
+      const escolhido = ok ? acoes[acoes.length - 1] : cancelar;
+      if (escolhido && escolhido.onPress) setTimeout(escolhido.onPress, 0);
+      return;
+    }
+    window.alert(texto);
+    const unico = acoes[0] || cancelar;
+    if (unico && unico.onPress) setTimeout(unico.onPress, 0);
+  },
+};
+
+module.exports = { ...RN, Modal: DeskModal, Alert: WebAlert };
 module.exports.DeskModal = DeskModal;

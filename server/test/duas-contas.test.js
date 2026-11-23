@@ -158,8 +158,12 @@ test('confirmar e-mail: código chega no cadastro e confirma a conta', async () 
   const codigo = enviados.at(-1).text.match(/\b(\d{6})\b/)[1];
   await ok('Ana confirmar o e-mail', 'POST', '/me/email/confirmar', { who: 'ana', body: { codigo } });
   assert.equal((await ok('Ana ver a conta', 'GET', '/me', { who: 'ana' })).user.emailOk, true, 'FALHOU: e-mail não ficou confirmado');
-  const troca = await api('POST', '/me/email/enviar', { who: 'beto', body: { email: 'anateste@realyz.com.br' } });
+  const semSenha = await api('POST', '/me/email/enviar', { who: 'beto', body: { email: 'outro@realyz.com.br' } });
+  assert.equal(semSenha.data.code, 'senha_email', 'FALHOU: trocou o e-mail sem pedir a senha');
+  const troca = await api('POST', '/me/email/enviar', { who: 'beto', body: { email: 'anateste@realyz.com.br', senha: 'novaSenha123' } });
   assert.equal(troca.status, 409, 'FALHOU: deixou usar o e-mail de outra conta');
+  await ok('Beto trocar o e-mail com a senha', 'POST', '/me/email/enviar', { who: 'beto', body: { email: 'beto.novo@realyz.com.br', senha: 'novaSenha123' } });
+  assert.ok(enviados.some((m) => m.to === 'betoteste@realyz.com.br' && /trocado/.test(m.subject)), 'FALHOU: o e-mail antigo não foi avisado da troca');
 });
 
 test('Google Authenticator: liga, pede o código no login e não entra sem ele', async () => {
