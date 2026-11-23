@@ -14,6 +14,7 @@ import { now } from './http.js';
 const short = (s, n = 90) => (String(s || '').length > n ? String(s).slice(0, n - 1) + '…' : String(s || ''));
 const brl = (v) => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
 export const AVISOS = {
+  seguranca: (d) => ({ title: d.title || 'Segurança da sua conta 🔒', body: short(d.text), go: { tab: 'perfil' } }),
   message: (d) => ({ title: d.fromName || 'Nova mensagem', body: short(d.text), go: { chat: { userId: d.from, name: d.fromName || '' } } }),
   call: (d) => ({ title: 'Chamado de serviço', body: `${d.client || 'Cliente'} · ${d.service || ''} · ${d.status || 'novo'}`, go: { tab: 'pedidos', seg: 'servicos' } }),
   order: (d) => ({ title: 'Pedido', body: d.status ? `Seu pedido está: ${d.status}` : 'Você recebeu um pedido novo', go: { tab: 'pedidos' } }),

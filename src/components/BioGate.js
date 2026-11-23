@@ -11,7 +11,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../store';
 import { colors, soft } from '../theme';
 import { confirmBiometric, markVerified } from '../accounts';
-import { api, serverOn, onBioBlocked } from '../api';
+import { api, serverOn, onBioBlocked, onPrazoBio } from '../api';
+import BiometriaScreen from '../screens/BiometriaScreen';
 
 // A conta sem biometria navega por tudo (Shop, Food, Serviços, Negócios…) e vê preços e vitrines
 // normalmente. O que não passa é a compra ou a contratação: essas ações param no store (NEEDS_BIO)
@@ -20,6 +21,57 @@ export const isVerified = (state) => !state.user || state.user.verified !== fals
 // Selo de identidade verificada: conta do servidor vale o que o servidor diz (biometria aprovada).
 export const hasIdBadge = (state) => !!state.user && (state.user.idVerified != null ? state.user.idVerified : state.user.verified !== false && !state.user.serverId);
 export const canOpenTab = () => true;
+
+// Prazo de 7 dias sem biometria (servidor): quando acaba, o app só abre a biometria.
+let prazoVencidoAgora = false;
+let prazoFim = null;
+const prazoSubs = new Set();
+function setPrazoVencido(v) {
+  prazoVencidoAgora = v;
+  prazoSubs.forEach((fn) => fn(v));
+}
+export const diasRestantesBio = () => (prazoFim ? Math.max(0, Math.ceil((prazoFim - Date.now()) / 86400000)) : null);
+
+// Tela que cobre o app quando o prazo acabou: só sai fazendo a biometria (sem "agora não").
+export function PrazoBioLock() {
+  const [vencido, setVencido] = useState(prazoVencidoAgora);
+  const [bio, setBio] = useState(false);
+  useEffect(() => {
+    prazoSubs.add(setVencido);
+    return () => prazoSubs.delete(setVencido);
+  }, []);
+  const conferir = () =>
+    api('GET', '/me')
+      .then((me) => setPrazoVencido(!!(me && me.prazoVencido)))
+      .catch(() => {});
+  return (
+    <Modal visible={vencido} transparent animationType="fade" onRequestClose={() => {}}>
+      <View style={st.scrim}>
+        <View style={st.card}>
+          <View style={st.icon}>
+            <Ionicons name="finger-print" size={30} color={colors.text} />
+          </View>
+          <Text style={st.title}>Seus 7 dias de teste acabaram</Text>
+          <Text style={st.text}>Para continuar usando o Realyz, cadastre sua biometria. É ela que garante que aqui só tem gente de verdade e que ninguém usa a sua conta no seu lugar.</Text>
+          <TouchableOpacity style={st.btn} onPress={() => setBio(true)} activeOpacity={0.85} accessibilityLabel="Cadastrar biometria">
+            <Ionicons name="scan-outline" size={18} color="#fff" />
+            <Text numberOfLines={1} style={st.btnText}>Cadastrar biometria</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={conferir} style={{ paddingVertical: 12 }} accessibilityLabel="Já fiz, conferir">
+            <Text numberOfLines={1} style={{ color: colors.muted, fontWeight: '700', textAlign: 'center' }}>Já enviei, conferir de novo</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <BiometriaScreen
+        visible={bio}
+        onClose={() => {
+          setBio(false);
+          conferir();
+        }}
+      />
+    </Modal>
+  );
+}
 
 // Com o servidor ligado, quem manda é ele: ao entrar, o app pergunta se a conta pode comprar
 // (biometria aprovada) e acerta o modo da conta. Se o servidor recusar uma compra por falta de
@@ -32,12 +84,18 @@ export function useServerBio() {
     return () => onBioBlocked(null);
   }, [dispatch]);
   useEffect(() => {
+    onPrazoBio(() => setPrazoVencido(true));
+    return () => onPrazoBio(null);
+  }, []);
+  useEffect(() => {
     if (!uid || !serverOn()) return;
     let alive = true;
     api('GET', '/me')
       .then((me) => {
         if (!alive || !me) return;
         if (me.verificado != null) dispatch({ type: 'SET_ID_VERIFIED', on: me.verificado });
+        setPrazoVencido(!!me.prazoVencido);
+        prazoFim = me.prazoBiometria || null;
         // Conta de teste: compra com dinheiro fictício (sem o aviso de compras bloqueadas).
         dispatch({ type: 'SET_CONTA_TESTE', on: !!me.teste });
         if (!me.exigeBiometria) return;
@@ -144,7 +202,7 @@ export function UnverifiedBanner() {
       <Ionicons name="finger-print" size={20} color={colors.text} />
       <View style={{ flex: 1, marginLeft: 10 }}>
         <Text style={{ color: colors.text, fontWeight: '800' }}>Conta no modo social</Text>
-        <Text style={{ color: colors.muted, fontSize: 12, marginTop: 1 }}>Faça a biometria para liberar compras, serviços e a carteira.</Text>
+        <Text style={{ color: colors.muted, fontSize: 12, marginTop: 1 }}>{diasRestantesBio() != null ? `Faltam ${diasRestantesBio()} dia(s) para fazer a biometria. Sem ela, a conta trava.` : 'Faça a biometria para liberar compras, serviços e a carteira.'}</Text>
       </View>
       <Text style={{ color: colors.text, fontWeight: '800', fontSize: 12.5 }}>{busy ? '…' : 'Fazer'}</Text>
     </TouchableOpacity>

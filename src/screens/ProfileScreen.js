@@ -29,6 +29,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BIG_TEXT_KEY } from '../responsive';
 import WalletScreen from './WalletScreen';
 import BiometriaScreen from './BiometriaScreen';
+import ConfirmarEmail from '../components/ConfirmarEmail';
 import DemoScreen from './DemoScreen';
 import { ProfileEditor, PrivacyPanel, StudioPanel, FutureIcon, audienceLabel, coverTone } from '../components/ProfileStudio';
 import { ShowsPanel } from '../components/ArtistShowEditor';
@@ -277,6 +278,7 @@ export default function ProfileScreen({ navigate, explore }) {
       {/* Cabeçalho: foto, nome verificado, @ e profissão, perfil social e bio. */}
       {/* Conta sem biometria: aviso para completar o cadastro */}
       <UnverifiedBanner />
+      <ConfirmarEmail />
       {work ? (
         <WorkHead role={state.activeRole} navigate={navigate} />
       ) : (
