@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UnmetProducts, IntelPanel } from '../../components/Engage';
-import { View, TouchableOpacity, Alert } from 'react-native';
+import { View, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { Text } from '../../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore, myProducts } from '../../store';
@@ -52,30 +52,21 @@ export default function DashboardScreen({ goTo, navigate }) {
       <ServerEventsPanel />
       <AtendenteIA />
 
-      {/* Hub de Negócios: recepção ao vivo, atendimento com tela compartilhada e reuniões da equipe. */}
-      <TouchableOpacity onPress={() => (navigate ? navigate({ tab: 'salas' }) : goTo && goTo('salas'))} activeOpacity={0.85} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 18, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: colors.border }} accessibilityLabel="Abrir o Hub de Negócios">
-        <Ionicons name="headset-outline" size={20} color={colors.text} />
-        <View style={{ flex: 1, marginLeft: 8 }}>
-          <Text numberOfLines={1} style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>Hub de Negócios</Text>
-          <Text numberOfLines={2} style={{ color: colors.muted, fontSize: 13, marginTop: 2 }}>Fila de clientes ao vivo, atendimento com tela e reuniões da equipe.</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.muted} />
-      </TouchableOpacity>
-      {/* Divulgação da empresa: anúncios, propagandas e reels de anúncio (o Estúdio é só para artistas e criadores). */}
-      <View style={{ backgroundColor: '#FFFFFF', borderRadius: 18, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: colors.border }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Ionicons name="megaphone-outline" size={20} color={colors.text} />
-          <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15, marginLeft: 8 }}>Divulgação</Text>
-        </View>
-        <Text style={{ color: colors.muted, fontSize: 13, marginTop: 6 }}>Coloque a sua empresa na frente de quem compra: anúncio, propaganda e reel de anúncio.</Text>
-        <View style={{ flexDirection: 'row', marginTop: 10 }}>
-          <TouchableOpacity onPress={() => (navigate ? navigate({ tab: 'anuncie' }) : goTo && goTo('anuncie'))} style={{ flex: 1, minHeight: 40, borderRadius: 12, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center', marginRight: 8, paddingHorizontal: 6 }} accessibilityLabel="Anúncios e propagandas">
-            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>Anúncios e propagandas</Text>
+      {/* Atalhos em bolinhas (visual clean): Hub de Negócios, anúncios, reel de anúncio e presentear clientes. */}
+      <View style={dash.atalhos}>
+        {[
+          { icon: 'headset-outline', label: 'Hub', go: () => (navigate ? navigate({ tab: 'salas' }) : goTo && goTo('salas')) },
+          { icon: 'megaphone-outline', label: 'Anúncios', go: () => (navigate ? navigate({ tab: 'anuncie' }) : goTo && goTo('anuncie')) },
+          { icon: 'film-outline', label: 'Reel', go: () => setReeling(true) },
+          { icon: 'gift-outline', label: 'Presentear', go: () => dispatch({ type: 'OPEN_GIFT', asCompany: true }) },
+        ].map((a) => (
+          <TouchableOpacity key={a.label} style={dash.atalho} onPress={a.go} activeOpacity={0.8} accessibilityLabel={a.label}>
+            <View style={dash.bola}>
+              <Ionicons name={a.icon} size={22} color={colors.text} />
+            </View>
+            <Text numberOfLines={1} style={dash.atalhoTxt}>{a.label}</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setReeling(true)} style={{ flex: 1, minHeight: 40, borderRadius: 12, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 }} accessibilityLabel="Publicar reel de anúncio">
-            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ color: colors.text, fontWeight: '700', fontSize: 13 }}>Reel de anúncio</Text>
-          </TouchableOpacity>
-        </View>
+        ))}
       </View>
       <ReelComposer
         visible={reeling}
@@ -86,18 +77,6 @@ export default function DashboardScreen({ goTo, navigate }) {
           Alert.alert('Reel de anúncio publicado ✅', 'Ele aparece nos Reels do Realyz com a marca da sua empresa.');
         }}
       />
-
-      {/* Presentear clientes: créditos que o cliente usa só para comprar no Realyz */}
-      <TouchableOpacity activeOpacity={0.9} onPress={() => dispatch({ type: 'OPEN_GIFT', asCompany: true })} style={{ backgroundColor: '#FFFFFF', borderRadius: 18, padding: 14, marginBottom: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border }}>
-        <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' }}>
-          <Ionicons name="gift" size={22} color={colors.primary} />
-        </View>
-        <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={{ color: colors.text, fontWeight: '800' }}>Presentear clientes</Text>
-          <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Mande créditos para um cliente fiel. Ele usa só em compras no Realyz.</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.primary} />
-      </TouchableOpacity>
 
       <Card>
         <Text style={{ color: colors.text, fontWeight: '700', marginBottom: 10 }}>Faturamento por dia</Text>
@@ -203,3 +182,10 @@ function Metric({ label, value }) {
     </View>
   );
 }
+
+const dash = StyleSheet.create({
+  atalhos: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 14, marginTop: 2 },
+  atalho: { alignItems: 'center', width: 72 },
+  bola: { width: 54, height: 54, borderRadius: 27, backgroundColor: colors.card, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.borderStrong || colors.border, alignItems: 'center', justifyContent: 'center' },
+  atalhoTxt: { color: colors.text, fontSize: 12, marginTop: 5, fontWeight: '600' },
+});

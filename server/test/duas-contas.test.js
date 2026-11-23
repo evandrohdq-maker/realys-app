@@ -72,6 +72,12 @@ test('duas contas: pesquisa pelo nome e pelo *usuário', async () => {
   assert.equal(porUser[0] && porUser[0].id, S.beto.id, 'FALHOU: pesquisa pelo *usuário não trouxe o Beto primeiro');
 });
 
+test('duas contas: sugestões de amizade mostram a outra pessoa', async () => {
+  const l = await ok('Ana ver sugestões', 'GET', '/me/sugestoes', { who: 'ana' });
+  assert.ok(l.some((u) => u.id === S.beto.id), 'FALHOU: o Beto não aparece nas sugestões da Ana');
+  assert.ok(!l.some((u) => u.id === S.ana.id), 'FALHOU: a Ana aparece nas próprias sugestões');
+});
+
 test('duas contas: pedido de amizade, aceitar e ver como amigos', async () => {
   assert.equal((await ok('Beto adicionar a Ana', 'POST', `/friends/${S.ana.id}`, { who: 'beto' })).status, 'enviado');
   const pedidos = await ok('Ana ver os pedidos', 'GET', '/friends', { who: 'ana' });
