@@ -16,3 +16,10 @@ export function onProfileMenu(fn) {
   }
   return () => subs.delete(fn);
 }
+
+// O Perfil pega o pedido pendente já ao nascer: o menu aparece na mesma hora, sem mostrar o Perfil antes.
+export function takePendingMenu() {
+  const p = pending;
+  pending = null;
+  return p;
+}

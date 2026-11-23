@@ -400,7 +400,7 @@ export default function ProfileScreen({ navigate, explore }) {
       <DepCenter visible={depOpen} onClose={() => setDepOpen(false)} />
 
       {/* Menu ⋮ do Perfil: duas partes, Minha conta e Explorar o Realyz. */}
-      <Modal visible={menuOpen} animationType="slide" onRequestClose={closeMenu}>
+      <Modal visible={menuOpen} animationType="fade" onRequestClose={closeMenu}>
         <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
           <View style={styles.menuHead}>
             <Text style={styles.menuTitle}>Menu</Text>
