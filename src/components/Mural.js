@@ -22,6 +22,7 @@ import { galleryOf } from '../testimonialsData';
 import * as ImagePicker from 'expo-image-picker';
 import { getDevicePoint, addressOf } from '../geo';
 import { openMedia } from './MediaViewer';
+import { editPhoto } from './PhotoEditor';
 
 const NOTE_COLORS = ['#FFF3C4', '#DDF4FF', '#FFE1EC', '#E3FBE6', '#EDE4FF', '#FFFFFF'];
 const first = (n) => String(n || '').split(' ')[0];
@@ -262,9 +263,12 @@ function Picker({ kind, onClose, onPick, current }) {
     try {
       const perm = camera ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) return Alert.alert('Permissão', camera ? 'Permita a câmera para tirar a foto.' : 'Permita o acesso às fotos do celular.');
-      const opts = { mediaTypes: ['images'], quality: 0.85, allowsEditing: true };
+      const opts = { mediaTypes: ['images'], quality: 0.95 };
       const r = camera ? await ImagePicker.launchCameraAsync(opts) : await ImagePicker.launchImageLibraryAsync(opts);
-      if (!r.canceled && r.assets && r.assets[0]) setChosen(r.assets[0].uri);
+      if (r.canceled || !r.assets || !r.assets[0]) return;
+      // Antes de ir para o mural: janela para cortar, girar e pôr efeito.
+      const edited = await editPhoto(r.assets[0].uri, { title: 'Foto do mural', confirm: 'Continuar' });
+      if (edited) setChosen(edited);
     } catch (e) {}
   };
   // Local aproximado (bairro e cidade), nunca o endereço exato da pessoa.

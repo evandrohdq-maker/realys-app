@@ -9,6 +9,7 @@ const WEB = {
   'react-native-webrtc': shim('webrtc.js'), // WebRTC do navegador (câmera, lives, chamadas)
   '@react-native-ml-kit/face-detection': shim('empty.js'),
   'realys-updater': shim('empty.js'),
+  '@shopify/react-native-skia': shim('empty.js'), // no site a pele suave é feita no <canvas> (src/photoFx.js)
   'expo-intent-launcher': shim('intent-launcher.js'),
   'expo-local-authentication': shim('local-authentication.js'),
   'expo-screen-capture': shim('screen-capture.js'),

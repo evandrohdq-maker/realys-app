@@ -23,6 +23,7 @@ import { TestimonialComposer } from '../components/SocialProfile';
 import { useOpenPerson, resolvePerson } from '../openPerson';
 import { realWidth, DESK_MIN, RAIL_MIN } from '../webFrame';
 import { DestaqueOpcoes, DESTAQUE_VAZIO, aplicarDestaque } from '../components/Destacar';
+import { editPhoto } from '../components/PhotoEditor';
 
 // Página Community (botão "Community" na barra de baixo): stories e comunidade.
 // Em cima, a faixa de bolinhas como no Instagram; embaixo, a Comunidade: feed único de posts e
@@ -368,8 +369,10 @@ function PostComposer({ visible, onClose, onPublish }) {
     try {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) return Alert.alert('Permissão necessária', 'Autorize o Realyz a ver suas fotos para anexar na publicação.');
-      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
-      if (!res.canceled && res.assets && res.assets[0]) setImage(res.assets[0].uri);
+      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.95 });
+      if (res.canceled || !res.assets || !res.assets[0]) return;
+      const edited = await editPhoto(res.assets[0].uri, { title: 'Foto do post', confirm: 'Continuar' });
+      if (edited) setImage(edited);
     } catch (e) {
       Alert.alert('Não deu para abrir a galeria', 'Tente de novo em instantes.');
     }

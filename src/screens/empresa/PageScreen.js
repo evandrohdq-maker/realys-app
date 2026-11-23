@@ -13,6 +13,7 @@ import { profileById, mediaOf } from '../../components/CompanyProfile';
 import { Stars, reviewer } from '../../components/BusinessPage';
 import { SECTORS, ROLES, SERVE_MODES, GALLERY_TYPES, businessOf, showcaseOf, isFoodBusiness } from '../../companyBusiness';
 import { buscarAtividades, atividadePorId, cnaeTexto } from '../../companyActivities';
+import { editPhoto } from '../../components/PhotoEditor';
 
 const NIGHT = '#0B1124';
 const MAX_SHOWCASE = 6;
@@ -147,9 +148,10 @@ export default function PageScreen() {
     try {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) return Alert.alert('Permissão necessária', 'Autorize o Realyz a ver suas fotos para montar a galeria da empresa.');
-      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
+      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.95 });
       if (res.canceled || !res.assets || !res.assets[0]) return;
-      uri = res.assets[0].uri;
+      uri = await editPhoto(res.assets[0].uri, { title: 'Foto da empresa', confirm: 'Pôr na galeria' });
+      if (!uri) return;
     } catch (e) {
       return Alert.alert('Não deu para abrir a galeria', 'Tente de novo em instantes.');
     }

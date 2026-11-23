@@ -319,6 +319,8 @@ src/screens/LoginScreen.js → cadastro com biometria e escolha de perfis
 src/screens/WalletScreen.js  → carteira: depositar, sacar, extrato, balanço e limite de gastos
 src/screens/VoiceAssistant.js → Lotus, a assistente de voz
 src/voice.js               → voz suave da Lotus (voz feminina pt-BR, mais calma)
+src/photoFx.js             → tratamento de foto: cortar, girar, pele suave de verdade (Skia no APK, canvas no site) e cor do efeito
+src/components/PhotoEditor.js → janela "Editar foto" (corte, girar, efeitos) antes de publicar no mural, galeria, posts e páginas
 src/wakeMatch.js           → reconhece "abrir Lotus" pelo som (aceita "Lótus", "abre lotos"…)
 src/screens/cliente/       → feed, loja, serviços, pedidos
 src/screens/empresa/       → painel, estoque, fluxo de caixa, negócios B2B, RH (vagas e candidatos)

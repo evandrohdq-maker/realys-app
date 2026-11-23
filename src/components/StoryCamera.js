@@ -7,7 +7,6 @@
 // - O efeito na câmera ao vivo é uma camada de cor por cima (o "filter" do React Native
 //   em cima da câmera deixava a tela preta ou cortada no meio, metade amarela).
 // - Foto: toque no botão. Vídeo: troque para "Vídeo" e toque para gravar e para parar (até 30 s).
-import { beautify } from '../beautify';
 import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Modal, TouchableOpacity, ScrollView, Image, Alert, Animated, Platform } from 'react-native';
 import { Text } from '../responsive';
@@ -92,8 +91,8 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
       setBusy(true);
       try {
         const p = await cam.current.takePictureAsync({ quality: 0.9, shutterSound: false });
-        // Pele suave de verdade (no site): a foto já sai alisada (src/beautify.js).
-        if (p && p.uri) onDone({ kind: 'image', uri: await beautify(p.uri, effect), effect });
+        // A pele suave é feita no Novo story (dá para trocar o efeito antes de publicar).
+        if (p && p.uri) onDone({ kind: 'image', uri: p.uri, effect });
       } catch (e) {
         Alert.alert('Câmera', 'Não deu para bater a foto. Tente de novo.');
       }
@@ -135,7 +134,7 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
         const secs = a.duration ? Math.round(a.duration / 1000) : 0;
         if (secs > STORY_VIDEO_MAX_S) return Alert.alert('Vídeo longo', `O story aceita vídeo de até ${STORY_VIDEO_MAX_S} segundos. Este tem ${secs} s.`);
         onDone({ kind: 'video', uri: a.uri, secs: secs || STORY_VIDEO_MAX_S, effect });
-      } else onDone({ kind: 'image', uri: await beautify(a.uri, effect), effect });
+      } else onDone({ kind: 'image', uri: a.uri, effect });
     } catch (e) {
       Alert.alert('Galeria', 'Não deu para abrir as suas fotos e vídeos.');
     }

@@ -14,6 +14,7 @@ import ThemeArt from './ThemeArt';
 import { pageById, signatureOf, categoryOfPage, pageStyle, pageNameProblem, PAGE_ACCENTS, PAGE_BACKGROUNDS, PAGE_FONTS, PAGE_LAYOUTS, PAGE_CATEGORIES } from '../userPages';
 import { moderateText } from '../moderation';
 import { checkText } from '../lm/factCheck';
+import { editPhoto } from './PhotoEditor';
 
 const when = (ts) => {
   const h = Math.max(0, Math.round((Date.now() - ts) / 3600000));
@@ -28,8 +29,9 @@ async function pickPhoto() {
       Alert.alert('Permissão necessária', 'Autorize o Realyz a ver suas fotos.');
       return null;
     }
-    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
-    return !res.canceled && res.assets && res.assets[0] ? res.assets[0].uri : null;
+    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.95 });
+    if (res.canceled || !res.assets || !res.assets[0]) return null;
+    return await editPhoto(res.assets[0].uri, { confirm: 'Usar foto' });
   } catch (e) {
     return null;
   }

@@ -9,11 +9,17 @@
 //   no vídeo o "filter" não funciona (a imagem é desenhada fora da tela do app) e ainda
 //   causava tela preta e a tela cortada no meio, então lá não é usado.
 // Camadas (overlay) bem leves: camada forte deixava a foto leitosa, com cara de flash estourado.
-// Na foto quem trabalha é o "filter" (e, no site, a pele suave de verdade em src/beautify.js).
+// Na foto quem trabalha é o "filter" e a pele suave de verdade (APK e site: src/photoFx.js).
 export const STORY_EFFECTS = [
   { key: 'original', label: 'Original', icon: 'image-outline', filter: [], overlay: null },
   { key: 'retrato', label: 'Retrato', icon: 'person-circle-outline', filter: [{ brightness: 1.03 }, { contrast: 0.95 }, { saturate: 1.06 }], overlay: 'rgba(255,214,200,0.06)', smooth: 0.55 },
   { key: 'pele', label: 'Pele suave', icon: 'happy-outline', filter: [{ brightness: 1.04 }, { contrast: 0.93 }, { saturate: 1.04 }], overlay: 'rgba(255,205,195,0.07)', smooth: 0.75 },
+  // Filtros "de artista": pele limpa + luz bonita, para a foto ficar com cara de estúdio.
+  { key: 'glow', label: 'Glow', icon: 'star-outline', filter: [{ brightness: 1.06 }, { contrast: 0.92 }, { saturate: 1.08 }], overlay: 'rgba(255,225,235,0.06)', smooth: 0.6 },
+  { key: 'estudio', label: 'Estúdio', icon: 'bulb-outline', filter: [{ brightness: 1.05 }, { contrast: 1.06 }, { saturate: 1.03 }], overlay: 'rgba(255,255,255,0.05)', smooth: 0.5 },
+  { key: 'editorial', label: 'Editorial', icon: 'newspaper-outline', filter: [{ sepia: 0.08 }, { contrast: 0.9 }, { saturate: 0.8 }, { brightness: 1.04 }], overlay: 'rgba(240,228,215,0.07)', smooth: 0.35 },
+  { key: 'cyber', label: 'Cyber', icon: 'flash-outline', filter: [{ hueRotate: '-12deg' }, { saturate: 1.3 }, { contrast: 1.12 }], overlay: 'rgba(120,60,255,0.08)', smooth: 0.3 },
+  { key: 'pordosol', label: 'Pôr do sol', icon: 'partly-sunny-outline', filter: [{ sepia: 0.22 }, { saturate: 1.28 }, { hueRotate: '-8deg' }, { brightness: 1.03 }], overlay: 'rgba(255,120,40,0.08)', smooth: 0.3 },
   { key: 'auto', label: 'Auto', icon: 'sparkles-outline', filter: [{ brightness: 1.03 }, { contrast: 1.08 }, { saturate: 1.1 }], overlay: 'rgba(255,236,200,0.05)' },
   { key: 'dourado', label: 'Dourado', icon: 'sunny-outline', filter: [{ sepia: 0.18 }, { saturate: 1.2 }, { contrast: 1.04 }, { brightness: 1.02 }], overlay: 'rgba(255,180,60,0.08)', smooth: 0.3 },
   { key: 'rose', label: 'Rosé', icon: 'flower-outline', filter: [{ saturate: 1.08 }, { contrast: 0.97 }, { brightness: 1.03 }], overlay: 'rgba(255,120,160,0.07)', smooth: 0.4 },

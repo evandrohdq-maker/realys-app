@@ -10,7 +10,7 @@ import { Photo, StoryPhoto } from '../../../components/ui';
 import { STORY_BACKGROUNDS, STORY_SAMPLE_PHOTOS } from '../../../homeData';
 import { useStore } from '../../../store';
 import * as ImagePicker from 'expo-image-picker';
-import { STORY_EFFECTS, effectStyle, STORY_VIDEO_MAX_S } from '../../../storyEffects';
+import { STORY_EFFECTS, effectStyle, STORY_VIDEO_MAX_S, smoothOf } from '../../../storyEffects';
 import { StoryMusicPlayer, MusicSticker, MusicPicker } from '../../../components/StoryMusic';
 import StoryCamera from '../../../components/StoryCamera';
 import StoryEffectOverlay from '../../../components/StoryEffectOverlay';
@@ -18,6 +18,7 @@ import StoryFrame, { storyDesk } from '../../../components/StoryFrame';
 import { ShowStoryCard } from '../../../components/ArtistBooking';
 import { abrirDestacar } from '../../../components/Destacar';
 import { useServerProfileOpen } from '../../../profileOpen';
+import { beautify } from '../../../beautify';
 
 // Story só de texto sem cor escolhida: fundo claro (marfim) e letra escura. A cor de fundo é opção.
 export const STORY_PLAIN = '#FBF8F1';
@@ -320,6 +321,18 @@ export function StoryComposer({ visible, onClose, onPublish }) {
   const [bg, setBg] = useState(null); // sem fundo colorido: a cor é opção do cliente
   const [media, setMedia] = useState(null); // { kind: 'image' | 'video', uri, secs }
   const [effect, setEffect] = useState('original');
+  // Pele suave de verdade: a foto alisada fica pronta enquanto a pessoa escolhe o efeito
+  // (a prévia já mostra o resultado) e é ela que vai no story. A cor do efeito é aplicada na hora de mostrar.
+  const [smoothed, setSmoothed] = useState(null); // { key: uri|efeito, uri }
+  useEffect(() => {
+    if (!media || media.kind !== 'image' || !smoothOf(effect)) return;
+    const key = media.uri + '|' + effect;
+    if (smoothed && smoothed.key === key) return;
+    let vivo = true;
+    beautify(media.uri, effect).then((u) => vivo && setSmoothed({ key, uri: u }));
+    return () => (vivo = false);
+  }, [media, effect]);
+  const smoothUri = media && media.kind === 'image' && smoothOf(effect) && smoothed && smoothed.key === media.uri + '|' + effect ? smoothed.uri : null;
   const [writing, setWriting] = useState(false);
   const [music, setMusic] = useState(null); // música do story (galeria do Realyz)
   const [picking, setPicking] = useState(false);
@@ -368,9 +381,13 @@ export function StoryComposer({ visible, onClose, onPublish }) {
     if (!ready) return;
     const item = { id: 'me' + Date.now(), at: Date.now(), text: text.trim(), bg: bg || STORY_PLAIN, time: 'agora', views: 0 };
     if (music) item.music = music;
-    if (media && media.kind === 'image') Object.assign(item, { image: media.uri, effect });
+    if (media && media.kind === 'image') Object.assign(item, { image: smoothUri || media.uri, effect });
     if (media && media.kind === 'video') Object.assign(item, { video: media.uri, secs: media.secs, effect });
-    const go = () => onPublish(item);
+    const go = async () => {
+      // Efeito com pele suave e a foto alisada ainda não ficou pronta: alisa agora.
+      if (media && media.kind === 'image' && smoothOf(effect) && !smoothUri) item.image = await beautify(media.uri, effect);
+      onPublish(item);
+    };
     if (!media) return go();
     Alert.alert('Antes de publicar', PHOTO_RULE, [
       { text: 'Cancelar', style: 'cancel' },
@@ -389,7 +406,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
       <View style={{ flex: 1, backgroundColor: media ? '#000' : bg || STORY_PLAIN }}>
         {media && media.kind === 'video' && EV ? <View style={StyleSheet.absoluteFill}><StoryVideo key={media.uri} uri={media.uri} loop muted={!!music} paused={false} style={StyleSheet.absoluteFill} /><StoryEffectOverlay effect={effect} /></View> : null}
         {visible && music && !picking ? <StoryMusicPlayer music={music} paused={false} /> : null}
-        {media && media.kind === 'image' ? <View style={StyleSheet.absoluteFill}><StoryPhoto uri={media.uri} extra={fx} /><StoryEffectOverlay effect={effect} onImage /></View> : null}
+        {media && media.kind === 'image' ? <View style={StyleSheet.absoluteFill}><StoryPhoto uri={smoothUri || media.uri} extra={fx} /><StoryEffectOverlay effect={effect} onImage /></View> : null}
         <View style={[styles.composerTop, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity style={styles.close} onPress={media ? () => setMedia(null) : onClose} accessibilityLabel={media ? 'Tirar a foto ou o vídeo' : 'Cancelar'}>
             <Ionicons name={media ? 'arrow-back' : 'close'} size={24} color={ink} />

@@ -26,6 +26,7 @@ import { privacyOf, creationsOf } from '../studioData';
 import { canSee, LockedPanel, CreationsGrid, coverTone } from './ProfileStudio';
 import ThemeArt from './ThemeArt';
 import { MuralTab } from './Mural';
+import { editPhoto } from './PhotoEditor';
 
 const first = (name) => String(name || '').split(' ')[0];
 const norm = (v) => String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
@@ -923,8 +924,19 @@ function MediaGallery({ ownerId, kind }) {
 
   const add = async () => {
     try {
-      const assets = await pickFromPhone(kind);
+      let assets = await pickFromPhone(kind);
       if (!assets.length) return;
+      // Fotos: cada uma passa pela janela de edição (cortar, girar, efeito) antes de entrar na galeria.
+      if (kind !== 'videos') {
+        const out = [];
+        for (let i = 0; i < assets.length; i++) {
+          const title = assets.length > 1 ? `Foto ${i + 1} de ${assets.length}` : 'Editar foto';
+          const uri = await editPhoto(assets[i].uri, { title, confirm: i < assets.length - 1 ? 'Próxima' : 'Pôr na galeria' });
+          if (uri) out.push({ ...assets[i], uri });
+        }
+        assets = out;
+        if (!assets.length) return;
+      }
       const now = Date.now();
       const news =
         kind === 'videos'
