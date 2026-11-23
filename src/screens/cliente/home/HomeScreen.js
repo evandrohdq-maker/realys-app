@@ -41,7 +41,7 @@ import { TestimonialCard, DepCenter } from '../../../components/SocialProfile';
 import { ServerTestimonialCard, ServerPendingTestimonials } from '../../../components/ServerTestimonials';
 import { useServerTestimonials } from '../../../serverTestimonials';
 import NotifList, { buildNotifs, unseenNotifs } from '../../../components/Notifications';
-import { ShopHero, CircleShortcuts, ShopProductCard, ShopGrid, StoreRow, CategoryPicker } from '../../../components/ShopKit';
+import { ShopHero, CircleShortcuts, PillTabs, ShopProductCard, ShopGrid, StoreRow, CategoryPicker } from '../../../components/ShopKit';
 import { SegTabs, SpotlightCarousel, ClipStrip, PromoSector } from '../../../components/AdKit';
 import { SearchBar } from '../../../components/Search';
 import { isFoodStore } from '../../../data';
@@ -338,7 +338,7 @@ function ShopSearchResults({ q, notFood, goTo, navigate, onAdd }) {
 }
 
 // Eventos: festas promocionais e anúncios de promoções em destaque.
-// Atalhos redondos (mesmo visual do Shop); os grupos em destaque ficam em rosa.
+// Menu em pílulas que passa para o lado (a escolhida escura com dourado); os grupos em destaque com ícone rosa.
 const EVENT_SHORT = { 'festa-promo': 'Festas', 'promo-anuncio': 'Promoções', shows: 'Shows', espacos: 'Espaços', gratis: 'Grátis' };
 const EVENT_SHORTCUTS = EVENT_GROUPS.map((g) => ({ key: g.key, label: EVENT_SHORT[g.key] || g.label, ion: g.icon, color: g.highlight ? '#FF3B5C' : colors.primary }));
 const sortEv = (list) => [...list].sort((a, b) => b.sponsored - a.sponsored);
@@ -395,7 +395,7 @@ function EventsTab({ group, setGroup, onContact }) {
   return (
     <Screen>
       <ShopHero title="Eventos e festas" sub="O rolê de hoje: festa com desconto, lista VIP e promo da noite" />
-      <CircleShortcuts items={EVENT_SHORTCUTS} value={group} onPress={setGroup} />
+      <PillTabs items={EVENT_SHORTCUTS} value={group} onPress={setGroup} />
 
       {group === 'destaques' ? (
         <>

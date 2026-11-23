@@ -53,6 +53,25 @@ export function CircleShortcuts({ items, value, onPress }) {
 }
 
 
+// Menu em pílulas (moderno, no estilo das abas do site): uma linha que passa para o lado.
+// A escolhida fica escura com letra dourada, como o botão "Você no comando" do Shop.
+export function PillTabs({ items, value, onPress }) {
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pillRow} contentContainerStyle={{ paddingHorizontal: 16 }}>
+      {items.map((c) => {
+        const on = c.key === value;
+        const hot = c.color && c.color !== colors.primary;
+        return (
+          <TouchableOpacity key={c.key} style={[styles.pill, on && styles.pillOn]} onPress={() => onPress(c.key)} activeOpacity={0.85} accessibilityLabel={c.label} accessibilityState={{ selected: on }}>
+            <Ionicons name={on ? c.ion.replace('-outline', '') : c.ion} size={15} color={on ? '#F5C331' : hot ? c.color : colors.primary} />
+            <Text numberOfLines={1} style={[styles.pillText, on && styles.pillTextOn]}>{c.label}</Text>
+          </TouchableOpacity>
+        );
+      })}
+    </ScrollView>
+  );
+}
+
 // Vitrine do Shop: botão escuro e dourado ("Você no comando · Categorias"). Tocar abre uma tela por
 // cima com todos os setores para escolher o tipo de produto (em vez da grade ocupando a página).
 const NIGHT = '#0B1124';
@@ -221,6 +240,11 @@ export function StoreRow({ s, onPress, extra }) {
 }
 
 const styles = StyleSheet.create({
+  pillRow: { marginHorizontal: -16, marginBottom: 14, flexGrow: 0 },
+  pill: { flexDirection: 'row', alignItems: 'center', height: 38, paddingHorizontal: 14, borderRadius: 19, marginRight: 8, backgroundColor: colors.card || '#fff', borderWidth: 1, borderColor: colors.border },
+  pillOn: { backgroundColor: '#0B1124', borderColor: '#0B1124' },
+  pillText: { marginLeft: 6, color: colors.text, fontWeight: '700', fontSize: 13 },
+  pillTextOn: { color: '#F5C331' },
   vBadge: { position: 'absolute', right: 4, bottom: 4, width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' },
   cDot: { width: 10, height: 10, borderRadius: 5, marginRight: 3, borderWidth: 1, borderColor: 'rgba(0,0,0,0.15)', marginTop: 3 },
   lowStock: { color: '#C77D12', fontSize: 10.5, fontWeight: '800', marginTop: 3 },
