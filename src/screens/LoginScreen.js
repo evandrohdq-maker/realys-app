@@ -169,6 +169,8 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
         } catch (e) {
           // Sem internet: entra no modo do celular (demonstração) e tenta o servidor na próxima entrada.
           if (e.status !== 0 && (acc || e.status !== 401)) return Alert.alert('Não foi possível entrar', e.message);
+          // Avisa: sem o servidor, perfil, amigos e conversas ficam só neste celular.
+          Alert.alert('Sem ligação com o servidor', 'Você entrou só neste celular: perfil, amigos e conversas não vão para o Realyz. Confira a internet e entre de novo com a senha.');
           // Sem conta aqui nem no servidor: segue como conta de demonstração (sem compras de verdade).
         }
       }
@@ -191,6 +193,12 @@ export default function LoginScreen({ initialMode, onBack } = {}) {
     setBusy(true);
     try {
       // Aparelho já cadastrado: entra direto, sem biometria. Serviços, compras e saques pedem biometria à parte.
+      // Conta salva que nunca ligou no servidor: pede a senha uma vez para ligar (senão fica presa no modo do celular).
+      if (serverOn() && !s.user.serverId && !s.user.readOnly && !(s.user.roles || []).includes('admin')) {
+        setValue(s.login || s.key || '');
+        setShowForm(true);
+        return Alert.alert('Ligar sua conta ao Realyz', 'Digite sua senha uma vez para ligar esta conta ao servidor. Depois entra direto.');
+      }
       await touchSavedUser(s.key).catch(() => {});
       usarConta(s.user);
       return dispatch({ type: 'LOGIN', user: s.user });
