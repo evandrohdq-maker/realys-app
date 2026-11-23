@@ -187,6 +187,24 @@ export function makeIA(cfg, { send } = {}) {
       }
       return { texto: respostaLeve({ texto, ficha, produtos, empresa, primeira }), fonte: 'leve' };
     },
+    // Proteção: parecer sobre uma publicação que pode ser fake news. Só um parecer para quem decide,
+    // nunca a decisão. Devolve uma frase curta ("Provável falso: ..." / "Sem indício de falso: ...").
+    async checarFato(texto) {
+      if (!ready) return null;
+      const sis = [
+        'Você ajuda a moderação de uma rede social brasileira a encontrar notícias falsas.',
+        'Leia a publicação e responda em UMA linha, começando exatamente por uma destas opções:',
+        '"Provável falso:", "Precisa checar:", "Sem indício de falso:" ou "Não é notícia:".',
+        'Depois dos dois pontos, explique em até 25 palavras. Não invente fontes. Na dúvida, use "Precisa checar:".',
+      ].join('\n');
+      try {
+        const r = await conversar(sis, [{ role: 'user', content: String(texto).slice(0, 1500) }]);
+        const linha = r.split('\n')[0].trim();
+        return /^(Provável falso|Precisa checar|Sem indício de falso|Não é notícia):/i.test(linha) ? linha.slice(0, 300) : `Precisa checar: ${linha.slice(0, 280)}`;
+      } catch (e) {
+        return null;
+      }
+    },
     // Copiloto do closer: sugestão de resposta para a pessoa da equipe aprovar.
     async sugerir({ ficha, produtos, empresa, historico, resumo }) {
       if (ready) {

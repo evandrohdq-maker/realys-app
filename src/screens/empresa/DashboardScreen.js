@@ -13,6 +13,7 @@ import ServerShopOrders from '../../components/ServerShopOrders';
 import { CargasLoja, OfertasFornecedor } from '../../components/Logistica';
 import ServerEventsPanel from '../../components/ServerEventsPanel';
 import AtendenteIA from '../../components/AtendenteIA';
+import { PlanosIA, PainelInteligencia } from '../../components/NativoIA';
 import { ReelComposer } from '../StoriesScreen';
 
 export default function DashboardScreen({ goTo, navigate }) {
@@ -50,7 +51,9 @@ export default function DashboardScreen({ goTo, navigate }) {
       <CargasLoja />
       <OfertasFornecedor />
       <ServerEventsPanel />
+      <PlanosIA />
       <AtendenteIA />
+      <PainelInteligencia />
 
       {/* Atalhos em bolinhas (visual clean): Hub de Negócios, anúncios, reel de anúncio e presentear clientes. */}
       <View style={dash.atalhos}>

@@ -5,10 +5,12 @@ import { newId, now } from '../http.js';
 import { antiDesvio } from '../moderacaoTexto.js';
 import { precisaHumano, proximaEtapa, respostaLeve, intencaoSimples, respostaDespedida, respostaRecusa, mesmaMensagem } from './index.js';
 
-export function makeAtendente({ db, hub, ia, userById }) {
+export function makeAtendente({ db, hub, ia, userById, planos }) {
   const ficha = (ownerId) => {
     const f = db.prepare('SELECT * FROM ia_fichas WHERE owner_id = ?').get(ownerId);
-    return f ? { ...f, faq: f.faq ? JSON.parse(f.faq) : [], ia_negocia: !!f.ia_negocia, ligado: !!f.ligado } : null;
+    // "A IA pode negociar" só vale no plano Pro (ou no teste dos 30 dias).
+    const podeNegociar = !planos || planos.atual(ownerId).iaNegocia;
+    return f ? { ...f, faq: f.faq ? JSON.parse(f.faq) : [], ia_negocia: !!f.ia_negocia && podeNegociar, ligado: !!f.ligado } : null;
   };
   const conversa = (ownerId, clientId) => {
     let c = db.prepare('SELECT * FROM ia_conversas WHERE owner_id = ? AND client_id = ?').get(ownerId, clientId);
@@ -61,6 +63,12 @@ export function makeAtendente({ db, hub, ia, userById }) {
       if (db.prepare("SELECT 1 FROM users WHERE id = ? AND kind = 'empresa'").get(msg.from)) return null; // empresa falando com empresa: com pessoas
       const c = conversa(msg.to, msg.from);
       if (c.estado === 'humano') return null;
+      // Acabaram as respostas do plano neste mês: a conversa vai para a equipe (o cliente não fica sem resposta).
+      if (planos && !planos.podeResponder(msg.to)) {
+        db.prepare("UPDATE ia_conversas SET estado = 'humano', motivo = ?, resumo = ?, updated_at = ? WHERE owner_id = ? AND client_id = ?").run('Acabaram as respostas de IA do plano neste mês.', String(msg.text).slice(0, 200), now(), msg.to, msg.from);
+        hub.send(msg.to, 'ia_limite', { clientId: msg.from });
+        return { limite: true };
+      }
       const motivo = precisaHumano(msg.text, f);
       if (motivo) {
         db.prepare("UPDATE ia_conversas SET estado = 'humano', motivo = ?, resumo = ?, updated_at = ? WHERE owner_id = ? AND client_id = ?").run(motivo, String(msg.text).slice(0, 200), now(), msg.to, msg.from);

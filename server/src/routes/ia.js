@@ -2,15 +2,25 @@
 // assumir/devolver a conversa e a sugestão de resposta para quem fecha a venda.
 import { fail, now, str } from '../http.js';
 
-export default function iaRoutes(r, { db, ia, atendente, userById, publicUser }) {
+export default function iaRoutes(r, { db, ia, atendente, userById, publicUser, planos }) {
   const podeVender = (user) => user.kind === 'empresa' || !!db.prepare('SELECT 1 FROM providers WHERE user_id = ?').get(user.id);
   const fichaView = (f) => ({
     ligado: !!(f && f.ligado), horario: (f && f.horario) || '', entrega: (f && f.entrega) || '', pagamento: (f && f.pagamento) || '',
     politicas: (f && f.politicas) || '', sobre: (f && f.sobre) || '', tom: (f && f.tom) || '', faq: (f && f.faq) || [], iaNegocia: !!(f && f.ia_negocia),
     modelo: ia.ready ? 'modelo aberto no servidor' : 'IA leve (ficha e catálogo)',
   });
+  const comPlano = (user, v) => {
+    if (!planos) return v;
+    const p = planos.atual(user.id);
+    return { ...v, plano: { id: p.id, nome: p.nome, status: p.status, ate: p.ate, copiloto: p.copiloto, podeNegociar: p.iaNegocia }, uso: { respostas: planos.usadas(user.id), limite: p.respostas } };
+  };
 
-  r.get('/ia/ficha', ({ user }) => fichaView(atendente.ficha(user.id)));
+  // A ficha mostra o que a empresa escolheu; o atendente só negocia de fato no plano Pro.
+  r.get('/ia/ficha', ({ user }) => {
+    const raw = db.prepare('SELECT ia_negocia FROM ia_fichas WHERE owner_id = ?').get(user.id);
+    const f = atendente.ficha(user.id);
+    return comPlano(user, fichaView(f && { ...f, ia_negocia: !!(raw && raw.ia_negocia) }));
+  });
 
   r.put('/ia/ficha', ({ user, body }) => {
     if (!podeVender(user)) fail(403, 'O atendente IA é para empresas e prestadores.');
@@ -24,7 +34,7 @@ export default function iaRoutes(r, { db, ia, atendente, userById, publicUser })
        ON CONFLICT(owner_id) DO UPDATE SET ligado = excluded.ligado, horario = excluded.horario, entrega = excluded.entrega, pagamento = excluded.pagamento,
        politicas = excluded.politicas, sobre = excluded.sobre, tom = excluded.tom, faq = excluded.faq, ia_negocia = excluded.ia_negocia, updated_at = excluded.updated_at`
     ).run(user.id, body.ligado ? 1 : 0, v('horario', 200), v('entrega', 400), v('pagamento', 300), v('politicas', 600), v('sobre', 600), v('tom', 120), JSON.stringify(faq), body.iaNegocia ? 1 : 0, now());
-    return fichaView(atendente.ficha(user.id));
+    return comPlano(user, fichaView({ ...atendente.ficha(user.id), ia_negocia: !!body.iaNegocia }));
   });
 
   // Testar: a empresa manda uma pergunta e vê como a IA responderia (não envia para ninguém).
@@ -53,6 +63,7 @@ export default function iaRoutes(r, { db, ia, atendente, userById, publicUser })
 
   // Copiloto do closer: sugere a próxima mensagem (a pessoa revisa e envia).
   r.post('/ia/sugestao', async ({ user, body }) => {
+    if (planos && !planos.atual(user.id).copiloto) fail(403, 'O copiloto de vendas está nos planos Realyz e Pro.', 'plano');
     const clientId = String(body.clientId || '');
     if (!userById(clientId)) fail(404, 'Cliente não encontrado.');
     const f = atendente.ficha(user.id) || { faq: [] };

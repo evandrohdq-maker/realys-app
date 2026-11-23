@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { serverOn, api } from '../../api';
 import { videoStatus } from '../../video';
+import { ProtecaoAdmin, PedidosPlanoAdmin } from '../../components/NativoIA';
 
 // Caixa do Realyz (servidor): lucro que pode ir da conta Santander para a conta Nubank e o dinheiro
 // dos usuários que precisa ficar no Santander. Aparece só para o administrador entrado no servidor.
@@ -203,6 +204,7 @@ export function AdminOverview() {
       <AnalystBanner />
       <Title sub="Controle geral da plataforma Realyz">Administração</Title>
       <CaixaRealyz />
+      <PedidosPlanoAdmin />
       <CrmClosings />
       <HireNotices />
 
@@ -419,6 +421,7 @@ export function AdminModeration() {
     <Screen>
       <AnalystBanner />
       <Title sub="Denúncias de usuários e alertas da IA verificadora">Moderação</Title>
+      <ProtecaoAdmin />
       <Row style={{ marginBottom: 12 }}>
         <Chip label="Abertas" active={filter === 'aberta'} onPress={() => setFilter('aberta')} />
         <Chip label="Resolvidas" active={filter !== 'aberta'} onPress={() => setFilter('resolvidas')} />

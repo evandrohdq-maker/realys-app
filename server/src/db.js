@@ -1020,6 +1020,32 @@ const MIGRATIONS = [
   -- Empresa: o titular criou o perfil social dele (aparece o botão para trocar empresa ⇄ social).
   ALTER TABLE users ADD COLUMN social_titular INTEGER NOT NULL DEFAULT 0;
   `,
+  // Realyz nativo de IA: planos (Grátis, Realyz, Pro), proteção automática contra golpe e fake news
+  // (o robô abre denúncia na mesma fila do administrador) e o registro de buscas do painel de inteligência.
+  `
+  CREATE TABLE IF NOT EXISTS planos_conta (
+    owner_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    plano TEXT NOT NULL CHECK (plano IN ('gratis','realyz','pro')),
+    ciclo TEXT NOT NULL DEFAULT 'mensal' CHECK (ciclo IN ('mensal','anual')),
+    status TEXT NOT NULL CHECK (status IN ('aguardando_pagamento','ativo','cancelado')),
+    desde INTEGER,
+    ate INTEGER,
+    pedido_em INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  ALTER TABLE reports ADD COLUMN origem TEXT NOT NULL DEFAULT 'pessoa';
+  ALTER TABLE reports ADD COLUMN pontos INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE reports ADD COLUMN parecer TEXT;
+  ALTER TABLE reports ADD COLUMN tipo TEXT;
+  CREATE INDEX IF NOT EXISTS reports_alvo ON reports(target_kind, target_id, status);
+  CREATE TABLE IF NOT EXISTS buscas (
+    termo TEXT NOT NULL,
+    onde TEXT NOT NULL,
+    resultados INTEGER NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS buscas_quando ON buscas(created_at);
+  `,
 ];
 
 export function openDb(file) {

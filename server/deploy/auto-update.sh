@@ -13,6 +13,32 @@ log() { echo "$(date '+%Y-%m-%d %H:%M:%S') $*" >> "$LOG"; }
 # APK e site mais novos do GitHub para este servidor (não depende de ter versão nova do servidor).
 bash "$REPO/server/deploy/publicar-site.sh" >/dev/null 2>&1 || true
 
+# IA própria do Realyz (atendente e parecer de fake news): instala UMA vez, sozinha, em segundo plano,
+# se ainda não estiver ligada no .env e a máquina tiver memória e disco. Sem isso, a "IA leve" segue valendo.
+ENVF="$REPO/server/.env"
+if [ -f "$ENVF" ] && ! grep -q '^IA_URL=' "$ENVF" && [ ! -f /var/lib/realys/ia-tentada ]; then
+  MEM_MB=$(awk '/MemTotal/ {print int($2/1024)}' /proc/meminfo)
+  DISCO_GB=$(df -BG --output=avail / | tail -1 | tr -dc '0-9')
+  MODELO=""
+  [ "$MEM_MB" -ge 7000 ] && MODELO="qwen2.5:3b"
+  [ -z "$MODELO" ] && [ "$MEM_MB" -ge 3500 ] && MODELO="qwen2.5:1.5b"
+  if [ -n "$MODELO" ] && [ "${DISCO_GB:-0}" -ge 8 ]; then
+    mkdir -p /var/lib/realys && touch /var/lib/realys/ia-tentada
+    log "instalando a IA do Realyz ($MODELO, memória ${MEM_MB} MB) em segundo plano"
+    setsid nohup bash -c "
+      if bash '$REPO/server/deploy/ia.sh' '$MODELO' >> /var/log/realys-ia.log 2>&1; then
+        printf '\nIA_URL=http://127.0.0.1:11434\nIA_MODEL=$MODELO\n' >> '$ENVF'
+        systemctl restart realys
+        echo \"\$(date '+%Y-%m-%d %H:%M:%S') IA do Realyz ligada ($MODELO)\" >> '$LOG'
+      else
+        echo \"\$(date '+%Y-%m-%d %H:%M:%S') a IA não instalou (veja /var/log/realys-ia.log)\" >> '$LOG'
+      fi" >/dev/null 2>&1 < /dev/null &
+  else
+    mkdir -p /var/lib/realys && touch /var/lib/realys/ia-tentada
+    log "IA do Realyz não instalada: memória ${MEM_MB} MB ou disco ${DISCO_GB} GB insuficiente (segue a IA leve)"
+  fi
+fi
+
 git -C "$REPO" fetch -q origin main || { log "sem acesso ao GitHub"; exit 0; }
 ATUAL=$(git -C "$REPO" rev-parse HEAD)
 NOVA=$(git -C "$REPO" rev-parse origin/main)

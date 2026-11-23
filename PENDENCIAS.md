@@ -459,3 +459,27 @@ Shopee), taxa da Uber e da 99, GetNinjas, Sympla e TikTok Live.
 - Prazo de entrega do pedido (`deadline`) também no servidor: Food 60 min, Shop 7 dias.
 - Termo da empresa foi para a v4 (reembolso sai da venda da loja): as empresas aceitam de novo.
 - Rota nova `POST /orders/:id/cancelar` (cliente cancela antes do preparo, taxas retidas) ainda sem teste automático.
+
+## Realyz nativo de IA: planos, Proteção Realyz e painel de inteligência — 23/11/2026
+
+- [x] **Planos** (server/src/planos.js, app: Painel › "Seu plano"): Grátis (atendente 150 respostas/mês,
+      painel 7 dias), **Realyz R$ 49,90** (3.000 respostas, copiloto, painel 30 dias, buscas em alta e
+      demanda escondida), **Pro R$ 89,90** (sem limite com uso justo de 15.000, IA negocia, painel 90 dias,
+      preço contra o mercado, horários de pico). Anual = 75% de 12 meses. Conta nova: 30 dias com tudo do Pro.
+      A Proteção Realyz é grátis para todos.
+- [x] Limite do atendente: acabaram as respostas do mês, a conversa vai para a equipe (aviso `ia_limite`).
+- [ ] Pagamento do plano: hoje o pedido fica "aguardando pagamento" e o administrador ativa em
+      Administrador › Visão geral › Pedidos de plano. Ligar ao Pix quando as compras forem liberadas.
+- [x] **Proteção Realyz** (server/src/protecao.js): golpe escancarado é barrado (post e mensagem para
+      desconhecido); suspeita de golpe (texto, produto com preço < 30% da mediana da categoria, conta nova
+      chamando 15+ desconhecidos em 24 h) e de fake news vão para a fila em Administrador › Moderação, com o
+      parecer da IA quando o modelo estiver instalado. A máquina aponta, o administrador decide
+      (marcar como falso / tirar do ar, bloquear conta, arquivar). Denúncias das pessoas entram na mesma fila.
+- [ ] Rever os sinais de golpe e fake news depois de 1 mês de piloto (falsos alarmes e o que escapou).
+- [x] **Painel de inteligência** (server/src/inteligencia.js, app: Painel da empresa e do prestador):
+      vendas, mais vendidos, chamados, visitas ao perfil, atendente, buscas em alta, demanda escondida,
+      preço contra o mercado e horários de pico. As buscas guardam só o termo (nada de quem buscou).
+- [x] IA no servidor: a atualização automática instala sozinha o modelo aberto (qwen2.5:3b com 7 GB de
+      memória ou mais; qwen2.5:1.5b com 3,5 GB) e liga no .env. Resultado em /var/log/realys-auto-update.log.
+      Sem memória suficiente, segue a "IA leve" (ficha e catálogo). Para instalar na mão: deploy/ia.sh.
+- [ ] Painel de inteligência só fica rico com dados reais: conferir depois do piloto em Passo Fundo.

@@ -1,4 +1,5 @@
 // Empresas, produtos e pedidos (Shop, Food, lojas, fornecedores).
+import { registrarBusca } from '../inteligencia.js';
 import { exigirParceiroDeTeste } from '../teste.js';
 import { fail, newId, now, money, str, int, toReais, coord } from '../http.js';
 import { tx } from '../db.js';
@@ -11,7 +12,7 @@ const ORDER_STATUS = ['Recebido', 'Preparando', 'A caminho', 'Entregue', 'Cancel
 // ENTREGUE (cancelado não paga), uma vez por pedido.
 export const INDICACAO = { pct: 2, minCents: 50, extraLojaPct: 5 };
 
-export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fiscal }) {
+export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fiscal, protecao }) {
   const companyOf = (userId) => db.prepare('SELECT * FROM companies WHERE owner_id = ?').get(userId);
   const myCompany = (user) => {
     const c = companyOf(user.id);
@@ -110,7 +111,10 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
       where.push('p.modos LIKE ?');
       args.push(`%"${query.modo}"%`);
     }
-    return db.prepare(`SELECT p.*, c.name AS company_name FROM products p JOIN companies c ON c.id = p.company_id WHERE ${where.join(' AND ')} ORDER BY p.sponsored DESC, p.created_at DESC LIMIT 100`).all(...args).map(productView);
+    const lista = db.prepare(`SELECT p.*, c.name AS company_name FROM products p JOIN companies c ON c.id = p.company_id WHERE ${where.join(' AND ')} ORDER BY p.sponsored DESC, p.created_at DESC LIMIT 100`).all(...args).map(productView);
+    // Painel de inteligência: guarda só o termo buscado e quantos resultados vieram (nada de quem buscou).
+    if (query.q && !query.companyId) registrarBusca(db, query.q, 'produtos', lista.length);
+    return lista;
   }, { auth: false });
 
   r.post('/products', ({ user, body }) => {
@@ -122,7 +126,9 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
       str(body.photo, 'a foto', { optional: true, max: 300 }) || null, secaoOf(body.secao),
       classeOf(body.classe), subclasseOf(body.subclasse), modosOf(body.modos) ?? JSON.stringify(MODOS), maioridadeDe(classeOf(body.classe), subclasseOf(body.subclasse)), now()
     );
-    return productView({ ...db.prepare('SELECT * FROM products WHERE id = ?').get(id), company_name: c.name });
+    const novo = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+    if (protecao) protecao.produto(novo);
+    return productView({ ...novo, company_name: c.name });
   }, { status: 201 });
 
   r.patch('/products/:id', ({ user, params, body }) => {
@@ -146,6 +152,7 @@ export default function commerceRoutes(r, { db, cfg, wallet, hub, biometria, fis
     }
     const k = Object.keys(f);
     if (k.length) db.prepare(`UPDATE products SET ${k.map((x) => `${x} = ?`).join(', ')} WHERE id = ?`).run(...k.map((x) => f[x]), p.id);
+    if (protecao && (f.price !== undefined || f.name !== undefined || f.description !== undefined)) protecao.produto(db.prepare('SELECT * FROM products WHERE id = ?').get(p.id));
     return productView({ ...db.prepare('SELECT * FROM products WHERE id = ?').get(p.id), company_name: c.name });
   });
 

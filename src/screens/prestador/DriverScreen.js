@@ -11,6 +11,7 @@ import { Screen, Title, Card, Row, Button, Stat, Section, Empty, Badge, Input, C
 import ServerProviderPanel from '../../components/ServerProviderPanel';
 import { conectado } from '../../serverShop';
 import AtendenteIA from '../../components/AtendenteIA';
+import { PlanosIA, PainelInteligencia } from '../../components/NativoIA';
 import HorarioTrabalho from '../../components/HorarioTrabalho';
 import { EntregasEntregador } from '../../components/Logistica';
 import {
@@ -234,7 +235,9 @@ function DriverMain({ goTo, navigate, onCadastro, secao = 'trabalhar' }) {
       <ServerProviderPanel />
       </>) : null}
       {N ? (<>
+      <PlanosIA />
       <AtendenteIA />
+      <PainelInteligencia />
       </>) : null}
       {G ? (<>
       {/* Carteira: saldo, saques e extrato (abre a carteira do Perfil). */}

@@ -91,6 +91,7 @@ export default function AtendenteIA() {
         <View style={{ flex: 1 }}>
           <Text style={{ fontWeight: '800', color: colors.text, fontSize: 16 }}>🤖 Atendente IA</Text>
           <Text style={{ color: colors.muted, fontSize: 12 }}>Responde seus clientes na hora, 24 h. Usa {f.modelo}.</Text>
+          {f.uso ? <Text style={{ color: colors.muted, fontSize: 12 }}>Plano {f.plano.nome}: {f.uso.respostas} de {f.uso.limite.toLocaleString('pt-BR')} respostas neste mês</Text> : null}
         </View>
         <Switch value={f.ligado} onValueChange={(v) => salvar({ ligado: v })} disabled={busy} />
       </Row>
@@ -125,7 +126,9 @@ export default function AtendenteIA() {
             <Text style={{ color: colors.text, flex: 1 }}>A IA pode negociar desconto e orçamento</Text>
             <Switch value={f.iaNegocia} onValueChange={(v) => setF({ ...f, iaNegocia: v })} />
           </Row>
-          <Text style={{ color: colors.muted, fontSize: 12 }}>Desligado (recomendado): na hora de negociar, a conversa vem para você.</Text>
+          <Text style={{ color: colors.muted, fontSize: 12 }}>
+            {f.plano && !f.plano.podeNegociar ? 'Negociar pela IA está no plano Pro. No seu plano, a hora de negociar vem para você.' : 'Desligado (recomendado): na hora de negociar, a conversa vem para você.'}
+          </Text>
           <Button title={busy ? 'Salvando…' : 'Salvar a ficha'} onPress={() => salvar()} disabled={busy} style={{ marginTop: 10 }} />
           <Text style={{ color: colors.muted, fontSize: 12, marginTop: 6 }}>Os produtos e preços a IA lê sozinha do seu catálogo no Realyz. Ela nunca fecha venda nem cobra: o cliente confirma no app.</Text>
         </View>
@@ -149,8 +152,12 @@ export default function AtendenteIA() {
           <Row style={{ marginTop: 6, flexWrap: 'wrap' }}>
             <Button small title="Abrir conversa" onPress={() => dispatch({ type: 'OPEN_SERVER_CHAT', userId: c.cliente.id, name: c.cliente.name })} />
             <View style={{ width: 6 }} />
-            <Button small variant="light" title="Sugerir resposta" onPress={() => sugerir(c)} />
-            <View style={{ width: 6 }} />
+            {!f.plano || f.plano.copiloto ? (
+              <>
+                <Button small variant="light" title="Sugerir resposta" onPress={() => sugerir(c)} />
+                <View style={{ width: 6 }} />
+              </>
+            ) : null}
             <Button small variant="light" title={c.estado === 'ia' ? 'Assumir' : 'Devolver à IA'} onPress={() => acao(c, c.estado === 'ia' ? 'assumir' : 'devolver')} />
           </Row>
           {sug && sug.clientId === c.cliente.id ? (

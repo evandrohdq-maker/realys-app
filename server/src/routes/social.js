@@ -4,7 +4,7 @@ import { fail, newId, now, str, oneOf } from '../http.js';
 
 const pair = (a, b) => (a < b ? [a, b] : [b, a]);
 
-export default function socialRoutes(r, { db, hub, userById, publicUser, atendente }) {
+export default function socialRoutes(r, { db, hub, userById, publicUser, atendente, protecao }) {
   const friendship = (a, b) => {
     const [x, y] = pair(a, b);
     return db.prepare('SELECT * FROM friends WHERE a_id = ? AND b_id = ?').get(x, y);
@@ -194,12 +194,16 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     if (!text && !media) fail(400, 'Escreva algo ou escolha uma foto ou vídeo.');
     const m = moderateText(text, 'publico');
     if (!m.ok) fail(422, m.why, m.kind);
+    // Proteção Realyz: golpe escancarado não é publicado; suspeita de golpe ou fake news vai para a fila.
+    const barra = protecao && text ? protecao.barrarPost(text) : null;
+    if (barra) fail(422, barra, 'golpe');
     const id = newId('ps');
     const t = now();
     const bg = typeof body.bg === 'string' && /^#[0-9a-f]{6}$/i.test(body.bg) ? body.bg : null;
     db.prepare('INSERT INTO posts (id, author_id, kind, text, media, visibility, created_at, expires_at, bg) VALUES (?,?,?,?,?,?,?,?,?)').run(
       id, user.id, kind, text, media, body.visibility === 'amigos' ? 'amigos' : 'todos', t, kind === 'story' ? t + 86400000 : null, bg
     );
+    if (protecao && text) protecao.post(id, text);
     return postView(db.prepare(`${POST_SQL} WHERE p.id = ?`).get(id));
   }, { status: 201 });
 
@@ -325,6 +329,11 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
       const jaPediu = db.prepare('SELECT 1 FROM messages WHERE from_id = ? AND to_id = ? LIMIT 1').get(user.id, to.id);
       if (!respondeu && jaPediu) fail(403, 'Aguarde a pessoa aceitar o contato. Até lá, só vai o primeiro pedido de contato.', 'contato_pendente');
     }
+    // Proteção Realyz: mensagem com vários sinais de golpe para desconhecido não é enviada.
+    if (protecao && msg.text) {
+      const pr = protecao.mensagem({ fromId: user.id, toId: to.id, texto: msg.text, amigos });
+      if (pr.barrar) fail(422, pr.barrar, 'golpe');
+    }
     // Mídia só entre amigos (em conversa de negócio, catálogo e fotos vão pelos caminhos da loja).
     if (media && (!amigos || vende || negocio(to))) fail(403, 'Foto, vídeo e áudio são liberados na conversa entre amigos.', 'midia_amigos');
     db.prepare('INSERT INTO messages (id, from_id, to_id, text, created_at, media, media_type) VALUES (?,?,?,?,?,?,?)').run(id, user.id, to.id, msg.text, msg.at, media, mediaType);
@@ -359,7 +368,10 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
   r.post('/reports', ({ body, user }) => {
     const kind = oneOf(body.targetKind, 'o tipo', ['post', 'user', 'product', 'live']);
     const id = newId('rp');
-    db.prepare('INSERT INTO reports (id, from_id, target_kind, target_id, reason, created_at) VALUES (?,?,?,?,?,?)').run(id, user.id, kind, str(body.targetId, 'o alvo', { max: 60 }), str(body.reason, 'o motivo', { min: 3, max: 500 }), now());
+    const alvoId = str(body.targetId, 'o alvo', { max: 60 });
+    const motivo = str(body.reason, 'o motivo', { min: 3, max: 500 });
+    db.prepare('INSERT INTO reports (id, from_id, target_kind, target_id, reason, created_at) VALUES (?,?,?,?,?,?)').run(id, user.id, kind, alvoId, motivo, now());
+    if (protecao) protecao.denuncia(id, kind, alvoId, motivo);
     return { id, status: 'aberta' };
   }, { status: 201 });
 }
