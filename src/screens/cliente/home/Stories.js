@@ -117,7 +117,8 @@ export function StoryViewer({ groups, start, visible, onClose, onSeen, onReply, 
   // Vídeo sem a duração salva (veio do servidor): usa a que o player descobre ao carregar.
   const [vidSecs, setVidSecs] = useState({});
   const secsOf = (it) => it.secs || vidSecs[it.id] || STORY_VIDEO_MAX_S;
-  const dur = cur && cur.video ? Math.min(STORY_VIDEO_MAX_S, secsOf(cur)) * 1000 : STORY_MS;
+  // Foto ou texto com música: fica o tempo do trecho escolhido (5, 10 ou 15 s).
+  const dur = cur && cur.video ? Math.min(STORY_VIDEO_MAX_S, secsOf(cur)) * 1000 : cur && cur.music && cur.music.len ? Math.min(15, cur.music.len) * 1000 : STORY_MS;
 
   useEffect(() => {
     if (visible && group) onSeen && onSeen(group.id);
@@ -380,7 +381,8 @@ export function StoryComposer({ visible, onClose, onPublish }) {
   const publish = () => {
     if (!ready) return;
     const item = { id: 'me' + Date.now(), at: Date.now(), text: text.trim(), bg: bg || STORY_PLAIN, time: 'agora', views: 0 };
-    if (music) item.music = music;
+    // O trecho da música acompanha o vídeo (mesmo tamanho), mesmo se o vídeo foi trocado depois.
+    if (music) item.music = media && media.kind === 'video' && media.secs ? { ...music, len: Math.min(STORY_VIDEO_MAX_S, media.secs) } : music;
     if (media && media.kind === 'image') Object.assign(item, { image: smoothUri || media.uri, effect });
     if (media && media.kind === 'video') Object.assign(item, { video: media.uri, secs: media.secs, effect });
     const go = async () => {
@@ -523,6 +525,7 @@ export function StoryComposer({ visible, onClose, onPublish }) {
       <MusicPicker
         visible={picking}
         current={music}
+        videoSecs={media && media.kind === 'video' ? media.secs : 0}
         onClose={() => setPicking(false)}
         onPick={(m) => (setMusic(m), setPicking(false))}
         onRemove={() => (setMusic(null), setPicking(false))}
