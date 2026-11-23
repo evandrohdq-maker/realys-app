@@ -1162,6 +1162,41 @@ const MIGRATIONS = [
   CREATE UNIQUE INDEX IF NOT EXISTS crm_par ON crm_leads(owner_id, client_id);
   CREATE INDEX IF NOT EXISTS crm_follow ON crm_leads(follow_up) WHERE follow_up IS NOT NULL;
   `,
+  `
+  -- Negócios (imóveis, veículos e máquinas) de verdade: anúncios, interessados e plano do anunciante.
+  CREATE TABLE IF NOT EXISTS neg_ads (
+    id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL REFERENCES users(id),
+    kind TEXT NOT NULL,
+    title TEXT NOT NULL,
+    price_text TEXT NOT NULL,
+    place TEXT,
+    detail TEXT,
+    photos TEXT,
+    status TEXT NOT NULL DEFAULT 'ativo',
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS neg_ads_kind ON neg_ads(kind, status, created_at DESC);
+  CREATE TABLE IF NOT EXISTS neg_leads (
+    id TEXT PRIMARY KEY,
+    ad_id TEXT NOT NULL REFERENCES neg_ads(id),
+    user_id TEXT NOT NULL REFERENCES users(id),
+    status TEXT NOT NULL CHECK (status IN ('aguardando','liberado')),
+    paid INTEGER NOT NULL DEFAULT 0,
+    unlocked_at INTEGER,
+    refunded INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS neg_leads_par ON neg_leads(ad_id, user_id);
+  CREATE TABLE IF NOT EXISTS neg_planos (
+    user_id TEXT PRIMARY KEY REFERENCES users(id),
+    plan_id TEXT NOT NULL,
+    paid_until INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'ok',
+    updated_at INTEGER NOT NULL
+  );
+  `,
 ];
 
 export function openDb(file) {

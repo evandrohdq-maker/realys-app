@@ -14,6 +14,9 @@ import { now } from './http.js';
 const short = (s, n = 90) => (String(s || '').length > n ? String(s).slice(0, n - 1) + '…' : String(s || ''));
 const brl = (v) => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
 export const AVISOS = {
+  'neg-interesse': (d) => ({ title: 'Novo interessado no seu anúncio 🏷️', body: short(d.title || ''), go: { tab: 'bens' } }),
+  'neg-liberado': (d) => ({ title: 'Conversa liberada ✅', body: `${d.from || 'O anunciante'} liberou a conversa sobre ${d.title || 'o anúncio'}.`, go: { tab: 'bens' } }),
+  'neg-devolucao': (d) => ({ title: 'Valor devolvido 💰', body: `O interessado não respondeu em 48 h: R$ ${Number(d.valor || 0).toFixed(2).replace('.', ',')} voltaram para a sua carteira.`, go: { tab: 'perfil' } }),
   'crm-lembrete': (d) => ({ title: `Retorno: ${d.client || 'cliente'} ⏰`, body: short(d.texto || 'Hora de dar retorno para este cliente.'), go: { tab: 'clientes' } }),
   'estacao-aovivo': (d) => ({ title: `${d.kind === 'tv' ? '📺' : '📻'} ${d.name || 'Estação'} ao vivo`, body: short(d.texto || 'No ar agora!'), go: { tab: 'stories' } }),
   suporte: (d) => ({ title: `Suporte Realyz${d.n ? ` · chamado nº ${d.n}` : ''}`, body: short(d.texto || 'A equipe respondeu o seu chamado.'), go: { tab: 'perfil', suporte: true } }),

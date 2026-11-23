@@ -14,6 +14,7 @@ import { Screen, Photo } from '../../components/ui';
 import { SegTabs, ClipStrip } from '../../components/AdKit';
 import { NEGOCIO_CLIPS } from '../../adsData';
 import { listings, LISTING_KINDS, LISTING_CTA } from '../../homeData';
+import { useNegocios, tenhoInteresse } from '../../serverNegocios';
 import { ChatModal, VideoCallModal } from './home/Social';
 import { AnunciarSheet, MyAds } from '../../components/NegociosAnunciar';
 
@@ -47,7 +48,10 @@ export default function NegociosScreen({ explore }) {
 
   const g = NEGOCIOS_GROUPS.find((x) => x.key === group) || NEGOCIOS_GROUPS[0];
   const kinds = g.kinds.map((k) => k[0]);
-  const list = listings
+  // Conta de verdade: os anúncios reais (de outras pessoas) vêm primeiro; os de exemplo depois.
+  const neg = useNegocios(conectado(state));
+  const reais = neg ? neg.ads.filter((a) => !a.mine) : [];
+  const list = [...reais, ...listings]
     .filter((l) => (kind === 'todos' ? kinds.includes(l.kind) : l.kind === kind))
     .sort((a, b) => (b.sponsored ? 1 : 0) - (a.sponsored ? 1 : 0));
   const cta = (l) => l.cta || LISTING_CTA[l.kind] || 'Reservar';
@@ -61,8 +65,16 @@ export default function NegociosScreen({ explore }) {
   };
   // "Tenho interesse": o cliente não paga nada. O pedido vai para o anunciante, que libera a
   // conversa (pelo plano mensal dele ou pagando por este contato). Só então a conversa abre.
-  const reqOf = (l) => (state.negRequests || {})[l.id];
+  const reqOf = (l) => (l.server ? neg && neg.interesses[l.id] && neg.interesses[l.id].status : (state.negRequests || {})[l.id]);
   const contact = (l) => {
+    if (l.server) {
+      // Anúncio de verdade: o interesse vai para o anunciante; liberada, a conversa é a real do Realyz.
+      if (reqOf(l) === 'liberado') return dispatch({ type: 'OPEN_SERVER_CHAT', userId: l.ownerId, name: l.who });
+      if (reqOf(l) === 'aguardando') return Alert.alert('Pedido enviado', `${l.who} já recebeu o seu interesse. Assim que liberar a conversa, você recebe o aviso e ela abre aqui.`);
+      return tenhoInteresse(l.id)
+        .then(() => Alert.alert('Interesse enviado ✅', `${l.who} recebeu o seu pedido. Você não paga nada: quando o anunciante liberar a conversa, você recebe o aviso.`))
+        .catch((e) => Alert.alert('Não deu certo', e.message));
+    }
     const c = { id: 'adv-' + l.who, name: l.who, status: 'anunciante verificado', photo: `https://picsum.photos/seed/${encodeURIComponent(l.who)}/200/200` };
     if (reqOf(l) === 'liberado') return openChat(c);
     if (reqOf(l) === 'aguardando') return Alert.alert('Pedido enviado', `${l.who} já recebeu o seu interesse. Assim que liberar a conversa, ela abre aqui.`);

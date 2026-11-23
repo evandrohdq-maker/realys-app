@@ -13,6 +13,8 @@ import { colors, soft, brl } from '../theme';
 import { TAXAS, mercadoPublico } from '../taxas';
 import { NEG_PLANOS, negPlano, precoContato, custoLiberar, planoCobre, setorDoTipo, NEG_REEMBOLSO_HORAS } from '../negocios';
 import { moderateText } from '../moderation';
+import { conectado, carregarCarteira } from '../serverShop';
+import { useNegocios, anunciar, tirarDoAr, liberarConversa, assinarPlano } from '../serverNegocios';
 
 // Interessados de exemplo que chegam quando o anúncio é publicado (na demonstração).
 const DEMO_LEADS = ['Camila R.', 'João Pedro S.'];
@@ -31,11 +33,19 @@ export function AnunciarSheet({ visible, onClose, kinds, kindLabel }) {
     setPrice('');
   }, [visible]);
   const setor = setorDoTipo(kind);
-  const plan = state.negPlan ? negPlano(state.negPlan.id) : null;
+  // Conta de verdade: o plano vem do servidor (cobrado todo mês; atrasado não cobre).
+  const real = conectado(state);
+  const neg = useNegocios(real);
+  const plan = real ? (neg && neg.plano && !neg.plano.atrasado ? negPlano(neg.plano.id) : null) : state.negPlan ? negPlano(state.negPlan.id) : null;
   const covered = planoCobre(plan && plan.id, kind);
   const planos = NEG_PLANOS.filter((p) => p.setores.includes(setor));
 
   const assinar = (p) => {
+    if (real)
+      return Alert.alert(`Plano ${p.nome}`, `${brl(p.valor)} por mês, do seu saldo Realyz (cobrado todo mês). ${p.detalhe}, com as conversas liberadas.`, [
+        { text: 'Agora não', style: 'cancel' },
+        { text: 'Assinar', onPress: () => assinarPlano(p.id).then(() => (carregarCarteira(dispatch).catch(() => {}), Alert.alert('Plano ativo ✅', `Plano ${p.nome} ativo.`))).catch((e) => Alert.alert('Não deu certo', e.message)) },
+      ]);
     if (state.wallet < p.valor) return Alert.alert('Saldo insuficiente', `O plano ${p.nome} custa ${brl(p.valor)} por mês. Coloque saldo na carteira e tente de novo.`);
     Alert.alert(`Plano ${p.nome}`, `${brl(p.valor)} por mês, do seu saldo Realyz. ${p.detalhe}, com as conversas liberadas.`, [
       { text: 'Agora não', style: 'cancel' },
@@ -50,6 +60,11 @@ export function AnunciarSheet({ visible, onClose, kinds, kindLabel }) {
     if (!mod.ok) return Alert.alert('Não foi possível publicar', mod.why);
     const mine = (state.negAds || []).filter((x) => setorDoTipo(x.kind) === setor).length;
     if (plan && covered && mine >= plan.limite) return Alert.alert('Limite do plano', `O plano ${plan.nome} vai até ${plan.limite} anúncios.`);
+    if (real) {
+      return anunciar({ kind, title: t, price: price.trim(), place: place.trim() })
+        .then(() => (onClose(), Alert.alert('Anúncio no ar ✅', covered ? 'As conversas com os interessados já estão liberadas pelo seu plano.' : `Anunciar é grátis. Quando aparecer um interessado verificado, você libera a conversa por ${brl(precoContato(kind))}.`)))
+        .catch((e) => Alert.alert('Não foi possível publicar', e.message));
+    }
     const id = 'my-' + Date.now();
     const who = (state.user && state.user.name) || 'Você';
     dispatch({
@@ -134,10 +149,28 @@ export function AnunciarSheet({ visible, onClose, kinds, kindLabel }) {
 export function MyAds({ kinds, kindLabel, onChat }) {
   const { state, dispatch } = useStore();
   const [crm, setCrm] = useState(false);
-  const ads = (state.negAds || []).filter((a) => kinds.includes(a.kind));
+  // Conta de verdade: meus anúncios e interessados vêm do servidor (o nome aparece depois de liberar).
+  const real = conectado(state);
+  const neg = useNegocios(real);
+  const ads = (real ? (neg ? neg.meus : []) : state.negAds || []).filter((a) => kinds.includes(a.kind));
   if (!ads.length) return null;
   const planId = state.negPlan && state.negPlan.id;
   const unlock = (lead, ad) => {
+    if (real) {
+      const cost = ad.custo || 0;
+      const go = () =>
+        liberarConversa(lead.id)
+          .then((r) => {
+            carregarCarteira(dispatch).catch(() => {});
+            dispatch({ type: 'OPEN_SERVER_CHAT', userId: r.userId, name: lead.name === 'Interessado verificado' ? 'Interessado' : lead.name });
+          })
+          .catch((e) => Alert.alert('Não deu certo', e.message));
+      if (!cost) return go();
+      return Alert.alert('Liberar conversa', `${brl(cost)} do seu saldo para falar com este interessado verificado. Se ele não responder em ${NEG_REEMBOLSO_HORAS} horas, o valor volta para a sua carteira.`, [
+        { text: 'Agora não', style: 'cancel' },
+        { text: `Liberar por ${brl(cost)}`, onPress: go },
+      ]);
+    }
     const cost = custoLiberar(planId, ad.kind);
     if (state.wallet < cost) return Alert.alert('Saldo insuficiente', `Liberar esta conversa custa ${brl(cost)}. Coloque saldo na carteira e tente de novo.`);
     const go = () => {
@@ -171,8 +204,8 @@ export function MyAds({ kinds, kindLabel, onChat }) {
         </View>
       </KeyboardLift></Modal>
       {ads.map((ad) => {
-        const leads = (state.negLeads || []).filter((l) => l.adId === ad.id);
-        const cost = custoLiberar(planId, ad.kind);
+        const leads = ad.server ? ad.leads || [] : (state.negLeads || []).filter((l) => l.adId === ad.id);
+        const cost = ad.server ? ad.custo || 0 : custoLiberar(planId, ad.kind);
         return (
           <View key={ad.id} style={st.myAd}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -182,7 +215,7 @@ export function MyAds({ kinds, kindLabel, onChat }) {
                 <Text style={st.myPrice}>{ad.price} · {ad.place}</Text>
               </View>
               <TouchableOpacity
-                onPress={() => Alert.alert('Tirar o anúncio do ar?', ad.title, [{ text: 'Manter', style: 'cancel' }, { text: 'Tirar do ar', style: 'destructive', onPress: () => dispatch({ type: 'NEG_AD_REMOVE', id: ad.id }) }])}
+                onPress={() => Alert.alert('Tirar o anúncio do ar?', ad.title, [{ text: 'Manter', style: 'cancel' }, { text: 'Tirar do ar', style: 'destructive', onPress: () => (ad.server ? tirarDoAr(ad.id).catch((e) => Alert.alert('Não deu certo', e.message)) : dispatch({ type: 'NEG_AD_REMOVE', id: ad.id })) }])}
                 style={st.close}
                 accessibilityLabel="Tirar o anúncio do ar"
               >
@@ -197,7 +230,7 @@ export function MyAds({ kinds, kindLabel, onChat }) {
                   <Text style={st.leadName}>{l.unlocked ? l.name : 'Interessado verificado'}</Text>
                   <Text style={st.leadSub}>{l.unlocked ? (l.paid ? `Conversa liberada por ${brl(l.paid)}` : 'Conversa liberada pelo plano') : 'Pessoa real, conferida por biometria'}</Text>
                 </View>
-                <TouchableOpacity style={[st.leadBtn, l.unlocked && st.leadBtnOpen]} onPress={() => (l.unlocked ? onChat(l) : unlock(l, ad))} accessibilityLabel={l.unlocked ? `Abrir conversa com ${l.name}` : 'Liberar conversa'}>
+                <TouchableOpacity style={[st.leadBtn, l.unlocked && st.leadBtnOpen]} onPress={() => (l.unlocked ? (ad.server ? dispatch({ type: 'OPEN_SERVER_CHAT', userId: l.userId, name: l.name }) : onChat(l)) : unlock(l, ad))} accessibilityLabel={l.unlocked ? `Abrir conversa com ${l.name}` : 'Liberar conversa'}>
                   <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.leadBtnText, l.unlocked && { color: colors.text }]}>{l.unlocked ? 'Conversar' : cost ? `Liberar · ${brl(cost)}` : 'Liberar'}</Text>
                 </TouchableOpacity>
               </View>

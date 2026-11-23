@@ -53,6 +53,7 @@ import trabalhoRoutes, { trabalhoAdminRoutes } from './routes/trabalho.js';
 import suporteRoutes from './routes/suporte.js';
 import dateRoutes from './routes/date.js';
 import estacoesRoutes from './routes/estacoes.js';
+import negociosRoutes, { makeNegocios } from './routes/negocios.js';
 import contasTesteRoutes from './contasTeste.js';
 import { makePush } from './push.js';
 import { makeTeleGratis } from './teleGratis.js';
@@ -103,7 +104,7 @@ export function createApp(cfg) {
   hub.offline = push.aviso;
   // Contas de teste: dinheiro fictício nunca chega a conta real, ao caixa nem às notas (src/teste.js).
   protegerDinheiroDeTeste(db, wallet, fiscal);
-  const deps = { db, cfg, wallet, hub, userById, publicUser, cipher, matcher, biometria, fiscal, pix, push, teleGratis: makeTeleGratis(db, cfg), lojaPlano: makeLojaPlano(db, wallet), crm: makeCrm({ db, hub }) };
+  const deps = { db, cfg, wallet, hub, userById, publicUser, cipher, matcher, biometria, fiscal, pix, push, teleGratis: makeTeleGratis(db, cfg), lojaPlano: makeLojaPlano(db, wallet), crm: makeCrm({ db, hub }), negocios: makeNegocios({ db, wallet, hub }) };
   // IA do Realyz (atendente das empresas e copiloto de vendas).
   deps.ia = cfg.ia || makeIA(cfg);
   deps.planos = makePlanos(db);
@@ -120,7 +121,7 @@ export function createApp(cfg) {
     attempts.set(key, a);
   };
   deps.clearLogin = (key) => attempts.delete(key);
-  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes, noticiasRoutes, showsRoutes, pushRoutes, empregosRoutes, logisticaRoutes, profissoesRoutes, turbinarRoutes, contasTesteRoutes, baixarRoutes, trabalhoRoutes, trabalhoAdminRoutes, planosRoutes, suporteRoutes, dateRoutes, estacoesRoutes].forEach((r) => r(router, deps));
+  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes, noticiasRoutes, showsRoutes, pushRoutes, empregosRoutes, logisticaRoutes, profissoesRoutes, turbinarRoutes, contasTesteRoutes, baixarRoutes, trabalhoRoutes, trabalhoAdminRoutes, planosRoutes, suporteRoutes, dateRoutes, estacoesRoutes, negociosRoutes].forEach((r) => r(router, deps));
   router.get('/health', () => ({ ok: true, name: 'Realyz', time: now() }), { auth: false });
   // O que está ligado agora (o app pergunta ao abrir e mostra o aviso de compras bloqueadas).
   router.get('/status', () => ({
@@ -241,8 +242,9 @@ export function createApp(cfg) {
   const crmTimer = setInterval(() => {
     try {
       deps.crm.lembretes();
+      deps.negocios.reembolsos();
     } catch (e) {}
   }, 60000);
   if (crmTimer.unref) crmTimer.unref();
-  return { server, db, hub, wallet, crm: deps.crm, close: async () => { if (pixTimer) clearInterval(pixTimer); clearInterval(crmTimer); meiValores.stop(); return close(); }, maintenance, meiValores, biometria, fiscal, pix, startPix };
+  return { server, db, hub, wallet, crm: deps.crm, negocios: deps.negocios, close: async () => { if (pixTimer) clearInterval(pixTimer); clearInterval(crmTimer); meiValores.stop(); return close(); }, maintenance, meiValores, biometria, fiscal, pix, startPix };
 }

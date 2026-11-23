@@ -22,6 +22,9 @@ export const ROTAS_COM_BIOMETRIA = [
   ['POST', '/turbinar'], // turbinar (impulsionar) é pagamento
   ['POST', '/shows/pedidos/:id/pagar'], // fechar show de artista (a contratação direta é travada dentro da rota)
   ['POST', '/date/assinatura'], // assinar o Date+
+  ['POST', '/negocios/anuncios'], // anunciar imóvel, veículo ou máquina
+  ['POST', '/negocios/leads/:id/liberar'], // pagar para liberar a conversa
+  ['POST', '/negocios/plano'], // plano do anunciante
 ];
 const chave = (method, path) => `${method} ${path}`;
 const TRAVADAS = new Set(ROTAS_COM_BIOMETRIA.map(([m, p]) => chave(m, p)));
