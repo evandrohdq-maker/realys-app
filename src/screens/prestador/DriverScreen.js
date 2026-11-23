@@ -236,11 +236,11 @@ function DriverMain({ goTo, onCadastro }) {
       <Card style={{ backgroundColor: state.available ? colors.primaryLight : colors.card }}>
         <Row style={{ justifyContent: 'space-between' }}>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 16 }}>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14 }}>
               {state.available ? '🟢 Disponível (GPS ligado)' : '⚪ Indisponível'}
             </Text>
             <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>
-              Ligue para aparecer para clientes e empresas perto de você
+              Ligue para aparecer para quem está perto
             </Text>
           </View>
           <Switch value={state.available} onValueChange={() => dispatch({ type: 'TOGGLE_AVAILABLE' })} trackColor={{ true: colors.primary }} />
@@ -251,10 +251,10 @@ function DriverMain({ goTo, onCadastro }) {
       {me && TARIFFS[me.service] ? <RideEarnings service={me.service} /> : null}
       <Card onPress={() => dispatch({ type: 'OPEN_DOCS', mode: 'lista' })}>
         <Row>
-          <Ionicons name="document-text-outline" size={22} color={colors.primary} style={{ marginRight: 8 }} />
+          <Ionicons name="document-text-outline" size={20} color={colors.text} style={{ marginRight: 10 }} />
           <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>Contratos e receitas</Text>
-            <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }}>Contrato do serviço com o cliente e, se a sua profissão permite, receitas no atendimento (por voz ou digitando).</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14 }}>Contratos e receitas</Text>
+            <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 12, marginTop: 1 }}>Contrato com o cliente e receitas no atendimento</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={colors.muted} />
         </Row>
@@ -544,13 +544,13 @@ function AgendaShortcut({ onOpen }) {
   const st = agendaStats(items, now);
   return (
     <TouchableOpacity onPress={onOpen} activeOpacity={0.85} accessibilityLabel="Abrir minha agenda">
-      <Card style={{ backgroundColor: colors.primaryLight }}>
+      <Card>
         <Row>
-          <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-            <Ionicons name="calendar" size={22} color={colors.onPrimary} />
+          <View style={{ width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
+            <Ionicons name="calendar-outline" size={18} color={colors.text} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 16 }}>Minha agenda</Text>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14 }}>Minha agenda</Text>
             <Text style={{ color: colors.muted, fontSize: 12, marginTop: 2 }} numberOfLines={2}>
               {next ? `Próximo: ${next.client}, ${dayLabel(next.start, now).toLowerCase()} às ${hhmm(next.start)} (${untilText(next.start, now)})` : 'Nenhum trabalho marcado'}
             </Text>

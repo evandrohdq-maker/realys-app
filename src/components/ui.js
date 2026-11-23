@@ -23,7 +23,7 @@ export function Screen({ children, scroll = true, scrollRef, onScroll, onScrollE
 
 export function Title({ children, sub }) {
   return (
-    <View style={{ marginBottom: 18 }}>
+    <View style={{ marginBottom: 14 }}>
       <Text style={styles.title}>{children}</Text>
       {sub ? <Text style={styles.sub}>{sub}</Text> : null}
     </View>
@@ -32,7 +32,7 @@ export function Title({ children, sub }) {
 
 export function Section({ title, right, children }) {
   return (
-    <View style={{ marginBottom: 22 }}>
+    <View style={{ marginBottom: 18 }}>
       <View style={styles.sectionHead}>
         <Text style={styles.sectionTitle}>{title}</Text>
         {right}
@@ -241,17 +241,19 @@ export function Empty({ text }) {
 const styles = StyleSheet.create({
   screenScroll: { flex: 1, backgroundColor: colors.bg },
   screen: { padding: 18, paddingBottom: 110, backgroundColor: colors.bg, flexGrow: 1 },
-  title: { fontSize: 20, fontWeight: '700', color: colors.text, letterSpacing: -0.3 },
-  sub: { fontSize: 13, color: colors.muted, marginTop: 3, lineHeight: 18 },
-  sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.text, letterSpacing: -0.2 },
+  title: { fontSize: 18, fontWeight: '700', color: colors.text, letterSpacing: -0.3 },
+  sub: { fontSize: 12, color: colors.muted, marginTop: 2, lineHeight: 17 },
+  sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: colors.text, letterSpacing: -0.2 },
   // Cartão clean: sem contorno, só uma sombra leve e quente.
+  // Visual clean: borda fina no lugar da sombra, cantos e espaços menores.
   card: {
     backgroundColor: colors.card,
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 12,
-    ...soft,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
   },
   btn: { paddingVertical: 13, paddingHorizontal: 18, borderRadius: 14, alignItems: 'center', borderWidth: 1 },
   btnSmall: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: 10 },
@@ -271,10 +273,11 @@ const styles = StyleSheet.create({
   stat: {
     flex: 1,
     backgroundColor: colors.card,
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 10,
     marginHorizontal: 4,
-    ...soft,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
   },
   statLabel: { fontSize: 11, color: colors.muted },
   statValue: { fontSize: 15, fontWeight: '700', marginTop: 3 },
