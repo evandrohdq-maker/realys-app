@@ -1241,7 +1241,9 @@ const MIGRATIONS = [
 export function openDb(file) {
   if (file !== ':memory:') mkdirSync(dirname(file), { recursive: true });
   const db = new DatabaseSync(file);
-  db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;');
+  // WAL + synchronous NORMAL: gravações bem mais rápidas e ainda seguras (o recomendado para WAL);
+  // cache maior e tabelas temporárias na memória deixam as leituras mais rápidas.
+  db.exec('PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000; PRAGMA cache_size = -32000; PRAGMA temp_store = MEMORY;');
   const { user_version: v } = db.prepare('PRAGMA user_version').get();
   for (let i = v; i < MIGRATIONS.length; i++) {
     db.exec('BEGIN');

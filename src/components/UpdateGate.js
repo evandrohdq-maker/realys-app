@@ -94,7 +94,10 @@ export default function UpdateGate({ children }) {
     return () => clearTimeout(t);
   }, [phase]);
 
-  if (phase === 'ready') return children;
+  // Enquanto pergunta se tem versão nova, o app já abre e já busca os dados da conta (antes a pessoa
+  // ficava até 6 s olhando "Procurando atualização…" toda vez que abria). Só se tiver versão nova é que
+  // a tela de atualização aparece por cima.
+  if (phase === 'ready' || phase === 'checking') return children;
 
   const texto = {
     checking: 'Procurando atualização…',

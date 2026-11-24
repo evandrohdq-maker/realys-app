@@ -47,8 +47,9 @@ export function payloadOf(state) {
   return data;
 }
 
-export async function pullProfile() {
-  return api('GET', '/me/dados'); // { data, updatedAt }
+// desde: versão que o aparelho já tem. Se nada mudou, o servidor responde { igual: true } sem o perfil.
+export async function pullProfile(desde) {
+  return api('GET', desde > 0 ? `/me/dados?desde=${desde}` : '/me/dados'); // { data, updatedAt, igual? }
 }
 
 // Sobe as fotos locais do perfil; devolve as trocas { photo, cover } (ou null se não tinha nada).

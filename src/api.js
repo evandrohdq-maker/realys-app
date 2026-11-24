@@ -47,9 +47,49 @@ export function setServerAccount(serverId) {
   if (k !== sessionKey) {
     sessionKey = k;
     accessToken = null;
+    tokenExp = 0;
   }
 }
 const saveSession = (t) => SecureStore.setItemAsync(sessionKey, t, { requireAuthentication: false });
+
+// Acesso curto (1 h) guardado no cofre: ao abrir o app de novo dentro desse tempo, os dados já vêm
+// na primeira chamada, sem a ida extra ao servidor para renovar o login.
+let tokenExp = 0;
+const acessoKey = () => `${sessionKey}.acesso`;
+function guardarAcesso(token, segundos) {
+  accessToken = token;
+  tokenExp = Date.now() + (Number(segundos) || 3600) * 1000;
+  if (Platform.OS !== 'web') SecureStore.setItemAsync(acessoKey(), JSON.stringify({ t: token, exp: tokenExp })).catch(() => {});
+}
+async function acessoGuardado() {
+  if (Platform.OS === 'web') return false;
+  const key = acessoKey();
+  try {
+    const g = JSON.parse((await SecureStore.getItemAsync(key)) || 'null');
+    // Só usa se ainda vale por mais 2 min e se nada trocou a conta enquanto lia.
+    if (g && g.t && g.exp - Date.now() > 120000 && key === acessoKey() && !accessToken) {
+      accessToken = g.t;
+      tokenExp = g.exp;
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+// Garante o login antes de pedir (uma vez só, mesmo com várias telas pedindo juntas na abertura).
+let garantindo = null;
+async function garantirAcesso() {
+  if (accessToken && (!tokenExp || tokenExp - Date.now() > 60000)) return;
+  if (refreshing) return void (await refreshing.catch(() => {}));
+  if (!garantindo) {
+    garantindo = (async () => {
+      if (!accessToken && (await acessoGuardado())) return;
+      if (await hasSession()) await refresh().catch(() => {});
+    })().finally(() => (garantindo = null));
+  }
+  await garantindo;
+}
+// Abriu o app com conta salva: já começa a preparar o login enquanto a tela monta.
+export const aquecerConexao = () => (serverOn() ? garantirAcesso().catch(() => {}) : Promise.resolve());
 export const hasSession = async () => !!(await SecureStore.getItemAsync(sessionKey).catch(() => null));
 
 async function raw(method, path, body, headers = {}) {
@@ -87,7 +127,7 @@ export async function refresh() {
     if (!sessionToken) throw new ApiError(401, 'Entre com usuário e senha.', 'sem_sessao');
     // Não apaga o acesso atual antes de ter o novo: os outros pedidos continuam com login enquanto renova.
     const d = await raw('POST', '/auth/refresh', { sessionToken });
-    accessToken = d.accessToken;
+    guardarAcesso(d.accessToken, d.expiresIn);
     return d.user;
   })();
   try {
@@ -102,10 +142,8 @@ export async function api(method, path, body, headers) {
   const auth = path.startsWith('/auth/');
   // Renovação em andamento ou acesso ainda não carregado (app acabou de abrir): espera o login antes
   // de pedir, em vez de mandar o pedido sem login e levar "sessão expirada".
-  if (!auth) {
-    if (refreshing) await refreshing.catch(() => {});
-    else if (!accessToken && (await hasSession())) await refresh().catch(() => {});
-  }
+  // Acesso quase vencendo: renova antes, em vez de levar "sessão expirada" e pedir tudo de novo.
+  if (!auth) await garantirAcesso();
   const tentar = async () => {
     try {
       return await raw(method, path, body, headers);
@@ -152,7 +190,7 @@ export async function login(loginText, password, device = 'Android', aparelhoTok
   const key = await deviceKey();
   const d = await raw('POST', '/auth/login', { login: loginText, password, device, deviceKey: key, aparelhoToken, codigo2fa: codigo2fa || undefined });
   setServerAccount(d.user && d.user.id);
-  accessToken = d.accessToken;
+  guardarAcesso(d.accessToken, d.expiresIn);
   await saveSession(d.sessionToken);
   return d.user;
 }
@@ -162,7 +200,7 @@ export async function signup(data, device = 'Android') {
   accessToken = null;
   const d = await raw('POST', '/auth/signup', { ...data, device });
   setServerAccount(d.user && d.user.id);
-  accessToken = d.accessToken;
+  guardarAcesso(d.accessToken, d.expiresIn);
   await saveSession(d.sessionToken);
   return d.user;
 }
@@ -173,12 +211,14 @@ export async function logout() {
     if (sessionToken) await api('POST', '/auth/logout', { sessionToken });
   } catch (e) {}
   accessToken = null;
+  tokenExp = 0;
+  await SecureStore.deleteItemAsync(acessoKey()).catch(() => {});
   await SecureStore.deleteItemAsync(sessionKey).catch(() => {});
 }
 
 // Acesso atual (renova se precisar): para baixar um arquivo protegido (ex.: currículo).
 export async function authToken() {
-  if (!accessToken) await refresh().catch(() => {});
+  await garantirAcesso().catch(() => {});
   return accessToken;
 }
 
@@ -217,7 +257,9 @@ export function connectEvents(onEvent) {
   const open = async () => {
     if (stopped || paused || !appAtivo) return;
     try {
-      if (!accessToken || renovarWs) await refresh();
+      if (renovarWs) await refresh();
+      else await garantirAcesso();
+      if (!accessToken) throw new Error('sem acesso');
       renovarWs = false;
     } catch (e) {
       return setTimeout(open, 15000);

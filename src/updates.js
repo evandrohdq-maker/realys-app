@@ -69,7 +69,10 @@ export async function checkForUpdate() {
   // Primeiro o servidor do Realyz (funciona com o repositório privado); se ele ainda não tiver o APK, o GitHub.
   if (API_URL) {
     try {
-      const r = await fetch(`${API_URL}/app/versao`, { headers: { Accept: 'application/json' } });
+      // Resposta em até 4 s; servidor lento não segura a verificação.
+      const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const t = setTimeout(() => ctl && ctl.abort(), 4000);
+      const r = await fetch(`${API_URL}/app/versao`, { headers: { Accept: 'application/json' }, signal: ctl ? ctl.signal : undefined }).finally(() => clearTimeout(t));
       if (r.ok) {
         const v = await r.json();
         return { available: !!v.url && v.build > CURRENT_BUILD, latest: v.build, current: CURRENT_BUILD, url: v.url, size: v.size || 0, notes: (v.notes || '').trim(), name: v.name || `Realyz ${v.build}` };

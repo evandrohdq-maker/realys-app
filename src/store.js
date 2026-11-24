@@ -19,7 +19,7 @@ import { INTEL_PLAN, subPlan } from './engage';
 import { fareQuote, TARIFFS, surgeText } from './pricing';
 import { protectionFee } from './guarantee';
 import { usarConta } from './serverAuth';
-import { serverOn } from './api';
+import { serverOn, aquecerConexao } from './api';
 import { comprasTravadas, silenciarAvisos } from './compras';
 export { comprasTravadas };
 import { canSync, payloadOf, pullProfile, pushProfile, uploadLocalPhotos, uploadLocalGallery, uploadLocalMural, richness } from './profileSync';
@@ -2326,6 +2326,8 @@ export function StoreProvider({ children }) {
     readSession()
       .then((session) => {
         usarConta(session && session.user); // a sessão do servidor daquela conta
+        // Já começa a preparar o login com o servidor enquanto a primeira tela monta.
+        if (session && session.user) aquecerConexao();
         dispatch({ type: 'RESTORE_SESSION', session });
       })
       .catch(() => dispatch({ type: 'RESTORE_SESSION', session: null }));
@@ -2473,9 +2475,9 @@ export function StoreProvider({ children }) {
     const check = () => {
       if (busy || pending.current) return;
       busy = true;
-      pullProfile()
+      pullProfile(srvAt.current)
         .then((srv) => {
-          if (!srv || !srv.data || !(srv.updatedAt > srvAt.current) || pending.current) return;
+          if (!srv || srv.igual || !srv.data || !(srv.updatedAt > srvAt.current) || pending.current) return;
           srvAt.current = srv.updatedAt;
           syncBase.current = 'servidor';
           dispatch({ type: 'LOAD_PROFILE', data: srv.data });

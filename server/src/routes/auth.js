@@ -410,7 +410,14 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
   }));
 
   // Perfil completo da conta (o que a pessoa preencheu no app ou no site). O mais novo vale.
-  r.get('/me/dados', ({ user }) => {
+  r.get('/me/dados', ({ user, query }) => {
+    // ?desde=<versão que o aparelho já tem>: se nada mudou, responde só "igual" (sem mandar o perfil
+    // inteiro de novo, que pode passar de 800 KB). O app confere isso a cada minuto.
+    const desde = Number(query.desde) || 0;
+    if (desde > 0) {
+      const v = db.prepare('SELECT updated_at FROM user_dados WHERE user_id = ?').get(user.id);
+      if (!v || v.updated_at <= desde) return { data: null, updatedAt: v ? v.updated_at : 0, igual: true };
+    }
     const row = db.prepare('SELECT data, updated_at FROM user_dados WHERE user_id = ?').get(user.id);
     return row ? { data: JSON.parse(row.data), updatedAt: row.updated_at } : { data: null, updatedAt: 0 };
   });

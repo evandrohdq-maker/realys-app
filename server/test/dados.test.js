@@ -42,6 +42,14 @@ test('perfil salvo num aparelho volta igual no outro, e foto/sobre vão para o p
   await call('PUT', '/me/dados', ana.accessToken, { data: { myProfile: { photo: 'file:///data/foto.jpg' } } });
   assert.equal((await call('GET', '/me', ana.accessToken)).user.photo, '/media/md_abc123');
   await assert.rejects(call('PUT', '/me/dados', ana.accessToken, { data: [] }), /400/);
+  // O app confere a cada minuto com ?desde=: sem mudança, vem só "igual" (sem o perfil inteiro).
+  const atual = await call('GET', '/me/dados', ana.accessToken);
+  const igual = await call('GET', `/me/dados?desde=${atual.updatedAt}`, ana.accessToken);
+  assert.equal(igual.igual, true);
+  assert.equal(igual.data, null);
+  assert.equal(igual.updatedAt, atual.updatedAt);
+  const velho = await call('GET', `/me/dados?desde=${atual.updatedAt - 1}`, ana.accessToken);
+  assert.deepEqual(velho.data, atual.data);
 });
 
 test('busca de pessoas: por nome, *usuário, #usuário e ID', async () => {
