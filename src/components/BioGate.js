@@ -17,7 +17,8 @@ import BiometriaScreen from '../screens/BiometriaScreen';
 // A conta sem biometria navega por tudo (Shop, Food, Serviços, Negócios…) e vê preços e vitrines
 // normalmente. O que não passa é a compra ou a contratação: essas ações param no store (NEEDS_BIO)
 // e abrem a janela "falta só a biometria".
-export const isVerified = (state) => !state.user || state.user.verified !== false;
+// Administrador e analista contam como liberados: precisam ver e testar todos os perfis (social, empresa, prestador).
+export const isVerified = (state) => !state.user || state.user.verified !== false || (state.user.roles || []).some((r) => r === 'admin' || r === 'analista');
 // Selo de identidade verificada: conta do servidor vale o que o servidor diz (biometria aprovada).
 export const hasIdBadge = (state) => !!state.user && (state.user.idVerified != null ? state.user.idVerified : state.user.verified !== false && !state.user.serverId);
 export const canOpenTab = () => true;

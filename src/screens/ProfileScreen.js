@@ -390,6 +390,18 @@ export default function ProfileScreen({ navigate, explore, soMenu = false }) {
         </TouchableOpacity>
       ) : null}
       {cvOpen ? <CurriculoEditor onClose={() => setCvOpen(false)} /> : null}
+      {/* Páginas de conteúdo e divulgação (assinadas ou anônimas): à vista no perfil, não só no menu ⋮. */}
+      <TouchableOpacity
+        onPress={() => nav(myPages(state).length ? { tab: 'paginas', seg: 'minhas' } : { tab: 'paginas', seg: 'minhas', criar: true })}
+        activeOpacity={0.88}
+        style={[styles.wallet, { marginBottom: 6 }]}
+        accessibilityLabel={myPages(state).length ? 'Minhas páginas' : 'Criar página'}
+      >
+        <Ionicons name={myPages(state).length ? 'albums-outline' : 'add-circle-outline'} size={14} color={colors.muted} />
+        <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '600', marginLeft: 5 }}>
+          {myPages(state).length ? `Minhas páginas · ${myPages(state).length}` : 'Criar página'}
+        </Text>
+      </TouchableOpacity>
       {/* Carteira discreta: só o nome, sem o saldo (quem estiver do lado não vê o seu dinheiro).
           O valor aparece só depois de abrir a carteira. */}
       <TouchableOpacity onPress={() => setWalletOpen(true)} activeOpacity={0.88} style={styles.wallet} accessibilityLabel="Abrir minha carteira">

@@ -1240,6 +1240,8 @@ function baseReducer(state, a) {
     case 'SET_VERIFIED':
       return state.user ? { ...state, user: { ...state.user, verified: true }, bioGate: null } : state;
     case 'SET_UNVERIFIED': // o servidor disse que a biometria ainda não foi aprovada
+      // Administrador e analista não ficam presos no modo social: precisam ver todos os perfis para testar.
+      if (state.user && (state.user.roles || []).some((r) => r === 'admin' || r === 'analista')) return state;
       return state.user && state.user.verified !== false ? { ...state, user: { ...state.user, verified: false } } : state;
     case 'SET_BIG_TEXT': // Perfil › Letras maiores (modo acessível)
       return { ...state, bigText: !!a.on };
