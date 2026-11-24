@@ -525,7 +525,7 @@ export function BusinessPageModal({ p, media, MediaList }) {
 
             {(b.roles || []).filter(roleByKey).length ? (
               <>
-                <Text style={styles.heroH}>PAPEL NA CADEIA</Text>
+                <Text style={styles.heroH}>ATUAÇÃO NOS NEGÓCIOS</Text>
                 <View style={styles.segWrap}>
                   {b.roles.map(roleByKey).filter(Boolean).map((ro) => (
                     <View key={ro.key} style={[styles.seg, { flexDirection: 'row', alignItems: 'center', paddingVertical: 6 }]}>

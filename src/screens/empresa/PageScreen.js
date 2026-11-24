@@ -349,7 +349,7 @@ export default function PageScreen() {
         </View>
       </Card>
 
-      <Head icon="git-network-outline" title="Papel na cadeia" sub="O que a sua empresa faz nos negócios do Realyz. Define quem pode enviar propostas para você." />
+      <Head icon="git-network-outline" title="Atuação nos negócios" sub="O que a sua empresa faz nos negócios do Realyz. Define quem pode enviar propostas para você." />
       <Card>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
           {ROLES.map((ro) => (

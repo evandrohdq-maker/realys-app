@@ -92,7 +92,7 @@ export function OriginSeal({ productId, storeName }) {
         ))}
       </View>
       {o.note ? <Text style={styles.originNote}>{o.note}</Text> : null}
-      <Text style={styles.originNote}>Toda a cadeia tem CNPJ ou ID biométrico verificado no Realyz.</Text>
+      <Text style={styles.originNote}>Todos nesse caminho, da origem até a loja, têm CNPJ ou ID biométrico verificado no Realyz.</Text>
     </View>
   );
 }
