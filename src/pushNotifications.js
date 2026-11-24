@@ -77,6 +77,8 @@ export function usePush() {
       const go = goOf(resp);
       if (!go) return;
       if (go.chat && go.chat.userId) return dispatch({ type: 'OPEN_SERVER_CHAT', userId: go.chat.userId, name: go.chat.name });
+      // Vídeo pronto / gravação da live: abre o editor de vídeo (em "Meus vídeos").
+      if (go.editor) return require('./edicao').abrirEditor();
       if (go.tab) dispatch({ type: 'NAV_REQUEST', go });
     };
     Notifications.getLastNotificationResponseAsync().then(open).catch(() => {});

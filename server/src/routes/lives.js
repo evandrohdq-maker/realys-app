@@ -15,7 +15,7 @@ const CATS = ['gamers', 'artistas', 'compras', 'esportes', 'saude', 'fe', 'curso
 const PAUSE_MOTIVOS = ['abrindo', 'seguranca'];
 const HOSTS = ['usuario', 'empresa', 'artista', 'prestador', 'fornecedor'];
 
-export default function livesRoutes(r, { db, cfg, wallet, hub, fiscal }) {
+export default function livesRoutes(r, { db, cfg, wallet, hub, fiscal, gravador }) {
   const paused = new Map(); // liveId -> motivo
   const view = (l) => ({ paused: paused.get(l.id) || null, id: l.id, hostId: l.host_id, hostType: l.host_type, host: l.host_name, cat: l.cat, title: l.title, source: l.source || 'camera', status: l.status, giftsTotal: toReais(l.gifts_total), startedAt: l.started_at, endedAt: l.ended_at, viewers: viewersOf(l.id) });
   const watching = new Map(); // liveId -> Map<userId, lastSeen>
@@ -99,6 +99,8 @@ export default function livesRoutes(r, { db, cfg, wallet, hub, fiscal }) {
     const l = db.prepare(`SELECT * FROM lives WHERE id = ? AND host_id = ?`).get(params.id, user.id);
     if (!l) fail(404, 'Live não encontrada.');
     db.prepare(`UPDATE lives SET status = 'encerrada', ended_at = ? WHERE id = ?`).run(now(), l.id);
+    // Estava gravando para cortes: fecha a gravação (vai para o editor de vídeo).
+    if (gravador) gravador.parar(l.id);
     watching.delete(l.id);
     paused.delete(l.id);
     return view(db.prepare('SELECT * FROM lives WHERE id = ?').get(l.id));

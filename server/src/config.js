@@ -40,6 +40,8 @@ export function loadConfig(overrides = {}) {
     // Onde baixar o APK (página de convite para quem ainda não tem o app).
     apkUrl: env.APK_URL || 'https://api.realyz.com.br/baixar/realyz.apk',
     maxUploadMb: num(env.MAX_UPLOAD_MB, 60),
+    // Música de estúdio (WAV/FLAC/AIFF) é pesada: aceita até 150 MB (vira AAC leve no servidor).
+    maxAudioMb: num(env.MAX_AUDIO_MB, 150),
     // Fase de testes: depósito entra na hora como "depósito de teste" (sem Pix de verdade).
     // Desligado, o depósito fica pendente até o administrador confirmar.
     testDeposits: bool(env.TEST_DEPOSITS, true),
@@ -99,6 +101,9 @@ export function loadConfig(overrides = {}) {
     // Moderação de imagens (server/moderacao-ia): fotos, vídeos e lives. Vazio = desligada.
     moderacaoUrl: env.MODERACAO_URL || '',
     ffmpegPath: env.FFMPEG_PATH || 'ffmpeg',
+    ffprobePath: env.FFPROBE_PATH || 'ffprobe',
+    // Letra dos textos do editor de vídeo (drawtext).
+    fonteVideo: env.FONTE_VIDEO || '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
     liveRtspBase: env.LIVE_RTSP_BASE || 'rtsp://127.0.0.1:8554/',
     liveCheckSec: num(env.LIVE_CHECK_SEC, 20),
     videoUrl: env.VIDEO_URL || '', // ex.: https://video.realyz.com.br

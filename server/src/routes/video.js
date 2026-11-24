@@ -85,7 +85,7 @@ export function makeLiveMonitor({ db, cfg, hub, mod }) {
   };
 }
 
-export default function videoRoutes(r, { db, cfg, hub, publicUser, userById }) {
+export default function videoRoutes(r, { db, cfg, hub, publicUser, userById, gravador }) {
   const on = () => !!(cfg.videoUrl && cfg.videoSecret);
   const mod = cfg.imageModerator || makeImageModerator(cfg);
   const off = () => fail(503, 'O servidor de vídeo ainda não foi contratado. As lives seguem no modo demonstração.', 'video_off');
@@ -184,6 +184,18 @@ export default function videoRoutes(r, { db, cfg, hub, publicUser, userById }) {
     if (l.host_id !== user.id) fail(403, 'Só quem abriu a live pode transmitir nela.');
     const token = sign(cfg.videoSecret, { act: 'publish', path: pathOf(l.id), uid: user.id, exp: now() + 12 * 3600 * 1000 });
     return { whip: `${base()}/${pathOf(l.id)}/whip`, token, iceServers: iceFor(user.id), quality: cfg.videoQuality };
+  });
+
+  // Gravar para cortes (só quem abriu a live): o servidor do app grava como um espectador e, ao acabar,
+  // a gravação aparece no editor de vídeo por 7 dias. on: false para a gravação antes do fim.
+  r.post('/lives/:id/gravar', ({ params, body, user }) => {
+    if (!on()) off();
+    const l = liveOf(params.id);
+    if (l.host_id !== user.id) fail(403, 'Só quem abriu a live pode gravar.');
+    if (body && body.on === false) return { gravando: false, parou: gravador.parar(l.id) };
+    const token = sign(cfg.videoSecret, { act: 'read', path: pathOf(l.id), uid: user.id, exp: now() + 5 * 3600 * 1000 });
+    const g = gravador.iniciar(l, `${base()}/hls/${pathOf(l.id)}/index.m3u8?token=${encodeURIComponent(token)}`);
+    return { gravando: true, gravacao: gravador.view(g) };
   });
 
   // Quem assiste: qualquer usuário logado; passe de 6 horas, só para essa live.

@@ -48,6 +48,7 @@ import DocsCenter from './src/components/DocsCenter';
 import { PublicOrgModal } from './src/components/PublicOrg';
 import UserPageModal from './src/components/UserPageModal';
 import ServerPageModal from './src/components/ServerPageModal';
+import VideoEditor from './src/components/VideoEditor';
 import PagesScreen from './src/screens/cliente/PagesScreen';
 import { VideoCallHost } from './src/components/LiveVideo';
 import TermoReaceite from './src/components/TermoReaceite';
@@ -858,6 +859,7 @@ function Shell({ inviteTick }) {
       <PublicOrgModal />
       <UserPageModal />
       <ServerPageModal />
+      <VideoEditor />
       <VideoCallHost />
       <TermoReaceite />
       <LotusSOS />

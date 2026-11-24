@@ -14,6 +14,10 @@ import { now } from './http.js';
 const short = (s, n = 90) => (String(s || '').length > n ? String(s).slice(0, n - 1) + '…' : String(s || ''));
 const brl = (v) => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
 export const AVISOS = {
+  // Editor de vídeo: avisa só quando o vídeo fica pronto (ou deu erro), não o andamento.
+  edicao: (d) => (d.status === 'pronto' ? { title: 'Seu vídeo está pronto 🎬', body: 'Abra o editor de vídeo para publicar.', go: { tab: 'perfil', editor: true } } : d.status === 'erro' ? { title: 'O vídeo não foi gerado', body: short(d.erro || 'Confira os clipes e tente de novo.'), go: { tab: 'perfil', editor: true } } : null),
+  gravacao: () => ({ title: 'Gravação da live pronta 🎥', body: 'Faça cortes dos melhores momentos no editor de vídeo.', go: { tab: 'perfil', editor: true } }),
+  'edicao_plano': (d) => ({ title: 'Editor de vídeo', body: short(d.aviso || 'Sua assinatura não renovou.'), go: { tab: 'perfil', editor: true } }),
   'grupo-msg': (d) => ({ title: d.name || 'Grupo', body: short(`${d.fromName || 'Alguém'}: ${d.text || ''}`), go: { grupo: d.id } }),
   'grupo-novo': (d) => ({ title: 'Você entrou num grupo 👥', body: `${d.by || 'Um amigo'} pôs você em "${d.name}".`, go: { grupo: d.id } }),
   'estacao-post': (d) => ({ title: `${d.kind === 'tv' ? '📺' : '📻'} ${d.name || 'Estação'}`, body: short(d.texto || 'Nova publicação'), go: { tab: 'stories' } }),
@@ -133,6 +137,7 @@ export function makePush({ db, cfg }) {
     } catch (e) {
       return;
     }
+    if (!msg) return; // aviso que não vira notificação (ex.: andamento do vídeo)
     send(userId, msg).catch((e) => console.error('[push]', e.message));
   }
 

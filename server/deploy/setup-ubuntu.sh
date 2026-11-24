@@ -16,7 +16,7 @@ APP_DIR="/opt/realys"
 echo "==> Atualizando o sistema"
 apt-get update -y
 DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
-apt-get install -y curl git ufw sqlite3 debian-keyring debian-archive-keyring apt-transport-https gnupg
+apt-get install -y curl git ufw sqlite3 ffmpeg fonts-dejavu-core debian-keyring debian-archive-keyring apt-transport-https gnupg
 
 echo "==> Instalando o Node.js 22"
 if ! command -v node >/dev/null || [ "$(node -p 'process.versions.node.split(".")[0]')" -lt 22 ]; then

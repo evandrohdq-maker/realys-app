@@ -359,6 +359,8 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
   ).current;
   const [title, setTitle] = useState('');
   const [onAir, setOnAir] = useState(!mine);
+  // Gravar a live para tirar cortes no editor de vídeo (a gravação fica 7 dias).
+  const [gravar, setGravar] = useState(true);
   const [viewers, setViewers] = useState(live ? live.viewers : 0);
   const [secs, setSecs] = useState(0);
   const [comments, setComments] = useState([]);
@@ -438,7 +440,12 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
     if (team) joinArenaVoice(team.sid, team.cid, myName);
     // Com o servidor de vídeo contratado, abre a live de verdade e a câmera passa a transmitir.
     openRealLive({ title: liveTitle, cat, hostType: me.type, source })
-      .then((id) => id && setRealId(id))
+      .then((id) => {
+        if (!id) return;
+        setRealId(id);
+        // A gravação começa alguns segundos depois, quando a imagem já está chegando no servidor de vídeo.
+        if (gravar) setTimeout(() => api('POST', `/lives/${id}/gravar`, { on: true }).catch(() => {}), 8000);
+      })
       .catch((e) => Alert.alert('Live', (e && e.message) || 'Não foi possível abrir a live no servidor.'));
   };
 
@@ -848,6 +855,10 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
               value={title}
               onChangeText={setTitle}
             />
+            <TouchableOpacity onPress={() => setGravar(!gravar)} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }} accessibilityLabel={gravar ? 'Não gravar a live' : 'Gravar a live para fazer cortes'}>
+              <Ionicons name={gravar ? 'checkbox' : 'square-outline'} size={20} color={gravar ? colors.primary : colors.muted} />
+              <Text style={{ color: colors.text, fontSize: 13, marginLeft: 8, flex: 1 }}>Gravar para fazer cortes no editor de vídeo (fica 7 dias)</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={styles.goLiveBtn} onPress={start}>
               <Ionicons name="radio-outline" size={20} color="#fff" />
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: '#fff', fontWeight: '700', fontSize: 16, marginLeft: 8 }}>Iniciar live</Text>

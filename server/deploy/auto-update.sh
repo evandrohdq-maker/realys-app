@@ -13,6 +13,16 @@ log() { echo "$(date '+%Y-%m-%d %H:%M:%S') $*" >> "$LOG"; }
 # APK e site mais novos do GitHub para este servidor (não depende de ter versão nova do servidor).
 bash "$REPO/server/deploy/publicar-site.sh" >/dev/null 2>&1 || true
 
+# Editor de vídeo e conversão de WAV/vídeo: precisa do ffmpeg e da letra dos textos (instala UMA vez).
+if ! command -v ffmpeg >/dev/null 2>&1; then
+  log "instalando ffmpeg (editor de vídeo e conversão de WAV)"
+  DEBIAN_FRONTEND=noninteractive apt-get install -y ffmpeg fonts-dejavu-core >> "$LOG" 2>&1 || log "ffmpeg não instalou"
+fi
+# Envio de música de estúdio (WAV até 150 MB): a porta de entrada (Caddy) aceita até 200 MB.
+if [ -f /etc/caddy/Caddyfile ] && grep -q 'max_size 64MB' /etc/caddy/Caddyfile; then
+  sed -i 's/max_size 64MB/max_size 200MB/' /etc/caddy/Caddyfile && systemctl reload caddy && log "limite de envio do Caddy: 200 MB"
+fi
+
 # IA própria do Realyz (atendente e parecer de fake news): instala UMA vez, sozinha, em segundo plano,
 # se ainda não estiver ligada no .env e a máquina tiver memória e disco. Sem isso, a "IA leve" segue valendo.
 ENVF="$REPO/server/.env"

@@ -97,7 +97,8 @@ async function raw(method, path, body, headers = {}) {
   // Sem resposta em 25 s (60 s para envio de arquivo): para de esperar e avisa, em vez de ficar
   // carregando para sempre.
   const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-  const limite = setTimeout(() => ctl && ctl.abort(), body instanceof ArrayBuffer ? 60000 : 25000);
+  // Arquivo grande (WAV de estúdio, vídeo): 60 s + 2 s por MB, para dar tempo no 4G.
+  const limite = setTimeout(() => ctl && ctl.abort(), body instanceof ArrayBuffer ? 60000 + Math.round(body.byteLength / 1048576) * 2000 : 25000);
   try {
     res = await fetch(API_URL + path, {
       signal: ctl ? ctl.signal : undefined,

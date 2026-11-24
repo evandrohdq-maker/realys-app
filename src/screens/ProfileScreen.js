@@ -1,3 +1,4 @@
+import { abrirEditor } from '../edicao';
 import React, { useState, useEffect } from 'react';
 import { GuaranteeInfo } from '../components/Guarantee';
 import { ScoreCard } from '../components/Engage';
@@ -461,6 +462,10 @@ export default function ProfileScreen({ navigate, explore, soMenu = false }) {
           <Item open={open} onToggle={toggle} k="estudio" icon="rocket-outline" title="Estúdio Realyz" sub="Para artistas, músicos e criadores de conteúdo">
             <StudioPanel />
           </Item>
+        ) : null}
+        {/* Editor de vídeo: para todo mundo da rede (criadores, streamers, artistas). 1º mês grátis. */}
+        {conectado(state) ? (
+          <Item open={open} onToggle={toggle} k="editorVideo" icon="film-outline" title="Editor de vídeo" sub="Cortes, música, texto e cortes das lives · 1º mês grátis" onPress={() => abrirEditor()} />
         ) : null}
         {/* Stories salvos: arquivo dos stories publicados (só o dono vê), para destacar depois. */}
         {state.activeRole !== 'empresa' ? (

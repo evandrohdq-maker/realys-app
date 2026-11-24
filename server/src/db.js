@@ -1285,6 +1285,47 @@ const MIGRATIONS = [
   ALTER TABLE testimonials ADD COLUMN from_pagina_id TEXT;
   ALTER TABLE testimonials ADD COLUMN to_pagina_id TEXT;
   `,
+  // Editor de vídeo: assinatura (1º mês grátis), fila de vídeos gerados no servidor e gravação das
+  // lives para tirar cortes.
+  `
+  CREATE TABLE edicao_planos (
+    user_id TEXT PRIMARY KEY REFERENCES users(id),
+    gratis_ate INTEGER NOT NULL,
+    pago_ate INTEGER,
+    renova INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL
+  );
+  CREATE TABLE edicao_jobs (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    status TEXT NOT NULL CHECK (status IN ('fila','processando','pronto','erro')),
+    receita TEXT NOT NULL,
+    duracao REAL,
+    titulo TEXT,
+    pct INTEGER NOT NULL DEFAULT 0,
+    media_url TEXT,
+    capa_url TEXT,
+    erro TEXT,
+    created_at INTEGER NOT NULL,
+    started_at INTEGER,
+    done_at INTEGER
+  );
+  CREATE INDEX edicao_jobs_user ON edicao_jobs(user_id, created_at DESC);
+  CREATE INDEX edicao_jobs_status ON edicao_jobs(status, created_at);
+  CREATE TABLE live_gravacoes (
+    id TEXT PRIMARY KEY,
+    live_id TEXT NOT NULL REFERENCES lives(id),
+    user_id TEXT NOT NULL REFERENCES users(id),
+    status TEXT NOT NULL CHECK (status IN ('gravando','pronta','erro','apagada')),
+    media_url TEXT,
+    duracao REAL,
+    titulo TEXT,
+    started_at INTEGER NOT NULL,
+    ended_at INTEGER,
+    expires_at INTEGER
+  );
+  CREATE INDEX live_gravacoes_user ON live_gravacoes(user_id, started_at DESC);
+  `,
 ];
 
 export function openDb(file) {

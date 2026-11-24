@@ -4,20 +4,42 @@ import { mkdirSync, writeFileSync, createReadStream, existsSync, rmSync } from '
 import { join } from 'node:path';
 import { fail, newId, now } from '../http.js';
 import { makeImageModerator } from '../moderacaoImagem.js';
+import { makeFfmpeg } from '../ffmpeg.js';
 
 const TYPES = {
   'image/jpeg': 'imagem', 'image/png': 'imagem', 'image/webp': 'imagem', 'image/heic': 'imagem',
   'video/mp4': 'video', 'video/quicktime': 'video', 'audio/mpeg': 'audio', 'audio/mp4': 'audio', 'audio/aac': 'audio',
   // Áudio gravado na conversa: o celular grava em .m4a; o navegador do computador, em webm/ogg.
   'audio/webm': 'audio', 'audio/ogg': 'audio', 'video/webm': 'video',
+  // Música de estúdio (como os artistas exportam): o servidor converte para AAC leve e apaga o original.
+  'audio/wav': 'audio', 'audio/x-wav': 'audio', 'audio/wave': 'audio', 'audio/vnd.wave': 'audio',
+  'audio/flac': 'audio', 'audio/x-flac': 'audio', 'audio/aiff': 'audio', 'audio/x-aiff': 'audio',
 };
+// Formatos de estúdio: pesados (WAV de 4 min ~ 40 MB); viram .m4a AAC 256 kbps (~8 MB).
+export const ESTUDIO = new Set(['audio/wav', 'audio/x-wav', 'audio/wave', 'audio/vnd.wave', 'audio/flac', 'audio/x-flac', 'audio/aiff', 'audio/x-aiff']);
 
-const EXT = { 'video/mp4': '.mp4', 'video/quicktime': '.mov', 'audio/mpeg': '.mp3', 'audio/mp4': '.m4a', 'audio/aac': '.aac', 'audio/webm': '.webm', 'audio/ogg': '.ogg', 'video/webm': '.webm' };
+const EXT = { 'audio/wav': '.wav', 'audio/flac': '.flac', 'audio/aiff': '.aiff', 'video/mp4': '.mp4', 'video/quicktime': '.mov', 'audio/mpeg': '.mp3', 'audio/mp4': '.m4a', 'audio/aac': '.aac', 'audio/webm': '.webm', 'audio/ogg': '.ogg', 'video/webm': '.webm' };
 // "/media/md_x.mp4" e "/media/md_x" são o mesmo arquivo.
 export const mediaIdOf = (v) => String(v || '').replace(/^.*\/media\//, '').replace(/\.[A-Za-z0-9]{2,4}$/, '');
 
-export default function mediaRoutes(r, { db, cfg, hub }) {
+export default function mediaRoutes(r, { db, cfg, hub, ff }) {
   const mod = cfg.imageModerator || makeImageModerator(cfg);
+  const fx = ff || makeFfmpeg(cfg);
+  // Vídeos que precisam virar MP4 comum (MOV, HEVC, 4K): um de cada vez, depois do envio.
+  let filaVideo = Promise.resolve();
+  const converterVideoDepois = (id, file) => {
+    filaVideo = filaVideo
+      .then(async () => {
+        if (!(await fx.ok())) return;
+        const info = await fx.probe(file);
+        if (!fx.precisaConverter(info)) return;
+        const size = await fx.videoUniversal(file);
+        db.prepare(`UPDATE media SET mime = 'video/mp4', size = ? WHERE id = ?`).run(size, id);
+      })
+      .catch(() => {}); // arquivo que o ffmpeg não entende: fica como veio
+    return filaVideo;
+  };
+  mediaRoutes.esperarConversoes = () => filaVideo;
   const dir = join(cfg.dataDir, 'media');
   mkdirSync(dir, { recursive: true });
 
@@ -34,6 +56,18 @@ export default function mediaRoutes(r, { db, cfg, hub }) {
     const id = newId('md');
     const file = join(dir, id);
     writeFileSync(file, raw);
+    let mimeFinal = mime;
+    let size = raw.length;
+    // WAV/FLAC/AIFF: converte na hora (uns segundos) para AAC leve e apaga o original pesado.
+    // Sem ffmpeg no servidor, guarda como veio (o celular toca WAV também).
+    if (ESTUDIO.has(mime) && (await fx.ok())) {
+      try {
+        size = await fx.audioLeve(file);
+        mimeFinal = 'audio/mp4';
+      } catch (e) {
+        // arquivo que o ffmpeg não entende: fica como veio
+      }
+    }
     let res = { decisao: 'liberar' };
     if (uso === 'publico' && TYPES[mime] === 'imagem') res = await mod.image(raw);
     else if (uso === 'publico' && TYPES[mime] === 'video' && mod.ready) res = await mod.frames(await mod.grab(file, { count: 6, everySec: 2 }));
@@ -47,12 +81,14 @@ export default function mediaRoutes(r, { db, cfg, hub }) {
       // Registro da decisão (sem guardar a imagem bloqueada): a equipe vê quem tenta publicar nudez repetidas vezes.
       db.prepare('INSERT INTO moderacao_log (id, user_id, kind, ref, nudez, decisao, created_at) VALUES (?,?,?,?,?,?,?)').run(newId('ml'), user.id, TYPES[mime] === 'video' ? 'video' : 'foto', id, res.nudez == null ? null : res.nudez, res.decisao, now());
     }
-    db.prepare('INSERT INTO media (id, owner_id, mime, size, created_at, uso, moderacao, nudez) VALUES (?,?,?,?,?,?,?,?)').run(id, user.id, mime, raw.length, now(), uso, moderacao, res.nudez == null ? null : res.nudez);
+    db.prepare('INSERT INTO media (id, owner_id, mime, size, created_at, uso, moderacao, nudez) VALUES (?,?,?,?,?,?,?,?)').run(id, user.id, mimeFinal, size, now(), uso, moderacao, res.nudez == null ? null : res.nudez);
+    // Vídeo fora do padrão (MOV, HEVC do iPhone, 4K): vira MP4 H.264 1080p em segundo plano.
+    if (TYPES[mime] === 'video') converterVideoDepois(id, file);
     // Vídeo e música levam a extensão no endereço (/media/md_x.mp4): o app e o navegador sabem
     // pelo endereço que é vídeo/som e já abrem no player certo (foto fica sem extensão, como antes).
-    const ext = EXT[mime] || '';
-    return { id, url: `/media/${id}${ext}`, type: TYPES[mime], size: raw.length, moderacao };
-  }, { raw: true, status: 201 });
+    const ext = TYPES[mime] === 'video' ? '.mp4' : EXT[mimeFinal] || '';
+    return { id, url: `/media/${id}${ext}`, type: TYPES[mime], size, moderacao, convertido: mimeFinal !== mime ? mimeFinal : undefined };
+  }, { raw: true, status: 201, limitMb: (req) => (ESTUDIO.has(String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase()) ? cfg.maxAudioMb || 150 : cfg.maxUploadMb) });
 
   // Fila de revisão humana (só o administrador): liberar ou remover.
   r.get('/admin/moderacao', () => ({

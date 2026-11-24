@@ -17,6 +17,7 @@ import { openMedia } from './MediaViewer';
 import CommentsSheet, { tempoCurto } from './CommentsSheet';
 import { ComoSheet, ComoChip, useEuAgora } from './PublicarComo';
 import { MusicPicker, MusicSticker, StoryMusicPlayer } from './StoryMusic';
+import { abrirEditor } from '../edicao';
 import { PAGE_CATEGORIES, categoryOfPage, pageStyle, PAGE_ACCENTS, PAGE_BACKGROUNDS, PAGE_LAYOUTS } from '../userPages';
 import {
   usePaginaAberta, fecharPagina, pagina as carregarPagina, postsDaPagina, depoimentosDaPagina, seguirPagina, editarPagina, apagarPagina,
@@ -183,10 +184,14 @@ function NovoPost({ pg, visible, onClose, onDone }) {
             </View>
           ) : null}
           {musica ? <MusicSticker music={musica} onPress={() => setMusicas(true)} style={{ marginTop: 12, alignSelf: 'flex-start' }} /> : null}
-          <View style={{ flexDirection: 'row', marginTop: 14 }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 14 }}>
             <TouchableOpacity style={st.tool} onPress={async () => { const m = await escolherMidia(false); if (m) setMidia(m); }} accessibilityLabel="Foto ou vídeo">
               <Ionicons name="images-outline" size={18} color={colors.text} />
               <Text style={st.toolT} numberOfLines={1}>Foto ou vídeo</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={st.tool} onPress={() => { onClose(); abrirEditor({ paginaId: pg.id, titulo: text.trim() }); }} accessibilityLabel="Abrir o editor de vídeo">
+              <Ionicons name="film-outline" size={18} color={colors.text} />
+              <Text style={st.toolT} numberOfLines={1}>Editor de vídeo</Text>
             </TouchableOpacity>
             <TouchableOpacity style={st.tool} onPress={() => setMusicas(true)} accessibilityLabel="Música">
               <Ionicons name="musical-notes-outline" size={18} color={colors.text} />

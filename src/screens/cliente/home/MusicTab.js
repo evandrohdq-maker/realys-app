@@ -357,14 +357,20 @@ function ArtistArea() {
   const [f, setF] = useState({ title: '', genre: MUSIC_GENRES[0], price: String(MUSIC_ARTIST_SUGGESTED.toFixed(2)).replace('.', ','), url: '' });
   // O artista digita quanto quer receber; o cliente paga isso + R$ 0,99 do Realyz.
   const mine = Number(String(f.price).replace(',', '.')) || 0;
-  // Enviar o MP3 do celular para o servidor do Realyz (fica no servidor de músicas).
+  // Enviar a música do celular (MP3, M4A ou WAV/FLAC/AIFF de estúdio) para o servidor do Realyz.
   const [enviando, setEnviando] = useState(false);
   const escolherAudio = async () => {
     try {
       const r = await DocumentPicker.getDocumentAsync({ type: 'audio/*', copyToCacheDirectory: true });
       if (r.canceled || !r.assets || !r.assets[0]) return;
       setEnviando(true);
-      const url = await uploadMedia(r.assets[0].uri, r.assets[0].mimeType || 'audio/mpeg');
+      // MP3, M4A ou arquivo de estúdio (WAV, FLAC, AIFF): o servidor converte o de estúdio para um
+      // formato leve com qualidade alta e apaga o original pesado.
+      const a = r.assets[0];
+      const ext = String(a.name || a.uri || '').toLowerCase().split('.').pop();
+      const porExt = { wav: 'audio/wav', wave: 'audio/wav', flac: 'audio/flac', aif: 'audio/aiff', aiff: 'audio/aiff', m4a: 'audio/mp4', mp3: 'audio/mpeg', aac: 'audio/aac', ogg: 'audio/ogg' }[ext];
+      const mime = a.mimeType && a.mimeType !== 'application/octet-stream' && a.mimeType !== 'audio/*' ? a.mimeType : porExt || 'audio/mpeg';
+      const url = await uploadMedia(a.uri, mime);
       setF((x) => ({ ...x, url }));
     } catch (e) {
       Alert.alert('Áudio não enviado', e.message || 'Tente de novo.');
@@ -413,7 +419,7 @@ function ArtistArea() {
       </ScrollView>
       {state.user && state.user.serverId ? (
         <TouchableOpacity style={[st.chip, { alignSelf: 'flex-start', marginTop: 4 }]} onPress={escolherAudio} accessibilityLabel="Enviar arquivo de áudio">
-          <Text numberOfLines={1} style={st.chipText}>{enviando ? 'Enviando o áudio…' : f.url ? 'Áudio enviado ✓ (trocar)' : 'Enviar arquivo MP3'}</Text>
+          <Text numberOfLines={1} style={st.chipText}>{enviando ? 'Enviando o áudio…' : f.url ? 'Áudio enviado ✓ (trocar)' : 'Enviar música (MP3 ou WAV)'}</Text>
         </TouchableOpacity>
       ) : null}
       <TextInput value={f.url} onChangeText={(t) => setF({ ...f, url: t })} placeholder="Endereço do áudio (link do MP3)" placeholderTextColor={colors.muted} autoCapitalize="none" keyboardType="url" style={[st.field, { marginTop: 0 }]} />

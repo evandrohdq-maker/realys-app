@@ -57,6 +57,10 @@ import negociosRoutes, { makeNegocios } from './routes/negocios.js';
 import gruposRoutes from './routes/grupos.js';
 import paginasRoutes from './routes/paginas.js';
 import { makeCobrancaPaginas } from './paginas.js';
+import { makeFfmpeg } from './ffmpeg.js';
+import { makeEdicao } from './edicao.js';
+import { makeGravador } from './gravador.js';
+import edicaoRoutes from './routes/edicao.js';
 import contasTesteRoutes from './contasTeste.js';
 import { makePush } from './push.js';
 import { makeTeleGratis } from './teleGratis.js';
@@ -113,6 +117,10 @@ export function createApp(cfg) {
   deps.planos = makePlanos(db);
   // Mensalidade das páginas (2ª em diante: R$ 14,90 por mês do saldo).
   deps.paginasCobranca = makeCobrancaPaginas(db, wallet);
+  // Editor de vídeo (fila do ffmpeg, 1º mês grátis) e gravação das lives para cortes.
+  deps.ff = cfg.ff || makeFfmpeg(cfg);
+  deps.edicao = makeEdicao({ db, cfg, wallet, hub, ff: deps.ff });
+  deps.gravador = makeGravador({ db, cfg, hub, ff: deps.ff });
   deps.protecao = makeProtecao(deps);
   deps.inteligencia = makeInteligencia(deps);
   deps.atendente = makeAtendente(deps);
@@ -126,7 +134,7 @@ export function createApp(cfg) {
     attempts.set(key, a);
   };
   deps.clearLogin = (key) => attempts.delete(key);
-  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes, noticiasRoutes, showsRoutes, pushRoutes, empregosRoutes, logisticaRoutes, profissoesRoutes, turbinarRoutes, contasTesteRoutes, baixarRoutes, trabalhoRoutes, trabalhoAdminRoutes, planosRoutes, suporteRoutes, dateRoutes, estacoesRoutes, negociosRoutes, gruposRoutes, paginasRoutes].forEach((r) => r(router, deps));
+  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes, noticiasRoutes, showsRoutes, pushRoutes, empregosRoutes, logisticaRoutes, profissoesRoutes, turbinarRoutes, contasTesteRoutes, baixarRoutes, trabalhoRoutes, trabalhoAdminRoutes, planosRoutes, suporteRoutes, dateRoutes, estacoesRoutes, negociosRoutes, gruposRoutes, paginasRoutes, edicaoRoutes].forEach((r) => r(router, deps));
   router.get('/health', () => ({ ok: true, name: 'Realyz', time: now() }), { auth: false });
   // O que está ligado agora (o app pergunta ao abrir e mostra o aviso de compras bloqueadas).
   router.get('/status', () => ({
@@ -200,7 +208,7 @@ export function createApp(cfg) {
         // Compras temporariamente bloqueadas (src/comprasGate.js).
         exigirComprasLiberadas(cfg, route, req.method, ctx.roles, ctx.user);
       }
-      if (route.opts.raw) ctx.raw = await readBody(req, cfg.maxUploadMb * 1024 * 1024);
+      if (route.opts.raw) ctx.raw = await readBody(req, (route.opts.limitMb ? route.opts.limitMb(req) : cfg.maxUploadMb) * 1024 * 1024);
       else if (req.method !== 'GET' && req.method !== 'DELETE') {
         const buf = await readBody(req, 1024 * 1024);
         try {
@@ -249,8 +257,10 @@ export function createApp(cfg) {
       deps.crm.lembretes();
       deps.negocios.reembolsos();
       deps.paginasCobranca.varrer();
+      deps.edicao.renovar();
+      deps.gravador.limpar();
     } catch (e) {}
   }, 60000);
   if (crmTimer.unref) crmTimer.unref();
-  return { server, db, hub, wallet, crm: deps.crm, negocios: deps.negocios, close: async () => { if (pixTimer) clearInterval(pixTimer); clearInterval(crmTimer); meiValores.stop(); return close(); }, maintenance, meiValores, biometria, fiscal, pix, startPix };
+  return { server, db, hub, wallet, edicao: deps.edicao, gravador: deps.gravador, crm: deps.crm, negocios: deps.negocios, close: async () => { if (pixTimer) clearInterval(pixTimer); clearInterval(crmTimer); deps.edicao.parar(); deps.gravador.pararTudo(); meiValores.stop(); return close(); }, maintenance, meiValores, biometria, fiscal, pix, startPix };
 }
