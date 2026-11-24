@@ -10,6 +10,7 @@ import { carregarCatalogo, carregarCarteira, carregarPedidos, conectado } from '
 import { carregarPrestadores, carregarVisitas } from '../serverServices';
 import { carregarEventos } from '../serverEvents';
 import { loadServerTracks } from '../music';
+import { aCada } from '../ritmo';
 
 export default function ServerSync() {
   const { state, dispatch } = useStore();
@@ -23,11 +24,11 @@ export default function ServerSync() {
     carregarCatalogo(dispatch).catch(() => {});
     carregarEventos(dispatch).catch(() => {});
     loadServerTracks().catch(() => {});
-    const t = setInterval(() => {
+    const t = aCada(() => {
       carregarCatalogo(dispatch).catch(() => {});
       carregarEventos(dispatch).catch(() => {});
     }, 120000);
-    return () => clearInterval(t);
+    return () => t.parar();
   }, []);
 
   useEffect(() => {
@@ -39,9 +40,9 @@ export default function ServerSync() {
       carregarVisitas(stateRef.current, dispatch).catch(() => {});
     };
     carregarPrestadores(dispatch).catch(() => {});
-    const tp = setInterval(() => carregarPrestadores(dispatch).catch(() => {}), 120000);
+    const tp = aCada(() => carregarPrestadores(dispatch).catch(() => {}), 120000);
     tudo();
-    const t = setInterval(tudo, 60000);
+    const t = aCada(tudo, 60000);
     const stop = connectEvents((e) => {
       // Chamado de serviço mudou (aceitou, recusou...) ou chegou pagamento: atualiza visitas e carteira.
       if (e.type === 'call' || e.type === 'payment') return tudo();
@@ -52,8 +53,8 @@ export default function ServerSync() {
       if (d.buyer) Alert.alert('Novo pedido! 🛍️', `${d.buyer} fez um pedido de R$ ${Number(d.total || 0).toFixed(2).replace('.', ',')}. Veja em Painel da empresa › Pedidos do Realyz.`);
     });
     return () => {
-      clearInterval(t);
-      clearInterval(tp);
+      t.parar();
+      tp.parar();
       stop();
     };
   }, [uid]);

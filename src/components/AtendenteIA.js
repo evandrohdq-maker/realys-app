@@ -11,6 +11,7 @@ import { api } from '../api';
 import { colors } from '../theme';
 import { Card, Row, Button, Badge, Input } from './ui';
 import { conectado } from '../serverShop';
+import { aCada } from '../ritmo';
 
 const ETAPA = { novo: 'Novo contato', conversa: 'Em conversa', proposta: 'Proposta', negociacao: 'Negociação', fechado: 'Venda fechada' };
 const CAMPOS = [
@@ -41,8 +42,8 @@ export default function AtendenteIA() {
   useEffect(() => {
     if (!on) return;
     load();
-    const t = setInterval(() => api('GET', '/ia/conversas').then(setConv).catch(() => {}), 20000);
-    return () => clearInterval(t);
+    const t = aCada(() => api('GET', '/ia/conversas').then(setConv).catch(() => {}), 20000);
+    return () => t.parar();
   }, [on]);
   if (!on || !f) return null;
 

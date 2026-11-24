@@ -123,6 +123,11 @@ import { atualizarMeiValores } from './src/meiValoresSync';
 import { installCameraPick } from './src/web/cameraPick';
 // Site: escolhe a webcam de verdade sozinho (pula DroidCam, OBS e outras câmeras virtuais).
 if (Platform.OS === 'web') installCameraPick();
+// Site no computador: guarda os arquivos do app no próprio computador (tools/site/sw.js), para abrir
+// rápido sem baixar tudo de novo. Só no site publicado (realyz.com.br), não no teste local.
+if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.serviceWorker && typeof location !== 'undefined' && /realyz\.com\.br$/.test(location.hostname)) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
 import { usePush } from './src/pushNotifications';
 import { TvFloat, LiveFloat } from './src/components/FloatPlayers';
 import { BioGateModal, LockedScreen, canOpenTab, isVerified, useServerBio, PrazoBioLock } from './src/components/BioGate';
@@ -132,8 +137,10 @@ import { ElectronicsScreen, FashionScreen, HomeGoodsScreen, AppliancesScreen, Fu
 import { SHOP_SECTORS } from './src/shopSectorsData';
 import SwipePages from './src/components/SwipePages';
 import { KeyboardLift } from './src/keyboard';
+import { TelaAtivaProvider } from './src/ritmo';
 
 // Cada perfil enxerga abas diferentes dentro do MESMO app.
+const NAO_GUARDAR = ['reels', 'stories', 'arena', 'salas', 'encontros', 'radios', 'socorro', 'prestar'];
 const TABS = {
   admin: [
     { key: 'geral', label: 'Geral', icon: 'shield-checkmark-outline', Comp: AdminOverview },
@@ -524,7 +531,27 @@ function Shell({ inviteTick }) {
   curRef.current = { key: current.key, Comp };
   const [keepTab, setKeepTab] = useState(null);
   useEffect(() => onLiveKeep((v) => setKeepTab(v ? curRef.current : null)), []);
-  const telas = keepTab && keepTab.key !== current.key ? [keepTab, { key: current.key, Comp }] : [{ key: current.key, Comp }];
+  // Abas recentes ficam abertas em memória (escondidas): voltar para elas é na hora, sem recarregar
+  // a tela nem buscar tudo de novo no servidor. Até 3 por perfil. Telas com vídeo ao vivo, voz,
+  // câmera ou GPS (Community, Reels, Arena, Salas, Date, Rádios, Socorro, Corridas) não ficam: fecham
+  // ao sair, como antes. Tela escondida para de consultar o servidor e pausa os vídeos (src/ritmo.js).
+  const [recentes, setRecentes] = useState([]);
+  const recKey = state.activeRole + ':' + current.key;
+  useEffect(() => {
+    if (NAO_GUARDAR.includes(current.key)) return;
+    setRecentes((l) => [recKey, ...l.filter((k) => k !== recKey)].slice(0, 3));
+  }, [recKey]);
+  const guardadas = recentes
+    .filter((k) => k !== recKey && k.startsWith(state.activeRole + ':'))
+    .map((k) => tabs.find((t) => t.key === k.slice(state.activeRole.length + 1)))
+    .filter((t) => t && canOpenTab(state, t.key))
+    .map((t) => ({ key: t.key, Comp: t.Comp }));
+  const telas = [...guardadas, { key: current.key, Comp }];
+  // Cada aba guardada fica com o último "explore" que recebeu (pedido de navegação novo vai só para
+  // a aba da frente; as escondidas não reagem a ele).
+  const exploreDe = useRef({});
+  exploreDe.current[current.key] = explore;
+  if (keepTab && !telas.some((t) => t.key === keepTab.key)) telas.unshift(keepTab);
   // Menus: todo perfil tem o menu numa linha só, no rodapé. A empresa tem dois menus: 4 botões no
   // alto da tela (logo abaixo do cabeçalho) e 4 no rodapé.
   // Perfil não fica na barra: o botão dele está no cabeçalho (no lugar do antigo ⋮).
@@ -773,7 +800,9 @@ function Shell({ inviteTick }) {
         <TelaSegura nome={state.activeRole + ':' + current.key} onInicio={backHome}>
           {telas.map((t) => (
             <View key={t.key} style={t.key === current.key ? { flex: 1 } : { display: 'none' }}>
-              <t.Comp goTo={setTab} openVoice={() => setVoice(true)} explore={explore} openArea={openArea} navigate={pick} onTop={setCommTop} />
+              <TelaAtivaProvider ativa={t.key === current.key}>
+                <t.Comp goTo={setTab} openVoice={() => setVoice(true)} explore={t.key === current.key ? explore : exploreDe.current[t.key]} openArea={openArea} navigate={pick} onTop={setCommTop} />
+              </TelaAtivaProvider>
             </View>
           ))}
         </TelaSegura>

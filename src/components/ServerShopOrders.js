@@ -11,6 +11,7 @@ import { Card, Row, Button, Badge } from './ui';
 import FaceCheck from './FaceCheck';
 import { ChamarEntregador } from './Logistica';
 import { conectado, carregarCarteira } from '../serverShop';
+import { aCada } from '../ritmo';
 
 // Bônus de indicação: a loja pode pagar +5% para quem indicar os produtos dela (além dos 2% que o
 // Realyz já repassa da comissão). Só é pago quando o pedido é entregue.
@@ -56,8 +57,8 @@ export default function ServerShopOrders() {
   useEffect(() => {
     if (!on) return;
     load();
-    const t = setInterval(load, 30000);
-    return () => clearInterval(t);
+    const t = aCada(load, 30000);
+    return () => t.parar();
   }, [on, state.orders.length]);
 
   if (!on) return null;

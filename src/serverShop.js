@@ -9,7 +9,7 @@ import { comprasTravadas } from './compras';
 // - Finalizar compra: os itens de lojas do servidor são pagos lá, com a taxa de proteção Realyz
 //   de R$ 0,99 por compra cobrada pelo servidor. Os itens de demonstração seguem no celular.
 // Sem servidor configurado, nada disso roda.
-import { serverOn, api, API_URL } from './api';
+import { serverOn, api, API_URL, respostaGuardada } from './api';
 import { getDevicePoint } from './geo';
 
 export const SRV = 'srv_';
@@ -67,8 +67,15 @@ function storesFrom(list) {
   }));
 }
 
+// Primeira vez: mostra na hora o catálogo guardado no aparelho e depois troca pelo novo.
+let catalogoMostrado = false;
 export async function carregarCatalogo(dispatch) {
   if (!serverOn()) return;
+  if (!catalogoMostrado) {
+    catalogoMostrado = true;
+    const g = await respostaGuardada('/products').catch(() => null);
+    if (Array.isArray(g) && g.length) dispatch({ type: 'SERVER_CATALOG', products: g.map(productFromServer), stores: storesFrom(g) });
+  }
   const list = await api('GET', '/products');
   dispatch({ type: 'SERVER_CATALOG', products: list.map(productFromServer), stores: storesFrom(list) });
 }

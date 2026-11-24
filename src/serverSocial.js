@@ -1,7 +1,8 @@
 // Posts e stories das contas reais (servidor): o que eu publico vai para o servidor (amigos veem),
 // e o feed e a faixa de stories mostram o que os amigos publicaram. Curtir e comentar também.
 import { useEffect, useState } from 'react';
-import { api, API_URL, uploadMedia, serverOn } from './api';
+import { api, API_URL, uploadMedia, serverOn, respostaGuardada } from './api';
+import { aCada } from './ritmo';
 
 const full = (u) => (u && u.startsWith('/') ? API_URL + u : u);
 const isVideo = (u, tipo) => tipo === 'video' || /\.(mp4|mov|webm|m3u8)(\?|$)/i.test(u || '');
@@ -43,8 +44,22 @@ let feed = [];
 let stories = [];
 const subs = new Set();
 const emit = () => subs.forEach((fn) => fn());
+// Primeira vez: o feed guardado no aparelho aparece na hora, enquanto busca o novo.
+let feedMostrado = false;
+async function feedGuardado() {
+  if (feedMostrado) return;
+  feedMostrado = true;
+  const [l, st] = await Promise.all([respostaGuardada('/feed'), respostaGuardada('/stories')]).catch(() => []);
+  if (feed.length || !Array.isArray(l) || !l.length) return;
+  try {
+    feed = l.map(postLocal);
+    if (Array.isArray(st)) stories = st;
+    emit();
+  } catch (e) {}
+}
 export function refreshFeed() {
   if (!serverOn()) return Promise.resolve();
+  feedGuardado();
   let amigos = [];
   let estacoes = [];
   return Promise.all([
@@ -72,10 +87,10 @@ export function useServerFeed(on) {
     const fn = () => tick((n) => n + 1);
     subs.add(fn);
     if (on) refreshFeed();
-    const t = on ? setInterval(refreshFeed, 60000) : null;
+    const t = on ? aCada(refreshFeed, 60000) : null;
     return () => {
       subs.delete(fn);
-      if (t) clearInterval(t);
+      if (t) t.parar();
     };
   }, [on]);
   return on ? { posts: feed, stories } : { posts: [], stories: [] };

@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { API_URL } from './api';
 import { NEWS, ALERTS } from './newsData';
+import { aCada } from './ritmo';
 
 const FEED_NEWS = 'https://agenciabrasil.ebc.com.br/feed/ultimasnoticias/feed.xml';
 const FEED_ALERTS = 'https://apiprevmet3.inmet.gov.br/avisos/rss';
@@ -200,8 +201,8 @@ export function useLiveNews() {
     const fn = () => tick((x) => x + 1);
     subs.add(fn);
     refreshLiveNews();
-    const t = setInterval(() => refreshLiveNews(), REFRESH);
-    return () => (subs.delete(fn), clearInterval(t));
+    const t = aCada(() => refreshLiveNews(), REFRESH);
+    return () => (subs.delete(fn), t.parar());
   }, []);
   return status;
 }

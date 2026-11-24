@@ -1,5 +1,5 @@
 // Roteador HTTP mínimo (sem dependências): rotas com parâmetros, JSON, erros e CORS.
-import { randomBytes } from 'node:crypto';
+import { randomBytes, createHash } from 'node:crypto';
 
 export class HttpError extends Error {
   constructor(status, message, code) {
@@ -68,20 +68,36 @@ export function readBody(req, limit) {
   });
 }
 
+// Leituras (GET) levam uma etiqueta (ETag) com a "impressão digital" da resposta. O app manda a
+// etiqueta de volta na próxima vez; se nada mudou, responde só 304 (sem dados), e o celular usa o que
+// já tem guardado. Menos internet para o cliente e menos tráfego para o servidor.
+const nucleoEtag = (e) => String(e || '').replace(/^W\//, '').replace(/"/g, '').replace(/-(gzip|zstd|br)$/, '');
 export function sendJson(res, status, data, cors) {
   const body = JSON.stringify(data);
-  res.writeHead(status, {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Content-Length': Buffer.byteLength(body),
-    ...corsHeaders(cors),
-  });
+  const req = res.req;
+  const headers = { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders(cors) };
+  if (status === 200 && req && req.method === 'GET' && body.length > 200) {
+    const etag = 'W/"' + createHash('sha1').update(body).digest('base64url').slice(0, 24) + '"';
+    headers.ETag = etag;
+    headers['Cache-Control'] = 'private, no-cache';
+    const pediu = req.headers['if-none-match'];
+    if (pediu && String(pediu).split(',').some((e) => nucleoEtag(e.trim()) === nucleoEtag(etag))) {
+      res.writeHead(304, headers);
+      return res.end();
+    }
+  }
+  headers['Content-Length'] = Buffer.byteLength(body);
+  res.writeHead(status, headers);
   res.end(body);
 }
 
 export const corsHeaders = (origin) => ({
   'Access-Control-Allow-Origin': origin,
-  'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+  'Access-Control-Allow-Headers': 'Authorization, Content-Type, If-None-Match',
+  'Access-Control-Expose-Headers': 'ETag',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+  // Site no computador: o navegador guarda a permissão por 2 h (antes perguntava antes de cada pedido).
+  'Access-Control-Max-Age': '7200',
 });
 
 // ── Validação simples dos dados recebidos ──

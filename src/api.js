@@ -11,6 +11,7 @@ import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 import * as Crypto from 'expo-crypto';
 import { AppState, Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SESSION_KEY = 'realys.session';
 export const API_URL = String((Constants.expoConfig && Constants.expoConfig.extra && Constants.expoConfig.extra.apiUrl) || '').replace(/\/$/, '');
@@ -92,8 +93,75 @@ async function garantirAcesso() {
 export const aquecerConexao = () => (serverOn() ? garantirAcesso().catch(() => {}) : Promise.resolve());
 export const hasSession = async () => !!(await SecureStore.getItemAsync(sessionKey).catch(() => null));
 
+// ── Respostas guardadas no aparelho ──
+// Cada leitura (GET) guarda a resposta e a "etiqueta" (ETag) que o servidor manda junto. Na próxima vez,
+// o app pergunta "mudou alguma coisa desde esta etiqueta?": se não mudou, o servidor responde só
+// "igual" (304, sem dados) e o app usa o que já tem. Catálogo, feed e lista de músicas, que são
+// grandes e pedidos a cada minuto, deixam de vir inteiros toda vez.
+// Algumas listas também ficam no disco do aparelho: ao abrir o app, a tela já aparece com a última
+// versão enquanto busca a nova.
+const memo = new Map(); // "conta caminho" → { etag, texto }
+const MEMO_MAX = 200;
+const NO_DISCO = /^\/(products|events|tracks|feed|stories|estacoes\/feed)(\?|$)/;
+const DISCO_MAX = 400000; // por resposta (caracteres)
+const discoKey = () => `realys.respostas.${sessionKey}`;
+const memoKey = (path) => `${sessionKey} ${path}`;
+let discoLido = null;
+let discoContaLida = null;
+function lerDisco() {
+  if (discoLido && discoContaLida === sessionKey) return discoLido;
+  discoContaLida = sessionKey;
+  const conta = sessionKey;
+  discoLido = AsyncStorage.getItem(discoKey())
+    .then((t) => {
+      const d = JSON.parse(t || '{}');
+      Object.keys(d).forEach((path) => {
+        const k = `${conta} ${path}`;
+        if (!memo.has(k) && d[path] && d[path].texto) memo.set(k, d[path]);
+      });
+    })
+    .catch(() => {});
+  return discoLido;
+}
+let salvarDepois = null;
+function salvarDisco() {
+  if (salvarDepois) return;
+  const conta = sessionKey;
+  salvarDepois = setTimeout(() => {
+    salvarDepois = null;
+    const d = {};
+    memo.forEach((v, k) => {
+      const i = k.indexOf(' ');
+      const path = k.slice(i + 1);
+      if (k.slice(0, i) === conta && NO_DISCO.test(path) && v.texto.length <= DISCO_MAX) d[path] = v;
+    });
+    AsyncStorage.setItem(`realys.respostas.${conta}`, JSON.stringify(d)).catch(() => {});
+  }, 4000);
+}
+function lembrar(path, etag, texto) {
+  const k = memoKey(path);
+  memo.delete(k);
+  memo.set(k, { etag, texto });
+  if (memo.size > MEMO_MAX) memo.delete(memo.keys().next().value);
+  if (NO_DISCO.test(path)) salvarDisco();
+}
+// Última resposta guardada (do disco ou desta vez que o app está aberto), para mostrar na hora.
+export async function respostaGuardada(path) {
+  await lerDisco();
+  const m = memo.get(memoKey(path));
+  if (!m) return null;
+  try {
+    return JSON.parse(m.texto);
+  } catch (e) {
+    return null;
+  }
+}
+
 async function raw(method, path, body, headers = {}) {
   let res;
+  const leitura = method === 'GET';
+  if (leitura && NO_DISCO.test(path)) await lerDisco();
+  const guardada = leitura ? memo.get(memoKey(path)) : null;
   // Sem resposta em 25 s (60 s para envio de arquivo): para de esperar e avisa, em vez de ficar
   // carregando para sempre.
   const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
@@ -103,15 +171,27 @@ async function raw(method, path, body, headers = {}) {
     res = await fetch(API_URL + path, {
       signal: ctl ? ctl.signal : undefined,
       method,
-      headers: { ...(body !== undefined && !(body instanceof ArrayBuffer) ? { 'Content-Type': 'application/json' } : {}), ...headers, ...(accessToken && path !== '/auth/refresh' ? { Authorization: `Bearer ${accessToken}` } : {}) },
+      headers: { ...(body !== undefined && !(body instanceof ArrayBuffer) ? { 'Content-Type': 'application/json' } : {}), ...headers, ...(accessToken && path !== '/auth/refresh' ? { Authorization: `Bearer ${accessToken}` } : {}), ...(guardada ? { 'If-None-Match': guardada.etag } : {}) },
       body: body === undefined ? undefined : body instanceof ArrayBuffer ? body : JSON.stringify(body),
     });
   } catch (e) {
     clearTimeout(limite);
     throw new ApiError(0, e && e.name === 'AbortError' ? 'O Realyz demorou para responder. Tente de novo.' : 'Sem conexão com o Realyz. Confira sua internet.');
   }
-  const data = await res.json().catch(() => ({}));
+  // Nada mudou desde a última vez: usa o que o aparelho já tem.
+  if (res.status === 304 && guardada) {
+    clearTimeout(limite);
+    lembrar(path, guardada.etag, guardada.texto);
+    return JSON.parse(guardada.texto);
+  }
+  const texto = await res.text().catch(() => '');
   clearTimeout(limite);
+  let data = {};
+  try {
+    data = texto ? JSON.parse(texto) : {};
+  } catch (e) {}
+  const etag = res.ok && leitura && res.headers && res.headers.get ? res.headers.get('ETag') : null;
+  if (etag && texto) lembrar(path, etag, texto);
   // O servidor recusou por falta de biometria: o app abre o aviso "Biometria não cadastrada".
   if (!res.ok && data.code === 'biometria' && bioBlocked) bioBlocked();
   if (!res.ok && data.code === 'biometria_prazo' && prazoBio) prazoBio();
@@ -139,7 +219,18 @@ export async function refresh() {
 }
 
 // Chamada à API. Se o acesso expirou, renova e tenta mais uma vez.
-export async function api(method, path, body, headers) {
+// Várias telas pedindo a mesma leitura ao mesmo tempo (abrir o app, trocar de aba): vai um pedido só.
+const emVoo = new Map();
+export function api(method, path, body, headers) {
+  if (method !== 'GET' || headers) return apiDireto(method, path, body, headers);
+  const k = memoKey(path);
+  const ja = emVoo.get(k);
+  if (ja) return ja;
+  const p = apiDireto(method, path).finally(() => emVoo.delete(k));
+  emVoo.set(k, p);
+  return p;
+}
+async function apiDireto(method, path, body, headers) {
   const auth = path.startsWith('/auth/');
   // Renovação em andamento ou acesso ainda não carregado (app acabou de abrir): espera o login antes
   // de pedir, em vez de mandar o pedido sem login e levar "sessão expirada".
@@ -213,6 +304,9 @@ export async function logout() {
   } catch (e) {}
   accessToken = null;
   tokenExp = 0;
+  // Saiu da conta: apaga do aparelho as respostas guardadas dela.
+  [...memo.keys()].forEach((k) => k.startsWith(sessionKey + ' ') && memo.delete(k));
+  await AsyncStorage.removeItem(discoKey()).catch(() => {});
   await SecureStore.deleteItemAsync(acessoKey()).catch(() => {});
   await SecureStore.deleteItemAsync(sessionKey).catch(() => {});
 }

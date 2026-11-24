@@ -10,6 +10,7 @@ import { colors } from '../theme';
 import { PROFESSIONS, professionOf, casesFor, roughPlace, isGovEmail, CONSELHO_TEXT } from '../credentials';
 import { api, serverOn } from '../api';
 import { getDevicePoint } from '../geo';
+import { aCada } from '../ritmo';
 
 const STATUS = { em_analise: ['Em análise', '#C77D12'], aprovado: ['Aprovada', '#1E9E63'], recusado: ['Recusada', '#C0392B'] };
 
@@ -59,8 +60,8 @@ export default function Credentials() {
     if (!serverOn() || !anyReceive) return;
     const load = () => api('GET', '/casos').then((r) => setSrvCases(r.items || [])).catch(() => {});
     load();
-    const t = setInterval(load, 60000);
-    return () => clearInterval(t);
+    const t = aCada(load, 60000);
+    return () => t.parar();
   }, [anyReceive]);
   const setM = (id, patch) => setMail((m) => ({ ...m, [id]: { ...(m[id] || {}), ...patch } }));
 

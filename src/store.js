@@ -36,6 +36,7 @@ import { teleDoCarrinho, somarGasto } from './teleGratis';
 import { DEMO_PAGES, MAX_PAGES, pagePrice, nextIsWorkPage } from './userPages';
 import { sampleAgenda, DEFAULT_HOURS, parseWhen } from './agenda';
 import { negPlano, custoLiberar } from './negocios';
+import { appVisivel } from './ritmo';
 
 const StoreContext = createContext(null);
 
@@ -2490,7 +2491,7 @@ export function StoreProvider({ children }) {
         .catch(() => {})
         .finally(() => (busy = false));
     };
-    const t = setInterval(check, 60000);
+    const t = setInterval(() => appVisivel() && check(), 60000);
     const sub = AppState.addEventListener('change', (st) => st === 'active' && check());
     const web = Platform.OS === 'web' && typeof window !== 'undefined';
     const vis = () => typeof document !== 'undefined' && document.visibilityState === 'visible' && check();

@@ -28,6 +28,7 @@ import { setOpeningCurtain, onScreenPauseChange } from '../../../screenShare';
 import { webrtcOk, openPip, closePip } from '../../../video';
 import { setLiveKeep } from '../../../liveKeep';
 import { useArena, arenaVoiceRooms, arenaRoom, arenaServerOf, joinArenaVoice, leaveArenaVoice, usarServidorArena } from '../../../arena';
+import { aCada } from '../../../ritmo';
 
 const now = () => {
   const d = new Date();
@@ -320,8 +321,8 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
     let alive = true;
     const load = () => realLivesOf(segCat).then((l) => alive && setRealQ(l));
     load();
-    const t = setInterval(load, 20000);
-    return () => ((alive = false), clearInterval(t));
+    const t = aCada(load, 20000);
+    return () => ((alive = false), t.parar());
   }, [visible, segCat]);
   const queue = segCat
     ? [...realQ.filter((l) => l.hostId !== (stQ.user && stQ.user.id)).sort(liveRank), ...LIVES.filter((l) => l.cat === segCat && !l.mine).sort(liveRank)]

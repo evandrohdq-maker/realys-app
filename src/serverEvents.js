@@ -2,7 +2,7 @@
 // - Eventos publicados por empresas aparecem em Eventos, junto com os de demonstração.
 // - Comprar ingresso: o valor sai da carteira do servidor; cada ingresso tem um código (QR na portaria).
 // - Empresa: publica eventos, vê as vendas e confere os ingressos na entrada (ServerEventsPanel).
-import { api, API_URL } from './api';
+import { api, API_URL, respostaGuardada } from './api';
 import { brl } from './theme';
 import { SRV, conectado, carregarCarteira } from './serverShop';
 
@@ -25,7 +25,13 @@ export const eventFromServer = (e) => ({
   real: true,
 });
 
+let eventosMostrados = false;
 export async function carregarEventos(dispatch) {
+  if (!eventosMostrados) {
+    eventosMostrados = true;
+    const g = await respostaGuardada('/events').catch(() => null);
+    if (Array.isArray(g) && g.length) dispatch({ type: 'SERVER_EVENTS', events: g.map(eventFromServer) });
+  }
   const list = await api('GET', '/events');
   dispatch({ type: 'SERVER_EVENTS', events: list.map(eventFromServer) });
 }

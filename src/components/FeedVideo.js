@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Photo } from './ui';
+import { useAtivo } from '../ritmo';
 
 let EV = null;
 try {
@@ -40,6 +41,14 @@ function Player({ source, poster, style }) {
       player.muted = !sound;
     } catch (e) {}
   }, [sound]);
+  // Tela guardada atrás de outra ou app em segundo plano: pausa; voltou: continua (se não pausei na mão).
+  const ativo = useAtivo();
+  useEffect(() => {
+    try {
+      if (!ativo) player.pause();
+      else if (!paused) player.play();
+    } catch (e) {}
+  }, [ativo]);
   useEffect(() => {
     if (!hint) return undefined;
     const t = setTimeout(() => setHint(false), 900);

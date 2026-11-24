@@ -17,6 +17,7 @@ import { profConfig, buscarProfissoes, profissaoPorKey, infoProfissao } from '..
 import ProfissaoBusca, { FuncoesTags, ProfissaoInfo, MeiGuia } from './ProfissaoBusca';
 import { conectado, carregarCarteira } from '../serverShop';
 import { rolesDoServidor } from '../serverAuth';
+import { aCada } from '../ritmo';
 
 const NEXT = { Solicitado: 'Aceito', Aceito: 'A caminho', 'A caminho': 'Chegou', Chegou: 'Concluído' };
 const LABEL = { Aceito: 'Aceitar', 'A caminho': 'Estou a caminho', Chegou: 'Cheguei', Concluído: 'Serviço concluído' };
@@ -62,7 +63,7 @@ export default function ServerProviderPanel() {
   useEffect(() => {
     if (!on) return;
     load();
-    const t = setInterval(load, 30000);
+    const t = aCada(load, 30000);
     const stop = connectEvents((e) => {
       if (e.type !== 'call') return;
       load();
@@ -70,7 +71,7 @@ export default function ServerProviderPanel() {
       if (d.status === 'Solicitado' && d.providerId === me) Alert.alert('Novo chamado! 🔔', `${d.client} pediu ${d.service}${d.problem ? `: ${d.problem}` : ''}.`);
     });
     return () => {
-      clearInterval(t);
+      t.parar();
       stop();
     };
   }, [on, me]);

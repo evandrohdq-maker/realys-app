@@ -14,6 +14,7 @@ import { colors } from '../theme';
 import { isDateSubscriber } from '../datePlans';
 import { usePrivateScreen } from '../privacyGuard';
 import { RTCView, videoStatus, startBroadcast, watchLive, startCall, declineCall, onCallEvents, webrtcOk, openScreen } from '../video';
+import { aCada, useTelaNaFrente } from '../ritmo';
 
 // Fundo de vídeo da live: transmite (mine) ou assiste. onError avisa a tela (ex.: sem permissão).
 // screen: live de jogo, transmite a TELA do celular em vez da câmera.
@@ -160,6 +161,7 @@ export function LiveStage({ liveId, mine, onAir, onError, screen, viewScreen, wi
 // Lives no ar de verdade (servidor). Atualiza a cada 20 segundos enquanto a aba está aberta.
 export function useRealLives(active = true) {
   const [lives, setLives] = useState([]);
+  const naFrente = useTelaNaFrente();
   useEffect(() => {
     if (!active || !serverOn()) return;
     let alive = true;
@@ -168,10 +170,10 @@ export function useRealLives(active = true) {
         .then((list) => alive && setLives((list || []).map((l) => ({ ...l, real: true, photo: null, tag: 'Ao vivo', viewers: l.viewers || 0 }))))
         .catch(() => {});
     load();
-    const t = setInterval(load, 20000);
+    const t = aCada(load, 20000, naFrente);
     return () => {
       alive = false;
-      clearInterval(t);
+      t.parar();
     };
   }, [active]);
   return lives;

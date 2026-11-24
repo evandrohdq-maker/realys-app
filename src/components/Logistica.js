@@ -15,6 +15,7 @@ import { colors, soft, brl } from '../theme';
 import { api, connectEvents } from '../api';
 import { conectado, carregarCarteira } from '../serverShop';
 import { getDevicePoint } from '../geo';
+import { aCada } from '../ritmo';
 
 const n = (v) => String(v).replace('.', ',');
 const VEIC = { moto: 'Moto', carro: 'Carro', van: 'Van', caminhao: 'Caminhão' };
@@ -25,10 +26,10 @@ function useAoVivo(load, tipos) {
   useEffect(() => {
     load();
     const stop = connectEvents((e) => tipos.some((t) => e.type.startsWith(t)) && load());
-    const t = setInterval(load, 45000);
+    const t = aCada(load, 45000);
     return () => {
       stop();
-      clearInterval(t);
+      t.parar();
     };
   }, [load]);
 }

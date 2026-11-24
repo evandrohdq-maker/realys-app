@@ -14,6 +14,7 @@ import { Photo } from './ui';
 import { colors } from '../theme';
 import ClassifyModal, { TagLine, EtiquetasModal, useListas, listasDe, buscaPorLista } from './ClassifyModal';
 import { NovoGrupo, GrupoChat } from './Grupos';
+import { aCada } from '../ritmo';
 
 const fotoDe = (p) => (p && p.startsWith('/') ? API_URL + p : p);
 const quando = (at) => {
@@ -56,10 +57,10 @@ export default function ServerInbox() {
     };
     load();
     const stop = connectEvents((e) => (e.type === 'message' || /^grupo-/.test(e.type)) && load());
-    const t = setInterval(load, 30000);
+    const t = aCada(load, 30000);
     return () => {
       stop();
-      clearInterval(t);
+      t.parar();
     };
   }, [on, chatOpen, grupoAberto]); // fechou a conversa: recarrega (lidas e última mensagem)
   if (!on) return null;

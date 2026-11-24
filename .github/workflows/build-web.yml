@@ -55,6 +55,7 @@ jobs:
       - name: Preparar para o GitHub Pages
         run: |
           cp dist/index.html dist/404.html   # qualquer endereço abre o app
+          cp tools/site/sw.js dist/sw.js     # guarda o app no computador (abre mais rápido)
           touch dist/.nojekyll
           echo "realyz.com.br" > dist/CNAME
           ls -la dist

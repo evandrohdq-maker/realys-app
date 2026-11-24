@@ -29,6 +29,7 @@ if (Platform.OS !== 'web') {
 }
 import ClassifyModal, { TagLine, LISTAS_PADRAO } from './ClassifyModal';
 import EmojiBar, { EmojiButton } from './EmojiBar';
+import { aCada } from '../ritmo';
 const mmss = (n) => `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`;
 
 export default function ChatServidor() {
@@ -57,10 +58,10 @@ export default function ChatServidor() {
     const stop = connectEvents((e) => {
       if (e.type === 'message' && (e.from === open.userId || (e.data && e.data.from === open.userId))) load();
     });
-    const t = setInterval(load, 15000);
+    const t = aCada(load, 15000);
     return () => {
       stop();
-      clearInterval(t);
+      t.parar();
     };
   }, [open && open.userId]);
   useEffect(() => {
