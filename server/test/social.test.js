@@ -43,7 +43,7 @@ test('post do amigo: aparece no feed e no perfil, curtir e comentar', async () =
   const stories = await call('GET', '/stories', eva.accessToken);
   assert.equal(stories[0].items[0].id, st.id);
 
-  assert.deepEqual(await call('POST', `/posts/${p.id}/curtir`, eva.accessToken), { liked: true, likes: 1 });
+  assert.deepEqual((({ liked, likes }) => ({ liked, likes }))(await call('POST', `/posts/${p.id}/curtir`, eva.accessToken)), { liked: true, likes: 1 });
   const c = await call('POST', `/posts/${p.id}/comentarios`, eva.accessToken, { text: 'Tô dentro!' });
   assert.equal(c.author.name, 'Evandro Q');
   assert.ok(avisos.some((a) => a.u === edu.user.id && a.type === 'comentario'));
@@ -52,7 +52,7 @@ test('post do amigo: aparece no feed e no perfil, curtir e comentar', async () =
   assert.equal(f2.comments, 1);
   const perfil = await call('GET', `/users/${edu.user.id}`, eva.accessToken);
   assert.equal(perfil.posts[0].likes, 1);
-  assert.deepEqual(await call('POST', `/posts/${p.id}/curtir`, eva.accessToken), { liked: false, likes: 0 });
+  assert.deepEqual((({ liked, likes }) => ({ liked, likes }))(await call('POST', `/posts/${p.id}/curtir`, eva.accessToken)), { liked: false, likes: 0 });
   assert.equal((await call('GET', `/posts/${p.id}/comentarios`, edu.accessToken)).length, 1);
   // O dono do post apaga o comentário.
   await call('DELETE', `/comentarios/${c.id}`, edu.accessToken);

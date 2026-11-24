@@ -1236,6 +1236,55 @@ const MIGRATIONS = [
   );
   CREATE INDEX IF NOT EXISTS grupo_msgs_g ON grupo_msgs(grupo_id, created_at);
   `,
+  // Páginas dos usuários no servidor (todos veem e seguem), posts de página com música,
+  // "Publicar como" (curtir, comentar e mandar depoimento como página), respostas e curtidas nos
+  // comentários, e depoimentos para páginas.
+  `
+  CREATE TABLE paginas (
+    id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL REFERENCES users(id),
+    name TEXT NOT NULL,
+    handle TEXT NOT NULL UNIQUE,
+    about TEXT NOT NULL DEFAULT '',
+    category TEXT NOT NULL DEFAULT 'outros',
+    cover TEXT,
+    photo TEXT,
+    style TEXT NOT NULL DEFAULT '{}',
+    anon INTEGER NOT NULL DEFAULT 0,
+    removed INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    paga INTEGER NOT NULL DEFAULT 0,            -- 0 = a página gratuita da conta; 1 = mensalidade
+    pago_ate INTEGER,                            -- mensalidade paga até (página paga)
+    plano_status TEXT NOT NULL DEFAULT 'ok'      -- 'ok' ou 'atrasado' (sem saldo no vencimento)
+  );
+  CREATE INDEX paginas_owner ON paginas(owner_id);
+  CREATE TABLE pagina_seguidores (
+    pagina_id TEXT NOT NULL REFERENCES paginas(id),
+    user_id TEXT NOT NULL REFERENCES users(id),
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (pagina_id, user_id)
+  );
+  CREATE INDEX pagina_seguidores_user ON pagina_seguidores(user_id);
+  ALTER TABLE posts ADD COLUMN pagina_id TEXT;
+  ALTER TABLE posts ADD COLUMN musica TEXT;
+  CREATE INDEX posts_pagina ON posts(pagina_id, created_at DESC);
+  CREATE TABLE post_likes_pagina (
+    post_id TEXT NOT NULL REFERENCES posts(id),
+    pagina_id TEXT NOT NULL REFERENCES paginas(id),
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (post_id, pagina_id)
+  );
+  ALTER TABLE post_comments ADD COLUMN pagina_id TEXT;
+  ALTER TABLE post_comments ADD COLUMN parent_id TEXT;
+  CREATE TABLE comment_likes (
+    comment_id TEXT NOT NULL REFERENCES post_comments(id),
+    actor TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (comment_id, actor)
+  );
+  ALTER TABLE testimonials ADD COLUMN from_pagina_id TEXT;
+  ALTER TABLE testimonials ADD COLUMN to_pagina_id TEXT;
+  `,
 ];
 
 export function openDb(file) {

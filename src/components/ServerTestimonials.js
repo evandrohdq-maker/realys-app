@@ -1,4 +1,5 @@
 // Depoimentos das contas reais: cartão do feed e caixa de "esperando a sua aprovação".
+import { abrirPagina } from '../serverPaginas';
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Text } from '../responsive';
@@ -32,12 +33,12 @@ export function ServerTestimonialCard({ t }) {
   return (
     <View style={st.card}>
       <View style={st.head}>
-        <Avatar uri={t.fromPhoto} name={t.fromName} size={42} onPress={() => openServerProfile(t.fromId)} />
+        <Avatar uri={t.fromPhoto} name={t.fromName} size={42} onPress={() => (t.fromPagina ? abrirPagina(t.fromId) : openServerProfile(t.fromId))} />
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={st.who} numberOfLines={2}>
-            <Text onPress={() => openServerProfile(t.fromId)}>{t.fromName}</Text>
+            <Text onPress={() => (t.fromPagina ? abrirPagina(t.fromId) : openServerProfile(t.fromId))}>{t.fromName}</Text>
             <Text style={st.verb}> escreveu para </Text>
-            {t.toId ? <Text onPress={() => openServerProfile(t.toId)}>{t.toName}</Text> : null}
+            {t.toId ? <Text onPress={() => (t.toPagina ? abrirPagina(t.toId) : openServerProfile(t.toId))}>{t.toName}</Text> : null}
           </Text>
           <Text style={st.time}>
             <Ionicons name="shield-checkmark" size={11} color={colors.primary} /> Aprovado por {first(t.toName)} · {t.time}
@@ -67,9 +68,9 @@ export function ServerPendingTestimonials({ pending }) {
       {pending.map((t) => (
         <View key={t.id} style={st.pendingItem}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Avatar uri={t.fromPhoto} name={t.fromName} size={34} onPress={() => openServerProfile(t.fromId)} />
+            <Avatar uri={t.fromPhoto} name={t.fromName} size={34} onPress={() => (t.fromPagina ? abrirPagina(t.fromId) : openServerProfile(t.fromId))} />
             <Text style={[st.who, { marginLeft: 8, flex: 1 }]} numberOfLines={1}>
-              {t.fromName} <Text style={st.verb}>· {t.time}</Text>
+              {t.fromName} <Text style={st.verb}>{t.toPagina ? `· para a sua página ${t.toName} ` : ''}· {t.time}</Text>
             </Text>
           </View>
           <Text style={[st.text, { marginTop: 6 }]}>“{t.text}”</Text>

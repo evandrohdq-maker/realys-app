@@ -1,10 +1,12 @@
 // Parte social: perfis, amizades, posts, stories, depoimentos (como no Orkut), mensagens e denúncias.
 import { moderateText, antiDesvio } from '../moderacaoTexto.js';
 import { fail, newId, now, str, oneOf } from '../http.js';
+import { makePaginas } from '../paginas.js';
 
 const pair = (a, b) => (a < b ? [a, b] : [b, a]);
 
 export default function socialRoutes(r, { db, hub, userById, publicUser, atendente, protecao, crm }) {
+  const PG = makePaginas(db);
   const friendship = (a, b) => {
     const [x, y] = pair(a, b);
     return db.prepare('SELECT * FROM friends WHERE a_id = ? AND b_id = ?').get(x, y);
@@ -24,8 +26,21 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     const m = /^\/media\//.test(media) ? db.prepare('SELECT mime FROM media WHERE id = ?').get(id) : null;
     return m && /^video\//.test(m.mime) ? 'video' : 'imagem';
   };
-  const postView = (p) => ({ id: p.id, kind: p.kind, text: p.text, media: p.media, mediaType: tipoMidia(p.media), bg: p.bg || null, visibility: p.visibility, flagged: !!p.flagged, createdAt: p.created_at, expiresAt: p.expires_at, author: { id: p.author_id, name: p.author_name, username: p.author_username, photo: p.author_photo } });
-  const POST_SQL = 'SELECT p.*, u.name AS author_name, u.username AS author_username, u.photo AS author_photo FROM posts p JOIN users u ON u.id = p.author_id';
+  const musicaDe = (m) => {
+    try {
+      return m ? JSON.parse(m) : null;
+    } catch (e) {
+      return null;
+    }
+  };
+  // Post de página: a autora é a página (página anônima nunca mostra o dono).
+  const postView = (p) => ({
+    id: p.id, kind: p.kind, text: p.text, media: p.media, mediaType: tipoMidia(p.media), bg: p.bg || null, visibility: p.visibility, flagged: !!p.flagged, createdAt: p.created_at, expiresAt: p.expires_at,
+    musica: musicaDe(p.musica),
+    author: p.pagina_id ? { id: p.pagina_id, name: p.pg_name, username: p.pg_handle, photo: p.pg_photo || p.pg_cover || null, pagina: true } : { id: p.author_id, name: p.author_name, username: p.author_username, photo: p.author_photo },
+    pagina: p.pagina_id ? { id: p.pagina_id, name: p.pg_name, handle: p.pg_handle, anon: !!p.pg_anon } : null,
+  });
+  const POST_SQL = 'SELECT p.*, u.name AS author_name, u.username AS author_username, u.photo AS author_photo, pg.name AS pg_name, pg.handle AS pg_handle, pg.photo AS pg_photo, pg.cover AS pg_cover, pg.anon AS pg_anon, pg.removed AS pg_removed FROM posts p JOIN users u ON u.id = p.author_id LEFT JOIN paginas pg ON pg.id = p.pagina_id';
 
   // ── Pessoas ──
   // Selo de identidade verificada: só quem teve a biometria aprovada (não vale para conta sem biometria).
@@ -92,8 +107,8 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
       ...pub(u),
       friend: f ? (f.status === 'amigos' ? 'amigos' : f.requested_by === user.id ? 'enviado' : 'recebido') : null,
       visible,
-      posts: visible ? db.prepare(`${POST_SQL} WHERE p.author_id = ? AND p.kind = 'post' AND p.removed = 0 ORDER BY p.created_at DESC LIMIT 30`).all(u.id).filter((p) => p.visibility === 'todos' || areFriends(user.id, u.id)).map((p) => contagens(postView(p), user)) : [],
-      testimonials: db.prepare(`SELECT t.id, t.text, t.created_at AS createdAt, f.id AS fromId, f.name AS fromName, f.photo AS fromPhoto FROM testimonials t JOIN users f ON f.id = t.from_id WHERE t.to_id = ? AND t.status = 'aceito' ORDER BY t.created_at DESC LIMIT 30`).all(u.id),
+      posts: visible ? db.prepare(`${POST_SQL} WHERE p.author_id = ? AND p.kind = 'post' AND p.removed = 0 AND p.pagina_id IS NULL ORDER BY p.created_at DESC LIMIT 30`).all(u.id).filter((p) => p.visibility === 'todos' || areFriends(user.id, u.id)).map((p) => contagens(postView(p), user)) : [],
+      testimonials: db.prepare(`${DEP_SQL} WHERE t.to_id = ? AND t.to_pagina_id IS NULL AND t.status = 'aceito' ORDER BY t.created_at DESC LIMIT 30`).all(u.id).map(depView),
       company: db.prepare('SELECT id, name FROM companies WHERE owner_id = ?').get(u.id) || null,
       // Empresa ou prestador: a conversa segue as regras de negócio (anti-desvio). Perfil social não.
       negocio: ehNegocio(u),
@@ -207,18 +222,34 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     return postView(db.prepare(`${POST_SQL} WHERE p.id = ?`).get(id));
   }, { status: 201 });
 
+  // Curtidas somam as da pessoa e as das páginas ("curtiu como página").
+  const totalCurtidas = (id) => db.prepare('SELECT COUNT(*) AS n FROM post_likes WHERE post_id = ?').get(id).n + db.prepare('SELECT COUNT(*) AS n FROM post_likes_pagina WHERE post_id = ?').get(id).n;
   const contagens = (v, user) => ({
     ...v,
-    likes: db.prepare('SELECT COUNT(*) AS n FROM post_likes WHERE post_id = ?').get(v.id).n,
+    likes: totalCurtidas(v.id),
     liked: !!db.prepare('SELECT 1 FROM post_likes WHERE post_id = ? AND user_id = ?').get(v.id, user.id),
+    // Quais páginas minhas já curtiram (o coração fica cheio quando eu estou "como" essa página).
+    likedPaginas: db.prepare('SELECT l.pagina_id AS id FROM post_likes_pagina l JOIN paginas g ON g.id = l.pagina_id WHERE l.post_id = ? AND g.owner_id = ?').all(v.id, user.id).map((x) => x.id),
     comments: db.prepare('SELECT COUNT(*) AS n FROM post_comments WHERE post_id = ? AND removed = 0').get(v.id).n,
+    // Post de página: se eu sigo (o botão "Seguir" no topo do post) e se a página é minha.
+    ...(v.pagina ? { seguindo: PG.segue(v.pagina.id, user.id), minhaPagina: v.pagina && !!db.prepare('SELECT 1 FROM paginas WHERE id = ? AND owner_id = ?').get(v.pagina.id, user.id) } : {}),
   });
+  // Post de página: aparece para quem segue a página (e para o dono). Post de pessoa: regra de sempre.
+  const veNoFeed = (p, user) => (p.pagina_id ? !p.pg_removed && (p.author_id === user.id || PG.segue(p.pagina_id, user.id)) : p.author_id === user.id || (p.visibility === 'todos' ? canSeeSocial(user, userById(p.author_id)) : areFriends(user.id, p.author_id)));
   // Feed: posts de quem é público e dos amigos. Os marcados como informação falsa não aparecem.
   r.get('/feed', ({ user, query }) => {
     const before = Number(query.before || now() + 1);
-    return db.prepare(`${POST_SQL} WHERE p.kind = 'post' AND p.removed = 0 AND p.flagged = 0 AND p.created_at < ? ORDER BY p.created_at DESC LIMIT 60`).all(before)
-      .filter((p) => p.author_id === user.id || (p.visibility === 'todos' ? canSeeSocial(user, userById(p.author_id)) : areFriends(user.id, p.author_id)))
+    return db.prepare(`${POST_SQL} WHERE p.kind = 'post' AND p.removed = 0 AND p.flagged = 0 AND p.created_at < ? ORDER BY p.created_at DESC LIMIT 80`).all(before)
+      .filter((p) => veNoFeed(p, user))
       .slice(0, 30).map((p) => contagens(postView(p), user));
+  });
+  // Posts de uma página (página aberta). Página é pública: qualquer conta vê.
+  r.get('/paginas/:id/posts', ({ params, query, user }) => {
+    const pg = PG.byId(params.id);
+    if (!pg) fail(404, 'Página não encontrada.');
+    const before = Number(query.before || now() + 1);
+    const mine = pg.owner_id === user.id;
+    return db.prepare(`${POST_SQL} WHERE p.pagina_id = ? AND p.removed = 0 ${mine ? '' : 'AND p.flagged = 0'} AND p.created_at < ? ORDER BY p.created_at DESC LIMIT 30`).all(pg.id, before).map((p) => contagens(postView(p), user));
   });
 
   // Stories das últimas 24 h, agrupados por pessoa (as bolinhas da página de Stories).
@@ -234,20 +265,43 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
   });
 
   // ── Curtidas e comentários ──
-  const podeVerPost = (p, user) => p && !p.removed && (p.author_id === user.id || (p.visibility === 'todos' ? canSeeSocial(user, userById(p.author_id)) : areFriends(user.id, p.author_id)));
-  r.post('/posts/:id/curtir', ({ params, user }) => {
+  const podeVerPost = (p, user) => p && !p.removed && (p.pagina_id ? !!PG.byId(p.pagina_id) : p.author_id === user.id || (p.visibility === 'todos' ? canSeeSocial(user, userById(p.author_id)) : areFriends(user.id, p.author_id)));
+  // Quem recebe o aviso de curtida/comentário: o dono do post (no post de página, o dono da página).
+  const quemAgiu = (user, pg) => (pg ? pg.name : user.name);
+  // Curtir como eu ou como uma página minha (body.comoPagina). Cada um conta uma curtida.
+  r.post('/posts/:id/curtir', ({ params, body, user }) => {
     const p = db.prepare('SELECT * FROM posts WHERE id = ?').get(params.id);
     if (!podeVerPost(p, user)) fail(404, 'Publicação não encontrada.');
-    const ja = db.prepare('SELECT 1 FROM post_likes WHERE post_id = ? AND user_id = ?').get(p.id, user.id);
-    if (ja) db.prepare('DELETE FROM post_likes WHERE post_id = ? AND user_id = ?').run(p.id, user.id);
-    else db.prepare('INSERT INTO post_likes (post_id, user_id, created_at) VALUES (?,?,?)').run(p.id, user.id, now());
-    return { liked: !ja, likes: db.prepare('SELECT COUNT(*) AS n FROM post_likes WHERE post_id = ?').get(p.id).n };
+    const pg = PG.como(user, body);
+    let ja;
+    if (pg) {
+      ja = db.prepare('SELECT 1 FROM post_likes_pagina WHERE post_id = ? AND pagina_id = ?').get(p.id, pg.id);
+      if (ja) db.prepare('DELETE FROM post_likes_pagina WHERE post_id = ? AND pagina_id = ?').run(p.id, pg.id);
+      else db.prepare('INSERT INTO post_likes_pagina (post_id, pagina_id, created_at) VALUES (?,?,?)').run(p.id, pg.id, now());
+    } else {
+      ja = db.prepare('SELECT 1 FROM post_likes WHERE post_id = ? AND user_id = ?').get(p.id, user.id);
+      if (ja) db.prepare('DELETE FROM post_likes WHERE post_id = ? AND user_id = ?').run(p.id, user.id);
+      else db.prepare('INSERT INTO post_likes (post_id, user_id, created_at) VALUES (?,?,?)').run(p.id, user.id, now());
+    }
+    if (!ja && p.author_id !== user.id) hub.send(p.author_id, 'curtida', { postId: p.id, fromName: quemAgiu(user, pg) });
+    const v = contagens({ id: p.id }, user);
+    return { liked: v.liked, likedPaginas: v.likedPaginas, likes: v.likes, comoPagina: pg ? pg.id : null };
   });
-  const comentarioView = (c) => ({ id: c.id, text: c.text, createdAt: c.created_at, author: { id: c.user_id, name: c.name, username: c.username, photo: c.photo } });
+  // Comentário como no modelo do Instagram: autor (pessoa ou página), curtidas no comentário,
+  // "Responder" e as respostas agrupadas embaixo ("Ver mais N respostas").
+  const CMT_SQL = 'SELECT c.*, u.name, u.username, u.photo, g.name AS pg_name, g.handle AS pg_handle, g.photo AS pg_photo, g.cover AS pg_cover FROM post_comments c JOIN users u ON u.id = c.user_id LEFT JOIN paginas g ON g.id = c.pagina_id';
+  const comentarioView = (c, user) => ({
+    id: c.id, text: c.text, createdAt: c.created_at, parentId: c.parent_id || null,
+    author: c.pagina_id ? { id: c.pagina_id, name: c.pg_name, username: c.pg_handle, photo: c.pg_photo || c.pg_cover || null, pagina: true } : { id: c.user_id, name: c.name, username: c.username, photo: c.photo },
+    // Meu (escrevi como eu ou como página minha): pode apagar.
+    mine: !!user && c.user_id === user.id,
+    likes: db.prepare('SELECT COUNT(*) n FROM comment_likes WHERE comment_id = ?').get(c.id).n,
+    likedBy: user ? db.prepare("SELECT actor FROM comment_likes WHERE comment_id = ? AND (actor = ? OR actor IN (SELECT 'pg:' || id FROM paginas WHERE owner_id = ?))").all(c.id, user.id, user.id).map((x) => x.actor) : [],
+  });
   r.get('/posts/:id/comentarios', ({ params, user }) => {
     const p = db.prepare('SELECT * FROM posts WHERE id = ?').get(params.id);
     if (!podeVerPost(p, user)) fail(404, 'Publicação não encontrada.');
-    return db.prepare('SELECT c.*, u.name, u.username, u.photo FROM post_comments c JOIN users u ON u.id = c.user_id WHERE c.post_id = ? AND c.removed = 0 ORDER BY c.created_at LIMIT 200').all(p.id).map(comentarioView);
+    return db.prepare(`${CMT_SQL} WHERE c.post_id = ? AND c.removed = 0 ORDER BY c.created_at LIMIT 300`).all(p.id).map((c) => comentarioView(c, user));
   });
   r.post('/posts/:id/comentarios', ({ params, body, user }) => {
     const p = db.prepare('SELECT * FROM posts WHERE id = ?').get(params.id);
@@ -255,11 +309,33 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     const text = str(body.text, 'o comentário', { max: 600 });
     const m = moderateText(text, 'publico');
     if (!m.ok) fail(422, m.why, m.kind);
+    const pg = PG.como(user, body);
+    // Resposta: sempre fica embaixo do comentário principal (resposta de resposta sobe para ele).
+    let parent = null;
+    if (body.parentId) {
+      const pc = db.prepare('SELECT * FROM post_comments WHERE id = ? AND post_id = ? AND removed = 0').get(String(body.parentId), p.id);
+      if (!pc) fail(404, 'Comentário não encontrado.');
+      parent = pc.parent_id || pc.id;
+      const alvo = db.prepare('SELECT user_id FROM post_comments WHERE id = ?').get(pc.id);
+      if (alvo && alvo.user_id !== user.id) hub.send(alvo.user_id, 'resposta', { postId: p.id, fromName: quemAgiu(user, pg), text });
+    }
     const id = newId('pc');
-    db.prepare('INSERT INTO post_comments (id, post_id, user_id, text, created_at) VALUES (?,?,?,?,?)').run(id, p.id, user.id, text, now());
-    if (p.author_id !== user.id) hub.send(p.author_id, 'comentario', { postId: p.id, fromName: user.name, text });
-    return comentarioView(db.prepare('SELECT c.*, u.name, u.username, u.photo FROM post_comments c JOIN users u ON u.id = c.user_id WHERE c.id = ?').get(id));
+    db.prepare('INSERT INTO post_comments (id, post_id, user_id, text, created_at, pagina_id, parent_id) VALUES (?,?,?,?,?,?,?)').run(id, p.id, user.id, text, now(), pg ? pg.id : null, parent);
+    if (p.author_id !== user.id) hub.send(p.author_id, 'comentario', { postId: p.id, fromName: quemAgiu(user, pg), text });
+    return comentarioView(db.prepare(`${CMT_SQL} WHERE c.id = ?`).get(id), user);
   }, { status: 201 });
+  // Curtir um comentário (coração da direita), como eu ou como página minha.
+  r.post('/comentarios/:id/curtir', ({ params, body, user }) => {
+    const c = db.prepare('SELECT * FROM post_comments WHERE id = ? AND removed = 0').get(params.id);
+    const p = c && db.prepare('SELECT * FROM posts WHERE id = ?').get(c.post_id);
+    if (!c || !podeVerPost(p, user)) fail(404, 'Comentário não encontrado.');
+    const pg = PG.como(user, body);
+    const actor = pg ? 'pg:' + pg.id : user.id;
+    const ja = db.prepare('SELECT 1 FROM comment_likes WHERE comment_id = ? AND actor = ?').get(c.id, actor);
+    if (ja) db.prepare('DELETE FROM comment_likes WHERE comment_id = ? AND actor = ?').run(c.id, actor);
+    else db.prepare('INSERT INTO comment_likes (comment_id, actor, created_at) VALUES (?,?,?)').run(c.id, actor, now());
+    return { liked: !ja, likes: db.prepare('SELECT COUNT(*) n FROM comment_likes WHERE comment_id = ?').get(c.id).n, actor };
+  });
   r.delete('/comentarios/:id', ({ params, user }) => {
     const c = db.prepare('SELECT c.*, p.author_id FROM post_comments c JOIN posts p ON p.id = c.post_id WHERE c.id = ?').get(params.id);
     // Apaga quem escreveu ou o dono do post.
@@ -274,19 +350,46 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
   });
 
   // ── Depoimentos: ficam pendentes até a pessoa aceitar ──
+  // Depoimento de pessoa ou de página (comoPagina), para pessoa (toId) ou para página (toPaginaId).
+  // O dono de quem recebe aceita ou recusa. Página anônima manda e recebe sem revelar o dono.
   r.post('/testimonials', ({ body, user }) => {
-    const to = target(body.toId);
-    if (to.id === user.id) fail(400, 'Você não pode deixar depoimento para si mesmo.');
+    const de = PG.como(user, body);
+    let toId;
+    let paraPg = null;
+    if (body.toPaginaId) {
+      paraPg = PG.byId(body.toPaginaId);
+      if (!paraPg) fail(404, 'Página não encontrada.');
+      toId = paraPg.owner_id;
+      if (de && de.id === paraPg.id) fail(400, 'A página não pode deixar depoimento para ela mesma.');
+      if (!de && toId === user.id) fail(400, 'Você não pode deixar depoimento para a sua própria página.');
+    } else {
+      toId = target(body.toId).id;
+      if (!de && toId === user.id) fail(400, 'Você não pode deixar depoimento para si mesmo.');
+      if (de && toId === user.id) fail(400, 'Sua página não pode deixar depoimento para você mesmo.');
+    }
     const mt = moderateText(body.text, 'publico');
     if (!mt.ok) fail(422, mt.why, mt.kind);
     const id = newId('dp');
-    db.prepare('INSERT INTO testimonials (id, from_id, to_id, text, status, created_at) VALUES (?,?,?,?,?,?)').run(id, user.id, to.id, str(body.text, 'o depoimento', { min: 5, max: 600 }), 'pendente', now());
-    hub.send(to.id, 'testimonial', { id, from: pub(user) });
+    db.prepare('INSERT INTO testimonials (id, from_id, to_id, text, status, created_at, from_pagina_id, to_pagina_id) VALUES (?,?,?,?,?,?,?,?)').run(id, user.id, toId, str(body.text, 'o depoimento', { min: 5, max: 600 }), 'pendente', now(), de ? de.id : null, paraPg ? paraPg.id : null);
+    hub.send(toId, 'testimonial', { id, from: de ? PG.autor(de) : pub(user), toPagina: paraPg ? { id: paraPg.id, name: paraPg.name } : null });
     return { id, status: 'pendente' };
   }, { status: 201 });
+  // Depoimento no formato do app: quem mandou é a página quando foi "como página".
+  const DEP_SQL = 'SELECT t.id, t.text, t.created_at AS createdAt, t.from_pagina_id, t.to_pagina_id, f.id AS f_id, f.name AS f_name, f.photo AS f_photo, fp.name AS fp_name, fp.photo AS fp_photo, fp.cover AS fp_cover, tp.name AS tp_name, d.id AS d_id, d.name AS d_name FROM testimonials t JOIN users f ON f.id = t.from_id JOIN users d ON d.id = t.to_id LEFT JOIN paginas fp ON fp.id = t.from_pagina_id LEFT JOIN paginas tp ON tp.id = t.to_pagina_id';
+  const depView = (t) => ({
+    id: t.id, text: t.text, createdAt: t.createdAt,
+    fromId: t.from_pagina_id || t.f_id, fromName: t.from_pagina_id ? t.fp_name : t.f_name, fromPhoto: t.from_pagina_id ? t.fp_photo || t.fp_cover || null : t.f_photo, fromPagina: !!t.from_pagina_id,
+    toId: t.to_pagina_id || t.d_id, toName: t.to_pagina_id ? t.tp_name : t.d_name, toPagina: !!t.to_pagina_id,
+  });
   r.get('/testimonials/pending', ({ user }) =>
-    db.prepare(`SELECT t.id, t.text, t.created_at AS createdAt, f.id AS fromId, f.name AS fromName, f.photo AS fromPhoto FROM testimonials t JOIN users f ON f.id = t.from_id WHERE t.to_id = ? AND t.status = 'pendente' ORDER BY t.created_at DESC`).all(user.id)
+    db.prepare(`${DEP_SQL} WHERE t.to_id = ? AND t.status = 'pendente' ORDER BY t.created_at DESC`).all(user.id).map(depView)
   );
+  // Depoimentos aceitos de uma página (aparecem na página aberta).
+  r.get('/paginas/:id/depoimentos', ({ params }) => {
+    const pg = PG.byId(params.id);
+    if (!pg) fail(404, 'Página não encontrada.');
+    return db.prepare(`${DEP_SQL} WHERE t.to_pagina_id = ? AND t.status = 'aceito' ORDER BY t.created_at DESC LIMIT 30`).all(pg.id).map(depView);
+  });
   r.post('/testimonials/:id/:decision', ({ params, user }) => {
     const status = { aceitar: 'aceito', recusar: 'recusado' }[params.decision];
     if (!status) fail(404, 'Endereço não encontrado.');
@@ -297,7 +400,7 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
   });
   // Feed de depoimentos aceitos (embaixo das bolinhas de Stories).
   r.get('/testimonials/feed', () =>
-    db.prepare(`SELECT t.id, t.text, t.created_at AS createdAt, f.id AS fromId, f.name AS fromName, f.photo AS fromPhoto, d.id AS toId, d.name AS toName FROM testimonials t JOIN users f ON f.id = t.from_id JOIN users d ON d.id = t.to_id WHERE t.status = 'aceito' AND d.privacy = 'todos' ORDER BY t.created_at DESC LIMIT 40`).all()
+    db.prepare(`${DEP_SQL} WHERE t.status = 'aceito' AND (t.to_pagina_id IS NOT NULL OR d.privacy = 'todos') ORDER BY t.created_at DESC LIMIT 40`).all().map(depView)
   );
 
   // ── Mensagens (com histórico) ──

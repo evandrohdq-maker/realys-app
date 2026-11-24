@@ -55,6 +55,8 @@ import dateRoutes from './routes/date.js';
 import estacoesRoutes from './routes/estacoes.js';
 import negociosRoutes, { makeNegocios } from './routes/negocios.js';
 import gruposRoutes from './routes/grupos.js';
+import paginasRoutes from './routes/paginas.js';
+import { makeCobrancaPaginas } from './paginas.js';
 import contasTesteRoutes from './contasTeste.js';
 import { makePush } from './push.js';
 import { makeTeleGratis } from './teleGratis.js';
@@ -109,6 +111,8 @@ export function createApp(cfg) {
   // IA do Realyz (atendente das empresas e copiloto de vendas).
   deps.ia = cfg.ia || makeIA(cfg);
   deps.planos = makePlanos(db);
+  // Mensalidade das páginas (2ª em diante: R$ 14,90 por mês do saldo).
+  deps.paginasCobranca = makeCobrancaPaginas(db, wallet);
   deps.protecao = makeProtecao(deps);
   deps.inteligencia = makeInteligencia(deps);
   deps.atendente = makeAtendente(deps);
@@ -122,7 +126,7 @@ export function createApp(cfg) {
     attempts.set(key, a);
   };
   deps.clearLogin = (key) => attempts.delete(key);
-  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes, noticiasRoutes, showsRoutes, pushRoutes, empregosRoutes, logisticaRoutes, profissoesRoutes, turbinarRoutes, contasTesteRoutes, baixarRoutes, trabalhoRoutes, trabalhoAdminRoutes, planosRoutes, suporteRoutes, dateRoutes, estacoesRoutes, negociosRoutes, gruposRoutes].forEach((r) => r(router, deps));
+  [authRoutes, walletRoutes, commerceRoutes, socialRoutes, servicesRoutes, livesRoutes, mediaRoutes, adminRoutes, biometriaRoutes, videoRoutes, credentialRoutes, segurancaRoutes, documentosRoutes, fiscalRoutes, conviteRoutes, eventosRoutes, musicasRoutes, iaRoutes, noticiasRoutes, showsRoutes, pushRoutes, empregosRoutes, logisticaRoutes, profissoesRoutes, turbinarRoutes, contasTesteRoutes, baixarRoutes, trabalhoRoutes, trabalhoAdminRoutes, planosRoutes, suporteRoutes, dateRoutes, estacoesRoutes, negociosRoutes, gruposRoutes, paginasRoutes].forEach((r) => r(router, deps));
   router.get('/health', () => ({ ok: true, name: 'Realyz', time: now() }), { auth: false });
   // O que está ligado agora (o app pergunta ao abrir e mostra o aviso de compras bloqueadas).
   router.get('/status', () => ({
@@ -244,6 +248,7 @@ export function createApp(cfg) {
     try {
       deps.crm.lembretes();
       deps.negocios.reembolsos();
+      deps.paginasCobranca.varrer();
     } catch (e) {}
   }, 60000);
   if (crmTimer.unref) crmTimer.unref();

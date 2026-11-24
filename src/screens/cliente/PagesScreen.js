@@ -8,6 +8,11 @@ import { useStore } from '../../store';
 import { colors, soft, brl } from '../../theme';
 import { Screen, Title, Card, Row, Input, Button, Photo } from '../../components/ui';
 import { PAGE_CATEGORIES, categoryOfPage, signatureOf, myPages, canCreatePage, MAX_PAGES, PAGE_RULES, pageNameProblem, slug, pagePrice, nextIsWorkPage } from '../../userPages';
+import { conectado } from '../../serverShop';
+import { usePublicarComo, buscarPaginas, paginasSeguidas, criarPagina, abrirPagina, full } from '../../serverPaginas';
+
+// Página do servidor no formato do cartão (assinatura, capa, seguidores).
+const doServidor = (p) => ({ id: p.id, server: true, name: p.name, about: p.about, category: p.category, anon: p.anon, ownerName: p.owner ? p.owner.name : null, cover: full(p.cover || p.photo), followers: p.seguidores || 0 });
 
 const SEGS = [
   ['descobrir', 'Descobrir'],
@@ -38,12 +43,34 @@ function NewPage({ onDone }) {
   const [about, setAbout] = useState('');
   const [category, setCategory] = useState('comunidade');
   const [anon, setAnon] = useState(false);
-  const price = pagePrice(state);
-  const workPage = nextIsWorkPage(state);
+  const real = conectado(state);
+  // Conta real: o preço vem das páginas que a conta já tem no servidor (1ª grátis, depois R$ 14,90/mês).
+  const { paginas: jaTenho } = usePublicarComo(real);
+  const price = real ? (jaTenho.length >= 1 ? 14.9 : 0) : pagePrice(state);
+  const workPage = real ? false : nextIsWorkPage(state);
+  const [criando, setCriando] = useState(false);
   const create = () => {
-    const problem = pageNameProblem(name, anon, state);
+    const problem = real ? (name.trim().length < 3 ? 'O nome da página precisa ter pelo menos 3 letras.' : null) : pageNameProblem(name, anon, state);
     if (problem) return Alert.alert('Confira o nome', problem);
     if (!about.trim()) return Alert.alert('Conte do que é a página', 'Escreva uma frase sobre o assunto da página.');
+    // Conta real: a página vai para o servidor (todos veem, seguem e mandam depoimento).
+    if (real) {
+      const criar = () => {
+        setCriando(true);
+        criarPagina({ name: name.trim(), about: about.trim(), category, anon })
+          .then((pg) => {
+            onDone();
+            abrirPagina(pg.id);
+          })
+          .catch((e) => Alert.alert('Não foi criada', e.message))
+          .finally(() => setCriando(false));
+      };
+      if (!price) return criar();
+      return Alert.alert('Criar página', `Sua primeira página já é gratuita. Esta custa ${brl(price)} por mês, do seu saldo Realyz (o 1º mês é cobrado agora).`, [
+        { text: 'Agora não', style: 'cancel' },
+        { text: `Criar por ${brl(price)}`, onPress: criar },
+      ]);
+    }
     const go = () => {
       dispatch({ type: 'PAGE_CREATE', page: { name: name.trim(), handle: slug(name), about: about.trim(), category, anon: workPage ? false : anon, cover: `https://picsum.photos/seed/realys-pg-${slug(name)}/800/400` } });
       onDone();
@@ -93,7 +120,7 @@ function NewPage({ onDone }) {
         ))}
       </View>
       <Text style={[st.small, { marginTop: 10 }]}>{workPage ? 'Incluída no seu plano Destaque Realyz: é a sua página de trabalhos, ligada ao seu perfil profissional.' : !price ? 'Sua primeira página é gratuita. Da segunda em diante, cada página custa R$ 14,90 por mês.' : 'Sua primeira página já é gratuita. Esta é cobrada por mês.'}</Text>
-      <Button title={price ? `Criar página · ${brl(price)} por mês` : workPage ? 'Criar minha página de trabalhos' : 'Criar minha página grátis'} onPress={create} style={{ marginTop: 12 }} />
+      <Button title={criando ? 'Criando…' : price ? `Criar página · ${brl(price)} por mês` : workPage ? 'Criar minha página de trabalhos' : 'Criar minha página grátis'} onPress={create} disabled={criando} style={{ marginTop: 12 }} />
       <Button title="Cancelar" variant="dark" small onPress={onDone} style={{ marginTop: 8 }} />
     </Card>
   );
@@ -117,13 +144,33 @@ export default function PagesScreen({ explore }) {
     }
   }, [explore && explore.at]);
 
+  // Conta real: páginas do servidor. Sem conta: as de exemplo deste aparelho.
+  const real = conectado(state);
+  const { paginas: minhasSrv } = usePublicarComo(real);
+  const [srv, setSrv] = useState([]);
+  useEffect(() => {
+    if (!real || seg === 'minhas') return undefined;
+    let vivo = true;
+    const t = setTimeout(() => {
+      (seg === 'seguindo' ? paginasSeguidas() : buscarPaginas(q, cat))
+        .then((l) => vivo && setSrv((l || []).filter((p) => seg === 'seguindo' || !p.mine).map(doServidor)))
+        .catch(() => vivo && setSrv([]));
+    }, q ? 350 : 0);
+    return () => {
+      vivo = false;
+      clearTimeout(t);
+    };
+  }, [real, seg, q, cat]);
   const all = state.userPages || [];
   const term = slug(q);
-  const others = all.filter((p) => p.ownerId !== 'me');
-  const list =
-    seg === 'minhas' ? myPages(state)
+  const others = real ? srv : all.filter((p) => p.ownerId !== 'me');
+  const list = real
+    ? seg === 'minhas' ? minhasSrv.map(doServidor) : srv
+    : seg === 'minhas' ? myPages(state)
     : seg === 'seguindo' ? all.filter((p) => (state.followingPages || {})[p.id])
     : others.filter((p) => (!cat || p.category === cat) && (!term || slug(p.name + p.about).includes(term))).sort((a, b) => b.followers - a.followers);
+  const abrir = (pg) => (pg.server ? abrirPagina(pg.id) : dispatch({ type: 'OPEN_USER_PAGE', id: pg.id }));
+  const quantasMinhas = real ? minhasSrv.length : myPages(state).length;
 
   return (
     <Screen>
@@ -143,7 +190,7 @@ export default function PagesScreen({ explore }) {
             <TouchableOpacity onPress={() => setCat(null)} style={[st.chip, !cat && st.chipOn]}>
               <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, !cat && { color: '#fff' }]}>Todas</Text>
             </TouchableOpacity>
-            {PAGE_CATEGORIES.filter((c) => others.some((p) => p.category === c.key)).map((c) => (
+            {PAGE_CATEGORIES.filter((c) => real || others.some((p) => p.category === c.key)).map((c) => (
               <TouchableOpacity key={c.key} onPress={() => setCat(cat === c.key ? null : c.key)} style={[st.chip, cat === c.key && st.chipOn]}>
                 <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[st.chipText, cat === c.key && { color: '#fff' }]}>{c.label}</Text>
               </TouchableOpacity>
@@ -157,11 +204,11 @@ export default function PagesScreen({ explore }) {
           <NewPage onDone={() => setCreating(false)} />
         ) : (
           <Card>
-            <Text style={st.h}>Suas páginas ({myPages(state).length} de {MAX_PAGES})</Text>
+            <Text style={st.h}>Suas páginas ({quantasMinhas} de {MAX_PAGES})</Text>
             <Text style={st.small}>Toda página fica dentro da sua conta. Você escolhe se ela sai assinada com seu nome verificado ou anônima.</Text>
             <Button
               title="Criar página"
-              onPress={() => (canCreatePage(state) ? setCreating(true) : Alert.alert('Limite de páginas', `Cada usuário pode ter até ${MAX_PAGES} páginas.`))}
+              onPress={() => ((real ? quantasMinhas < MAX_PAGES : canCreatePage(state)) ? setCreating(true) : Alert.alert('Limite de páginas', `Cada usuário pode ter até ${MAX_PAGES} páginas.`))}
               style={{ marginTop: 10 }}
             />
           </Card>
@@ -170,7 +217,7 @@ export default function PagesScreen({ explore }) {
 
       <View style={{ marginTop: 12 }}>
         {list.map((pg) => (
-          <PageCard key={pg.id} pg={pg} onPress={() => dispatch({ type: 'OPEN_USER_PAGE', id: pg.id })} />
+          <PageCard key={pg.id} pg={pg} onPress={() => abrir(pg)} />
         ))}
         {!list.length && !creating ? (
           <Text style={[st.small, { textAlign: 'center', marginTop: 20 }]}>

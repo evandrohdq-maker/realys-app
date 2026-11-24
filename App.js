@@ -47,6 +47,7 @@ import { RideWatcher } from './src/rideRules';
 import DocsCenter from './src/components/DocsCenter';
 import { PublicOrgModal } from './src/components/PublicOrg';
 import UserPageModal from './src/components/UserPageModal';
+import ServerPageModal from './src/components/ServerPageModal';
 import PagesScreen from './src/screens/cliente/PagesScreen';
 import { VideoCallHost } from './src/components/LiveVideo';
 import TermoReaceite from './src/components/TermoReaceite';
@@ -696,7 +697,8 @@ function Shell({ inviteTick }) {
               <Ionicons name="people-circle-outline" size={16} color={colors.text} />
               <Text numberOfLines={1} style={styles.rolePillText}>Community</Text>
             </TouchableOpacity>
-          ) : cameFromEmpresa && state.user.roles.includes('empresa') ? (
+          ) : (cameFromEmpresa || state.activeRole === 'prestador') && state.user.roles.includes('empresa') ? (
+            /* Empresa que também presta serviço: do painel de prestador volta para a empresa. */
             <TouchableOpacity onPress={() => { setCameFromEmpresa(false); switchRole('empresa'); }} style={styles.rolePill} accessibilityLabel="Voltar para a empresa">
               <Ionicons name="business-outline" size={15} color={colors.text} />
               <Text numberOfLines={1} style={styles.rolePillText}>Empresa</Text>
@@ -855,6 +857,7 @@ function Shell({ inviteTick }) {
       <DocsCenter />
       <PublicOrgModal />
       <UserPageModal />
+      <ServerPageModal />
       <VideoCallHost />
       <TermoReaceite />
       <LotusSOS />

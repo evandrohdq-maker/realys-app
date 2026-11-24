@@ -5,7 +5,12 @@ import { openServerProfile } from '../../../components/ServerProfile';
 import { mediaUrl } from '../../../api';
 import { abrirDestacar } from '../../../components/Destacar';
 import ServerInbox from '../../../components/ServerInbox';
-import { useServerFeed, curtir, comentarios, comentar } from '../../../serverSocial';
+import { useServerFeed, curtir, comentarios, comentar, contarComentario, seguirPaginaDoPost } from '../../../serverSocial';
+import CommentsSheet from '../../../components/CommentsSheet';
+import { ComoSheet } from '../../../components/PublicarComo';
+import { SeguirBotao } from '../../../components/ServerPageModal';
+import { MusicSticker, StoryMusicPlayer } from '../../../components/StoryMusic';
+import { abrirPagina, comoPaginaId, usePublicarComo } from '../../../serverPaginas';
 import { CampanhaCard, OngPage } from '../OngsScreen';
 import { campanhaDoFeed, pedeDoacao } from '../../../ongs';
 import { useServerFriends, addFriend, removeFriend } from '../../../serverFriends';
@@ -777,6 +782,12 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
   const locais = conectado(state) ? (state.communityPosts || []).filter((p) => !p.serverId && (p.mine || p.author === meuNome)) : state.communityPosts;
   const posts = [...srv.posts.filter((p) => !meusNoServidor.has(p.serverId)), ...locais];
   const [srvCmts, setSrvCmts] = useState({}); // comentários carregados do servidor: { postId: [...] }
+  // Post real: comentários sobem numa folha por baixo (modelo dos posts do Instagram).
+  const [folhaCmts, setFolhaCmts] = useState(null);
+  const [curtirComo, setCurtirComo] = useState(null); // segurou o coração: escolher quem curte
+  const [somPost, setSomPost] = useState(null); // post com a música tocando
+  usePublicarComo(conectado(state)); // carrega minhas páginas para o "Publicar como"
+  const curtidoAgora = (p) => (comoPaginaId() ? (p.likedPaginas || []).includes(comoPaginaId()) : p.liked);
   const [liked, setLiked] = useState({});
   const [cmts, setCmts] = useState({}); // comentários feitos aqui: { postId: [texto] }
   const [openCmt, setOpenCmt] = useState(null);
@@ -811,6 +822,7 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
   };
   // Abrir os comentários de um post real carrega os de todo mundo.
   const abrirCmts = (p) => {
+    if (p.server) return setFolhaCmts(p);
     setOpenCmt(openCmt === p.id ? null : p.id);
     setCmtText('');
     if (p.server && openCmt !== p.id) comentarios(p.serverId).then((l) => setSrvCmts((x) => ({ ...x, [p.id]: l }))).catch(() => {});
@@ -926,7 +938,7 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
                   activeOpacity={0.7}
                   onPress={() => {
                     dispatch({ type: 'POSTS_SEEN', ids: [it.p.id] });
-                    it.p.server ? openServerProfile(it.p.authorId) : it.p.station ? openStation(it.p.station.kind, it.p.station.id) : openAuthor(it.p.author);
+                    it.p.pagina ? abrirPagina(it.p.pagina.id) : it.p.server ? openServerProfile(it.p.authorId) : it.p.station ? openStation(it.p.station.kind, it.p.station.id) : openAuthor(it.p.author);
                   }}
                   accessibilityLabel={`Ver perfil de ${it.p.author}`}
                 >
@@ -942,11 +954,19 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
                     </View>
                   )}
                   <View style={{ flex: 1, marginLeft: 10 }}>
-                    <Text style={{ color: colors.text, fontWeight: '700' }}>
+                    <Text style={{ color: colors.text, fontWeight: '700' }} numberOfLines={1}>
                       {it.p.author} <Ionicons name="shield-checkmark" size={12} color={colors.primary} />
                     </Text>
-                    <Text style={{ color: colors.muted, fontSize: 11 }}>{it.p.time}</Text>
+                    {it.p.musica ? (
+                      <Text style={{ color: colors.muted, fontSize: 11 }} numberOfLines={1}><Ionicons name="musical-notes" size={10} color={colors.muted} /> {it.p.musica.artist} · {it.p.musica.title}</Text>
+                    ) : (
+                      <Text style={{ color: colors.muted, fontSize: 11 }}>{it.p.pagina ? 'Página · ' : ''}{it.p.time}</Text>
+                    )}
                   </View>
+                  {/* Post de página: botão Seguir / Seguindo no topo, como no Instagram. */}
+                  {it.p.pagina && !it.p.minhaPagina ? (
+                    <SeguirBotao seguindo={it.p.seguindo} onPress={() => seguirPaginaDoPost(it.p.pagina.id).catch((e) => Alert.alert('Seguir', e.message))} />
+                  ) : null}
                 </TouchableOpacity>
                 {it.p.flagged ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF4DC', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 5, marginTop: 10 }}>
@@ -967,10 +987,27 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
                   </TouchableOpacity>
                 ) : null}
                 {it.p.station ? <StationPostPlayer station={it.p.station} /> : null}
+                {/* Música do post (página ou pessoa): toque para ouvir o trecho escolhido. */}
+                {it.p.musica ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                    <MusicSticker music={it.p.musica} onPress={() => setSomPost(somPost === it.p.id ? null : it.p.id)} />
+                    <TouchableOpacity onPress={() => setSomPost(somPost === it.p.id ? null : it.p.id)} style={{ marginLeft: 8 }} accessibilityLabel={somPost === it.p.id ? 'Pausar a música' : 'Tocar a música'}>
+                      <Ionicons name={somPost === it.p.id ? 'volume-high' : 'volume-mute'} size={22} color={colors.text} />
+                    </TouchableOpacity>
+                    {somPost === it.p.id ? <StoryMusicPlayer music={it.p.musica} /> : null}
+                  </View>
+                ) : null}
                 {/* Ações no estilo clean: ícones com números, salvar no mural à direita. */}
                 <View style={styles.actRow}>
-                  <TouchableOpacity style={styles.postAct} onPress={() => (it.p.server ? curtir(it.p.serverId).catch((e) => Alert.alert('Curtir', e.message)) : setLiked({ ...liked, [it.p.id]: !liked[it.p.id] }))} hitSlop={6} accessibilityLabel="Curtir">
-                    <Ionicons name={(it.p.server ? it.p.liked : liked[it.p.id]) ? 'heart' : 'heart-outline'} size={22} color={(it.p.server ? it.p.liked : liked[it.p.id]) ? '#E0245E' : colors.text} />
+                  <TouchableOpacity
+                    style={styles.postAct}
+                    onPress={() => (it.p.server ? curtir(it.p.serverId).catch((e) => Alert.alert('Curtir', e.message)) : setLiked({ ...liked, [it.p.id]: !liked[it.p.id] }))}
+                    onLongPress={it.p.server ? () => setCurtirComo(it.p) : undefined}
+                    delayLongPress={350}
+                    hitSlop={6}
+                    accessibilityLabel="Curtir. Segure para escolher como curtir"
+                  >
+                    <Ionicons name={(it.p.server ? curtidoAgora(it.p) : liked[it.p.id]) ? 'heart' : 'heart-outline'} size={22} color={(it.p.server ? curtidoAgora(it.p) : liked[it.p.id]) ? '#E0245E' : colors.text} />
                     <Text numberOfLines={1} style={styles.postActText}>{it.p.server ? it.p.likes : it.p.likes + (liked[it.p.id] ? 1 : 0)}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.postAct} onPress={() => abrirCmts(it.p)} hitSlop={6} accessibilityLabel="Comentar">
@@ -1047,6 +1084,14 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
               </View>
             )
           )}
+          <CommentsSheet
+            visible={!!folhaCmts}
+            postId={folhaCmts && folhaCmts.serverId}
+            onClose={() => setFolhaCmts(null)}
+            onCount={(d) => folhaCmts && contarComentario(folhaCmts.serverId, d)}
+            openPerson={(id) => openServerProfile(id)}
+          />
+          <ComoSheet visible={!!curtirComo} titulo="Curtir como" onClose={() => setCurtirComo(null)} onPick={(id) => curtirComo && curtir(curtirComo.serverId, id || null).catch((e) => Alert.alert('Curtir', e.message))} />
         </View>
       ) : null}
 

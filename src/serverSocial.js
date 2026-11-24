@@ -27,6 +27,12 @@ export const postLocal = (p) => ({
   video: p.media && isVideo(p.media, p.mediaType) ? full(p.media) : null,
   likes: p.likes || 0,
   liked: !!p.liked,
+  // Curtidas das minhas páginas ("curtir como página") e post de página (botão Seguir no topo).
+  likedPaginas: p.likedPaginas || [],
+  pagina: p.pagina || null,
+  seguindo: !!p.seguindo,
+  minhaPagina: !!p.minhaPagina,
+  musica: p.musica ? { ...p.musica, url: full(p.musica.url), cover: full(p.musica.cover) } : null,
   comments: p.comments || 0,
   time: quando(p.createdAt),
   at: p.createdAt,
@@ -128,11 +134,30 @@ export async function publicar(kind, item) {
   return p.id;
 }
 
-export const curtir = (serverId) => api('POST', `/posts/${serverId}/curtir`).then((r) => {
-  feed = feed.map((p) => (p.serverId === serverId ? { ...p, liked: r.liked, likes: r.likes } : p));
+// pid: undefined = quem estou agora ("Publicar como"); null = eu; id = essa página minha.
+export const curtir = (serverId, pid) => {
+  const { comoPaginaId } = require('./serverPaginas');
+  const como = (pid === undefined ? comoPaginaId() : pid) || undefined;
+  return api('POST', `/posts/${serverId}/curtir`, { comoPagina: como }).then((r) => {
+    feed = feed.map((p) => (p.serverId === serverId ? { ...p, liked: r.liked, likedPaginas: r.likedPaginas || [], likes: r.likes } : p));
+    emit();
+    return r;
+  });
+};
+// Comentário novo ou apagado pela folha de comentários: atualiza o número no feed.
+export function contarComentario(serverId, d) {
+  feed = feed.map((p) => (p.serverId === serverId ? { ...p, comments: Math.max(0, (p.comments || 0) + d) } : p));
   emit();
-  return r;
-});
+}
+// Seguir / deixar de seguir a página de um post do feed (todos os posts daquela página mudam juntos).
+export function seguirPaginaDoPost(paginaId) {
+  const { seguirPagina } = require('./serverPaginas');
+  return seguirPagina(paginaId).then((r) => {
+    feed = feed.map((p) => (p.pagina && p.pagina.id === paginaId ? { ...p, seguindo: r.seguindo } : p));
+    emit();
+    return r;
+  });
+}
 export const comentarios = (serverId) => api('GET', `/posts/${serverId}/comentarios`);
 export const comentar = (serverId, text) => api('POST', `/posts/${serverId}/comentarios`, { text }).then((c) => {
   feed = feed.map((p) => (p.serverId === serverId ? { ...p, comments: p.comments + 1 } : p));

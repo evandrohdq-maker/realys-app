@@ -14,7 +14,9 @@ import { Photo, Empty } from './ui';
 import { members, memberById, searchMembers } from '../people';
 import { conectado } from '../serverShop';
 import { useServerFriends } from '../serverFriends';
-import { sendTestimonial, refreshTestimonials } from '../serverTestimonials';
+import { refreshTestimonials } from '../serverTestimonials';
+import { mandarDepoimento } from '../serverPaginas';
+import { ComoChip } from './PublicarComo';
 import { listenOnce } from './Search';
 import { analyzeTestimonial, galleryOf } from '../testimonialsData';
 import { GamerCard } from './GamerProfile';
@@ -224,7 +226,8 @@ export function TestimonialComposer({ visible, onClose, toId }) {
     if (real) {
       // Vai para o servidor: fica pendente até o amigo aceitar (ele recebe o aviso na hora).
       setSending(true);
-      sendTestimonial(to, text.trim())
+      // "Publicar como": vai com o meu nome ou com o da página que eu escolhi.
+      mandarDepoimento({ toId: to, text: text.trim() })
         .then(() => {
           setSent(target);
           refreshTestimonials();
@@ -268,6 +271,12 @@ export function TestimonialComposer({ visible, onClose, toId }) {
             </View>
           ) : (
             <>
+              {real ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <Text style={styles.label}>Publicar como</Text>
+                  <ComoChip size={30} mostrarNome />
+                </View>
+              ) : null}
               <Text style={styles.label}>Para quem?</Text>
               {target ? (
                 <View style={styles.toRow}>

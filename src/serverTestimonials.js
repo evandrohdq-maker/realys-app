@@ -22,6 +22,9 @@ const view = (t) => ({
   fromPhoto: full(t.fromPhoto),
   toId: t.toId || null,
   toName: t.toName || null,
+  // Depoimento de página ou para página ("Publicar como"): o toque abre a página, não um perfil.
+  fromPagina: !!t.fromPagina,
+  toPagina: !!t.toPagina,
   at: t.createdAt,
   time: quando(t.createdAt),
 });

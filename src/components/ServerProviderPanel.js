@@ -16,6 +16,7 @@ import FaceCheck from './FaceCheck';
 import { profConfig, buscarProfissoes, profissaoPorKey, infoProfissao } from '../providerSegments';
 import ProfissaoBusca, { FuncoesTags, ProfissaoInfo, MeiGuia } from './ProfissaoBusca';
 import { conectado, carregarCarteira } from '../serverShop';
+import { rolesDoServidor } from '../serverAuth';
 
 const NEXT = { Solicitado: 'Aceito', Aceito: 'A caminho', 'A caminho': 'Chegou', Chegou: 'Concluído' };
 const LABEL = { Aceito: 'Aceitar', 'A caminho': 'Estou a caminho', Chegou: 'Cheguei', Concluído: 'Serviço concluído' };
@@ -90,6 +91,11 @@ export default function ServerProviderPanel() {
       });
       setPerfil(p);
       setEditing(false);
+      // Primeiro cadastro (ex.: empresa que passou a prestar serviço): o perfil de prestador entra no
+      // botão de troca na hora, sem sair da conta.
+      api('GET', '/me')
+        .then((me) => dispatch({ type: 'SET_USER_ROLES', roles: rolesDoServidor(me.user), trabalho: me.user.trabalho || [] }))
+        .catch(() => {});
     } catch (e) {
       Alert.alert('Cadastro não salvo', e.message);
     } finally {

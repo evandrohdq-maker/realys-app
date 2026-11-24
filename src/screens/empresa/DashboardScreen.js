@@ -9,6 +9,7 @@ import { Screen, Title, Card, Row, Stat, BarChart, Section, ProductThumb, Badge,
 import { ALL_ADS, shortNum } from '../../adsData';
 import { MY_COMPANY_ID } from '../../data';
 import PlanoLojaCard from '../../components/PlanoLojaCard';
+import PrestarServicosCard from '../../components/PrestarServicosCard';
 import ServerShopOrders from '../../components/ServerShopOrders';
 import { CargasLoja, OfertasFornecedor } from '../../components/Logistica';
 import ServerEventsPanel from '../../components/ServerEventsPanel';
@@ -45,6 +46,8 @@ export default function DashboardScreen({ goTo, navigate }) {
       />
 
       <PlanoLojaCard />
+      {/* Empresa que também presta serviço: o cadastro de prestador na mesma conta. */}
+      <PrestarServicosCard />
 
       {/* Pedidos de clientes de verdade, pelo servidor do Realyz. */}
       <ServerShopOrders />
