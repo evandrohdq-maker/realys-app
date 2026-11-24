@@ -182,6 +182,23 @@ export default function CartSheet({ onOrders }) {
   );
 }
 
+// Pedidos no topo (ao lado de mensagens): o carrinho sempre à mão, com o número de itens.
+// Tocar abre Pedidos, com o carrinho em destaque (a aba saiu da barra de baixo).
+export function PedidosIcon({ style, onPress, active }) {
+  const { state } = useStore();
+  const count = state.cart.reduce((n, c) => n + c.qty, 0) + musicCartCount(state);
+  return (
+    <TouchableOpacity onPress={onPress} style={style} accessibilityLabel={count ? `Pedidos e carrinho, ${count} itens no carrinho` : 'Pedidos e carrinho'}>
+      <Ionicons name={active ? 'bag-handle' : 'bag-handle-outline'} size={21} color={active ? colors.primary : colors.text} />
+      {count ? (
+        <View style={styles.badge}>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={styles.badgeText}>{count > 9 ? '9+' : count}</Text>
+        </View>
+      ) : null}
+    </TouchableOpacity>
+  );
+}
+
 // Ícone discreto do topo: só aparece quando há itens no carrinho.
 export function CartIcon({ style }) {
   const { state, dispatch } = useStore();

@@ -83,7 +83,7 @@ import { UserProfileModal, PeopleSearchModal } from './src/components/People';
 import { listenInviteLinks, savePendingInvite, takePendingInvite, parseInviteUrl, resolveInvite } from './src/callInvite';
 import { CompanyProfileModal } from './src/components/CompanyProfile';
 import GiftSheet from './src/components/GiftSheet';
-import CartSheet, { CartIcon } from './src/components/CartSheet';
+import CartSheet, { CartIcon, PedidosIcon } from './src/components/CartSheet';
 import { PixPayHost } from './src/components/PixPay';
 import RateSheet, { LoyaltyNotifier } from './src/components/RateSheet';
 import VenueSheet, { VenuePill } from './src/components/VenueSheet';
@@ -153,7 +153,8 @@ const TABS = {
     { key: 'bens', label: 'Negócios', icon: 'business-outline', Comp: NegociosScreen },
     { key: 'food', label: 'Food', icon: 'restaurant-outline', Comp: FoodScreen },
     { key: 'servicos', label: 'Serviços', icon: 'construct-outline', Comp: ServicesScreen },
-    { key: 'pedidos', label: 'Pedidos', icon: 'receipt-outline', Comp: OrdersScreen },
+    // Pedidos: sem botão na barra de baixo. Abre pelo carrinho do topo (ao lado de mensagens) e pela Lotus.
+    { key: 'pedidos', label: 'Pedidos', icon: 'receipt-outline', Comp: OrdersScreen, hidden: true },
     { key: 'perfil', label: 'Perfil', icon: 'person-circle-outline', Comp: ProfileScreen },
     // Abertas pelo menu ⋮ (e pelo SOS da aba Perfil): não ocupam lugar na barra de baixo.
     // Reels: sem botão na barra. Abre arrastando a página inicial para a direita (como no Instagram)
@@ -705,8 +706,8 @@ function Shell({ inviteTick }) {
               <Text numberOfLines={1} style={styles.rolePillText}>Empresa</Text>
             </TouchableOpacity>
           ) : null}
-          {/* Carrinho discreto: só aparece quando há itens */}
-          <CartIcon style={styles.iconBtn} />
+          {/* Sem a aba Pedidos (perfis de trabalho): o carrinho discreto, só quando há itens. */}
+          {canOpen('pedidos') ? null : <CartIcon style={styles.iconBtn} />}
           <TouchableOpacity onPress={() => setSearching(true)} style={styles.iconBtn} accessibilityLabel="Buscar pessoas na rede Realyz">
             <Ionicons name="search-outline" size={21} color={colors.text} />
           </TouchableOpacity>
@@ -722,6 +723,8 @@ function Shell({ inviteTick }) {
                 <Ionicons name="chatbubble-ellipses-outline" size={21} color={colors.text} />
                 {state.conversations.some((c) => c.unread) ? <View style={styles.headDot} /> : null}
               </TouchableOpacity>
+              {/* Pedidos e carrinho, ao lado de mensagens (saiu da barra de baixo). */}
+              {canOpen('pedidos') ? <PedidosIcon style={styles.iconBtn} active={current.key === 'pedidos'} onPress={() => pick({ tab: 'pedidos' })} /> : null}
             </>
           ) : null}
           {/* Fotinha do perfil: toque abre o Perfil social; no Perfil, tocar de novo abre o PAINEL do perfil de trabalho
