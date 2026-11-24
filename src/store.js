@@ -2541,6 +2541,16 @@ export function StoreProvider({ children }) {
 
 export const useStore = () => useContext(StoreContext);
 
+// Aba guardada atrás de outra (App.js): enxerga o estado de quando saiu da frente e não redesenha a
+// cada mudança do app. Assim, abas abertas em memória não deixam o app mais pesado. Voltou para a
+// frente: pega o estado atual na hora.
+export function StoreCongelada({ ativa, children }) {
+  const atual = useContext(StoreContext);
+  const visto = useRef(atual);
+  if (ativa) visto.current = atual;
+  return <StoreContext.Provider value={ativa ? atual : visto.current}>{children}</StoreContext.Provider>;
+}
+
 // Seletores úteis
 export const myProducts = (state) => state.products.filter((p) => p.storeId === D.MY_COMPANY_ID);
 export const storeOf = (state, id) => state.stores.find((s) => s.id === id);

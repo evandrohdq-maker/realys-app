@@ -1,5 +1,5 @@
 import './src/pipModal'; // janelinha: só o player por cima (antes de qualquer tela)
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, TouchableOpacity, StyleSheet, Platform, Alert, BackHandler, ToastAndroid, ActivityIndicator, Image } from 'react-native';
 import { Text, setTextBoost, BIG_TEXT_KEY } from './src/responsive';
@@ -8,7 +8,7 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { unseenNotifs } from './src/components/Notifications';
-import { StoreProvider, useStore } from './src/store';
+import { StoreProvider, useStore, StoreCongelada } from './src/store';
 import { colors, brl, ROLE_LABELS, soft } from './src/theme';
 
 import LoginScreen from './src/screens/LoginScreen';
@@ -78,7 +78,7 @@ import LotusCartao from './src/components/LotusCartao';
 import { openAction, findProfile, openReply } from './src/voiceIntents';
 import { stripWake } from './src/wakeMatch';
 import { speakSoft, prepareVoice } from './src/voice';
-import { loadModel } from './src/lm/lotusLM';
+import { loadModelAos } from './src/lm/lotusLM';
 import { UserProfileModal, PeopleSearchModal } from './src/components/People';
 import { listenInviteLinks, savePendingInvite, takePendingInvite, parseInviteUrl, resolveInvite } from './src/callInvite';
 import { CompanyProfileModal } from './src/components/CompanyProfile';
@@ -140,6 +140,20 @@ import { KeyboardLift } from './src/keyboard';
 import { TelaAtivaProvider } from './src/ritmo';
 
 // Cada perfil enxerga abas diferentes dentro do MESMO app.
+// Uma aba: na frente, desenha normalmente; guardada atrás, fica parada (não redesenha com as mudanças
+// do app, não consulta o servidor e pausa vídeo).
+const AbaGuardada = React.memo(
+  function AbaGuardada({ ativa, Comp, ...props }) {
+    return (
+      <StoreCongelada ativa={ativa}>
+        <TelaAtivaProvider ativa={ativa}>
+          <Comp {...props} />
+        </TelaAtivaProvider>
+      </StoreCongelada>
+    );
+  },
+  (antes, depois) => !antes.ativa && !depois.ativa && antes.Comp === depois.Comp
+);
 const NAO_GUARDAR = ['reels', 'stories', 'arena', 'salas', 'encontros', 'radios', 'socorro', 'prestar'];
 const TABS = {
   admin: [
@@ -506,20 +520,13 @@ function Shell({ inviteTick }) {
   // ou, se ninguém abrir, depois de uns segundos com o app parado.
   useEffect(() => {
     prepareVoice();
-    const t = setTimeout(() => {
-      try {
-        loadModel();
-      } catch (e) {}
-    }, 8000);
+    // Em pedacinhos (src/lm/lotusLM.js): a tela continua respondendo ao toque enquanto monta.
+    const t = setTimeout(() => loadModelAos(), 8000);
     return () => clearTimeout(t);
   }, []);
   useEffect(() => {
     if (!voice) return;
-    const t = setTimeout(() => {
-      try {
-        loadModel();
-      } catch (e) {}
-    }, 250);
+    const t = setTimeout(() => loadModelAos(), 250);
     return () => clearTimeout(t);
   }, [voice]);
 
@@ -546,6 +553,7 @@ function Shell({ inviteTick }) {
     .map((k) => tabs.find((t) => t.key === k.slice(state.activeRole.length + 1)))
     .filter((t) => t && canOpenTab(state, t.key))
     .map((t) => ({ key: t.key, Comp: t.Comp }));
+  const abrirVoz = useCallback(() => setVoice(true), []);
   const telas = [...guardadas, { key: current.key, Comp }];
   // Cada aba guardada fica com o último "explore" que recebeu (pedido de navegação novo vai só para
   // a aba da frente; as escondidas não reagem a ele).
@@ -800,9 +808,7 @@ function Shell({ inviteTick }) {
         <TelaSegura nome={state.activeRole + ':' + current.key} onInicio={backHome}>
           {telas.map((t) => (
             <View key={t.key} style={t.key === current.key ? { flex: 1 } : { display: 'none' }}>
-              <TelaAtivaProvider ativa={t.key === current.key}>
-                <t.Comp goTo={setTab} openVoice={() => setVoice(true)} explore={t.key === current.key ? explore : exploreDe.current[t.key]} openArea={openArea} navigate={pick} onTop={setCommTop} />
-              </TelaAtivaProvider>
+              <AbaGuardada ativa={t.key === current.key || (!!keepTab && t.key === keepTab.key)} Comp={t.Comp} goTo={setTab} openVoice={abrirVoz} explore={t.key === current.key ? explore : exploreDe.current[t.key]} openArea={openArea} navigate={pick} onTop={setCommTop} />
             </View>
           ))}
         </TelaSegura>

@@ -27,7 +27,75 @@ function decode(b64) {
 const strip = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 let M = null; // { exact: Map, plain: Map, vecs: Int8Array }
-// Carrega o modelo uma vez (leva uma fração de segundo; o app chama isso logo depois de abrir).
+// Montagem em pedacinhos, sem travar a tela: a cada ~10 ms de trabalho devolve a vez para o app
+// (toques, rolagem, animações) e continua logo depois. Antes isto rodava de uma vez só e, em celular
+// mais simples, deixava a tela sem responder a toque por vários segundos logo depois de abrir o app.
+const FATIA_MS = 10;
+const pausa = () => new Promise((r) => setTimeout(r, 0));
+function decodeTo(b64, len, out, lut, from, to) {
+  let o = (from / 4) * 3;
+  for (let i = from; i < to && i < len; i += 4) {
+    const a = lut[b64.charCodeAt(i)], b = lut[b64.charCodeAt(i + 1)];
+    const c = i + 2 < len ? lut[b64.charCodeAt(i + 2)] : 0, d = i + 3 < len ? lut[b64.charCodeAt(i + 3)] : 0;
+    const n = (a << 18) | (b << 12) | (c << 6) | d;
+    if (o < out.length) out[o++] = (n >> 16) & 255;
+    if (o < out.length) out[o++] = (n >> 8) & 255;
+    if (o < out.length) out[o++] = n & 255;
+  }
+}
+async function decodeAos(b64) {
+  const lut = new Uint8Array(128);
+  for (let i = 0; i < 64; i++) lut[B64.charCodeAt(i)] = i;
+  let len = b64.length;
+  while (b64[len - 1] === '=') len--;
+  const out = new Uint8Array(Math.floor((len * 3) / 4));
+  const PASSO = 4 * 16384;
+  let t = Date.now();
+  for (let i = 0; i < len; i += PASSO) {
+    decodeTo(b64, len, out, lut, i, i + PASSO);
+    if (Date.now() - t > FATIA_MS) {
+      await pausa();
+      if (M) return null;
+      t = Date.now();
+    }
+  }
+  return out;
+}
+let montando = null;
+export function loadModelAos() {
+  if (M) return Promise.resolve(M);
+  if (montando) return montando;
+  montando = (async () => {
+    await pausa();
+    const rowsBytes = await decodeAos(WORD_ROWS);
+    if (M) return M;
+    const vb = await decodeAos(VECTORS);
+    if (M) return M;
+    const rows = new Uint16Array(rowsBytes.buffer, rowsBytes.byteOffset, rowsBytes.length / 2);
+    const vecs = new Int8Array(vb.buffer, vb.byteOffset, vb.length);
+    const exact = new Map();
+    const plain = new Map();
+    const list = WORDS.split('\n');
+    await pausa();
+    let t = Date.now();
+    for (let i = 0; i < list.length; i++) {
+      exact.set(list[i], rows[i]);
+      const p = strip(list[i]);
+      if (!plain.has(p)) plain.set(p, rows[i]);
+      if ((i & 255) === 0 && Date.now() - t > FATIA_MS) {
+        await pausa();
+        if (M) return M;
+        t = Date.now();
+      }
+    }
+    if (!M) M = { exact, plain, vecs };
+    return M;
+  })().catch(() => null);
+  return montando;
+}
+
+// Carrega o modelo de uma vez (só quando a Lotus precisa responder e a montagem em pedacinhos
+// ainda não terminou).
 export function loadModel() {
   if (M) return M;
   const rowsBytes = decode(WORD_ROWS);

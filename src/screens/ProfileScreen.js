@@ -63,9 +63,11 @@ const tintFor = (t) => TILE_TINTS[[...String(t)].reduce((a, c) => a + c.charCode
 // Botão da grade de ações do perfil: ícone em cima, nome embaixo, todos do mesmo tamanho.
 function AcaoTile({ icon, label, onPress, on, a11y }) {
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={[styles.acao, on && { borderColor: colors.accent }]} accessibilityLabel={a11y || label}>
-      <Ionicons name={icon} size={19} color={on ? colors.accent : colors.text} />
-      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.acaoT, on && { color: colors.accent }]}>{label}</Text>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.6} style={styles.acao} accessibilityLabel={a11y || label}>
+      <View style={[styles.acaoIc, on && { backgroundColor: '#E6EFFA' }]}>
+        <Ionicons name={icon} size={25} color={on ? colors.accent : colors.text} />
+      </View>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.acaoT, on && { color: colors.accent }]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -385,7 +387,7 @@ export default function ProfileScreen({ navigate, explore, soMenu = false }) {
       )}
 
       {/* Segunda linha da grade: currículo (conta real), páginas e carteira (sem o saldo à vista). */}
-      <View style={[styles.acoes, { marginHorizontal: 16, marginTop: 8 }]}>
+      <View style={[styles.acoes, { marginHorizontal: 16, marginTop: 10 }]}>
         {conectado(state) ? <AcaoTile icon="document-text-outline" label="Currículo" onPress={() => setCvOpen(true)} a11y="Meu currículo" /> : null}
         <AcaoTile
           icon={myPages(state).length ? 'albums-outline' : 'add-circle-outline'}
@@ -703,8 +705,10 @@ const styles = StyleSheet.create({
   privPill: { flexDirection: 'row', alignItems: 'center', minHeight: 30, paddingHorizontal: 11, borderRadius: 19, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card },
   // Carteira discreta: uma pílula pequena, centralizada, com o saldo à vista.
   acoes: { flexDirection: 'row', marginTop: 12, alignSelf: 'stretch' },
-  acao: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 10, marginHorizontal: 4, borderRadius: 14, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card },
-  acaoT: { color: colors.text, fontWeight: '700', fontSize: 12, marginTop: 4 },
+  // Ações sem borda: ícone grande num círculo suave e o nome pequeno embaixo.
+  acao: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 4 },
+  acaoIc: { width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.cardAlt },
+  acaoT: { color: colors.muted, fontWeight: '600', fontSize: 11, marginTop: 5 },
   wallet: {
     flexDirection: 'row',
     alignItems: 'center',
