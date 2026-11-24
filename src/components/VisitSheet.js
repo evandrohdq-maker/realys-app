@@ -32,7 +32,7 @@ export function VisitRequestSheet({ provider: p, visible, onClose, address = '',
   if (!p) return null;
 
   const fee = visitFee(p);
-  const split = splitFee(fee);
+  const split = splitFee(fee, p.clienteFiel ? p.visitFeeCheia : null);
   const discount = visitDiscount(p);
   const type = serviceType(p.service) || { label: 'Serviço' };
   const first = p.name.split(' ')[0];

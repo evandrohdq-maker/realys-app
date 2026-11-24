@@ -284,7 +284,7 @@ function Bars({ on }) {
 }
 
 // Cartão grande do player (página da rádio e diretório).
-export function RadioCard({ radio, dark, noOpen }) {
+export function RadioCard({ radio, dark, noOpen, extra }) {
   const n = useRadioNow();
   const mine = n.radio && n.radio.id === radio.id && n.status !== 'parado';
   const playing = mine && n.status === 'tocando';
@@ -310,6 +310,7 @@ export function RadioCard({ radio, dark, noOpen }) {
       </TouchableOpacity>
       {playing ? <Bars on /> : null}
       <FavHeart kind="radio" item={radio} size={22} color={dark ? '#fff' : '#7A7468'} style={{ marginLeft: 8, padding: 4 }} />
+      {extra || null}
       <TouchableOpacity onPress={toggle} style={st.play} accessibilityLabel={mine && !err ? `Parar ${radio.name}` : `Tocar ${radio.name}`}>
         {loading ? <ActivityIndicator color="#fff" /> : <Ionicons name={mine && !err ? 'stop' : 'play'} size={24} color="#fff" style={!(mine && !err) ? { marginLeft: 3 } : null} />}
       </TouchableOpacity>

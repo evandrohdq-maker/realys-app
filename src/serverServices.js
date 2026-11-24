@@ -23,7 +23,12 @@ export const providerFromServer = (p) => forClients({
   functions: p.functions || [],
   price: p.price,
   priceUnit: p.priceUnit,
-  visitFee: p.visitFee || undefined,
+  // Cliente fiel: o preço da visita já vem certo para quem está vendo (o de fiel, se já tem histórico).
+  visitFee: (p.visitFeeParaVoce != null ? p.visitFeeParaVoce : p.visitFee) || undefined,
+  visitFeeCheia: p.visitFee || undefined,
+  visitFeeFiel: p.visitFeeFiel != null ? p.visitFeeFiel : null,
+  clienteFiel: !!p.clienteFiel,
+  historico: p.historico || null,
   vehicle: p.vehicle || null,
   rating: p.ratingCount ? p.rating : 5,
   ratingCount: p.ratingCount || 0,

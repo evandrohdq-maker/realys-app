@@ -39,7 +39,7 @@ export default function ServerProviderPanel() {
   const novoForm = () => {
     const service = profDoPerfil();
     const c = profConfig(service);
-    return { service, outros: [], functions: [], novaFuncao: '', price: '', priceUnit: c.units[0], visitFee: '', vehicle: '' };
+    return { service, outros: [], functions: [], novaFuncao: '', price: '', priceUnit: c.units[0], visitFee: '', visitFeeFiel: '', vehicle: '' };
   };
   const [form, setForm] = useState(novoForm);
   const [addOutra, setAddOutra] = useState(false);
@@ -88,6 +88,8 @@ export default function ServerProviderPanel() {
       const p = await api('PUT', '/providers/me', {
         service: form.service, outros: form.outros, functions, price: toNum(form.price) || 0, priceUnit: form.priceUnit,
         visitFee: form.visitFee ? toNum(form.visitFee) : undefined, vehicle: form.vehicle || undefined,
+        // Cliente fiel (opcional): visita mais barata para quem volta pelo Realyz.
+        visitFeeFiel: form.visitFeeFiel ? toNum(form.visitFeeFiel) : null,
       });
       setPerfil(p);
       setEditing(false);
@@ -224,6 +226,12 @@ export default function ServerProviderPanel() {
                 <Input style={{ flex: 1, marginRight: cfg.visit ? 8 : 0 }} placeholder={cfg.price} keyboardType="decimal-pad" value={form.price} onChangeText={(v) => setForm({ ...form, price: v })} />
                 {cfg.visit ? <Input style={{ flex: 1 }} placeholder="Taxa de visita (R$)" keyboardType="decimal-pad" value={form.visitFee} onChangeText={(v) => setForm({ ...form, visitFee: v })} /> : null}
               </Row>
+              {cfg.visit ? (
+                <View style={{ marginTop: 8 }}>
+                  <Input placeholder="Visita para cliente fiel (R$) · opcional" keyboardType="decimal-pad" value={form.visitFeeFiel} onChangeText={(v) => setForm({ ...form, visitFeeFiel: v })} />
+                  <Text style={{ color: colors.muted, fontSize: 11.5, marginTop: 3 }}>Quem já fez serviço com você pelo Realyz paga este valor na visita. A taxa do Realyz continua sobre a visita normal.</Text>
+                </View>
+              ) : null}
               {cfg.vehicle ? <Input style={{ marginTop: 8 }} placeholder="Seu veículo (modelo, cor, placa, cadeirinha…)" value={form.vehicle} onChangeText={(v) => setForm({ ...form, vehicle: v })} /> : null}
               {cfg.note ? <Text style={[ps.small, { marginTop: 8 }]}>{cfg.note}</Text> : null}
               {cfg.visit ? <Text style={[ps.small, { marginTop: 8 }]}>A taxa de visita é sua: o cliente paga ao pedir, fica retida e é liberada quando ele confirma a visita. O Realyz fica com 15% dela.</Text> : null}
@@ -243,9 +251,9 @@ export default function ServerProviderPanel() {
         <View>
           <Row style={{ justifyContent: 'space-between' }}>
             <Text style={{ color: colors.text, flex: 1 }} numberOfLines={2}>
-              {perfil.service} · {perfil.price ? `${brl(perfil.price)} por ${perfil.priceUnit}` : (perfil.visitFee ? 'a combinar na visita' : 'a combinar no orçamento')}{perfil.visitFee ? ` · visita ${brl(perfil.visitFee)}` : ''}
+              {perfil.service} · {perfil.price ? `${brl(perfil.price)} por ${perfil.priceUnit}` : (perfil.visitFee ? 'a combinar na visita' : 'a combinar no orçamento')}{perfil.visitFee ? ` · visita ${brl(perfil.visitFee)}` : ''}{perfil.visitFeeFiel ? ` · cliente fiel ${brl(perfil.visitFeeFiel)}` : ''}
             </Text>
-            <TouchableOpacity onPress={() => { setForm({ service: perfil.service, outros: perfil.outros || [], functions: perfil.functions || [], novaFuncao: '', price: String(perfil.price).replace('.', ','), priceUnit: perfil.priceUnit, visitFee: perfil.visitFee ? String(perfil.visitFee).replace('.', ',') : '', vehicle: perfil.vehicle || '' }); setTrocando(false); setAddOutra(false); setEditing(true); }}>
+            <TouchableOpacity onPress={() => { setForm({ service: perfil.service, outros: perfil.outros || [], functions: perfil.functions || [], novaFuncao: '', price: String(perfil.price).replace('.', ','), priceUnit: perfil.priceUnit, visitFee: perfil.visitFee ? String(perfil.visitFee).replace('.', ',') : '', visitFeeFiel: perfil.visitFeeFiel ? String(perfil.visitFeeFiel).replace('.', ',') : '', vehicle: perfil.vehicle || '' }); setTrocando(false); setAddOutra(false); setEditing(true); }}>
               <Text style={{ color: colors.primary, fontWeight: '700' }}>Editar</Text>
             </TouchableOpacity>
           </Row>

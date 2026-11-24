@@ -37,6 +37,8 @@ export function payloadOf(state) {
     // Stories salvos: só o dono vê (o servidor não devolve isto no perfil dos outros).
     storyArchive: (state.storyArchive || []).slice(0, 200),
     extraPerfil: state.extraPerfil,
+    // Etiquetas das rádios e canais (mesmas no app e no site).
+    etiquetas: state.etiquetas,
   };
   // Muito grande (muitas criações com imagens embutidas): guarda o essencial do perfil.
   if (JSON.stringify(data).length > 850 * 1024) {

@@ -143,3 +143,37 @@ test('horário de trabalho: no horário aparece sozinho, fora dele não (horas d
   assert.equal((await perto()).length, 0, 'desligou o automático: some');
   await assert.rejects(call('PUT', '/providers/me/horario', enc.accessToken, { auto: true, horario: [] }), /400/);
 });
+
+test('cliente fiel: visita mais barata da 2ª vez em diante, e a taxa do Realyz sobre o preço cheio', async () => {
+  const cli = await signup('Fabi Fiel', '74682489070', 'fabi');
+  const pre = await signup('Paulo Pintor', '97456321558', 'paulo');
+  // Preço de fiel abaixo da taxa do Realyz (15% de 60 = 9) não é aceito.
+  await assert.rejects(call('PUT', '/providers/me', pre.accessToken, { service: 'eletricista', functions: ['Tomadas'], price: 60, priceUnit: 'visita', visitFee: 60, visitFeeFiel: 5 }), /400/);
+  await call('PUT', '/providers/me', pre.accessToken, { service: 'eletricista', functions: ['Tomadas'], price: 60, priceUnit: 'visita', visitFee: 60, visitFeeFiel: 30 });
+  await call('POST', '/providers/me/location', pre.accessToken, { lat: -28.26, lng: -52.4 });
+  await call('POST', '/wallet/deposit', cli.accessToken, { amount: 200 });
+  const achar = async () => (await call('GET', `/providers/nearby?lat=-28.26&lng=-52.41&service=eletricista`, cli.accessToken)).find((p) => p.id === pre.user.id);
+  // 1ª vez: preço normal, sem histórico.
+  let p = await achar();
+  assert.equal(p.visitFeeParaVoce, 60);
+  assert.equal(p.historico, null);
+  const c1 = await call('POST', '/calls', cli.accessToken, { providerId: pre.user.id, problem: 'Tomada' });
+  assert.equal(c1.visitFee, 60);
+  await call('PATCH', `/calls/${c1.id}`, pre.accessToken, { status: 'Aceito' });
+  await call('POST', `/calls/${c1.id}/confirmar-visita`, cli.accessToken);
+  assert.equal(await saldo(pre.accessToken), 51); // 60 - 9
+  // 2ª vez: aparece com o histórico e o preço de fiel.
+  p = await achar();
+  assert.equal(p.historico.servicos, 1);
+  assert.equal(p.clienteFiel, true);
+  assert.equal(p.visitFeeParaVoce, 30);
+  const c2 = await call('POST', '/calls', cli.accessToken, { providerId: pre.user.id, problem: 'Chuveiro' });
+  assert.equal(c2.visitFee, 30);
+  assert.equal(c2.visitFeeCheia, 60);
+  assert.equal(c2.clienteFiel, true);
+  assert.equal(await saldo(cli.accessToken), 200 - 60 - 30);
+  await call('PATCH', `/calls/${c2.id}`, pre.accessToken, { status: 'Aceito' });
+  await call('POST', `/calls/${c2.id}/confirmar-visita`, cli.accessToken);
+  // O Realyz fica com os mesmos R$ 9 (15% de 60); o prestador recebe 30 - 9 = 21.
+  assert.equal(await saldo(pre.accessToken), 51 + 21);
+});

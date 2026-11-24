@@ -1,6 +1,7 @@
 // Aba Stream (topo da Community): rádios e TV online num lugar só.
 // Rádios: o diretório de rádios do Realyz (o player é um só no app; ver src/radio.js).
 // TV online: canais que indexaram a URL do próprio sinal de vídeo (ver src/tv.js).
+import { EtiquetaChips, EtiquetaBtn, temEtiqueta } from '../../../components/Etiquetas';
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Text, TextInput } from '../../../responsive';
@@ -98,6 +99,8 @@ function RadioList({ navigate }) {
   const [list, setList] = useState(allRadios());
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('todas');
+  const [etq, setEtq] = useState(null); // etiqueta escolhida (filtro)
+  const { state: stE } = useStore();
   const now = useRadioNow();
   useEffect(() => {
     loadRadios().then(() => setList(allRadios()));
@@ -107,16 +110,18 @@ function RadioList({ navigate }) {
   const featured = list.find((r) => r.featured);
   const featOn = !!(featured && now.radio && now.radio.id === featured.id && now.status !== 'parado');
   const match = (r) => !term || `${r.name} ${r.genre} ${r.city} ${stationCat('radio', r).label}`.toLowerCase().includes(term);
-  const shown = list.filter((r) => match(r) && (cat === 'todas' || stationCat('radio', r).key === cat));
+  const shown = list.filter((r) => match(r) && (cat === 'todas' || stationCat('radio', r).key === cat) && (!etq || temEtiqueta(stE, 'radio', r.id, etq)));
   const catInfo = cat !== 'todas' ? catsOf('radio').find((c) => c.key === cat) : null;
   // "Todas": separadas por categoria, cada uma com o seu título.
-  const groups = cat === 'todas' && !term ? catsOf('radio').map((c) => ({ c, items: shown.filter((r) => stationCat('radio', r).key === c.key && !r.featured) })).filter((g) => g.items.length) : null;
+  const groups = cat === 'todas' && !term && !etq ? catsOf('radio').map((c) => ({ c, items: shown.filter((r) => stationCat('radio', r).key === c.key && !r.featured) })).filter((g) => g.items.length) : null;
   return (
     <View>
       {featured && cat === 'todas' && !term ? (
         <FeaturedStation s={featured} on={featOn} onPlay={() => (featOn ? stopRadio() : (stopTv(), playRadio(featured)))} />
       ) : null}
       <SearchBox value={q} onChange={setQ} placeholder="Buscar rádio, estilo ou cidade" />
+      {/* Etiquetas da pessoa (Trabalho, Carro…): organiza as rádios do jeito dela. */}
+      <EtiquetaChips kind="radio" value={etq} onChange={setEtq} />
       <CatChips kind="radio" value={cat} onChange={setCat} counts={countBy('radio', list)} />
       {groups
         ? groups.map((g) => (
@@ -126,12 +131,12 @@ function RadioList({ navigate }) {
                 <Text style={st.groupTitle} numberOfLines={1}>{g.c.label}</Text>
                 <Ionicons name="chevron-forward" size={15} color={colors.muted} />
               </TouchableOpacity>
-              {g.items.map((r) => <RadioCard key={r.id} radio={r} />)}
+              {g.items.map((r) => <RadioCard key={r.id} radio={r} extra={<EtiquetaBtn kind="radio" item={r} />} />)}
             </View>
           ))
-        : shown.map((r) => <RadioCard key={r.id} radio={r} />)}
+        : shown.map((r) => <RadioCard key={r.id} radio={r} extra={<EtiquetaBtn kind="radio" item={r} />} />)}
       {!shown.length ? (
-        <Text style={st.empty}>{catInfo ? `Ainda não tem rádio ${catInfo.label.toLowerCase()} no Realyz. Tem uma? Indexe a sua e seja a primeira.` : 'Nenhuma rádio encontrada.'}</Text>
+        <Text style={st.empty}>{etq ? 'Nenhuma rádio nesta etiqueta ainda. Toque no 🏷 de uma rádio para pôr aqui.' : catInfo ? `Ainda não tem rádio ${catInfo.label.toLowerCase()} no Realyz. Tem uma? Indexe a sua e seja a primeira.` : 'Nenhuma rádio encontrada.'}</Text>
       ) : null}
       <OwnBar
         icon="radio-outline"
@@ -151,13 +156,14 @@ function TvList() {
   const on = useTvNow().channel;
   const [form, setForm] = useState(null);
   const [cat, setCat] = useState('todas');
+  const [etq, setEtq] = useState(null); // etiqueta escolhida (filtro)
   useEffect(() => {
     loadTvs().then(() => (setList(allTvs()), syncStations('tv')));
     return onTvs(() => setList(allTvs()));
   }, []);
   const real = conectado(state);
   const term = q.trim().toLowerCase();
-  const shown = list.filter((t) => (!term || `${t.name} ${t.genre} ${t.city} ${stationCat('tv', t).label}`.toLowerCase().includes(term)) && (cat === 'todas' || stationCat('tv', t).key === cat));
+  const shown = list.filter((t) => (!term || `${t.name} ${t.genre} ${t.city} ${stationCat('tv', t).label}`.toLowerCase().includes(term)) && (cat === 'todas' || stationCat('tv', t).key === cat) && (!etq || temEtiqueta(state, 'tv', t.id, etq)));
   const tvCat = cat !== 'todas' ? catsOf('tv').find((c) => c.key === cat) : null;
   const mine = (real && list.find((t) => t.server && t.mine)) || list.find((t) => t.storeId === MY_COMPANY_ID) || null;
 
@@ -203,6 +209,7 @@ function TvList() {
       ) : null}
 
       <SearchBox value={q} onChange={setQ} placeholder="Buscar canal, estilo ou cidade" />
+      <EtiquetaChips kind="tv" value={etq} onChange={setEtq} />
       <CatChips kind="tv" value={cat} onChange={setCat} counts={countBy('tv', list)} />
       {shown.map((t) => {
         const playing = on && on.id === t.id;
@@ -221,13 +228,14 @@ function TvList() {
               <Text style={st.meta} numberOfLines={1}>{[stationCat('tv', t).label, t.city].filter(Boolean).join(' · ')}</Text>
             </TouchableOpacity>
             <FavHeart kind="tv" item={t} size={22} color={colors.muted} style={{ marginLeft: 8, padding: 4 }} />
+            <EtiquetaBtn kind="tv" item={t} />
             <View style={st.play}>
               <Ionicons name={playing ? 'stop' : 'play'} size={22} color="#fff" style={playing ? null : { marginLeft: 3 }} />
             </View>
           </TouchableOpacity>
         );
       })}
-      {!shown.length ? <Text style={st.empty}>{tvCat ? `Ainda não tem canal de ${tvCat.label.toLowerCase()} no Realyz. Tem um? Indexe o seu.` : 'Nenhum canal encontrado.'}</Text> : null}
+      {!shown.length ? <Text style={st.empty}>{etq ? 'Nenhum canal nesta etiqueta ainda. Toque no 🏷 de um canal para pôr aqui.' : tvCat ? `Ainda não tem canal de ${tvCat.label.toLowerCase()} no Realyz. Tem um? Indexe o seu.` : 'Nenhum canal encontrado.'}</Text> : null}
 
       <OwnBar
         icon="tv-outline"

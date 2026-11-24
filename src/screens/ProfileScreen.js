@@ -60,6 +60,16 @@ const ROLE_ICON = { cliente: '🛍️', empresa: '🏪', prestador: '🛵', forn
 // Abre o painel logo abaixo, na largura toda (ou vai para outra tela, com onPress).
 const TILE_TINTS = ['#B8860B', '#6C5CE7', '#0E8BC9', '#1E9E63', '#D9468F', '#E4572E', '#0D9488', '#55607A'];
 const tintFor = (t) => TILE_TINTS[[...String(t)].reduce((a, c) => a + c.charCodeAt(0), 0) % TILE_TINTS.length];
+// Botão da grade de ações do perfil: ícone em cima, nome embaixo, todos do mesmo tamanho.
+function AcaoTile({ icon, label, onPress, on, a11y }) {
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={[styles.acao, on && { borderColor: colors.accent }]} accessibilityLabel={a11y || label}>
+      <Ionicons name={icon} size={19} color={on ? colors.accent : colors.text} />
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.acaoT, on && { color: colors.accent }]}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
 function Item({ k, icon, title, sub, onPress, children, danger, open, onToggle }) {
   const isOpen = open === k;
   const tint = danger ? colors.danger : tintFor(title);
@@ -364,52 +374,29 @@ export default function ProfileScreen({ navigate, explore, soMenu = false }) {
             </TouchableOpacity>
           ))}
         </View>
-        <View style={{ flexDirection: 'row', marginTop: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <TouchableOpacity onPress={() => setEditing(true)} style={[styles.privPill, { marginRight: 8 }]} activeOpacity={0.85} accessibilityLabel="Editar perfil">
-            <Ionicons name="create-outline" size={14} color={colors.text} />
-            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>Editar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => dispatch({ type: 'SET_PRIVACY', privacy: { exposed: !priv.exposed } })} style={[styles.privPill, !priv.exposed && { borderColor: colors.accent }]} accessibilityLabel={priv.exposed ? 'Deixar perfil invisível' : 'Expor meu perfil'}>
-            <Ionicons name={priv.exposed ? 'eye' : 'eye-off'} size={14} color={priv.exposed ? colors.text : colors.accent} />
-            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: priv.exposed ? colors.text : colors.accent, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>{priv.exposed ? 'Exposto' : 'Invisível'}</Text>
-          </TouchableOpacity>
-          {/* Ver como o perfil aparece para os outros */}
-          <TouchableOpacity onPress={() => setPreviewing(true)} style={[styles.privPill, { marginLeft: 8 }]} accessibilityLabel="Ver como o meu perfil aparece para os outros">
-            <Ionicons name="scan-outline" size={14} color={colors.text} />
-            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.text, fontWeight: '700', fontSize: 12, marginLeft: 5 }}>Prévia</Text>
-          </TouchableOpacity>
+        {/* Ações do perfil numa grade (3 por linha, todas do mesmo tamanho): nada de botões soltos um embaixo do outro. */}
+        <View style={styles.acoes}>
+          <AcaoTile icon="create-outline" label="Editar" onPress={() => setEditing(true)} a11y="Editar perfil" />
+          <AcaoTile icon={priv.exposed ? 'eye-outline' : 'eye-off-outline'} label={priv.exposed ? 'Exposto' : 'Invisível'} on={!priv.exposed} onPress={() => dispatch({ type: 'SET_PRIVACY', privacy: { exposed: !priv.exposed } })} a11y={priv.exposed ? 'Deixar perfil invisível' : 'Expor meu perfil'} />
+          <AcaoTile icon="scan-outline" label="Prévia" onPress={() => setPreviewing(true)} a11y="Ver como o meu perfil aparece para os outros" />
         </View>
       </View>
       </>
       )}
 
-      {/* Currículo (conta real): discreto, ao lado da carteira. Abre o mesmo cadastro de Negócios › Empregos. */}
-      {conectado(state) ? (
-        <TouchableOpacity onPress={() => setCvOpen(true)} activeOpacity={0.88} style={[styles.wallet, { marginBottom: 6 }]} accessibilityLabel="Meu currículo">
-          <Ionicons name="document-text-outline" size={14} color={colors.muted} />
-          <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '600', marginLeft: 5 }}>Meu currículo</Text>
-        </TouchableOpacity>
-      ) : null}
+      {/* Segunda linha da grade: currículo (conta real), páginas e carteira (sem o saldo à vista). */}
+      <View style={[styles.acoes, { marginHorizontal: 16, marginTop: 8 }]}>
+        {conectado(state) ? <AcaoTile icon="document-text-outline" label="Currículo" onPress={() => setCvOpen(true)} a11y="Meu currículo" /> : null}
+        <AcaoTile
+          icon={myPages(state).length ? 'albums-outline' : 'add-circle-outline'}
+          label={myPages(state).length ? `Páginas · ${myPages(state).length}` : 'Criar página'}
+          onPress={() => nav(myPages(state).length ? { tab: 'paginas', seg: 'minhas' } : { tab: 'paginas', seg: 'minhas', criar: true })}
+          a11y={myPages(state).length ? 'Minhas páginas' : 'Criar página'}
+        />
+        {/* Carteira discreta: só o nome, o saldo aparece só depois de abrir. */}
+        <AcaoTile icon="wallet-outline" label="Carteira" onPress={() => setWalletOpen(true)} a11y="Abrir minha carteira" />
+      </View>
       {cvOpen ? <CurriculoEditor onClose={() => setCvOpen(false)} /> : null}
-      {/* Páginas de conteúdo e divulgação (assinadas ou anônimas): à vista no perfil, não só no menu ⋮. */}
-      <TouchableOpacity
-        onPress={() => nav(myPages(state).length ? { tab: 'paginas', seg: 'minhas' } : { tab: 'paginas', seg: 'minhas', criar: true })}
-        activeOpacity={0.88}
-        style={[styles.wallet, { marginBottom: 6 }]}
-        accessibilityLabel={myPages(state).length ? 'Minhas páginas' : 'Criar página'}
-      >
-        <Ionicons name={myPages(state).length ? 'albums-outline' : 'add-circle-outline'} size={14} color={colors.muted} />
-        <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '600', marginLeft: 5 }}>
-          {myPages(state).length ? `Minhas páginas · ${myPages(state).length}` : 'Criar página'}
-        </Text>
-      </TouchableOpacity>
-      {/* Carteira discreta: só o nome, sem o saldo (quem estiver do lado não vê o seu dinheiro).
-          O valor aparece só depois de abrir a carteira. */}
-      <TouchableOpacity onPress={() => setWalletOpen(true)} activeOpacity={0.88} style={styles.wallet} accessibilityLabel="Abrir minha carteira">
-        <Ionicons name="wallet-outline" size={14} color={colors.muted} />
-        <Text style={{ color: colors.muted, fontSize: 12, fontWeight: '600', marginLeft: 5 }}>Carteira</Text>
-        <Ionicons name="eye-off-outline" size={12} color={colors.muted} style={{ marginLeft: 5 }} />
-      </TouchableOpacity>
 
       {/* O que os amigos veem: destaques, fotos, vídeos e depoimentos aceitos. */}
       {/* Perfil de trabalho não mostra a vida social (fotos, amigos, depoimentos): isso fica no perfil social. */}
@@ -715,6 +702,9 @@ const styles = StyleSheet.create({
   roleChipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   privPill: { flexDirection: 'row', alignItems: 'center', minHeight: 30, paddingHorizontal: 11, borderRadius: 19, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.card },
   // Carteira discreta: uma pílula pequena, centralizada, com o saldo à vista.
+  acoes: { flexDirection: 'row', marginTop: 12, alignSelf: 'stretch' },
+  acao: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 10, marginHorizontal: 4, borderRadius: 14, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card },
+  acaoT: { color: colors.text, fontWeight: '700', fontSize: 12, marginTop: 4 },
   wallet: {
     flexDirection: 'row',
     alignItems: 'center',

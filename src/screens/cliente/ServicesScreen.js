@@ -339,6 +339,16 @@ export default function ServicesScreen({ explore, navigate }) {
           </View>
         ) : null}
 
+        {/* Histórico com este cliente (atendimento anterior pelo Realyz) e o preço de cliente fiel. */}
+        {p.historico ? (
+          <View style={styles.histBox}>
+            <Ionicons name="time-outline" size={14} color={colors.primaryDark} />
+            <Text style={styles.histText} numberOfLines={2}>
+              Histórico com você: {p.historico.servicos} {p.historico.servicos === 1 ? 'serviço concluído' : 'serviços concluídos'} · último em {new Date(p.historico.ultimo).toLocaleDateString('pt-BR')}
+              {p.clienteFiel && p.visitFeeCheia ? `\nVisita de cliente fiel: ${brl(visitFee(p))} (normal ${brl(p.visitFeeCheia)})` : ''}
+            </Text>
+          </View>
+        ) : null}
         <Text style={styles.pFunc} numberOfLines={1}>
           {p.functions.join(' · ')}
         </Text>
@@ -730,6 +740,8 @@ function HowStep({ n, text }) {
 }
 
 const styles = StyleSheet.create({
+  histBox: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: colors.primaryLight, borderRadius: 10, paddingHorizontal: 9, paddingVertical: 6, marginTop: 8 },
+  histText: { color: colors.primaryDark, fontSize: 12, fontWeight: '700', marginLeft: 6, flex: 1, lineHeight: 17 },
   askOffers: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: 14, padding: 12, marginBottom: 12 },
   avatarSm: { width: 48, height: 48, borderRadius: 16 },
   sectionHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10, marginTop: 4 },

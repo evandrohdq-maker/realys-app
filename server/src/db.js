@@ -1431,6 +1431,14 @@ const MIGRATIONS = [
   );
   CREATE INDEX sala_chat_sala ON sala_chat(sala_id, created_at);
   `,
+  // Cliente fiel: o prestador escolhe um preço de visita para quem já fez serviço com ele pelo Realyz.
+  // A taxa do Realyz continua calculada sobre o preço cheio da visita.
+  `
+  ALTER TABLE providers ADD COLUMN visit_fee_fiel INTEGER;
+  ALTER TABLE service_calls ADD COLUMN visit_fee_cheia INTEGER;
+  ALTER TABLE service_calls ADD COLUMN fiel INTEGER NOT NULL DEFAULT 0;
+  CREATE INDEX IF NOT EXISTS service_calls_par ON service_calls(client_id, provider_id, status);
+  `,
 ];
 
 export function openDb(file) {

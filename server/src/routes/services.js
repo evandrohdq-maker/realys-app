@@ -5,6 +5,7 @@ import { exigirParceiroDeTeste } from '../teste.js';
 import { exigirTrabalho } from '../trabalho.js';
 import { fail, newId, now, str, money, int, coord, toReais } from '../http.js';
 import { tx } from '../db.js';
+import { verifyToken } from '../auth.js';
 import { publicName } from '../providerName.js';
 
 const CALL_STATUS = ['Solicitado', 'Aceito', 'A caminho', 'Chegou', 'Concluído', 'Recusado', 'Cancelado'];
@@ -45,10 +46,29 @@ export function distanceKm(lat1, lng1, lat2, lng2) {
 export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biometria, fiscal }) {
   // Para o cliente, o prestador aparece só com o primeiro nome e a inicial do sobrenome
   // ("Carlos L."): ele não acha o prestador pelo nome completo para contratar por fora.
-  const providerView = (p, from, { own = false } = {}) => {
+  // Histórico do cliente com o prestador: serviços concluídos pelo Realyz (a visita confirmada conta).
+  const historico = (clientId, providerId) => {
+    if (!clientId || clientId === providerId) return null;
+    const h = db.prepare(`SELECT COUNT(*) n, MAX(updated_at) ultimo FROM service_calls WHERE client_id = ? AND provider_id = ? AND (status = 'Concluído' OR visit_state = 'liberada')`).get(clientId, providerId);
+    return h && h.n ? { servicos: h.n, ultimo: h.ultimo } : null;
+  };
+  // Preço da visita para este cliente: o de cliente fiel, se o prestador oferece e o cliente já tem histórico.
+  const precoVisita = (p, clientId) => {
+    const cheia = p.visit_fee || 0;
+    const fiel = p.visit_fee_fiel != null && p.visit_fee_fiel < cheia && !!historico(clientId, p.user_id);
+    return { cobra: fiel ? p.visit_fee_fiel : cheia, cheia, fiel };
+  };
+  const providerView = (p, from, { own = false, viewer = null } = {}) => {
     const u = userById(p.user_id);
     const km = from && p.lat != null ? distanceKm(from.lat, from.lng, p.lat, p.lng) : null;
+    const hist = viewer && !own ? historico(viewer.id, p.user_id) : null;
+    const pv = precoVisita(p, viewer && viewer.id);
     return {
+      // Cliente fiel: preço da visita para quem já fez serviço com ele, e o histórico com quem está vendo.
+      visitFeeFiel: p.visit_fee_fiel != null ? toReais(p.visit_fee_fiel) : null,
+      visitFeeParaVoce: toReais(pv.cobra),
+      clienteFiel: pv.fiel,
+      historico: hist,
       id: p.user_id, name: own ? u.name : publicName(u.name), fullName: own ? u.name : undefined, photo: u.photo, service: p.service, outros: JSON.parse(p.outros || '[]'), functions: JSON.parse(p.functions), price: toReais(p.price), priceUnit: p.price_unit,
       available: !!p.available, vehicle: p.vehicle, visitFee: toReais(p.visit_fee || 0), rating: +p.rating.toFixed(1), ratingCount: p.rating_count,
       distanceKm: km == null ? null : +km.toFixed(1), etaMin: km == null ? null : Math.max(3, Math.round(km * (TRANSPORT.includes(p.service) ? 4 : 6))),
@@ -70,13 +90,21 @@ export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biom
     row.outros = JSON.stringify([...new Set((Array.isArray(body.outros) ? body.outros : []).map((x) => String(x).trim().toLowerCase().slice(0, 40)).filter((x) => x && x !== row.service))].slice(0, 4));
     // Taxa de visita: quem define é o prestador. Sem informar, quem cobra "por visita" usa o próprio preço.
     row.visit_fee = body.visitFee !== undefined && body.visitFee !== null && body.visitFee !== '' ? money(body.visitFee, 'taxa de visita', { min: 0 }) : /visita/i.test(row.price_unit) ? row.price : 0;
+    // Visita de cliente fiel (opcional): menor que a visita normal e nunca abaixo da taxa do Realyz,
+    // que continua sobre o preço cheio (o prestador não pode ficar no negativo).
+    row.visit_fee_fiel = body.visitFeeFiel !== undefined && body.visitFeeFiel !== null && body.visitFeeFiel !== '' ? money(body.visitFeeFiel, 'visita de cliente fiel', { min: 0 }) : null;
+    if (row.visit_fee_fiel != null) {
+      const taxa = Math.round((row.visit_fee * cfg.visitFeePct) / 100);
+      if (row.visit_fee_fiel >= row.visit_fee) fail(400, 'O preço de cliente fiel precisa ser menor que a visita normal.');
+      if (row.visit_fee_fiel < taxa) fail(400, `O preço de cliente fiel não pode ser menor que a taxa do Realyz (${toReais(taxa).toFixed(2).replace('.', ',')}), que é calculada sobre a visita normal.`);
+    }
     tx(db, () => {
       if (db.prepare('SELECT 1 FROM providers WHERE user_id = ?').get(user.id)) {
-        db.prepare('UPDATE providers SET visit_fee = ?, outros = ? WHERE user_id = ?').run(row.visit_fee, row.outros, user.id);
+        db.prepare('UPDATE providers SET visit_fee = ?, outros = ?, visit_fee_fiel = ? WHERE user_id = ?').run(row.visit_fee, row.outros, row.visit_fee_fiel, user.id);
         db.prepare('UPDATE providers SET service = ?, functions = ?, price = ?, price_unit = ?, vehicle = ?, updated_at = ? WHERE user_id = ?').run(row.service, row.functions, row.price, row.price_unit, row.vehicle, now(), user.id);
       } else {
         db.prepare('INSERT INTO providers (user_id, service, functions, price, price_unit, vehicle, updated_at) VALUES (?,?,?,?,?,?,?)').run(user.id, row.service, row.functions, row.price, row.price_unit, row.vehicle, now());
-        db.prepare('UPDATE providers SET visit_fee = ?, outros = ? WHERE user_id = ?').run(row.visit_fee, row.outros, user.id);
+        db.prepare('UPDATE providers SET visit_fee = ?, outros = ?, visit_fee_fiel = ? WHERE user_id = ?').run(row.visit_fee, row.outros, row.visit_fee_fiel, user.id);
         const roles = JSON.parse(user.roles);
         if (!roles.includes('prestador')) db.prepare('UPDATE users SET roles = ? WHERE id = ?').run(JSON.stringify([...roles, 'prestador']), user.id);
       }
@@ -135,7 +163,7 @@ export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biom
   // Os mais próximos de um tipo de serviço, com nota, funções, preço e tempo para chegar.
   // Entram: quem ligou o "disponível" com o GPS atualizado nos últimos 15 minutos, e quem está no
   // horário de trabalho programado (última posição das últimas 24 h; transporte com o rosto em dia).
-  r.get('/providers/nearby', ({ query }) => {
+  r.get('/providers/nearby', ({ query, user }) => {
     const from = { lat: coord(query.lat, 'latitude'), lng: coord(query.lng, 'longitude') };
     const max = Math.min(20, Number(query.max || 5));
     const fresh = now() - 15 * 60 * 1000;
@@ -143,17 +171,24 @@ export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biom
     const rows = db.prepare(`SELECT p.* FROM providers p JOIN users u ON u.id = p.user_id WHERE p.lat IS NOT NULL AND u.status = 'ativo' AND ((p.available = 1 AND p.updated_at > ?) OR (p.auto_horario = 1 AND p.updated_at > ?)) ${query.service ? 'AND (p.service = ? OR EXISTS (SELECT 1 FROM json_each(p.outros) WHERE value = ?))' : ''}`)
       .all(...(query.service ? [fresh, dia, String(query.service).toLowerCase(), String(query.service).toLowerCase()] : [fresh, dia]))
       .filter((p) => (p.available === 1 && p.updated_at > fresh) || (emHorario(lerHorario(p)) && (!TRANSPORT.includes(p.service) || biometria.periodicOk(p.user_id))));
-    return rows.map((p) => providerView(p, from)).sort((a, b) => a.distanceKm - b.distanceKm).slice(0, max);
+    const todos = rows.map((p) => providerView(p, from, { viewer: user })).sort((a, b) => a.distanceKm - b.distanceKm);
+    // Quem já atendeu este cliente pelo Realyz entra na lista mesmo fora dos mais perto (marcado com o histórico).
+    const lista = todos.slice(0, max);
+    todos.slice(max).filter((p) => p.historico).forEach((p) => lista.push(p));
+    return lista;
   });
 
-  r.get('/providers/:id', ({ params }) => {
+  r.get('/providers/:id', ({ params, req }) => {
     const p = db.prepare('SELECT * FROM providers WHERE user_id = ?').get(params.id);
     if (!p) fail(404, 'Prestador não encontrado.');
-    return providerView(p);
+    // Rota aberta: com o login, mostra também o histórico e o preço de cliente fiel de quem está vendo.
+    const tok = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    const pl = tok ? verifyToken(tok, cfg.jwtSecret) : null;
+    return providerView(p, null, { own: !!pl && pl.sub === p.user_id, viewer: pl ? { id: pl.sub } : null });
   }, { auth: false });
 
   // ── Chamados ──
-  const callView = (c) => ({ visitFee: toReais(c.visit_fee || 0), visitState: c.visit_state || null, problem: c.problem || '', rideFee: toReais(c.ride_fee || 0), id: c.id, clientId: c.client_id, client: userById(c.client_id).name, providerId: c.provider_id, provider: publicName(userById(c.provider_id).name), service: c.service, address: c.address, when: c.when_text, status: c.status, createdAt: c.created_at, updatedAt: c.updated_at });
+  const callView = (c) => ({ visitFee: toReais(c.visit_fee || 0), visitFeeCheia: toReais(c.visit_fee_cheia || c.visit_fee || 0), clienteFiel: !!c.fiel, visitState: c.visit_state || null, problem: c.problem || '', rideFee: toReais(c.ride_fee || 0), id: c.id, clientId: c.client_id, client: userById(c.client_id).name, providerId: c.provider_id, provider: publicName(userById(c.provider_id).name), service: c.service, address: c.address, when: c.when_text, status: c.status, createdAt: c.created_at, updatedAt: c.updated_at });
 
   // O cliente chama agora ou agenda ("amanhã às 9h"). Só depois que confirmou no app.
   r.post('/calls', ({ body, user }) => {
@@ -167,15 +202,17 @@ export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biom
     const t = now();
     const problem = str(body.problem, 'o que você precisa', { optional: true, max: 500 }) || '';
     // Serviço com visita (não é transporte): o cliente paga a taxa de visita agora e ela fica retida.
-    const fee = !TRANSPORT.includes(p.service) ? p.visit_fee || 0 : 0;
+    // Cliente fiel (já fez serviço com ele pelo Realyz): paga o preço de fiel que o prestador escolheu.
+    const pv = precoVisita(p, user.id);
+    const fee = !TRANSPORT.includes(p.service) ? pv.cobra : 0;
     tx(db, () => {
       let fromGift = 0;
       if (fee) {
         fromGift = wallet.pay(user.id, fee, 'Serviços', `Taxa de visita retida (${p.service})`, id).fromGift;
         wallet.move('realys', 'saldo', fee, 'Visitas retidas', `Taxa de visita retida do chamado ${id}`, id);
       }
-      db.prepare('INSERT INTO service_calls (id, client_id, provider_id, service, address, when_text, status, created_at, updated_at, visit_fee, visit_from_gift, visit_state, problem) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').run(
-        id, user.id, p.user_id, p.service, str(body.address, 'o endereço', { optional: true, max: 200 }), when, 'Solicitado', t, t, fee, fromGift, fee ? 'retida' : null, problem
+      db.prepare('INSERT INTO service_calls (id, client_id, provider_id, service, address, when_text, status, created_at, updated_at, visit_fee, visit_from_gift, visit_state, problem, visit_fee_cheia, fiel) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').run(
+        id, user.id, p.user_id, p.service, str(body.address, 'o endereço', { optional: true, max: 200 }), when, 'Solicitado', t, t, fee, fromGift, fee ? 'retida' : null, problem, fee ? pv.cheia : null, fee && pv.fiel ? 1 : 0
       );
     });
     const call = callView(db.prepare('SELECT * FROM service_calls WHERE id = ?').get(id));
@@ -198,7 +235,9 @@ export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biom
     if (!c) fail(404, 'Chamado não encontrado.');
     if (c.visit_state !== 'retida') fail(409, 'Essa visita não tem taxa retida para liberar.');
     if (!['Aceito', 'A caminho', 'Chegou', 'Concluído'].includes(c.status)) fail(409, 'O prestador ainda não aceitou essa visita.');
-    const cut = Math.round((c.visit_fee * cfg.visitFeePct) / 100);
+    // A taxa do Realyz é sobre o preço cheio da visita, mesmo quando o cliente fiel pagou menos
+    // (o desconto é do prestador). Nunca passa do que o cliente pagou.
+    const cut = Math.min(c.visit_fee, Math.round(((c.visit_fee_cheia || c.visit_fee) * cfg.visitFeePct) / 100));
     tx(db, () => {
       wallet.move('realys', 'saldo', -(c.visit_fee - cut), 'Visitas retidas', `Visita confirmada (chamado ${c.id})`, c.id);
       wallet.move(c.provider_id, 'saldo', c.visit_fee - cut, 'Serviços', `Taxa de visita de ${user.name}`, c.id);

@@ -101,8 +101,9 @@ export function rankPosition(providers, p) {
 }
 
 // Divisão da taxa depois que a visita é confirmada.
-export function splitFee(fee) {
-  const realys = round2((fee * REALYS_FEE_PCT) / 100);
+// cheia: preço normal da visita (cliente fiel paga menos, mas a taxa do Realyz é sobre o preço cheio).
+export function splitFee(fee, cheia) {
+  const realys = Math.min(fee, round2(((cheia && cheia > fee ? cheia : fee) * REALYS_FEE_PCT) / 100));
   return { realys, provider: round2(fee - realys) };
 }
 
