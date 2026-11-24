@@ -358,8 +358,15 @@ function closeOffer(state, offer, discount) {
 
 // Toda conta (empresa, prestador, fornecedor) também é Usuário: pode consumir dentro do Realyz.
 // Perfil de Empresa (e de Fornecedor) só para contas com CNPJ: conta de CPF nunca recebe esses acessos.
+// Administrador e analista veem o app como todos os tipos de conta (social, empresa, prestador,
+// fornecedor e o painel), venha a conta de onde vier (login, sessão salva, conta salva no aparelho).
+export const ADMIN_ALL_ROLES = ['admin', 'cliente', 'empresa', 'prestador', 'fornecedor'];
+const ehAdminOuAnalista = (roles) => (roles || []).some((r) => r === 'admin' || r === 'analista');
 const withUserRole = (user) => {
   let roles = (user && user.roles) || [];
+  if (ehAdminOuAnalista(roles) || (user && user.readOnly)) {
+    return { ...user, roles: ADMIN_ALL_ROLES, ...(roles.includes('admin') ? {} : { readOnly: true }), verified: true };
+  }
   const isAdmin = roles.includes('admin');
   if (!isAdmin && user.cpf) roles = roles.filter((r) => r !== 'empresa' && r !== 'fornecedor');
   if (!roles.includes('cliente')) roles = [...roles, 'cliente'];
@@ -1234,6 +1241,8 @@ function baseReducer(state, a) {
     // Perfis da conta mudaram no servidor (criou o perfil de trabalho com CNPJ, ou o titular da empresa
     // criou o social): atualiza o botãozinho de troca sem sair da conta.
     case 'SET_USER_ROLES':
+      // Administrador/analista nunca perdem os perfis de teste (empresa, prestador, fornecedor).
+      if (state.user && ehAdminOuAnalista(state.user.roles)) return state;
       return state.user ? { ...state, user: { ...state.user, roles: a.roles, ...(a.trabalho ? { trabalho: a.trabalho } : null) } } : state;
     case 'SET_ID_VERIFIED':
       return state.user ? { ...state, user: { ...state.user, idVerified: !!a.on } } : state;

@@ -78,6 +78,8 @@ export const sairDoServidor = () => (serverOn() ? unregisterPush().then(apiLogou
 // cria o perfil social dele.
 export function rolesDoServidor(u) {
   if (!u) return ['cliente'];
+  // Conta de administrador ou analista no servidor: todos os perfis, para ver e testar o app inteiro.
+  if ((u.roles || []).some((r) => r === 'admin' || r === 'analista')) return ['admin', 'cliente', 'empresa', 'prestador', 'fornecedor'];
   const t = u.trabalho || [];
   if (u.kind === 'empresa') return ['empresa', 'fornecedor', ...(u.socialTitular ? ['cliente'] : [])];
   // Conta de teste: testa tudo (inclusive o lado do prestador).
