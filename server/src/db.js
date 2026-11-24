@@ -1439,6 +1439,25 @@ const MIGRATIONS = [
   ALTER TABLE service_calls ADD COLUMN fiel INTEGER NOT NULL DEFAULT 0;
   CREATE INDEX IF NOT EXISTS service_calls_par ON service_calls(client_id, provider_id, status);
   `,
+  // Grupos de página (até 1000 pessoas, com moderação): a página explica propostas, estratégias e
+  // cursos. Modo da conversa, moderadores, mensagens aguardando aprovação, silenciar e convites.
+  `
+  ALTER TABLE grupos ADD COLUMN pagina_id TEXT;
+  ALTER TABLE grupos ADD COLUMN modo TEXT NOT NULL DEFAULT 'livre';
+  ALTER TABLE grupos ADD COLUMN descricao TEXT;
+  ALTER TABLE grupo_membros ADD COLUMN silenciado_ate INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE grupo_msgs ADD COLUMN status TEXT NOT NULL DEFAULT 'ok';
+  CREATE INDEX IF NOT EXISTS grupos_pagina ON grupos(pagina_id);
+  CREATE INDEX IF NOT EXISTS grupo_msgs_status ON grupo_msgs(grupo_id, status);
+  CREATE TABLE IF NOT EXISTS grupo_convites (
+    grupo_id TEXT NOT NULL REFERENCES grupos(id),
+    user_id TEXT NOT NULL REFERENCES users(id),
+    by_id TEXT NOT NULL REFERENCES users(id),
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (grupo_id, user_id)
+  );
+  CREATE INDEX IF NOT EXISTS grupo_convites_user ON grupo_convites(user_id);
+  `,
 ];
 
 export function openDb(file) {

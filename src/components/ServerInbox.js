@@ -13,7 +13,7 @@ import { openServerProfile } from './ServerProfile';
 import { Photo } from './ui';
 import { colors } from '../theme';
 import ClassifyModal, { TagLine, EtiquetasModal, useListas, listasDe, buscaPorLista } from './ClassifyModal';
-import { NovoGrupo, GrupoChat } from './Grupos';
+import { NovoGrupo, GrupoChat, ConvitesGrupos } from './Grupos';
 import { aCada } from '../ritmo';
 
 const fotoDe = (p) => (p && p.startsWith('/') ? API_URL + p : p);
@@ -98,6 +98,7 @@ export default function ServerInbox() {
       <EtiquetasModal visible={etiquetas} onClose={() => setEtiquetas(false)} pessoas={pessoas} filtro={filtro} setFiltro={setFiltro} grupos={grupos.length} />
       <NovoGrupo visible={novoGrupo} onClose={() => setNovoGrupo(false)} onCriado={(id) => setGrupoAberto(id)} />
       {grupoAberto ? <GrupoChat id={grupoAberto} onClose={() => setGrupoAberto(null)} /> : null}
+      <ConvitesGrupos onEntrou={(id) => setGrupoAberto(id)} />
       {gruposVistos.length ? <Text style={st.title}>Grupos</Text> : null}
       {gruposVistos.map((g) => (
         <TouchableOpacity key={g.id} style={st.row} onPress={() => setGrupoAberto(g.id)} activeOpacity={0.8} accessibilityLabel={`Grupo ${g.name}`}>

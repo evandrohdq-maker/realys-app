@@ -23,6 +23,7 @@ import {
   usePaginaAberta, fecharPagina, pagina as carregarPagina, postsDaPagina, depoimentosDaPagina, seguirPagina, editarPagina, apagarPagina,
   postarNaPagina, curtirPost, mandarDepoimento, comoPaginaId, full, pagarPagina,
 } from '../serverPaginas';
+import { GruposDaPagina } from './Grupos';
 
 async function escolherMidia(soFoto) {
   try {
@@ -452,6 +453,8 @@ export default function ServerPageModal() {
                   </>
                 )}
               </View>
+              {/* Grupos da página (até 1000 pessoas, com moderação): cursos, propostas, estratégias. */}
+              <GruposDaPagina pg={pg} dono={!!pg.mine} T={T} />
               <View style={[st.tabs, { borderBottomColor: T.line }]}>
                 {[['posts', 'Posts'], ['deps', 'Depoimentos']].map(([k, l]) => (
                   <TouchableOpacity key={k} onPress={() => setAba(k)} style={[st.tab, aba === k && { borderBottomColor: th.accent }]} accessibilityLabel={l}>

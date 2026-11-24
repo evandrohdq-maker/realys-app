@@ -20,6 +20,8 @@ export const AVISOS = {
   'edicao_plano': (d) => ({ title: 'Editor de vídeo', body: short(d.aviso || 'Sua assinatura não renovou.'), go: { tab: 'perfil', editor: true } }),
   'grupo-msg': (d) => ({ title: d.name || 'Grupo', body: short(`${d.fromName || 'Alguém'}: ${d.text || ''}`), go: { grupo: d.id } }),
   'grupo-novo': (d) => ({ title: 'Você entrou num grupo 👥', body: `${d.by || 'Um amigo'} pôs você em "${d.name}".`, go: { grupo: d.id } }),
+  'grupo-convite': (d) => ({ title: 'Convite para um grupo 👥', body: `${d.by || 'Uma página'} convidou você para "${d.name}".`, go: { grupoConvites: true } }),
+  'grupo-pendente': (d) => ({ title: d.name || 'Grupo', body: short(`Mensagem para aprovar · ${d.fromName || 'Alguém'}: ${d.text || ''}`), go: { grupo: d.id } }),
   'estacao-post': (d) => ({ title: `${d.kind === 'tv' ? '📺' : '📻'} ${d.name || 'Estação'}`, body: short(d.texto || 'Nova publicação'), go: { tab: 'stories' } }),
   'neg-interesse': (d) => ({ title: 'Novo interessado no seu anúncio 🏷️', body: short(d.title || ''), go: { tab: 'bens' } }),
   'neg-liberado': (d) => ({ title: 'Conversa liberada ✅', body: `${d.from || 'O anunciante'} liberou a conversa sobre ${d.title || 'o anúncio'}.`, go: { tab: 'bens' } }),
