@@ -1326,6 +1326,111 @@ const MIGRATIONS = [
   );
   CREATE INDEX live_gravacoes_user ON live_gravacoes(user_id, started_at DESC);
   `,
+  // Hub de Negócios e Arena Gamer no servidor: cada cliente tem o seu espaço. O público só vê o que o
+  // dono deixa visível (Recepção da empresa / servidor aberto); salas de atendimento, reuniões e chamadas
+  // privadas só para quem foi chamado ou convidado; canais da equipe só para a equipe.
+  `
+  CREATE TABLE espacos (
+    id TEXT PRIMARY KEY,
+    kind TEXT NOT NULL CHECK (kind IN ('hub','arena')),
+    owner_id TEXT NOT NULL REFERENCES users(id),
+    name TEXT NOT NULL,
+    emoji TEXT NOT NULL DEFAULT '💼',
+    tint TEXT,
+    tipo TEXT,
+    city TEXT,
+    codigo TEXT NOT NULL UNIQUE,
+    visivel INTEGER NOT NULL DEFAULT 1,
+    senha TEXT,
+    max INTEGER NOT NULL DEFAULT 0,
+    moderada INTEGER NOT NULL DEFAULT 0,
+    painel TEXT,
+    aberto INTEGER NOT NULL DEFAULT 1,
+    horario TEXT,
+    plano TEXT NOT NULL DEFAULT 'gratis',
+    plano_ate INTEGER,
+    plano_renova INTEGER NOT NULL DEFAULT 0,
+    removed INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX espacos_kind ON espacos(kind, removed);
+  CREATE TABLE espaco_membros (
+    espaco_id TEXT NOT NULL REFERENCES espacos(id),
+    user_id TEXT NOT NULL REFERENCES users(id),
+    cargo TEXT NOT NULL CHECK (cargo IN ('dono','admin','mod','equipe','membro')),
+    silenciado INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (espaco_id, user_id)
+  );
+  CREATE INDEX espaco_membros_user ON espaco_membros(user_id);
+  CREATE TABLE espaco_banidos (
+    espaco_id TEXT NOT NULL REFERENCES espacos(id),
+    user_id TEXT NOT NULL REFERENCES users(id),
+    PRIMARY KEY (espaco_id, user_id)
+  );
+  CREATE TABLE espaco_canais (
+    id TEXT PRIMARY KEY,
+    espaco_id TEXT NOT NULL REFERENCES espacos(id),
+    kind TEXT NOT NULL CHECK (kind IN ('texto','voz')),
+    name TEXT NOT NULL,
+    so_equipe INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL
+  );
+  CREATE TABLE canal_msgs (
+    id TEXT PRIMARY KEY,
+    canal_id TEXT NOT NULL REFERENCES espaco_canais(id),
+    user_id TEXT NOT NULL REFERENCES users(id),
+    text TEXT NOT NULL,
+    reacoes TEXT,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX canal_msgs_canal ON canal_msgs(canal_id, created_at);
+  CREATE TABLE hub_fila (
+    id TEXT PRIMARY KEY,
+    espaco_id TEXT NOT NULL REFERENCES espacos(id),
+    client_id TEXT NOT NULL REFERENCES users(id),
+    motivo TEXT,
+    note TEXT,
+    status TEXT NOT NULL CHECK (status IN ('espera','chamado','saiu')),
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX hub_fila_espaco ON hub_fila(espaco_id, status, created_at);
+  CREATE TABLE salas_privadas (
+    id TEXT PRIMARY KEY,
+    espaco_id TEXT NOT NULL REFERENCES espacos(id),
+    kind TEXT NOT NULL CHECK (kind IN ('atendimento','reuniao','voz')),
+    name TEXT NOT NULL,
+    created_by TEXT NOT NULL REFERENCES users(id),
+    client_id TEXT,
+    motivo TEXT,
+    tela_por TEXT,
+    created_at INTEGER NOT NULL,
+    ended_at INTEGER
+  );
+  CREATE TABLE sala_acessos (
+    sala_id TEXT NOT NULL REFERENCES salas_privadas(id),
+    user_id TEXT NOT NULL REFERENCES users(id),
+    PRIMARY KEY (sala_id, user_id)
+  );
+  CREATE INDEX sala_acessos_user ON sala_acessos(user_id);
+  CREATE TABLE sala_convites (
+    token TEXT PRIMARY KEY,
+    sala_id TEXT NOT NULL REFERENCES salas_privadas(id),
+    created_by TEXT NOT NULL,
+    expires_at INTEGER NOT NULL
+  );
+  CREATE TABLE sala_chat (
+    id TEXT PRIMARY KEY,
+    sala_id TEXT NOT NULL REFERENCES salas_privadas(id),
+    user_id TEXT NOT NULL REFERENCES users(id),
+    kind TEXT NOT NULL,
+    text TEXT NOT NULL,
+    valor INTEGER,
+    aceito INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX sala_chat_sala ON sala_chat(sala_id, created_at);
+  `,
 ];
 
 export function openDb(file) {

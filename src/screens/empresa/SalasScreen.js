@@ -21,7 +21,10 @@ import { ScreenViewer } from '../../components/ScreenShareKit';
 import { useCamShare, startCam, stopCam } from '../../camShare';
 import { crmBoard } from '../../crm';
 import { salaById, salaGente, setSalaCfg, salaKick } from '../../salas';
-import { cargoDe } from '../../salaPlanos';
+import { cargoDe, setSalaPlano } from '../../salaPlanos';
+import { usarServidorHub, hubReal, carregarSala, carregarCanal, onChamado, encerrarSala, hubPorCodigo, addEquipe } from '../../salas';
+import { conectado } from '../../serverShop';
+import { mudo as vozMudo } from '../../vozGrupo';
 import { SalaConfig, SalaPainel, ModeracaoSheet, EntrarComId, SenhaSheet, tentaEntrar } from '../../components/SalaKit';
 
 const C = { bg: '#FFFFFF', soft: '#FAF7EF', line: '#EFE8D6', text: '#1B1B1F', muted: '#7A7468', gold: '#B8860B', green: '#2FB463', red: '#E5484D', amber: '#E0A92B' };
@@ -51,10 +54,33 @@ export default function SalasScreen({ explore }) {
   const { salas, here, myQueue } = useSalas();
   const [sid, setSid] = useState(null);
   const [rid, setRid] = useState(null);
+  // Conta real: o Hub vem do servidor (cada empresa tem a sua Recepção).
+  const real = conectado(state);
+  useEffect(() => {
+    usarServidorHub(real);
+  }, [real]);
+  useEffect(() => {
+    if (hubReal() && sid) carregarSala(sid);
+  }, [sid]);
+  // Fui chamado da fila: a sala abre na hora (só eu e quem me atende vemos essa sala).
+  useEffect(
+    () =>
+      onChamado((d) =>
+        Alert.alert('Sua vez chegou 🔔', `${d.atendente} (${d.empresa}) chamou você para o atendimento.`, [
+          { text: 'Agora não', style: 'cancel' },
+          { text: 'Entrar agora', onPress: () => { setSid(d.espacoId); setRid(d.salaId); } },
+        ])
+      ),
+    []
+  );
   const [creating, setCreating] = useState(null);
   const [cfgNew, setCfgNew] = useState(null);
   const [idOpen, setIdOpen] = useState(false);
   const findById = (id) => {
+    // Conta real: o código vai para o servidor (acha até as recepções escondidas).
+    if (hubReal()) {
+      return { nome: 'Recepção', cfg: null, pessoas: 0, onOk: () => hubPorCodigo(id).then((c) => carregarSala(c.id, id).then(() => setSid(c.id))).catch((e) => Alert.alert('Não encontrada', e.message)) };
+    }
     const s = salaById(id);
     return s ? { nome: s.name, cfg: s.cfg, pessoas: salaGente(s).length, onOk: () => setSid(s.id) } : null;
   };
@@ -66,7 +92,7 @@ export default function SalasScreen({ explore }) {
 
   // Demonstração: quem está na fila é chamado depois de alguns segundos.
   useEffect(() => {
-    if (!myQueue || isCompany) return;
+    if (!myQueue || isCompany || hubReal()) return;
     const s = salaOf(myQueue.sid);
     const att = s && (s.team.find((t) => t.online) || s.team[0]);
     if (!att || !s.open) return;
@@ -142,11 +168,14 @@ export default function SalasScreen({ explore }) {
                 onPress={() => {
                   const name = (creating.name || '').trim();
                   if (!name) return;
-                  const id = createSala({ name, tipo: creating.tipo, emoji: '💼', owner: me });
-                  setCreating(null);
-                  setSid(id);
-                  // Logo depois de abrir: senha, limite, exposta ou não, moderação e painel.
-                  setTimeout(() => setCfgNew(id), 250);
+                  Promise.resolve(createSala({ name, tipo: creating.tipo, emoji: '💼', owner: me }))
+                    .then((id) => {
+                      setCreating(null);
+                      setSid(id);
+                      // Logo depois de abrir: senha, limite, exposta ou não, moderação e painel.
+                      setTimeout(() => setCfgNew(id), 250);
+                    })
+                    .catch((e) => Alert.alert('Recepção não aberta', e.message));
                 }}
               >
                 <Text style={{ color: '#fff', fontWeight: '800' }}>Abrir</Text>
@@ -161,8 +190,9 @@ export default function SalasScreen({ explore }) {
 
 function SalaCard({ s, onPress }) {
   const t = SALA_TIPOS[s.tipo] || SALA_TIPOS.loja;
-  const online = s.team.filter((x) => x.online).length;
-  const live = s.rooms.filter((r) => r.kind === 'atendimento' && r.people.length).length;
+  // O público vê só a Recepção: quantos atendem e o tamanho da fila (nunca as salas privadas).
+  const online = s.server ? s.equipeOnline : s.team.filter((x) => x.online).length;
+  const filaN = s.server ? s.filaQtd : s.fila.length;
   return (
     <TouchableOpacity style={st.card} onPress={onPress} activeOpacity={0.85} accessibilityLabel={`${s.name}, ${t.label}`}>
       <View style={st.cardIcon}><Text style={{ fontSize: 24 }}>{s.emoji}</Text></View>
@@ -172,7 +202,7 @@ function SalaCard({ s, onPress }) {
         <Text style={[st.cardSub, { marginTop: 3 }]} numberOfLines={1}>
           {s.open ? (
             <>
-              <Text style={{ color: C.green }}>● </Text>{online} atendendo · {s.fila.length ? `${s.fila.length} na fila` : 'sem fila'}{live ? ` · ${live} ao vivo` : ''}
+              <Text style={{ color: C.green }}>● </Text>{online} atendendo · {filaN ? `${filaN} na fila` : 'sem fila'}
             </>
           ) : (
             <Text style={{ color: C.muted }}>{s.hours || 'Fechada agora'}</Text>
@@ -187,13 +217,15 @@ function SalaCard({ s, onPress }) {
 // ---------- Recepção ----------
 function Reception({ sid, me, isCompany, myQueue, onBack, onRoom, cfgFirst, onCfgDone }) {
   useSalas();
-  const s = salaOf(sid);
+  // Ainda carregando do servidor: mostra a casca da tela em vez de quebrar.
+  const s = salaOf(sid) || { id: sid, server: true, tipo: 'loja', name: 'Carregando…', emoji: '💼', team: [], rooms: [], canais: [], fila: [], cfg: null, open: true };
   const [cfgOpen, setCfgOpen] = useState(!!cfgFirst);
   const [modOpen, setModOpen] = useState(false);
   const [senhaAsk, setSenhaAsk] = useState(null);
   const t = SALA_TIPOS[s.tipo] || SALA_TIPOS.loja;
   // Empresa vê como dona (na demonstração, a empresa logada cuida da recepção que abrir).
-  const owner = isCompany || s.mine;
+  // Conta real: dona = quem é da equipe DESTA empresa (outra empresa não vê nada por dentro).
+  const owner = s.server ? !!s.souEquipe : isCompany || s.mine;
   const [asking, setAsking] = useState(null); // { motivo, note }
   const [meet, setMeet] = useState(null); // reunião nova: escolher quem convidar
   const [canal, setCanal] = useState(null);
@@ -201,6 +233,9 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom, cfgFirst, onCf
   const inQueue = myQueue && myQueue.sid === sid;
   const att = s.team.find((x) => x.online) || s.team[0];
   const ch = canal ? s.canais.find((c) => c.id === canal) : null;
+  useEffect(() => {
+    if (hubReal() && canal) carregarCanal(canal);
+  }, [canal]);
   useBack(!!canal, () => setCanal(null));
 
   if (ch) {
@@ -234,7 +269,8 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom, cfgFirst, onCf
     );
   }
 
-  const rooms = s.rooms.filter((r) => owner || (r.kind === 'atendimento' && r.people.includes(me)));
+  // Conta real: o servidor já manda só as salas em que a pessoa foi chamada/convidada.
+  const rooms = s.server ? s.rooms : s.rooms.filter((r) => owner || (r.kind === 'atendimento' && r.people.includes(me)));
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Head
@@ -245,7 +281,7 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom, cfgFirst, onCf
           owner && s.cfg ? (
             <View style={{ flexDirection: 'row' }}>
               <TouchableOpacity onPress={() => setModOpen(true)} style={{ padding: 6 }} accessibilityLabel="Moderação"><Ionicons name="shield-checkmark-outline" size={20} color={C.text} /></TouchableOpacity>
-              <TouchableOpacity onPress={() => setCfgOpen(true)} style={{ padding: 6 }} accessibilityLabel="Configurar sala"><Ionicons name="settings-outline" size={20} color={C.text} /></TouchableOpacity>
+              <TouchableOpacity onPress={() => { if (s.server && s.cfg.plano) setSalaPlano(s.cfg.plano); setCfgOpen(true); }} style={{ padding: 6 }} accessibilityLabel="Configurar sala"><Ionicons name="settings-outline" size={20} color={C.text} /></TouchableOpacity>
             </View>
           ) : null
         }
@@ -287,7 +323,7 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom, cfgFirst, onCf
               <TouchableOpacity onPress={leaveQueue} style={{ marginTop: 10 }}><Text style={{ color: C.red, fontWeight: '700' }}>Sair da fila</Text></TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity disabled={!s.open} style={[st.bigBtn, !s.open && { opacity: 0.5 }]} onPress={() => tentaEntrar({ cfg: s.cfg, pessoas: salaGente(s).length, me, nome: s.name, askSenha: setSenhaAsk, onOk: () => setAsking({ motivo: t.motivos[0], note: '' }) })} accessibilityLabel="Entrar na fila de atendimento">
+            <TouchableOpacity disabled={!s.open} style={[st.bigBtn, !s.open && { opacity: 0.5 }]} onPress={() => (s.server ? setAsking({ motivo: t.motivos[0], note: '' }) : tentaEntrar({ cfg: s.cfg, pessoas: salaGente(s).length, me, nome: s.name, askSenha: setSenhaAsk, onOk: () => setAsking({ motivo: t.motivos[0], note: '' }) }))} accessibilityLabel="Entrar na fila de atendimento">
               <Ionicons name="hand-right-outline" size={20} color="#fff" />
               <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15, marginLeft: 8 }} numberOfLines={1}>{s.open ? 'Quero ser atendido' : 'Fechada agora'}</Text>
             </TouchableOpacity>
@@ -304,7 +340,7 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom, cfgFirst, onCf
                   <Text style={{ fontWeight: '800', color: C.text }} numberOfLines={1}>{f.client} <Ionicons name="shield-checkmark" size={11} color={C.gold} /></Text>
                   <Text style={{ color: C.muted, fontSize: 12 }} numberOfLines={1}>{f.motivo}{f.note ? ` · ${f.note}` : ''} · {ago(f.at)}</Text>
                 </View>
-                <TouchableOpacity style={st.callBtn} onPress={() => { const r = callFromQueue(sid, f.id, me); if (r) onRoom(r); }} accessibilityLabel={`Atender ${f.client}`}>
+                <TouchableOpacity style={st.callBtn} onPress={() => Promise.resolve(callFromQueue(sid, f.id, me)).then((r) => r && onRoom(r)).catch((e) => Alert.alert('Atender', e.message))} accessibilityLabel={`Atender ${f.client}`}>
                   <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12.5 }} numberOfLines={1}>Atender</Text>
                 </TouchableOpacity>
               </View>
@@ -312,12 +348,12 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom, cfgFirst, onCf
           </>
         ) : null}
 
+        {owner && s.server ? <EquipeAdd sid={sid} team={s.team} /> : null}
         {owner ? (
           <TouchableOpacity
             style={st.meetBtn}
             onPress={() => {
-              const r = createMeeting(sid, `Reunião ${new Date().getHours()}h`, me);
-              setMeet(r); // escolhe quem convidar: amigos do Realyz (mensagem) ou link por fora
+              Promise.resolve(createMeeting(sid, `Reunião ${new Date().getHours()}h`, me)).then((r) => setMeet(r)).catch((e) => Alert.alert('Reunião', e.message)); // escolhe quem convidar: amigos do Realyz (mensagem) ou link por fora
             }}
             accessibilityLabel="Começar uma reunião e convidar pessoas"
           >
@@ -367,7 +403,16 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom, cfgFirst, onCf
             ))}
           </View>
           <TextInput value={asking ? asking.note : ''} onChangeText={(x) => setAsking({ ...asking, note: x })} placeholder="Conte rapidinho (opcional)" placeholderTextColor={C.muted} style={[st.field, { marginTop: 10 }]} maxLength={120} />
-          <TouchableOpacity style={[st.bigBtn, { marginTop: 14 }]} onPress={() => { enterQueue(sid, me, asking.motivo, asking.note.trim()); setAsking(null); }}>
+          <TouchableOpacity style={[st.bigBtn, { marginTop: 14 }]} onPress={() => {
+              const pedido = { ...asking };
+              setAsking(null);
+              // Conta real: o servidor confere senha e se está aberta; senha errada pede de novo.
+              const entrar = (senha) =>
+                Promise.resolve(enterQueue(sid, me, pedido.motivo, pedido.note.trim(), senha)).catch((e) =>
+                  e.code === 'senha' ? setSenhaAsk({ servidor: true, nome: s.name, erro: senha ? e.message : '', onOk: entrar }) : Alert.alert('Fila', e.message)
+                );
+              entrar();
+            }}>
             <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }} numberOfLines={1}>Entrar na fila</Text>
           </TouchableOpacity>
         </View>
@@ -399,7 +444,8 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom, cfgFirst, onCf
 // ---------- Sala de atendimento ----------
 function Room({ sid, rid, me, isCompany, onLeave, onBack }) {
   useSalas();
-  const s = salaOf(sid);
+  // Ainda carregando do servidor: mostra a casca da tela em vez de quebrar.
+  const s = salaOf(sid) || { id: sid, server: true, tipo: 'loja', name: 'Carregando…', emoji: '💼', team: [], rooms: [], canais: [], fila: [], cfg: null, open: true };
   const r = roomOf(sid, rid);
   const t = SALA_TIPOS[s.tipo] || SALA_TIPOS.loja;
   const share = useScreenShare();
@@ -414,8 +460,22 @@ function Room({ sid, rid, me, isCompany, onLeave, onBack }) {
     const i = setInterval(() => tick((n) => n + 1), 1000);
     return () => clearInterval(i);
   }, []);
-  if (!r) return null;
-  const owner = isCompany || s.mine || s.team.some((x) => x.name === me);
+  // Conta real: abriu a sala (pela fila, pelo aviso ou pela lista) = entra na voz e carrega a conversa.
+  useEffect(() => {
+    if (hubReal()) joinRoom(sid, rid, me);
+  }, [rid]);
+  useEffect(() => {
+    vozMudo(!mic);
+  }, [mic]);
+  if (!r) {
+    return (
+      <View style={{ flex: 1, backgroundColor: C.bg }}>
+        <Head title="Sala" sub={`${s.emoji} ${s.name}`} onBack={onBack} />
+        <Text style={st.empty}>{s.server ? 'Abrindo a sala…' : 'Sala não encontrada.'}</Text>
+      </View>
+    );
+  }
+  const owner = s.server ? !!s.souEquipe : isCompany || s.mine || s.team.some((x) => x.name === me);
   const key = salaKey(sid, rid);
   const sharing = !!(share && share.sala === key);
   const cam = !!(camOn && camOn.sala === key);
@@ -554,6 +614,9 @@ function Room({ sid, rid, me, isCompany, onLeave, onBack }) {
         <Ctl icon={mic ? 'mic' : 'mic-off'} label={mic ? 'Mic' : 'Mudo'} on={!mic} danger onPress={() => setMic(!mic)} />
         <Ctl icon={cam ? 'videocam' : 'videocam-off-outline'} label="Câmera" on={cam} onPress={() => setCam(!cam)} />
         <Ctl icon={sharing ? 'tv' : 'tv-outline'} label={sharing ? 'Na tela' : 'Tela'} on={sharing} onPress={toggleScreen} />
+        {s.server && owner && r.kind === 'atendimento' ? (
+          <Ctl icon="checkmark-done" label="Encerrar" onPress={() => Alert.alert('Encerrar o atendimento?', 'A sala fecha e o cliente perde o acesso a ela.', [{ text: 'Voltar', style: 'cancel' }, { text: 'Encerrar', style: 'destructive', onPress: () => { if (sharing) stopScreenShare(); if (cam) stopCam(); encerrarSala(sid, rid).then(onBack).catch((e) => Alert.alert('Encerrar', e.message)); } }])} />
+        ) : null}
         <Ctl icon="call" label="Sair" leave onPress={leave} />
       </View>
 
@@ -577,6 +640,35 @@ function Room({ sid, rid, me, isCompany, onLeave, onBack }) {
           </TouchableOpacity>
         </View>
       </KeyboardLift></Modal>
+    </View>
+  );
+}
+
+// Equipe da empresa (conta real): cada funcionário entra com a própria conta verificada, pelo *usuário.
+// Só a equipe vê a fila, as salas de atendimento e os canais internos.
+function EquipeAdd({ sid, team }) {
+  const [u, setU] = useState('');
+  const [busy, setBusy] = useState(false);
+  const add = () => {
+    const v = u.trim();
+    if (!v) return;
+    setBusy(true);
+    addEquipe(sid, v)
+      .then(() => {
+        setU('');
+        Alert.alert('Equipe', 'Funcionário adicionado. Ele já vê a fila e os atendimentos desta empresa.');
+      })
+      .catch((e) => Alert.alert('Equipe', e.message))
+      .finally(() => setBusy(false));
+  };
+  return (
+    <View style={{ marginTop: 14 }}>
+      <Text style={st.section}>EQUIPE · {team.length}</Text>
+      <Text style={{ color: C.muted, fontSize: 12 }} numberOfLines={2}>{team.map((x) => `${x.online ? '🟢' : '⚪'} ${x.name.split(' ')[0]}`).join('   ') || 'Só você por enquanto.'}</Text>
+      <View style={[st.inputRow, { paddingHorizontal: 0, marginTop: 6 }]}>
+        <TextInput value={u} onChangeText={setU} placeholder="*usuário do funcionário" placeholderTextColor={C.muted} autoCapitalize="none" style={st.input} onSubmitEditing={add} />
+        <TouchableOpacity onPress={add} disabled={busy} style={st.sendBtn} accessibilityLabel="Adicionar funcionário"><Ionicons name="person-add" size={16} color="#fff" /></TouchableOpacity>
+      </View>
     </View>
   );
 }

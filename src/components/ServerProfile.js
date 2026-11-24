@@ -32,10 +32,18 @@ export function ServerProfileHost() {
   return <ServerProfile key={id} id={id} preview={aberto.preview} onClose={() => setAberto(null)} />;
 }
 
+// Perfis já abertos ficam guardados na memória: abrir de novo mostra na hora (como no Instagram)
+// e atualiza por trás, sem a rodinha.
+const cacheDePerfis = new Map();
+export function preCarregarPerfil(id) {
+  if (!id || cacheDePerfis.has(id)) return;
+  api('GET', `/users/${id}`).then((d) => d && d.id && cacheDePerfis.set(id, d)).catch(() => {});
+}
+
 function ServerProfile({ id, preview, onClose }) {
   const { dispatch } = useStore();
   const insets = useSafeAreaInsets();
-  const [p, setP] = useState(null);
+  const [p, setP] = useState(() => cacheDePerfis.get(id) || null);
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
   const [aba, setAba] = useState('posts');
@@ -45,10 +53,16 @@ function ServerProfile({ id, preview, onClose }) {
     setErr(null);
     // Nunca fica carregando para sempre: sem resposta em 12 s, avisa e oferece tentar de novo.
     let respondeu = false;
-    const t = setTimeout(() => !respondeu && setErr('O perfil demorou para abrir. Confira a internet e tente de novo.'), 12000);
+    const t = setTimeout(() => !respondeu && !cacheDePerfis.has(id) && setErr('O perfil demorou para abrir. Confira a internet e tente de novo.'), 12000);
     return api('GET', `/users/${id}`)
-      .then((d) => { respondeu = true; setErr(null); setP(d && d.id ? d : { id, name: (preview && preview.name) || '', friend: null }); })
-      .catch((e) => { respondeu = true; setErr(e.message || 'Não deu para abrir este perfil.'); })
+      .then((d) => {
+        respondeu = true;
+        setErr(null);
+        if (d && d.id) cacheDePerfis.set(id, d);
+        setP(d && d.id ? d : { id, name: (preview && preview.name) || '', friend: null });
+      })
+      // Já tinha o perfil guardado: continua mostrando ele em vez do erro.
+      .catch((e) => { respondeu = true; if (!cacheDePerfis.has(id)) setErr(e.message || 'Não deu para abrir este perfil.'); })
       .finally(() => clearTimeout(t));
   };
   useEffect(() => {

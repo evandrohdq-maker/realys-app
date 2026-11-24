@@ -58,7 +58,8 @@ NOVA=$(git -C "$REPO" rev-parse origin/main)
 TESTE=$(mktemp -d /tmp/realys-teste-XXXX)
 trap 'git -C "$REPO" worktree remove --force "$TESTE" >/dev/null 2>&1; rm -rf "$TESTE"' EXIT
 git -C "$REPO" worktree add -q --detach "$TESTE" "$NOVA" || { log "não deu para preparar o teste de $NOVA"; exit 1; }
-if ! (cd "$TESTE/server" && timeout 600 npm test --silent > /tmp/realys-teste.log 2>&1); then
+# Testes com prioridade baixa (nice/ionice): o servidor no ar continua respondendo rápido para os usuários.
+if ! (cd "$TESTE/server" && timeout 900 nice -n 19 ionice -c3 npm test --silent > /tmp/realys-teste.log 2>&1); then
   log "versão $(git -C "$REPO" log -1 --format='%h %s' "$NOVA") NÃO atualizada: testes falharam (veja /tmp/realys-teste.log)"
   exit 1
 fi

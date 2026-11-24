@@ -27,7 +27,7 @@ import { serverOn, api, connectEvents } from '../../../api';
 import { setOpeningCurtain, onScreenPauseChange } from '../../../screenShare';
 import { webrtcOk, openPip, closePip } from '../../../video';
 import { setLiveKeep } from '../../../liveKeep';
-import { useArena, arenaVoiceRooms, arenaRoom, arenaServerOf, joinArenaVoice, leaveArenaVoice } from '../../../arena';
+import { useArena, arenaVoiceRooms, arenaRoom, arenaServerOf, joinArenaVoice, leaveArenaVoice, usarServidorArena } from '../../../arena';
 
 const now = () => {
   const d = new Date();
@@ -417,6 +417,10 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
   const [remotePause, setRemotePause] = useState(null); // quem assiste: a tela do streamer está pausada
   // Jogar com o time: sala de voz da Arena Gamer em que entro ao abrir a live (sem precisar de outro app).
   const arena = useArena();
+  // Conta real: os servidores da Arena (para a live com o time) vêm do servidor do Realyz.
+  useEffect(() => {
+    usarServidorArena(serverOn() && !!(state.user && state.user.serverId));
+  }, [state.user && state.user.serverId]);
   const [team, setTeam] = useState(null); // { sid, cid }
   const [teamMic, setTeamMic] = useState(true);
   const myName = (state.user && state.user.name) || 'Você';

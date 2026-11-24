@@ -3,7 +3,10 @@
 // na sala de voz do time ao abrir a live e a Arena mostra que ele está lá.
 // Guardado enquanto o app está aberto (sai da tela e volta, as mensagens continuam).
 import { useEffect, useState } from 'react';
+import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { api, connectEvents } from './api';
+import { entrarVoz, sairVoz, vozAtual, volumeDe, onVoz } from './vozGrupo';
 
 const now = Date.now();
 const m = (min) => now - min * 60000;
@@ -100,6 +103,12 @@ export const arenaPref = (name) => ({ ...ARENA_PREF_DEFAULT, ...(prefs[name] || 
 export function setArenaPref(name, patch) {
   prefs = { ...prefs, [name]: { ...arenaPref(name), ...patch } };
   AsyncStorage.setItem(PREFS_KEY, JSON.stringify(prefs)).catch(() => {});
+  // Voz de verdade: o volume e o silenciar valem na hora para essa pessoa.
+  if (real) {
+    const id = idDoNome(name);
+    const pf = arenaPref(name);
+    if (id) volumeDe(id, pf.volume / 100, pf.muted || pf.blocked);
+  }
   emit();
 }
 export function loadArenaPrefs() {
@@ -114,7 +123,12 @@ export function loadArenaPrefs() {
     .catch(() => {});
 }
 // Tira a pessoa do servidor (dono ou moderador) ou só da sala de voz.
-export function arenaKick(sid, name, { voiceOnly = false } = {}) {
+export function arenaKick(sid, name, { voiceOnly = false, banir = false } = {}) {
+  if (real) {
+    const id = idDoNome(name, sid);
+    if (id && !voiceOnly) api('POST', `/espacos/${sid}/remover`, { userId: id, banir }).then(guardar).catch((e) => Alert.alert('Remover', e.message));
+    return;
+  }
   servers = servers.map((s) =>
     s.id !== sid
       ? s
@@ -139,6 +153,18 @@ const dropMe = (list, me) => (list || []).filter((n) => n !== me);
 
 // Entra numa sala de voz (saindo de qualquer outra) e vira membro do servidor, se ainda não for.
 export function joinArenaVoice(sid, cid, me) {
+  // Conta real: voz de verdade, direto entre os celulares (src/vozGrupo.js).
+  if (real) {
+    const chave = String(cid).startsWith('sala_') ? cid : 'canal_' + cid;
+    entrarVoz(chave)
+      .then(() => {
+        voice = { sid, cid };
+        emit();
+        carregarServidor(sid);
+      })
+      .catch((e) => Alert.alert('Voz', e.message || 'Não deu para entrar na voz.'));
+    return;
+  }
   servers = servers.map((s) => {
     const mine = s.id === sid;
     const channels = s.channels.map((c) => (c.kind !== 'voice' ? c : { ...c, inVoice: mine && c.id === cid ? [...dropMe(c.inVoice, me), me] : dropMe(c.inVoice, me) }));
@@ -149,6 +175,13 @@ export function joinArenaVoice(sid, cid, me) {
   emit();
 }
 export function leaveArenaVoice(me) {
+  if (real) {
+    const v = voice;
+    voice = null;
+    sairVoz().finally(() => v && carregarServidor(v.sid));
+    emit();
+    return;
+  }
   servers = servers.map((s) => ({ ...s, channels: s.channels.map((c) => (c.kind === 'voice' ? { ...c, inVoice: dropMe(c.inVoice, me) } : c)) }));
   voice = null;
   emit();
@@ -175,6 +208,7 @@ export const arenaServerOf = (name) => servers.find((s) => s.members.some((x) =>
 // Convidado aceitou a chamada (na demonstração, alguns segundos depois do convite): entra na sala.
 // Com o servidor no ar, quem entra é a própria pessoa, pelo celular dela.
 export function arenaGuestJoins(sid, cid, name) {
+  if (real) return; // na conta real, quem entra é a própria pessoa, pelo celular dela
   servers = servers.map((s) => {
     const here = s.id === sid;
     const channels = s.channels.map((c) => (c.kind !== 'voice' ? c : { ...c, inVoice: here && c.id === cid ? [...dropMe(c.inVoice, name), name] : dropMe(c.inVoice, name) }));
@@ -186,6 +220,18 @@ export function arenaGuestJoins(sid, cid, name) {
 
 // Chamada particular com uma pessoa: cria uma sala de voz só de vocês dois no servidor e eu entro nela.
 export function arenaPrivateCall(sid, me, name) {
+  // Conta real: sala de voz só dos dois no servidor (ninguém mais vê); a pessoa recebe o convite.
+  if (real) {
+    const id = idDoNome(name, sid);
+    if (!id) return null;
+    api('POST', `/espacos/${sid}/chamada-particular`, { userId: id })
+      .then((sala) => {
+        guardarSalas(sid, [sala]);
+        joinArenaVoice(sid, 'sala_' + sala.id, me);
+      })
+      .catch((e) => Alert.alert('Chamada', e.message));
+    return null;
+  }
   const first = String(name).split(' ')[0];
   const s = servers.find((x) => x.id === sid);
   const existing = s && s.channels.find((c) => c.kind === 'voice' && c.privateWith === name);
@@ -196,3 +242,214 @@ export function arenaPrivateCall(sid, me, name) {
   joinArenaVoice(sid, cid, me);
   return cid;
 }
+
+// =====================================================================================
+// Conta real: a Arena vem do servidor. Cada streamer/time tem o seu servidor; o público só vê os
+// servidores abertos (escondidos entram pelo código); canais só para membros; chamada particular só
+// para os dois. A voz em grupo vai direto entre os celulares (até 5).
+// =====================================================================================
+let real = false;
+let cartoes = []; // lista do servidor
+const detalhes = {}; // id -> detalhe do servidor
+const msgs = {}; // canalId -> mensagens
+const salasPv = {}; // espacoId -> salas privadas de voz (chamadas particulares)
+let offEventos = null;
+export const arenaReal = () => real;
+const CARGO_APP = { dono: 'dono', admin: 'mod', mod: 'mod' };
+const CARGO_CFG = { dono: 'Admin', admin: 'Admin', mod: 'Moderador' };
+const idDoNome = (name, sid) => {
+  for (const d of Object.values(detalhes)) {
+    if (sid && d.id !== sid) continue;
+    const m = (d.membros || []).find((x) => x.name === name);
+    if (m) return m.id;
+  }
+  return null;
+};
+const mapear = (c) => {
+  const d = detalhes[c.id];
+  const base = { id: c.id, server: true, name: c.name, emoji: c.emoji || '🎮', tint: c.tint || '#B8860B', meuCargo: c.meuCargo, codigo: c.codigo, membrosQtd: c.membros };
+  if (!d) return { ...base, members: [], channels: [], cfg: { id: c.codigo || '', visivel: c.visivel !== false, senha: c.temSenha ? '•' : '', max: 0, plano: 'gratis', cargos: {}, silenciados: [], banidos: [] }, parcial: true };
+  const cargos = {};
+  const silenciados = [];
+  (d.membros || []).forEach((m) => {
+    if (CARGO_CFG[m.cargo]) cargos[m.name] = CARGO_CFG[m.cargo];
+    if (m.silenciado) silenciados.push(m.name);
+  });
+  const nomesVoz = (l) => (l || []).map((p) => p.name);
+  const canais = (d.canais || []).map((k) => ({ id: k.id, kind: k.kind === 'voz' ? 'voice' : 'text', name: k.name, msgs: msgs[k.id] || [], qtd: k.msgs, inVoice: nomesVoz(k.naVoz) }));
+  // Chamadas particulares (só aparecem para os dois): viram salas de voz com cadeado.
+  const pv = [...(d.salas || []), ...(salasPv[c.id] || [])].filter((sl, i, l) => sl.kind === 'voz' && l.findIndex((x) => x.id === sl.id) === i);
+  pv.forEach((sl) => canais.push({ id: 'sala_' + sl.id, kind: 'voice', name: sl.name, inVoice: nomesVoz(sl.naVoz), privateWith: true, msgs: [] }));
+  return {
+    ...base,
+    members: (d.membros || []).map((m) => ({ id: m.id, name: m.name, role: CARGO_APP[m.cargo] || 'membro', status: m.online ? 'online' : 'offline', game: null })),
+    channels: canais,
+    cfg: { ...d.cfg, cargos, silenciados, banidos: [], classes: ['Admin', 'Moderador', 'Membro'], painel: d.cfg.painel },
+  };
+};
+const reconstruir = () => {
+  servers = cartoes.map(mapear);
+  emit();
+};
+const guardar = (d) => {
+  if (!d || !d.id) return d;
+  detalhes[d.id] = d;
+  if (!cartoes.some((c) => c.id === d.id)) cartoes = [...cartoes, d];
+  else cartoes = cartoes.map((c) => (c.id === d.id ? { ...c, ...d } : c));
+  reconstruir();
+  return d;
+};
+const guardarSalas = (sid, l) => {
+  salasPv[sid] = [...(salasPv[sid] || []).filter((x) => !l.some((y) => y.id === x.id)), ...l];
+  reconstruir();
+};
+export function carregarArena() {
+  if (!real) return Promise.resolve();
+  return api('GET', '/espacos?kind=arena')
+    .then((l) => {
+      cartoes = l || [];
+      reconstruir();
+    })
+    .catch(() => {});
+}
+export function carregarServidor(sid) {
+  if (!real || !sid) return Promise.resolve();
+  return api('GET', `/espacos/${sid}`).then(guardar).catch(() => {});
+}
+export function carregarMsgs(sid, cid) {
+  if (!real || !cid || String(cid).startsWith('sala_')) return Promise.resolve();
+  return api('GET', `/canais/${cid}/msgs`)
+    .then((l) => {
+      msgs[cid] = l || [];
+      reconstruir();
+    })
+    .catch(() => {});
+}
+// Liga/desliga o modo servidor (conta real). Chamado pelas telas que usam a Arena.
+export function usarServidorArena(on) {
+  if (!!on === real) return;
+  real = !!on;
+  if (offEventos) offEventos();
+  offEventos = null;
+  if (!real) {
+    servers = SEED;
+    emit();
+    return;
+  }
+  servers = [];
+  emit();
+  carregarArena();
+  offEventos = connectEvents((ev) => {
+    const d = ev.data || {};
+    if (ev.type === 'canal-msg' && d.canalId) {
+      msgs[d.canalId] = [...(msgs[d.canalId] || []), d.msg];
+      reconstruir();
+    } else if (ev.type === 'espaco') {
+      carregarArena();
+      if (d.removido && voice && voice.sid === d.id) leaveArenaVoice();
+      if (detalhes[d.id] && !d.removido) carregarServidor(d.id);
+    } else if (ev.type === 'arena-chamada') {
+      carregarServidor(d.espacoId);
+      Alert.alert('Chamada particular 🎧', `${d.de} te chamou para conversar${d.servidor ? ` em ${d.servidor}` : ''}.`, [
+        { text: 'Agora não', style: 'cancel' },
+        { text: 'Entrar', onPress: () => joinArenaVoice(d.espacoId, 'sala_' + d.salaId) },
+      ]);
+    } else if ((ev.type === 'voz-entrou' || ev.type === 'voz-saiu') && voice) carregarServidor(voice.sid);
+  });
+}
+// Quem está na voz muda: atualiza o servidor aberto.
+onVoz(() => voice && real && carregarServidor(voice.sid));
+
+// ---------- Ações das telas (servidor na conta real, demonstração no resto) ----------
+// Entrar no servidor. Devolve uma Promise; erro com code 'senha' pede a senha.
+export function arenaEntrar(sid, me, senha, codigo) {
+  if (real) return api('POST', `/espacos/${sid}/entrar`, { senha, codigo }).then(guardar);
+  servers = servers.map((s) => (s.id === sid && !s.members.some((x) => x.name === me) ? { ...s, members: [...s.members, { name: me, role: 'membro', status: 'online', game: null }] } : s));
+  emit();
+  return Promise.resolve();
+}
+export function arenaEnviar(sid, cid, me, text) {
+  if (real) {
+    return api('POST', `/canais/${cid}/msgs`, { text })
+      .then((m) => {
+        msgs[cid] = [...(msgs[cid] || []), m];
+        reconstruir();
+      })
+      .catch((e) => Alert.alert('Mensagem não enviada', e.message));
+  }
+  servers = servers.map((s) => (s.id === sid ? { ...s, channels: s.channels.map((c) => (c.id === cid ? { ...c, msgs: [...c.msgs, { who: me, text, at: Date.now() }] } : c)) } : s));
+  emit();
+  return Promise.resolve();
+}
+export function arenaReagir(sid, cid, i, emoji) {
+  if (real) {
+    const m = (msgs[cid] || [])[i];
+    if (!m) return;
+    api('POST', `/canal-msgs/${m.id}/reagir`, { emoji })
+      .then((r) => {
+        msgs[cid] = msgs[cid].map((x) => (x.id === m.id ? { ...x, reactions: r.reactions } : x));
+        reconstruir();
+      })
+      .catch(() => {});
+    return;
+  }
+  servers = servers.map((s) => (s.id !== sid ? s : { ...s, channels: s.channels.map((c) => {
+    if (c.id !== cid) return c;
+    const l = c.msgs.slice();
+    const r = { ...(l[i].reactions || {}) };
+    r[emoji] = (r[emoji] || 0) + 1;
+    l[i] = { ...l[i], reactions: r };
+    return { ...c, msgs: l };
+  }) }));
+  emit();
+}
+// Criar servidor. Devolve Promise com o id.
+export function arenaCriar({ name, emoji, me, cfg }) {
+  if (real) return api('POST', '/espacos', { kind: 'arena', name, emoji }).then((d) => guardar(d).id);
+  const id = 'sv-' + Date.now();
+  servers = [...servers, {
+    id, name, emoji: emoji || '🎮', tint: '#B8860B', cfg,
+    members: [{ name: me, role: 'dono', status: 'online', game: null }],
+    channels: [
+      { id: 'c1', kind: 'text', name: 'geral', msgs: [{ who: me, text: `Servidor ${name} criado! Convide a galera. 🎉`, at: Date.now() }] },
+      { id: 'c2', kind: 'text', name: 'procurando-time', msgs: [] },
+      { id: 'v1', kind: 'voice', name: 'Squad', inVoice: [] },
+    ],
+  }];
+  emit();
+  return Promise.resolve(id);
+}
+export function arenaNovoCanal(sid, kind, name) {
+  if (real) return api('POST', `/espacos/${sid}/canais`, { kind: kind === 'voice' ? 'voz' : 'texto', name }).then(guardar).catch((e) => Alert.alert('Canal', e.message));
+  servers = servers.map((s) => (s.id !== sid ? s : { ...s, channels: [...s.channels, kind === 'voice' ? { id: 'v' + Date.now(), kind: 'voice', name, inVoice: [] } : { id: 'c' + Date.now(), kind: 'text', name: name.toLowerCase().replace(/\s+/g, '-'), msgs: [] }] }));
+  emit();
+  return Promise.resolve();
+}
+// Configuração e moderação: na conta real, cada mudança vai para o servidor (plano, senha, limite,
+// visível, moderação, painel, cargos, silenciar e banir).
+export async function arenaSalvarCfg(sid, antes, depois, espaco = 'arena') {
+  if (!real) {
+    servers = servers.map((s) => (s.id === sid ? { ...s, cfg: depois } : s));
+    emit();
+    return;
+  }
+  try {
+    if (depois.plano && antes && depois.plano !== antes.plano) await api('POST', `/espacos/${sid}/plano`, { plano: depois.plano });
+    await api('PATCH', `/espacos/${sid}/config`, { senha: depois.senha || '', max: depois.max || 0, visivel: depois.visivel !== false, moderada: !!depois.moderada, painel: depois.painel || null });
+    const d = detalhes[sid] || { membros: [] };
+    const idDe = (n) => (d.membros.find((m) => m.name === n) || {}).id;
+    for (const [n, k] of Object.entries(depois.cargos || {})) {
+      if (((antes && antes.cargos) || {})[n] === k || !idDe(n)) continue;
+      await api('POST', `/espacos/${sid}/cargo`, { userId: idDe(n), cargo: k === 'Admin' ? 'admin' : k === 'Moderador' ? 'mod' : espaco === 'hub' ? 'equipe' : 'membro' }).catch((e) => Alert.alert('Cargo', e.message));
+    }
+    const sil0 = new Set((antes && antes.silenciados) || []);
+    const sil1 = new Set(depois.silenciados || []);
+    for (const n of new Set([...sil0, ...sil1])) if (sil0.has(n) !== sil1.has(n) && idDe(n)) await api('POST', `/espacos/${sid}/silenciar`, { userId: idDe(n), on: sil1.has(n) });
+    for (const n of depois.banidos || []) if (!((antes && antes.banidos) || []).includes(n) && idDe(n)) await api('POST', `/espacos/${sid}/remover`, { userId: idDe(n), banir: true });
+  } catch (e) {
+    Alert.alert('Configuração', e.message);
+  }
+  return carregarServidor(sid);
+}
+// Entrar com o código (acha até os escondidos).
+export const arenaPorCodigo = (codigo) => api('GET', `/espacos/codigo/${encodeURIComponent(codigo)}`);

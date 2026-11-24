@@ -360,6 +360,11 @@ export function SenhaSheet({ ask, onClose }) {
   }, [ask]);
   if (!ask) return null;
   const go = () => {
+    // Conta real: quem confere a senha é o servidor (a senha não fica no celular).
+    if (ask.servidor) {
+      onClose();
+      return ask.onOk(senha);
+    }
     const r = podeEntrar(ask.cfg, ask.pessoas, ask.me, senha);
     if (r.ok) {
       onClose();
@@ -379,7 +384,7 @@ export function SenhaSheet({ ask, onClose }) {
     >
       <Text style={st.hint}>Esta sala tem senha. Peça para quem te convidou.</Text>
       <TextInput value={senha} onChangeText={setSenha} placeholder="Senha" placeholderTextColor={colors.muted} style={st.field} secureTextEntry autoFocus onSubmitEditing={go} />
-      {erro ? <Text style={{ color: '#E5484D', marginTop: 4 }}>{erro}</Text> : null}
+      {erro || ask.erro ? <Text style={{ color: '#E5484D', marginTop: 4 }}>{erro || ask.erro}</Text> : null}
     </Sheet>
   );
 }
