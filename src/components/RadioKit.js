@@ -5,7 +5,7 @@ import { View, StyleSheet, TouchableOpacity, Animated, ActivityIndicator, Image,
 import { Text } from '../responsive';
 import { Ionicons } from '@expo/vector-icons';
 import Floating from './Floating';
-import { radioNow, onRadioNow, setRadioNow, playRadio, stopRadio, resolveStream, loadRadios, radioOf, onRadios, radioEnded, allRadios } from '../radio';
+import { radioNow, onRadioNow, setRadioNow, playRadio, stopRadio, resolveStream, loadRadios, radioOf, onRadios, radioEnded, allRadios, isFollowing, toggleFollow } from '../radio';
 import { stationCat, openStation } from '../streamCats';
 import { minimizeApp } from '../pip';
 import { openArtist, trackById, artistGets } from '../music';
@@ -431,6 +431,60 @@ export function RadioHeadChip({ top, left }) {
       </TouchableOpacity>
       </View>
     </Floating>
+  );
+}
+
+// Player no cabeçalho, ao lado da logo do Realyz, no espaço livre entre a logo e os botões (nunca por
+// cima de nada: ocupa só o espaço que sobra e esconde os botões menos importantes se faltar lugar).
+//   Rádio: logo (abre a rádio) · curtir (coração) · seguir · fechar.
+//   Música: capa (abre o artista) · curtir · próxima · fechar.
+export function RadioHeaderSlot() {
+  const n = useRadioNow();
+  const [livre, setLivre] = useState(0);
+  const [, tick] = useState(0);
+  const playing = !!(n.radio && n.status !== 'parado');
+  const track = playing && !!n.radio.track;
+  const t = track ? trackById(n.radio.id) : null;
+  const open = () => (track ? n.radio.artist && openArtist(n.radio.artist) : openStation('radio', n.radio.id));
+  const favItem = !playing ? null : track ? t || { id: n.radio.id, title: n.radio.name, artist: n.radio.artist, cover: typeof n.radio.logo === 'string' ? n.radio.logo : null } : n.radio;
+  const seguindo = playing && !track && isFollowing(n.radio.id);
+  // Cabe o quê? logo + fechar sempre; depois seguir/próxima e curtir, se tiver lugar.
+  const cabe = (px) => livre >= px;
+  return (
+    <View style={{ flex: 1, minWidth: 0, marginHorizontal: 6, alignItems: 'flex-start', justifyContent: 'center' }} onLayout={(e) => setLivre(Math.floor(e.nativeEvent.layout.width))}>
+      {playing && livre >= 64 ? (
+        <View style={[st.chip, { elevation: 0, maxWidth: livre }]}>
+          <TouchableOpacity onPress={open} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center' }} accessibilityLabel={track ? `${n.radio.name}, de ${n.radio.artist}. Ver o artista` : `${n.radio.name} tocando. Abrir a rádio`}>
+            <View style={[st.chipLogo, track && { borderRadius: 6 }]}>
+              <StationLogo s={n.radio} size={24} radius={track ? 6 : 12} />
+            </View>
+            {n.status === 'tocando' ? (
+              <View style={{ transform: [{ scale: 0.55 }], marginHorizontal: -4 }}>
+                <Bars on />
+              </View>
+            ) : n.status === 'carregando' ? (
+              <ActivityIndicator size="small" color={GOLD} style={{ marginHorizontal: 2, transform: [{ scale: 0.6 }] }} />
+            ) : (
+              <Ionicons name="alert-circle" size={14} color="#E5484D" style={{ marginHorizontal: 3 }} />
+            )}
+          </TouchableOpacity>
+          {cabe(110) ? <FavHeart kind={track ? 'music' : 'radio'} item={favItem} size={13} color={GOLD} style={st.chipX} hitSlop={6} /> : null}
+          {!track && cabe(88) ? (
+            <TouchableOpacity onPress={() => (toggleFollow(n.radio.id), tick((x) => x + 1))} hitSlop={6} style={[st.chipX, seguindo && { backgroundColor: GOLD }]} accessibilityLabel={seguindo ? `Deixar de seguir ${n.radio.name}` : `Seguir ${n.radio.name}`}>
+              <Ionicons name={seguindo ? 'checkmark' : 'person-add'} size={11} color={seguindo ? '#0E0E10' : GOLD} />
+            </TouchableOpacity>
+          ) : null}
+          {track && cabe(88) ? (
+            <TouchableOpacity onPress={radioEnded} hitSlop={8} style={st.chipX} accessibilityLabel="Próxima música">
+              <Ionicons name="play-skip-forward" size={12} color={GOLD} />
+            </TouchableOpacity>
+          ) : null}
+          <TouchableOpacity onPress={stopRadio} hitSlop={8} style={st.chipX} accessibilityLabel={track ? 'Fechar a música' : `Parar ${n.radio.name}`}>
+            <Ionicons name="close" size={13} color={GOLD} />
+          </TouchableOpacity>
+        </View>
+      ) : null}
+    </View>
   );
 }
 

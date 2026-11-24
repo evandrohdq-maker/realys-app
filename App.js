@@ -109,7 +109,7 @@ import { openProfileMenu } from './src/profileMenu';
 import { ProductSheetHost } from './src/components/ProductSheet';
 import { SupplierShowcaseHost } from './src/components/SupplierShowcase';
 import RadiosScreen from './src/screens/cliente/RadiosScreen';
-import { RadioHost, RadioHeadChip } from './src/components/RadioKit';
+import { RadioHost, RadioHeaderSlot } from './src/components/RadioKit';
 import { ArtistSheetHost } from './src/components/ArtistSheet';
 import { ArtistShowHost } from './src/components/ArtistBooking';
 import { MediaViewerHost } from './src/components/MediaViewer';
@@ -679,7 +679,7 @@ function Shell({ inviteTick }) {
         {/* Só a logo (o R dentro do @), sem fundo dourado e sem o nome escrito: a palavra Realyz fica só na entrada do app. */}
         {/* Tocar na logo volta para a página inicial (a Community, com o feed no topo). */}
         <TouchableOpacity
-          style={{ flexDirection: 'row', alignItems: 'center' }}
+          style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 0 }}
           accessibilityLabel="Realyz: voltar para a página inicial"
           onPress={() => {
             const home = tabs.find((t) => t.key === 'stories');
@@ -690,7 +690,9 @@ function Shell({ inviteTick }) {
         >
           <Image source={require('./assets/logo-mark.png')} style={styles.logoImg} />
         </TouchableOpacity>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        {/* Rádio ou música tocando: o player fica aqui, ao lado da logo, só no espaço livre. */}
+        <RadioHeaderSlot />
+        <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 0 }}>
           {/* Troca de perfil: um símbolo só, pequeno. Mostra o perfil em uso; tocar troca trabalho ⇄ usuário. */}
           {/* A troca de perfil (usuário ⇄ trabalho) agora fica no botão do Perfil: segurar troca. */}
           {canSwap ? null : state.activeRole === 'empresa' ? (
@@ -787,7 +789,7 @@ function Shell({ inviteTick }) {
           aparece só ao minimizar). Músicas: mini player com a capa e o botão do perfil do artista. */}
       {/* Rádio e músicas: playerzinho pequeno logo abaixo do cabeçalho, no meio da tela (pretinho com
           borda dourada), com fechar, próxima música e o artista. A capa grande aparece só ao minimizar o app. */}
-      <RadioHeadChip top={insets.top + 50} />
+      {/* O player da rádio/música fica no cabeçalho, ao lado da logo (RadioHeaderSlot). */}
       <ArtistSheetHost />
       <ArtistShowHost />
       <MediaViewerHost />
