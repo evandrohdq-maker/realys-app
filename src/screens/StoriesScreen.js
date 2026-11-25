@@ -24,6 +24,7 @@ import { useOpenPerson, resolvePerson } from '../openPerson';
 import { realWidth, DESK_MIN, RAIL_MIN } from '../webFrame';
 import { DestaqueOpcoes, DESTAQUE_VAZIO, aplicarDestaque } from '../components/Destacar';
 import { editPhoto } from '../components/PhotoEditor';
+import ConhecaRealyz from '../components/ConhecaRealyz';
 
 // Página Community (botão "Community" na barra de baixo): stories e comunidade.
 // Em cima, a faixa de bolinhas como no Instagram; embaixo, a Comunidade: feed único de posts e
@@ -193,6 +194,8 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
           })}
         </ScrollView>
         {menuBar ? <View style={{ marginHorizontal: -16 }}>{menuBar}</View> : null}
+        {/* Primeiras vezes no app: vídeo de apresentação, o que é o Realyz em slides e a construção do app. */}
+        <ConhecaRealyz />
           </View>
         }
       />
