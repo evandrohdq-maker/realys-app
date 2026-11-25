@@ -36,7 +36,12 @@ const DIA = 24 * 60 * 60 * 1000;
 const codigo4 = () => String(Math.floor(1000 + Math.random() * 9000));
 const pt = (lat, lng) => (lat != null && lng != null ? { lat: Number(lat), lng: Number(lng) } : null);
 
-export default function logisticaRoutes(r, { db, cfg, hub, wallet, userById, biometria, fiscal }) {
+export default function logisticaRoutes(r, { db, cfg, hub, wallet, userById, biometria, fiscal, taxaPioneiro }) {
+  // Pioneiro: taxa menor (ou zero nas 100 primeiras corridas do motoboy). Nunca passa da taxa normal.
+  const comPioneiro = (userId, pct) => {
+    const p = taxaPioneiro ? taxaPioneiro.pct(userId, pct, { tipo: 'entrega' }) : null;
+    return p == null ? pct : Math.min(p, pct);
+  };
   const TRANSPORTE = [...new Set(Object.values(VEICULOS).flatMap((v) => v.servicos))];
   const entregaView = (e, { para } = {}) => ({
     id: e.id,
@@ -149,11 +154,12 @@ export default function logisticaRoutes(r, { db, cfg, hub, wallet, userById, bio
       .map((e) => {
         const rota = ativas.map((a) => ({ a, m: combinar(pt(a.col_lat, a.col_lng), pt(a.des_lat, a.des_lng), pt(e.col_lat, e.col_lng), pt(e.des_lat, e.des_lng)) })).find((x) => x.m);
         const dist = p.lat != null && e.col_lat != null ? km({ lat: p.lat, lng: p.lng }, { lat: e.col_lat, lng: e.col_lng }) : null;
-        const pct = rota ? TAXA_ROTA_PCT : e.taxa_pct;
+        const pct = comPioneiro(user.id, rota ? TAXA_ROTA_PCT : e.taxa_pct);
         return {
           ...entregaView(e),
           ateColetaKm: dist == null ? null : Math.round(dist * 10) / 10,
-          rota: rota ? { junto: rota.a.id, economiaKm: rota.m.economiaKm, desvioKm: rota.m.desvioKm, taxaPct: TAXA_ROTA_PCT } : null,
+          taxaPct: pct,
+          rota: rota ? { junto: rota.a.id, economiaKm: rota.m.economiaKm, desvioKm: rota.m.desvioKm, taxaPct: pct } : null,
           entregadorRecebe: toReais(e.valor - Math.round((e.valor * pct) / 100)),
         };
       })
@@ -170,7 +176,7 @@ export default function logisticaRoutes(r, { db, cfg, hub, wallet, userById, bio
     if (!biometria.periodicOk(user.id)) fail(403, 'Confirme seu rosto para continuar disponível. Isso é feito a cada 6 horas.', 'verificacao_periodica');
     // Rota inteligente: já leva uma entrega para o mesmo lado → taxa de rota.
     const ativa = db.prepare(`SELECT * FROM entregas WHERE entregador_id = ? AND status IN ('aceita','coletada')`).all(user.id).find((a) => combinar(pt(a.col_lat, a.col_lng), pt(a.des_lat, a.des_lng), pt(e.col_lat, e.col_lng), pt(e.des_lat, e.des_lng)));
-    const taxa = ativa ? TAXA_ROTA_PCT : e.taxa_pct;
+    const taxa = comPioneiro(user.id, ativa ? TAXA_ROTA_PCT : e.taxa_pct);
     const ch = db.prepare(`UPDATE entregas SET status = 'aceita', entregador_id = ?, taxa_pct = ?, rota_com = ?, updated_at = ? WHERE id = ? AND status = 'aberta'`).run(user.id, taxa, ativa ? ativa.id : null, now(), e.id);
     if (!ch.changes) fail(409, 'Outro entregador já pegou essa entrega.');
     if (e.order_id) db.prepare(`UPDATE orders SET status = 'A caminho', updated_at = ? WHERE id = ? AND status IN ('Recebido','Preparando')`).run(now(), e.order_id);

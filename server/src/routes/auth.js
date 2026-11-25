@@ -57,6 +57,20 @@ export default function authRoutes(r, { db, cfg, wallet, publicUser, limitLogin,
     };
   };
 
+  // Link do titular (Pioneiros): o dono do CNPJ abre o link que recebeu no WhatsApp e entra na conta da
+  // empresa só para fazer a biometria e assinar o acordo. Um uso só, válido por 24 horas.
+  r.post('/auth/titular', ({ body, req }) => {
+    const ip = String((req && (req.headers['x-forwarded-for'] || (req.socket && req.socket.remoteAddress))) || '').split(',')[0].trim();
+    limitLogin('titular:' + ip);
+    const token = String((body && body.token) || '');
+    const l = token.length >= 20 ? db.prepare('SELECT * FROM links_titular WHERE token_hash = ?').get(sha256(token)) : null;
+    if (!l || l.usado_em || l.expira_em < now()) fail(410, 'Este link não vale mais. Peça um novo para quem fez o cadastro.', 'link_titular');
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(l.user_id);
+    if (!user || user.status !== 'ativo') fail(403, 'Conta indisponível.');
+    db.prepare('UPDATE links_titular SET usado_em = ? WHERE id = ?').run(now(), l.id);
+    return { ...startSession(user, (body && body.device) || 'link do titular'), titular: true };
+  }, { auth: false });
+
   // Cadastro de usuário (CPF) ou empresa (CNPJ). Empresa já ganha a página da empresa.
   r.post('/auth/signup', ({ body }) => {
     if (body.aceiteTermos !== TERMO_ADESAO_VERSAO) fail(400, 'Leia e aceite o termo de adesão para criar sua conta.', 'termos');

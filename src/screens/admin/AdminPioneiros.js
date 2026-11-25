@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, Alert, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Text } from '../../responsive';
+import { Text, TextInput } from '../../responsive';
 import { api, serverOn } from '../../api';
 import { useStore } from '../../store';
 import { colors, soft } from '../../theme';
@@ -28,6 +28,7 @@ export default function AdminPioneiros() {
   const [erro, setErro] = useState(null);
   const [etapa, setEtapa] = useState('novo');
   const [aberto, setAberto] = useState(true);
+  const [contas, setContas] = useState({}); // id do pioneiro → *usuário digitado
   const carregar = () =>
     api('GET', '/admin/pioneiros')
       .then((r) => (setD(r), setErro(null)))
@@ -42,6 +43,16 @@ export default function AdminPioneiros() {
     api('POST', `/admin/pioneiros/${f.id}`, { status })
       .then((r) => {
         if (r.numero && status === 'fechado') Alert.alert('Pioneiro confirmado 🎉', `${f.nome} é o Pioneiro ${numPion(r.numero)}.`);
+        carregar();
+      })
+      .catch((e) => Alert.alert('Pioneiros', e.message));
+  };
+  // Liga o pioneiro à conta dele no app: é o que faz valer o selo e a taxa de pioneiro.
+  const ligar = (f) => {
+    if (leitura) return Alert.alert('Acesso de analista', 'Ligar a conta é com o administrador.');
+    api('POST', `/admin/pioneiros/${f.id}/conta`, { usuario: contas[f.id] || '' })
+      .then((r) => {
+        Alert.alert('Conta ligada', r.conta ? `${f.nome} agora é o pioneiro *${r.conta.usuario}.` : 'Conta desligada.');
         carregar();
       })
       .catch((e) => Alert.alert('Pioneiros', e.message));
@@ -90,6 +101,18 @@ export default function AdminPioneiros() {
               <Text style={st.sub} numberOfLines={1}>{nomeArea(f.area)}{f.responsavel && f.responsavel !== f.nome ? ` · ${f.responsavel}` : ''}</Text>
               <Text style={st.sub} numberOfLines={1}>{fone(f.whatsapp)}{f.cnpj ? ` · CNPJ ${f.cnpj}` : ''}{f.vendedor ? ` · vendedor: ${f.vendedor}` : ''}</Text>
               {f.obs ? <Text style={st.obs} numberOfLines={2}>{f.obs}</Text> : null}
+              {f.status === 'fechado' ? (
+                f.conta ? (
+                  <Text style={[st.sub, { color: colors.success, marginTop: 4 }]}>Conta no app: *{f.conta}</Text>
+                ) : (
+                  <View style={st.ligar}>
+                    <TextInput value={contas[f.id] || ''} onChangeText={(v) => setContas({ ...contas, [f.id]: v })} placeholder="*usuário da conta no app" placeholderTextColor={colors.muted} autoCapitalize="none" style={st.ligarIn} />
+                    <TouchableOpacity style={st.ligarBtn} onPress={() => ligar(f)}>
+                      <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 12.5 }}>Ligar conta</Text>
+                    </TouchableOpacity>
+                  </View>
+                )
+              ) : null}
               <View style={st.acoes}>
                 <TouchableOpacity style={st.acao} onPress={() => Linking.openURL(`https://wa.me/55${String(f.whatsapp).replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '')}`)} accessibilityLabel={`Chamar ${f.nome} no WhatsApp`}>
                   <Ionicons name="logo-whatsapp" size={16} color={colors.success} />
@@ -128,5 +151,8 @@ const st = StyleSheet.create({
   acoes: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 },
   acao: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 14, borderWidth: 1, borderColor: colors.borderStrong, marginRight: 6, marginTop: 4 },
   acaoT: { color: colors.text, fontSize: 12, fontWeight: '700', marginLeft: 3 },
+  ligar: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
+  ligarIn: { flex: 1, height: 38, borderRadius: 12, borderWidth: 1, borderColor: colors.borderStrong, paddingHorizontal: 10, color: colors.text, fontSize: 13.5 },
+  ligarBtn: { backgroundColor: colors.primary, borderRadius: 12, paddingHorizontal: 12, height: 38, justifyContent: 'center', marginLeft: 6 },
   vazio: { color: colors.muted, textAlign: 'center', paddingVertical: 12 },
 });

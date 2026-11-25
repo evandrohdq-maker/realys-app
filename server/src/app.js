@@ -65,6 +65,7 @@ import edicaoRoutes from './routes/edicao.js';
 import espacosRoutes from './routes/espacos.js';
 import contasTesteRoutes from './contasTeste.js';
 import { makePush } from './push.js';
+import { makeTaxaPioneiro } from './taxaPioneiro.js';
 import { makeTeleGratis } from './teleGratis.js';
 import { makeLojaPlano } from './lojaPlano.js';
 import { makeCrm } from './crm.js';
@@ -117,6 +118,8 @@ export function createApp(cfg) {
   // IA do Realyz (atendente das empresas e copiloto de vendas).
   deps.ia = cfg.ia || makeIA(cfg);
   deps.planos = makePlanos(db);
+  // Taxa menor dos motoboys e motoristas Pioneiros (src/taxaPioneiro.js).
+  deps.taxaPioneiro = makeTaxaPioneiro(db);
   // Mensalidade das páginas (2ª em diante: R$ 14,90 por mês do saldo).
   deps.paginasCobranca = makeCobrancaPaginas(db, wallet);
   // Editor de vídeo (fila do ffmpeg, 1º mês grátis) e gravação das lives para cortes.
