@@ -30,6 +30,12 @@ if (Platform.OS !== 'web') {
 import ClassifyModal, { TagLine, LISTAS_PADRAO } from './ClassifyModal';
 import EmojiBar, { EmojiButton } from './EmojiBar';
 import { aCada } from '../ritmo';
+import Petalas from './Petalas';
+import { enviarMensagem, pendentesCom, onPendentes, tirarRecusadas } from '../mensagensPendentes';
+const hora = (t) => {
+  const d = new Date(t);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+};
 const mmss = (n) => `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`;
 
 export default function ChatServidor() {
@@ -57,6 +63,12 @@ export default function ChatServidor() {
     load();
     const stop = connectEvents((e) => {
       if (e.type === 'message' && (e.from === open.userId || (e.data && e.data.from === open.userId))) load();
+      // A pessoa recebeu ou leu: as pétalas mudam na hora, sem buscar a conversa de novo.
+      if (e.type === 'message_status' && e.data && e.data.with === open.userId && Array.isArray(e.data.ids)) {
+        const ids = new Set(e.data.ids);
+        const campo = e.data.status === 'lida' ? 'readAt' : 'deliveredAt';
+        setMsgs((l) => l.map((m) => (ids.has(m.id) ? { ...m, [campo]: m[campo] || e.data.at, deliveredAt: m.deliveredAt || e.data.at } : m)));
+      }
     });
     const t = aCada(load, 15000);
     return () => {
@@ -64,9 +76,24 @@ export default function ChatServidor() {
       t.parar();
     };
   }, [open && open.userId]);
+  // Mensagens escritas sem internet (reloginho): aparecem na hora e somem daqui quando chegam no servidor.
+  const [, setPendTick] = useState(0);
+  useEffect(
+    () =>
+      onPendentes(() => {
+        setPendTick((n) => n + 1);
+        if (!open) return;
+        const rec = tirarRecusadas(open.userId);
+        if (rec.length) Alert.alert('Mensagem não enviada', `${rec[0].erro || 'O Realyz não aceitou a mensagem.'}\n\n"${String(rec[0].text).slice(0, 80)}"`);
+        load();
+      }),
+    [open && open.userId]
+  );
+  const pend = open ? pendentesCom(open.userId).filter((p) => !msgs.some((m) => m.clientId === p.clientId)) : [];
+  const todas = [...msgs, ...pend.map((p) => ({ id: p.clientId, clientId: p.clientId, from: me, text: p.text, at: p.at, pendente: true }))];
   useEffect(() => {
     setTimeout(() => scroll.current && scroll.current.scrollToEnd({ animated: true }), 60);
-  }, [msgs.length]);
+  }, [todas.length]);
 
   const grav = useGravador();
   const [enviando, setEnviando] = useState(null); // 'foto' | 'video' | 'audio' enquanto sobe
@@ -141,18 +168,19 @@ export default function ChatServidor() {
   const enviar = async () => {
     const t = txt.trim();
     if (!t || busy) return;
-    setBusy(true);
+    // Como no WhatsApp: a mensagem sai da caixa na hora e aparece na conversa com o reloginho.
+    setTxt('');
+    setEmojis(false);
     try {
-      await api('POST', '/messages', { toId: open.userId, text: t });
-      setTxt('');
+      const r = await enviarMensagem(open.userId, t);
+      if (r && r.pendente) return;
       await load();
       // O atendente IA responde em seguida: busca de novo daqui a pouco.
       setTimeout(load, 2500);
       setTimeout(load, 8000);
     } catch (e) {
+      setTxt((atual) => atual || t);
       Alert.alert('Mensagem não enviada', e.message);
-    } finally {
-      setBusy(false);
     }
   };
 
@@ -187,14 +215,19 @@ export default function ChatServidor() {
           ) : null}
         </View>
         <ScrollView ref={scroll} style={{ flex: 1 }} contentContainerStyle={{ padding: 14 }}>
-          {!msgs.length && negocio !== null ? <Text style={st.empty}>{negocio ? 'Mande sua dúvida. A loja responde por aqui.' : `Diga oi para ${String(open.name || '').split(' ')[0]}! 👋`}</Text> : null}
-          {msgs.map((m) => {
+          {!todas.length && negocio !== null ? <Text style={st.empty}>{negocio ? 'Mande sua dúvida. A loja responde por aqui.' : `Diga oi para ${String(open.name || '').split(' ')[0]}! 👋`}</Text> : null}
+          {todas.map((m) => {
             const mine = m.from === me;
             return (
               <View key={m.id} style={[st.bubble, mine ? st.mine : st.theirs, m.media && m.mediaType !== 'audio' && { padding: 4 }]}>
                 {!mine && m.ia ? <Text style={st.ia}>Assistente virtual</Text> : null}
                 {m.media ? <MidiaMsg m={m} mine={mine} /> : null}
                 {m.text ? <Text style={[st.text, mine && { color: '#FBF8F1' }, m.media && { paddingHorizontal: 8, paddingTop: 4 }]}>{m.text}</Text> : null}
+                {/* Hora e, nas minhas, as pétalas: enviada, entregue, lida (douradas). */}
+                <View style={[st.rodape, m.media && { paddingHorizontal: 8, paddingBottom: 2 }]}>
+                  {m.at ? <Text style={[st.hora, mine && { color: 'rgba(251,248,241,0.62)' }]}>{hora(m.at)}</Text> : null}
+                  {mine ? <Petalas m={m} style={{ marginLeft: 5 }} /> : null}
+                </View>
               </View>
             );
           })}
@@ -308,6 +341,8 @@ const st = StyleSheet.create({
   theirs: { alignSelf: 'flex-start', backgroundColor: '#F6EDD6', borderBottomLeftRadius: 6 },
   ia: { color: '#8A6208', fontSize: 11, fontWeight: '800', marginBottom: 2 },
   text: { color: colors.text, fontSize: 15, lineHeight: 21 },
+  rodape: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-end', marginTop: 2 },
+  hora: { color: colors.muted, fontSize: 10.5 },
   bar: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 10, paddingTop: 8, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.bg },
   input: { flex: 1, minHeight: 42, maxHeight: 120, borderRadius: 21, backgroundColor: '#fff', borderWidth: 1, borderColor: colors.border, paddingHorizontal: 14, paddingVertical: 10, color: colors.text, fontSize: 15 },
   send: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },

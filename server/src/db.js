@@ -1458,6 +1458,15 @@ const MIGRATIONS = [
   );
   CREATE INDEX IF NOT EXISTS grupo_convites_user ON grupo_convites(user_id);
   `,
+  // Sinais da conversa (pétalas da Lotus): entregue no aparelho de quem recebe, e o código que o
+  // celular dá para a mensagem (mandar duas vezes a mesma, ex.: da fila sem internet, não duplica).
+  `
+  ALTER TABLE messages ADD COLUMN delivered_at INTEGER;
+  ALTER TABLE messages ADD COLUMN client_id TEXT;
+  UPDATE messages SET delivered_at = read_at WHERE read_at IS NOT NULL;
+  CREATE UNIQUE INDEX IF NOT EXISTS messages_client ON messages(from_id, client_id) WHERE client_id IS NOT NULL;
+  CREATE INDEX IF NOT EXISTS messages_entrega ON messages(to_id, delivered_at);
+  `,
 ];
 
 export function openDb(file) {
