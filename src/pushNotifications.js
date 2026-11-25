@@ -9,13 +9,18 @@ import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { api, serverOn } from './api';
 import { useStore } from './store';
+import { ligarRecibo, ehRecibo } from './reciboNotificacao';
 
 export const CHANNEL = 'realyz';
 
 // App aberto: a notificação aparece também (o servidor só manda quando o app não está conectado).
 if (Platform.OS !== 'web') {
   Notifications.setNotificationHandler({
-    handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: true, shouldSetBadge: false }),
+    // O aviso silencioso do recibo de entrega nunca aparece na tela.
+    handleNotification: async (n) => {
+      const silencioso = ehRecibo(n && n.request && n.request.content && n.request.content.data);
+      return { shouldShowBanner: !silencioso, shouldShowList: !silencioso, shouldPlaySound: !silencioso, shouldSetBadge: false };
+    },
   });
 }
 
@@ -33,7 +38,9 @@ export async function registerPush() {
   if (status !== 'granted') return null;
   const { data: token } = await Notifications.getDevicePushTokenAsync();
   if (token && token !== sentToken) {
-    await api('POST', '/push/token', { token, platform: 'android' });
+    // recibo: este aparelho avisa "chegou" quando a notificação da mensagem chega com o app fechado.
+    const recibo = await ligarRecibo();
+    await api('POST', '/push/token', { token, platform: 'android', recibo });
     sentToken = token;
   }
   return token;

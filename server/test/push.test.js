@@ -67,3 +67,20 @@ test('push: mensagem para quem está com o app fechado vira notificação', asyn
   await wait();
   assert.equal(sent.length, 0);
 });
+
+test('push: aparelho com app novo recebe o recibo silencioso e a mensagem vira entregue', async () => {
+  const caio = await signup('Caio Dias', '39053344705', 'caiodias');
+  const duda = await signup('Duda Reis', '15350946056', 'dudareis');
+  await call('POST', '/push/token', duda.accessToken, { token: 'aparelho-da-duda-0123456789', recibo: true });
+  sent.length = 0;
+  const m = await call('POST', '/messages', caio.accessToken, { toId: duda.user.id, text: 'Oi Duda' });
+  await wait();
+  const doAparelho = sent.filter((x) => x.token === 'aparelho-da-duda-0123456789');
+  assert.ok(doAparelho.some((x) => x.notification), 'a notificação normal continua indo');
+  const rec = doAparelho.find((x) => x.data && x.data.tipo === 'recibo');
+  assert.ok(rec && !rec.notification, 'e o aviso silencioso do recibo também');
+  assert.equal(rec.data.m, m.id);
+  await call('POST', '/messages/recibo', null, { m: rec.data.m, u: rec.data.u, r: rec.data.r });
+  const h = await call('GET', `/messages/${duda.user.id}`, caio.accessToken);
+  assert.ok(h.find((x) => x.id === m.id).deliveredAt, 'Caio vê a 2ª pétala');
+});

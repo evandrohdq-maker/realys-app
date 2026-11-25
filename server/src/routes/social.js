@@ -5,7 +5,7 @@ import { makePaginas } from '../paginas.js';
 
 const pair = (a, b) => (a < b ? [a, b] : [b, a]);
 
-export default function socialRoutes(r, { db, hub, userById, publicUser, atendente, protecao, crm }) {
+export default function socialRoutes(r, { db, hub, userById, publicUser, atendente, protecao, crm, push }) {
   const PG = makePaginas(db);
   const friendship = (a, b) => {
     const [x, y] = pair(a, b);
@@ -415,13 +415,25 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     });
     porQuem.forEach((d, from) => hub.send(from, 'message_status', { ...d, status, at }));
   };
-  const marcarEntregues = (toId) => {
-    const l = db.prepare('SELECT id, from_id, to_id FROM messages WHERE to_id = ? AND delivered_at IS NULL LIMIT 500').all(toId);
+  // ate: só as que chegaram até esse momento (recibo da notificação de uma mensagem).
+  const marcarEntregues = (toId, ate = null) => {
+    const lim = ate || now() + 1;
+    const l = db.prepare('SELECT id, from_id, to_id FROM messages WHERE to_id = ? AND delivered_at IS NULL AND created_at <= ? LIMIT 500').all(toId, lim);
     if (!l.length) return;
     const at = now();
-    db.prepare('UPDATE messages SET delivered_at = ? WHERE to_id = ? AND delivered_at IS NULL').run(at, toId);
+    db.prepare('UPDATE messages SET delivered_at = ? WHERE to_id = ? AND delivered_at IS NULL AND created_at <= ?').run(at, toId, lim);
     avisarSinal(l, 'entregue', at);
   };
+  // A notificação da mensagem chegou no celular (app fechado): 2ª pétala, como no WhatsApp.
+  // Sem login (o app está dormindo): vale a assinatura que o servidor mandou junto com o aviso.
+  r.post('/messages/recibo', ({ body }) => {
+    const b = body || {};
+    if (!push || !push.conferirRecibo || !push.conferirRecibo(b.m, b.u, b.r)) fail(403, 'Recibo inválido.');
+    const m = db.prepare('SELECT to_id, created_at FROM messages WHERE id = ?').get(String(b.m));
+    if (!m || m.to_id !== String(b.u)) fail(404, 'Mensagem não encontrada.');
+    marcarEntregues(m.to_id, m.created_at);
+    return { ok: true };
+  }, { auth: false });
   if (hub.onConnect) hub.onConnect(marcarEntregues);
   const msgView = (m) => ({ id: m.id, clientId: m.client_id || undefined, from: m.from_id, to: m.to_id, text: m.text, media: m.media, mediaType: m.media_type, at: m.created_at, deliveredAt: m.delivered_at || null, readAt: m.read_at || null });
   r.post('/messages', ({ body, user }) => {

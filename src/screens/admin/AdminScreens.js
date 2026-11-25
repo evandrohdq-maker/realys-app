@@ -4,6 +4,7 @@ import { serverOn, api } from '../../api';
 import { videoStatus } from '../../video';
 import { ProtecaoAdmin, PedidosPlanoAdmin } from '../../components/NativoIA';
 import ContasTesteAdmin from '../../components/ContasTesteAdmin';
+import AdminPioneiros from './AdminPioneiros';
 
 // Caixa do Realyz (servidor): lucro que pode ir da conta Santander para a conta Nubank e o dinheiro
 // dos usuários que precisa ficar no Santander. Aparece só para o administrador entrado no servidor.
@@ -503,6 +504,8 @@ export function AdminSignups() {
     <Screen>
       <AnalystBanner />
       <Title sub="Biometria + consulta de CNPJ/MEI antes de liberar">Cadastros</Title>
+      {/* Quem pediu vaga de Pioneiro pelo site (piloto em Passo Fundo). */}
+      <AdminPioneiros />
       {state.signups.map((g) => (
         <Card key={g.id}>
           <Row style={{ justifyContent: 'space-between' }}>

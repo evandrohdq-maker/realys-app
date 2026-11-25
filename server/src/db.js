@@ -1467,6 +1467,33 @@ const MIGRATIONS = [
   CREATE UNIQUE INDEX IF NOT EXISTS messages_client ON messages(from_id, client_id) WHERE client_id IS NOT NULL;
   CREATE INDEX IF NOT EXISTS messages_entrega ON messages(to_id, delivered_at);
   `,
+  // Recibo de entrega: o aparelho que já sabe avisar "a notificação da mensagem chegou" (2ª pétala
+  // mesmo com o app fechado, como no WhatsApp). Aparelho com app antigo continua 0.
+  `
+  ALTER TABLE push_tokens ADD COLUMN recibo INTEGER NOT NULL DEFAULT 0;
+  `,
+  // Pioneiros do piloto (site: Seja Pioneiro / Seja Entregador Pioneiro): src/routes/pioneiros.js
+  `
+  CREATE TABLE IF NOT EXISTS pioneiros (
+    id TEXT PRIMARY KEY,
+    area TEXT NOT NULL,
+    nome TEXT NOT NULL,
+    responsavel TEXT NOT NULL,
+    cnpj TEXT,
+    whatsapp TEXT NOT NULL,
+    email TEXT,
+    vendedor TEXT,
+    obs TEXT,
+    status TEXT NOT NULL DEFAULT 'novo',
+    numero INTEGER,
+    aceite_em INTEGER,
+    aceite_texto TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS pioneiros_cnpj ON pioneiros(cnpj) WHERE cnpj IS NOT NULL AND cnpj <> '';
+  CREATE UNIQUE INDEX IF NOT EXISTS pioneiros_numero ON pioneiros(numero) WHERE numero IS NOT NULL;
+  `,
 ];
 
 export function openDb(file) {

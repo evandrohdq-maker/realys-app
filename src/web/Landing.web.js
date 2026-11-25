@@ -219,6 +219,12 @@ export default function Landing({ onEnter }) {
         <div className="rz-wrap">
           <h2>Começando por Passo Fundo, para o Brasil inteiro.</h2>
           <button className="rz-btn" onClick={() => onEnter('cadastro')}>Criar minha conta</button>
+          {/* Piloto: as vagas de pioneiro para empresas, motoboys e motoristas. */}
+          <p style={{ marginTop: 18 }}>
+            <a href="/pioneiro.html" style={{ color: '#7A5806', fontWeight: 700 }}>Tenho uma empresa: quero ser Pioneiro</a>
+            {'  ·  '}
+            <a href="/entregador.html" style={{ color: '#7A5806', fontWeight: 700 }}>Sou motoboy ou motorista</a>
+          </p>
         </div>
       </section>
 
@@ -229,6 +235,8 @@ export default function Landing({ onEnter }) {
             realyz.com.br
             <button onClick={() => onEnter('entrar')}>Entrar</button>
             <a href={APK} style={{ marginLeft: 20 }}>App Android</a>
+            <a href="/termos.html" style={{ marginLeft: 20 }}>Termos</a>
+            <a href="/privacidade.html" style={{ marginLeft: 20 }}>Privacidade</a>
           </div>
         </div>
       </footer>
