@@ -39,18 +39,31 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
   const pulse = useRef(new Animated.Value(1)).current;
   const flipping = useRef(false);
   const [camKey, setCamKey] = useState(0);
+  // A câmera fica desmontada por um instante na troca, para o Android soltar a lente atual.
+  const [camOn, setCamOn] = useState(true);
+  const flipTimer = useRef(null);
+  const backRetried = useRef(false);
 
-  // Virar a câmera: espera a câmera atual soltar antes de abrir a outra
-  // (trocar direto deixava a tela preta em vários Android).
+  // Virar a câmera: primeiro fecha a câmera atual, espera o aparelho soltar a lente
+  // e só então abre a outra. Antes a nova abria junto com a antiga ainda presa; em vários
+  // Android a de trás dava erro e o app voltava calado para a da frente (parecia que o botão não funcionava).
   const flip = () => {
     if (rec || busy || flipping.current) return;
     flipping.current = true;
+    backRetried.current = false;
     setReady(false);
     setFlash(false);
-    setFacing((f) => (f === 'back' ? 'front' : 'back'));
-    setCamKey((k) => k + 1);
-    setTimeout(() => (flipping.current = false), 600);
+    setCamOn(false);
+    clearTimeout(flipTimer.current);
+    flipTimer.current = setTimeout(() => {
+      setFacing((f) => (f === 'back' ? 'front' : 'back'));
+      setCamKey((k) => k + 1);
+      setCamOn(true);
+      setTimeout(() => (flipping.current = false), 400);
+    }, 350);
   };
+
+  useEffect(() => () => clearTimeout(flipTimer.current), []);
 
   useEffect(() => {
     if (!visible) return;
@@ -62,6 +75,9 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
     setReady(false);
     setFacing('front'); // sempre começa na câmera da frente
     setFlash(false);
+    setCamOn(true);
+    flipping.current = false;
+    backRetried.current = false;
     (async () => {
       if (!camPerm || !camPerm.granted) {
         const r = await askCam();
@@ -155,7 +171,7 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
     <Modal visible={visible} animationType="fade" transparent={storyDesk()} onRequestClose={close} statusBarTranslucent>
       <StoryFrame>
       <View style={{ flex: 1, backgroundColor: '#000' }}>
-        {visible && granted ? (
+        {visible && granted && camOn ? (
           <View style={StyleSheet.absoluteFill}>
             <CameraView
               key={`${mode}-${facing}-${camKey}`}
@@ -168,10 +184,24 @@ export default function StoryCamera({ visible, startMode = 'foto', initialEffect
               flash={flash && mode === 'foto' ? 'on' : 'off'}
               onCameraReady={() => setReady(true)}
               onMountError={() => {
-                // Se a câmera de trás não abrir, volta para a da frente em vez de ficar na tela preta.
                 setReady(false);
-                if (facing === 'back') setFacing('front');
-                else Alert.alert('Câmera', 'Não deu para abrir a câmera. Feche e tente de novo.');
+                if (facing === 'back' && !backRetried.current) {
+                  // A lente de trás pode demorar a ficar livre: tenta de novo uma vez, com mais calma.
+                  backRetried.current = true;
+                  setCamOn(false);
+                  clearTimeout(flipTimer.current);
+                  flipTimer.current = setTimeout(() => {
+                    setCamKey((k) => k + 1);
+                    setCamOn(true);
+                  }, 700);
+                  return;
+                }
+                if (facing === 'back') {
+                  // Não abriu nem na segunda tentativa: volta para a da frente e avisa.
+                  setFacing('front');
+                  setCamKey((k) => k + 1);
+                  Alert.alert('Câmera', 'Não deu para abrir a câmera de trás agora. Voltamos para a da frente.');
+                } else Alert.alert('Câmera', 'Não deu para abrir a câmera. Feche e tente de novo.');
               }}
             />
             <StoryEffectOverlay effect={effect} />

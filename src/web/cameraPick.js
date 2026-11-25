@@ -34,6 +34,11 @@ export function installCameraPick() {
   md.getUserMedia = async (constraints) => {
     // Só mexe em pedidos de câmera sem câmera escolhida por quem chamou (ex.: compartilhar tela fica igual).
     if (!constraints || !constraints.video || pickedByCaller(constraints)) return original(constraints);
+    // Botão de virar a câmera (ex.: stories no celular pelo site): pedido da câmera de trás
+    // vai direto para o navegador, sem a câmera salva (antes reabria sempre a mesma e não virava).
+    const fm = typeof constraints.video === 'object' ? constraints.video.facingMode : null;
+    const wantsBack = fm && (fm === 'environment' || fm.exact === 'environment' || fm.ideal === 'environment');
+    if (wantsBack) return original(constraints);
     // 1) A câmera que já deu certo antes.
     const saved = read();
     if (saved) {
