@@ -8,17 +8,17 @@
 import { fail, newId, now, str, oneOf } from '../http.js';
 
 export const AREAS_FUNDADOR = [
-  // Empresas e prestadores (82 vagas pagantes)
+  // Empresas e prestadores (100 vagas pagantes)
   { id: 'food', grupo: 'empresa', label: 'Restaurantes, lanchonetes, padarias e cafés', meta: 18 },
   { id: 'mercado', grupo: 'empresa', label: 'Mercados, açougues, hortifrúti e adegas', meta: 9 },
   { id: 'shop', grupo: 'empresa', label: 'Lojas: moda, eletrônicos, casa, pet e variados', meta: 15 },
-  { id: 'servicos', grupo: 'empresa', label: 'Serviços: reparos, beleza, saúde, veículos e aulas', meta: 20 },
+  { id: 'servicos', grupo: 'empresa', label: 'Serviços: reparos, beleza, saúde, veículos e aulas', meta: 38 },
   { id: 'atacado', grupo: 'empresa', label: 'Atacado, fornecedores e distribuidores', meta: 6 },
   { id: 'negocios', grupo: 'empresa', label: 'Imobiliárias e revendas de veículos', meta: 5 },
   { id: 'eventos', grupo: 'empresa', label: 'Bares, casas noturnas, buffet e artistas', meta: 5 },
   { id: 'agro_turismo', grupo: 'empresa', label: 'Agro, hotéis e pousadas', meta: 4 },
-  // Entregas e transporte (grátis): 68 vagas, total 150 fundadores
-  { id: 'motoboy', grupo: 'entregador', label: 'Motoboys', meta: 48 },
+  // Entregas e transporte (grátis): 50 vagas, total 150 fundadores
+  { id: 'motoboy', grupo: 'entregador', label: 'Motoboys', meta: 30 },
   { id: 'motorista', grupo: 'entregador', label: 'Motoristas', meta: 20 },
 ];
 const AREA = Object.fromEntries(AREAS_FUNDADOR.map((a) => [a.id, a]));

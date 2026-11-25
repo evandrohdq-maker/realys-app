@@ -50,8 +50,8 @@ const ok = async (passo, ...a) => {
 
 test('fundadores: site mostra as vagas, recebe o interesse e o admin fecha com número', async () => {
   let v = await ok('site ver as vagas', 'GET', '/fundadores/vagas');
-  assert.equal(v.empresas.meta, 82);
-  assert.equal(v.entregadores.meta, 68);
+  assert.equal(v.empresas.meta, 100);
+  assert.equal(v.entregadores.meta, 50);
   assert.equal(v.empresas.meta + v.entregadores.meta, 150, '150 fundadores no total');
   const food = await ok('restaurante pedir a vaga', 'POST', '/fundadores/interesse', { body: { area: 'food', nome: 'Cantina da Praça', responsavel: 'Maria', cnpj: '11.222.333/0001-81', whatsapp: '(54) 99999-0000', vendedor: 'Evandro' } });
   const de_novo = await ok('mesmo CNPJ de novo', 'POST', '/fundadores/interesse', { body: { area: 'food', nome: 'Cantina da Praça Ltda', responsavel: 'Maria', cnpj: '11222333000181', whatsapp: '54999990000' } });
