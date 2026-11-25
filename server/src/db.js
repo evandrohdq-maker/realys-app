@@ -1472,6 +1472,26 @@ const MIGRATIONS = [
   `
   ALTER TABLE push_tokens ADD COLUMN recibo INTEGER NOT NULL DEFAULT 0;
   `,
+  // Fundadores do piloto (site: Seja Fundador / Seja Entregador Fundador): src/routes/fundadores.js
+  `
+  CREATE TABLE IF NOT EXISTS fundadores (
+    id TEXT PRIMARY KEY,
+    area TEXT NOT NULL,
+    nome TEXT NOT NULL,
+    responsavel TEXT NOT NULL,
+    cnpj TEXT,
+    whatsapp TEXT NOT NULL,
+    email TEXT,
+    vendedor TEXT,
+    obs TEXT,
+    status TEXT NOT NULL DEFAULT 'novo',
+    numero INTEGER,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS fundadores_cnpj ON fundadores(cnpj) WHERE cnpj IS NOT NULL AND cnpj <> '';
+  CREATE UNIQUE INDEX IF NOT EXISTS fundadores_numero ON fundadores(numero) WHERE numero IS NOT NULL;
+  `,
 ];
 
 export function openDb(file) {

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seja Fundador do Realyz · Passo Fundo</title>
+<meta name="description" content="As 82 primeiras empresas de Passo Fundo no Realyz: plano, anúncios e selo de Fundador por R$ 99 por mês, só a partir do lançamento.">
+<link rel="icon" href="/assets/assets/icon.png">
+<link rel="stylesheet" href="/fundador.css">
+</head>
+<body>
+<header class="topo">
+  <a href="/" class="marca">REALYZ</a>
+  <a href="/entregador.html" class="lnk">Sou motoboy ou motorista</a>
+</header>
+
+<main>
+  <section class="hero">
+    <p class="kicker">Piloto em Passo Fundo · vagas limitadas</p>
+    <h1>Seja uma das <span class="ouro">82 empresas fundadoras</span> do Realyz.</h1>
+    <p class="sub">O app onde todo mundo confirmou o rosto no cadastro. Sem perfil falso, sem golpe, com o pagamento protegido. Sua empresa entra antes de todo mundo e com preço de fundador.</p>
+    <div class="contador" id="contador">Carregando as vagas…</div>
+    <a href="#quero" class="btn">Quero minha vaga</a>
+  </section>
+
+  <section class="card destaque">
+    <h2>Pacote Fundador</h2>
+    <p class="preco"><span class="de">R$ 318,30</span> <strong>R$ 99</strong> por mês</p>
+    <p class="nota">ou R$ 990 no ano (2 meses de graça). Preço congelado por 12 meses.</p>
+    <ul class="lista">
+      <li><b>Plano da loja ou do prestador incluído</b> (vitrine, pedidos, CRM e página)</li>
+      <li><b>Primeiro lugar nas buscas</b> 10 dias por mês, revezando com os fundadores da sua área</li>
+      <li><b>4 stories patrocinados</b> por mês</li>
+      <li><b>2 dias de banner</b> na vitrine do Shop ou do Food</li>
+      <li><b>Comissão de 8%</b> nas vendas, em vez de 10%</li>
+      <li><b>Segunda página grátis</b></li>
+    </ul>
+    <h3>Só de fundador</h3>
+    <ul class="lista">
+      <li>Selo <b>"Fundador nº 0XX"</b> no seu perfil para sempre</li>
+      <li>Seu nome no vídeo e nos posts de lançamento</li>
+    </ul>
+    <p class="garantia">Você só começa a pagar quando o app for lançado. O lançamento acontece quando as vagas de fundador estiverem preenchidas.</p>
+  </section>
+
+  <section>
+    <h2>Vagas por área</h2>
+    <p class="sub2">No máximo esse número de empresas em cada área, para ninguém brigar pelo mesmo espaço.</p>
+    <div id="areas" class="areas"></div>
+  </section>
+
+  <section class="card" id="quero">
+    <h2>Quero ser fundador</h2>
+    <p class="sub2">Preencha e um consultor do Realyz chama você no WhatsApp para confirmar a vaga.</p>
+    <form id="form" novalidate>
+      <label>Área da empresa
+        <select name="area" id="area" required></select>
+      </label>
+      <label>Nome da empresa <input name="nome" required maxlength="120" autocomplete="organization"></label>
+      <label>CNPJ <input name="cnpj" required inputmode="numeric" placeholder="00.000.000/0000-00" maxlength="18"></label>
+      <label>Seu nome <input name="responsavel" required maxlength="120" autocomplete="name"></label>
+      <label>WhatsApp com DDD <input name="whatsapp" required inputmode="tel" placeholder="(54) 99999-0000" maxlength="16" autocomplete="tel"></label>
+      <label>E-mail (opcional) <input name="email" type="email" maxlength="160" autocomplete="email"></label>
+      <label>O que a empresa faz (opcional) <textarea name="obs" maxlength="500" rows="2"></textarea></label>
+      <input type="hidden" name="vendedor" id="vendedor">
+      <p class="erro" id="erro" role="alert"></p>
+      <button type="submit" class="btn" id="enviar">Garantir minha vaga</button>
+      <p class="mini">Ao enviar, você concorda em ser chamado pelo Realyz no WhatsApp sobre o Pacote Fundador. Nada é cobrado agora.</p>
+    </form>
+    <div class="ok" id="ok" hidden>
+      <h3>Recebemos! 🎉</h3>
+      <p>Um consultor do Realyz vai chamar você no WhatsApp para confirmar a vaga de fundador.</p>
+    </div>
+  </section>
+</main>
+<footer>Realyz · Pessoas reais. Negócios reais. · Passo Fundo (RS)</footer>
+<script>window.RZ_GRUPO = 'empresa';</script>
+<script src="/fundador.js"></script>
+</body>
+</html>
