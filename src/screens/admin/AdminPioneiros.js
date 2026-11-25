@@ -1,6 +1,6 @@
-// Administrador › Cadastros › Fundadores: quem pediu vaga pelo site (realyz.com.br/fundador.html e
+// Administrador › Cadastros › Pioneiros: quem pediu vaga pelo site (realyz.com.br/pioneiro.html e
 // /entregador.html), as vagas por área e a etapa de cada um. Ao marcar "Fechou", a pessoa ganha o
-// número de fundador (nº 001, 002...). Link de cada vendedor: realyz.com.br/fundador.html?v=NOME.
+// número de pioneiro (nº 001, 002...). Link de cada vendedor: realyz.com.br/pioneiro.html?v=NOME.
 import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, Alert, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,13 +15,13 @@ const ETAPAS = [
   ['fechado', 'Fecharam'],
   ['desistiu', 'Desistiram'],
 ];
-const numFund = (n) => `nº ${String(n).padStart(3, '0')}`;
+const numPion = (n) => `nº ${String(n).padStart(3, '0')}`;
 const fone = (w) => {
   const d = String(w || '').replace(/\D/g, '');
   return d.length === 11 ? `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}` : d.length === 10 ? `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}` : d;
 };
 
-export default function AdminFundadores() {
+export default function AdminPioneiros() {
   const { state } = useStore();
   const leitura = !!(state.user && state.user.readOnly);
   const [d, setD] = useState(null);
@@ -29,7 +29,7 @@ export default function AdminFundadores() {
   const [etapa, setEtapa] = useState('novo');
   const [aberto, setAberto] = useState(true);
   const carregar = () =>
-    api('GET', '/admin/fundadores')
+    api('GET', '/admin/pioneiros')
       .then((r) => (setD(r), setErro(null)))
       .catch((e) => setErro(e.message));
   useEffect(() => {
@@ -38,13 +38,13 @@ export default function AdminFundadores() {
   if (!serverOn()) return null;
 
   const mudar = (f, status) => {
-    if (leitura) return Alert.alert('Acesso de analista', 'Você pode ver os fundadores, mas mudar a etapa é com o administrador.');
-    api('POST', `/admin/fundadores/${f.id}`, { status })
+    if (leitura) return Alert.alert('Acesso de analista', 'Você pode ver os pioneiros, mas mudar a etapa é com o administrador.');
+    api('POST', `/admin/pioneiros/${f.id}`, { status })
       .then((r) => {
-        if (r.numero && status === 'fechado') Alert.alert('Fundador confirmado 🎉', `${f.nome} é o Fundador ${numFund(r.numero)}.`);
+        if (r.numero && status === 'fechado') Alert.alert('Pioneiro confirmado 🎉', `${f.nome} é o Pioneiro ${numPion(r.numero)}.`);
         carregar();
       })
-      .catch((e) => Alert.alert('Fundadores', e.message));
+      .catch((e) => Alert.alert('Pioneiros', e.message));
   };
   const areas = (d && d.areas) || [];
   const nomeArea = (id) => (areas.find((a) => a.id === id) || {}).label || id;
@@ -55,10 +55,10 @@ export default function AdminFundadores() {
 
   return (
     <View style={st.box}>
-      <TouchableOpacity style={st.head} onPress={() => setAberto((v) => !v)} accessibilityLabel="Fundadores do piloto">
+      <TouchableOpacity style={st.head} onPress={() => setAberto((v) => !v)} accessibilityLabel="Pioneiros do piloto">
         <Ionicons name="ribbon-outline" size={20} color={colors.primary} />
         <View style={{ flex: 1, marginLeft: 8 }}>
-          <Text style={st.titulo}>Fundadores do piloto</Text>
+          <Text style={st.titulo}>Pioneiros do piloto</Text>
           <Text style={st.sub} numberOfLines={1}>{d ? `Empresas ${emp.f}/${emp.meta} · Entregadores ${ent.f}/${ent.meta}` : erro || 'Carregando…'}</Text>
         </View>
         <Ionicons name={aberto ? 'chevron-up' : 'chevron-down'} size={18} color={colors.muted} />
@@ -85,7 +85,7 @@ export default function AdminFundadores() {
             <View key={f.id} style={st.item}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Text style={st.nome} numberOfLines={1}>{f.nome}</Text>
-                {f.numero ? <Text style={st.numero}>{numFund(f.numero)}</Text> : null}
+                {f.numero ? <Text style={st.numero}>{numPion(f.numero)}</Text> : null}
               </View>
               <Text style={st.sub} numberOfLines={1}>{nomeArea(f.area)}{f.responsavel && f.responsavel !== f.nome ? ` · ${f.responsavel}` : ''}</Text>
               <Text style={st.sub} numberOfLines={1}>{fone(f.whatsapp)}{f.cnpj ? ` · CNPJ ${f.cnpj}` : ''}{f.vendedor ? ` · vendedor: ${f.vendedor}` : ''}</Text>

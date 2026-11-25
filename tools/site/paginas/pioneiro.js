@@ -1,5 +1,5 @@
-// Páginas "Seja Fundador" e "Entregador Fundador": vagas ao vivo e formulário de interesse.
-// Link do vendedor: realyz.com.br/fundador.html?v=NOME (o nome vai junto, para saber quem vendeu).
+// Páginas "Seja Pioneiro" e "Entregador Pioneiro": vagas ao vivo e formulário de interesse.
+// Link do vendedor: realyz.com.br/pioneiro.html?v=NOME (o nome vai junto, para saber quem vendeu).
 (function () {
   var API = location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'http://localhost:8080' : 'https://api.realyz.com.br';
   var GRUPO = window.RZ_GRUPO || 'empresa';
@@ -8,11 +8,11 @@
   if (v) $('vendedor').value = v.slice(0, 60);
 
   function vagas() {
-    fetch(API + '/fundadores/vagas').then(function (r) { return r.json(); }).then(function (d) {
+    fetch(API + '/pioneiros/vagas').then(function (r) { return r.json(); }).then(function (d) {
       var areas = (d.areas || []).filter(function (a) { return a.grupo === GRUPO; });
       var tot = GRUPO === 'empresa' ? d.empresas : d.entregadores;
       var faltam = tot.meta - tot.fechados;
-      $('contador').textContent = faltam > 0 ? 'Faltam ' + faltam + ' de ' + tot.meta + ' vagas' : 'Vagas de fundador preenchidas';
+      $('contador').textContent = faltam > 0 ? 'Faltam ' + faltam + ' de ' + tot.meta + ' vagas' : 'Vagas de pioneiro preenchidas';
       var sel = $('area');
       var atual = sel.value;
       sel.innerHTML = (GRUPO === 'empresa' ? '<option value="">Escolha a área</option>' : '') + areas.map(function (a) {
@@ -48,16 +48,17 @@
     e.preventDefault();
     var f = e.target;
     var dados = {};
-    Array.prototype.forEach.call(f.elements, function (el) { if (el.name) dados[el.name] = el.value.trim(); });
+    Array.prototype.forEach.call(f.elements, function (el) { if (el.name) dados[el.name] = el.type === 'checkbox' ? el.checked : el.value.trim(); });
     if (!dados.area) return ($('erro').textContent = 'Escolha a área.');
     if (!dados.nome) return ($('erro').textContent = GRUPO === 'empresa' ? 'Informe o nome da empresa.' : 'Informe o seu nome.');
     if (GRUPO === 'empresa' && dados.cnpj.replace(/\D/g, '').length !== 14) return ($('erro').textContent = 'O CNPJ tem 14 números.');
     if (GRUPO === 'empresa' && !dados.responsavel) return ($('erro').textContent = 'Informe o seu nome.');
     if (dados.whatsapp.replace(/\D/g, '').length < 10) return ($('erro').textContent = 'Informe o WhatsApp com DDD.');
+    if (!dados.aceite) return ($('erro').textContent = 'Marque que leu e concorda com as condições.');
     var btn = $('enviar');
     btn.disabled = true;
     btn.textContent = 'Enviando…';
-    fetch(API + '/fundadores/interesse', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados) })
+    fetch(API + '/pioneiros/interesse', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados) })
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
       .then(function (x) {
         if (!x.ok) throw new Error(x.j.error || 'Não deu para enviar. Tente de novo.');

@@ -56,7 +56,7 @@ jobs:
         run: |
           cp dist/index.html dist/404.html   # qualquer endereço abre o app
           cp tools/site/sw.js dist/sw.js     # guarda o app no computador (abre mais rápido)
-          node tools/site/gerar-paginas.mjs dist   # Seja Fundador, Entregador, Termos e Privacidade
+          node tools/site/gerar-paginas.mjs dist   # Seja Pioneiro, Entregador, Termos e Privacidade
           touch dist/.nojekyll
           echo "realyz.com.br" > dist/CNAME
           ls -la dist
