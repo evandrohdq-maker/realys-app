@@ -117,7 +117,10 @@ export const CONTRACT_TYPES = [
     ],
   },
 ];
-export const contractType = (key) => CONTRACT_TYPES.find((t) => t.key === key) || CONTRACT_TYPES[0];
+// Acordo de Pioneiro: o texto vem pronto do servidor (fields.clausulas) e é assinado no cadastro.
+// Não aparece na lista de "novo contrato".
+export const PIONEIRO_TYPE = { key: 'pioneiro', label: 'Acordo de Pioneiro', icon: 'ribbon-outline', roles: ['Realyz', 'Pioneiro'], fields: [], clauses: (f) => f.clausulas || [], semComuns: true };
+export const contractType = (key) => (key === 'pioneiro' ? PIONEIRO_TYPE : CONTRACT_TYPES.find((t) => t.key === key) || CONTRACT_TYPES[0]);
 
 const COMMON_CLAUSES = [
   'As partes concordam em assinar este contrato eletronicamente pelo Realyz, com identificação por biometria, nos termos do art. 10, § 2º, da MP 2.200-2/2001 e da Lei 14.063/2020, e reconhecem a validade desta forma de assinatura.',
@@ -168,7 +171,7 @@ const signBlock = (s, role) =>
 // Texto que define o conteúdo (é dele que sai o código do documento).
 export function contractBody(doc) {
   const t = contractType(doc.type);
-  return [...t.clauses(doc.fields), ...COMMON_CLAUSES];
+  return t.semComuns ? t.clauses(doc.fields) : [...t.clauses(doc.fields), ...COMMON_CLAUSES];
 }
 export const contentOf = (doc) =>
   doc.kind === 'receita'

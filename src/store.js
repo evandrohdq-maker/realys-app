@@ -1451,6 +1451,9 @@ function baseReducer(state, a) {
     }
     case 'PUBLISH_REEL':
       return { ...state, myReels: [a.reel, ...(state.myReels || [])] };
+    // O Reel subiu para o servidor: troca a cópia do aparelho pela do servidor (com o endereço do vídeo).
+    case 'REEL_SYNC':
+      return { ...state, myReels: (state.myReels || []).map((r) => (r.id === a.id ? a.reel : r)) };
 
     case 'BUYER_ACCEPT_COUNTER': {
       const p = state.proposals.find((x) => x.id === a.id);

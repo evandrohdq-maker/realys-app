@@ -56,10 +56,15 @@
 
   <section class="card" id="quero">
     <h2>Quero ser Entregador Pioneiro</h2>
-    <form id="form" novalidate>
-      <label>Você é
-        <select name="area" id="area" required></select>
-      </label>
+    <p class="sub2">Crie a sua conta, confirme o rosto e assine o Termo de Pioneiro. É grátis e sem nenhuma obrigação de horário.</p>
+    <label class="solto">Você é
+      <select id="area" required></select>
+    </label>
+    <p class="erro" id="erroCad" role="alert"></p>
+    <button type="button" class="btn" id="cadastrar">Criar minha conta e garantir a vaga</button>
+    <p class="mini" style="text-align:center"><a href="#" id="prefiro">Prefiro que me chamem no WhatsApp</a></p>
+    <form id="form" novalidate hidden>
+      <input type="hidden" name="area" id="areaForm">
       <label>Seu nome <input name="nome" required maxlength="120" autocomplete="name"></label>
       <label>WhatsApp com DDD <input name="whatsapp" required inputmode="tel" placeholder="(54) 99999-0000" maxlength="16" autocomplete="tel"></label>
       <label>CNPJ do MEI (se tiver) <input name="cnpj" inputmode="numeric" placeholder="00.000.000/0000-00" maxlength="18"></label>

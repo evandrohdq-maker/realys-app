@@ -32,6 +32,7 @@ h3{font-size:16px;margin:18px 0 6px}
 .barra i{display:block;height:100%;background:#B8860B}
 .area small{color:#5B564B}
 .area.cheia{opacity:.55}
+label.solto{display:block;font-weight:600;font-size:14px;margin:12px 0 0}
 form label{display:block;font-weight:600;font-size:14px;margin:12px 0 0}
 input,select,textarea{display:block;width:100%;margin-top:5px;padding:11px 12px;border:1px solid #E6DAC0;border-radius:12px;font:inherit;background:#fff;color:#14120E}
 input:focus,select:focus,textarea:focus{outline:2px solid rgba(226,182,73,.8);border-color:#B8860B}
@@ -42,3 +43,4 @@ form label.aceite{display:flex;align-items:flex-start;gap:8px;font-weight:500;fo
 form label.aceite input{width:auto;margin-top:2px;flex:none}
 footer{text-align:center;color:#5B564B;font-size:13px;padding:20px}
 @media (min-width:700px){h1{font-size:38px}}
+.mini a{color:#7A5806;font-weight:600}

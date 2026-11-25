@@ -1533,6 +1533,23 @@ const MIGRATIONS = [
   );
   CREATE INDEX IF NOT EXISTS pioneiro_faturas_user ON pioneiro_faturas(user_id, status);
   `,
+  // Reels guardados no servidor (empresas e pessoas): aparecem para todos na área escolhida.
+  `
+  CREATE TABLE IF NOT EXISTS reels (
+    id TEXT PRIMARY KEY,
+    author_id TEXT NOT NULL REFERENCES users(id),
+    area TEXT NOT NULL CHECK (area IN ('comunidade','shop','food','mercado','servicos','negocios')),
+    titulo TEXT NOT NULL DEFAULT '',
+    video TEXT NOT NULL,
+    poster TEXT,
+    anuncio INTEGER NOT NULL DEFAULT 0,
+    views INTEGER NOT NULL DEFAULT 0,
+    removed INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS reels_area ON reels(area, removed, created_at DESC);
+  CREATE INDEX IF NOT EXISTS reels_autor ON reels(author_id, created_at DESC);
+  `,
 ];
 
 export function openDb(file) {

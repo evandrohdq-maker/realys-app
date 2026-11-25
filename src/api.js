@@ -503,6 +503,16 @@ export async function login(loginText, password, device = 'Android', aparelhoTok
   return d.user;
 }
 
+// Link do titular (Pioneiros): entra na conta da empresa pelo link de uso único que chegou no WhatsApp.
+export async function loginTitular(token, device = 'Link do titular') {
+  accessToken = null;
+  const d = await raw('POST', '/auth/titular', { token, device });
+  setServerAccount(d.user && d.user.id);
+  guardarAcesso(d.accessToken, d.expiresIn);
+  await saveSession(d.sessionToken);
+  return d.user;
+}
+
 // kind: 'pessoa' (CPF) ou 'empresa' (CNPJ)
 export async function signup(data, device = 'Android') {
   accessToken = null;

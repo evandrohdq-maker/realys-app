@@ -3,8 +3,9 @@
 // por área e recebe o interesse; o administrador acompanha no app (Admin › Cadastros › Pioneiros)
 // e marca quem fechou. Ao fechar, a pessoa ganha o número de pioneiro (nº 001, 002...).
 //
-// Empresas: Pacote Pioneiro (R$ 99 por mês ou R$ 990 no ano, preço congelado por 12 meses; só começa a
-// pagar no lançamento). Motoboys e motoristas: Pioneiro Entregador, grátis.
+// Empresas: Pacote Pioneiro (R$ 99,90 por mês ou R$ 999 no ano, preço congelado por 12 meses; usa o 1º mês
+// depois do lançamento e paga no fim dele). Motoboys e motoristas: Pioneiro Entregador, grátis.
+// O Acordo é assinado no cadastro, com o rosto do titular (src/acordoPioneiro.js).
 import { createHash, randomBytes } from 'node:crypto';
 import { fail, newId, now, str, oneOf, toReais } from '../http.js';
 import { tx } from '../db.js';
