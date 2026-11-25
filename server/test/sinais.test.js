@@ -77,3 +77,17 @@ test('sinais: enviada, entregue e lida', async () => {
   const cs = await ok('Ana ver a lista de conversas', 'GET', '/conversations', { who: 'ana' });
   assert.ok(cs[0].last.readAt, 'a lista também mostra que foi lida');
 });
+
+test('sinais: recibo da notificação (app fechado) marca entregue, como no WhatsApp', async () => {
+  const { createHmac } = await import('node:crypto');
+  const m = await ok('Beto mandar mensagem', 'POST', '/messages', { who: 'beto', body: { toId: S.ana.id, text: 'Tudo ótimo!' } });
+  assert.equal(m.deliveredAt, null, 'Ana com o app fechado');
+  const falso = await api('POST', '/messages/recibo', { body: { m: m.id, u: S.ana.id, r: 'x'.repeat(32) } });
+  assert.equal(falso.status, 403, 'recibo com assinatura errada é recusado');
+  const r = createHmac('sha256', 'segredo-de-teste').update(`recibo.${m.id}.${S.ana.id}`).digest('base64url').slice(0, 32);
+  await ok('o celular da Ana avisar que a notificação chegou (sem login)', 'POST', '/messages/recibo', { body: { m: m.id, u: S.ana.id, r } });
+  const h = await ok('Beto ver a conversa', 'GET', `/messages/${S.ana.id}`, { who: 'beto' });
+  const minha = h.find((x) => x.id === m.id);
+  assert.ok(minha.deliveredAt, 'entregue com o app da Ana fechado');
+  assert.equal(minha.readAt, null, 'mas ainda não lida');
+});

@@ -35,6 +35,7 @@
     "expo-speech": "*",
     "expo-speech-recognition": "*",
     "expo-status-bar": "*",
+    "expo-task-manager": "*",
     "expo-video": "*",
     "react": "*",
     "react-native": "*",

@@ -1467,6 +1467,11 @@ const MIGRATIONS = [
   CREATE UNIQUE INDEX IF NOT EXISTS messages_client ON messages(from_id, client_id) WHERE client_id IS NOT NULL;
   CREATE INDEX IF NOT EXISTS messages_entrega ON messages(to_id, delivered_at);
   `,
+  // Recibo de entrega: o aparelho que já sabe avisar "a notificação da mensagem chegou" (2ª pétala
+  // mesmo com o app fechado, como no WhatsApp). Aparelho com app antigo continua 0.
+  `
+  ALTER TABLE push_tokens ADD COLUMN recibo INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export function openDb(file) {

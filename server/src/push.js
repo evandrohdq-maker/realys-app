@@ -7,7 +7,7 @@
 //   FIREBASE_SERVICE_ACCOUNT=/opt/realys/firebase-conta-servico.json
 // Sem a chave, as notificações ficam desligadas e o resto funciona normalmente.
 import { readFileSync } from 'node:fs';
-import { createSign } from 'node:crypto';
+import { createSign, createHmac, timingSafeEqual } from 'node:crypto';
 import { now } from './http.js';
 
 // Texto de cada aviso. go: tela que abre ao tocar na notificação ({ tab, seg... } ou { chat } para a conversa).
@@ -129,6 +129,33 @@ export function makePush({ db, cfg }) {
     return ok;
   }
 
+  // Recibo de entrega das mensagens (2ª pétala com o app fechado, como no WhatsApp).
+  // Junto com a notificação normal (que o Android mostra sozinho), vai um aviso silencioso só para os
+  // aparelhos com app novo: o Realyz acorda por um instante, responde "chegou" (POST /messages/recibo)
+  // e volta a dormir. A assinatura (r) impede que alguém marque mensagem dos outros como entregue.
+  const segredo = String(cfg.jwtSecret || 'realyz');
+  const recibo = (msgId, userId) => createHmac('sha256', segredo).update(`recibo.${msgId}.${userId}`).digest('base64url').slice(0, 32);
+  function conferirRecibo(msgId, userId, r) {
+    const a = Buffer.from(recibo(String(msgId), String(userId)));
+    const b = Buffer.from(String(r || ''));
+    return a.length === b.length && timingSafeEqual(a, b);
+  }
+  async function mandarRecibo(userId, msgId) {
+    const list = db.prepare('SELECT token FROM push_tokens WHERE user_id = ? AND recibo = 1').all(userId).map((x) => x.token);
+    if (!list.length) return 0;
+    const at = await accessToken();
+    let ok = 0;
+    for (const t of list) {
+      const res = await doFetch(`https://fcm.googleapis.com/v1/projects/${conta.project_id}/messages:send`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${at}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: { token: t, data: { tipo: 'recibo', m: String(msgId), u: String(userId), r: recibo(msgId, userId) }, android: { priority: 'high', ttl: '604800s' } } }),
+      }).catch(() => null);
+      if (res && res.ok) ok++;
+    }
+    return ok;
+  }
+
   // Chamado pelo Hub quando a pessoa não está com o app aberto.
   function aviso(userId, type, data) {
     const f = AVISOS[type];
@@ -141,7 +168,8 @@ export function makePush({ db, cfg }) {
     }
     if (!msg) return; // aviso que não vira notificação (ex.: andamento do vídeo)
     send(userId, msg).catch((e) => console.error('[push]', e.message));
+    if (type === 'message' && data && data.id) mandarRecibo(userId, data.id).catch((e) => console.error('[push recibo]', e.message));
   }
 
-  return { ligado, send, aviso, tokensOf };
+  return { ligado, send, aviso, tokensOf, recibo, conferirRecibo, mandarRecibo };
 }
