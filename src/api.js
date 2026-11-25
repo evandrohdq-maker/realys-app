@@ -12,6 +12,7 @@ import Constants from 'expo-constants';
 import * as Crypto from 'expo-crypto';
 import { AppState, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { estaOnline, marcarOnline, marcarOffline, testarAgora, definirTeste, onConexao } from './conexao';
 
 const SESSION_KEY = 'realys.session';
 export const API_URL = String((Constants.expoConfig && Constants.expoConfig.extra && Constants.expoConfig.extra.apiUrl) || '').replace(/\/$/, '');
@@ -49,6 +50,8 @@ export function setServerAccount(serverId) {
     sessionKey = k;
     accessToken = null;
     tokenExp = 0;
+    // A fila de ações sem internet é de cada conta.
+    prepararFila().catch(() => {});
   }
 }
 const saveSession = (t) => SecureStore.setItemAsync(sessionKey, t, { requireAuthentication: false });
@@ -90,64 +93,121 @@ async function garantirAcesso() {
   await garantindo;
 }
 // Abriu o app com conta salva: já começa a preparar o login enquanto a tela monta.
-export const aquecerConexao = () => (serverOn() ? garantirAcesso().catch(() => {}) : Promise.resolve());
+export const aquecerConexao = () => (serverOn() ? garantirAcesso().catch(() => {}).then(() => prepararFila()).catch(() => {}) : Promise.resolve());
 export const hasSession = async () => !!(await SecureStore.getItemAsync(sessionKey).catch(() => null));
 
-// ── Respostas guardadas no aparelho ──
+// ── Respostas guardadas no aparelho (o "mini backup", como o Instagram faz) ──
 // Cada leitura (GET) guarda a resposta e a "etiqueta" (ETag) que o servidor manda junto. Na próxima vez,
 // o app pergunta "mudou alguma coisa desde esta etiqueta?": se não mudou, o servidor responde só
-// "igual" (304, sem dados) e o app usa o que já tem. Catálogo, feed e lista de músicas, que são
-// grandes e pedidos a cada minuto, deixam de vir inteiros toda vez.
-// Algumas listas também ficam no disco do aparelho: ao abrir o app, a tela já aparece com a última
-// versão enquanto busca a nova.
-const memo = new Map(); // "conta caminho" → { etag, texto }
+// "igual" (304, sem dados) e o app usa o que já tem.
+// As respostas também ficam no disco do aparelho (uma chave por tela/lista), com estas regras:
+//  - guarda o que foi visto nos últimos 7 dias; o que não é aberto há mais tempo é apagado;
+//  - no máximo ~4 milhões de letras no total (alguns MB); passando disso, sai o mais antigo;
+//  - cada vez que a tela abre com internet, a cópia é trocada pela mais nova;
+//  - o dono dos dados continua sendo o servidor: isto é só uma cópia para abrir rápido e funcionar
+//    sem internet. Sair da conta apaga a cópia daquela conta.
+// Não guarda no disco: login, administração, biometria e conferências (sempre do servidor, na hora).
+const memo = new Map(); // "conta caminho" → { etag, texto, em }
 const MEMO_MAX = 200;
-const NO_DISCO = /^\/(products|events|tracks|feed|stories|estacoes\/feed)(\?|$)/;
-const DISCO_MAX = 400000; // por resposta (caracteres)
-const discoKey = () => `realys.respostas.${sessionKey}`;
+const NAO_GUARDA = /^\/(auth|admin|biometria|health|app\/versao|baixar|credenciais\/[^/]+\/sigilo)(\/|\?|$)/;
+const guardavel = (path) => !NAO_GUARDA.test(path);
+const DISCO_MAX = 400000; // por resposta (letras)
+const DISCO_TOTAL = 4000000; // todas as respostas da conta (letras)
+const DISCO_ITENS = 160;
+const DISCO_DIAS = 7;
 const memoKey = (path) => `${sessionKey} ${path}`;
-let discoLido = null;
-let discoContaLida = null;
-function lerDisco() {
-  if (discoLido && discoContaLida === sessionKey) return discoLido;
-  discoContaLida = sessionKey;
-  const conta = sessionKey;
-  discoLido = AsyncStorage.getItem(discoKey())
-    .then((t) => {
-      const d = JSON.parse(t || '{}');
-      Object.keys(d).forEach((path) => {
-        const k = `${conta} ${path}`;
-        if (!memo.has(k) && d[path] && d[path].texto) memo.set(k, d[path]);
-      });
-    })
-    .catch(() => {});
-  return discoLido;
+const indiceKey = (conta) => `realys.cache.${conta}`;
+const itemKey = (conta, path) => `realys.cache.${conta}|${path}`;
+
+// Índice do que está no disco: { caminho: { em, n } } (quando foi guardado e o tamanho).
+const indices = new Map(); // conta → Promise<objeto>
+function indice(conta = sessionKey) {
+  if (!indices.has(conta)) {
+    indices.set(
+      conta,
+      AsyncStorage.getItem(indiceKey(conta))
+        .then((t) => JSON.parse(t || '{}') || {})
+        .catch(() => ({}))
+    );
+    // Versão antiga guardava tudo numa chave só (podia ficar grande demais para o Android): apaga.
+    AsyncStorage.removeItem(`realys.respostas.${conta}`).catch(() => {});
+  }
+  return indices.get(conta);
 }
-let salvarDepois = null;
-function salvarDisco() {
-  if (salvarDepois) return;
+// Traz do disco a cópia desta tela (uma vez só), se ainda não estiver na memória.
+const procurados = new Set();
+async function doDisco(path) {
+  const k = memoKey(path);
+  if (memo.has(k) || procurados.has(k) || !guardavel(path)) return;
+  procurados.add(k);
   const conta = sessionKey;
-  salvarDepois = setTimeout(() => {
-    salvarDepois = null;
-    const d = {};
-    memo.forEach((v, k) => {
-      const i = k.indexOf(' ');
-      const path = k.slice(i + 1);
-      if (k.slice(0, i) === conta && NO_DISCO.test(path) && v.texto.length <= DISCO_MAX) d[path] = v;
-    });
-    AsyncStorage.setItem(`realys.respostas.${conta}`, JSON.stringify(d)).catch(() => {});
-  }, 4000);
+  const idx = await indice(conta);
+  if (!idx[path]) return;
+  try {
+    const g = JSON.parse((await AsyncStorage.getItem(itemKey(conta, path))) || 'null');
+    if (g && g.texto && !memo.has(k)) memo.set(k, g);
+  } catch (e) {}
+}
+// Grava no disco o que mudou (junta tudo e grava a cada 3 s, para não pesar o celular).
+const paraGravar = new Map(); // "conta caminho" → { conta, path, v }
+let gravarDepois = null;
+function agendarGravacao(path, v) {
+  if (!guardavel(path) || v.texto.length > DISCO_MAX) return;
+  paraGravar.set(memoKey(path), { conta: sessionKey, path, v });
+  if (gravarDepois) return;
+  gravarDepois = setTimeout(gravar, 3000);
+}
+async function gravar() {
+  gravarDepois = null;
+  const lote = [...paraGravar.values()];
+  paraGravar.clear();
+  const contas = new Set(lote.map((x) => x.conta));
+  for (const conta of contas) {
+    try {
+      const idx = await indice(conta);
+      const pares = [];
+      lote.filter((x) => x.conta === conta).forEach(({ path, v }) => {
+        idx[path] = { em: v.em, n: v.texto.length };
+        pares.push([itemKey(conta, path), JSON.stringify(v)]);
+      });
+      // Limpeza: tira o que tem mais de 7 dias e, se passar do limite, o mais antigo primeiro.
+      const tirar = [];
+      const velho = Date.now() - DISCO_DIAS * 86400000;
+      let lista = Object.keys(idx).map((p) => ({ p, ...idx[p] }));
+      lista.filter((x) => !x.em || x.em < velho).forEach((x) => tirar.push(x.p));
+      lista = lista.filter((x) => x.em && x.em >= velho).sort((a, b) => b.em - a.em);
+      let total = 0;
+      lista.forEach((x, i) => {
+        total += x.n || 0;
+        if (i >= DISCO_ITENS || total > DISCO_TOTAL) tirar.push(x.p);
+      });
+      tirar.forEach((p) => delete idx[p]);
+      const fora = new Set(tirar);
+      await AsyncStorage.multiSet([...pares.filter(([k]) => !fora.has(k.slice(k.indexOf('|') + 1))), [indiceKey(conta), JSON.stringify(idx)]]);
+      if (tirar.length) await AsyncStorage.multiRemove(tirar.map((p) => itemKey(conta, p)));
+    } catch (e) {}
+  }
 }
 function lembrar(path, etag, texto) {
   const k = memoKey(path);
+  const v = { etag, texto, em: Date.now() };
   memo.delete(k);
-  memo.set(k, { etag, texto });
+  memo.set(k, v);
   if (memo.size > MEMO_MAX) memo.delete(memo.keys().next().value);
-  if (NO_DISCO.test(path)) salvarDisco();
+  agendarGravacao(path, v);
+}
+// Apaga do aparelho a cópia de uma conta (ao sair dela).
+async function apagarCopia(conta) {
+  [...memo.keys()].forEach((k) => k.startsWith(conta + ' ') && memo.delete(k));
+  [...procurados].forEach((k) => k.startsWith(conta + ' ') && procurados.delete(k));
+  [...paraGravar.keys()].forEach((k) => k.startsWith(conta + ' ') && paraGravar.delete(k));
+  const idx = await indice(conta);
+  await AsyncStorage.multiRemove([indiceKey(conta), ...Object.keys(idx).map((p) => itemKey(conta, p))]).catch(() => {});
+  indices.delete(conta);
 }
 // Última resposta guardada (do disco ou desta vez que o app está aberto), para mostrar na hora.
 export async function respostaGuardada(path) {
-  await lerDisco();
+  await doDisco(path);
   const m = memo.get(memoKey(path));
   if (!m) return null;
   try {
@@ -160,7 +220,7 @@ export async function respostaGuardada(path) {
 async function raw(method, path, body, headers = {}) {
   let res;
   const leitura = method === 'GET';
-  if (leitura && NO_DISCO.test(path)) await lerDisco();
+  if (leitura) await doDisco(path);
   const guardada = leitura ? memo.get(memoKey(path)) : null;
   // Sem resposta em 25 s (60 s para envio de arquivo): para de esperar e avisa, em vez de ficar
   // carregando para sempre.
@@ -171,13 +231,17 @@ async function raw(method, path, body, headers = {}) {
     res = await fetch(API_URL + path, {
       signal: ctl ? ctl.signal : undefined,
       method,
-      headers: { ...(body !== undefined && !(body instanceof ArrayBuffer) ? { 'Content-Type': 'application/json' } : {}), ...headers, ...(accessToken && path !== '/auth/refresh' ? { Authorization: `Bearer ${accessToken}` } : {}), ...(guardada ? { 'If-None-Match': guardada.etag } : {}) },
+      headers: { ...(body !== undefined && !(body instanceof ArrayBuffer) ? { 'Content-Type': 'application/json' } : {}), ...headers, ...(accessToken && path !== '/auth/refresh' ? { Authorization: `Bearer ${accessToken}` } : {}), ...(guardada && guardada.etag ? { 'If-None-Match': guardada.etag } : {}) },
       body: body === undefined ? undefined : body instanceof ArrayBuffer ? body : JSON.stringify(body),
     });
   } catch (e) {
     clearTimeout(limite);
-    throw new ApiError(0, e && e.name === 'AbortError' ? 'O Realyz demorou para responder. Tente de novo.' : 'Sem conexão com o Realyz. Confira sua internet.');
+    const demorou = e && e.name === 'AbortError';
+    // Sem internet (ou tão fraca que nada chega): o aviso do topo aparece e as telas passam a usar a cópia.
+    marcarOffline();
+    throw new ApiError(0, demorou ? 'O Realyz demorou para responder. Tente de novo.' : 'Sem conexão com o Realyz. Confira sua internet.', demorou ? 'demorou' : 'sem_conexao');
   }
+  marcarOnline();
   // Nada mudou desde a última vez: usa o que o aparelho já tem.
   if (res.status === 304 && guardada) {
     clearTimeout(limite);
@@ -191,7 +255,7 @@ async function raw(method, path, body, headers = {}) {
     data = texto ? JSON.parse(texto) : {};
   } catch (e) {}
   const etag = res.ok && leitura && res.headers && res.headers.get ? res.headers.get('ETag') : null;
-  if (etag && texto) lembrar(path, etag, texto);
+  if (res.ok && leitura && texto) lembrar(path, etag, texto);
   // O servidor recusou por falta de biometria: o app abre o aviso "Biometria não cadastrada".
   if (!res.ok && data.code === 'biometria' && bioBlocked) bioBlocked();
   if (!res.ok && data.code === 'biometria_prazo' && prazoBio) prazoBio();
@@ -230,7 +294,49 @@ export function api(method, path, body, headers) {
   emVoo.set(k, p);
   return p;
 }
+// Leitura com cópia guardada no aparelho:
+//  - sem internet: devolve a cópia na hora (a tela abre e os botões funcionam, sem ficar parada);
+//  - com internet, mas o servidor demorou mais de 3,5 s: mostra a cópia e deixa a busca terminar por
+//    trás (a resposta nova fica guardada e aparece na próxima atualização da tela);
+//  - com internet boa: a resposta nova, como sempre.
+const ESPERA_COM_COPIA = 3500;
 async function apiDireto(method, path, body, headers) {
+  if (method === 'GET' && !headers && !path.startsWith('/auth/')) {
+    await doDisco(path);
+    const g = memo.get(memoKey(path));
+    if (g) {
+      const copia = () => JSON.parse(g.texto);
+      if (!estaOnline()) {
+        testarAgora();
+        return copia();
+      }
+      const pedido = pedirServidor(method, path, body, headers);
+      return new Promise((ok, falha) => {
+        let feito = false;
+        const t = setTimeout(() => {
+          if (feito) return;
+          feito = true;
+          ok(copia());
+        }, ESPERA_COM_COPIA);
+        pedido.then(
+          (d) => {
+            clearTimeout(t);
+            if (!feito) (feito = true), ok(d);
+          },
+          (e) => {
+            clearTimeout(t);
+            if (feito) return;
+            feito = true;
+            if (e.status === 0) ok(copia());
+            else falha(e);
+          }
+        );
+      });
+    }
+  }
+  return pedirServidor(method, path, body, headers);
+}
+async function pedirServidor(method, path, body, headers) {
   const auth = path.startsWith('/auth/');
   // Renovação em andamento ou acesso ainda não carregado (app acabou de abrir): espera o login antes
   // de pedir, em vez de mandar o pedido sem login e levar "sessão expirada".
@@ -255,6 +361,116 @@ async function apiDireto(method, path, body, headers) {
     return tentar();
   }
 }
+
+// ── Ações feitas sem internet (fila) ──
+// Curtir, seguir, reagir... sem internet: o app mostra a mudança na hora (como o Instagram), guarda o
+// pedido no aparelho e envia sozinho quando a internet voltar, na ordem em que foram feitos.
+// Só para ações simples que podem esperar. Pagamento, compra, pedido, Pix e mensagens NÃO entram aqui:
+// esses continuam avisando "Sem conexão" para a pessoa saber que não foi.
+// alternar: ação de liga/desliga (curtir, seguir). Fazer duas vezes sem internet = não fazer nada,
+// então as duas saem da fila em vez de irem as duas para o servidor.
+const filaKey = (conta = sessionKey) => `realys.fila.${conta}`;
+const FILA_MAX = 100;
+const FILA_DIAS = 3; // ação esperando há mais que isso é descartada (já não faz sentido)
+const ouvintesFila = new Set();
+let tamanhoFila = 0;
+export const pendentes = () => tamanhoFila;
+export function onFila(fn) {
+  ouvintesFila.add(fn);
+  return () => ouvintesFila.delete(fn);
+}
+const avisarFila = (enviou) => ouvintesFila.forEach((fn) => { try { fn(tamanhoFila, enviou); } catch (e) {} });
+const lerFila = (conta) => AsyncStorage.getItem(filaKey(conta)).then((t) => JSON.parse(t || '[]') || []).catch(() => []);
+const gravarFila = (conta, l) => AsyncStorage.setItem(filaKey(conta), JSON.stringify(l)).catch(() => {});
+let mexendoFila = Promise.resolve();
+const naFila = (fn) => (mexendoFila = mexendoFila.then(fn, fn));
+
+function enfileirar(method, path, body, alternar) {
+  const conta = sessionKey;
+  return naFila(async () => {
+    let l = await lerFila(conta);
+    const igual = (x) => x.method === method && x.path === path && JSON.stringify(x.body || null) === JSON.stringify(body || null);
+    const i = alternar ? l.findIndex(igual) : -1;
+    if (i >= 0) l.splice(i, 1);
+    else l.push({ method, path, body, em: Date.now() });
+    l = l.slice(-FILA_MAX);
+    await gravarFila(conta, l);
+    if (conta === sessionKey) tamanhoFila = l.length;
+    avisarFila(false);
+  });
+}
+
+// Tenta mandar agora; sem internet, entra na fila e devolve { pendente: true }.
+export async function apiOuFila(method, path, body, { alternar = false } = {}) {
+  if (!serverOn()) return api(method, path, body);
+  if (!estaOnline()) {
+    testarAgora();
+    await enfileirar(method, path, body, alternar);
+    return { pendente: true };
+  }
+  try {
+    return await api(method, path, body);
+  } catch (e) {
+    // Só quando a ligação nem chegou ao servidor. Se demorou (pode ter chegado), avisa em vez de repetir.
+    if (e.code !== 'sem_conexao') throw e;
+    await enfileirar(method, path, body, alternar);
+    return { pendente: true };
+  }
+}
+
+// Internet voltou: manda o que ficou esperando. Erro do servidor (ex.: post apagado) descarta a ação;
+// caiu a internet de novo no meio: para e continua na próxima vez.
+let enviandoFila = false;
+export function enviarFila() {
+  if (enviandoFila || !serverOn() || !estaOnline()) return Promise.resolve();
+  enviandoFila = true;
+  const conta = sessionKey;
+  return naFila(async () => {
+    let l = await lerFila(conta);
+    const limite = Date.now() - FILA_DIAS * 86400000;
+    l = l.filter((x) => x.em >= limite);
+    let enviou = 0;
+    while (l.length && conta === sessionKey) {
+      const x = l[0];
+      try {
+        await pedirServidor(x.method, x.path, x.body);
+      } catch (e) {
+        if (e.status === 0) break;
+      }
+      l.shift();
+      enviou++;
+      await gravarFila(conta, l);
+    }
+    await gravarFila(conta, l);
+    if (conta === sessionKey) tamanhoFila = l.length;
+    if (enviou) avisarFila(true);
+  }).finally(() => (enviandoFila = false));
+}
+// Ao abrir o app (ou trocar de conta): quantas ações estão esperando, e manda se der.
+export function prepararFila() {
+  const conta = sessionKey;
+  return lerFila(conta).then((l) => {
+    if (conta !== sessionKey) return;
+    tamanhoFila = l.length;
+    avisarFila(false);
+    if (l.length) enviarFila();
+  });
+}
+onConexao((on) => on && enviarFila());
+// Sem conexão: o app pergunta ao servidor se ele já responde (sem login, resposta pequena).
+definirTeste(async () => {
+  if (!serverOn()) return true;
+  const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const t = setTimeout(() => ctl && ctl.abort(), 6000);
+  try {
+    const r = await fetch(API_URL + '/health', { signal: ctl ? ctl.signal : undefined });
+    return !!r && r.status < 500;
+  } catch (e) {
+    return false;
+  } finally {
+    clearTimeout(t);
+  }
+});
 
 // Identificador deste aparelho (guardado no cofre). Aparelho novo pede a conferência do rosto antes da senha.
 const DEVICE_KEY = 'realys.deviceKey';
@@ -305,8 +521,8 @@ export async function logout() {
   accessToken = null;
   tokenExp = 0;
   // Saiu da conta: apaga do aparelho as respostas guardadas dela.
-  [...memo.keys()].forEach((k) => k.startsWith(sessionKey + ' ') && memo.delete(k));
-  await AsyncStorage.removeItem(discoKey()).catch(() => {});
+  await apagarCopia(sessionKey);
+  await AsyncStorage.removeItem(filaKey()).catch(() => {});
   await SecureStore.deleteItemAsync(acessoKey()).catch(() => {});
   await SecureStore.deleteItemAsync(sessionKey).catch(() => {});
 }
