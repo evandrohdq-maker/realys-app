@@ -46,6 +46,12 @@ export class Hub {
       // app=android|ios: o celular com o app na frente. Fechou ou foi para o segundo plano, ele desconecta.
       socket.rzApp = /^(android|ios)$/.test(url.searchParams.get('app') || '') ? url.searchParams.get('app') : 'web';
       this.add(userId, socket);
+      // Quem quiser saber que a pessoa abriu o app (ex.: marcar mensagens como entregues).
+      for (const fn of this.aoConectar || []) {
+        try {
+          fn(userId);
+        } catch (e) {}
+      }
       let buf = Buffer.alloc(0);
       socket.on('data', (chunk) => {
         buf = Buffer.concat([buf, chunk]);
@@ -81,6 +87,9 @@ export class Hub {
     });
   }
 
+  onConnect(fn) {
+    (this.aoConectar = this.aoConectar || []).push(fn);
+  }
   add(userId, socket) {
     if (!this.clients.has(userId)) this.clients.set(userId, new Set());
     this.clients.get(userId).add(socket);

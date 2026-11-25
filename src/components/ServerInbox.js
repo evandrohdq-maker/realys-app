@@ -15,6 +15,7 @@ import { colors } from '../theme';
 import ClassifyModal, { TagLine, EtiquetasModal, useListas, listasDe, buscaPorLista } from './ClassifyModal';
 import { NovoGrupo, GrupoChat, ConvitesGrupos } from './Grupos';
 import { aCada } from '../ritmo';
+import Petalas from './Petalas';
 
 const fotoDe = (p) => (p && p.startsWith('/') ? API_URL + p : p);
 const quando = (at) => {
@@ -155,6 +156,7 @@ export default function ServerInbox() {
             {/* Classificação embaixo do nome, pequenininha e na cor dela. */}
             <TagLine contactId={c.with.id} />
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+              {c.last.from === me ? <Petalas m={c.last} escuro={false} style={{ marginRight: 5 }} /> : null}
               <Text style={{ flex: 1, color: c.unread ? colors.text : colors.muted, fontSize: 13 }} numberOfLines={1}>
                 {c.last.from === me ? 'Você: ' : ''}
                 {c.last.text}

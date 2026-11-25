@@ -404,9 +404,35 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
   );
 
   // ── Mensagens (com histórico) ──
+  // Sinais da mensagem (pétalas da Lotus no app): enviada (chegou no servidor) → entregue (chegou no
+  // aparelho de quem recebe: app aberto, ou abriu a lista de conversas) → lida (abriu a conversa).
+  // Quem mandou fica sabendo na hora pelo aviso 'message_status' (não vira notificação no celular).
+  const avisarSinal = (lista, status, at) => {
+    const porQuem = new Map();
+    lista.forEach((m) => {
+      if (!porQuem.has(m.from_id)) porQuem.set(m.from_id, { with: m.to_id, ids: [] });
+      porQuem.get(m.from_id).ids.push(m.id);
+    });
+    porQuem.forEach((d, from) => hub.send(from, 'message_status', { ...d, status, at }));
+  };
+  const marcarEntregues = (toId) => {
+    const l = db.prepare('SELECT id, from_id, to_id FROM messages WHERE to_id = ? AND delivered_at IS NULL LIMIT 500').all(toId);
+    if (!l.length) return;
+    const at = now();
+    db.prepare('UPDATE messages SET delivered_at = ? WHERE to_id = ? AND delivered_at IS NULL').run(at, toId);
+    avisarSinal(l, 'entregue', at);
+  };
+  if (hub.onConnect) hub.onConnect(marcarEntregues);
+  const msgView = (m) => ({ id: m.id, clientId: m.client_id || undefined, from: m.from_id, to: m.to_id, text: m.text, media: m.media, mediaType: m.media_type, at: m.created_at, deliveredAt: m.delivered_at || null, readAt: m.read_at || null });
   r.post('/messages', ({ body, user }) => {
     const to = target(body.toId);
     if (to.id === user.id) fail(400, 'Escolha outra pessoa.');
+    // A mesma mensagem chegando de novo (o celular mandou da fila sem internet e repetiu): devolve a que já existe.
+    const clientId = typeof body.clientId === 'string' && /^[\w-]{6,64}$/.test(body.clientId) ? body.clientId : null;
+    if (clientId) {
+      const ja = db.prepare('SELECT * FROM messages WHERE from_id = ? AND client_id = ?').get(user.id, clientId);
+      if (ja) return { ...msgView(ja), fromName: user.name };
+    }
     const id = newId('m');
     // Foto, vídeo ou áudio (enviado antes em PUT /media?uso=privado): a mensagem pode ser só a mídia.
     const media = typeof body.media === 'string' && /^\/media\/md_[\w-]+(\.[a-z0-9]{2,4})?$/i.test(body.media) ? body.media : null;
@@ -439,7 +465,11 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     }
     // Mídia só entre amigos (em conversa de negócio, catálogo e fotos vão pelos caminhos da loja).
     if (media && (!amigos || vende || negocio(to))) fail(403, 'Foto, vídeo e áudio são liberados na conversa entre amigos.', 'midia_amigos');
-    db.prepare('INSERT INTO messages (id, from_id, to_id, text, created_at, media, media_type) VALUES (?,?,?,?,?,?,?)').run(id, user.id, to.id, msg.text, msg.at, media, mediaType);
+    // App de quem recebe aberto agora: já chega no aparelho dele (entregue).
+    msg.clientId = clientId || undefined;
+    msg.deliveredAt = hub.online(to.id) ? msg.at : null;
+    msg.readAt = null;
+    db.prepare('INSERT INTO messages (id, from_id, to_id, text, created_at, media, media_type, client_id, delivered_at) VALUES (?,?,?,?,?,?,?,?,?)').run(id, user.id, to.id, msg.text, msg.at, media, mediaType, clientId, msg.deliveredAt);
     hub.send(to.id, 'message', { ...msg, fromName: user.name });
     // CRM: conversa de cliente com empresa/prestador abre (ou atualiza) o atendimento sozinha.
     if (crm && msg.text) {
@@ -461,23 +491,30 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
   });
 
   // Conversas: a última mensagem de cada pessoa e quantas não lidas.
-  r.get('/conversations', ({ user }) =>
-    db.prepare(
+  r.get('/conversations', ({ user }) => {
+    marcarEntregues(user.id);
+    return db.prepare(
       `SELECT other, MAX(created_at) AS at FROM (SELECT CASE WHEN from_id = ? THEN to_id ELSE from_id END AS other, created_at FROM messages WHERE from_id = ? OR to_id = ?) GROUP BY other ORDER BY at DESC LIMIT 50`
     ).all(user.id, user.id, user.id).map((c) => {
       const last = db.prepare('SELECT * FROM messages WHERE (from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?) ORDER BY created_at DESC LIMIT 1').get(user.id, c.other, c.other, user.id);
       const unread = db.prepare('SELECT COUNT(*) AS n FROM messages WHERE from_id = ? AND to_id = ? AND read_at IS NULL').get(c.other, user.id).n;
       const rotulo = { foto: '📷 Foto', video: '🎬 Vídeo', audio: '🎤 Áudio' }[last.media_type];
-      return { with: pub(userById(c.other)), last: { text: last.text || rotulo || '', from: last.from_id, at: last.created_at }, unread };
-    })
-  );
+      return { with: pub(userById(c.other)), last: { text: last.text || rotulo || '', from: last.from_id, at: last.created_at, deliveredAt: last.delivered_at || null, readAt: last.read_at || null }, unread };
+    });
+  });
 
   // Histórico com uma pessoa (e marca como lidas).
   r.get('/messages/:userId', ({ params, user, query }) => {
     const other = String(params.userId);
     const before = Number(query.before || now() + 1);
-    db.prepare('UPDATE messages SET read_at = ? WHERE from_id = ? AND to_id = ? AND read_at IS NULL').run(now(), other, user.id);
-    return db.prepare('SELECT id, from_id AS "from", to_id AS "to", text, media, media_type AS mediaType, created_at AS at, read_at AS readAt, ia FROM messages WHERE ((from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?)) AND created_at < ? ORDER BY created_at DESC LIMIT 100')
+    // Abriu a conversa: o que a outra pessoa mandou fica lido (e entregue), e ela fica sabendo na hora.
+    const novas = db.prepare('SELECT id, from_id, to_id FROM messages WHERE from_id = ? AND to_id = ? AND read_at IS NULL LIMIT 500').all(other, user.id);
+    if (novas.length) {
+      const at = now();
+      db.prepare('UPDATE messages SET read_at = ?, delivered_at = COALESCE(delivered_at, ?) WHERE from_id = ? AND to_id = ? AND read_at IS NULL').run(at, at, other, user.id);
+      avisarSinal(novas, 'lida', at);
+    }
+    return db.prepare('SELECT id, client_id AS clientId, from_id AS "from", to_id AS "to", text, media, media_type AS mediaType, created_at AS at, delivered_at AS deliveredAt, read_at AS readAt, ia FROM messages WHERE ((from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?)) AND created_at < ? ORDER BY created_at DESC LIMIT 100')
       .all(user.id, other, other, user.id, before).reverse();
   });
 

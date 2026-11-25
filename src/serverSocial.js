@@ -1,7 +1,7 @@
 // Posts e stories das contas reais (servidor): o que eu publico vai para o servidor (amigos veem),
 // e o feed e a faixa de stories mostram o que os amigos publicaram. Curtir e comentar também.
 import { useEffect, useState } from 'react';
-import { api, API_URL, uploadMedia, serverOn, respostaGuardada } from './api';
+import { api, apiOuFila, onFila, API_URL, uploadMedia, serverOn, respostaGuardada } from './api';
 import { aCada } from './ritmo';
 
 const full = (u) => (u && u.startsWith('/') ? API_URL + u : u);
@@ -57,6 +57,8 @@ async function feedGuardado() {
     emit();
   } catch (e) {}
 }
+// Curtidas e "Seguir" feitos sem internet foram enviados: busca o feed de novo com os números certos.
+onFila((n, enviou) => enviou && refreshFeed());
 export function refreshFeed() {
   if (!serverOn()) return Promise.resolve();
   feedGuardado();
@@ -153,7 +155,20 @@ export async function publicar(kind, item) {
 export const curtir = (serverId, pid) => {
   const { comoPaginaId } = require('./serverPaginas');
   const como = (pid === undefined ? comoPaginaId() : pid) || undefined;
-  return api('POST', `/posts/${serverId}/curtir`, { comoPagina: como }).then((r) => {
+  return apiOuFila('POST', `/posts/${serverId}/curtir`, { comoPagina: como }, { alternar: true }).then((r) => {
+    // Sem internet: o coração muda na hora e a curtida vai quando a internet voltar.
+    if (r && r.pendente) {
+      const p0 = feed.find((p) => p.serverId === serverId);
+      if (!p0) return r;
+      const pags = p0.likedPaginas || [];
+      const tinha = como ? pags.includes(como) : p0.liked;
+      r = {
+        pendente: true,
+        liked: como ? p0.liked : !tinha,
+        likedPaginas: como ? (tinha ? pags.filter((x) => x !== como) : [...pags, como]) : pags,
+        likes: Math.max(0, (p0.likes || 0) + (tinha ? -1 : 1)),
+      };
+    }
     feed = feed.map((p) => (p.serverId === serverId ? { ...p, liked: r.liked, likedPaginas: r.likedPaginas || [], likes: r.likes } : p));
     emit();
     return r;
@@ -166,8 +181,12 @@ export function contarComentario(serverId, d) {
 }
 // Seguir / deixar de seguir a página de um post do feed (todos os posts daquela página mudam juntos).
 export function seguirPaginaDoPost(paginaId) {
-  const { seguirPagina } = require('./serverPaginas');
-  return seguirPagina(paginaId).then((r) => {
+  return apiOuFila('POST', `/paginas/${encodeURIComponent(paginaId)}/seguir`, undefined, { alternar: true }).then((r) => {
+    // Sem internet: o botão muda na hora e o "Seguir" vai quando a internet voltar.
+    if (r && r.pendente) {
+      const p0 = feed.find((p) => p.pagina && p.pagina.id === paginaId);
+      r = { pendente: true, seguindo: !(p0 && p0.seguindo) };
+    }
     feed = feed.map((p) => (p.pagina && p.pagina.id === paginaId ? { ...p, seguindo: r.seguindo } : p));
     emit();
     return r;

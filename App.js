@@ -39,6 +39,7 @@ import { AdminOverview, AdminModeration, AdminSignups } from './src/screens/admi
 import AdminMarket from './src/screens/admin/AdminMarket';
 import CategoryMenu from './src/components/CategoryMenu';
 import UpdateGate from './src/components/UpdateGate';
+import AvisoConexao from './src/components/AvisoConexao';
 import { AdminSystem, NoteModal, SYSTEM_MAP } from './src/screens/admin/AdminSystem';
 import { WakeWordListener } from './src/wakeWord';
 import { loadVoicePrint } from './src/voicePrint';
@@ -1097,6 +1098,8 @@ export default function App() {
       </StoreProvider>
       {/* Avisos do Realyz: em qualquer tela, inclusive na entrada (login). */}
       <SoftAlertHost />
+      {/* Sem internet: aviso discreto no topo; o app continua funcionando com o que está guardado. */}
+      <AvisoConexao />
     </SafeAreaProvider>
   );
   return app;

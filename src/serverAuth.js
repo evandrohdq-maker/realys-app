@@ -68,7 +68,11 @@ export async function entrarOuMigrar(loginText, password, acc) {
 }
 
 // Troca a conta usada nas chamadas ao servidor (cada conta salva tem a sua sessão).
-export const usarConta = (user) => setServerAccount(user && user.serverId);
+export const usarConta = (user) => {
+  setServerAccount(user && user.serverId);
+  // Mensagens escritas sem internet daquela conta: vão quando der.
+  require('./mensagensPendentes').usarContaPendentes(user && user.serverId);
+};
 // Sair: o aparelho para de receber as notificações da conta antes de encerrar a sessão.
 export const sairDoServidor = () => (serverOn() ? unregisterPush().then(apiLogout) : Promise.resolve());
 
