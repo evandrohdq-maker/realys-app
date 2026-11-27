@@ -1550,6 +1550,11 @@ const MIGRATIONS = [
   CREATE INDEX IF NOT EXISTS reels_area ON reels(area, removed, created_at DESC);
   CREATE INDEX IF NOT EXISTS reels_autor ON reels(author_id, created_at DESC);
   `,
+  // 31: fotos e vídeos repetidos: a impressão digital (SHA-256) de cada arquivo, para guardar uma vez só.
+  `
+  ALTER TABLE media ADD COLUMN hash TEXT;
+  CREATE INDEX media_hash ON media(hash);
+  `,
 ];
 
 export function openDb(file) {
