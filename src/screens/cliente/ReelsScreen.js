@@ -2,7 +2,7 @@
 // Realyz num lugar só, estilo Instagram. Os Reels publicados pelo usuário aparecem primeiro. "Para você" mistura lojas e comida; "Shop" e "Food" filtram.
 import StoryFrame from '../../components/StoryFrame';
 import React, { useMemo, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ReelComposer } from '../StoriesScreen';
@@ -12,6 +12,7 @@ import { Text } from '../../responsive';
 import { ReelsFeed } from '../../components/Reels';
 import { SHOP_CLIPS, FOOD_CLIPS, MERCADO_CLIPS, SERVICE_CLIPS, NEGOCIO_CLIPS, COMMUNITY_CLIPS } from '../../adsData';
 import { useStore } from '../../store';
+import { useServerReels, publicarReel } from '../../serverReels';
 
 const TABS = [
   { key: 'todos', label: 'Para você' },
@@ -40,11 +41,14 @@ export default function ReelsScreen() {
   const food = useMemo(() => [...FOOD_CLIPS, ...MERCADO_CLIPS].map((c) => ({ ...c, kind: 'food' })), []);
   const { state, dispatch } = useStore();
   const mine = state.myReels || [];
+  // Reels do servidor (empresas e pessoas de verdade) entram na frente dos de exemplo.
+  const srv = useServerReels(null).filter((r) => !mine.some((m) => m.serverId === r.serverId));
+  const de = (...k) => srv.filter((r) => k.includes(r.area));
   // Amigos: Reels de quem é seu amigo (e os seus).
   const ehAmigo = (r) => r.userId && (state.friends || {})[r.userId] === 'amigo';
-  const deAmigos = [...mine, ...COMMUNITY_CLIPS.filter(ehAmigo)];
+  const deAmigos = [...mine, ...srv.filter(ehAmigo), ...COMMUNITY_CLIPS.filter(ehAmigo)];
   const rostos = members.filter((m) => (state.friends || {})[m.id] === 'amigo').slice(0, 3);
-  const reels = amigos ? deAmigos : tab === 'shop' ? shop : tab === 'food' ? food : tab === 'servicos' ? SERVICE_CLIPS : tab === 'negocios' ? NEGOCIO_CLIPS : [...mine, ...mix(shop, COMMUNITY_CLIPS, food, SERVICE_CLIPS, NEGOCIO_CLIPS)];
+  const reels = amigos ? deAmigos : tab === 'shop' ? [...de('shop'), ...shop] : tab === 'food' ? [...de('food', 'mercado'), ...food] : tab === 'servicos' ? [...de('servicos'), ...SERVICE_CLIPS] : tab === 'negocios' ? [...de('negocios'), ...NEGOCIO_CLIPS] : [...mine, ...srv, ...mix(shop, COMMUNITY_CLIPS, food, SERVICE_CLIPS, NEGOCIO_CLIPS)];
   return (
     // No computador, os Reels ficam numa moldura em pé (9:16) no meio da coluna.
     <StoryFrame>
@@ -89,9 +93,12 @@ export default function ReelsScreen() {
       <ReelComposer
         visible={postando}
         onClose={() => setPostando(false)}
-        onPublish={(reel) => {
+        escolherArea={(state.user && (state.user.roles || []).includes('empresa')) || false}
+        onPublish={(reel, destaque, area) => {
           setPostando(false);
-          dispatch({ type: 'PUBLISH_REEL', reel: { ...reel, user: (state.user && state.user.name) || 'Você' } });
+          const user = (state.user && state.user.name) || 'Você';
+          dispatch({ type: 'PUBLISH_REEL', reel: { ...reel, user } });
+          publicarReel(reel, area).then((r) => r && r.serverId && dispatch({ type: 'REEL_SYNC', id: reel.id, reel: { ...r, user } })).catch((e) => Alert.alert('Reel', `Ficou só neste celular: ${e.message}`));
         }}
       />
     </View>

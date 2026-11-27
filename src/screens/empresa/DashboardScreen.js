@@ -16,6 +16,7 @@ import ServerEventsPanel from '../../components/ServerEventsPanel';
 import AtendenteIA from '../../components/AtendenteIA';
 import { PlanosIA, PainelInteligencia } from '../../components/NativoIA';
 import { ReelComposer } from '../StoriesScreen';
+import { publicarReel } from '../../serverReels';
 
 export default function DashboardScreen({ goTo, navigate }) {
   const [reeling, setReeling] = useState(false);
@@ -77,9 +78,12 @@ export default function DashboardScreen({ goTo, navigate }) {
       <ReelComposer
         visible={reeling}
         onClose={() => setReeling(false)}
-        onPublish={(reel) => {
+        escolherArea
+        onPublish={(reel, destaque, area) => {
           setReeling(false);
-          dispatch({ type: 'PUBLISH_REEL', reel: { ...reel, ad: true, user: 'Mercadinho Bom Preço' } });
+          const nome = (state.user && state.user.name) || 'Mercadinho Bom Preço';
+          dispatch({ type: 'PUBLISH_REEL', reel: { ...reel, ad: true, user: nome } });
+          publicarReel(reel, area).then((r) => r && r.serverId && dispatch({ type: 'REEL_SYNC', id: reel.id, reel: { ...r, ad: true, user: nome } })).catch((e) => Alert.alert('Reel', `Ficou só neste celular: ${e.message}`));
           Alert.alert('Reel de anúncio publicado ✅', 'Ele aparece nos Reels do Realyz com a marca da sua empresa.');
         }}
       />

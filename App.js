@@ -40,6 +40,10 @@ import AdminMarket from './src/screens/admin/AdminMarket';
 import CategoryMenu from './src/components/CategoryMenu';
 import UpdateGate from './src/components/UpdateGate';
 import AvisoConexao from './src/components/AvisoConexao';
+import AcordoPioneiro from './src/components/AcordoPioneiro';
+import { parametrosDoSite } from './src/pioneiro';
+import { loginTitular } from './src/api';
+import { userFromServer, usarConta } from './src/serverAuth';
 import { AdminSystem, NoteModal, SYSTEM_MAP } from './src/screens/admin/AdminSystem';
 import { WakeWordListener } from './src/wakeWord';
 import { loadVoicePrint } from './src/voicePrint';
@@ -1067,6 +1071,22 @@ function Root() {
   setTextBoost(!!state.bigText);
   const tk = state.bigText ? ':big' : '';
   const [entrada, setEntrada] = useState(null); // site: 'entrar' | 'cadastro' depois da página de abertura
+  // Links do site: do vendedor (?pioneiro=área&v=nome → cadastro) e do titular (?titular=código → entra
+  // na conta da empresa só para a biometria e o Acordo de Pioneiro).
+  useEffect(() => {
+    if (!state.ready) return;
+    const p = parametrosDoSite();
+    if (p.titular && !p.titularUsado) {
+      p.titularUsado = true;
+      loginTitular(p.titular)
+        .then((u) => {
+          const user = userFromServer(u);
+          usarConta(user);
+          dispatch({ type: 'LOGIN', user });
+        })
+        .catch((e) => Alert.alert('Link do titular', (e && e.message) || 'Este link não vale mais. Peça um novo para quem fez o cadastro.'));
+    } else if (p.pioneiro && !state.user) setEntrada('cadastro');
+  }, [state.ready]);
   return (
     <>
       <StatusBar style="dark" />
@@ -1078,7 +1098,11 @@ function Root() {
           <ActivityIndicator color={colors.primary} />
         </View>
       ) : state.user ? (
-        <Shell key={state.user.name + tk} inviteTick={inviteTick} />
+        <>
+          <Shell key={state.user.name + tk} inviteTick={inviteTick} />
+          {/* Pioneiro: Acordo para assinar logo depois do cadastro (e a fatura do mês, depois do lançamento). */}
+          {state.user.serverId ? <AcordoPioneiro /> : null}
+        </>
       ) : Platform.OS === 'web' && !entrada ? (
         // Site: quem chega sem conta vê a página de abertura; os botões levam para Entrar ou Cadastre-se.
         <Landing onEnter={setEntrada} />

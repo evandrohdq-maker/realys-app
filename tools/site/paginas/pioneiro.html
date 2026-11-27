@@ -25,13 +25,14 @@
 
   <section class="card destaque">
     <h2>Pacote Pioneiro</h2>
-    <p class="preco"><span class="de">R$ 318,30</span> <strong>R$ 99</strong> por mês</p>
-    <p class="nota">ou R$ 990 no ano (2 meses de graça). Preço congelado por 12 meses.</p>
+    <p class="preco"><span class="de">R$ 348,30</span> <strong>R$ 99,90</strong> por mês</p>
+    <p class="nota">ou R$ 999 no ano (2 meses de graça). Preço congelado por 12 meses.</p>
     <ul class="lista">
       <li><b>Plano da loja ou do prestador incluído</b> (vitrine, pedidos, CRM e página)</li>
       <li><b>Primeiro lugar nas buscas</b> 10 dias por mês, revezando com os pioneiros da sua área</li>
       <li><b>4 stories patrocinados</b> por mês</li>
       <li><b>2 dias de banner</b> na vitrine do Shop ou do Food</li>
+      <li><b>Reels sem limite</b> e <b>R$ 30 por mês para turbinar</b> seus vídeos (cerca de 2.500 visualizações)</li>
       <li><b>Comissão de 8%</b> nas vendas, em vez de 10%</li>
       <li><b>Segunda página grátis</b></li>
     </ul>
@@ -41,7 +42,13 @@
       <li>Seu nome no vídeo e nos posts de lançamento</li>
     </ul>
     <p class="nota">O título de Pioneiro é apenas promocional. Não dá participação na empresa, nos lucros, na marca ou no aplicativo Realyz, nem qualquer direito além dos benefícios do pacote descritos nesta página.</p>
-    <p class="garantia">Você só começa a pagar quando o app for lançado. O lançamento acontece quando as vagas de pioneiro estiverem preenchidas.</p>
+    <h3>Acordo de Pioneiro</h3>
+    <ul class="lista">
+      <li><b>O Realyz garante:</b> cobrar só depois do lançamento, o preço congelado e os anúncios de todo mês.</li>
+      <li><b>A empresa garante:</b> o 1º mês depois do lançamento, a vitrine atualizada e o atendimento dos clientes.</li>
+      <li><b>Depois do 1º mês,</b> sai quando quiser, sem pagar nada a mais.</li>
+    </ul>
+    <p class="garantia">Você usa o 1º mês e paga no fim dele, como um plano de internet. Nada é cobrado antes do lançamento.</p>
   </section>
 
   <section>
@@ -51,12 +58,16 @@
   </section>
 
   <section class="card" id="quero">
-    <h2>Quero ser pioneiro</h2>
-    <p class="sub2">Preencha e um consultor do Realyz chama você no WhatsApp para confirmar a vaga.</p>
-    <form id="form" novalidate>
-      <label>Área da empresa
-        <select name="area" id="area" required></select>
-      </label>
+    <h2>Garanta a sua vaga agora</h2>
+    <p class="sub2">Escolha a área, crie a conta da empresa e assine o Acordo de Pioneiro com o rosto do titular. Leva uns 10 minutos. Se o titular não estiver aí, o site gera um link para ele assinar do celular.</p>
+    <label class="solto">Área da empresa
+      <select id="area" required></select>
+    </label>
+    <p class="erro" id="erroCad" role="alert"></p>
+    <button type="button" class="btn" id="cadastrar">Criar minha conta e garantir a vaga</button>
+    <p class="mini" style="text-align:center"><a href="#" id="prefiro">Prefiro que um consultor me chame no WhatsApp</a></p>
+    <form id="form" novalidate hidden>
+      <input type="hidden" name="area" id="areaForm">
       <label>Nome da empresa <input name="nome" required maxlength="120" autocomplete="organization"></label>
       <label>CNPJ <input name="cnpj" required inputmode="numeric" placeholder="00.000.000/0000-00" maxlength="18"></label>
       <label>Seu nome <input name="responsavel" required maxlength="120" autocomplete="name"></label>

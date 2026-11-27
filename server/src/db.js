@@ -1494,6 +1494,62 @@ const MIGRATIONS = [
   CREATE UNIQUE INDEX IF NOT EXISTS pioneiros_cnpj ON pioneiros(cnpj) WHERE cnpj IS NOT NULL AND cnpj <> '';
   CREATE UNIQUE INDEX IF NOT EXISTS pioneiros_numero ON pioneiros(numero) WHERE numero IS NOT NULL;
   `,
+  // Pioneiros: conta ligada (taxa e selo), Acordo assinado no cadastro (com o rosto), link para o titular
+  // fazer a biometria e assinar a distância, e as faturas mensais depois do lançamento.
+  `
+  ALTER TABLE pioneiros ADD COLUMN user_id TEXT;
+  ALTER TABLE pioneiros ADD COLUMN acordo_versao TEXT;
+  ALTER TABLE pioneiros ADD COLUMN acordo_hash TEXT;
+  ALTER TABLE pioneiros ADD COLUMN acordo_em INTEGER;
+  ALTER TABLE pioneiros ADD COLUMN acordo_metodo TEXT;
+  ALTER TABLE pioneiros ADD COLUMN acordo_aparelho TEXT;
+  ALTER TABLE pioneiros ADD COLUMN acordo_codigo TEXT;
+  ALTER TABLE pioneiros ADD COLUMN titular_whatsapp TEXT;
+  ALTER TABLE pioneiros ADD COLUMN encerrado_em INTEGER;
+  CREATE INDEX IF NOT EXISTS pioneiros_user ON pioneiros(user_id);
+  CREATE TABLE IF NOT EXISTS links_titular (
+    id TEXT PRIMARY KEY,
+    token_hash TEXT NOT NULL UNIQUE,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    criado_por TEXT,
+    para TEXT,
+    expira_em INTEGER NOT NULL,
+    usado_em INTEGER,
+    created_at INTEGER NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS pioneiro_faturas (
+    id TEXT PRIMARY KEY,
+    pioneiro_id TEXT NOT NULL REFERENCES pioneiros(id),
+    user_id TEXT NOT NULL,
+    mes INTEGER NOT NULL,
+    inicio INTEGER NOT NULL,
+    fim INTEGER NOT NULL,
+    valor INTEGER NOT NULL,
+    vence_em INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'aberta' CHECK (status IN ('aberta','paga','cancelada')),
+    paga_em INTEGER,
+    created_at INTEGER NOT NULL,
+    UNIQUE (pioneiro_id, mes)
+  );
+  CREATE INDEX IF NOT EXISTS pioneiro_faturas_user ON pioneiro_faturas(user_id, status);
+  `,
+  // Reels guardados no servidor (empresas e pessoas): aparecem para todos na área escolhida.
+  `
+  CREATE TABLE IF NOT EXISTS reels (
+    id TEXT PRIMARY KEY,
+    author_id TEXT NOT NULL REFERENCES users(id),
+    area TEXT NOT NULL CHECK (area IN ('comunidade','shop','food','mercado','servicos','negocios')),
+    titulo TEXT NOT NULL DEFAULT '',
+    video TEXT NOT NULL,
+    poster TEXT,
+    anuncio INTEGER NOT NULL DEFAULT 0,
+    views INTEGER NOT NULL DEFAULT 0,
+    removed INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS reels_area ON reels(area, removed, created_at DESC);
+  CREATE INDEX IF NOT EXISTS reels_autor ON reels(author_id, created_at DESC);
+  `,
 ];
 
 export function openDb(file) {

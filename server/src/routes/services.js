@@ -43,7 +43,7 @@ export function distanceKm(lat1, lng1, lat2, lng2) {
   return 6371 * 2 * Math.asin(Math.sqrt(a));
 }
 
-export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biometria, fiscal }) {
+export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biometria, fiscal, taxaPioneiro }) {
   // Para o cliente, o prestador aparece só com o primeiro nome e a inicial do sobrenome
   // ("Carlos L."): ele não acha o prestador pelo nome completo para contratar por fora.
   // Histórico do cliente com o prestador: serviços concluídos pelo Realyz (a visita confirmada conta).
@@ -292,7 +292,10 @@ export default function servicesRoutes(r, { db, cfg, wallet, hub, userById, biom
     const provider = userById(c.provider_id);
     // Corrida e entrega: o Realyz fica com a parte dele (18%). Nos outros serviços o valor combinado vai inteiro ao prestador
     // (o Realyz já recebeu pela taxa de visita).
-    const fee = TRANSPORT.includes(c.service) ? Math.round((amount * cfg.rideFeePct) / 100) : 0;
+    // Motoboy ou motorista Pioneiro: taxa menor (src/taxaPioneiro.js).
+    const pctPioneiro = TRANSPORT.includes(c.service) && taxaPioneiro ? taxaPioneiro.pct(c.provider_id, cfg.rideFeePct, { tipo: 'corrida' }) : null;
+    const ridePct = pctPioneiro == null ? cfg.rideFeePct : Math.min(pctPioneiro, cfg.rideFeePct);
+    const fee = TRANSPORT.includes(c.service) ? Math.round((amount * ridePct) / 100) : 0;
     const paid = tx(db, () => {
       const r2 = wallet.pay(user.id, amount, 'Serviços', `${c.service} com ${publicName(provider.name)}`, c.id);
       wallet.move(provider.id, 'saldo', amount - fee, 'Serviços', `Serviço para ${user.name}`, c.id);

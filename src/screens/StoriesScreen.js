@@ -24,6 +24,8 @@ import { useOpenPerson, resolvePerson } from '../openPerson';
 import { realWidth, DESK_MIN, RAIL_MIN } from '../webFrame';
 import { DestaqueOpcoes, DESTAQUE_VAZIO, aplicarDestaque } from '../components/Destacar';
 import { editPhoto } from '../components/PhotoEditor';
+import ConhecaRealyz from '../components/ConhecaRealyz';
+import { publicarReel } from '../serverReels';
 
 // Página Community (botão "Community" na barra de baixo): stories e comunidade.
 // Em cima, a faixa de bolinhas como no Instagram; embaixo, a Comunidade: feed único de posts e
@@ -193,6 +195,8 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
           })}
         </ScrollView>
         {menuBar ? <View style={{ marginHorizontal: -16 }}>{menuBar}</View> : null}
+        {/* Primeiras vezes no app: vídeo de apresentação, o que é o Realyz em slides e a construção do app. */}
+        <ConhecaRealyz />
           </View>
         }
       />
@@ -270,6 +274,8 @@ export default function StoriesScreen({ navigate, explore, onTop }) {
           if (check.verdict === 'falso')
             return Alert.alert('Reel não publicado', `A IA do Realyz verificou a legenda como informação falsa (${check.reasons.join(', ')}). O Reel não foi publicado.`);
           dispatch({ type: 'PUBLISH_REEL', reel: { ...reel, user: userName } });
+          // No servidor: todo mundo vê (o vídeo sobe por trás e o Reel do aparelho vira o do servidor).
+          publicarReel(reel, 'comunidade').then((r) => r && r.serverId && dispatch({ type: 'REEL_SYNC', id: reel.id, reel: { ...r, user: userName } })).catch((e) => Alert.alert('Reel', `Ficou só neste celular: ${e.message}`));
           aplicarDestaque(dispatch, { kind: 'reel', id: reel.id, video: reel.video, text: reel.title }, destaque);
           Alert.alert('Reel publicado ✅', 'Ele já aparece nos Reels. Para ver, puxe a página inicial para a direita.', [
             { text: 'Ok' },
@@ -434,9 +440,12 @@ function PostComposer({ visible, onClose, onPublish }) {
 }
 
 // Novo Reel: um vídeo curto da galeria (até 60 s) e uma legenda.
-export function ReelComposer({ visible, onClose, onPublish }) {
+// escolherArea: empresa escolhe onde o Reel aparece (Shop, Food, Mercado, Serviços ou Negócios).
+const AREAS_REEL = [['shop', 'Shop'], ['food', 'Food'], ['mercado', 'Mercado'], ['servicos', 'Serviços'], ['negocios', 'Negócios']];
+export function ReelComposer({ visible, onClose, onPublish, escolherArea = false }) {
   const insets = useSafeAreaInsets();
   const [title, setTitle] = useState('');
+  const [area, setArea] = useState('shop');
   const [video, setVideo] = useState(null); // { uri, secs }
   const [destaque, setDestaque] = useState(DESTAQUE_VAZIO);
   const [ia, setIa] = useState(false);
@@ -472,7 +481,7 @@ export function ReelComposer({ visible, onClose, onPublish }) {
           <Text style={styles.sheetTitle}>Novo Reel</Text>
           <TouchableOpacity
             disabled={!ok}
-            onPress={() => onPublish({ id: 'r' + Date.now(), title: title.trim() || 'Meu Reel', video: video.uri, likes: 0, views: 0, kind: 'user', ...(ia ? { ia: true } : {}) }, destaque)}
+            onPress={() => onPublish({ id: 'r' + Date.now(), title: title.trim() || 'Meu Reel', video: video.uri, likes: 0, views: 0, kind: 'user', ...(ia ? { ia: true } : {}) }, destaque, escolherArea ? area : 'comunidade')}
             style={[styles.publishBtn, !ok && { opacity: 0.4 }]}
           >
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ color: colors.onPrimary, fontWeight: '800' }}>Publicar</Text>
@@ -484,6 +493,16 @@ export function ReelComposer({ visible, onClose, onPublish }) {
             <Text style={styles.reelPickTitle}>{video ? 'Vídeo escolhido' : 'Escolher vídeo da galeria'}</Text>
             <Text style={styles.reelPickSub}>{video ? `${video.secs ? video.secs + ' s · ' : ''}toque para trocar` : 'Vídeo em pé, de até 60 segundos'}</Text>
           </TouchableOpacity>
+          {escolherArea ? (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 12 }}>
+              <Text style={{ width: '100%', color: colors.muted, fontSize: 13, marginBottom: 6 }}>Onde o Reel aparece</Text>
+              {AREAS_REEL.map(([k, l]) => (
+                <TouchableOpacity key={k} onPress={() => setArea(k)} style={{ paddingHorizontal: 14, paddingVertical: 7, borderRadius: 16, borderWidth: 1.5, borderColor: area === k ? colors.primary : colors.border, backgroundColor: area === k ? colors.primaryLight : colors.card, marginRight: 8, marginBottom: 8 }}>
+                  <Text style={{ color: area === k ? colors.primaryDark : colors.text, fontWeight: '700' }}>{l}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : null}
           <TextInput
             value={title}
             onChangeText={setTitle}

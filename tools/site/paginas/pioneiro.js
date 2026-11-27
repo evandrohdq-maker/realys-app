@@ -43,12 +43,27 @@
     return d.length > 10 ? d.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3') : d.replace(/^(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3').replace(/^(\d{2})$/, '($1');
   });
 
+  // Botão principal: abre o cadastro do Realyz com a área e o vendedor já escolhidos.
+  if ($('cadastrar')) {
+    $('cadastrar').addEventListener('click', function () {
+      var area = $('area').value;
+      if (!area) return ($('erroCad').textContent = GRUPO === 'empresa' ? 'Escolha a área da empresa.' : 'Escolha: motoboy ou motorista.');
+      location.href = '/?pioneiro=' + encodeURIComponent(area) + (v ? '&v=' + encodeURIComponent(v) : '');
+    });
+    $('area').addEventListener('change', function () { $('erroCad').textContent = ''; });
+    $('prefiro').addEventListener('click', function (e) {
+      e.preventDefault();
+      $('form').hidden = false;
+      $('form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
   $('form').addEventListener('input', function () { $('erro').textContent = ''; });
   $('form').addEventListener('submit', function (e) {
     e.preventDefault();
     var f = e.target;
     var dados = {};
     Array.prototype.forEach.call(f.elements, function (el) { if (el.name) dados[el.name] = el.type === 'checkbox' ? el.checked : el.value.trim(); });
+    if ($('areaForm')) dados.area = $('area').value;
     if (!dados.area) return ($('erro').textContent = 'Escolha a área.');
     if (!dados.nome) return ($('erro').textContent = GRUPO === 'empresa' ? 'Informe o nome da empresa.' : 'Informe o seu nome.');
     if (GRUPO === 'empresa' && dados.cnpj.replace(/\D/g, '').length !== 14) return ($('erro').textContent = 'O CNPJ tem 14 números.');

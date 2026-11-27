@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, Alert, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Text } from '../../responsive';
+import { Text, TextInput } from '../../responsive';
 import { api, serverOn } from '../../api';
 import { useStore } from '../../store';
 import { colors, soft } from '../../theme';
@@ -28,6 +28,8 @@ export default function AdminPioneiros() {
   const [erro, setErro] = useState(null);
   const [etapa, setEtapa] = useState('novo');
   const [aberto, setAberto] = useState(true);
+  const [contas, setContas] = useState({}); // id do pioneiro → *usuário digitado
+  const [dataLanc, setDataLanc] = useState('');
   const carregar = () =>
     api('GET', '/admin/pioneiros')
       .then((r) => (setD(r), setErro(null)))
@@ -45,6 +47,26 @@ export default function AdminPioneiros() {
         carregar();
       })
       .catch((e) => Alert.alert('Pioneiros', e.message));
+  };
+  // Liga o pioneiro à conta dele no app: é o que faz valer o selo e a taxa de pioneiro.
+  const ligar = (f) => {
+    if (leitura) return Alert.alert('Acesso de analista', 'Ligar a conta é com o administrador.');
+    api('POST', `/admin/pioneiros/${f.id}/conta`, { usuario: contas[f.id] || '' })
+      .then((r) => {
+        Alert.alert('Conta ligada', r.conta ? `${f.nome} agora é o pioneiro *${r.conta.usuario}.` : 'Conta desligada.');
+        carregar();
+      })
+      .catch((e) => Alert.alert('Pioneiros', e.message));
+  };
+  // Data do lançamento: a partir dela contam os meses e saem as faturas dos pioneiros.
+  const marcarLancamento = (limpar) => {
+    if (leitura) return Alert.alert('Acesso de analista', 'Marcar o lançamento é com o administrador.');
+    api('POST', '/admin/pioneiros/lancamento', { data: limpar ? '' : dataLanc })
+      .then((r) => {
+        Alert.alert('Lançamento', r.lancamento ? `Marcado para ${new Date(r.lancamento).toLocaleDateString('pt-BR')}. As faturas saem no fim de cada mês a partir dessa data.` : 'Data do lançamento apagada.');
+        carregar();
+      })
+      .catch((e) => Alert.alert('Lançamento', e.message));
   };
   const areas = (d && d.areas) || [];
   const nomeArea = (id) => (areas.find((a) => a.id === id) || {}).label || id;
@@ -65,6 +87,20 @@ export default function AdminPioneiros() {
       </TouchableOpacity>
       {aberto && d ? (
         <>
+          <View style={st.lanc}>
+            <Text style={[st.sub, { flex: 1 }]}>{d.lancamento ? `Lançamento: ${new Date(d.lancamento).toLocaleDateString('pt-BR')}` : 'Lançamento: ainda não marcado'}</Text>
+            {d.lancamento ? (
+              <TouchableOpacity onPress={() => marcarLancamento(true)}><Text style={{ color: colors.danger, fontWeight: '700', fontSize: 12.5 }}>Apagar</Text></TouchableOpacity>
+            ) : null}
+          </View>
+          {!d.lancamento ? (
+            <View style={st.ligar}>
+              <TextInput value={dataLanc} onChangeText={setDataLanc} placeholder="Data do lançamento (dia/mês/ano)" placeholderTextColor={colors.muted} style={st.ligarIn} />
+              <TouchableOpacity style={st.ligarBtn} onPress={() => marcarLancamento(false)}>
+                <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 12.5 }}>Marcar</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
           {areas.map((a) => (
             <View key={a.id} style={st.area}>
               <Text style={st.areaNome} numberOfLines={1}>{a.label}</Text>
@@ -90,6 +126,19 @@ export default function AdminPioneiros() {
               <Text style={st.sub} numberOfLines={1}>{nomeArea(f.area)}{f.responsavel && f.responsavel !== f.nome ? ` · ${f.responsavel}` : ''}</Text>
               <Text style={st.sub} numberOfLines={1}>{fone(f.whatsapp)}{f.cnpj ? ` · CNPJ ${f.cnpj}` : ''}{f.vendedor ? ` · vendedor: ${f.vendedor}` : ''}</Text>
               {f.obs ? <Text style={st.obs} numberOfLines={2}>{f.obs}</Text> : null}
+              {f.acordoEm ? <Text style={[st.sub, { color: colors.success }]}>Acordo assinado em {new Date(f.acordoEm).toLocaleDateString('pt-BR')} · código {f.acordoCodigo}{f.faturasAbertas ? ` · ${f.faturasAbertas} fatura(s) em aberto` : ''}</Text> : f.status !== 'desistiu' ? <Text style={st.sub}>Acordo ainda não assinado</Text> : null}
+              {f.status === 'fechado' ? (
+                f.conta ? (
+                  <Text style={[st.sub, { color: colors.success, marginTop: 4 }]}>Conta no app: *{f.conta}</Text>
+                ) : (
+                  <View style={st.ligar}>
+                    <TextInput value={contas[f.id] || ''} onChangeText={(v) => setContas({ ...contas, [f.id]: v })} placeholder="*usuário da conta no app" placeholderTextColor={colors.muted} autoCapitalize="none" style={st.ligarIn} />
+                    <TouchableOpacity style={st.ligarBtn} onPress={() => ligar(f)}>
+                      <Text style={{ color: colors.onPrimary, fontWeight: '800', fontSize: 12.5 }}>Ligar conta</Text>
+                    </TouchableOpacity>
+                  </View>
+                )
+              ) : null}
               <View style={st.acoes}>
                 <TouchableOpacity style={st.acao} onPress={() => Linking.openURL(`https://wa.me/55${String(f.whatsapp).replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '')}`)} accessibilityLabel={`Chamar ${f.nome} no WhatsApp`}>
                   <Ionicons name="logo-whatsapp" size={16} color={colors.success} />
@@ -128,5 +177,9 @@ const st = StyleSheet.create({
   acoes: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 },
   acao: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 14, borderWidth: 1, borderColor: colors.borderStrong, marginRight: 6, marginTop: 4 },
   acaoT: { color: colors.text, fontSize: 12, fontWeight: '700', marginLeft: 3 },
+  lanc: { flexDirection: 'row', alignItems: 'center', marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: colors.border },
+  ligar: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
+  ligarIn: { flex: 1, height: 38, borderRadius: 12, borderWidth: 1, borderColor: colors.borderStrong, paddingHorizontal: 10, color: colors.text, fontSize: 13.5 },
+  ligarBtn: { backgroundColor: colors.primary, borderRadius: 12, paddingHorizontal: 12, height: 38, justifyContent: 'center', marginLeft: 6 },
   vazio: { color: colors.muted, textAlign: 'center', paddingVertical: 12 },
 });
