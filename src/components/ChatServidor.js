@@ -16,6 +16,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Photo } from './ui';
 import { openMedia } from './MediaViewer';
 import { useGravador, podeGravarAudio } from '../audioRec';
+import { usePrivateScreen } from '../privacyGuard';
 
 let EA = null;
 let EV = null;
@@ -37,6 +38,17 @@ const hora = (t) => {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 };
 const mmss = (n) => `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`;
+
+// Como a foto, o vídeo ou o áudio pode ser visto por quem recebe. Com limite, o arquivo é apagado do
+// servidor quando acabam as vezes (servidor: POST /messages/:id/abrir e /fechar).
+const MODOS = [
+  { id: 'unica', icon: 'eye-off-outline', titulo: 'Visualização única', sub: 'Abre 1 vez e depois é apagada' },
+  { id: 'duas', icon: 'repeat-outline', titulo: 'Visualização em dois tempos', sub: 'Abre 2 vezes e depois é apagada' },
+  { id: 'livre', icon: 'infinite-outline', titulo: 'Sem limite', sub: 'Fica na conversa, como sempre' },
+];
+let ultimoModo = 'livre'; // a última escolha já vem marcada no próximo envio
+const NOME = { foto: 'Foto', video: 'Vídeo', audio: 'Áudio' };
+const ICONE = { foto: '📷', video: '🎬', audio: '🎤' };
 
 export default function ChatServidor() {
   const { state, dispatch } = useStore();
@@ -63,6 +75,8 @@ export default function ChatServidor() {
     load();
     const stop = connectEvents((e) => {
       if (e.type === 'message' && (e.from === open.userId || (e.data && e.data.from === open.userId))) load();
+      // A pessoa abriu a foto/áudio de visualização limitada que eu mandei.
+      if (e.type === 'message_vista' && e.data && e.data.with === open.userId) load();
       // A pessoa recebeu ou leu: as pétalas mudam na hora, sem buscar a conversa de novo.
       if (e.type === 'message_status' && e.data && e.data.with === open.userId && Array.isArray(e.data.ids)) {
         const ids = new Set(e.data.ids);
@@ -99,6 +113,8 @@ export default function ChatServidor() {
   const [enviando, setEnviando] = useState(null); // 'foto' | 'video' | 'audio' enquanto sobe
   const [classificar, setClassificar] = useState(false);
   const [emojis, setEmojis] = useState(false);
+  const [escolha, setEscolha] = useState(null); // mídia pronta, esperando escolher como vai: { uri, mime, tipo }
+  const [vendo, setVendo] = useState(null); // mídia de visualização limitada aberta agora: { id, url, tipo }
   if (!open) return null;
   const close = () => {
     if (grav.gravando) grav.cancelar();
@@ -106,11 +122,11 @@ export default function ChatServidor() {
   };
   const amigos = negocio === false;
   // Foto, vídeo ou áudio: sobe como arquivo privado (só as duas pessoas veem) e vai na mensagem.
-  const mandarMidia = async (uri, mime, tipo) => {
+  const mandarMidia = async (uri, mime, tipo, modo = 'livre') => {
     setEnviando(tipo);
     try {
       const url = await uploadMedia(uri, mime, 'privado');
-      await api('POST', '/messages', { toId: open.userId, media: url.replace(/^https?:\/\/[^/]+/, ''), mediaType: tipo, text: '' });
+      await api('POST', '/messages', { toId: open.userId, media: url.replace(/^https?:\/\/[^/]+/, ''), mediaType: tipo, text: '', visualizacao: modo });
       await load();
     } catch (e) {
       Alert.alert('Não foi enviado', e.message || 'Tente de novo.');
@@ -127,7 +143,7 @@ export default function ChatServidor() {
       const a = r.assets[0];
       const video = a.type === 'video';
       const mime = a.mimeType || (video ? 'video/mp4' : /\.png$/i.test(a.uri) ? 'image/png' : 'image/jpeg');
-      mandarMidia(a.uri, mime, video ? 'video' : 'foto');
+      setEscolha({ uri: a.uri, mime, tipo: video ? 'video' : 'foto' });
     } catch (e) {
       Alert.alert('Enviar foto ou vídeo', 'Não deu para abrir a galeria.');
     }
@@ -138,7 +154,7 @@ export default function ChatServidor() {
       if (!perm.granted) return Alert.alert('Permissão', 'Permita a câmera para tirar a foto.');
       const r = await ImagePicker.launchCameraAsync({ quality: 0.85 });
       if (r.canceled || !r.assets || !r.assets[0]) return;
-      mandarMidia(r.assets[0].uri, r.assets[0].mimeType || 'image/jpeg', 'foto');
+      setEscolha({ uri: r.assets[0].uri, mime: r.assets[0].mimeType || 'image/jpeg', tipo: 'foto' });
     } catch (e) {
       Alert.alert('Câmera', 'Não deu para abrir a câmera.');
     }
@@ -148,13 +164,29 @@ export default function ChatServidor() {
     try {
       if (!grav.gravando) return await grav.iniciar();
       const r = await grav.parar();
-      if (r) mandarMidia(r.uri, r.mime, 'audio');
+      if (r) setEscolha({ uri: r.uri, mime: r.mime, tipo: 'audio' });
     } catch (e) {
       Alert.alert('Áudio', e.message || 'Não deu para usar o microfone.');
     }
   };
   // Ligação (voz) ou chamada de vídeo de verdade, direto entre os aparelhos (src/components/LiveVideo.js).
   // A conversa fecha para a tela da chamada ficar por cima.
+  // Quem recebeu abre a mídia de visualização limitada: conta uma vez no servidor.
+  const abrirLimitada = async (m) => {
+    try {
+      const r = await api('POST', `/messages/${m.id}/abrir`);
+      setVendo({ id: m.id, url: mediaUrl(r.media), tipo: r.mediaType });
+      load();
+    } catch (e) {
+      Alert.alert('Não abriu', e.message || 'Essa mídia não está mais disponível.');
+      load();
+    }
+  };
+  const fecharLimitada = () => {
+    const v = vendo;
+    setVendo(null);
+    if (v) api('POST', `/messages/${v.id}/fechar`).catch(() => {}).then(load);
+  };
   const ligar = (kind) => {
     const alvo = { to: open.userId, name: open.name };
     close();
@@ -221,7 +253,7 @@ export default function ChatServidor() {
             return (
               <View key={m.id} style={[st.bubble, mine ? st.mine : st.theirs, m.media && m.mediaType !== 'audio' && { padding: 4 }]}>
                 {!mine && m.ia ? <Text style={st.ia}>Assistente virtual</Text> : null}
-                {m.media ? <MidiaMsg m={m} mine={mine} /> : null}
+                {m.efemera ? <LimitadaMsg m={m} mine={mine} onAbrir={() => abrirLimitada(m)} /> : m.media ? <MidiaMsg m={m} mine={mine} /> : null}
                 {m.text ? <Text style={[st.text, mine && { color: '#FBF8F1' }, m.media && { paddingHorizontal: 8, paddingTop: 4 }]}>{m.text}</Text> : null}
                 {/* Hora e, nas minhas, as pétalas: enviada, entregue, lida (douradas). */}
                 <View style={[st.rodape, m.media && { paddingHorizontal: 8, paddingBottom: 2 }]}>
@@ -271,7 +303,124 @@ export default function ChatServidor() {
           )}
         </View>
         <ClassifyModal visible={classificar} contactId={open.userId} name={open.name} onClose={() => setClassificar(false)} />
+        <EscolherEnvio
+          item={escolha}
+          onCancel={() => setEscolha(null)}
+          onSend={(modo) => {
+            const it = escolha;
+            ultimoModo = modo;
+            setEscolha(null);
+            if (it) mandarMidia(it.uri, it.mime, it.tipo, modo);
+          }}
+        />
+        {vendo ? <VerLimitada item={vendo} onClose={fecharLimitada} /> : null}
       </KeyboardLift>
+    </Modal>
+  );
+}
+
+// Antes de enviar a foto, o vídeo ou o áudio: escolher se quem recebe vê 1 vez, 2 vezes ou sem limite.
+function EscolherEnvio({ item, onCancel, onSend }) {
+  const [modo, setModo] = useState(ultimoModo);
+  useEffect(() => {
+    if (item) setModo(ultimoModo);
+  }, [item]);
+  if (!item) return null;
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={onCancel}>
+      <View style={st.fundo}>
+        <View style={st.caixa}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+            {item.tipo === 'foto' ? (
+              <Photo uri={item.uri} style={{ width: 54, height: 54, borderRadius: 10 }} fallback="📷" />
+            ) : (
+              <View style={st.previa}>
+                <Text style={{ fontSize: 26 }}>{ICONE[item.tipo]}</Text>
+              </View>
+            )}
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={st.title}>Enviar {item.tipo === 'audio' ? 'o áudio' : item.tipo === 'video' ? 'o vídeo' : 'a foto'}</Text>
+              <Text style={st.sub}>Como a pessoa vai poder ver?</Text>
+            </View>
+          </View>
+          {MODOS.map((o) => {
+            const on = modo === o.id;
+            return (
+              <TouchableOpacity key={o.id} onPress={() => setModo(o.id)} style={[st.modo, on && st.modoOn]} accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={`${o.titulo}: ${o.sub}`}>
+                <Ionicons name={o.icon} size={22} color={on ? colors.primary : colors.muted} />
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14.5 }}>{o.titulo}</Text>
+                  <Text style={{ color: colors.muted, fontSize: 12 }}>{o.sub}</Text>
+                </View>
+                <Ionicons name={on ? 'radio-button-on' : 'radio-button-off'} size={20} color={on ? colors.primary : colors.muted} />
+              </TouchableOpacity>
+            );
+          })}
+          <View style={{ flexDirection: 'row', marginTop: 12 }}>
+            <TouchableOpacity onPress={onCancel} style={[st.botao, { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.border, marginRight: 8 }]} accessibilityLabel="Cancelar o envio">
+              <Text style={{ color: colors.text, fontWeight: '700' }}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => onSend(modo)} style={st.botao} accessibilityLabel="Enviar">
+              <Ionicons name="send" size={16} color={colors.onPrimary} />
+              <Text style={{ color: colors.onPrimary, fontWeight: '800', marginLeft: 6 }}>Enviar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+// Bolha da mídia com limite: o arquivo não vem na conversa. Quem recebe toca para abrir;
+// quem mandou vê se já foi aberta.
+function LimitadaMsg({ m, mine, onAbrir }) {
+  const e = m.efemera;
+  const cor = mine ? '#FBF8F1' : colors.text;
+  const fraco = mine ? 'rgba(251,248,241,0.7)' : colors.muted;
+  const nome = NOME[m.mediaType] || 'Mídia';
+  const limite = e.max === 1 ? 'visualização única' : '2 visualizações';
+  const acabou = e.restam <= 0;
+  const status = mine ? (acabou ? 'Aberta' : e.vistas ? `Aberta ${e.vistas} de ${e.max}` : 'Ainda não aberta') : acabou ? 'Aberta' : e.restam === 1 && e.max === 2 ? 'Toque para ver · última vez' : 'Toque para ver';
+  const conteudo = (
+    <View style={{ flexDirection: 'row', alignItems: 'center', minWidth: 190 }}>
+      <View style={[st.selo, { borderColor: cor }, acabou && { borderStyle: 'dashed', opacity: 0.6 }]}>
+        <Text style={{ color: cor, fontWeight: '900', fontSize: 13 }}>{e.max === 1 ? '1' : '2'}</Text>
+      </View>
+      <View style={{ marginLeft: 10, flexShrink: 1 }}>
+        <Text style={{ color: cor, fontWeight: '700', fontSize: 14.5 }}>{ICONE[m.mediaType] || '📎'} {nome} · {limite}</Text>
+        <Text style={{ color: fraco, fontSize: 12 }}>{status}</Text>
+      </View>
+    </View>
+  );
+  if (mine || acabou) return conteudo;
+  return (
+    <TouchableOpacity onPress={onAbrir} activeOpacity={0.8} accessibilityLabel={`Ver ${nome.toLowerCase()} de ${limite}`}>
+      {conteudo}
+    </TouchableOpacity>
+  );
+}
+
+// Tela da mídia com limite (sem print no Android). Ao fechar, o app avisa o servidor, que apaga o arquivo
+// se era a última vez.
+function VerLimitada({ item, onClose }) {
+  usePrivateScreen(true, 'visualizacao-limitada');
+  const insets = useSafeAreaInsets();
+  let corpo;
+  if (item.tipo === 'audio') corpo = <View style={st.audioVer}><AudioMsg url={item.url} mine /></View>;
+  else if (item.tipo === 'video') {
+    corpo = Platform.OS === 'web'
+      ? React.createElement('video', { src: item.url, controls: true, autoPlay: true, controlsList: 'nodownload', style: { width: '100%', maxHeight: '80vh' } })
+      : EV ? <VideoNativo url={item.url} grande /> : <Text style={{ color: '#fff' }}>Não deu para abrir o vídeo aqui.</Text>;
+  } else corpo = <Photo uri={item.url} style={{ width: "100%", height: "80%" }} fit="contain" fallback="📷" />;
+  return (
+    <Modal visible animationType="fade" onRequestClose={onClose} statusBarTranslucent>
+      <View style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
+        <TouchableOpacity onPress={onClose} style={{ position: 'absolute', top: insets.top + 10, right: 14, padding: 8, zIndex: 2 }} accessibilityLabel="Fechar">
+          <Ionicons name="close" size={28} color="#fff" />
+        </TouchableOpacity>
+        {corpo}
+        <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12.5, position: 'absolute', bottom: insets.bottom + 18 }}>Ao fechar, essa visualização acaba.</Text>
+      </View>
     </Modal>
   );
 }
@@ -290,9 +439,12 @@ function MidiaMsg({ m, mine }) {
     </TouchableOpacity>
   );
 }
-function VideoNativo({ url }) {
-  const player = EV.useVideoPlayer({ uri: url }, (p) => (p.loop = false));
-  return <EV.VideoView player={player} style={{ width: 230, height: 300, borderRadius: 14 }} nativeControls contentFit="cover" />;
+function VideoNativo({ url, grande }) {
+  const player = EV.useVideoPlayer({ uri: url }, (p) => {
+    p.loop = false;
+    if (grande) p.play();
+  });
+  return <EV.VideoView player={player} style={grande ? { width: '100%', height: '80%' } : { width: 230, height: 300, borderRadius: 14 }} nativeControls contentFit={grande ? 'contain' : 'cover'} />;
 }
 // Áudio: no site, o player do navegador; no celular, tocar/pausar com o expo-audio.
 function AudioMsg({ url, mine }) {
@@ -331,6 +483,12 @@ const st = StyleSheet.create({
   subindo: { color: colors.muted, fontSize: 12, textAlign: 'center', paddingVertical: 4 },
   fundo: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center', padding: 24 },
   caixa: { backgroundColor: colors.card, borderRadius: 18, padding: 18, width: '100%', maxWidth: 380 },
+  previa: { width: 54, height: 54, borderRadius: 10, backgroundColor: colors.cardAlt || '#F3EEE4', alignItems: 'center', justifyContent: 'center' },
+  modo: { flexDirection: 'row', alignItems: 'center', padding: 11, borderRadius: 12, borderWidth: 1, borderColor: colors.border, marginTop: 8 },
+  modoOn: { borderColor: colors.primary, backgroundColor: 'rgba(0,0,0,0.03)' },
+  botao: { flex: 1, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
+  selo: { width: 30, height: 30, borderRadius: 15, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  audioVer: { backgroundColor: colors.text, borderRadius: 18, paddingHorizontal: 16, paddingVertical: 12 },
   lista: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: colors.border },
   head: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.border, backgroundColor: colors.bg },
   title: { color: colors.text, fontWeight: '800', fontSize: 17 },

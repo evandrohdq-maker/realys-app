@@ -31,7 +31,7 @@ export const AVISOS = {
   suporte: (d) => ({ title: `Suporte Realyz${d.n ? ` · chamado nº ${d.n}` : ''}`, body: short(d.texto || 'A equipe respondeu o seu chamado.'), go: { tab: 'perfil', suporte: true } }),
   'suporte-novo': (d) => ({ title: d.urgent ? 'Chamado com prioridade 🔴' : 'Chamado novo no suporte', body: `Chamado nº ${d.n}`, go: { tab: 'suporte' } }),
   seguranca: (d) => ({ title: d.title || 'Segurança da sua conta 🔒', body: short(d.text), go: { tab: 'perfil' } }),
-  message: (d) => ({ title: d.fromName || 'Nova mensagem', body: short(d.text), go: { chat: { userId: d.from, name: d.fromName || '' } } }),
+  message: (d) => ({ title: d.fromName || 'Nova mensagem', body: short(d.text || ({ foto: '📷 Foto', video: '🎬 Vídeo', audio: '🎤 Áudio' }[d.mediaType] || '') + (d.efemera ? (d.efemera.max === 1 ? ' · visualização única' : ' · 2 visualizações') : '')), go: { chat: { userId: d.from, name: d.fromName || '' } } }),
   call: (d) => ({ title: 'Chamado de serviço', body: `${d.client || 'Cliente'} · ${d.service || ''} · ${d.status || 'novo'}`, go: { tab: 'pedidos', seg: 'servicos' } }),
   order: (d) => ({ title: 'Pedido', body: d.status ? `Seu pedido está: ${d.status}` : 'Você recebeu um pedido novo', go: { tab: 'pedidos' } }),
   payment: (d) => ({ title: 'Pagamento recebido 💰', body: `${brl(d.amount)}${d.from ? ` de ${d.from}` : ''}`, go: { tab: 'perfil' } }),
