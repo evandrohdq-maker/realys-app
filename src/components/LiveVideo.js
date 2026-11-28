@@ -292,6 +292,7 @@ export function VideoCallHost() {
       begin({ role: 'callee', callId: r.id, kind: r.kind, ctx: 'date' }, r.from.name);
     };
     return (
+      <Modal visible transparent animationType="fade" onRequestClose={no}>
       <View pointerEvents="box-none" style={[StyleSheet.absoluteFill, { zIndex: 50 }]}>
         <View style={[st.invite, { top: insets.top + 8 }]}>
           <Text style={st.inviteTitle}>💘 {ringing.from.name || 'Seu crush'} chamou você para uma chamada de vídeo</Text>
@@ -306,6 +307,7 @@ export function VideoCallHost() {
           </View>
         </View>
       </View>
+      </Modal>
     );
   }
   if (ringing && !call) {

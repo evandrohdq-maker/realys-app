@@ -418,7 +418,7 @@ function Shell({ inviteTick }) {
   // No painel de trabalho, tocar no símbolo de novo troca para o próximo perfil (ou volta ao social).
   const isWork = WORK_ROLES.includes(state.activeRole) || state.activeRole === 'admin';
   const tapProfile = () => {
-    if (!canSwap) return isWork ? setTab(TABS[state.activeRole][0].key) : pick({ tab: 'perfil' });
+    if (!canSwap) return isWork && verified ? setTab(TABS[state.activeRole][0].key) : pick({ tab: 'perfil' });
     if (!isWork && current.key !== 'perfil') return pick({ tab: 'perfil' });
     // Sem aviso: o selinho ao lado da foto já mostra o perfil em uso
     // (bonequinho = usuário, prédio = empresa, ferramenta = prestador, caixa = fornecedor).
@@ -653,6 +653,8 @@ function Shell({ inviteTick }) {
     setMenu(false);
     if (go.cart) return dispatch({ type: 'OPEN_CART' }); // carrinho: abre a janela sobre a tela atual
     setExplore({ ...go, at: Date.now() });
+    // Conta sem biometria: só as abas de usuário que estão na tela; área de trabalho pede a biometria.
+    if (!verified) return tabs.some((t) => t.key === go.tab) ? setTab(go.tab) : dispatch({ type: 'BIO_GATE' });
     const has = (role) => TABS[role].some((t) => t.key === go.tab);
     if (has(state.activeRole)) return setTab(go.tab);
     const role = state.user.roles.find(has);
@@ -1003,7 +1005,7 @@ function Shell({ inviteTick }) {
       {/* Destacar (atalho de post/story/reel no perfil): por cima de tudo, inclusive do story aberto. */}
       <DestacarHost />
       <GiftSheet />
-      <CartSheet onOrders={() => pick({ tab: 'pedidos' })} />
+      <CartSheet onOrders={(seg) => pick({ tab: 'pedidos', ...(seg ? { seg } : {}) })} />
       {/* Compra sem saldo: janela do Pix (valor inteiro ou saldo + restante). */}
       <PixPayHost />
       <RateSheet />

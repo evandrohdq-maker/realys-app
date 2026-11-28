@@ -61,7 +61,7 @@ export default function CartSheet({ onOrders }) {
     if (!r.ok) return Alert.alert('Compra não finalizada', r.message);
     close();
     Alert.alert('Pedido confirmado! ✅', 'Pagamento protegido: o valor fica retido pelo Realyz e só é liberado para a loja quando você confirmar a entrega.', [
-      { text: 'Ver pedidos', onPress: () => onOrders && onOrders() },
+      { text: 'Ver pedidos', onPress: () => onOrders && onOrders(foodStores.length ? 'comida' : 'compras') },
       { text: 'OK' },
     ]);
   };
