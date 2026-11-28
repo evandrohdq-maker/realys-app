@@ -28,6 +28,7 @@ import { conectado } from '../serverShop';
 import { openServerProfile } from './ServerProfile';
 import { refreshFriends, useServerFriends } from '../serverFriends';
 import { artistByRef } from '../artistShows';
+import { guardarBusca, tirarBusca, limparBuscas, useBuscasRecentes } from '../buscasRecentes';
 
 // Foto do perfil: tocar abre os stories da pessoa (anel dourado = tem story novo);
 // segurar mostra a foto de perfil grande. Sem story, tocar também mostra a foto.
@@ -601,7 +602,23 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
   const srv = useServerPeople(q);
   const requests = members.filter((m) => state.friends[m.id] === 'recebido');
   const suggestions = members.filter((m) => !state.friends[m.id]).sort((a, b) => b.mutual - a.mutual).slice(0, 4);
-  const open = (m) => dispatch({ type: 'OPEN_PROFILE', id: m.id });
+  // Buscas recentes (como no Instagram): o que procurou e os perfis que abriu pela busca.
+  const dono = state.user ? state.user.id || state.user.login || state.user.name : null;
+  const recentes = useBuscasRecentes(dono);
+  const buscar = (t) => {
+    const v = String(t || '').trim();
+    setSearched(v);
+    if (v) guardarBusca(dono, { texto: v });
+  };
+  const open = (m) => {
+    guardarBusca(dono, { texto: m.name, sub: m.handle ? `*${m.handle}` : null, foto: m.photo || null, abrir: 'm:' + m.id });
+    dispatch({ type: 'OPEN_PROFILE', id: m.id });
+  };
+  const abrirRecente = (r) => {
+    if (r.abrir && r.abrir.startsWith('m:')) return dispatch({ type: 'OPEN_PROFILE', id: r.abrir.slice(2) });
+    setQ(r.texto);
+    buscar(r.texto);
+  };
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}><KeyboardLift style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -619,7 +636,7 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
                 setQ(t);
                 if (!t) setSearched('');
               }}
-              onSubmitEditing={() => setSearched(q.trim())}
+              onSubmitEditing={() => buscar(q)}
               autoFocus
               placeholder="Buscar por nome, *usuário ou perfil (ex.: gamer)"
               placeholderTextColor={colors.muted}
@@ -632,7 +649,7 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
                 <Ionicons name="close-circle" size={18} color={colors.muted} />
               </TouchableOpacity>
             ) : null}
-            <TouchableOpacity onPress={() => setSearched(q.trim())} accessibilityLabel="Pesquisar" style={{ marginLeft: 8 }}>
+            <TouchableOpacity onPress={() => buscar(q)} accessibilityLabel="Pesquisar" style={{ marginLeft: 8 }}>
               <Ionicons name="search-circle" size={26} color={colors.primary} />
             </TouchableOpacity>
             <TouchableOpacity
@@ -640,7 +657,7 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
                 const said = await listenOnce('Quem você procura?');
                 if (said) {
                   setQ(said);
-                  setSearched(said);
+                  buscar(said);
                 }
               }}
               accessibilityLabel="Pesquisar por voz"
@@ -662,6 +679,36 @@ export function PeopleSearchModal({ visible, onClose, navigate }) {
           ) : null}
           {q.trim() && srv.loading && !srv.found.length ? <Text style={styles.tip}>Procurando nas contas do Realyz…</Text> : null}
           {q.trim() && srv.err ? <Text style={styles.tip}>Não consegui buscar nas contas do Realyz ({srv.err}). Puxe para atualizar ou tente de novo.</Text> : null}
+          {!q.trim() && recentes.length ? (
+            <>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={[styles.section, { flex: 1 }]}>Recentes</Text>
+                <TouchableOpacity onPress={() => limparBuscas(dono)} accessibilityLabel="Limpar todas as buscas recentes">
+                  <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13, marginTop: 10 }}>Limpar tudo</Text>
+                </TouchableOpacity>
+              </View>
+              {recentes.slice(0, 8).map((r) => (
+                <View key={r.at} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 7 }}>
+                  <TouchableOpacity style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }} onPress={() => abrirRecente(r)} accessibilityLabel={`Buscar de novo: ${r.texto}`}>
+                    {r.foto ? (
+                      <Photo uri={r.foto} style={{ width: 42, height: 42, borderRadius: 21 }} fallback="🙂" />
+                    ) : (
+                      <View style={{ width: 42, height: 42, borderRadius: 21, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' }}>
+                        <Ionicons name="time-outline" size={20} color={colors.text} />
+                      </View>
+                    )}
+                    <View style={{ flex: 1, marginLeft: 12 }}>
+                      <Text numberOfLines={1} style={{ color: colors.text, fontSize: 14.5 }}>{r.texto}</Text>
+                      {r.sub ? <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 12.5 }}>{r.sub}</Text> : null}
+                    </View>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => tirarBusca(dono, r.at)} style={{ padding: 8 }} accessibilityLabel={`Tirar ${r.texto} das buscas recentes`}>
+                    <Ionicons name="close" size={18} color={colors.muted} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </>
+          ) : null}
           {/* Seus amigos de verdade primeiro (tocar em "Amigos" no perfil abre aqui). */}
           {!q.trim() && srv.on && srv.friends.length ? (
             <>

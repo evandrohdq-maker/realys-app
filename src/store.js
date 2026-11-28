@@ -1775,6 +1775,11 @@ function baseReducer(state, a) {
       };
     }
     // Pegar cupom: vira crédito promocional da loja e desconta sozinho no carrinho.
+    // Cupom de boas-vindas (janela "Ofertas especiais só para você", src/components/CuponsBoasVindas.js).
+    case 'WELCOME_COUPONS': {
+      if ((state.promoCredits || []).some((pc) => pc.source === 'boas-vindas')) return state;
+      return { ...state, promoCredits: [{ id: newId('pc'), used: false, source: 'boas-vindas', ...a.coupon }, ...(state.promoCredits || [])] };
+    }
     case 'COLLECT_COUPON': {
       const c = a.coupon;
       if ((state.promoCredits || []).some((pc) => pc.offerId === c.id)) return state;

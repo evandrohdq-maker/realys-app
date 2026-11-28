@@ -50,6 +50,21 @@ export function buildNotifs(state) {
   return out.sort((a, b) => (b.at || Date.now()) - (a.at || Date.now())).slice(0, 40);
 }
 
+// Separação por dia, como no Instagram: Hoje, Ontem, Esta semana e Anteriores (sem data = agora).
+const inicioDoDia = (ts) => {
+  const d = new Date(ts);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+};
+export function grupoDaNotif(n, agora = Date.now()) {
+  const hoje = inicioDoDia(agora);
+  const at = n.at || agora;
+  if (at >= hoje) return 'Hoje';
+  if (at >= hoje - DAY) return 'Ontem';
+  if (at >= hoje - 6 * DAY) return 'Esta semana';
+  return 'Anteriores';
+}
+
 export const unseenNotifs = (state) => buildNotifs(state).filter((n) => !(state.notifSeen || {})[n.id]).length;
 
 export default function NotifList({ onDep, onGo }) {
@@ -68,11 +83,14 @@ export default function NotifList({ onDep, onGo }) {
   }
   return (
     <View>
-      {list.map((n) => {
+      {list.map((n, i) => {
         const fresh = !seen[n.id];
+        const grupo = grupoDaNotif(n);
+        const titulo = i === 0 || grupoDaNotif(list[i - 1]) !== grupo ? <Text style={st.grupo}>{grupo}</Text> : null;
         return (
+          <React.Fragment key={n.id}>
+          {titulo}
           <TouchableOpacity
-            key={n.id}
             style={st.row}
             activeOpacity={n.go ? 0.7 : 1}
             onPress={() => (n.go ? go(n.go) : null)}
@@ -88,6 +106,7 @@ export default function NotifList({ onDep, onGo }) {
             {fresh ? <View style={st.dot} /> : null}
             {n.go ? <Ionicons name="chevron-forward" size={15} color={colors.muted} style={{ marginLeft: 6 }} /> : null}
           </TouchableOpacity>
+          </React.Fragment>
         );
       })}
     </View>
@@ -95,6 +114,7 @@ export default function NotifList({ onDep, onGo }) {
 }
 
 const st = StyleSheet.create({
+  grupo: { color: colors.text, fontWeight: '800', fontSize: 15, marginTop: 14, marginBottom: 2 },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
   icon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' },
   text: { color: colors.text, fontSize: 13.5, fontWeight: '600' },

@@ -124,6 +124,7 @@ import { onLiveKeep } from './src/liveKeep';
 import { ComprasGateModal, useComprasStatus } from './src/components/ComprasGate';
 import { useCarteiraReal } from './src/serverShop';
 import { DestacarHost } from './src/components/Destacar';
+import CuponsBoasVindas from './src/components/CuponsBoasVindas';
 import { atualizarMeiValores } from './src/meiValoresSync';
 import { installCameraPick } from './src/web/cameraPick';
 // Site: escolhe a webcam de verdade sozinho (pula DroidCam, OBS e outras câmeras virtuais).
@@ -1005,6 +1006,8 @@ function Shell({ inviteTick }) {
       {/* Destacar (atalho de post/story/reel no perfil): por cima de tudo, inclusive do story aberto. */}
       <DestacarHost />
       <GiftSheet />
+      {/* Ofertas de boas-vindas (cupom + primeira tele grátis): uma vez por conta, no perfil de usuário. */}
+      <CuponsBoasVindas />
       <CartSheet onOrders={(seg) => pick({ tab: 'pedidos', ...(seg ? { seg } : {}) })} />
       {/* Compra sem saldo: janela do Pix (valor inteiro ou saldo + restante). */}
       <PixPayHost />
