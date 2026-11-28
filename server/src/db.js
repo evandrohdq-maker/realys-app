@@ -1555,6 +1555,17 @@ const MIGRATIONS = [
   ALTER TABLE media ADD COLUMN hash TEXT;
   CREATE INDEX media_hash ON media(hash);
   `,
+  // Visualização única / duas vezes (foto, vídeo e áudio da conversa): vistas_max = quantas vezes quem
+  // recebe pode abrir (NULL = sem limite); quando acabam, o arquivo é apagado do servidor.
+  // apagar_em: prazo para apagar mesmo se o app não avisar que fechou (celular sem internet, app fechado).
+  // media.efemera: arquivo de visualização limitada (não fica guardado no cache do celular).
+  `
+  ALTER TABLE messages ADD COLUMN vistas_max INTEGER;
+  ALTER TABLE messages ADD COLUMN vistas INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE messages ADD COLUMN apagar_em INTEGER;
+  ALTER TABLE media ADD COLUMN efemera INTEGER NOT NULL DEFAULT 0;
+  CREATE INDEX IF NOT EXISTS messages_apagar ON messages(apagar_em) WHERE apagar_em IS NOT NULL;
+  `,
 ];
 
 export function openDb(file) {

@@ -2,10 +2,13 @@
 import { moderateText, antiDesvio } from '../moderacaoTexto.js';
 import { fail, newId, now, str, oneOf } from '../http.js';
 import { makePaginas } from '../paginas.js';
+import { rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { mediaIdOf } from './media.js';
 
 const pair = (a, b) => (a < b ? [a, b] : [b, a]);
 
-export default function socialRoutes(r, { db, hub, userById, publicUser, atendente, protecao, crm, push }) {
+export default function socialRoutes(r, { db, cfg, hub, userById, publicUser, atendente, protecao, crm, push }) {
   const PG = makePaginas(db);
   const friendship = (a, b) => {
     const [x, y] = pair(a, b);
@@ -435,6 +438,38 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     return { ok: true };
   }, { auth: false });
   if (hub.onConnect) hub.onConnect(marcarEntregues);
+  // ── Visualização única / duas vezes (foto, vídeo e áudio entre amigos) ──
+  // Quem manda escolhe: 'unica' (abre 1 vez), 'duas' (abre 2 vezes) ou 'livre' (sem limite, como antes).
+  // O endereço do arquivo nunca vai na conversa: quem recebe pede para abrir (POST /messages/:id/abrir),
+  // o servidor conta a vista e, quando acabam, apaga o arquivo do disco (economiza espaço no servidor).
+  const VISTAS = { unica: 1, duas: 2 };
+  const DIA = 24 * 60 * 60 * 1000;
+  const PRAZO_DEPOIS_DE_ABRIR = 10 * 60 * 1000; // abriu a última vez: some em até 10 min, mesmo sem o app avisar
+  const PRAZO_SEM_ABRIR = 30 * DIA; // nunca abriu: o arquivo é apagado depois de 30 dias
+  const mediaDir = join((cfg && cfg.dataDir) || '.', 'media');
+  const apagarMidiaDaMsg = (m) => {
+    if (m.media) {
+      const id = mediaIdOf(m.media);
+      // Arquivo repetido (link para o mesmo arquivo): apagar este endereço não apaga o dos outros.
+      rmSync(join(mediaDir, id), { force: true });
+      db.prepare(`UPDATE media SET moderacao = 'removido' WHERE id = ?`).run(id);
+    }
+    db.prepare('UPDATE messages SET media = NULL, apagar_em = NULL WHERE id = ?').run(m.id);
+  };
+  const limparVencidas = () => {
+    for (const m of db.prepare('SELECT id, media FROM messages WHERE apagar_em IS NOT NULL AND apagar_em <= ? LIMIT 200').all(now())) apagarMidiaDaMsg(m);
+  };
+  const timerVistas = setInterval(() => {
+    try {
+      limparVencidas();
+    } catch (e) {}
+  }, 5 * 60 * 1000);
+  if (timerVistas.unref) timerVistas.unref();
+  // Mensagem com limite: sem o endereço do arquivo, com quantas vezes ainda pode abrir.
+  const comLimite = (m, max, vistas) => {
+    if (!max) return m;
+    return { ...m, media: null, efemera: { max, vistas: vistas || 0, restam: Math.max(0, max - (vistas || 0)) } };
+  };
   const msgView = (m) => ({ id: m.id, clientId: m.client_id || undefined, from: m.from_id, to: m.to_id, text: m.text, media: m.media, mediaType: m.media_type, at: m.created_at, deliveredAt: m.delivered_at || null, readAt: m.read_at || null });
   r.post('/messages', ({ body, user }) => {
     const to = target(body.toId);
@@ -449,6 +484,7 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     // Foto, vídeo ou áudio (enviado antes em PUT /media?uso=privado): a mensagem pode ser só a mídia.
     const media = typeof body.media === 'string' && /^\/media\/md_[\w-]+(\.[a-z0-9]{2,4})?$/i.test(body.media) ? body.media : null;
     const mediaType = media ? (['foto', 'video', 'audio'].includes(body.mediaType) ? body.mediaType : 'foto') : null;
+    const vistasMax = media ? VISTAS[body.visualizacao] || null : null;
     const text = media ? String(body.text || '').trim().slice(0, 2000) : str(body.text, 'a mensagem', { max: 2000 });
     const msg = { id, from: user.id, to: to.id, text, media, mediaType, at: now() };
     // Conversa privada: o conteúdo é das duas pessoas, mas racismo, ódio e sexual com menores nunca passam.
@@ -477,11 +513,23 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     }
     // Mídia só entre amigos (em conversa de negócio, catálogo e fotos vão pelos caminhos da loja).
     if (media && (!amigos || vende || negocio(to))) fail(403, 'Foto, vídeo e áudio são liberados na conversa entre amigos.', 'midia_amigos');
+    // Visualização limitada: o arquivo vai ser apagado, então tem que ser um envio novo desta pessoa,
+    // que não está em nenhuma outra mensagem ou post.
+    if (vistasMax) {
+      const mid = mediaIdOf(media);
+      const md = db.prepare('SELECT owner_id, uso FROM media WHERE id = ?').get(mid);
+      const like = `/media/${mid}%`;
+      const usada = db.prepare('SELECT 1 FROM messages WHERE media LIKE ? LIMIT 1').get(like) || db.prepare('SELECT 1 FROM posts WHERE media LIKE ? LIMIT 1').get(like);
+      if (!md || md.owner_id !== user.id || md.uso !== 'privado' || usada) fail(400, 'Para mandar com visualização limitada, envie a foto ou o áudio de novo.', 'midia_reusada');
+      db.prepare('UPDATE media SET efemera = 1 WHERE id = ?').run(mid);
+    }
     // App de quem recebe aberto agora: já chega no aparelho dele (entregue).
     msg.clientId = clientId || undefined;
     msg.deliveredAt = hub.online(to.id) ? msg.at : null;
     msg.readAt = null;
-    db.prepare('INSERT INTO messages (id, from_id, to_id, text, created_at, media, media_type, client_id, delivered_at) VALUES (?,?,?,?,?,?,?,?,?)').run(id, user.id, to.id, msg.text, msg.at, media, mediaType, clientId, msg.deliveredAt);
+    db.prepare('INSERT INTO messages (id, from_id, to_id, text, created_at, media, media_type, client_id, delivered_at, vistas_max, apagar_em) VALUES (?,?,?,?,?,?,?,?,?,?,?)').run(id, user.id, to.id, msg.text, msg.at, media, mediaType, clientId, msg.deliveredAt, vistasMax, vistasMax ? msg.at + PRAZO_SEM_ABRIR : null);
+    // Com limite: nem quem manda nem quem recebe recebem o endereço do arquivo.
+    if (vistasMax) Object.assign(msg, comLimite(msg, vistasMax, 0));
     hub.send(to.id, 'message', { ...msg, fromName: user.name });
     // CRM: conversa de cliente com empresa/prestador abre (ou atualiza) o atendimento sozinha.
     if (crm && msg.text) {
@@ -510,7 +558,7 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
     ).all(user.id, user.id, user.id).map((c) => {
       const last = db.prepare('SELECT * FROM messages WHERE (from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?) ORDER BY created_at DESC LIMIT 1').get(user.id, c.other, c.other, user.id);
       const unread = db.prepare('SELECT COUNT(*) AS n FROM messages WHERE from_id = ? AND to_id = ? AND read_at IS NULL').get(c.other, user.id).n;
-      const rotulo = { foto: '📷 Foto', video: '🎬 Vídeo', audio: '🎤 Áudio' }[last.media_type];
+      const rotulo = ({ foto: '📷 Foto', video: '🎬 Vídeo', audio: '🎤 Áudio' }[last.media_type] || '') + (last.vistas_max === 1 ? ' · visualização única' : last.vistas_max === 2 ? ' · 2 visualizações' : '') || undefined;
       return { with: pub(userById(c.other)), last: { text: last.text || rotulo || '', from: last.from_id, at: last.created_at, deliveredAt: last.delivered_at || null, readAt: last.read_at || null }, unread };
     });
   });
@@ -526,8 +574,33 @@ export default function socialRoutes(r, { db, hub, userById, publicUser, atenden
       db.prepare('UPDATE messages SET read_at = ?, delivered_at = COALESCE(delivered_at, ?) WHERE from_id = ? AND to_id = ? AND read_at IS NULL').run(at, at, other, user.id);
       avisarSinal(novas, 'lida', at);
     }
-    return db.prepare('SELECT id, client_id AS clientId, from_id AS "from", to_id AS "to", text, media, media_type AS mediaType, created_at AS at, delivered_at AS deliveredAt, read_at AS readAt, ia FROM messages WHERE ((from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?)) AND created_at < ? ORDER BY created_at DESC LIMIT 100')
-      .all(user.id, other, other, user.id, before).reverse();
+    limparVencidas();
+    return db.prepare('SELECT id, client_id AS clientId, from_id AS "from", to_id AS "to", text, media, media_type AS mediaType, created_at AS at, delivered_at AS deliveredAt, read_at AS readAt, ia, vistas_max AS vistasMax, vistas FROM messages WHERE ((from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?)) AND created_at < ? ORDER BY created_at DESC LIMIT 100')
+      .all(user.id, other, other, user.id, before)
+      .reverse()
+      .map(({ vistasMax, vistas, ...m }) => comLimite(m, vistasMax, vistas));
+  });
+
+  // Abrir foto/vídeo/áudio com visualização limitada (só quem recebeu). Conta uma vista e devolve o
+  // endereço do arquivo. Na última vista o arquivo some quando o app fechar a tela (ou em até 10 min).
+  r.post('/messages/:id/abrir', ({ params, user }) => {
+    const m = db.prepare('SELECT * FROM messages WHERE id = ? AND to_id = ?').get(String(params.id), user.id);
+    if (!m || !m.vistas_max) fail(404, 'Mensagem não encontrada.');
+    if (m.vistas >= m.vistas_max || !m.media) fail(410, 'Essa mídia já foi aberta e não está mais disponível.', 'ja_vista');
+    const vistas = m.vistas + 1;
+    const acabou = vistas >= m.vistas_max;
+    db.prepare('UPDATE messages SET vistas = ?, apagar_em = ? WHERE id = ?').run(vistas, acabou ? now() + PRAZO_DEPOIS_DE_ABRIR : m.apagar_em, m.id);
+    // Quem mandou vê na hora que foi aberta.
+    hub.send(m.from_id, 'message_vista', { id: m.id, with: m.to_id, vistas, max: m.vistas_max });
+    return { id: m.id, media: m.media, mediaType: m.media_type, efemera: { max: m.vistas_max, vistas, restam: m.vistas_max - vistas } };
+  });
+  // Fechou a tela da mídia: se era a última vista, o arquivo é apagado do servidor agora.
+  r.post('/messages/:id/fechar', ({ params, user }) => {
+    const m = db.prepare('SELECT * FROM messages WHERE id = ? AND to_id = ?').get(String(params.id), user.id);
+    if (!m || !m.vistas_max) fail(404, 'Mensagem não encontrada.');
+    const acabou = m.vistas >= m.vistas_max;
+    if (acabou && m.media) apagarMidiaDaMsg(m);
+    return { apagada: acabou };
   });
 
   // ── Denúncias (fake news, golpe, perfil falso) ──

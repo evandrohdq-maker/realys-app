@@ -142,7 +142,8 @@ export default function mediaRoutes(r, { db, cfg, hub, ff }) {
     if (!m || !existsSync(file)) fail(404, 'Arquivo não encontrado.');
     // Em revisão ou removido: não aparece para ninguém até a equipe liberar.
     if (m.moderacao && m.moderacao !== 'liberado') fail(404, 'Arquivo em análise.');
-    const headers = { 'Content-Type': m.mime, 'Cache-Control': 'public, max-age=31536000, immutable', 'Accept-Ranges': 'bytes', 'Access-Control-Allow-Origin': cfg.corsOrigin };
+    // Visualização única / duas vezes: o celular e o navegador não guardam cópia do arquivo.
+    const headers = { 'Content-Type': m.mime, 'Cache-Control': m.efemera ? 'private, no-store' : 'public, max-age=31536000, immutable', 'Accept-Ranges': 'bytes', 'Access-Control-Allow-Origin': cfg.corsOrigin };
     const range = /bytes=(\d*)-(\d*)/.exec(req.headers.range || '');
     if (range) {
       const start = range[1] ? Number(range[1]) : 0;
