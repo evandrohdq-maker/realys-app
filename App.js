@@ -705,7 +705,7 @@ function Shell({ inviteTick }) {
       currentKey={current.key}
       onTab={pressTab}
       onLotus={() => setVoice(true)}
-      onMenu={openMenuAnywhere}
+      onMenu={() => openProfileMenu({ seg: 'explorar' })}
       onProfile={tapProfile}
       profileOn={current.key === 'perfil'}
       onOrders={() => pick({ tab: 'pedidos' })}
@@ -725,7 +725,7 @@ function Shell({ inviteTick }) {
             const home = tabs.find((t) => t.key === 'stories');
             if (home) return pressTab(home);
             if (state.activeRole === 'empresa') return goCommunity();
-            setExplore({ tab: 'stories', at: Date.now() });
+            pick({ tab: 'stories' });
           }}
         >
           <Image source={require('./assets/logo-mark.png')} style={styles.logoImg} />

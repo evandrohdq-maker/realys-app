@@ -27,7 +27,7 @@ Destinos do app:
 - Carteira → {"tab":"perfil","wallet":true} (fala: carteira, minha carteira, carteira digital, extrato)
 - Carrinho → {"tab":"home","cart":true} (fala: carrinho, meu carrinho, cesta, minha cesta)
 - Biometria facial → {"tab":"perfil","biometria":true} (fala: biometria, biometria facial, reconhecimento facial, minha biometria)
-- Feed → {"tab":"inicio"} (fala: feed, meu feed, feeds)
+- Feed → {"tab":"stories"} (fala: feed, meu feed, feeds)
 - Visão geral → {"tab":"geral"} (fala: visao geral, painel geral, resumo do sistema)
 - Mercado admin → {"tab":"mercado"} (fala: mercado admin, gestao do mercado, painel do mercado)
 - Eventos → {"tab":"home","top":"eventos"} (fala: eventos, evento, festas, baladas)

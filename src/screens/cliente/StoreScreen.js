@@ -77,6 +77,7 @@ export default function StoreScreen({ openVoice, goTo, explore, navigate, food }
   // Veio do menu ⋮ (ex.: Restaurantes → Pizzaria)
   useEffect(() => {
     if (!explore) return;
+    setOpenStore(null); // loja aberta antes não fica na frente do que foi pedido
     if (explore.cat) setCat(food ? foodFilterOf(explore.cat) : explore.cat);
     if (explore.q !== undefined) setQ(explore.q);
     if (food && explore.mode) {

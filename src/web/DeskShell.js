@@ -100,6 +100,7 @@ const SHORTCUTS = [
   { top: 'noticias', label: 'News', icon: 'newspaper-outline' },
   { top: 'eventos', label: 'Eventos', icon: 'sparkles-outline' },
   { top: 'stream', label: 'Play', icon: 'play-circle-outline' },
+  { top: 'trends', label: 'Trends', icon: 'flame-outline' },
   { top: 'lives', label: 'Lives', icon: 'radio-outline', red: true },
 ];
 

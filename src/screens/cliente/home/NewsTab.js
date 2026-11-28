@@ -1,7 +1,7 @@
 // Notícias e Alertas do portal (topo da Community).
 // Alertas oficiais primeiro (Defesa Civil, INMET, Cemaden), com "o que fazer", ligar e "Estou seguro".
 // Depois relatos de moradores (moderados), lives de noticiário e as notícias por assunto.
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { KeyboardLift } from '../../../keyboard';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, Share, Linking } from 'react-native';
 import { Text, TextInput } from '../../../responsive';
@@ -19,10 +19,14 @@ import ClimaCard from '../../../components/ClimaCard';
 
 const fmt = (n) => n.toLocaleString('pt-BR');
 
-export default function NewsTab({ onWatch, navigate }) {
+export default function NewsTab({ onWatch, navigate, explore }) {
   const { state, dispatch } = useStore();
   const live = useLiveNews(); // notícias (Agência Brasil) e alertas (INMET) de verdade
   const [cat, setCat] = useState('todas');
+  // Veio da Lotus ou de um atalho com categoria (ex.: "vai chover?" → clima, "alertas").
+  useEffect(() => {
+    if (explore && explore.tab === 'stories' && explore.top === 'noticias' && explore.cat) setCat(explore.cat);
+  }, [explore]);
   const [open, setOpen] = useState(null);
   const [reporting, setReporting] = useState(false);
   // Página discreta: em "Todas" os alertas aparecem só como uma faixa de uma linha cada; os cartões

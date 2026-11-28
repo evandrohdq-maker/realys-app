@@ -144,7 +144,7 @@ export function CommunityExtras({ top, explore, navigate }) {
       {top === 'eventos' ? <EventsTab group={evGroup} setGroup={setEvGroup} onContact={contactAdvertiser} /> : null}
       {top === 'promo' ? <PromoTab /> : null}
       {top === 'anuncios' ? <AdsTab kind={kind} setKind={setKind} onContact={contactAdvertiser} /> : null}
-      {top === 'noticias' ? <NewsTab onWatch={(l) => setLive({ live: l, mine: false })} navigate={navigate} /> : null}
+      {top === 'noticias' ? <NewsTab onWatch={(l) => setLive({ live: l, mine: false })} navigate={navigate} explore={explore} /> : null}
       {top === 'stream' ? <StreamTab seg={streamSeg} setSeg={setStreamSeg} navigate={navigate} /> : null}
       {top === 'trends' ? <TrendsTab navigate={navigate} /> : null}
       {top === 'lives' ? <LivesTab filter={liveFilter} setFilter={setLiveFilter} onWatch={(l) => setLive({ live: l, mine: false })} onGoLive={() => setLive({ live: null, mine: true })} navigate={navigate} /> : null}
@@ -1193,7 +1193,7 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
           ))}
         </View>
       ) : null}
-      <PeopleSearchModal visible={searching} onClose={() => setSearching(false)} />
+      <PeopleSearchModal visible={searching} onClose={() => setSearching(false)} navigate={(go) => dispatch({ type: 'NAV_REQUEST', go })} />
     </Screen>
   );
 }

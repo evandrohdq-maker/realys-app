@@ -150,7 +150,8 @@ function NextJob({ item, now, onOpen }) {
 }
 
 const openRoute = (address) =>
-  Linking.openURL(`geo:0,0?q=${encodeURIComponent(address)}`).catch(() =>
+  // No site o geo: não abre nada (e não dá erro): vai direto para o Google Maps.
+  (Platform.OS === 'web' ? Promise.reject() : Linking.openURL(`geo:0,0?q=${encodeURIComponent(address)}`)).catch(() =>
     Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`).catch(() => {})
   );
 

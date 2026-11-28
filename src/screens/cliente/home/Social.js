@@ -401,7 +401,6 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
   // Só no computador: minha câmera numa janelinha do navegador (Picture-in-Picture). A tela da live some,
   // dá para navegar no Realyz e a transmissão continua. Fechar a janelinha volta para a live.
   const [mini, setMini] = useState(false);
-  const podePip = !!(mine && onAir && realId && (source === 'camera' || (source === 'tela' && camOver)) && openPip && Platform.OS === 'web' && Dimensions.get('window').width >= 1000);
   const abrirPip = async () => {
     const w = await openPip('minha-live', () => setMini(false));
     if (w) setMini(true), setLiveKeep(true);
@@ -411,6 +410,7 @@ export function LiveModal({ live: liveProp, mine, visible, onClose, userName }) 
   const [source, setSource] = useState('camera');
   // Live de tela no computador: a webcam vai num cantinho por cima do jogo (dá para desligar).
   const [camOver, setCamOver] = useState(true);
+  const podePip = !!(mine && onAir && realId && (source === 'camera' || (source === 'tela' && camOver)) && openPip && Platform.OS === 'web' && Dimensions.get('window').width >= 1000);
   // Cortina ao abrir o jogo: tempo (s) que a tela fica escondida depois de sair do Realyz,
   // para a tela inicial e os aplicativos do celular não aparecerem na live.
   const [curtainSecs, setCurtainSecs] = useState(10);

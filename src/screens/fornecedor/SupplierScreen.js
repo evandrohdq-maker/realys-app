@@ -315,7 +315,7 @@ function MyProducts({ items, form, setForm }) {
   const promos = items.filter(hasPromo).length;
   const feats = items.filter((i) => i.featured).length;
 
-  if (form) return <ItemForm initial={form === 'novo' ? null : form} onClose={() => setForm(null)} />;
+  if (form) return <ItemForm key={form === 'novo' ? 'novo' : form.id} initial={form === 'novo' ? null : form} onClose={() => setForm(null)} />;
 
   return (
     <View>

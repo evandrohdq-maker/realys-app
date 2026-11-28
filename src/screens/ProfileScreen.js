@@ -112,7 +112,7 @@ const WORK_LINKS = {
   ],
   fornecedor: [
     ['propostas', 'Propostas', 'cube-outline'],
-    ['inicio', 'Início', 'home-outline'],
+    ['stories', 'Início', 'home-outline'],
   ],
 };
 const WORK_TITLE = { empresa: 'Perfil empresarial', prestador: 'Perfil profissional', fornecedor: 'Perfil de fornecedor' };
@@ -204,9 +204,9 @@ export default function ProfileScreen({ navigate, explore, soMenu = false }) {
   useEffect(
     () =>
       soMenu
-        ? onProfileMenu(() => {
+        ? onProfileMenu((opts) => {
             returnTo.current = null;
-            setMenuSeg('conta');
+            setMenuSeg((opts && opts.seg) || 'conta');
             setMenuOpen(true);
           })
         : undefined,
@@ -258,6 +258,7 @@ export default function ProfileScreen({ navigate, explore, soMenu = false }) {
   const priv = state.privacy;
   // "Lotus, abre minha carteira": já abre a carteira.
   useEffect(() => {
+    if (soMenu) return; // a cópia do menu ⋮ não abre outra janela igual
     if (explore && explore.tab === 'perfil' && explore.wallet) setWalletOpen(true);
     if (explore && explore.tab === 'perfil' && explore.biometria) setBioOpen(true);
   }, [explore]);
