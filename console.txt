@@ -1,0 +1,17 @@
+[warning] Animated: `useNativeDriver` is not supported because the native animated module is missing. Falling back to JS-based animation. To resolve this, add `RCTAnimation` module to this app, or remove `useNativeDriver`. Make sure to run `bundle exec pod install` first. Read more about autolinking: https://github.com/react-native-community/cli/blob/master/docs/autolinking.md
+[error] Failed to load resource: the server responded with a status of 401 ()
+[error] Failed to load resource: the server responded with a status of 401 ()
+[entrar] locator.click: Timeout 30000ms exceeded.
+[janela carteira] locator.click: Timeout 5000ms exceeded.
+Call log:
+  - waiting for getByLabel('Abrir a carteira').first()
+
+[janela explorar] locator.click: Timeout 5000ms exceeded.
+Call log:
+  - waiting for getByLabel('Explorar o Realyz: todas as áreas').first()
+
+[aba Shop] locator.click: Timeout 5000ms exceeded.
+[aba Food] locator.click: Timeout 5000ms exceeded.
+[aba Serviços] locator.click: Timeout 5000ms exceeded.
+[aba Negócios] locator.click: Timeout 5000ms exceeded.
+[aba Pedidos] locator.click: Timeout 5000ms exceeded.
