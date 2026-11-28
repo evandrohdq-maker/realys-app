@@ -1,6 +1,8 @@
 // "Conheça o Realyz": no topo da Community, nas primeiras vezes que a pessoa entra.
-// - O vídeo de apresentação (57 s), que abre em tela cheia.
+// - O vídeo de apresentação (quase 2 min, com música), que abre em tela cheia. É responsivo: em pé no
+//   celular (apresentacao.mp4) e deitado no computador ou tablet deitado (apresentacao-horizontal.mp4).
 // - O significado do app em slides (arrasta para o lado).
+// - "Como funciona": Shop, Food, Serviços e Corridas em abas (src/components/ComoFunciona.js).
 // - As notícias da construção do Realyz.
 // Some quando a pessoa toca em "Já conheço" (fica guardado no aparelho) ou depois de 10 aberturas.
 // O vídeo e a capa ficam no site (tools/site/paginas → realyz.com.br/apresentacao.mp4).
@@ -11,10 +13,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text } from '../responsive';
 import { colors, soft } from '../theme';
 import { openMedia } from './MediaViewer';
+import { ComoFuncionaAbas } from './ComoFunciona';
 
 const SITE = 'https://realyz.com.br';
 const VIDEO = SITE + '/apresentacao.mp4';
+const VIDEO_H = SITE + '/apresentacao-horizontal.mp4';
 const CAPA = SITE + '/apresentacao.jpg';
+const CAPA_H = SITE + '/apresentacao-horizontal.jpg';
 const KEY = 'realys.conheca.v1';
 const MAX_ABERTURAS = 10;
 
@@ -41,7 +46,9 @@ export const CONSTRUCAO = [
 export default function ConhecaRealyz() {
   const [mostrar, setMostrar] = useState(false);
   const [tudo, setTudo] = useState(false);
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
+  // Tela deitada e larga (computador, tablet deitado): vídeo deitado. Celular em pé: vídeo em pé.
+  const deitado = width > height && width >= 700;
   const slideW = Math.min(300, Math.round(width * 0.72));
 
   useEffect(() => {
@@ -66,7 +73,7 @@ export default function ConhecaRealyz() {
       .then((t) => AsyncStorage.setItem(KEY, JSON.stringify({ ...(JSON.parse(t || '{}') || {}), fechado: true })))
       .catch(() => {});
   };
-  const assistir = () => openMedia([{ video: VIDEO, poster: CAPA, title: 'Realyz: estamos chegando em Passo Fundo', sub: 'Pessoas reais. Negócios reais.' }]);
+  const assistir = () => openMedia([{ video: deitado ? VIDEO_H : VIDEO, poster: deitado ? CAPA_H : CAPA, title: 'Realyz: estamos chegando em Passo Fundo', sub: 'Pessoas reais. Negócios reais.' }]);
   const noticias = tudo ? CONSTRUCAO : CONSTRUCAO.slice(0, 3);
 
   return (
@@ -82,7 +89,7 @@ export default function ConhecaRealyz() {
       <TouchableOpacity style={st.video} onPress={assistir} activeOpacity={0.9} accessibilityLabel="Assistir o vídeo de apresentação do Realyz">
         <Image source={{ uri: CAPA }} style={st.capa} resizeMode="cover" />
         <View style={{ flex: 1, marginLeft: 14 }}>
-          <Text style={st.titulo}>Entenda o Realyz em 1 minuto</Text>
+          <Text style={st.titulo}>Entenda o Realyz em 2 minutos</Text>
           <Text style={st.texto}>Pessoas reais, negócios reais e uma cidade inteira conectada.</Text>
           <View style={st.play}>
             <Ionicons name="play" size={16} color={colors.onPrimary} />
@@ -107,6 +114,10 @@ export default function ConhecaRealyz() {
           </View>
         ))}
       </ScrollView>
+
+      {/* Como funciona: informações úteis de cada parte do app */}
+      <Text style={st.secao}>Como funciona</Text>
+      <ComoFuncionaAbas />
 
       {/* Notícias da construção */}
       <Text style={st.secao}>A construção do Realyz</Text>

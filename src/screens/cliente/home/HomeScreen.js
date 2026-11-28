@@ -1,4 +1,5 @@
 import { openProduct } from '../../../components/ProductSheet';
+import { ComoFuncionaCard } from '../../../components/ComoFunciona';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { openMedia } from '../../../components/MediaViewer';
 import { openServerProfile } from '../../../components/ServerProfile';
@@ -842,6 +843,14 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
     if (i === 2 && ongFeed) feed.push({ type: 'ong', o: ongFeed });
   }
 
+  // "Como funciona" no meio do feed: um cartão a cada 4 itens, girando entre Shop, Food, Serviços e Corridas.
+  // Feed curto (conta nova): um cartão no fim, para ninguém ficar sem saber como o Realyz funciona.
+  {
+    let k = 0;
+    for (let pos = 4; pos <= feed.length; pos += 5) feed.splice(pos, 0, { type: 'info', k: k++ });
+    if (feed.length && !k) feed.push({ type: 'info', k: 0 });
+  }
+
   // Sugestões de amizade (como no Instagram): um carrossel depois dos dois primeiros itens do feed.
   if (conectado(state) && feed.length) feed.splice(Math.min(2, feed.length), 0, { type: 'sug' });
 
@@ -917,9 +926,13 @@ function CommunityTab({ top, homeTick, seg, setSeg, convs, contactOf, onChat, on
             </View>
           ) : null}
           {!feed.length ? <SugestoesCarrossel on={conectado(state)} /> : null}
+          {/* Conta nova, feed vazio: o "Como funciona" já aparece para a pessoa conhecer o app. */}
+          {!feed.length ? [0, 1, 2, 3].map((k) => <ComoFuncionaCard key={'info-vazio' + k} indice={k} />) : null}
           {feed.map((it, idx) =>
             it.type === 'sug' ? (
               <SugestoesCarrossel key="sugestoes" on />
+            ) : it.type === 'info' ? (
+              <ComoFuncionaCard key={'info' + it.k} indice={it.k} />
             ) : it.type === 'ong' ? (
               <CampanhaCard key={'ong' + it.o.ong.id} ong={it.o.ong} c={it.o.c} compacto onOpen={() => setOngAberta(it.o.ong)} />
             ) : it.type === 'dep' ? (
