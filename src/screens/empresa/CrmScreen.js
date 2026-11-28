@@ -30,7 +30,6 @@ export default function CrmScreen({ board: firstBoard = 'empresa', boards }) {
   const leads = useCrm(board);
   const B = crmBoard(board);
   const stages = crmStages(board);
-  const sum = crmSummary(who ? leads.filter((l) => l.owner === who) : leads);
   const [stage, setStage] = useState('novo');
   const [openId, setOpenId] = useState(null);
   const [adding, setAdding] = useState(false);
@@ -38,6 +37,7 @@ export default function CrmScreen({ board: firstBoard = 'empresa', boards }) {
   const [view, setView] = useState('funil'); // funil · hoje · relatorio
   const [teamOpen, setTeamOpen] = useState(false);
   const [who, setWho] = useState(null); // filtro por funcionário (null = todos)
+  const sum = crmSummary(who ? leads.filter((l) => l.owner === who) : leads);
   const team = useTeam();
   const all = [...stages, CRM_LOST];
   const mineOf = (list) => (who ? list.filter((l) => l.owner === who) : list);

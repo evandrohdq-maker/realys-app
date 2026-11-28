@@ -120,8 +120,8 @@ export function PixPayHost() {
   const avail = Math.max(0, Math.min(+Number(req.available || 0).toFixed(2), total));
   const pixValue = mode === 'saldo' ? +(total - avail).toFixed(2) : total;
   const demoCode = `00020126580014BR.GOV.BCB.PIX0136realys-pagamentos5204000053039865406${pixValue.toFixed(2)}5802BR5906REALYS6009SAO PAULO62070503***`;
-  const code = real ? (dep && dep.pix ? dep.pix.copiaECola : dep && dep.status === 'confirmado' ? 'Depósito de teste: o valor já entrou na sua carteira.' : 'Gerando o Pix…') : demoCode;
   const real = conectado(state);
+  const code = real ? (dep && dep.pix ? dep.pix.copiaECola : dep && dep.status === 'confirmado' ? 'Depósito de teste: o valor já entrou na sua carteira.' : 'Gerando o Pix…') : demoCode;
   // Conta ligada ao servidor: o Pix é uma cobrança de verdade na conta do Realyz (ou, na fase de testes, entra na hora).
   const concluir = (w) => {
     if (w) dispatch({ type: 'SERVER_WALLET', balance: w.balance, giftCredits: w.giftCredits });

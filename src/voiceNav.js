@@ -31,7 +31,7 @@ export const NAV_TARGETS = [
   // Carrinho é uma janela (não uma aba): a Lotus abre a janela sobre a tela atual
   T('Carrinho', { tab: 'home', cart: true }, ['carrinho', 'meu carrinho', 'cesta', 'minha cesta', 'sacola', 'minha sacola']),
   T('Biometria facial', { tab: 'perfil', biometria: true }, ['biometria', 'biometria facial', 'reconhecimento facial', 'minha biometria', 'fazer biometria', 'fazer minha biometria', 'gerenciar biometria']),
-  T('Feed', { tab: 'inicio' }, ['feed', 'meu feed', 'feeds']),
+  T('Feed', { tab: 'stories' }, ['feed', 'meu feed', 'feeds']),
   T('Visão geral', { tab: 'geral' }, ['visao geral', 'painel geral', 'resumo do sistema']),
   T('Mercado admin', { tab: 'mercado' }, ['mercado admin', 'gestao do mercado', 'painel do mercado']),
 
@@ -71,7 +71,7 @@ export const NAV_TARGETS = [
   T('Compra coletiva', { tab: 'negocios' }, ['compra coletiva', 'compras coletivas', 'comprar junto']),
   T('Trends', { tab: 'stories', top: 'trends' }, ['trends', 'trend', 'tendencias', 'em alta', 'o que ta bombando', 'o que esta bombando', 'viral', 'virais', 'conteudo de ia', 'videos de ia', 'animes de ia']),
   T('News', { tab: 'stories', top: 'noticias' }, ['news', 'nius', 'nils', 'noticias', 'noticia', 'jornal', 'ultimas noticias', 'o que esta acontecendo']),
-  T('Alertas', { tab: 'stories', top: 'noticias' }, ['alertas', 'alerta', 'defesa civil', 'alerta de chuva', 'catastrofe', 'enchente', 'deslizamento', 'alagamento']),
+  T('Alertas', { tab: 'stories', top: 'noticias', cat: 'alertas' }, ['alertas', 'alerta', 'defesa civil', 'alerta de chuva', 'catastrofe', 'enchente', 'deslizamento', 'alagamento']),
   T('Atrasos de voos e trânsito', { tab: 'transporte' }, ['voos atrasados', 'atraso de voo', 'meu voo', 'aeroporto', 'estrada interditada', 'transito', 'rodovia']),
   T('Hotéis', { tab: 'home', top: 'anuncios', kind: 'hotel' }, ['hoteis', 'hotel', 'pousadas', 'pousada', 'hotelaria', 'hospedagem']),
   T('Imóveis à venda', { tab: 'home', top: 'anuncios', kind: 'imovel-venda' }, ['imoveis', 'imovel', 'imobiliaria', 'imoveis a venda']),

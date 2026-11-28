@@ -341,6 +341,7 @@ export default function ArenaScreen({ explore }) {
           </TouchableOpacity>
         </KeyboardLift></Modal>
         <MembersModal open={members} onClose={() => setMembers(false)} sv={sv} me={me} onUser={(n) => { setMembers(false); openUser(n); }} onCall={(n) => { setMembers(false); callUser(n); }} />
+        <SenhaSheet ask={senhaAsk} onClose={() => setSenhaAsk(null)} />
         <ArenaUserSheet name={userOpen} sv={sv} me={me} myRole={myRole} onClose={() => setUserOpen(null)} onCall={(n) => { setUserOpen(null); callUser(n); }} onMention={(n) => setDraft((d) => `${d}${d && !d.endsWith(' ') ? ' ' : ''}@${n} `)} />
         <CallPersonSheet name={callFor} sv={sv} me={me} onClose={() => setCallFor(null)} />
         <InviteSheet open={inviting} sv={sv} me={me} onClose={() => setInviting(false)} />
@@ -467,7 +468,7 @@ export default function ArenaScreen({ explore }) {
             </TouchableOpacity>
           ))}
         </ScrollView>
-        {voice ? <VoiceBar ch={voiceCh} sv={voiceSv} mic={mic} deaf={deaf} setMic={setMic} setDeaf={setDeaf} leave={leaveVoice} screen={sharingHere} onScreen={toggleScreen} /> : null}
+        {voice ? <VoiceBar ch={voiceCh} sv={voiceSv} mic={mic} deaf={deaf} setMic={setMic} setDeaf={setDeaf} leave={leaveVoice} screen={sharingHere} onScreen={toggleScreen} cam={camHere} onCam={toggleCam} /> : null}
       </View>
 
       <MembersModal open={members} onClose={() => setMembers(false)} sv={sv} me={me} onUser={(n) => { setMembers(false); openUser(n); }} onCall={(n) => { setMembers(false); callUser(n); }} />

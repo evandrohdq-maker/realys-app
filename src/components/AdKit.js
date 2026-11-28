@@ -420,9 +420,11 @@ export function PromoSector({ flash, coupons, combos, food, onOpenStore }) {
             <Text style={styles.headHint}>{items.length} ofertas</Text>
           </View>
           <View style={styles.grid}>
-            {items.map(({ id, p, off, sold, limit, ends }) => {
+            {items.map(({ id, p, off, sold, limit, ends, stock }) => {
               const from = p.price / (1 - off / 100);
               const pct = Math.round(sold * 100);
+              // Quantas unidades da oferta ainda sobram (padrão: lote de 20).
+              const restam = Math.max(1, Math.round((stock || 20) * (1 - sold)));
               return (
                 <View key={id} style={styles.flash}>
                   <TouchableOpacity activeOpacity={0.85} onPress={() => openProduct(p)} style={{ alignItems: 'center' }} accessibilityLabel={`Ver ${p.name}`}>
@@ -437,7 +439,7 @@ export function PromoSector({ flash, coupons, combos, food, onOpenStore }) {
                   <Text style={styles.flashPrice}>{brl(p.price)}</Text>
                   <View style={styles.soldBg}>
                     <View style={[styles.soldFill, { width: `${pct}%` }]} />
-                    <Text style={styles.soldText}>{pct >= 75 ? `🔥 ${pct}% vendido` : `${pct}% vendido`}</Text>
+                    <Text numberOfLines={1} style={styles.soldText}>{pct >= 75 ? `🔥 restam ${restam}` : `${pct}% vendido · restam ${restam}`}</Text>
                   </View>
                   <Text style={styles.ends}>
                     <Ionicons name="time-outline" size={11} color="#FF3B5C" /> {countdown(ends - now)}

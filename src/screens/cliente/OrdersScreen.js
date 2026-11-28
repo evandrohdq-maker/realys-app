@@ -13,6 +13,7 @@ import { SegTabs } from '../../components/AdKit';
 import { ProductThumb } from '../../components/ui';
 import { promoDiscount } from '../../rewards';
 import { isFoodStore } from '../../data';
+import { teleDoCarrinho } from '../../teleGratis';
 import { useBack } from '../../back';
 import { askPix } from '../../components/PixPay';
 import DeliveryTracker from '../../components/DeliveryTracker';
@@ -173,9 +174,12 @@ function CartTab({ onPaid }) {
   if (!lines.length) return <MusicCart onDone={() => onPaid(false)} />;
   const promo = promoDiscount(state, lines.map((l) => ({ ...l, product: l.p })));
   const protection = protectionFee(state);
-  const total = +(cartTotal(state) - promo.off + protection).toFixed(2);
+  const foodStores = [...new Set(lines.map((l) => storeOf(state, l.p.storeId)).filter((s) => isFoodStore(s)))];
+  const foodSubtotal = lines.filter((l) => foodStores.some((s) => s.id === l.p.storeId)).reduce((n, l) => n + l.p.price * l.qty, 0);
+  const tele = teleDoCarrinho(state, foodStores, foodSubtotal);
+  const total = +(cartTotal(state) - promo.off + protection + (tele ? tele.cliente : 0)).toFixed(2);
   const fromGift = Math.min(state.giftCredits || 0, total);
-  const hasFood = lines.some((l) => isFoodStore(storeOf(state, l.p.storeId)));
+  const hasFood = foodStores.length > 0;
   const pay = () => {
     const avail = state.wallet + (state.giftCredits || 0);
     const due = aPagar(state, total);
@@ -224,6 +228,13 @@ function CartTab({ onPaid }) {
             <Text style={styles.sumValue}>{protection ? brl(protection) : 'Grátis (Score Diamante)'}</Text>
           </Row>
         </TouchableOpacity>
+        {/* Entrega do Food: a mesma conta do carrinho do topo. */}
+        {tele ? (
+          <Row style={styles.sumRow}>
+            <Text style={[styles.sumLabel, { flex: 1 }]} numberOfLines={2}>🛵 {tele.texto}</Text>
+            <Text style={[styles.sumValue, tele.cliente === 0 && { color: colors.success }]}>{tele.cliente === 0 ? 'Grátis' : brl(tele.cliente)}</Text>
+          </Row>
+        ) : null}
         {promo.off > 0 ? (
           <Row style={styles.sumRow}>
             <Text style={styles.sumLabel}>🏷️ Créditos de parceiros</Text>

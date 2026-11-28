@@ -220,6 +220,10 @@ function Reception({ sid, me, isCompany, myQueue, onBack, onRoom, cfgFirst, onCf
   // Ainda carregando do servidor: mostra a casca da tela em vez de quebrar.
   const s = salaOf(sid) || { id: sid, server: true, tipo: 'loja', name: 'Carregando…', emoji: '💼', team: [], rooms: [], canais: [], fila: [], cfg: null, open: true };
   const [cfgOpen, setCfgOpen] = useState(!!cfgFirst);
+  // Recepção recém-aberta: a configuração abre logo (o pedido chega depois de a tela montar).
+  useEffect(() => {
+    if (cfgFirst) setCfgOpen(true);
+  }, [cfgFirst]);
   const [modOpen, setModOpen] = useState(false);
   const [senhaAsk, setSenhaAsk] = useState(null);
   const t = SALA_TIPOS[s.tipo] || SALA_TIPOS.loja;
